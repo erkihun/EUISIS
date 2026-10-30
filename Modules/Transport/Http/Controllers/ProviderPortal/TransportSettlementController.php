@@ -10,8 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Contracts\ProviderPortalSession;
-use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\Settlement\TransportSettlementService;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Domain\Enums\TransportAdjustmentOrigin;
@@ -54,7 +54,7 @@ class TransportSettlementController extends Controller
             'settlement' => (new TransportSettlementResource($settlement))->resolve(),
             'reconciliation' => $settlements->reconciliation($settlement),
             'routes' => $routes,
-            'canDispute' => ! $settlement->status->isFinal() && $this->providerUser()->canUseServicePermission('provider.transport.invoices.manage'),
+            'canDispute' => ! $settlement->status->isFinal() && app(ProviderPortalSession::class)->can(request(), 'provider.transport.invoices.manage'),
         ]);
     }
 
@@ -82,12 +82,13 @@ class TransportSettlementController extends Controller
         return $exports->settlementPdf($settlement, $exports->locale($request));
     }
 
-    private function providerUser(): ProviderUser
+    /** The signed-in portal user, recorded as the one acting. */
+    private function providerUser(): PortalActor
     {
-        /** @var ProviderUser $user */
-        $user = auth('provider')->user();
+        $actor = app(ProviderPortalSession::class)->actor(request());
+        abort_if($actor === null, 403);
 
-        return $user;
+        return $actor;
     }
 
     /** The signed-in portal user's provider, as an id, when it runs transport. */

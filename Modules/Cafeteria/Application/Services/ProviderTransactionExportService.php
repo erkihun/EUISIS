@@ -18,7 +18,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Infrastructure\Exports\ProviderPaymentClaimExport;
 use Modules\Cafeteria\Infrastructure\Exports\ProviderTransactionsExport;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -66,7 +66,7 @@ final readonly class ProviderTransactionExportService
             ->orderBy('scanned_at');
     }
 
-    public function csv(CafeteriaProvider $provider, array $filters, User|ProviderUser $actor, Request $request, bool $paymentClaim = false): StreamedResponse
+    public function csv(CafeteriaProvider $provider, array $filters, User|PortalActor $actor, Request $request, bool $paymentClaim = false): StreamedResponse
     {
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
@@ -106,7 +106,7 @@ final readonly class ProviderTransactionExportService
         ]);
     }
 
-    public function xlsx(CafeteriaProvider $provider, array $filters, User|ProviderUser $actor, Request $request, bool $paymentClaim = false): Response
+    public function xlsx(CafeteriaProvider $provider, array $filters, User|PortalActor $actor, Request $request, bool $paymentClaim = false): Response
     {
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
@@ -124,7 +124,7 @@ final readonly class ProviderTransactionExportService
         return Excel::download($export, $filename);
     }
 
-    public function pdf(CafeteriaProvider $provider, array $filters, User|ProviderUser $actor, Request $request, bool $paymentClaim = false): Response
+    public function pdf(CafeteriaProvider $provider, array $filters, User|PortalActor $actor, Request $request, bool $paymentClaim = false): Response
     {
         $locale = $this->resolveLocale($request);
         app()->setLocale($locale);
@@ -226,7 +226,7 @@ final readonly class ProviderTransactionExportService
     }
 
     /** @return array<int, array<int, mixed>> */
-    private function paymentClaimSummaryRows(array $summary, User|ProviderUser $actor): array
+    private function paymentClaimSummaryRows(array $summary, User|PortalActor $actor): array
     {
         $locale = app()->getLocale(); // set by resolveLocale() at export-method entry
         $periodStart = $this->calendar->formatDate($summary['period_start'], $locale) ?? $summary['period_start'];
@@ -256,7 +256,7 @@ final readonly class ProviderTransactionExportService
         return strtolower($prefix.'-'.$code.'-'.$startDate.'-'.$endDate.'.'.$extension);
     }
 
-    private function audit(CafeteriaProvider $provider, User|ProviderUser $actor, Request $request, array $filters, array $summary, int $rowCount, bool $paymentClaim, string $format): void
+    private function audit(CafeteriaProvider $provider, User|PortalActor $actor, Request $request, array $filters, array $summary, int $rowCount, bool $paymentClaim, string $format): void
     {
         $this->writeAuditLog->execute(
             $paymentClaim ? AuditEventType::CafeteriaProviderPaymentClaimExported : AuditEventType::CafeteriaProviderTransactionsExported,

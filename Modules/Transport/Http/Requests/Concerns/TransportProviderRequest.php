@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Exists;
 use Illuminate\Validation\Rules\Unique;
 use Modules\Providers\Contracts\ProviderDirectory;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 /**
  * Shared by the transport Form Requests, which serve two audiences:
@@ -36,12 +36,9 @@ trait TransportProviderRequest
     protected function authorizeTransport(string $adminPermission, string $portalPermission): bool
     {
         if ($this->onPortal()) {
-            /** @var ProviderUser|null $providerUser */
-            $providerUser = auth('provider')->user();
+            $portal = app(ProviderPortalSession::class);
 
-            return $providerUser !== null
-                && $providerUser->hasService('transport')
-                && $providerUser->canUseServicePermission($portalPermission);
+            return $portal->actorHasService($this, 'transport') && $portal->can($this, $portalPermission);
         }
 
         return auth('web')->user()?->can($adminPermission) ?? false;
@@ -54,7 +51,7 @@ trait TransportProviderRequest
     protected function transportProviderId(): ?string
     {
         if ($this->onPortal()) {
-            return auth('provider')->user()?->provider_id;
+            return app(ProviderPortalSession::class)->actor($this)?->providerId;
         }
 
         $requested = $this->input('provider_id');

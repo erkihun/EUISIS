@@ -63,12 +63,13 @@ class ProviderScanController extends Controller
         // longer miss a recorded scan (risk register CON-9). The ledger
         // service keeps a running balance under the provider lock instead of
         // summing the provider's whole ledger on every scan.
-        $result = DB::transaction(function () use ($action, $request, $provider, $scannedAt): array {
+        $operator = $context->actor($request);
+        $result = DB::transaction(function () use ($action, $request, $provider, $scannedAt, $operator): array {
             $result = $action->execute(
                 $request->validated('qr_token'),
                 $provider,
                 $scannedAt,
-                $request->user(),
+                $operator,
                 $request,
                 [
                     'usage_mode' => $request->validated('usage_mode'),

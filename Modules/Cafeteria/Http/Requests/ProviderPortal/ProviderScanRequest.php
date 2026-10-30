@@ -7,16 +7,13 @@ namespace Modules\Cafeteria\Http\Requests\ProviderPortal;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 class ProviderScanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        /** @var ProviderUser|null $providerUser */
-        $providerUser = auth('provider')->user();
-
-        return $providerUser?->hasService('cafeteria') ?? false;
+        return app(ProviderPortalSession::class)->actorHasService($this, 'cafeteria');
     }
 
     /** @return array<string, list<mixed>> */

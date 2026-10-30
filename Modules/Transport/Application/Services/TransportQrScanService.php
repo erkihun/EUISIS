@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services;
 
 use App\Models\User;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Contracts\ProviderDirectory;
-use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\Boarding\BoardingRequest;
 use Modules\Transport\Application\Services\Boarding\CardCredentialResolver;
 use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
@@ -26,12 +26,12 @@ class TransportQrScanService
      * @param  array{qr_token?: string|null, verification_method?: string|null, scan_nonce?: string|null, transport_route_id?: string|null, transport_trip_id?: string|null, transport_route_stop_id?: string|null, scanned_at?: string|null, manual_employee_id?: string|null, manual_reason?: string|null}  $payload
      * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string, warnings: array}
      */
-    public function process(ProviderUser $providerUser, array $payload): array
+    public function process(PortalActor $actor, array $payload): array
     {
-        // hasService is false when the user's provider is missing or archived.
-        abort_unless($providerUser->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        // False when the actor's provider is missing or archived, as ProviderUser::hasService was.
+        abort_unless($this->providers->hasService($actor->providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
-        return $this->engine->board($this->request((string) $providerUser->provider_id, $payload, BoardingRequest::SOURCE_PROVIDER_PORTAL, providerUser: $providerUser))->toArray();
+        return $this->engine->board($this->request($actor->providerId, $payload, BoardingRequest::SOURCE_PROVIDER_PORTAL, providerUser: $actor))->toArray();
     }
 
     /**
@@ -54,7 +54,7 @@ class TransportQrScanService
     }
 
     /** @param  array<string, mixed>  $payload */
-    private function request(string $providerId, array $payload, string $source, ?ProviderUser $providerUser = null, ?User $user = null): BoardingRequest
+    private function request(string $providerId, array $payload, string $source, ?PortalActor $providerUser = null, ?User $user = null): BoardingRequest
     {
         $credential = isset($payload['qr_token']) && $payload['qr_token'] !== '' ? (string) $payload['qr_token'] : null;
         $manual = ($payload['manual_employee_id'] ?? null) !== null && $credential === null;

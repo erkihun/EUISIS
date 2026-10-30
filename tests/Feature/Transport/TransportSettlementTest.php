@@ -54,9 +54,9 @@ beforeEach(function (): void {
                     continue;
                 }
                 $this->engine->board(new BoardingRequest(providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-                    credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager));
+                    credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->manager)));
             }
-            $this->trips->complete($trip, $this->manager);
+            $this->trips->complete($trip, portalActor($this->manager));
         }
     }
     // A cancelled trip with a boarding on it: not service delivered, not settled.
@@ -64,8 +64,8 @@ beforeEach(function (): void {
     $cancelled = $this->s->trip($this->route, ['trip_date' => '2026-10-08']);
     [$employee, $card] = $this->riders[0];
     $this->engine->board(new BoardingRequest(providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-        credential: $this->s->qr($card), tripId: $cancelled->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager));
-    $this->trips->cancel($cancelled, 'Breakdown', $this->manager);
+        credential: $this->s->qr($card), tripId: $cancelled->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->manager)));
+    $this->trips->cancel($cancelled, 'Breakdown', portalActor($this->manager));
     $this->travelTo(Carbon::parse('2026-11-01 09:00'));
     $this->period = [Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31')];
 });
@@ -114,8 +114,8 @@ it('reconciles the provider claim against the verified basis without overwriting
     $contract = $this->s->contract($this->provider, 'per_verified_boarding', ['rate_per_boarding' => '10.00']);
     $invoice = app(TransportInvoiceService::class)->draft($this->provider->id, [
         'invoice_number' => 'INV-OCT', 'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 50, 'claimed_amount' => '500.00',
-    ], $this->manager);
-    app(TransportInvoiceService::class)->submit($invoice, $this->manager);
+    ], portalActor($this->manager));
+    app(TransportInvoiceService::class)->submit($invoice, portalActor($this->manager));
 
     $statement = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance, $invoice]);
     $reconciliation = $this->settlements->reconciliation($statement->fresh());
@@ -138,7 +138,7 @@ it('reconciles the provider claim against the verified basis without overwriting
 it('pays a completed trip with no riders under a per-trip contract and nothing under a per-boarding one (scenario G)', function (): void {
     $this->travelTo(Carbon::parse('2026-10-09 07:00'));
     $empty = $this->s->trip($this->route, ['trip_date' => '2026-10-09']);
-    $this->trips->complete($empty, $this->manager);
+    $this->trips->complete($empty, portalActor($this->manager));
     $this->travelTo(Carbon::parse('2026-11-01 09:00'));
 
     $perTrip = $this->s->contract($this->provider, 'per_completed_trip', ['rate_per_trip' => '100.00']);
@@ -170,7 +170,7 @@ it('runs maker-checker: adjustments and disputes are decided first, and the comp
     $statement = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance]);
 
     // The provider disputes a missing transaction; the organization deducts a cancelled-trip boarding.
-    $dispute = $this->settlements->requestAdjustment($statement, TransportAdjustmentOrigin::ProviderDispute, ['dispute_type' => 'missing_transaction', 'amount' => '10.00', 'quantity' => 1, 'reason' => 'Device outage 06 Oct, 1 rider'], $this->manager);
+    $dispute = $this->settlements->requestAdjustment($statement, TransportAdjustmentOrigin::ProviderDispute, ['dispute_type' => 'missing_transaction', 'amount' => '10.00', 'quantity' => 1, 'reason' => 'Device outage 06 Oct, 1 rider'], portalActor($this->manager));
     $deduction = $this->settlements->requestAdjustment($statement, TransportAdjustmentOrigin::OrganizationAdjustment, ['amount' => '-20.00', 'reason' => 'Two manual boardings not substantiated'], $this->finance);
     $this->settlements->submitForReview($statement, $this->finance);
 

@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Transport\Application\Services\TransportRouteAccessService;
 use Modules\Transport\Application\Services\TransportSettings;
 use Modules\Transport\Domain\Enums\TransportAdjustmentOrigin;
@@ -262,12 +262,12 @@ class TransportSettlementService
      *
      * @param  array{kind?: string, dispute_type?: string|null, amount?: string|int|float|null, quantity?: int|null, reason: string, evidence_path?: string|null}  $data
      */
-    public function requestAdjustment(TransportSettlement $settlement, TransportAdjustmentOrigin $origin, array $data, ProviderUser|User $actor, ?Request $request = null): TransportSettlementAdjustment
+    public function requestAdjustment(TransportSettlement $settlement, TransportAdjustmentOrigin $origin, array $data, PortalActor|User $actor, ?Request $request = null): TransportSettlementAdjustment
     {
         if ($settlement->status->isFinal()) {
             throw new DomainException(__('transport.settlement_final'));
         }
-        if ($actor instanceof ProviderUser && $actor->provider_id !== $settlement->provider_id) {
+        if ($actor instanceof PortalActor && $actor->providerId !== $settlement->provider_id) {
             throw new DomainException(__('transport.own_data_only'));
         }
         if (trim((string) ($data['reason'] ?? '')) === '') {
@@ -284,7 +284,7 @@ class TransportSettlementService
             'reason' => $data['reason'],
             'evidence_path' => $data['evidence_path'] ?? null,
             'status' => TransportAdjustmentStatus::Pending,
-            'requested_by_provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null,
+            'requested_by_provider_user_id' => $actor instanceof PortalActor ? $actor->id : null,
             'requested_by_user_id' => $actor instanceof User ? $actor->id : null,
         ]);
 
@@ -293,7 +293,7 @@ class TransportSettlementService
         }
 
         $this->audit->execute(AuditEventType::TransportAdjustmentRequested, $actor instanceof User ? $actor : null, $adjustment, $settlement->organization_id,
-            newValues: ['settlement_id' => $settlement->id, 'origin' => $origin->value, 'amount' => (string) $adjustment->amount, 'dispute_type' => $adjustment->dispute_type, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null], reason: $data['reason'], request: $request);
+            newValues: ['settlement_id' => $settlement->id, 'origin' => $origin->value, 'amount' => (string) $adjustment->amount, 'dispute_type' => $adjustment->dispute_type, 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null], reason: $data['reason'], request: $request);
 
         return $adjustment;
     }

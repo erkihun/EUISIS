@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\PortalActor;
 
 readonly class ProcessCafeteriaQrScanAction
 {
@@ -34,12 +34,12 @@ readonly class ProcessCafeteriaQrScanAction
         string|IdCard $qrToken,
         CafeteriaProvider $provider,
         ?Carbon $scannedAt = null,
-        User|ProviderUser|null $actor = null,
+        User|PortalActor|null $actor = null,
         ?Request $request = null,
         array $options = [],
     ): array {
         $scannedAt ??= Carbon::now();
-        $operatorId = $actor instanceof ProviderUser ? $actor->getKey() : null;
+        $operatorId = $actor instanceof PortalActor ? $actor->id : null;
         $actor = $actor instanceof User ? $actor : null;
 
         $result = $this->scanService->process($qrToken, $provider, $scannedAt, $actor, [...$options, 'provider_user_id' => $operatorId], $request);

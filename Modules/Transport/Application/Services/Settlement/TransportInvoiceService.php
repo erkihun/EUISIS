@@ -10,8 +10,8 @@ use App\Models\User;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Contracts\ProviderDirectory;
-use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
 use Modules\Transport\Domain\Models\TransportInvoice;
 
@@ -28,7 +28,7 @@ class TransportInvoiceService
     ) {}
 
     /** @param  array<string, mixed>  $data */
-    public function draft(string $providerId, array $data, ProviderUser $actor): TransportInvoice
+    public function draft(string $providerId, array $data, PortalActor $actor): TransportInvoice
     {
         $this->guardPeriod($data['period_start'], $data['period_end']);
 
@@ -51,7 +51,7 @@ class TransportInvoiceService
     }
 
     /** @param  array<string, mixed>  $data */
-    public function update(TransportInvoice $invoice, array $data, ProviderUser $actor): TransportInvoice
+    public function update(TransportInvoice $invoice, array $data, PortalActor $actor): TransportInvoice
     {
         $this->guardOwner($invoice, $actor);
         if (! $invoice->status->isProviderEditable()) {
@@ -70,7 +70,7 @@ class TransportInvoiceService
         return $invoice;
     }
 
-    public function submit(TransportInvoice $invoice, ProviderUser $actor, ?Request $request = null): TransportInvoice
+    public function submit(TransportInvoice $invoice, PortalActor $actor, ?Request $request = null): TransportInvoice
     {
         $this->guardOwner($invoice, $actor);
         $this->transition($invoice, TransportInvoiceStatus::Submitted);
@@ -82,7 +82,7 @@ class TransportInvoiceService
         return $invoice;
     }
 
-    public function withdraw(TransportInvoice $invoice, ProviderUser $actor): TransportInvoice
+    public function withdraw(TransportInvoice $invoice, PortalActor $actor): TransportInvoice
     {
         $this->guardOwner($invoice, $actor);
         $this->transition($invoice, TransportInvoiceStatus::Withdrawn);
@@ -156,9 +156,9 @@ class TransportInvoiceService
         }
     }
 
-    private function guardOwner(TransportInvoice $invoice, ProviderUser $actor): void
+    private function guardOwner(TransportInvoice $invoice, PortalActor $actor): void
     {
-        if ($invoice->provider_id !== $actor->provider_id) {
+        if ($invoice->provider_id !== $actor->providerId) {
             throw new DomainException(__('transport.own_data_only'));
         }
     }

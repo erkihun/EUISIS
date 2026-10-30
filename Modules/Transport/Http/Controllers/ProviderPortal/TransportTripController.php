@@ -12,7 +12,6 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Providers\Contracts\ProviderPortalSession;
-use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;
 use Modules\Transport\Application\Services\TransportTripService;
@@ -51,9 +50,7 @@ class TransportTripController extends Controller
     {
         $providerId = $this->providerId($request, $context);
         abort_if($trip->provider_id !== $providerId, 403, __('transport.own_data_only'));
-        /** @var ProviderUser $providerUser */
-        $providerUser = auth('provider')->user();
-        $canManifest = $providerUser->canUseServicePermission('provider.transport.manifests.view');
+        $canManifest = $context->can($request, 'provider.transport.manifests.view');
         $manifest = $canManifest ? $reports->manifest($trip, staffTier: false) : null;
 
         return Inertia::render('ProviderPortal/Transport/Trips/Show', [
@@ -61,7 +58,7 @@ class TransportTripController extends Controller
             'manifest' => $manifest ? ['rows' => $manifest['rows'], 'totals' => $manifest['totals']] : null,
             'vehicles' => TransportVehicleResource::collection(TransportVehicle::query()->where('provider_id', $providerId)->where('status', 'active')->orderBy('vehicle_code')->get())->resolve(),
             'drivers' => TransportDriverResource::collection(TransportDriver::query()->where('provider_id', $providerId)->where('status', 'active')->orderBy('full_name')->get())->resolve(),
-            'can' => ['dispatch' => $providerUser->canUseServicePermission('provider.transport.dispatch'), 'manifest' => $canManifest],
+            'can' => ['dispatch' => $context->can($request, 'provider.transport.dispatch'), 'manifest' => $canManifest],
         ]);
     }
 
@@ -70,8 +67,7 @@ class TransportTripController extends Controller
         $providerId = $this->providerId($request, $context);
         abort_if($trip->provider_id !== $providerId, 403, __('transport.own_data_only'));
         $data = $request->validated();
-        /** @var ProviderUser $actor */
-        $actor = auth('provider')->user();
+        $actor = $context->actor($request);
         $vehicle = isset($data['transport_vehicle_id']) ? TransportVehicle::query()->find($data['transport_vehicle_id']) : null;
         $driver = isset($data['transport_driver_id']) ? TransportDriver::query()->find($data['transport_driver_id']) : null;
 

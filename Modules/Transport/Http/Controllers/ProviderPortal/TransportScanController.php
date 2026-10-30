@@ -9,8 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Application\Services\ProviderPortalContext;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Application\Services\TransportQrScanService;
 use Modules\Transport\Application\Services\TransportSettings;
 use Modules\Transport\Domain\Models\TransportRoute;
@@ -25,18 +24,18 @@ use Modules\Transport\Http\Resources\TransportTripResource;
 
 class TransportScanController extends Controller
 {
-    public function index(Request $request, ProviderPortalContext $context, TransportSettings $settings): Response
+    public function index(Request $request, ProviderPortalSession $context, TransportSettings $settings): Response
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $context->providerId($request);
+        abort_if($providerId === null || ! $context->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
         return Inertia::render('ProviderPortal/Transport/Scan', [
-            'routes' => TransportRouteResource::collection(TransportRoute::query()->where('provider_id', $provider->id)->where('is_active', true)->orderBy('name_en')->get())->resolve(),
-            'trips' => TransportTripResource::collection(TransportTrip::query()->with(['route', 'vehicle'])->where('provider_id', $provider->id)->whereDate('trip_date', today())->whereNotIn('status', ['completed', 'cancelled', 'failed'])->orderBy('departure_time')->get())->resolve(),
-            'stops' => TransportRouteStopResource::collection(TransportRouteStop::query()->whereIn('transport_route_id', TransportRoute::query()->where('provider_id', $provider->id)->select('id'))->where('is_active', true)->orderBy('sequence')->get())->resolve(),
+            'routes' => TransportRouteResource::collection(TransportRoute::query()->where('provider_id', $providerId)->where('is_active', true)->orderBy('name_en')->get())->resolve(),
+            'trips' => TransportTripResource::collection(TransportTrip::query()->with(['route', 'vehicle'])->where('provider_id', $providerId)->whereDate('trip_date', today())->whereNotIn('status', ['completed', 'cancelled', 'failed'])->orderBy('departure_time')->get())->resolve(),
+            'stops' => TransportRouteStopResource::collection(TransportRouteStop::query()->whereIn('transport_route_id', TransportRoute::query()->where('provider_id', $providerId)->select('id'))->where('is_active', true)->orderBy('sequence')->get())->resolve(),
             'terminal' => [
-                'manualAllowed' => auth('provider')->user()?->canUseServicePermission('provider.transport.manual_exception') && $settings->manualExceptionEnabled(),
-                'canDispatch' => auth('provider')->user()?->canUseServicePermission('provider.transport.dispatch') ?? false,
+                'manualAllowed' => $context->can($request, 'provider.transport.manual_exception') && $settings->manualExceptionEnabled(),
+                'canDispatch' => $context->can($request, 'provider.transport.dispatch'),
                 'tripRequired' => $settings->requireTripForBoarding(),
                 'nfcEnabled' => $settings->nfcEnabled(),
             ],
@@ -44,17 +43,17 @@ class TransportScanController extends Controller
     }
 
     /** Today's boardings at this provider, newest first, for the terminal's list; a trip narrows it. */
-    public function today(Request $request, ProviderPortalContext $context): JsonResponse
+    public function today(Request $request, ProviderPortalSession $context): JsonResponse
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $context->providerId($request);
+        abort_if($providerId === null || ! $context->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
         $data = $request->validate(['transport_trip_id' => ['nullable', 'uuid']]);
 
         return response()->json([
             'data' => TransportTransactionResource::collection(
                 TransportTransaction::query()
                     ->with(['employee.currentAssignment.organization', 'route', 'trip'])
-                    ->where('provider_id', $provider->id)
+                    ->where('provider_id', $providerId)
                     ->whereDate('transaction_date', today())
                     ->when($data['transport_trip_id'] ?? null, fn ($query, $trip) => $query->where('transport_trip_id', $trip))
                     ->orderByDesc('scanned_at')
@@ -64,11 +63,11 @@ class TransportScanController extends Controller
         ]);
     }
 
-    public function store(ProviderTransportScanRequest $request, TransportQrScanService $scanService): JsonResponse
+    public function store(ProviderTransportScanRequest $request, TransportQrScanService $scanService, ProviderPortalSession $context): JsonResponse
     {
-        /** @var ProviderUser $providerUser */
-        $providerUser = auth('provider')->user();
-        $result = $scanService->process($providerUser, $request->validated());
+        $actor = $context->actor($request);
+        abort_if($actor === null, 403);
+        $result = $scanService->process($actor, $request->validated());
 
         return response()->json([
             'accepted' => $result['accepted'],

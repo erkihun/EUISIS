@@ -57,7 +57,7 @@ it('plans one trip per schedule per service day, and never twice', function (): 
         ->and(TransportTrip::query()->count())->toBe(4);
 
     // A cancelled trip is re-planned; nothing else is.
-    $this->trips->cancel($planned[1], 'bus broke down', $this->manager);
+    $this->trips->cancel($planned[1], 'bus broke down', portalActor($this->manager));
     expect($this->planner->planDate(Carbon::parse('2026-10-14'))['planned'])->toBe(1);
 
     $this->artisan('transport:plan-trips', ['--date' => '2026-10-16', '--days' => 1])->assertSuccessful();
@@ -83,36 +83,36 @@ it('follows the public holiday calendar and the transport operating or suspended
 it('runs the lifecycle: a vehicle to start, boarding at later stops, a reconciled count on completion', function (): void {
     $trip = $this->s->trip($this->route, ['status' => 'planned', 'transport_vehicle_id' => null, 'actual_started_at' => null]);
 
-    expect(fn () => $this->trips->start($trip, $this->manager))->toThrow(DomainException::class);
+    expect(fn () => $this->trips->start($trip, portalActor($this->manager)))->toThrow(DomainException::class);
 
-    $this->trips->assign($trip, $this->vehicle, null, $this->manager);
+    $this->trips->assign($trip, $this->vehicle, null, portalActor($this->manager));
     expect($trip->fresh()->status)->toBe(TransportTripStatus::Assigned);
 
-    $started = $this->trips->start($trip->fresh(), $this->manager);
+    $started = $this->trips->start($trip->fresh(), portalActor($this->manager));
     expect($started->status)->toBe(TransportTripStatus::Boarding)
         ->and($started->actual_started_at)->not->toBeNull()
         ->and($started->started_by_provider_user_id)->toBe($this->manager->id);
 
     // Once underway, boarding still happens at intermediate stops.
-    $this->trips->depart($started, $this->manager);
+    $this->trips->depart($started, portalActor($this->manager));
     [$employee, $card] = $this->s->employee();
     $this->s->pass($employee, $this->provider, $this->route);
     $decision = app(TransportBoardingService::class)->board(new BoardingRequest(
         providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
+        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->manager),
     ));
     expect($decision->accepted)->toBeTrue();
 
     // The counter is corrected to the evidence on completion (a void after boarding counts down).
     TransportTrip::query()->whereKey($trip->id)->update(['boarded_count' => 7]);
-    $completed = $this->trips->complete($trip->fresh(), $this->manager, null, 'all well', '18.40');
+    $completed = $this->trips->complete($trip->fresh(), portalActor($this->manager), null, 'all well', '18.40');
     expect($completed->status)->toBe(TransportTripStatus::Completed)
         ->and($completed->boarded_count)->toBe(1)
         ->and((string) $completed->distance_km)->toBe('18.40')
         ->and($completed->completed_by_provider_user_id)->toBe($this->manager->id);
 
     // Terminal: nothing moves it again, and a completed trip takes no boarding.
-    expect(fn () => $this->trips->cancel($completed, 'late', $this->manager))->toThrow(DomainException::class);
+    expect(fn () => $this->trips->cancel($completed, 'late', portalActor($this->manager)))->toThrow(DomainException::class);
     expect(AuditLog::query()->whereIn('event_type', ['transport_trip.dispatched', 'transport_trip.started', 'transport_trip.completed'])->count())->toBe(3);
 });
 
@@ -122,12 +122,12 @@ it('needs a reason to cancel, records the exception and keeps any boarding evide
     $this->s->pass($employee, $this->provider, $this->route);
     app(TransportBoardingService::class)->board(new BoardingRequest(
         providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
+        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->manager),
     ));
 
-    expect(fn () => $this->trips->cancel($trip, '  ', $this->manager))->toThrow(DomainException::class);
+    expect(fn () => $this->trips->cancel($trip, '  ', portalActor($this->manager)))->toThrow(DomainException::class);
 
-    $cancelled = $this->trips->cancel($trip, 'Road closed at Megenagna', $this->manager);
+    $cancelled = $this->trips->cancel($trip, 'Road closed at Megenagna', portalActor($this->manager));
     expect($cancelled->status)->toBe(TransportTripStatus::Cancelled)
         ->and($cancelled->cancellation_reason)->toBe('Road closed at Megenagna')
         ->and($cancelled->cancelled_by_provider_user_id)->toBe($this->manager->id)
@@ -136,7 +136,7 @@ it('needs a reason to cancel, records the exception and keeps any boarding evide
 
     // A failed trip is the same movement with its own label.
     $other = $this->s->trip($this->route);
-    expect($this->trips->cancel($other, 'Breakdown', $this->manager, failed: true)->status)->toBe(TransportTripStatus::Failed);
+    expect($this->trips->cancel($other, 'Breakdown', portalActor($this->manager), failed: true)->status)->toBe(TransportTripStatus::Failed);
 });
 
 it('replaces the vehicle mid-trip: earlier boardings stay on the first bus, later ones go to the second', function (): void {
@@ -149,15 +149,15 @@ it('replaces the vehicle mid-trip: earlier boardings stay on the first bus, late
 
         return $engine->board(new BoardingRequest(
             providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-            credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
+            credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->manager),
         ));
     };
 
     expect($board()->accepted)->toBeTrue();
-    expect(fn () => $this->trips->replaceVehicle($trip, $this->vehicle, null, 'same bus', $this->manager))->toThrow(DomainException::class);
-    expect(fn () => $this->trips->replaceVehicle($trip, $this->s->vehicle($this->s->provider('Rival')), null, 'not ours', $this->manager))->toThrow(DomainException::class);
+    expect(fn () => $this->trips->replaceVehicle($trip, $this->vehicle, null, 'same bus', portalActor($this->manager)))->toThrow(DomainException::class);
+    expect(fn () => $this->trips->replaceVehicle($trip, $this->s->vehicle($this->s->provider('Rival')), null, 'not ours', portalActor($this->manager)))->toThrow(DomainException::class);
 
-    $this->trips->replaceVehicle($trip, $replacement, null, 'Engine failure at stop 3', $this->manager);
+    $this->trips->replaceVehicle($trip, $replacement, null, 'Engine failure at stop 3', portalActor($this->manager));
     expect($board()->accepted)->toBeTrue();
 
     $vehicles = TransportTransaction::query()->where('status', 'accepted')->orderBy('created_at')->pluck('transport_vehicle_id')->all();

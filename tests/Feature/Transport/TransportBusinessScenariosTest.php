@@ -39,7 +39,7 @@ beforeEach(function (): void {
 
     $this->board = fn (IdCard $card, TransportTrip $trip, ?string $key = null): BoardingDecision => $this->engine->board(new BoardingRequest(
         providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: $key ?? (string) Str::uuid(), providerUser: $this->manager,
+        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: $key ?? (string) Str::uuid(), providerUser: portalActor($this->manager),
     ));
     $this->setting = function (string $key, string $value, string $type = 'string'): void {
         SystemSetting::query()->updateOrCreate(['group' => 'transport', 'key' => $key], [
@@ -62,8 +62,8 @@ it('A: an employee assigned Route A boards Bus 1 in the morning and Bus 3 in the
     expect(($this->board)($card, $morning)->accepted)->toBeTrue();
     $this->travelTo(Carbon::parse('2026-10-14 17:35'));
     expect(($this->board)($card, $evening)->accepted)->toBeTrue();
-    $this->trips->complete($morning, $this->manager);
-    $this->trips->complete($evening, $this->manager);
+    $this->trips->complete($morning, portalActor($this->manager));
+    $this->trips->complete($evening, portalActor($this->manager));
 
     $rows = TransportTransaction::query()->verified()->orderBy('scanned_at')->get();
     expect($rows)->toHaveCount(2)
@@ -78,7 +78,7 @@ it('B: an eligible, assigned employee who never rides yields no verified boardin
     [$employee] = $this->s->employee();
     $this->s->grant('woreda_a1');
     $this->s->pass($employee, $this->provider, $this->routeA);
-    $this->trips->complete($this->s->trip($this->routeA), $this->manager);
+    $this->trips->complete($this->s->trip($this->routeA), portalActor($this->manager));
 
     $reports = app(TransportReportService::class);
     $row = collect($reports->routeUtilization($reports->normaliseFilters(['date_from' => '2026-10-14', 'date_to' => '2026-10-14']), $this->provider->id))->firstWhere('route_id', $this->routeA->id);
@@ -156,9 +156,9 @@ it('F: a claim of fifty against thirty-seven verified boardings shows the discre
     });
     $trip = $this->s->trip($this->routeA, ['transport_vehicle_id' => $this->s->vehicle($this->provider, ['capacity' => 60])->id]);
     $riders->each(fn (IdCard $card) => ($this->board)($card, $trip));
-    $this->trips->complete($trip, $this->manager);
+    $this->trips->complete($trip, portalActor($this->manager));
     $contract = $this->s->contract($this->provider);
-    $invoice = app(TransportInvoiceService::class)->draft($this->provider->id, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 50, 'claimed_amount' => '625.00', 'invoice_number' => null], $this->manager);
+    $invoice = app(TransportInvoiceService::class)->draft($this->provider->id, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 50, 'claimed_amount' => '625.00', 'invoice_number' => null], portalActor($this->manager));
     $finance = $this->s->staff(['transport-settlements.manage']);
     $this->travelTo(Carbon::parse('2026-11-02 09:00'));
 
@@ -172,10 +172,10 @@ it('F: a claim of fifty against thirty-seven verified boardings shows the discre
 
 it('G: a scheduled trip nobody boards is still completed, and what it is worth depends on the contract model', function (): void {
     $trip = $this->s->trip($this->routeA);
-    $this->trips->complete($trip, $this->manager);
+    $this->trips->complete($trip, portalActor($this->manager));
     $other = $this->s->provider('Per Boarding Lines');
     $otherTrip = $this->s->trip($this->s->route($other));
-    $this->trips->complete($otherTrip, $this->s->portalUser($other, 'manager'));
+    $this->trips->complete($otherTrip, portalActor($this->s->portalUser($other, 'manager')));
     $finance = $this->s->staff(['transport-settlements.manage']);
     $this->travelTo(Carbon::parse('2026-11-02 09:00'));
     [$from, $to] = [Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31')];
@@ -198,7 +198,7 @@ it('H: a vehicle replaced mid-operation leaves every boarding traceable to the b
     $this->s->pass($e2, $this->provider, $this->routeA);
 
     ($this->board)($c1, $trip);
-    $this->trips->replaceVehicle($trip, $bus2, null, 'Breakdown at Megenagna', $this->manager);
+    $this->trips->replaceVehicle($trip, $bus2, null, 'Breakdown at Megenagna', portalActor($this->manager));
     ($this->board)($c2, $trip->fresh());
 
     expect(TransportTransaction::query()->where('employee_id', $e1->id)->value('transport_vehicle_id'))->toBe($bus1->id)

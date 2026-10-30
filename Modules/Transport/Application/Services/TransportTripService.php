@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
@@ -44,7 +44,7 @@ class TransportTripService
      *
      * @param  array<string, mixed>  $data
      */
-    public function plan(string $providerId, array $data, ProviderUser|User|null $actor, ?Request $request = null): TransportTrip
+    public function plan(string $providerId, array $data, PortalActor|User|null $actor, ?Request $request = null): TransportTrip
     {
         $data['trip_number'] = $data['trip_number'] ?? $this->newTripNumber();
         $data['status'] = ($data['transport_vehicle_id'] ?? null) !== null ? TransportTripStatus::Assigned : TransportTripStatus::Planned;
@@ -58,14 +58,14 @@ class TransportTripService
         ]);
 
         $this->audit->execute(AuditEventType::TransportTripCreated, $actor instanceof User ? $actor : null, $trip, null,
-            newValues: ['trip_number' => $trip->trip_number, 'provider_id' => $providerId, 'trip_date' => $trip->trip_date->toDateString(), 'direction' => $trip->direction?->value, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null, 'is_extra' => (bool) $trip->is_extra],
+            newValues: ['trip_number' => $trip->trip_number, 'provider_id' => $providerId, 'trip_date' => $trip->trip_date->toDateString(), 'direction' => $trip->direction?->value, 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null, 'is_extra' => (bool) $trip->is_extra],
             request: $request);
 
         return $trip;
     }
 
     /** Assign (or re-assign, before departure) the vehicle and driver. */
-    public function assign(TransportTrip $trip, ?TransportVehicle $vehicle, ?TransportDriver $driver, ProviderUser|User|null $actor, ?Request $request = null): TransportTrip
+    public function assign(TransportTrip $trip, ?TransportVehicle $vehicle, ?TransportDriver $driver, PortalActor|User|null $actor, ?Request $request = null): TransportTrip
     {
         return DB::transaction(function () use ($trip, $vehicle, $driver, $actor, $request): TransportTrip {
             $locked = $this->locked($trip);
@@ -86,7 +86,7 @@ class TransportTripService
             ])->save();
 
             $this->audit->execute(AuditEventType::TransportTripDispatched, $actor instanceof User ? $actor : null, $locked, null,
-                oldValues: $before, newValues: ['vehicle' => $vehicle?->id, 'driver' => $driver?->id, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null], request: $request);
+                oldValues: $before, newValues: ['vehicle' => $vehicle?->id, 'driver' => $driver?->id, 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null], request: $request);
 
             return $locked;
         });
@@ -97,7 +97,7 @@ class TransportTripService
      * vehicle is required, so every boarding is tied to one; the expected
      * rider count is snapshotted from the route's active assignments.
      */
-    public function start(TransportTrip $trip, ProviderUser|User|null $actor, ?Request $request = null, ?string $deviceId = null): TransportTrip
+    public function start(TransportTrip $trip, PortalActor|User|null $actor, ?Request $request = null, ?string $deviceId = null): TransportTrip
     {
         return DB::transaction(function () use ($trip, $actor, $request, $deviceId): TransportTrip {
             $locked = $this->locked($trip);
@@ -113,7 +113,7 @@ class TransportTripService
             $locked->forceFill([
                 'status' => TransportTripStatus::Boarding,
                 'actual_started_at' => now(),
-                'started_by_provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null,
+                'started_by_provider_user_id' => $actor instanceof PortalActor ? $actor->id : null,
                 'expected_riders' => $locked->expected_riders ?? $this->expectedRiders($locked),
             ])->save();
 
@@ -124,14 +124,14 @@ class TransportTripService
             }
 
             $this->audit->execute(AuditEventType::TransportTripStarted, $actor instanceof User ? $actor : null, $locked, null,
-                newValues: ['vehicle' => $locked->transport_vehicle_id, 'driver' => $locked->transport_driver_id, 'device_id' => $deviceId, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null], request: $request);
+                newValues: ['vehicle' => $locked->transport_vehicle_id, 'driver' => $locked->transport_driver_id, 'device_id' => $deviceId, 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null], request: $request);
 
             return $locked;
         });
     }
 
     /** The bus left the first stop; boarding continues at later stops. */
-    public function depart(TransportTrip $trip, ProviderUser|User|null $actor, ?Request $request = null): TransportTrip
+    public function depart(TransportTrip $trip, PortalActor|User|null $actor, ?Request $request = null): TransportTrip
     {
         return DB::transaction(function () use ($trip): TransportTrip {
             $locked = $this->locked($trip);
@@ -142,7 +142,7 @@ class TransportTripService
         });
     }
 
-    public function complete(TransportTrip $trip, ProviderUser|User|null $actor, ?Request $request = null, ?string $notes = null, ?string $distanceKm = null): TransportTrip
+    public function complete(TransportTrip $trip, PortalActor|User|null $actor, ?Request $request = null, ?string $notes = null, ?string $distanceKm = null): TransportTrip
     {
         return DB::transaction(function () use ($trip, $actor, $request, $notes, $distanceKm): TransportTrip {
             $locked = $this->locked($trip);
@@ -152,7 +152,7 @@ class TransportTripService
             $locked->forceFill([
                 'status' => TransportTripStatus::Completed,
                 'actual_ended_at' => now(),
-                'completed_by_provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null,
+                'completed_by_provider_user_id' => $actor instanceof PortalActor ? $actor->id : null,
                 'completion_notes' => $notes,
                 'distance_km' => $distanceKm ?? $locked->distance_km,
                 // The counter is reconciled to the evidence on completion.
@@ -160,13 +160,13 @@ class TransportTripService
             ])->save();
 
             $this->audit->execute(AuditEventType::TransportTripCompleted, $actor instanceof User ? $actor : null, $locked, null,
-                newValues: ['boardings' => $boardings, 'exceptions' => $locked->exceptions()->count(), 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null], request: $request);
+                newValues: ['boardings' => $boardings, 'exceptions' => $locked->exceptions()->count(), 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null], request: $request);
 
             return $locked;
         });
     }
 
-    public function cancel(TransportTrip $trip, string $reason, ProviderUser|User|null $actor, ?Request $request = null, bool $failed = false): TransportTrip
+    public function cancel(TransportTrip $trip, string $reason, PortalActor|User|null $actor, ?Request $request = null, bool $failed = false): TransportTrip
     {
         if (trim($reason) === '') {
             throw new DomainException(__('transport.cancellation_reason_required'));
@@ -181,7 +181,7 @@ class TransportTripService
                 'status' => $target,
                 'cancelled_at' => now(),
                 'cancellation_reason' => $reason,
-                'cancelled_by_provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null,
+                'cancelled_by_provider_user_id' => $actor instanceof PortalActor ? $actor->id : null,
                 'cancelled_by_user_id' => $actor instanceof User ? $actor->id : null,
                 'actual_ended_at' => $locked->actual_started_at !== null ? now() : null,
             ])->save();
@@ -191,7 +191,7 @@ class TransportTripService
             ], ['trip_id' => $locked->id, 'vehicle_id' => $locked->transport_vehicle_id], $locked->boarded_count > 0 ? 'warning' : 'info');
 
             $this->audit->execute(AuditEventType::TransportTripCancelled, $actor instanceof User ? $actor : null, $locked, null,
-                newValues: ['status' => $target->value, 'boardings' => $locked->boarded_count, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null], reason: $reason, request: $request);
+                newValues: ['status' => $target->value, 'boardings' => $locked->boarded_count, 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null], reason: $reason, request: $request);
 
             if ($locked->trip_date->gte(today())) {
                 NotifyTransportTripCancelled::dispatch($locked->id)->afterCommit();
@@ -202,7 +202,7 @@ class TransportTripService
     }
 
     /** A replacement bus (and optionally driver) during service; earlier boardings keep their vehicle. */
-    public function replaceVehicle(TransportTrip $trip, TransportVehicle $vehicle, ?TransportDriver $driver, string $reason, ProviderUser|User|null $actor, ?Request $request = null): TransportTrip
+    public function replaceVehicle(TransportTrip $trip, TransportVehicle $vehicle, ?TransportDriver $driver, string $reason, PortalActor|User|null $actor, ?Request $request = null): TransportTrip
     {
         if (trim($reason) === '') {
             throw new DomainException(__('transport.substitution_reason_required'));
@@ -226,7 +226,7 @@ class TransportTripService
                 'to_driver_id' => $driver?->id ?? $locked->transport_driver_id,
                 'reason' => $reason,
                 'changed_at' => now(),
-                'changed_by_provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null,
+                'changed_by_provider_user_id' => $actor instanceof PortalActor ? $actor->id : null,
                 'changed_by_user_id' => $actor instanceof User ? $actor->id : null,
             ]);
 
@@ -242,7 +242,7 @@ class TransportTripService
             ], ['trip_id' => $locked->id, 'vehicle_id' => $vehicle->id], 'info');
 
             $this->audit->execute(AuditEventType::TransportTripVehicleReplaced, $actor instanceof User ? $actor : null, $locked, null,
-                oldValues: ['vehicle' => $change->from_vehicle_id], newValues: ['vehicle' => $vehicle->id, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null], reason: $reason, request: $request);
+                oldValues: ['vehicle' => $change->from_vehicle_id], newValues: ['vehicle' => $vehicle->id, 'provider_user_id' => $actor instanceof PortalActor ? $actor->id : null], reason: $reason, request: $request);
 
             return $locked;
         });

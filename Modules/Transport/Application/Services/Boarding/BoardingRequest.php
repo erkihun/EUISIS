@@ -6,7 +6,7 @@ namespace Modules\Transport\Application\Services\Boarding;
 
 use App\Models\User;
 use Illuminate\Support\Carbon;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Transport\Domain\Enums\TransportVerificationMethod;
 use Modules\Transport\Domain\Models\TransportDevice;
 
@@ -38,7 +38,7 @@ final readonly class BoardingRequest
         public ?string $idempotencyKey = null,
         /** What the device claimed; never used for validity. */
         public ?string $clientRecordedAt = null,
-        public ?ProviderUser $providerUser = null,
+        public ?PortalActor $providerUser = null,
         public ?User $user = null,
         public ?TransportDevice $device = null,
         /** Manual exception: the employee named by the operator and the reason. */

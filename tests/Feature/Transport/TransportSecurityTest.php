@@ -32,7 +32,7 @@ beforeEach(function (): void {
     $this->theirRoute = $this->s->route($this->theirs);
     $this->theirTrip = $this->s->trip($this->theirRoute);
     [$this->theirDevice] = $this->s->device($this->theirs);
-    $this->theirInvoice = app(TransportInvoiceService::class)->draft($this->theirs->id, ['period_start' => '2026-09-01', 'period_end' => '2026-09-30', 'claimed_amount' => '100.00', 'invoice_number' => null], $this->them);
+    $this->theirInvoice = app(TransportInvoiceService::class)->draft($this->theirs->id, ['period_start' => '2026-09-01', 'period_end' => '2026-09-30', 'claimed_amount' => '100.00', 'invoice_number' => null], portalActor($this->them));
     $this->as = fn ($user) => $this->actingAs($user, 'provider');
 });
 
@@ -147,7 +147,7 @@ it('voids only within scope and never a settled boarding, and the manifest keeps
     [$employee, $card] = $this->s->employee('woreda_a1');
     $this->s->pass($employee, $this->mine, $route);
     $decision = app(TransportBoardingService::class)->board(new BoardingRequest(providerId: $this->mine->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->me));
+        credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->me)));
     $transaction = $decision->transaction;
 
     $this->actingAs($this->s->staff(['transport-transactions.void'], 'subcity_b'))->post(route('transport.transactions.void', $transaction), ['reason' => 'Scanned by mistake'])->assertForbidden();

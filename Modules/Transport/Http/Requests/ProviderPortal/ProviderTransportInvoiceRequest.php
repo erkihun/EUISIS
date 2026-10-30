@@ -6,7 +6,7 @@ namespace Modules\Transport\Http\Requests\ProviderPortal;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Domain\Models\TransportInvoice;
 
 /**
@@ -18,26 +18,25 @@ class ProviderTransportInvoiceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        /** @var ProviderUser|null $providerUser */
-        $providerUser = auth('provider')->user();
-        if ($providerUser === null || ! $providerUser->hasService('transport') || ! $providerUser->canUseServicePermission('provider.transport.invoices.manage')) {
+        $portal = app(ProviderPortalSession::class);
+        $actor = $portal->actor($this);
+        if ($actor === null || ! $portal->actorHasService($this, 'transport') || ! $portal->can($this, 'provider.transport.invoices.manage')) {
             return false;
         }
         $invoice = $this->route('invoice');
 
-        return ! $invoice instanceof TransportInvoice || $invoice->provider_id === $providerUser->provider_id;
+        return ! $invoice instanceof TransportInvoice || $invoice->provider_id === $actor->providerId;
     }
 
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
-        /** @var ProviderUser $providerUser */
-        $providerUser = auth('provider')->user();
+        $providerId = app(ProviderPortalSession::class)->actor($this)?->providerId;
         $invoice = $this->route('invoice');
 
         return [
-            'invoice_number' => ['nullable', 'string', 'max:60', Rule::unique('transport_invoices', 'invoice_number')->where('provider_id', $providerUser->provider_id)->ignore($invoice instanceof TransportInvoice ? $invoice->id : null)],
-            'transport_contract_id' => ['nullable', 'uuid', Rule::exists('transport_contracts', 'id')->where('provider_id', $providerUser->provider_id)],
+            'invoice_number' => ['nullable', 'string', 'max:60', Rule::unique('transport_invoices', 'invoice_number')->where('provider_id', $providerId)->ignore($invoice instanceof TransportInvoice ? $invoice->id : null)],
+            'transport_contract_id' => ['nullable', 'uuid', Rule::exists('transport_contracts', 'id')->where('provider_id', $providerId)],
             'period_start' => ['required', 'date'],
             'period_end' => ['required', 'date', 'after_or_equal:period_start'],
             'claimed_boardings' => ['nullable', 'integer', 'min:0', 'max:10000000'],

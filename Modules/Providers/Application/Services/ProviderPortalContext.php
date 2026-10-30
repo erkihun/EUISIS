@@ -6,6 +6,7 @@ namespace Modules\Providers\Application\Services;
 
 use App\Support\Features;
 use Illuminate\Http\Request;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Contracts\ProviderPortalSession;
@@ -24,6 +25,23 @@ class ProviderPortalContext implements ProviderPortalSession
     public function providerHasService(string $providerId, string $serviceCode): bool
     {
         return app(ProviderDirectory::class)->hasService($providerId, $serviceCode);
+    }
+
+    public function actor(Request $request): ?PortalActor
+    {
+        $user = $this->providerUser($request);
+
+        return $user === null ? null : new PortalActor((string) $user->id, (string) $user->provider_id, (string) $user->name);
+    }
+
+    public function can(Request $request, string $permissionKey): bool
+    {
+        return $this->providerUser($request)?->canUseServicePermission($permissionKey) ?? false;
+    }
+
+    public function actorHasService(Request $request, string $serviceCode): bool
+    {
+        return $this->providerUser($request)?->hasService($serviceCode) ?? false;
     }
 
     public function providerUser(Request $request): ?ProviderUser

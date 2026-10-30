@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 it('refuses a second accepted boarding row for the same employee and trip at the database', function (): void {
     $decision = app(TransportBoardingService::class)->board(new BoardingRequest(providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-        credential: $this->s->qr($this->card), tripId: $this->trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->s->portalUser($this->provider, 'manager')));
+        credential: $this->s->qr($this->card), tripId: $this->trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($this->s->portalUser($this->provider, 'manager'))));
     $row = (array) DB::table('transport_transactions')->where('id', $decision->transaction->id)->first();
     $row['id'] = (string) Str::uuid();
     // MySQL/MariaDB derive the boarding key themselves (a VIRTUAL generated column); it cannot be written.

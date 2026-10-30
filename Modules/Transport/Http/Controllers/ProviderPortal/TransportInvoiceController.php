@@ -10,8 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Contracts\ProviderPortalSession;
-use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\Settlement\TransportInvoiceService;
 use Modules\Transport\Domain\Models\TransportContract;
 use Modules\Transport\Domain\Models\TransportInvoice;
@@ -131,12 +131,13 @@ class TransportInvoiceController extends Controller
         return ($to ? redirect()->to($to) : back())->with('flash', ['type' => 'success', 'message' => $message]);
     }
 
-    private function providerUser(): ProviderUser
+    /** The signed-in portal user, recorded as the one acting. */
+    private function providerUser(): PortalActor
     {
-        /** @var ProviderUser $user */
-        $user = auth('provider')->user();
+        $actor = app(ProviderPortalSession::class)->actor(request());
+        abort_if($actor === null, 403);
 
-        return $user;
+        return $actor;
     }
 
     /** The signed-in portal user's provider, as an id, when it runs transport. */

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Requests\ProviderPortal;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Http\Requests\Concerns\TransportScanRules;
 
 class ProviderTransportScanRequest extends FormRequest
@@ -14,19 +14,14 @@ class ProviderTransportScanRequest extends FormRequest
 
     public function authorize(): bool
     {
-        /** @var ProviderUser|null $providerUser */
-        $providerUser = auth('provider')->user();
+        $portal = app(ProviderPortalSession::class);
 
-        return ($providerUser?->hasService('transport') ?? false)
-            && $providerUser->canUseServicePermission('provider.transport.scan');
+        return $portal->actorHasService($this, 'transport') && $portal->can($this, 'provider.transport.scan');
     }
 
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
-        /** @var ProviderUser|null $providerUser */
-        $providerUser = auth('provider')->user();
-
-        return $this->scanRules(manualAllowed: $providerUser?->canUseServicePermission('provider.transport.manual_exception') ?? false);
+        return $this->scanRules(manualAllowed: app(ProviderPortalSession::class)->can($this, 'provider.transport.manual_exception'));
     }
 }

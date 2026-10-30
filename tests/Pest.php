@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Providers\Contracts\Data\PortalActor;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Tests\Support\PublicSubmissionPayload;
 use Tests\TestCase;
 
@@ -61,4 +63,13 @@ function something()
 function pfComplete(string $type, array $payload = []): array
 {
     return PublicSubmissionPayload::complete($type, $payload);
+}
+
+/**
+ * The provider-portal actor a service records, for a test's provider user
+ * (what ProviderPortalSession::actor() returns when that user is signed in).
+ */
+function portalActor(ProviderUser $user): PortalActor
+{
+    return new PortalActor((string) $user->id, (string) $user->provider_id, (string) $user->name);
 }

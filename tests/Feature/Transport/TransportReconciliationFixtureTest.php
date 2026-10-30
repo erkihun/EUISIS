@@ -59,7 +59,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
                 }
                 $trip = $dayTrips[$i % 2];
                 $decision = $engine->board(new BoardingRequest(providerId: $provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-                    credential: $s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $manager));
+                    credential: $s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($manager)));
                 if ($i > 95) {
                     expect($decision->accepted)->toBeFalse()->and($decision->resultCode)->toBe('active_transport_pass_missing');
                     $expectedRejected++;
@@ -72,7 +72,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
                 // Three riders scan twice on Monday morning: refused, idempotent on the ledger.
                 if ($d === 0 && $direction === 'inbound' && in_array($i, [7, 21, 42], true)) {
                     $again = $engine->board(new BoardingRequest(providerId: $provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
-                        credential: $s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $manager));
+                        credential: $s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: portalActor($manager)));
                     expect($again->resultCode)->toBe('already_boarded');
                     $expectedRejected++;
                 }
@@ -82,7 +82,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
                 }
             }
             foreach ($dayTrips as $trip) {
-                $trips->complete($trip, $manager);
+                $trips->complete($trip, portalActor($manager));
             }
         }
     }
@@ -122,7 +122,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
 
     $contract = $s->contract($provider, 'per_verified_boarding', ['rate_per_boarding' => '12.50']);
     $claimedBoardings = $expectedVerified + 50;
-    $invoice = app(TransportInvoiceService::class)->draft($provider->id, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => $claimedBoardings, 'claimed_amount' => TransportMoney::format($claimedBoardings * 1250), 'invoice_number' => null], $manager);
+    $invoice = app(TransportInvoiceService::class)->draft($provider->id, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => $claimedBoardings, 'claimed_amount' => TransportMoney::format($claimedBoardings * 1250), 'invoice_number' => null], portalActor($manager));
     $settlement = $settlements->compute($provider->id, $contract, $from, $to, $staff, $invoice);
     $reconciliation = $settlements->reconciliation($settlement);
 
