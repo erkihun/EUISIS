@@ -52,11 +52,15 @@ Next slices, in this order, with the design each needs (the move tooling lives i
 scratchpad: `move_lib.py`, one `move_<module>.py` and one `<module>_post.py` per module; write the
 provider and read models after the move, since the reference rewrite renames stored names):
 
-1. **Performance** (104 classes). Daily work uses `EmployeePerformanceItem` (KPI picker, item validation,
-   the item relation, cascade trace), so moving Performance as is makes a Performance ↔ Daily work
-   cycle. Invert it: Daily work defines `Contracts\PerformanceItemSource` (current items of an employee,
-   valid ids, a trace) and Performance implements it; Performance attaches `performanceItem` to Daily
-   work's item read model with `resolveRelationUsing`.
+1. **Performance** (104 classes). The Daily work cycle is already broken (09d19bd6): Daily work defines
+   `Contracts\PerformanceItemSource`; `App\Services\Performance\DailyWorkPerformanceItems` implements it
+   and `AppServiceProvider` binds it and attaches `performanceItem` to Daily work's item read model —
+   move both bindings into the Performance provider. Outside users to give contracts or read models:
+   Assessment (assignment, review, institution submission, form versions, two commands), ServiceMonitoring
+   (`StandardPerformance`), Intelligence (executive, overview and performance analyses, area registry),
+   the Situation Room (performance analytics, service), Positions and position services (controllers,
+   model, policy), My Portal and My Performance, the notification renderer, the role matrix and the
+   permission usage scanner. Committees come from Grievance's read models already.
 2. Feedback, Public site, Organization design, Transfer, Recruitment, Situation Room, Intelligence,
    Legal, Integrations, ID cards; Core last.
 
