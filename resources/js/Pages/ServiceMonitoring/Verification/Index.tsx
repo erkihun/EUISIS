@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Named, Paginated, ServiceLevel, TechnologyType, VerificationStatus } from '@/types/serviceMonitoring';
 import { Head, router } from '@inertiajs/react';
 import { useState, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Row = {
     id: string; level: ServiceLevel; service_name_am: string | null; service_name_en: string | null; parent: { service_name_am: string | null; service_name_en: string | null } | null;
@@ -24,6 +25,7 @@ export default function VerificationIndex({ services, filters }: { services: Pag
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('verification.title')} description={sm('verification.description')} />}>
             <Head title={sm('verification.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <FilterPanel onSubmit={() => router.get(route('service-monitoring.verification.index'), { status }, { preserveState: true })}
                     onReset={() => router.get(route('service-monitoring.verification.index'))} hasActiveFilters={filters.status !== 'pending'}>

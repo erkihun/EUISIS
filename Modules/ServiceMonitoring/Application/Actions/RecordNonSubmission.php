@@ -22,8 +22,7 @@ final readonly class RecordNonSubmission
     public function execute(ReportingPeriod $period, Participant $participant, string $reason, User $actor): NonSubmission
     {
         $this->guard->assertPeriodWritable($period);
-        $status = $this->compliance->forPeriod($period, [$participant])[$participant->id]['status'];
-        if (! in_array($status, ['missing', 'pending'], true)) {
+        if (! $this->compliance->forPeriod($period, [$participant])[$participant->id]['recordable']) {
             throw ValidationException::withMessages(['participant_id' => __('service-monitoring.validation.not_submitted_state')]);
         }
         $record = NonSubmission::query()->create(['period_id' => $period->id, 'participant_id' => $participant->id, 'reason' => $reason, 'recorded_by' => $actor->id]);

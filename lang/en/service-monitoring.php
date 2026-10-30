@@ -186,7 +186,7 @@ return [
         'upload_type' => 'Upload a PDF, JPG or PNG file of at most :max MB.',
         'reopen_state' => 'Only a locked period can be reopened.',
         'fiscal_year_exists' => 'Fiscal year :year already exists.',
-        'not_submitted_state' => 'Only a participant with no accepted or pending submission can be recorded as not submitted.',
+        'not_submitted_state' => 'Only a participant with nothing submitted, or with a returned report not resubmitted by the deadline, can be recorded as not submitted.',
     ],
 
     'flash' => [

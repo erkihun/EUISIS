@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { NamedWithId } from '@/types/serviceMonitoring';
 import { Head, useForm } from '@inertiajs/react';
 import { useMemo, useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
     settings: { require_stamped_copy: boolean; declaration_text_en: string; declaration_text_am: string; owner_organization_id: string | null; driver_occupation_ids: string[] };
@@ -30,6 +31,7 @@ export default function ServiceMonitoringSettings({ settings, occupations, organ
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('settings.title')} description={sm('settings.description')} />}>
             <Head title={sm('settings.title')} />
+            <ActionErrors />
             <form onSubmit={save} className="space-y-4">
                 <section className={`${panelCls} space-y-3 p-4`}>
                     <label className="flex items-center gap-2 text-sm">

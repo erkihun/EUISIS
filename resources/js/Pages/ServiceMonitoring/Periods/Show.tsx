@@ -1,7 +1,7 @@
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { DATE_MARK, errorCls, inputCls, labelCls, panelCls, placeDate, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -9,6 +9,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Compliance, ComplianceStatus, ComplianceTally, Named, Period, ReportingLevel } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Row = {
     participant_id: string;
@@ -68,10 +69,11 @@ export default function PeriodShow({ period, rows, extensions, tally, can }: Pro
                 {can.reopen && <button type="button" className={secondaryBtn} onClick={() => setReopening(true)}>{sm('periods.reopen')}</button>}
             </div>} />}>
             <Head title={period.label} />
+            <ActionErrors />
             <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                     <SmStatusBadge kind="period" status={period.status} />
-                    {period.locked_at && <span className="text-(--app-muted-foreground)">{sm('periods.locked', { date: '' })}<LocalizedDateDisplay value={period.locked_at} /></span>}
+                    {period.locked_at && <span className="text-(--app-muted-foreground)">{placeDate(sm('periods.locked', { date: DATE_MARK }), <LocalizedDateDisplay value={period.locked_at} />)}</span>}
                     {period.reopened_reason && <span className="text-(--app-muted-foreground)">{sm('periods.reopen')}: {period.reopened_reason}</span>}
                 </div>
 

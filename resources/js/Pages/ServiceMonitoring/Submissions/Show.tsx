@@ -1,13 +1,14 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import ExportPanel from '@/Components/serviceMonitoring/ExportPanel';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { DATE_MARK, errorCls, inputCls, labelCls, panelCls, placeDate, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import OfficialTables from '@/Components/serviceMonitoring/OfficialTables';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { OfficialForm, SubmissionProps } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Props = SubmissionProps & {
     diff: { section: number; field: string; before: number | string | null; after: number | string | null }[];
@@ -43,11 +44,12 @@ export default function SubmissionShow({ submission, definition, revisions, hist
                 {can.request_correction && !pending && <button type="button" className={secondaryBtn} onClick={() => setCorrecting(true)}>{sm('show.correction')}</button>}
             </div>} />}>
             <Head title={sm('show.title', { name: name(submission.organization) })} />
+            <ActionErrors />
             <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                     <SmStatusBadge kind="submission" status={submission.status} />
                     {submission.submitted_late && <span className="text-amber-800 dark:text-amber-200">{sm('compliance.late_extension')}</span>}
-                    {submission.attestation && <span>{sm('show.attested', { name: submission.attestation.name ?? '', date: '' })}<LocalizedDateDisplay value={submission.attestation.at} withTime /></span>}
+                    {submission.attestation && <span>{placeDate(sm('show.attested', { name: submission.attestation.name ?? '', date: DATE_MARK }), <LocalizedDateDisplay value={submission.attestation.at} withTime />)}</span>}
                 </div>
 
                 {revisions.length > 1 && (

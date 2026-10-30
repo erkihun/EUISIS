@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FiscalYearRow, Named, NamedWithId, Paginated, VisitStatus } from '@/types/serviceMonitoring';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Visit = { id: string; visited_on: string; purpose: string; status: VisitStatus; findings: number; action_items: number; organization: Named };
 
@@ -33,6 +34,7 @@ export default function VisitsIndex({ visits, participants, years, team_candidat
         <AuthenticatedLayout header={<PageHeader title={sm('visits.title')} description={sm('visits.description')}
             actions={participants.length > 0 ? <button type="button" className={primaryBtn} onClick={() => setPlanning(true)}>{sm('visits.plan')}</button> : undefined} />}>
             <Head title={sm('visits.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 {planning && (
                     <form onSubmit={save} className={`${panelCls} grid gap-3 p-4 sm:grid-cols-2`} aria-label={sm('visits.plan')}>

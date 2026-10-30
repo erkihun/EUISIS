@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ClarificationStatus, Named } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent, JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
     clarification: {
@@ -29,6 +30,7 @@ export default function ClarificationShow({ clarification, can }: Props): JSX.El
             backHref={route('service-monitoring.clarifications.index')}
             actions={can.close ? <button type="button" className={secondaryBtn} onClick={() => router.post(route('service-monitoring.clarifications.close', clarification.id))}>{sm('clarifications.closeThread')}</button> : undefined} />}>
             <Head title={clarification.subject} />
+            <ActionErrors />
             <div className="space-y-4">
                 <p className="text-sm">{sm(`enums.clarification_status.${clarification.status}`)}{clarification.section ? ` · ${sm('edit.section', { n: clarification.section })}` : ''}
                     {clarification.submission_id && <> · <Link className="underline" href={route('service-monitoring.submissions.show', clarification.submission_id)}>{sm('dashboard.view')}</Link></>}

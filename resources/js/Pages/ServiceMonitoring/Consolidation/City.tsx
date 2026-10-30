@@ -10,6 +10,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ExportRow, FiscalYearRow, OfficialForm, Period, ReportSummary, Selection } from '@/types/serviceMonitoring';
 import { Head, router } from '@inertiajs/react';
 import { useState, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
     selection: Selection;
@@ -41,6 +42,7 @@ export default function CityConsolidation({ selection, years, period, report, fo
                 {can?.reopen && <button type="button" className={secondaryBtn} onClick={() => setReopening(true)}>{sm('periods.reopen')}</button>}
             </div>} />}>
             <Head title={sm('consolidation.cityTitle')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <RangePicker years={years} selection={selection} routeName="service-monitoring.consolidation.city" />
                 {report === null ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('consolidation.noData')}</p> : (

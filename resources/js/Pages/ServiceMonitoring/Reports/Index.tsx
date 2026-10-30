@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ComplianceStatus, ComplianceTally, FiscalYearRow, FinalAction, Named, ReportingLevel, RoleCategory, Selection, ServiceLevel, Summary, VerificationStatus } from '@/types/serviceMonitoring';
 import { Head } from '@inertiajs/react';
 import { useState, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Row = { participant_id: string; name_en: string | null; name_am: string | null; level: ReportingLevel; digital: { main: number; sub: number; systems: number }; section4: Record<string, number> };
 
@@ -30,6 +31,7 @@ export default function ReportsIndex({ years, selection, compliance, report, cat
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('reports.title')} description={sm('reports.description')} />}>
             <Head title={sm('reports.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 {selection && <RangePicker years={years} selection={selection} routeName="service-monitoring.reports.index" />}
                 <div role="tablist" aria-label={sm('reports.title')} className="flex flex-wrap gap-1 border-b border-(--app-border)">

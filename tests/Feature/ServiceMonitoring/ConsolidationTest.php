@@ -12,6 +12,7 @@ use Modules\ServiceMonitoring\Application\Actions\CertifySubCityConsolidation;
 use Modules\ServiceMonitoring\Application\Actions\LockPeriod;
 use Modules\ServiceMonitoring\Application\Actions\RecordNonSubmission;
 use Modules\ServiceMonitoring\Application\Actions\ReopenPeriod;
+use Modules\ServiceMonitoring\Application\Actions\ReturnSubmission;
 use Modules\ServiceMonitoring\Application\Services\ConsolidationService;
 use Modules\ServiceMonitoring\Domain\Enums\ReportRange;
 use Modules\ServiceMonitoring\Domain\Forms\FormDefinition;
@@ -100,6 +101,26 @@ it('certifies a sub-city only when its woredas are accepted or recorded as not s
         ->and($snapshot->isIntact())->toBeTrue()
         ->and(array_keys($snapshot->payload['participants']))->toEqualCanonicalizing([$this->s->p['subA']->id, $this->s->p['wA1']->id]);
     expect(fn () => $snapshot->update(['checksum' => 'x']))->toThrow(LogicException::class);
+});
+
+it('records a returned report never resubmitted as not submitted once the deadline passed, so the sub-city can certify', function (): void {
+    $period = $this->s->period(1);
+    $reviewer = $this->s->reviewer('subA');
+    $this->s->accepted('subA', 1);
+    $this->s->accepted('wA1', 1);
+    $returned = $this->s->submit($this->s->complete($this->s->start('wA2', 1)));
+    app(ReturnSubmission::class)->execute($returned, $reviewer, 'The waiting-area figures do not match the visit.');
+    $url = route('service-monitoring.consolidation.not-submitted', [$period, $this->s->p['wA2']]);
+
+    // Before the deadline the woreda may still resubmit.
+    $this->actingAs($reviewer)->post($url, ['reason' => 'Returned and not resubmitted.'])->assertSessionHasErrors('participant_id');
+
+    $this->s->clock('2026-10-22');
+    $this->actingAs($reviewer)->get(route('service-monitoring.consolidation.sub-city', ['participant_id' => $this->s->p['subA']->id, 'quarter' => 1, 'range' => 'quarter']))
+        ->assertOk()->assertInertia(fn ($page) => $page->where('woredas.1.compliance.recordable', true));
+    $this->actingAs($reviewer)->post($url, ['reason' => 'Returned and not resubmitted.'])->assertSessionHasNoErrors();
+    $this->actingAs($reviewer)->post(route('service-monitoring.consolidation.certify', [$period, $this->s->p['subA']]))->assertSessionHasNoErrors();
+    expect(ConsolidationSnapshot::query()->where('kind', 'subcity_certification')->exists())->toBeTrue();
 });
 
 it('locks a period only when every sub-city certified, then reads it from the snapshot whatever the data does', function (): void {

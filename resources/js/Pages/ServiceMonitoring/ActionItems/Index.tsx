@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ActionItemRow, ActionItemStatus, Paginated } from '@/types/serviceMonitoring';
 import { Head, router } from '@inertiajs/react';
 import type { JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 /** Action items across visits, overdue first (D22). */
 export default function ActionItemsIndex({ items, filters, statuses }: { items: Paginated<ActionItemRow>; filters: { status: string | null; overdue: boolean }; statuses: ActionItemStatus[] }): JSX.Element {
@@ -15,6 +16,7 @@ export default function ActionItemsIndex({ items, filters, statuses }: { items: 
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('actionItems.title')} description={sm('actionItems.description')} />}>
             <Head title={sm('actionItems.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <div className={`${panelCls} flex flex-wrap items-end gap-3 p-3`}>
                     <div>

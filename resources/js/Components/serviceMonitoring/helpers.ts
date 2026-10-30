@@ -1,3 +1,4 @@
+import { createElement, Fragment, type ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { cx, tableClassName, textareaClassName } from '@/Components/ui';
 import { fill } from '@/Components/dailyActivity/helpers';
@@ -39,4 +40,14 @@ export function useSm() {
 export function daysUntil(deadlineIso: string): number {
     const ms = new Date(deadlineIso).getTime() - Date.now();
     return Math.ceil(ms / 86_400_000);
+}
+
+/** Marks where a rendered date goes in a translated sentence (Amharic puts it first, English last). */
+export const DATE_MARK = '\u2063';
+
+/** Puts the date element where the translation's {date} was, e.g. placeDate(sm('x', { date: DATE_MARK }), <LocalizedDateDisplay … />). */
+export function placeDate(text: string, date: ReactNode): ReactNode {
+    const [before, after = ''] = text.split(DATE_MARK);
+
+    return createElement(Fragment, null, before, date, after);
 }

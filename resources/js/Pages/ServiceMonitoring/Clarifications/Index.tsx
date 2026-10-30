@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ClarificationStatus, Named, NamedWithId, Paginated } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Thread = { id: string; subject: string; status: ClarificationStatus; section: number | null; messages: number; opened_by: string | null; updated_at: string | null; organization: Named };
 
@@ -26,6 +27,7 @@ export default function ClarificationsIndex({ threads, filters, own_participants
         <AuthenticatedLayout header={<PageHeader title={sm('clarifications.title')} description={sm('clarifications.description')}
             actions={own_participants.length > 0 ? <button type="button" className={primaryBtn} onClick={() => setAsking(true)}>{sm('clarifications.ask')}</button> : undefined} />}>
             <Head title={sm('clarifications.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 {asking && (
                     <form onSubmit={send} className={`${panelCls} grid gap-3 p-4 sm:grid-cols-2`} aria-label={sm('clarifications.ask')}>

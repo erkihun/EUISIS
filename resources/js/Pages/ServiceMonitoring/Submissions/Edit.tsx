@@ -5,7 +5,7 @@ import Section1Panel from '@/Components/serviceMonitoring/edit/Section1Panel';
 import Section2Panel from '@/Components/serviceMonitoring/edit/Section2Panel';
 import Section3Panel from '@/Components/serviceMonitoring/edit/Section3Panel';
 import Section4Panel from '@/Components/serviceMonitoring/edit/Section4Panel';
-import { errorCls, labelCls, panelCls, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
+import { DATE_MARK, errorCls, labelCls, panelCls, placeDate, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { SectionNumber, SubmissionProps, Suggestion } from '@/types/serviceMonitoring';
@@ -69,8 +69,8 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
             <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                     <SmStatusBadge kind="submission" status={submission.status} />
-                    <span>{sm('edit.deadline', { date: '' })}<LocalizedDateDisplay value={submission.period.submission_due_on} /></span>
-                    {submission.extension_due_at && <span className="text-amber-800 dark:text-amber-200">{sm('edit.extended', { date: '' })}<LocalizedDateDisplay value={submission.extension_due_at} withTime /></span>}
+                    <span>{placeDate(sm('edit.deadline', { date: DATE_MARK }), <LocalizedDateDisplay value={submission.period.submission_due_on} />)}</span>
+                    {submission.extension_due_at && <span className="text-amber-800 dark:text-amber-200">{placeDate(sm('edit.extended', { date: DATE_MARK }), <LocalizedDateDisplay value={submission.extension_due_at} withTime />)}</span>}
                 </div>
                 {submission.status === 'returned' && (
                     <div className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">

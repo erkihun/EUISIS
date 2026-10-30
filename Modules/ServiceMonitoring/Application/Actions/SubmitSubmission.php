@@ -23,7 +23,8 @@ use Modules\ServiceMonitoring\Domain\Models\Submission;
  * the deadline or an active extension for a first submission (D6), the
  * attester's permission and declaration (D11), and the stamped copy when the
  * setting requires it. A return reopens the report until the period is
- * locked, so a resubmission is not held to the original deadline.
+ * locked, so a resubmission is not held to the original deadline; nor is an
+ * approved correction revision.
  */
 final readonly class SubmitSubmission
 {
@@ -45,7 +46,9 @@ final readonly class SubmitSubmission
             throw ValidationException::withMessages(['declaration' => __('service-monitoring.validation.declaration')]);
         }
 
-        $resubmission = $submission->status === SubmissionStatus::Returned;
+        // A returned report and an approved correction revision (n+1, D9) are not held to the
+        // original deadline: the first is reopened by the reviewer, the second by the approval.
+        $resubmission = $submission->status === SubmissionStatus::Returned || $submission->supersedes_submission_id !== null;
         $extension = $resubmission ? null : $this->guard->lateUnder($submission->period, $submission->participant_id, $now);
 
         $problems = $this->validator->problems($submission);

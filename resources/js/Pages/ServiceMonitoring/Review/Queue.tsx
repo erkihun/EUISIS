@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FormType, Named, ReportingLevel, SectionNumber } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Pending = { id: string; level: ReportingLevel; form_type: FormType; revision_no: number; submitted_at: string | null; submitted_late: boolean; period_label: string; organization: Named; can_review: boolean };
 type Correction = { id: string; reason: string; requested_by: string | null; created_at: string | null; submission_id: string; period_label: string; organization: Named };
@@ -28,6 +29,7 @@ export default function ReviewQueue({ pending, corrections }: { pending: Pending
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('review.title')} description={sm('review.description')} />}>
             <Head title={sm('review.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 {pending.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('review.empty')}</p> : (
                     <div className={scrollCls}>

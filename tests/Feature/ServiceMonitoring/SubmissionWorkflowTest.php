@@ -259,6 +259,17 @@ it('corrects an accepted report through a new revision that supersedes it on acc
         ->and(Submission::query()->where('status', 'accepted')->count())->toBe(1);
 });
 
+it('submits an approved correction revision after the deadline without an extension', function (): void {
+    $original = $this->s->accepted('wA1', 1);
+    $this->s->clock('2026-10-28');
+    $request = app(RequestCorrection::class)->execute($original, $this->s->head('wA1'), 'The LED count was typed wrongly, it is five.');
+    $this->actingAs($this->s->reviewer('subA'))->post(route('service-monitoring.corrections.decide', $request), ['approve' => true, 'note' => 'Agreed'])->assertSessionHasNoErrors();
+    $revision = Submission::query()->where('revision_no', 2)->sole();
+
+    $this->actingAs($this->s->head('wA1'))->post(route('service-monitoring.submissions.submit', $revision), ['declaration' => true])->assertSessionHasNoErrors();
+    expect($revision->fresh()->status)->toBe(SubmissionStatus::Submitted);
+});
+
 it('refuses a correction request on a locked period', function (): void {
     $original = $this->s->accepted('wA1');
     $this->s->period(1)->forceFill(['status' => 'locked'])->save();

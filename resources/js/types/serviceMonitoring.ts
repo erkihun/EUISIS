@@ -62,6 +62,8 @@ export interface FiscalYearRow {
 export interface Compliance {
     status: ComplianceStatus;
     late: boolean;
+    /** May be recorded as not submitted (nothing submitted, or returned and past the deadline). */
+    recordable: boolean;
     submission_id: string | null;
     submission_status: SubmissionStatus | null;
     revision_no: number | null;

@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ActionItemRow, FindingSeverity, Named, VisitStatus } from '@/types/serviceMonitoring';
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEvent, JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
     visit: {
@@ -47,6 +48,7 @@ export default function VisitShow({ visit, severities, team_candidates, can }: P
     return (
         <AuthenticatedLayout header={<PageHeader title={`${name(visit.organization)} · ${sm('visits.title')}`} backHref={route('service-monitoring.visits.index')} />}>
             <Head title={sm('visits.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <form onSubmit={saveDetails} className={`${panelCls} grid gap-3 p-4 sm:grid-cols-2`}>
                     <div>

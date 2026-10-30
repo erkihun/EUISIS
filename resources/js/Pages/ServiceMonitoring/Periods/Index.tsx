@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FiscalYearRow } from '@/types/serviceMonitoring';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent, JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 /** Fiscal years and their four periods; the coordinator creates a year (its schedule follows D5). */
 export default function PeriodsIndex({ years, can }: { years: FiscalYearRow[]; can: { manage: boolean } }): JSX.Element {
@@ -20,6 +21,7 @@ export default function PeriodsIndex({ years, can }: { years: FiscalYearRow[]; c
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('periods.title')} description={sm('periods.description')} />}>
             <Head title={sm('periods.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 {can.manage && (
                     <form onSubmit={create} className={`${panelCls} flex flex-wrap items-end gap-3 p-4`}>

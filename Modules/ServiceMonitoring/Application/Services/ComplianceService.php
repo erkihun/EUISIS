@@ -31,7 +31,7 @@ class ComplianceService
 
     /**
      * @param  iterable<Participant>  $participants
-     * @return array<string, array{status: string, late: bool, submission_id: ?string, submission_status: ?string, revision_no: ?int}>
+     * @return array<string, array{status: string, late: bool, recordable: bool, submission_id: ?string, submission_status: ?string, revision_no: ?int}>
      */
     public function forPeriod(ReportingPeriod $period, iterable $participants, ?CarbonImmutable $now = null): array
     {
@@ -57,8 +57,9 @@ class ComplianceService
             $status = match (true) {
                 $acceptedRow !== null => $acceptedRow->submitted_late ? 'late_extension' : 'on_time',
                 $submission?->status === SubmissionStatus::Submitted => $submission->submitted_late ? 'late_extension' : 'in_review',
-                $submission?->status === SubmissionStatus::Returned => 'returned',
+                // A report returned and never resubmitted may be recorded as not submitted.
                 $recorded->has($id) => 'not_submitted',
+                $submission?->status === SubmissionStatus::Returned => 'returned',
                 $pastDeadline && ! $extended->has($id) => 'missing',
                 default => 'pending',
             };
@@ -66,6 +67,10 @@ class ComplianceService
             $result[$id] = [
                 'status' => $status,
                 'late' => (bool) ($shown?->submitted_late ?? false),
+                // May be formally recorded as not submitted (D8): nothing in or through review, or a
+                // returned report still not resubmitted once the deadline (and any extension) passed.
+                'recordable' => in_array($status, ['missing', 'pending'], true)
+                    || ($status === 'returned' && $pastDeadline && ! $extended->has($id)),
                 'submission_id' => $shown?->id,
                 'submission_status' => $acceptedRow !== null ? SubmissionStatus::Accepted->value : $submission?->status?->value,
                 'revision_no' => $shown?->revision_no,

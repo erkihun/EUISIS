@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Compliance, ComplianceStatus, ComplianceTally, Named, Period, ReportingLevel } from '@/types/serviceMonitoring';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import type { JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Mine = { participant_id: string; level: ReportingLevel; organization: Named & { id: string }; compliance: Compliance | null; can_start: boolean };
 type Listed<T> = { count: number; items: T[] };
@@ -29,6 +30,7 @@ export default function Dashboard({ period, mine, compliance, overdue, clarifica
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('dashboard.title')} description={sm('dashboard.description')} />}>
             <Head title={sm('dashboard.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 {period === null ? (
                     <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('dashboard.noPeriod')}</p>

@@ -2,7 +2,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import ConsolidationForms from '@/Components/serviceMonitoring/ConsolidationForms';
 import ExportPanel from '@/Components/serviceMonitoring/ExportPanel';
-import { panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { DATE_MARK, panelCls, placeDate, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import RangePicker from '@/Components/serviceMonitoring/RangePicker';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
@@ -11,6 +11,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Compliance, ExportRow, FiscalYearRow, Named, NamedWithId, OfficialForm, Period, ReportingLevel, ReportSummary, Selection } from '@/types/serviceMonitoring';
 import { Head, router } from '@inertiajs/react';
 import { useState, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
     sub_cities: NamedWithId[];
@@ -41,6 +42,7 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
         <AuthenticatedLayout header={<PageHeader title={sm('consolidation.subCityTitle')} description={sm('consolidation.description')}
             actions={can?.certify ? <button type="button" className={primaryBtn} onClick={certify}>{sm('consolidation.certify')}</button> : undefined} />}>
             <Head title={sm('consolidation.subCityTitle')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <RangePicker years={years} selection={selection} routeName="service-monitoring.consolidation.sub-city" extra={{ participant_id: selection.participant_id ?? '' }}
                     scope={{ param: 'participant_id', label: sm('consolidation.subCity'), value: selection.participant_id ?? '', options: sub_cities.map((c) => ({ value: c.id, label: name(c) })) }} />
@@ -50,7 +52,7 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
                         <div className="flex flex-wrap items-center gap-3 text-sm">
                             <span>{sm('consolidation.participants', { count: report.participants })}</span>
                             {report.from_snapshot && <span className="text-(--app-muted-foreground)">{sm('consolidation.fromSnapshot')}</span>}
-                            {certification && <span className="text-emerald-700 dark:text-emerald-300">{sm('consolidation.certified', { date: '', name: certification.certified_by ?? '' })}<LocalizedDateDisplay value={certification.certified_at} withTime /></span>}
+                            {certification && <span className="text-emerald-700 dark:text-emerald-300">{placeDate(sm('consolidation.certified', { date: DATE_MARK, name: certification.certified_by ?? '' }), <LocalizedDateDisplay value={certification.certified_at} withTime />)}</span>}
                             {selection.range !== 'quarter' && <span className="text-xs text-(--app-muted-foreground)">{sm('consolidation.selectQuarterOnly')}</span>}
                         </div>
 
@@ -68,7 +70,7 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
                                                     <td className={tdCls}>
                                                         <div className="flex flex-wrap gap-2">
                                                             {w.compliance.submission_id && <a className={secondaryBtn} href={route('service-monitoring.submissions.show', w.compliance.submission_id)}>{sm('common.view')}</a>}
-                                                            {can?.record_not_submitted && ['missing', 'pending'].includes(w.compliance.status) && (
+                                                            {can?.record_not_submitted && w.compliance.recordable && (
                                                                 <button type="button" className={secondaryBtn} onClick={() => setRecording(w.participant_id)}>{sm('consolidation.notSubmitted')}</button>
                                                             )}
                                                         </div>

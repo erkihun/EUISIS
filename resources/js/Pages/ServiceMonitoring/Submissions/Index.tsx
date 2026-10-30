@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FiscalYearRow, NamedWithId, Paginated, ReportingLevel, SubmissionListRow, SubmissionStatus } from '@/types/serviceMonitoring';
 import { Head, Link, router } from '@inertiajs/react';
 import type { JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
     submissions: Paginated<SubmissionListRow>;
@@ -26,6 +27,7 @@ export default function SubmissionsIndex({ submissions, filters, years, sub_citi
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('submissions.title')} description={sm('submissions.description')} />}>
             <Head title={sm('submissions.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <div className={`${panelCls} grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-4`}>
                     <div>

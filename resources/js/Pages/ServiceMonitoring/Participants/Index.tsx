@@ -7,6 +7,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Named, NamedWithId, Paginated, ReportingLevel } from '@/types/serviceMonitoring';
 import { Deferred, Head, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 type Row = {
     id: string;
@@ -74,6 +75,7 @@ export default function ParticipantsIndex({ participants, filters, sub_cities, o
         <AuthenticatedLayout header={<PageHeader title={sm('participants.title')} description={sm('participants.description')}
             actions={can.manage ? <button type="button" className={primaryBtn} onClick={() => open(null)}>{sm('participants.add')}</button> : undefined} />}>
             <Head title={sm('participants.title')} />
+            <ActionErrors />
             <div className="space-y-4">
                 <div className={`${panelCls} grid gap-3 p-3 sm:grid-cols-2`}>
                     <div>
