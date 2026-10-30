@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Enums\Transport\TransportAdjustmentOrigin;
-use App\Enums\Transport\TransportContractStatus;
-use App\Enums\Transport\TransportInvoiceStatus;
-use App\Enums\Transport\TransportSettlementStatus;
-use App\Enums\Transport\TransportVerificationMethod;
-use App\Models\TransportTransaction;
-use App\Services\Transport\Boarding\BoardingRequest;
-use App\Services\Transport\Boarding\TransportBoardingService;
-use App\Services\Transport\Settlement\TransportContractService;
-use App\Services\Transport\Settlement\TransportInvoiceService;
-use App\Services\Transport\Settlement\TransportMoney;
-use App\Services\Transport\Settlement\TransportSettlementCalculator;
-use App\Services\Transport\Settlement\TransportSettlementService;
-use App\Services\Transport\TransportTripService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Services\Boarding\BoardingRequest;
+use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
+use Modules\Transport\Application\Services\Settlement\TransportContractService;
+use Modules\Transport\Application\Services\Settlement\TransportInvoiceService;
+use Modules\Transport\Application\Services\Settlement\TransportMoney;
+use Modules\Transport\Application\Services\Settlement\TransportSettlementCalculator;
+use Modules\Transport\Application\Services\Settlement\TransportSettlementService;
+use Modules\Transport\Application\Services\TransportTripService;
+use Modules\Transport\Domain\Enums\TransportAdjustmentOrigin;
+use Modules\Transport\Domain\Enums\TransportContractStatus;
+use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
+use Modules\Transport\Domain\Enums\TransportSettlementStatus;
+use Modules\Transport\Domain\Enums\TransportVerificationMethod;
+use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\TransportScenario;
 
 /*

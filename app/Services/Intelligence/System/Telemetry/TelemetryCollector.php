@@ -7,7 +7,6 @@ namespace App\Services\Intelligence\System\Telemetry;
 use App\Enums\AuditEventType;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Communication\CommunicationBroadcaster;
-use App\Services\Transport\TransportSettings;
 use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -16,6 +15,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Transport\Application\Services\TransportSettings;
 use Predis\Client;
 use Throwable;
 

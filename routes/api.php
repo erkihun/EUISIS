@@ -19,13 +19,13 @@ use App\Http\Controllers\Api\V1\PositionApiController;
 use App\Http\Controllers\Api\V1\ProviderSettlementController;
 use App\Http\Controllers\Api\V1\ServiceAuthorizationController;
 use App\Http\Controllers\Api\V1\ServiceTransactionController;
-use App\Http\Controllers\Api\V1\Transport\BoardingController as TransportBoardingController;
-use App\Http\Controllers\Api\V1\Transport\DeviceController as TransportDeviceController;
-use App\Http\Controllers\Api\V1\Transport\PositionController as TransportPositionController;
-use App\Http\Controllers\Api\V1\Transport\TripController as TransportTripController;
 use App\Http\Controllers\Api\V1\WebhookSubscriptionApiController;
 use App\Http\Middleware\NfcApplicationGate;
 use Illuminate\Support\Facades\Route;
+use Modules\Transport\Http\Controllers\Api\BoardingController as TransportBoardingController;
+use Modules\Transport\Http\Controllers\Api\DeviceController as TransportDeviceController;
+use Modules\Transport\Http\Controllers\Api\PositionController as TransportPositionController;
+use Modules\Transport\Http\Controllers\Api\TripController as TransportTripController;
 
 /*
  * Transport scanner devices (docs/transport/device-security.md). Each device

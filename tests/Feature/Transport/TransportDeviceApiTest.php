@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\Transport\TransportTripStatus;
 use App\Models\SystemSetting;
-use App\Models\TransportException;
-use App\Models\TransportTransaction;
-use App\Services\Transport\TransportSettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Services\TransportSettings;
+use Modules\Transport\Domain\Enums\TransportTripStatus;
+use Modules\Transport\Domain\Models\TransportException;
+use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\TransportScenario;
 
 /*

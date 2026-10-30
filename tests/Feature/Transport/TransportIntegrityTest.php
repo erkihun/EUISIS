@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\Transport\TransportVerificationMethod;
-use App\Services\Transport\Boarding\BoardingLock;
-use App\Services\Transport\Boarding\BoardingRequest;
-use App\Services\Transport\Boarding\TransportBoardingService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Services\Boarding\BoardingLock;
+use Modules\Transport\Application\Services\Boarding\BoardingRequest;
+use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
+use Modules\Transport\Domain\Enums\TransportVerificationMethod;
 use Tests\Support\TransportScenario;
 
 /*

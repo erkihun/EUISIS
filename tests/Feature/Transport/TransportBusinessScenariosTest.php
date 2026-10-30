@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-use App\Enums\Transport\TransportVerificationMethod;
 use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
 use App\Models\SystemSetting;
-use App\Models\TransportException;
-use App\Models\TransportTransaction;
-use App\Models\TransportTrip;
-use App\Services\Transport\Boarding\BoardingDecision;
-use App\Services\Transport\Boarding\BoardingRequest;
-use App\Services\Transport\Boarding\TransportBoardingService;
-use App\Services\Transport\Settlement\TransportInvoiceService;
-use App\Services\Transport\Settlement\TransportSettlementService;
-use App\Services\Transport\TransportReportService;
-use App\Services\Transport\TransportSettings;
-use App\Services\Transport\TransportTripService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Services\Boarding\BoardingDecision;
+use Modules\Transport\Application\Services\Boarding\BoardingRequest;
+use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
+use Modules\Transport\Application\Services\Settlement\TransportInvoiceService;
+use Modules\Transport\Application\Services\Settlement\TransportSettlementService;
+use Modules\Transport\Application\Services\TransportReportService;
+use Modules\Transport\Application\Services\TransportSettings;
+use Modules\Transport\Application\Services\TransportTripService;
+use Modules\Transport\Domain\Enums\TransportVerificationMethod;
+use Modules\Transport\Domain\Models\TransportException;
+use Modules\Transport\Domain\Models\TransportTransaction;
+use Modules\Transport\Domain\Models\TransportTrip;
 use Tests\Support\TransportScenario;
 
 /*

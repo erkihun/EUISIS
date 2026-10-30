@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\QrPayloadParser;
-use App\Services\Transport\Boarding\CardCredentialResolver;
+use Modules\Transport\Application\Services\Boarding\CardCredentialResolver;
 
 require_once __DIR__.'/IdCardFrontHelpers.php';
 

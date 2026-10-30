@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Models\TransportInvoice;
-use App\Models\TransportSettlementAdjustment;
-use App\Services\Transport\Settlement\TransportSettlementService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Modules\Transport\Application\Services\Settlement\TransportSettlementService;
+use Modules\Transport\Domain\Models\TransportInvoice;
+use Modules\Transport\Domain\Models\TransportSettlementAdjustment;
 use Tests\Support\TransportScenario;
 
 /*

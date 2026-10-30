@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\Transport\TransportTripStatus;
-use App\Models\TransportRoute;
-use App\Models\TransportTransaction;
-use App\Models\TransportTrip;
-use App\Models\TransportVehicle;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Transport\Domain\Enums\TransportTripStatus;
+use Modules\Transport\Domain\Models\TransportRoute;
+use Modules\Transport\Domain\Models\TransportTransaction;
+use Modules\Transport\Domain\Models\TransportTrip;
+use Modules\Transport\Domain\Models\TransportVehicle;
 use Tests\Support\TransportScenario;
 
 /*

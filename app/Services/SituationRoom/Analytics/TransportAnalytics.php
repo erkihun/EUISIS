@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\Transport\TransportTripStatus;
 use App\Models\Provider;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Transport\Domain\Enums\TransportTripStatus;
 
 /**
  * Transport: verified boardings, riders, trips run and refused scans for

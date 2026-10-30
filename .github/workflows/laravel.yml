@@ -42,7 +42,7 @@ jobs:
         composer audit --locked --no-interaction
         npm audit --audit-level=high
     - name: Code style (Pint)
-      run: vendor/bin/pint --test app config database routes tests
+      run: vendor/bin/pint --test app Modules config database routes tests
     - name: Build frontend assets
       # Inertia pages, including error pages, need the Vite manifest.
       run: |

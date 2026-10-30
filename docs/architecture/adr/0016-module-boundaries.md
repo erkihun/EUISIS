@@ -34,12 +34,18 @@ strip every user's roles, orphan audit history and invalidate partner tokens.
    above. Migrations stay in `database/migrations` (one ordered history), Inertia pages stay in
    `resources/js/Pages` (the frontend has its own boundaries), and route files stay in `routes/` with
    unchanged route names and URLs.
-2. **Dependency rules**, enforced by architecture tests:
-   - `Domain` depends on nothing in its module but `Domain`, and never on `Http` or `Infrastructure`.
-   - `Application` may use its own `Domain`; `Http` and `Infrastructure` may use `Application` and `Domain`.
-   - Another module reaches a module only through its `Application` layer or the backbone contracts
-     (`App\Backbone\Contracts`), never through its `Http` or `Infrastructure`.
+2. **Dependency rules**, enforced for every module by `tests/Feature/Architecture/ModuleBoundariesTest.php`:
+   - `Domain` depends on nothing else in its module (not `Application`, `Infrastructure` or `Http`) and
+     never on `Illuminate\Http`.
+   - `Application` may use its own `Domain` and dispatch its own `Infrastructure` jobs and exports; it never
+     uses `Http`. `Infrastructure` never uses `Http`.
+   - Code outside a module (`app/` and other modules) may use its `Application` services and its `Domain`
+     models and enums (relations, read models, analytics), never its `Http` or `Infrastructure`. Only the
+     composition root (service providers, `bootstrap/app.php`, route files) wires those in. Prefer the
+     backbone contracts (`App\Backbone\Contracts`) for anything about people and structure.
    - Code still in `app/` is the shared kernel and the not-yet-moved modules; new module code goes in `Modules/`.
+   - Development-only tooling (load-test seeders, demo data) stays in `app/`, where the production build
+     leaves it out by path.
 3. **Stored class names never change.** A moved model is registered in the morph map under its old class
    name (`'App\Models\TransportRoute' => Modules\Transport\Domain\TransportRoute::class`), so the database
    keeps the same values and existing rows still resolve. Every other moved class (jobs, notifications,

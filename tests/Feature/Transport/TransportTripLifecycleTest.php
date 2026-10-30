@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Enums\Transport\TransportTripStatus;
-use App\Enums\Transport\TransportVerificationMethod;
 use App\Models\AuditLog;
 use App\Models\PublicHoliday;
-use App\Models\TransportException;
-use App\Models\TransportServiceCalendarDay;
-use App\Models\TransportTransaction;
-use App\Models\TransportTrip;
-use App\Services\Transport\Boarding\BoardingRequest;
-use App\Services\Transport\Boarding\TransportBoardingService;
-use App\Services\Transport\TransportTripPlanner;
-use App\Services\Transport\TransportTripService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Services\Boarding\BoardingRequest;
+use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
+use Modules\Transport\Application\Services\TransportTripPlanner;
+use Modules\Transport\Application\Services\TransportTripService;
+use Modules\Transport\Domain\Enums\TransportTripStatus;
+use Modules\Transport\Domain\Enums\TransportVerificationMethod;
+use Modules\Transport\Domain\Models\TransportException;
+use Modules\Transport\Domain\Models\TransportServiceCalendarDay;
+use Modules\Transport\Domain\Models\TransportTransaction;
+use Modules\Transport\Domain\Models\TransportTrip;
 use Tests\Support\TransportScenario;
 
 /*

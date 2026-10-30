@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
-use App\Http\Middleware\AuthenticateTransportDevice;
 use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
@@ -46,6 +45,8 @@ use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Modules\Transport\Http\Middleware\AuthenticateTransportDevice;
+use Modules\Transport\Infrastructure\Console\PlanTransportTrips;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -53,6 +54,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
+    // Console commands of modules moved into Modules/ (ADR 0016), by class: directory
+    // discovery only maps files under app/. app/Console/Commands stays discovered.
+    ->withCommands([
+        PlanTransportTrips::class,
+    ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',

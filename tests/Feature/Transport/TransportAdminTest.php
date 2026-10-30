@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Models\Provider;
 use App\Models\ProviderUser;
 use App\Models\SystemSetting;
-use App\Models\TransportPass;
-use App\Models\TransportRoute;
-use App\Models\TransportTransaction;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Transport\Domain\Models\TransportPass;
+use Modules\Transport\Domain\Models\TransportRoute;
+use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\TransportScenario;
 
 /*

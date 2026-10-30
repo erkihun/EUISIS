@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Transport\Domain\Models\TransportDriver;
+use Modules\Transport\Domain\Models\TransportProviderProfile;
+use Modules\Transport\Domain\Models\TransportRoute;
+use Modules\Transport\Domain\Models\TransportTransaction;
+use Modules\Transport\Domain\Models\TransportTrip;
+use Modules\Transport\Domain\Models\TransportVehicle;
 
 class Provider extends Model
 {

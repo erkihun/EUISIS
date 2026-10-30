@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Models\SystemSetting;
-use App\Models\TransportTransaction;
-use App\Services\Transport\TransportSettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Services\TransportSettings;
+use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\TransportScenario;
 
 /*

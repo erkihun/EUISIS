@@ -14,16 +14,16 @@ use App\Models\OrganizationType;
 use App\Models\Provider;
 use App\Models\ProviderType;
 use App\Models\ServiceType;
-use App\Models\TransportDevice;
-use App\Models\TransportPass;
-use App\Models\TransportRoute;
-use App\Models\TransportTrip;
-use App\Models\TransportVehicle;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Modules\Transport\Domain\Models\TransportDevice;
+use Modules\Transport\Domain\Models\TransportPass;
+use Modules\Transport\Domain\Models\TransportRoute;
+use Modules\Transport\Domain\Models\TransportTrip;
+use Modules\Transport\Domain\Models\TransportVehicle;
 
 /**
  * Synthetic riders, cards, buses, scanners and today's trips for the k6

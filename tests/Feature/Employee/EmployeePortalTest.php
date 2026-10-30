@@ -17,13 +17,13 @@ use App\Models\PublicHoliday;
 use App\Models\ServiceType;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
-use App\Models\TransportPass;
-use App\Models\TransportTransaction;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Support\DailyActivity\DailyActivityRoles;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Transport\Domain\Models\TransportPass;
+use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\CafeteriaScenario;
 
 /**

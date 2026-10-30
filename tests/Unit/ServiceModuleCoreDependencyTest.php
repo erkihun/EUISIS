@@ -44,7 +44,12 @@ function serviceModuleCoreImports(): array
 {
     $root = dirname(__DIR__, 2);
     $counts = array_fill_keys(array_keys(SERVICE_MODULES), 0);
-    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/app', FilesystemIterator::SKIP_DOTS)) as $file) {
+    // Modules moved into Modules/ (ADR 0016) still count against their baseline.
+    $files = new AppendIterator;
+    foreach (['app', 'Modules'] as $dir) {
+        $files->append(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$dir, FilesystemIterator::SKIP_DOTS)));
+    }
+    foreach ($files as $file) {
         if ($file->getExtension() !== 'php') {
             continue;
         }
@@ -71,7 +76,11 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         'cafeteria' => 21,
         // 2026-10-25: route access, organization lookup, eligibility request, the
         // reevaluation job and the scan service read through Core contracts.
-        'transport' => 8,
+        // 2026-10-30: 15, not new coupling: the move to Modules/Transport gave its
+        // seven models (pass, route, contract, eligibility, exception, settlement,
+        // transaction) `use App\Models\Employee/Organization` lines for relations
+        // they always had; in App\Models they shared the namespace and were not counted.
+        'transport' => 15,
         'grievance' => 15,
         'discipline' => 2,
         'performance' => 16,

@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use App\Enums\EmployeeStatus;
-use App\Enums\Transport\TransportVerificationMethod;
 use App\Models\EmployeeAssignment;
-use App\Models\TransportEligibility;
-use App\Models\TransportException;
-use App\Models\TransportTransaction;
 use App\Models\User;
-use App\Notifications\TransportNotification;
-use App\Services\Transport\Boarding\BoardingRequest;
-use App\Services\Transport\Boarding\TransportBoardingService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Modules\Transport\Application\Notifications\TransportNotification;
+use Modules\Transport\Application\Services\Boarding\BoardingRequest;
+use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
+use Modules\Transport\Domain\Enums\TransportVerificationMethod;
+use Modules\Transport\Domain\Models\TransportEligibility;
+use Modules\Transport\Domain\Models\TransportException;
+use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\TransportScenario;
 
 /*

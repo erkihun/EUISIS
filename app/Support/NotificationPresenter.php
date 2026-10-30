@@ -16,9 +16,9 @@ use App\Notifications\PerformanceNotification;
 use App\Notifications\PublicFeedbackNotification;
 use App\Notifications\StatutoryDeadlineNotification;
 use App\Notifications\TransferAnnouncementNotification;
-use App\Notifications\TransportNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
+use Modules\Transport\Application\Notifications\TransportNotification;
 
 /**
  * Shapes a stored notification for the bell, My Portal and the dashboard.

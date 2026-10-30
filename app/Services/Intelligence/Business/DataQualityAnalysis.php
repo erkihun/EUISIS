@@ -16,11 +16,11 @@ use App\Services\SituationRoom\SituationMemo;
 use App\Services\SituationRoom\SituationPanel;
 use App\Services\SituationRoom\SituationScopeResolver;
 use App\Services\SituationRoom\SituationSettings;
-use App\Services\Transport\TransportDataQualityService;
 use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Transport\Application\Services\TransportDataQualityService;
 
 /**
  * Data Quality Intelligence: how far every other business figure can be

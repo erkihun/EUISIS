@@ -8,7 +8,6 @@ use App\Backbone\Events\EmployeeChanged;
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
-use App\Jobs\Transport\ReevaluateTransportEligibility;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -19,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Modules\Transport\Infrastructure\Jobs\ReevaluateTransportEligibility;
 
 /*
  * Stage 2 of the master backbone separation: the backbone publishes domain

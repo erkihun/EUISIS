@@ -41,7 +41,7 @@ test('non-string cells pass through unchanged', function (): void {
 test('every fputcsv call site sanitises its row', function (): void {
     $files = [
         'app/Services/Cafeteria/ProviderTransactionExportService.php',
-        'app/Http/Controllers/ProviderPortal/Transport/TransportTransactionController.php',
+        'Modules/Transport/Http/Controllers/ProviderPortal/TransportTransactionController.php',
         'app/Http/Controllers/Web/ServiceFeedbackController.php',
     ];
 
