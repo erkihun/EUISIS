@@ -11,7 +11,7 @@ use App\Services\ErrorLoggingService;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\Sms\HttpSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;

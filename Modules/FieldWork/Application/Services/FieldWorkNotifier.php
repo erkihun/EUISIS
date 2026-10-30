@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\FieldWork\Application\Services;
 
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityNotifier;
+use App\Services\Employees\EmployeeUserResolver;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Log;
@@ -16,14 +16,14 @@ use Throwable;
 /**
  * Delivers Field Work notices through the system notification channels.
  * The requester is reached through the same employee → user link as every
- * other module (DailyActivityNotifier::userFor). Failures are logged and
+ * other module (EmployeeUserResolver::userFor). Failures are logged and
  * swallowed: a mail outage must never undo an approval.
  */
 class FieldWorkNotifier
 {
     public function __construct(
         private readonly SystemSettingsService $settings,
-        private readonly DailyActivityNotifier $users,
+        private readonly EmployeeUserResolver $users,
     ) {}
 
     public function approvalRequired(FieldWorkRequest $request): void

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services;
 
 use App\Models\Employee;
-use App\Services\DailyActivity\DailyActivityNotifier;
+use App\Services\Employees\EmployeeUserResolver;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +21,7 @@ use Modules\Transport\Domain\Models\TransportRoute;
 class TransportEmployeeNotifier
 {
     public function __construct(
-        private readonly DailyActivityNotifier $resolver,
+        private readonly EmployeeUserResolver $resolver,
         private readonly SystemSettingsService $settings,
     ) {}
 

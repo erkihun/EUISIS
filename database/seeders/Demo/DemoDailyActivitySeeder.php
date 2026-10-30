@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Demo;
 
-use App\Enums\DailyActivityDayStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
 use App\Models\Employee;
 use App\Models\PositionService;
 use App\Models\PositionServiceSubService;
 use App\Models\PositionServiceTask;
 use App\Models\PositionServiceTaskStandard;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityCalendarService;
-use App\Services\DailyActivity\DailyActivityService;
-use App\Services\DailyActivity\DailyActivitySettings;
+use Modules\DailyWork\Application\Services\DailyActivityCalendarService;
+use Modules\DailyWork\Application\Services\DailyActivityService;
+use Modules\DailyWork\Application\Services\DailyActivitySettings;
 use App\Support\Demo\DemoDataset;
 use Illuminate\Support\Carbon;
 

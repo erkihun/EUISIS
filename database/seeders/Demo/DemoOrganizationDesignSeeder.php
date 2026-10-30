@@ -30,7 +30,7 @@ use App\Models\ResponsibilityType;
 use App\Models\Service;
 use App\Models\UnitResponsibility;
 use App\Models\User;
-use App\Services\DailyActivity\TaskStandardService;
+use App\Services\OrganizationDesign\TaskStandardService;
 use App\Services\OrganizationDesign\DesignStudyService;
 use App\Services\OrganizationDesign\FunctionService;
 use App\Services\OrganizationDesign\JobDescriptionService;

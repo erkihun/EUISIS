@@ -32,7 +32,7 @@ use App\Models\UnitResponsibility;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\WorkforcePlanningMethodology;
-use App\Services\DailyActivity\TaskStandardService;
+use App\Services\OrganizationDesign\TaskStandardService;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\OrganizationDesign\LegacyMappingService;
 use App\Services\OrganizationDesign\OrganizationDesignGapService;

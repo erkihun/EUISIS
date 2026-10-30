@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Assessment\Execution;
 
-use App\Models\DailyActivityReviewerAssignment;
+use Modules\DailyWork\Contracts\ReadModels\DailyActivityReviewerAssignmentRecord;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\OrganizationUnit;
@@ -42,7 +42,7 @@ class AssessmentEvaluatorResolver
             return null;
         }
         $day = $date->toDateString();
-        $candidates = DailyActivityReviewerAssignment::query()
+        $candidates = DailyActivityReviewerAssignmentRecord::query()
             ->where('is_active', true)
             ->where('organization_id', $assignment->organization_id)
             ->where(fn ($q) => $q->whereNull('effective_from')->orWhereDate('effective_from', '<=', $day))

@@ -17,7 +17,7 @@ use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
 use App\Models\Service;
 use App\Models\User;
-use App\Services\DailyActivity\TaskStandardService;
+use App\Services\OrganizationDesign\TaskStandardService;
 use App\Services\OrganizationDesign\FunctionService;
 use App\Services\OrganizationDesign\MandateService;
 use App\Services\OrganizationDesign\OrganizationDesignAudit;

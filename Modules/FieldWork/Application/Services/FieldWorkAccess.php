@@ -6,7 +6,7 @@ namespace Modules\FieldWork\Application\Services;
 
 use App\Models\Employee;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityReviewerResolver;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
@@ -35,7 +35,7 @@ class FieldWorkAccess
 {
     public function __construct(
         private readonly OrganizationScopeService $scope,
-        private readonly DailyActivityReviewerResolver $reviewers,
+        private readonly DailyWorkReviewers $reviewers,
         private readonly FieldWorkSupervisorResolver $supervisors,
     ) {}
 

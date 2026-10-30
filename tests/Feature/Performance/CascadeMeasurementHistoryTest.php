@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\DailyActivityItem;
-use App\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeePerformanceAgreement;

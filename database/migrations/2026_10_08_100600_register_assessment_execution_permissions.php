@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Permission;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\Performance\PerformanceRoles;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;

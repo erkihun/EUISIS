@@ -264,15 +264,15 @@ return [
         ],
     ],
     'DailyWork' => [
-        'home' => 'app',
+        'home' => 'Modules/DailyWork',
         'models' => [
-            'App\Models\DailyActivityAttachment',
-            'App\Models\DailyActivityHistory',
-            'App\Models\DailyActivityItem',
-            'App\Models\DailyActivityLog',
-            'App\Models\DailyActivityReminder',
-            'App\Models\DailyActivityReviewPolicy',
-            'App\Models\DailyActivityReviewerAssignment',
+            'Modules\DailyWork\Domain\Models\DailyActivityAttachment',
+            'Modules\DailyWork\Domain\Models\DailyActivityHistory',
+            'Modules\DailyWork\Domain\Models\DailyActivityItem',
+            'Modules\DailyWork\Domain\Models\DailyActivityLog',
+            'Modules\DailyWork\Domain\Models\DailyActivityReminder',
+            'Modules\DailyWork\Domain\Models\DailyActivityReviewPolicy',
+            'Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment',
         ],
     ],
     'Performance' => [

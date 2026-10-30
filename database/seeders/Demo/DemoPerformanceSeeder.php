@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\Demo;
 
 use App\Enums\Performance\CycleStatus;
-use App\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\EmployeePerformanceItem;
 use App\Models\Kpi;

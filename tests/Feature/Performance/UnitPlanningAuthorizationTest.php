@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\DailyActivityReviewerAssignment;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeePerformanceAgreement;

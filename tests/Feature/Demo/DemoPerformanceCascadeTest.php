@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use App\Enums\Performance\PlanType;
-use App\Models\DailyActivityItem;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\EmployeePerformanceItem;
 use App\Models\KpiActual;
 use App\Models\PerformancePlan;
 use App\Models\PositionService;
 use App\Models\StrategicGoal;
-use App\Services\DailyActivity\DailyActivityPresenter;
+use Modules\DailyWork\Application\Services\DailyActivityPresenter;
 use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Performance\PerformancePlanService;
 use App\Support\Demo\DemoDataset;

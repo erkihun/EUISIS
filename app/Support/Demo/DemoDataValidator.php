@@ -6,7 +6,7 @@ namespace App\Support\Demo;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\HierarchyVersionStatus;
-use App\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Grievance;

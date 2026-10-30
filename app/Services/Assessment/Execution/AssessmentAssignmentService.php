@@ -20,7 +20,7 @@ use App\Models\EmployeeAssignment;
 use App\Models\User;
 use App\Notifications\PerformanceNotification;
 use App\Services\Assessment\Oversight\OversightAccess;
-use App\Services\DailyActivity\EmployeeWorkContextResolver;
+use App\Services\Employees\EmployeeWorkContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;

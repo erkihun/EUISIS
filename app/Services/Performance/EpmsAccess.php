@@ -8,7 +8,7 @@ use App\Models\Employee;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\GrievanceCommittee;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityReviewerResolver;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,7 +33,7 @@ final class EpmsAccess
 {
     public function __construct(
         private readonly OrganizationScopeService $scope,
-        private readonly DailyActivityReviewerResolver $reviewers,
+        private readonly DailyWorkReviewers $reviewers,
         private readonly EpmsSettings $settings,
     ) {}
 

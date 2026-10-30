@@ -6,7 +6,6 @@ namespace App\Services\Performance;
 
 use App\Enums\Performance\PlanStatus;
 use App\Enums\Performance\PlanType;
-use App\Models\DailyActivityItem;
 use App\Models\Employee;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\EmployeePerformanceItem;
@@ -22,6 +21,7 @@ use App\Models\User;
 use App\Services\Performance\Calculation\Dec;
 use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 
@@ -184,7 +184,8 @@ final class PerformanceCascadeService
         return $steps;
     }
 
-    public function activityTrace(DailyActivityItem $activity): array
+    /** A daily activity (the Daily work module's read model or its own record) traced to its goals. */
+    public function activityTrace(Model $activity): array
     {
         $item = $activity->performanceItem;
 

@@ -6,7 +6,6 @@ namespace App\Support;
 
 use App\Notifications\Communication\CommunicationNotification;
 use App\Notifications\CourtLetterNotification;
-use App\Notifications\DailyActivityNotification;
 use App\Notifications\EmployeePortalNotification;
 use App\Notifications\GrievanceNotification;
 use App\Notifications\InstitutionCourtCaseNotification;
@@ -31,7 +30,6 @@ final class NotificationPresenter
         'communication' => CommunicationNotification::class,
         'court_letter' => CourtLetterNotification::class,
         'institution_court_case' => InstitutionCourtCaseNotification::class,
-        'daily_activity' => DailyActivityNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
         'account_security' => PasswordSecurityNotification::class,
         'performance' => PerformanceNotification::class,

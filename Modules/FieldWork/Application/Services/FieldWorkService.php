@@ -10,7 +10,7 @@ use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\User;
-use App\Services\DailyActivity\EmployeeWorkContextResolver;
+use App\Services\Employees\EmployeeWorkContextResolver;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\CardStatus;
-use App\Enums\DailyActivityStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Enums\GrievanceStatus;
 use App\Enums\HierarchyVersionStatus;
-use App\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\Grievance;
 use App\Models\GrievanceCommittee;

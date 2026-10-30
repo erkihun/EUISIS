@@ -8,6 +8,7 @@ use App\Enums\Performance\EvidenceType;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\DailyWork\Contracts\ReadModels\DailyActivityItemRecord;
 
 /**
  * Evidence supporting a KPI actual. Files live on the private disk and are served only through an authorized route.
@@ -61,6 +62,6 @@ class PerformanceEvidence extends Model
 
     public function dailyActivityItem(): BelongsTo
     {
-        return $this->belongsTo(DailyActivityItem::class, 'daily_activity_item_id');
+        return $this->belongsTo(DailyActivityItemRecord::class, 'daily_activity_item_id');
     }
 }

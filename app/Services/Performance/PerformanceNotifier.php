@@ -8,7 +8,7 @@ use App\Models\Employee;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\User;
 use App\Notifications\PerformanceNotification;
-use App\Services\DailyActivity\DailyActivityNotifier;
+use App\Services\Employees\EmployeeUserResolver;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +19,7 @@ final class PerformanceNotifier
 {
     public function __construct(
         private readonly SystemSettingsService $settings,
-        private readonly DailyActivityNotifier $accounts,
+        private readonly EmployeeUserResolver $accounts,
         private readonly EpmsSettings $epms,
     ) {}
 

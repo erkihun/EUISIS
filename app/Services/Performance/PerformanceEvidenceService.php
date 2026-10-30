@@ -7,7 +7,7 @@ namespace App\Services\Performance;
 use App\Enums\AuditEventType;
 use App\Enums\Performance\AgreementStatus;
 use App\Enums\Performance\EvidenceType;
-use App\Models\DailyActivityItem;
+use Modules\DailyWork\Contracts\ReadModels\DailyActivityItemRecord;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\PerformanceEvidence;
 use App\Models\User;
@@ -41,7 +41,7 @@ final class PerformanceEvidenceService
         // Evidence retains the assignment and period in which work happened.
         $dailyItemId = $data['daily_activity_item_id'] ?? null;
         if ($dailyItemId !== null) {
-            $dailyItem = DailyActivityItem::query()->whereKey($dailyItemId)
+            $dailyItem = DailyActivityItemRecord::query()->whereKey($dailyItemId)
                 ->whereHas('log', fn ($q) => $q->where('employee_id', $agreement->employee_id)
                     ->where('employee_assignment_id', $agreement->employee_assignment_id)
                     ->whereBetween('activity_date', [$agreement->effective_from->toDateString(), $agreement->effective_to->toDateString()]))

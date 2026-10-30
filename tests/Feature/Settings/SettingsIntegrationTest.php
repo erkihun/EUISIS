@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Requests\DailyActivity\UpdateDailyActivitySettingsRequest;
+use Modules\DailyWork\Http\Requests\UpdateDailyActivitySettingsRequest;
 use App\Http\Requests\Performance\UpdatePerformanceSettingsRequest;
 use App\Http\Requests\PublicSite\UpdatePublicSiteSettingsRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;

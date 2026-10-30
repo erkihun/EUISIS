@@ -10,14 +10,12 @@ use App\Enums\Performance\KpiAggregation;
 use App\Enums\Performance\KpiDataSource;
 use App\Enums\Performance\PlanStatus;
 use App\Enums\Performance\PlanType;
-use App\Models\DailyActivityItem;
 use App\Models\EmployeePerformanceItem;
 use App\Models\KpiActual;
 use App\Models\KpiTarget;
 use App\Models\OrganizationUnit;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityReviewPolicyService;
-use App\Services\DailyActivity\DailyActivitySettings;
+use Modules\DailyWork\Contracts\DailyWorkOutputs;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
@@ -44,8 +42,7 @@ final class KpiActualService
         private readonly EpmsAudit $audit,
         private readonly EpmsSettings $settings,
         private readonly SystemKpiSourceRegistry $systemSources,
-        private readonly DailyActivitySettings $dailyActivity,
-        private readonly DailyActivityReviewPolicyService $reviewPolicy,
+        private readonly DailyWorkOutputs $dailyWork,
     ) {}
 
     /** @param array<string, mixed> $data period_start, period_end, actual_value|actual_numerator+actual_denominator|milestone_key, comment */
@@ -137,16 +134,7 @@ final class KpiActualService
             $chain[] = $predecessor->getKey();
             $previous = $predecessor->supersedes_item_id;
         }
-        $query = DailyActivityItem::query()
-            ->whereIn('employee_performance_item_id', $chain)
-            ->whereNotNull('quantity')
-            ->whereHas('log', fn ($log) => $log->where('employee_id', $agreement->employee_id)
-                ->where('employee_assignment_id', $agreement->employee_assignment_id)
-                // Approved where the organization reviews, submitted where it does not.
-                ->where(fn ($final) => $this->reviewPolicy->constrainToFinal($final, $agreement->organization_id))
-                ->whereBetween('activity_date', [$from->toDateString(), $to->toDateString()]));
-
-        $count = (clone $query)->count();
+        ['count' => $count, 'quantity' => $quantity] = $this->dailyWork->finalQuantity($chain, (string) $agreement->employee_id, (string) $agreement->employee_assignment_id, (string) $agreement->organization_id, $from, $to);
         if ($count === 0) {
             // Nothing approved any more (approvals withdrawn, items unlinked): a figure
             // synced earlier must not keep scoring.
@@ -154,8 +142,6 @@ final class KpiActualService
 
             return null;
         }
-        $quantity = (string) (clone $query)->sum('quantity');
-
         return KpiActual::query()->updateOrCreate(
             ['subject_key' => 'item:'.$item->getKey(), 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), 'source_key' => 'daily_activity'],
             [

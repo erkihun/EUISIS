@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom;
 
-use App\Enums\DailyActivityStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\Performance\AgreementStatus;
 use App\Models\Organization;

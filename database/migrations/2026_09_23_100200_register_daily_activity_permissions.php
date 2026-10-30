@@ -7,7 +7,7 @@ use App\Models\Permission;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\SystemSettings\SystemSettingsRegistry;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Role;

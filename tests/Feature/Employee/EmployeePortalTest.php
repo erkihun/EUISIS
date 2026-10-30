@@ -14,7 +14,7 @@ use App\Models\PublicHoliday;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
 use App\Models\User;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;

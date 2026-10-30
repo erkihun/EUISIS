@@ -24,7 +24,7 @@ use App\Models\PerformanceObjective;
 use App\Models\PerformancePlan;
 use App\Models\PositionCompetency;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityReviewerResolver;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use App\Services\Performance\Calculation\Dec;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
@@ -50,7 +50,7 @@ final class EmployeeAgreementService
         private readonly EpmsAccess $access,
         private readonly EpmsAudit $audit,
         private readonly EpmsSettings $settings,
-        private readonly DailyActivityReviewerResolver $reviewers,
+        private readonly DailyWorkReviewers $reviewers,
         private readonly PerformanceNotifier $notifier,
     ) {}
 

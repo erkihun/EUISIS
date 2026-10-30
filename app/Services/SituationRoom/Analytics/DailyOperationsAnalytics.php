@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\DailyActivityStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;

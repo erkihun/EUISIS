@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Services\DailyActivity\DailyWorkPerformanceCalculator;
+use Modules\DailyWork\Application\Services\DailyWorkPerformanceCalculator;
 
 /*
  * The formulas of the Employee Daily Plan & Work Execution form, with the

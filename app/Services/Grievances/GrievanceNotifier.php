@@ -12,7 +12,7 @@ use App\Models\GrievanceCaseStage;
 use App\Models\User;
 use App\Notifications\GrievanceNotification;
 use App\Services\Branding\BrandingService;
-use App\Services\DailyActivity\DailyActivityNotifier;
+use App\Services\Employees\EmployeeUserResolver;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +30,7 @@ final class GrievanceNotifier
     public function __construct(
         private readonly SystemSettingsService $settings,
         private readonly GrievanceSettings $grievanceSettings,
-        private readonly DailyActivityNotifier $accounts,
+        private readonly EmployeeUserResolver $accounts,
         private readonly GrievanceHandlerRegistry $handlers,
         private readonly SmsGateway $sms,
     ) {}

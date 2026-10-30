@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Models\AuditLog;
-use App\Models\DailyActivityReviewerAssignment;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -17,7 +17,7 @@ use App\Models\UserOrganizationScope;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\Rbac\DefaultRoleMatrix;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

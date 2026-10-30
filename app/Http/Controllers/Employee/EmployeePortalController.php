@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Employee;
 use App\Actions\Transfers\SubmitTransferApplicationAction;
 use App\Actions\Transfers\WithdrawTransferApplicationAction;
 use App\Enums\CardStatus;
-use App\Enums\DailyActivityStatus;
 use App\Enums\Performance\AgreementStatus;
 use App\Enums\Performance\AppealStatus;
 use App\Enums\Performance\KpiAggregation;
@@ -21,7 +20,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Public\PublicTransferAnnouncementController;
 use App\Http\Requests\Transfers\PublicStoreTransferApplicationRequest;
 use App\Http\Resources\EmployeeSelfServiceResource;
-use App\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeCorrectionRequest;
 use App\Models\EmployeeDocument;
@@ -35,15 +33,14 @@ use App\Models\TransferApplicationDocument;
 use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityCalendarService;
-use App\Services\DailyActivity\DailyActivitySettings;
-use App\Services\DailyActivity\WorkCalendarService;
+use Modules\DailyWork\Contracts\EmployeeDailyWork;
+use App\Services\Calendar\WorkCalendarService;
 use App\Services\Performance\EmployeeScoreCalculator;
 use App\Services\Performance\EpmsSettings;
 use App\Services\Performance\PerformanceAggregationService;
 use App\Services\Performance\PerformanceReviewService;
 use App\Services\Transfers\TransferEligibilityService;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\NotificationPresenter;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -243,7 +240,7 @@ class EmployeePortalController extends Controller
     private function upcomingHolidays(): array
     {
         try {
-            $today = app(DailyActivitySettings::class)->today();
+            $today = Carbon::parse(app(EmployeeDailyWork::class)->today());
             $holidays = app(WorkCalendarService::class)->holidaysBetween($today, $today->copy()->addDays(120));
 
             return collect($holidays)
@@ -270,45 +267,7 @@ class EmployeePortalController extends Controller
         }
 
         try {
-            $settings = app(DailyActivitySettings::class);
-            $calendar = app(DailyActivityCalendarService::class);
-            $today = $settings->today();
-            $weekStart = $today->copy()->startOfWeek();
-            $weekEnd = $weekStart->copy()->addDays(6);
-
-            $summary = $calendar->summaries(collect([$employee]), $weekStart, $today)[$employee->id] ?? [];
-
-            return [
-                'today' => $today->toDateString(),
-                'today_status' => $calendar->dayStatus($employee, $today)->value,
-                'week' => array_map(fn (array $day): array => [
-                    'date' => $day['date'],
-                    'status' => $day['status'],
-                    'is_late' => $day['is_late'],
-                    'items_count' => $day['items_count'],
-                ], $calendar->days($employee, $weekStart, $weekEnd)),
-                'required' => (int) ($summary['required'] ?? 0),
-                'submitted' => (int) ($summary['submitted'] ?? 0),
-                'missing' => (int) ($summary['missing'] ?? 0),
-                // All returned days, not just this week: each needs correcting.
-                'recent' => DailyActivityLog::query()
-                    ->where('employee_id', $employee->id)
-                    ->withCount('items')
-                    ->orderByDesc('activity_date')
-                    ->limit(5)
-                    ->get(['id', 'activity_date', 'status', 'is_late'])
-                    ->map(fn (DailyActivityLog $log): array => [
-                        'date' => $log->activityDateString(),
-                        'status' => $log->status->value,
-                        'is_late' => $log->is_late,
-                        'items_count' => (int) $log->items_count,
-                    ])
-                    ->all(),
-                'returned' => DailyActivityLog::query()
-                    ->where('employee_id', $employee->id)
-                    ->where('status', DailyActivityStatus::ReturnedForCorrection->value)
-                    ->count(),
-            ];
+            return app(EmployeeDailyWork::class)->dashboard((string) $employee->id);
         } catch (Throwable $exception) {
             Log::warning('Employee dashboard daily activity panel unavailable', [
                 'employee_id' => $employee->id,

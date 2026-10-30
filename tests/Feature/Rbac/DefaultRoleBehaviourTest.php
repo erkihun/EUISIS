@@ -6,7 +6,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
-use App\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\IdCard;

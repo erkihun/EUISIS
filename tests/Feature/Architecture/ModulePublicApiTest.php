@@ -88,6 +88,13 @@ const MODULE_TABLE_READERS = [
         'app/Services/SituationRoom/Analytics/FieldWorkAnalytics.php' => 'reporting',
         'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
     ],
+    'DailyWork' => [
+        // Situation Room panels and the Intelligence service analysis aggregate daily logs and items (totals only).
+        'app/Services/SituationRoom/Analytics/DailyOperationsAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/Analytics/ServiceDeliveryAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
+        'app/Services/Intelligence/Business/ServiceAnalysis.php' => 'reporting',
+    ],
 ];
 
 /* Uses of a module's internals frozen when it moved; may only shrink (see the file). */

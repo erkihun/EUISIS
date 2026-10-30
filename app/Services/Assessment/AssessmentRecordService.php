@@ -15,7 +15,7 @@ use App\Services\Assessment\Execution\AssessmentAssignmentService;
 use App\Services\Assessment\Execution\AssessmentResponseService;
 use App\Services\Assessment\Execution\AssessmentReviewService;
 use App\Services\Assessment\Execution\CompetencyAssessmentResultService;
-use App\Services\DailyActivity\EmployeeWorkContextResolver;
+use App\Services\Employees\EmployeeWorkContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

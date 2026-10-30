@@ -8,7 +8,7 @@ use App\Models\Employee;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferSetting;
 use App\Notifications\TransferAnnouncementNotification;
-use App\Services\DailyActivity\DailyActivityNotifier;
+use App\Services\Employees\EmployeeUserResolver;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Services\Transfers\TransferEligibilityService;
@@ -48,7 +48,7 @@ class NotifyEligibleTransferAudience implements ShouldQueue
 
     public function handle(
         TransferEligibilityService $eligibility,
-        DailyActivityNotifier $accounts,
+        EmployeeUserResolver $accounts,
         SystemSettingsService $settings,
     ): void {
         $announcement = TransferAnnouncement::query()->with('positions.position')->find($this->announcementId);

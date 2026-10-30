@@ -17,7 +17,7 @@ use App\Models\EmployeeAssignment;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\Assessment\AssessmentTargetResolver;
-use App\Services\DailyActivity\EmployeeWorkContextResolver;
+use App\Services\Employees\EmployeeWorkContextResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

@@ -18,7 +18,7 @@ use App\Services\Grievances\GrievanceEscalationService;
 use App\Services\Grievances\GrievanceReportService;
 use App\Services\Grievances\GrievanceSettings;
 use App\Services\SystemSettings\SystemSettingsService;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\Grievances\GrievanceRoles;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;

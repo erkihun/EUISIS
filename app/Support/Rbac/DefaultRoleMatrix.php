@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Rbac;
 
 use App\Support\Communication\CommunicationRoles;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\Discipline\DisciplineRoles;
 use App\Support\Grievances\GrievanceRoles;
 use App\Support\Intelligence\IntelligenceRoles;

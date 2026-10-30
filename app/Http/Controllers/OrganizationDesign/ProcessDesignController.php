@@ -14,7 +14,7 @@ use App\Models\PositionServiceTaskStandard;
 use App\Models\Process;
 use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
-use App\Services\DailyActivity\TaskStandardService;
+use App\Services\OrganizationDesign\TaskStandardService;
 use App\Services\OrganizationDesign\ProcessArchitectureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

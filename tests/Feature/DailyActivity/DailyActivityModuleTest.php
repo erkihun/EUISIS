@@ -3,15 +3,7 @@
 declare(strict_types=1);
 
 use App\Contracts\EmployeeLeaveProvider;
-use App\Enums\DailyActivityDayStatus;
-use App\Enums\DailyActivityHistoryAction;
-use App\Enums\DailyActivityStatus;
-use App\Exports\DailyActivity\DailyActivityReportExport;
 use App\Models\AuditLog;
-use App\Models\DailyActivityLog;
-use App\Models\DailyActivityReminder;
-use App\Models\DailyActivityReviewerAssignment;
-use App\Models\DailyActivityReviewPolicy;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\KpiActual;
@@ -30,22 +22,30 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\LocalizedDateService;
-use App\Services\DailyActivity\DailyActivityCalendarService;
-use App\Services\DailyActivity\DailyActivityCoverage;
-use App\Services\DailyActivity\DailyActivityQueryService;
-use App\Services\DailyActivity\DailyActivityReminderService;
-use App\Services\DailyActivity\DailyActivityReportService;
-use App\Services\DailyActivity\DailyActivityReviewPolicyService;
-use App\Services\DailyActivity\DailyActivityService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
-use App\Support\DailyActivity\DailyActivityRoles;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\DailyWork\Application\Services\DailyActivityCalendarService;
+use Modules\DailyWork\Application\Services\DailyActivityQueryService;
+use Modules\DailyWork\Application\Services\DailyActivityReminderService;
+use Modules\DailyWork\Application\Services\DailyActivityReportService;
+use Modules\DailyWork\Application\Services\DailyActivityReviewPolicyService;
+use Modules\DailyWork\Application\Services\DailyActivityService;
+use Modules\DailyWork\Contracts\Data\DailyActivityCoverage;
+use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Enums\DailyActivityHistoryAction;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityReminder;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewPolicy;
+use Modules\DailyWork\Infrastructure\Exports\DailyActivityReportExport;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -1122,8 +1122,8 @@ test('E2. the dashboard shows the real review queue size, not the preview length
 });
 
 test('E3. searches are case-insensitive on every database', function (): void {
-    $sources = (string) file_get_contents(app_path('Services/DailyActivity/DailyActivityQueryService.php'))
-        .file_get_contents(app_path('Http/Controllers/Web/DailyActivityController.php'));
+    $sources = (string) file_get_contents(base_path('Modules/DailyWork/Application/Services/DailyActivityQueryService.php'))
+        .file_get_contents(base_path('Modules/DailyWork/Http/Controllers/DailyActivityController.php'));
     // PostgreSQL LIKE is case-sensitive; ci_like_operator() resolves to ILIKE there.
     expect($sources)->not->toContain("'like'");
 

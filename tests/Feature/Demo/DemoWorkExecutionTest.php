@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\DailyActivityItem;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
 use Database\Seeders\DemoDataSeeder;
 
 /*

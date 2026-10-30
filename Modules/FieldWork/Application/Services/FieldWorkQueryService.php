@@ -9,7 +9,7 @@ use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\User;
-use App\Services\DailyActivity\DailyActivityReviewerResolver;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -34,7 +34,7 @@ class FieldWorkQueryService
         private readonly FieldWorkAccess $access,
         private readonly FieldWorkSettings $settings,
         private readonly OrganizationScopeService $scope,
-        private readonly DailyActivityReviewerResolver $reviewers,
+        private readonly DailyWorkReviewers $reviewers,
     ) {}
 
     /** @return Builder<FieldWorkRequest> */
