@@ -45,6 +45,30 @@ Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (en
 | Core: employees, organizations, positions | app | `App\Backbone` contracts, data, commands, events | last; everything depends on it |
 | Platform (users, roles, scopes, audit, settings, backups, codes) | app | — | shared platform, stays in `app/` |
 
+## Resume point (2026-10-30)
+
+Next slices, in this order, with the design each needs (the move tooling lives in the session
+scratchpad: `move_lib.py`, one `move_<module>.py` and one `<module>_post.py` per module; write the
+provider and read models after the move, since the reference rewrite renames stored names):
+
+1. **Grievance** (132 classes). Publish `GrievanceCommitteeRecord` and `GrievanceCommitteeMemberRecord`
+   read models (with `members`, `employee`, `isChairperson()`): Discipline, Performance (appeals,
+   calibration, `EpmsAccess`) and Legal's `StatutoryCommitteeRules` read committees. Legal and court-ms
+   (`CourtMsReferrals`, `CourtMsStatusSync`, `EmployeeCourtFiling`, `AdministrativeTribunalController`,
+   `SendStatutoryDeadlineAlerts`) use its timeline, audit, notifier, case access and evidence: give
+   them a `GrievanceCaseEvents` command (timeline + audit entry), `GrievanceCaseAccess` (may a user
+   see/act on a case), `GrievanceAlerts` (stage handlers of a case, as `DisciplineCases::deadlineAlertTarget`),
+   and a court snapshot query like `DisciplineCases::courtSnapshots`. Move its code-rule collision
+   checks out of `ServiceModuleServiceProvider`. `RetentionProcessor` names `Grievance::class` for audit
+   exemptions: use the read model's morph name.
+2. **Performance** (104 classes). Daily work uses `EmployeePerformanceItem` (KPI picker, item validation,
+   the item relation, cascade trace), so moving Performance as is makes a Performance ↔ Daily work
+   cycle. Invert it: Daily work defines `Contracts\PerformanceItemSource` (current items of an employee,
+   valid ids, a trace) and Performance implements it; Performance attaches `performanceItem` to Daily
+   work's item read model with `resolveRelationUsing`.
+3. Feedback, Public site, Organization design, Transfer, Recruitment, Situation Room, Intelligence,
+   Legal, Integrations, ID cards; Core last.
+
 ## Notes
 
 - 2026-10-30: the "outside code uses only Contracts" rule was a no-op from the Cafeteria commit
