@@ -1461,6 +1461,9 @@ return [
     // Field Work Management — docs/field-work-security.md.
     ...require database_path('seeders/data/field-work-permissions.php'),
 
+    // Service Delivery Monitoring — docs/service-monitoring.md.
+    ...require database_path('seeders/data/service-monitoring-permissions.php'),
+
     // Employee Performance Management (EPMS) — docs/epms-permissions.md.
     ...require database_path('seeders/data/performance-permissions.php'),
 

@@ -7,6 +7,7 @@ import enCafeteria from '@/i18n/en/cafeteria';
 import enCommon from '@/i18n/en/common';
 import enDailyActivities from '@/i18n/en/dailyActivities';
 import enFieldWork from '@/i18n/en/fieldWork';
+import enServiceMonitoring from '@/i18n/en/serviceMonitoring';
 import enPerformance from '@/i18n/en/performance';
 import enCommunication from '@/i18n/en/communication';
 import enRichText from '@/i18n/en/richText';
@@ -88,6 +89,7 @@ const tree: TranslationTree = {
     employees: { ...((en.employees as TranslationTree | undefined) ?? {}), ...enEmployees },
     employeePortal: enEmployeePortal,
     fieldWork: enFieldWork,
+    serviceMonitoring: enServiceMonitoring,
     dailyActivities: enDailyActivities,
     performance: enPerformance,
     communication: enCommunication,

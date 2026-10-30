@@ -102,6 +102,7 @@ const permissions = {
         'entitlement-rules': 'የጥቅማ ጥቅም ደንቦች',
         'entitlements': 'ጥቅማ ጥቅሞች',
         'field_work': 'የመስክ ሥራ',
+        'service_monitoring': 'የአገልግሎት አሰጣጥ ክትትል',
         'functional-reporting': 'የተግባር ተጠሪነት',
         'grade-levels': 'የሥራ ደረጃዎች',
         'grievance_committee_members': 'የኮሚቴ አባላት',

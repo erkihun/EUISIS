@@ -36,6 +36,7 @@ final class PermissionUsageScanner
         'app/Support/Performance/PerformanceRoles.php',
         'app/Support/Grievances/GrievanceRoles.php',
         'app/Support/FieldWork/FieldWorkRoles.php',
+        'app/Support/ServiceMonitoring/ServiceMonitoringRoles.php',
     ];
 
     private const NAME = '[a-z][a-z0-9_-]*(?:\.[a-zA-Z0-9_-]+)+';

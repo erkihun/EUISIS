@@ -926,4 +926,17 @@ enum AuditEventType: string
     case IntegrationSecretRotated = 'integration.secret_rotated';
     case IntegrationReplayRequested = 'integration.replay_requested';
     case IntegrationPayloadViewed = 'integration.payload_viewed';
+
+    /*
+     * Service Delivery Monitoring (docs/service-monitoring.md). Form lifecycle,
+     * reporting periods and each institution report's workflow transitions.
+     */
+    case ServiceMonitoringFormSaved = 'service_monitoring.form_saved';
+    case ServiceMonitoringFormPublished = 'service_monitoring.form_published';
+    case ServiceMonitoringFormArchived = 'service_monitoring.form_archived';
+    case ServiceMonitoringPeriodSaved = 'service_monitoring.period_saved';
+    case ServiceMonitoringReportSaved = 'service_monitoring.report_saved';
+    case ServiceMonitoringReportSubmitted = 'service_monitoring.report_submitted';
+    case ServiceMonitoringReportAccepted = 'service_monitoring.report_accepted';
+    case ServiceMonitoringReportReturned = 'service_monitoring.report_returned';
 }

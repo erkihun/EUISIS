@@ -11,6 +11,7 @@ use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Grievances\GrievanceRoles;
 use App\Support\Intelligence\IntelligenceRoles;
 use App\Support\Performance\PerformanceRoles;
+use App\Support\ServiceMonitoring\ServiceMonitoringRoles;
 use InvalidArgumentException;
 
 /**
@@ -160,6 +161,7 @@ final class DefaultRoleMatrix
                 'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
                 ...DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...FieldWorkRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
+                ...ServiceMonitoringRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS,

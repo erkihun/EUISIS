@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
             throw new RuntimeException(
                 'DatabaseSeeder creates demo data and is disabled in production. Seed reference data with: '
                 .'PermissionSeeder, RoleSeeder, RolePermissionSeeder, SystemSettingsSeeder, CodeRuleSeeder, '
-                .'GrievanceDefaultsSeeder, FieldWorkTypeSeeder, OrganizationTypeSeeder, OrganizationUnitTypeSeeder, '
+                .'GrievanceDefaultsSeeder, FieldWorkTypeSeeder, ServiceMonitoringStarterFormSeeder, OrganizationTypeSeeder, OrganizationUnitTypeSeeder, '
                 .'IsicActivitySeeder, OccupationSeeder, CafeteriaSettingsSeeder, CafeteriaDayRuleSeeder, '
                 .'PublicSiteDefaultsSeeder (php artisan db:seed --class=...).'
             );
@@ -73,6 +73,7 @@ class DatabaseSeeder extends Seeder
         $this->call(GrievanceDefaultsSeeder::class);
         $this->call(EthiopianPublicHolidaySeeder::class);
         $this->call(FieldWorkTypeSeeder::class);
+        $this->call(ServiceMonitoringStarterFormSeeder::class);
         $this->call(OrganizationUnitTypeSeeder::class);
         $this->call(IsicActivitySeeder::class);
         $this->call(LegalInstrumentTypeSeeder::class);

@@ -102,6 +102,7 @@ const permissions = {
         'entitlement-rules': 'Entitlement Rules',
         'entitlements': 'Entitlements',
         'field_work': 'Field work',
+        'service_monitoring': 'Service delivery monitoring',
         'functional-reporting': 'Functional Reporting',
         'grade-levels': 'Grade Levels',
         'grievance_committee_members': 'Committee Members',
