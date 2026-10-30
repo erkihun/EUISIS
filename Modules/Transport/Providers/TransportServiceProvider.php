@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Transport\Application\Notifications\TransportNotification;
 use Modules\Transport\Application\Policies\TransportDriverPolicy;
 use Modules\Transport\Application\Policies\TransportPassPolicy;
@@ -102,8 +102,9 @@ final class TransportServiceProvider extends ServiceProvider
         Gate::policy(TransportVehicle::class, TransportVehiclePolicy::class);
 
         // A provider's transport licence and service area belong to Transport, so
-        // Transport attaches the relation; the Provider model knows nothing of it.
-        Provider::resolveRelationUsing('transportProfile', fn (Provider $provider): HasOne => $provider->hasOne(TransportProviderProfile::class));
+        // Transport attaches the relation, to the read model the Providers module
+        // publishes; the provider's own model knows nothing of it.
+        ProviderRecord::resolveRelationUsing('transportProfile', fn (ProviderRecord $provider): HasOne => $provider->hasOne(TransportProviderProfile::class, 'provider_id'));
 
         // Route assignments follow placement and status (docs/transport/eligibility.md).
         Event::listen(AssignmentChanged::class, [TransportEligibilitySync::class, 'onAssignmentChanged']);

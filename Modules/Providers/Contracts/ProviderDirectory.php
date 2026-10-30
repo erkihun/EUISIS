@@ -25,4 +25,12 @@ interface ProviderDirectory
     public function hasService(string $providerId, string $serviceCode): bool;
 
     public function find(string $providerId): ?ProviderSummary;
+
+    /**
+     * Codes of the services the provider runs (its service is active),
+     * whether or not their modules are enabled.
+     *
+     * @return list<string>
+     */
+    public function activeServiceCodes(string $providerId): array;
 }

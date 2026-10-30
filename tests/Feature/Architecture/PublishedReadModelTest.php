@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Support\Database\ReadOnlyModelException;
+use Modules\Providers\Contracts\ProviderRegistry;
 use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
@@ -45,6 +46,13 @@ it('refuses writes through the model and its query builder', function (): void {
 it('narrows providers to a type without the owner\'s models', function (): void {
     expect(ProviderRecord::query()->ofType('TRANSPORT')->pluck('id')->all())->toContain($this->provider->id)
         ->and(ProviderRecord::query()->ofType('CAFETERIA')->pluck('id')->all())->not->toContain($this->provider->id);
+});
+
+it('narrows providers to a service they carry', function (): void {
+    app(ProviderRegistry::class)->enableService($this->provider->id, 'transport', null, 'Transport');
+
+    expect(ProviderRecord::query()->offering('transport')->pluck('id')->all())->toContain($this->provider->id)
+        ->and(ProviderRecord::query()->offering('no-such-service')->count())->toBe(0);
 });
 
 it('backs other modules\' relations, archived providers excluded as before', function (): void {

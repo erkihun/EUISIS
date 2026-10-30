@@ -8,6 +8,7 @@ use App\Support\Features;
 use Modules\Providers\Contracts\Data\ProviderSummary;
 use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderService;
 
 final class ProviderDirectoryQuery implements ProviderDirectory
 {
@@ -53,5 +54,19 @@ final class ProviderDirectoryQuery implements ProviderDirectory
             nameAm: $provider->name_am,
             status: (string) $provider->status,
         );
+    }
+
+    public function activeServiceCodes(string $providerId): array
+    {
+        return ProviderService::query()
+            ->where('provider_id', $providerId)
+            ->where('status', 'active')
+            ->with('serviceType:id,code')
+            ->get()
+            ->map(fn (ProviderService $service): ?string => $service->serviceType?->code)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

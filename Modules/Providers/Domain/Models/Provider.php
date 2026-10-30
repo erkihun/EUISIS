@@ -66,9 +66,8 @@ class Provider extends Model
         return $this->hasMany(ProviderUser::class);
     }
 
-    // cafeteriaProvider(), cafeterias() and cafeteriaNetworks() are attached by the Cafeteria module
-    // to the published Contracts\ReadModels\ProviderRecord.
-    // transportProfile() is attached by the Transport module (Modules/Transport/Providers).
+    // Other modules attach their relations to the published Contracts\ReadModels\ProviderRecord:
+    // cafeteriaProvider(), cafeterias() and cafeteriaNetworks() (Cafeteria), transportProfile() (Transport).
 
     public function hasService(string $serviceCode): bool
     {

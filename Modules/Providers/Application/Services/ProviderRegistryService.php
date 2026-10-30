@@ -10,6 +10,7 @@ use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 use Modules\Providers\Contracts\Data\NewProvider;
 use Modules\Providers\Contracts\Data\ProviderDetails;
 use Modules\Providers\Contracts\Data\ProviderOwnerAccount;
+use Modules\Providers\Contracts\Data\ProviderRevision;
 use Modules\Providers\Contracts\ProviderRegistry;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderService;
@@ -112,5 +113,17 @@ final class ProviderRegistryService implements ProviderRegistry
             'metadata' => [...($provider->metadata ?? []), ...$details->metadata],
             'updated_by' => $details->actorId,
         ])->save();
+    }
+
+    public function revise(string $providerId, ProviderRevision $revision): void
+    {
+        Provider::query()->findOrFail($providerId)
+            ->fill($revision->changes + ['updated_by' => $revision->actorId])
+            ->save();
+    }
+
+    public function archive(string $providerId): void
+    {
+        Provider::query()->findOrFail($providerId)->delete();
     }
 }

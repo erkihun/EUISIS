@@ -5,9 +5,11 @@ declare(strict_types=1);
 use App\Models\SystemSetting;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Models\TransportPass;
+use Modules\Transport\Domain\Models\TransportProviderProfile;
 use Modules\Transport\Domain\Models\TransportRoute;
 use Modules\Transport\Domain\Models\TransportTransaction;
 use Tests\Support\TransportScenario;
@@ -109,13 +111,13 @@ it('does not ship an employee list with the pass form', function (): void {
 
 it('keeps fields an edit does not send', function (): void {
     $this->provider->forceFill(['phone_number' => '+251911000111', 'address' => 'Bole Road'])->save();
-    $this->provider->transportProfile()->create(['license_number' => 'LIC-1', 'service_area_description_en' => 'Bole and Kirkos']);
+    TransportProviderProfile::query()->create(['provider_id' => $this->provider->id, 'license_number' => 'LIC-1', 'service_area_description_en' => 'Bole and Kirkos']);
 
     $this->actingAs($this->admin)->patch(route('transport.providers.update', $this->provider), [
         'provider_code' => $this->provider->provider_code, 'name_en' => 'Blue Line PLC', 'assigned_scope_type' => 'citywide', 'status' => 'active',
     ])->assertSessionHasNoErrors();
 
-    $provider = $this->provider->fresh();
+    $provider = ProviderRecord::query()->findOrFail($this->provider->id);
     expect($provider->name_en)->toBe('Blue Line PLC')
         ->and($provider->getAttribute('phone_number'))->toBe('+251911000111')
         ->and($provider->address)->toBe('Bole Road')

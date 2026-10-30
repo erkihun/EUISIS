@@ -7,11 +7,12 @@ namespace Modules\Providers\Contracts;
 use Modules\Providers\Contracts\Data\NewProvider;
 use Modules\Providers\Contracts\Data\ProviderDetails;
 use Modules\Providers\Contracts\Data\ProviderOwnerAccount;
+use Modules\Providers\Contracts\Data\ProviderRevision;
 
 /**
  * The only way other modules create or change provider records (ADR 0017):
- * register a provider of a type, enable a service for it, and change its
- * contact details. Runs inside the caller's transaction when there is one.
+ * register a provider of a type, enable a service for it, change its details,
+ * and archive it. Runs inside the caller's transaction when there is one.
  */
 interface ProviderRegistry
 {
@@ -30,4 +31,10 @@ interface ProviderRegistry
     public function enableService(string $providerId, string $serviceCode, ?int $actorId, ?string $serviceTypeNameIfMissing = null): void;
 
     public function updateDetails(string $providerId, ProviderDetails $details): void;
+
+    /** Changes only the fields the revision names; the others keep their stored values. */
+    public function revise(string $providerId, ProviderRevision $revision): void;
+
+    /** Archives the provider (soft delete): it is no longer found, its history stays. */
+    public function archive(string $providerId): void;
 }
