@@ -8,7 +8,6 @@ use App\Notifications\Communication\CommunicationNotification;
 use App\Notifications\CourtLetterNotification;
 use App\Notifications\DailyActivityNotification;
 use App\Notifications\EmployeePortalNotification;
-use App\Notifications\FieldWorkNotification;
 use App\Notifications\GrievanceNotification;
 use App\Notifications\InstitutionCourtCaseNotification;
 use App\Notifications\PasswordSecurityNotification;
@@ -34,7 +33,6 @@ final class NotificationPresenter
         'institution_court_case' => InstitutionCourtCaseNotification::class,
         'daily_activity' => DailyActivityNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
-        'field_work' => FieldWorkNotification::class,
         'account_security' => PasswordSecurityNotification::class,
         'performance' => PerformanceNotification::class,
         'grievance' => GrievanceNotification::class,

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\FieldWorkStatus;
 use App\Models\SituationRoomAction;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationCategory;
@@ -14,6 +13,7 @@ use App\Services\SituationRoom\SituationPanel;
 use App\Services\SituationRoom\SituationPermissions;
 use App\Services\SituationRoom\SituationSettings;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
 
 /**
  * Executive Overview: one headline per area the viewer may see, each linked

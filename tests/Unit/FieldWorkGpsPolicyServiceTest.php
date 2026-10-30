@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Services\FieldWork\FieldWorkGpsPolicyService;
 use App\Services\SystemSettings\SystemSettingsService;
+use Modules\FieldWork\Application\Services\FieldWorkGpsPolicyService;
 
 beforeEach(function (): void {
     $this->policy = new FieldWorkGpsPolicyService(Mockery::mock(SystemSettingsService::class));

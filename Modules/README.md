@@ -75,6 +75,8 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |
 | Cafeteria | `Data\TransactionStatus` constants | the transaction status values | Situation Room reports |
+| Field work | `FieldWorkGpsPolicy::maxGeofenceRadius()` | int (metres) | map configuration, organization profile validation |
+| Field work | `Data\FieldWorkStatus`, `Data\FieldWorkRoles`; `ReadModels\FieldWorkTypeRecord` | published values; a read-only model | Situation Room reports, the default role matrix |
 
 Transport reacts to the Core's `AssignmentChanged` and `EmployeeChanged` events and reads people and
 cards through `App\Backbone` contracts (`CredentialLookup`, `ServiceEligibility`, `EmployeeDirectory`).

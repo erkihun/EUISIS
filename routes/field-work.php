@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Employee\FieldWorkController as EmployeeFieldWorkController;
-use App\Http\Controllers\FieldWork\FieldWorkManagementController;
-use App\Http\Controllers\FieldWork\FieldWorkTypeController;
 use Illuminate\Support\Facades\Route;
+use Modules\FieldWork\Http\Controllers\Employee\FieldWorkController as EmployeeFieldWorkController;
+use Modules\FieldWork\Http\Controllers\FieldWorkManagementController;
+use Modules\FieldWork\Http\Controllers\FieldWorkTypeController;
 
 /*
 |--------------------------------------------------------------------------

@@ -6,11 +6,11 @@ namespace App\Services\SituationRoom;
 
 use App\Enums\DailyActivityStatus;
 use App\Enums\EmployeeStatus;
-use App\Enums\FieldWorkStatus;
 use App\Enums\Performance\AgreementStatus;
 use App\Models\Organization;
 use App\Services\Dashboard\DashboardMetricService;
 use Illuminate\Support\Facades\DB;
+use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
 use Throwable;
 
 /**

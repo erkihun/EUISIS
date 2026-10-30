@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 use App\Models\Permission;
 use App\Support\DailyActivity\DailyActivityRoles;
-use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Performance\PerformanceRoles;
 use App\Support\Rbac\PermissionCatalog;
 use Database\Seeders\FieldWorkTypeSeeder;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 

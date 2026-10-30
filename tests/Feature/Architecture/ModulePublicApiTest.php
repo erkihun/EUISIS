@@ -83,6 +83,11 @@ const MODULE_TABLE_READERS = [
         // One-off provider-user migration reads the old service-point association.
         'Modules/Providers/Infrastructure/Console/MigrateLegacyProviderUsers.php' => 'migration',
     ],
+    'FieldWork' => [
+        // Situation Room panels count field work by status and type, within the viewer's scope (totals only).
+        'app/Services/SituationRoom/Analytics/FieldWorkAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
+    ],
 ];
 
 /* Uses of a module's internals frozen when it moved; may only shrink (see the file). */

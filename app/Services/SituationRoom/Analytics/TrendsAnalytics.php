@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\FieldWorkStatus;
 use App\Enums\TransferStatus;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationContext;
@@ -15,6 +14,7 @@ use App\Services\SituationRoom\SituationPermissions;
 use App\Services\SituationRoom\SituationSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
 
 /**
  * Trends & Comparison: twelve months of the main volumes, this period

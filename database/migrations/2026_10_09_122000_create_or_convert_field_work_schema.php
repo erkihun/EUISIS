@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\FieldWorkScheduleType;
-use App\Enums\FieldWorkStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
+use Modules\FieldWork\Domain\Enums\FieldWorkScheduleType;
 
 /**
  * Field Work Management (የመስክ ሥራ አስተዳደር) — docs/field-work-management.md.

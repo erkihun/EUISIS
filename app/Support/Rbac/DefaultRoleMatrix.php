@@ -7,11 +7,11 @@ namespace App\Support\Rbac;
 use App\Support\Communication\CommunicationRoles;
 use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\Discipline\DisciplineRoles;
-use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Grievances\GrievanceRoles;
 use App\Support\Intelligence\IntelligenceRoles;
 use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
+use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 
 /**
  * Default system roles and their permissions (docs/default-role-permission-matrix.md).

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\FieldWorkStatus;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use App\Services\SituationRoom\SituationPermissions;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
 
 /**
  * Critical Attention: items that have waited longer than the city decided

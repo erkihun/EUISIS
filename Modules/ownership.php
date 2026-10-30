@@ -254,13 +254,13 @@ return [
         ],
     ],
     'FieldWork' => [
-        'home' => 'app',
+        'home' => 'Modules/FieldWork',
         'models' => [
-            'App\Models\FieldWorkHistory',
-            'App\Models\FieldWorkLocationEvent',
-            'App\Models\FieldWorkParticipant',
-            'App\Models\FieldWorkRequest',
-            'App\Models\FieldWorkType',
+            'Modules\FieldWork\Domain\Models\FieldWorkHistory',
+            'Modules\FieldWork\Domain\Models\FieldWorkLocationEvent',
+            'Modules\FieldWork\Domain\Models\FieldWorkParticipant',
+            'Modules\FieldWork\Domain\Models\FieldWorkRequest',
+            'Modules\FieldWork\Domain\Models\FieldWorkType',
         ],
     ],
     'DailyWork' => [

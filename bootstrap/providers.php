@@ -6,6 +6,7 @@ use App\Providers\IntelligenceServiceProvider;
 use App\Providers\ServiceModuleServiceProvider;
 use Modules\Cafeteria\Providers\CafeteriaServiceProvider;
 use Modules\Entitlements\Providers\EntitlementsServiceProvider;
+use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
@@ -20,4 +21,5 @@ return [
     ProvidersServiceProvider::class,
     CafeteriaServiceProvider::class,
     TransportServiceProvider::class,
+    FieldWorkServiceProvider::class,
 ];

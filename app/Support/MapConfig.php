@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Services\FieldWork\FieldWorkSettings;
+use Modules\FieldWork\Contracts\FieldWorkGpsPolicy;
 
 /**
  * The map a location picker shows (config/maps.php) and the largest check-in
@@ -22,7 +22,7 @@ final class MapConfig
             'maxZoom' => (int) config('maps.max_zoom'),
             'center' => config('maps.default_center'),
             'zoom' => (int) config('maps.default_zoom'),
-            'maxRadius' => app(FieldWorkSettings::class)->maxGeofenceRadius(),
+            'maxRadius' => app(FieldWorkGpsPolicy::class)->maxGeofenceRadius(),
         ];
     }
 }

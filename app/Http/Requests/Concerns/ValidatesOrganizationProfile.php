@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Concerns;
 
-use App\Services\FieldWork\FieldWorkSettings;
+use Modules\FieldWork\Contracts\FieldWorkGpsPolicy;
 
 /**
  * An organization's short name, official contact and location, shared by the
@@ -41,7 +41,7 @@ trait ValidatesOrganizationProfile
     /** @return array<string, list<mixed>> */
     protected function organizationProfileRules(): array
     {
-        $maxRadius = app(FieldWorkSettings::class)->maxGeofenceRadius();
+        $maxRadius = app(FieldWorkGpsPolicy::class)->maxGeofenceRadius();
 
         return [
             'short_name_en' => ['sometimes', 'nullable', 'string', 'max:50'],
