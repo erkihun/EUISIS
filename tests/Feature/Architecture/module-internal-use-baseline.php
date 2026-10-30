@@ -8,13 +8,11 @@ declare(strict_types=1);
  * fails when one no longer needs it, so the list can only shrink: replace a use
  * with the module's Contracts and delete the line.
  *
- * Providers (2026-10-30): other modules hold provider records in relations through
- * the published Providers\Contracts\ReadModels and write through ProviderRegistry;
- * pickers, checks, portal pages and actors use ProviderDirectory and
- * ProviderPortalSession. Left: the provider-guard export policy (the Gate hands it
- * the internal ProviderUser), the portal profile page (edits the user's own
- * account), and Transport's provider admin page and the transportProfile relation
- * its provider attaches to the internal Provider model.
+ * Providers (2026-10-30): emptied the same day. Other modules hold provider
+ * records through the published Contracts\ReadModels, write through
+ * ProviderRegistry, and use ProviderDirectory, ProviderPortalSession and
+ * ProviderPortalAccount for pickers, checks, portal pages, actors and the
+ * signed-in user's own account.
  */
 return [
     'Entitlements' => [
@@ -50,13 +48,5 @@ return [
         'Modules\\Providers\\Domain\\Models\\ProviderUserServicePermission',
         'Modules\\Providers\\Http\\Controllers\\ProviderUserController',
         'Modules\\Providers\\Http\\Middleware\\EnsureProviderServiceScope',
-    ],
-    'Providers' => [
-        // Modules\Cafeteria
-        'Modules\Cafeteria\Application\Policies\CafeteriaTransactionPolicy',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderProfileController',
-        // Modules\Transport
-        'Modules\Transport\Http\Controllers\TransportProviderController',
-        'Modules\Transport\Providers\TransportServiceProvider',
     ],
 ];

@@ -6,18 +6,20 @@ namespace Modules\Cafeteria\Application\Policies;
 
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Modules\Cafeteria\Application\Services\CafeteriaProviderAccessService;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ProviderDirectory;
+use Modules\Providers\Contracts\ProviderPortalAccount;
 
 readonly class CafeteriaTransactionPolicy
 {
     use DeniesNonAdminUsers;
 
     /**
-     * Override: allow ProviderUser to reach exportProviderTransactions,
-     * which has a User|ProviderUser union type and handles both cases.
+     * Override: allow a provider-portal user to reach exportProviderTransactions,
+     * which handles both the staff and the portal case.
      * All other abilities are denied for non-admin users by the trait.
      */
     public function before(mixed $user, string $ability): ?bool
@@ -58,16 +60,19 @@ readonly class CafeteriaTransactionPolicy
             && app(CafeteriaProviderAccessService::class)->canAccessProvider($user, $transaction->cafeteria_provider_id);
     }
 
-    public function exportProviderTransactions(User|ProviderUser $user, CafeteriaProvider $provider): bool
+    public function exportProviderTransactions(Authenticatable $user, CafeteriaProvider $provider): bool
     {
-        if ($user instanceof ProviderUser) {
-            // Any cafeteria of the operator's provider — main or branch — not only
-            // the provider's first (main) cafeteria.
+        if (! $user instanceof User) {
+            // A portal user (the provider guard): any cafeteria of their provider,
+            // main or branch, not only the provider's first (main) cafeteria.
+            $account = app(ProviderPortalAccount::class)->find((string) $user->getAuthIdentifier());
+
             return $provider->is_active
-                && $user->canLogin()
-                && $user->hasService('cafeteria')
+                && $account !== null
+                && $account->canSignIn
+                && app(ProviderDirectory::class)->hasService($account->providerId, 'cafeteria')
                 && $provider->provider_id !== null
-                && $provider->provider_id === $user->provider_id;
+                && $provider->provider_id === $account->providerId;
         }
 
         return $provider->is_active

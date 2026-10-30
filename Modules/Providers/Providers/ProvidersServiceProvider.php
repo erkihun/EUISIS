@@ -11,10 +11,12 @@ use Illuminate\Support\ServiceProvider;
 use Modules\Providers\Application\Policies\ProviderUserPolicy;
 use Modules\Providers\Application\Queries\ProviderDirectoryQuery;
 use Modules\Providers\Application\Services\NoPortalLocations;
+use Modules\Providers\Application\Services\ProviderPortalAccountService;
 use Modules\Providers\Application\Services\ProviderPortalContext;
 use Modules\Providers\Application\Services\ProviderRegistryService;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Contracts\ProviderDirectory;
+use Modules\Providers\Contracts\ProviderPortalAccount;
 use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Contracts\ProviderRegistry;
 use Modules\Providers\Domain\Models\Provider;
@@ -47,6 +49,7 @@ final class ProvidersServiceProvider extends ServiceProvider
     {
         $this->app->bind(ProviderRegistry::class, ProviderRegistryService::class);
         $this->app->bind(ProviderPortalSession::class, ProviderPortalContext::class);
+        $this->app->bind(ProviderPortalAccount::class, ProviderPortalAccountService::class);
         $this->app->bind(ProviderDirectory::class, ProviderDirectoryQuery::class);
         // A service module that runs portal locations (the cafeteria) binds its own.
         $this->app->bindIf(PortalLocationSource::class, NoPortalLocations::class);

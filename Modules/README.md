@@ -30,7 +30,7 @@ Rules, all enforced by `tests/Feature/Architecture`:
 
 - Outside code (`app/` and other modules) uses only a module's `Contracts` (`ModulePublicApiTest`).
   Uses that existed when a module moved and could not be replaced in the same change are frozen in
-  `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Providers and Entitlements); that list may only
+  `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Entitlements only); that list may only
   shrink.
 - Contracts are interfaces plus final data; they expose no model, builder, response, form request or
   internal class. The one model a module may publish is a read model in `Contracts\ReadModels`: a
@@ -62,10 +62,12 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Providers | `PortalLocationSource::selection($request)` (implemented by Cafeteria) | `Data\PortalLocationSelection` | provider-portal context |
 | Providers | `ProviderRegistry::register(NewProvider, ?ProviderOwnerAccount)` | the new provider's id | Transport and Cafeteria provider registration |
 | Providers | `ProviderRegistry::enableService(...)`, `updateDetails(...)` | — | Cafeteria payees |
+| Providers | `ProviderRegistry::revise($id, Data\ProviderRevision)`, `archive($id)` | — | Transport provider admin page |
+| Providers | `ProviderPortalAccount::own($request)`, `find($id)`, `passwordRules($request)`, `updateOwn(...)`, `changeOwnPassword(...)`, `homeUrl($request)` | `?Data\PortalAccount`, rules, —, bool (was forced), url | the portal profile page (Cafeteria), the portal export policy |
 | Providers | `ProviderPortalSession::providerId($request)`, `providerHasService($id, $code)`, `providerPayload($request)` | id, bool, layout props | Cafeteria and Transport portal pages |
 | Providers | `ProviderPortalSession::actor($request)`, `can($request, $permission)`, `actorHasService($request, $code)` | `?Data\PortalActor`, bool, bool | portal scans, trips, invoices, settlement disputes, exports, form requests |
-| Providers | `ProviderDirectory::offering($serviceCode, $activeOnly)`, `hasService($id, $code)`, `find($id)` | picker rows, bool, `?Data\ProviderSummary` | Transport admin pickers, form requests, services |
-| Providers | `ReadModels\ProviderRecord` (with the `ofType($typeCode)` scope), `ReadModels\ProviderUserRecord` (read-only models of `providers`, `provider_users`) | Eloquent records that refuse writes | Transport and Cafeteria models' `provider()`, `payee()`, `submittedBy()`, `scannedBy()` relations; Cafeteria payee pages, settlements, reports |
+| Providers | `ProviderDirectory::offering($serviceCode, $activeOnly)`, `hasService($id, $code)`, `find($id)`, `activeServiceCodes($id)` | picker rows, bool, `?Data\ProviderSummary`, service codes | Transport admin pickers, form requests, services |
+| Providers | `ReadModels\ProviderRecord` (scopes `ofType($typeCode)`, `offering($serviceCode)`; `assignedOrganization`), `ReadModels\ProviderUserRecord` (read-only models of `providers`, `provider_users`) | Eloquent records that refuse writes | Transport and Cafeteria models' `provider()`, `payee()`, `submittedBy()`, `scannedBy()` relations; Transport's provider admin page; Cafeteria payee pages, settlements, reports |
 | Entitlements | `ServiceDeliveryRegistry::ensureServiceType(...)`, `createProvider(...)`, `recordTransaction(...)` | owned record ids | Providers service enablement and Cafeteria service-point/scan writes |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |

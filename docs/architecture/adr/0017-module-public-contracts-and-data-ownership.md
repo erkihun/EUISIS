@@ -93,6 +93,10 @@ Entitlements with Cafeteria data at the application composition boundary.
 Also on 2026-10-30, Providers published `ProviderRecord` and `ProviderUserRecord` read models.
 Transport's and Cafeteria's 21 model relations, Cafeteria's payee pages, settlements, policy
 resolution and reports moved to them, and Cafeteria attaches its provider relations to the read
-model. The Providers internal-use baseline went from 37 classes to 4. Read models were chosen over
+model. The Providers internal-use baseline went from 37 classes to 4, then to 2 when Transport's
+provider admin page moved to the read model and to `ProviderRegistry::revise`/`archive` (it had
+updated and deleted provider records with the Providers module's own model), and to 0 with
+`ProviderPortalAccount` (the signed-in portal user's own account, for the profile page and the
+portal export policy). Providers is the first module with no frozen readers. Read models were chosen over
 id-only relations because most uses are display fields and eager loads; the behaviour other modules
 need (`hasService`, `trashed`) is on the read model or in `ProviderDirectory`.

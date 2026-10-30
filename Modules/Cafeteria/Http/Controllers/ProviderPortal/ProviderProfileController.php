@@ -4,118 +4,99 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
-use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
-use App\Security\Passwords\PasswordLifecycle;
-use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
-use Modules\Providers\Application\Services\ProviderPortalContext;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\PortalAccount;
+use Modules\Providers\Contracts\ProviderPortalAccount;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 class ProviderProfileController extends Controller
 {
     use FormatsProviderPortalData;
 
-    public function __invoke(Request $request, ProviderPortalContext $context): Response
+    public function __invoke(Request $request, ProviderPortalSession $session, ProviderPortalAccount $accounts): Response
     {
-        return $this->show($request, $context);
+        return $this->show($request, $session, $accounts);
     }
 
-    public function show(Request $request, ProviderPortalContext $context): Response
+    public function show(Request $request, ProviderPortalSession $session, ProviderPortalAccount $accounts): Response
     {
-        $providerUser = $context->providerUser($request);
-        abort_if($providerUser === null, 403, __('provider-portal.access_denied'));
+        $account = $accounts->own($request);
+        abort_if($account === null, 403, __('provider-portal.access_denied'));
 
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
 
         // A transport-only provider has no cafeteria location to frame the
         // page; its users still need their own account (and a forced password
         // change lands here before anything else opens).
-        if ($provider === null && $providerUser->hasService('transport')) {
+        if ($provider === null && $session->actorHasService($request, 'transport')) {
             return Inertia::render('ProviderPortal/Transport/Profile', [
-                'user' => $this->userPayload($providerUser),
+                'user' => $this->userPayload($account),
             ]);
         }
 
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
 
         return Inertia::render('Cafeteria/Portal/Profile', [
-            ...$this->portalPayload($request, $context, $provider),
+            ...$this->portalPayload($request, $session, $provider),
             'provider' => $this->providerOption($provider),
-            'user' => $this->userPayload($providerUser),
+            'user' => $this->userPayload($account),
         ]);
     }
 
     /** @return array<string, mixed> */
-    private function userPayload(ProviderUser $providerUser): array
+    private function userPayload(PortalAccount $account): array
     {
         return [
-            'id' => $providerUser->id,
-            'name' => $providerUser->name,
-            'email' => $providerUser->email,
-            'username' => $providerUser->username,
-            'phone_number' => $providerUser->phone_number,
+            'id' => $account->id,
+            'name' => $account->name,
+            'email' => $account->email,
+            'username' => $account->username,
+            'phone_number' => $account->phoneNumber,
         ];
     }
 
-    public function update(Request $request, ProviderPortalContext $context): RedirectResponse
+    public function update(Request $request, ProviderPortalAccount $accounts): RedirectResponse
     {
         // The user's own account: no cafeteria location is needed to change it.
-        $providerUser = $context->providerUser($request);
-        abort_if($providerUser === null, 403, __('provider-portal.access_denied'));
+        $account = $accounts->own($request);
+        abort_if($account === null, 403, __('provider-portal.access_denied'));
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'string', 'email', 'max:255', "unique:provider_users,email,{$providerUser->id}"],
+            'email' => ['nullable', 'string', 'email', 'max:255', "unique:provider_users,email,{$account->id}"],
             'phone_number' => ['nullable', 'string', 'max:30'],
         ]);
 
-        $providerUser->forceFill([
-            'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
-            'phone_number' => $validated['phone_number'] ?? null,
-        ])->save();
+        $accounts->updateOwn($request, $validated['name'], $validated['email'] ?? null, $validated['phone_number'] ?? null);
 
         return back()->with('flash', ['message' => __('provider-portal.profile_updated'), 'type' => 'success']);
     }
 
-    public function updatePassword(Request $request, ProviderPortalContext $context): RedirectResponse
+    public function updatePassword(Request $request, ProviderPortalAccount $accounts): RedirectResponse
     {
         // The user's own account: no cafeteria location is needed to change it.
-        $providerUser = $context->providerUser($request);
-        abort_if($providerUser === null, 403, __('provider-portal.access_denied'));
+        abort_if($accounts->own($request) === null, 403, __('provider-portal.access_denied'));
 
         $request->validate([
             'current_password' => ['required', 'string'],
         ]);
 
-        // Current password first (the route is throttled), so the policy's
-        // reuse check is never an oracle for someone without it.
-        if (! Hash::check($request->string('current_password')->toString(), $providerUser->password)) {
-            throw ValidationException::withMessages([
-                'current_password' => __('provider-portal.wrong_current_password'),
-            ]);
-        }
-
         $validated = $request->validate([
-            'password' => app(PasswordPolicy::class)->rules($providerUser),
+            'password' => $accounts->passwordRules($request),
         ]);
 
-        $wasForced = (bool) $providerUser->must_change_password;
-        app(PasswordLifecycle::class)->change($providerUser, $validated['password'], AuditEventType::UserPasswordChanged, reason: 'provider_changed_own_password');
+        $wasForced = $accounts->changeOwnPassword($request, $request->string('current_password')->toString(), $validated['password']);
         $request->session()->regenerate();
 
         if ($wasForced) {
             // The portal opens now: send the user to their home page.
-            return redirect()->to($context->homeUrl($providerUser->fresh()))->with('flash', ['message' => __('provider-portal.password_updated'), 'type' => 'success']);
+            return redirect()->to($accounts->homeUrl($request))->with('flash', ['message' => __('provider-portal.password_updated'), 'type' => 'success']);
         }
 
         return back()->with('flash', ['message' => __('provider-portal.password_updated'), 'type' => 'success']);
