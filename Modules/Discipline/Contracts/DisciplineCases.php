@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Modules\Discipline\Contracts;
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
+use Modules\Discipline\Contracts\Data\DisciplinaryPenalty;
 
 /**
  * What other modules ask of discipline cases (ADR 0017): the statutory
@@ -54,4 +57,16 @@ interface DisciplineCases
      * @return array{0: ?string, 1: ?string, 2: list<User>}
      */
     public function deadlineAlertTarget(string $caseId): array;
+
+    /**
+     * Final decisions delivered from $from to $to on cases of the given
+     * organizations (Service Delivery Monitoring, Section I): the head's
+     * latest decision on a case that approves or modifies a penalty and was
+     * delivered (Art. 28(3)), on a case whose decision was delivered or that
+     * is closed. Oldest delivery first; $decisionId narrows to one decision.
+     *
+     * @param  list<string>  $organizationIds
+     * @return list<array{decision_id: string, case_number: ?string, employee_id: ?string, employee_name: ?string, is_unit_head: ?bool, penalty: DisciplinaryPenalty, penalty_amount: ?int, delivered_at: CarbonImmutable}>
+     */
+    public function finalDecisionsDelivered(array $organizationIds, CarbonInterface $from, CarbonInterface $to, ?string $decisionId = null): array;
 }

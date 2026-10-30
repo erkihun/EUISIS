@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace Modules\Discipline\Application\Queries;
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Modules\Discipline\Application\Services\DisciplinaryCaseAccess;
+use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
 use Modules\Discipline\Contracts\Data\DisciplinaryFinding;
 use Modules\Discipline\Contracts\Data\DisciplinaryPenalty;
 use Modules\Discipline\Contracts\DisciplineCases;
+use Modules\Discipline\Domain\Enums\DisciplinaryHeadAction;
 use Modules\Discipline\Domain\Models\DisciplinaryCase;
 use Modules\Discipline\Domain\Models\DisciplinaryDecision;
 
-/** Discipline cases for the statutory rules, court filing and deadline alerts (moved here from Legal and court-ms code). */
+/** Discipline cases for the statutory rules, court filing, deadline alerts and service-monitoring suggestions (moved here from Legal and court-ms code). */
 final class DisciplineCasesQuery implements DisciplineCases
 {
     public function __construct(private readonly DisciplinaryCaseAccess $access) {}
@@ -63,6 +68,43 @@ final class DisciplineCasesQuery implements DisciplineCases
             ->filter(fn (User $u) => $this->access->canOperate($u, $case, 'discipline.manage'))->values()->all();
 
         return [(string) $case->case_number, '/discipline/cases/'.$case->getKey(), $users];
+    }
+
+    public function finalDecisionsDelivered(array $organizationIds, CarbonInterface $from, CarbonInterface $to, ?string $decisionId = null): array
+    {
+        if ($organizationIds === []) {
+            return [];
+        }
+
+        return DisciplinaryDecision::query()
+            ->with(['disciplinaryCase.accused:id,full_name,first_name,last_name', 'disciplinaryCase.position:id,is_unit_head'])
+            ->when($decisionId !== null, fn (Builder $q) => $q->whereKey($decisionId))
+            ->whereIn('action', [DisciplinaryHeadAction::Approve->value, DisciplinaryHeadAction::Modify->value])
+            ->whereNotNull('penalty')
+            ->whereNotNull('delivered_at')
+            ->whereBetween('delivered_at', [$from->copy()->utc()->toDateTimeString(), $to->copy()->utc()->toDateTimeString()])
+            ->whereHas('disciplinaryCase', fn (Builder $q): Builder => $q->whereIn('organization_id', $organizationIds)
+                ->whereIn('status', [DisciplinaryCaseStatus::DecisionDelivered->value, DisciplinaryCaseStatus::Closed->value]))
+            // Only the latest decision of a case is final.
+            ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('disciplinary_decisions as later')
+                ->whereColumn('later.case_id', 'disciplinary_decisions.case_id')
+                ->whereColumn('later.decided_at', '>', 'disciplinary_decisions.decided_at'))
+            ->orderBy('delivered_at')
+            ->get()
+            ->map(function (DisciplinaryDecision $decision): array {
+                $case = $decision->disciplinaryCase;
+
+                return [
+                    'decision_id' => (string) $decision->getKey(),
+                    'case_number' => $case?->case_number,
+                    'employee_id' => $case?->accused_employee_id !== null ? (string) $case->accused_employee_id : null,
+                    'employee_name' => $case?->accused?->full_name,
+                    'is_unit_head' => $case?->position !== null ? (bool) $case->position->is_unit_head : null,
+                    'penalty' => $decision->penalty,
+                    'penalty_amount' => $decision->penalty_amount !== null ? (int) $decision->penalty_amount : null,
+                    'delivered_at' => CarbonImmutable::instance($decision->delivered_at),
+                ];
+            })->values()->all();
     }
 
     private function delivered(string $employeeId)

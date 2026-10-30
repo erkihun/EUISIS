@@ -4,24 +4,20 @@ declare(strict_types=1);
 
 namespace Modules\ServiceMonitoring\Application\Services;
 
-use App\Enums\Discipline\DisciplinaryCaseStatus;
-use App\Enums\Discipline\DisciplinaryHeadAction;
-use App\Enums\Discipline\DisciplinaryPenalty;
-use App\Enums\HierarchyVersionStatus;
-use App\Models\DisciplinaryDecision;
-use App\Models\HierarchyVersion;
-use App\Models\OrganizationClosurePath;
+use App\Backbone\Contracts\OrganizationHierarchy;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Builder;
+use Modules\Discipline\Contracts\Data\DisciplinaryPenalty;
+use Modules\Discipline\Contracts\DisciplineCases;
 use Modules\ServiceMonitoring\Domain\Enums\FinalAction;
 use Modules\ServiceMonitoring\Domain\Enums\RoleCategory;
 use Modules\ServiceMonitoring\Domain\Models\AccountabilityEntry;
 use Modules\ServiceMonitoring\Domain\Models\Submission;
 
 /**
- * Section I suggestions from the Discipline module (D16), read-only.
+ * Section I suggestions from the Discipline module (D16), read-only, through
+ * its DisciplineCases contract.
  *
  * A "final" decision is the head of institution's latest decision on a case
  * (Art. 28) that approves or modifies a penalty and has been DELIVERED
@@ -35,7 +31,7 @@ use Modules\ServiceMonitoring\Domain\Models\Submission;
  */
 class AccountabilitySuggestionService
 {
-    public function __construct(private readonly OrganizationScopeService $scope) {}
+    public function __construct(private readonly OrganizationScopeService $scope, private readonly DisciplineCases $cases, private readonly OrganizationHierarchy $hierarchy) {}
 
     public static function finalActionFor(DisciplinaryPenalty $penalty): FinalAction
     {
@@ -54,67 +50,52 @@ class AccountabilitySuggestionService
     {
         $used = AccountabilityEntry::query()->where('submission_id', $submission->id)->whereNotNull('source_decision_id')->pluck('source_decision_id')->map(fn ($id): string => (string) $id)->all();
 
-        return $this->query($submission, $viewer)->get()->map(function (DisciplinaryDecision $decision) use ($used): array {
-            $case = $decision->disciplinaryCase;
-            $position = $case?->position;
-
-            return [
-                'decision_id' => (string) $decision->id,
-                'employee_id' => (string) $case?->accused_employee_id,
-                'employee_name' => $case?->accused?->full_name,
-                'final_action' => self::finalActionFor($decision->penalty)->value,
-                'penalty' => $decision->penalty->value,
-                'penalty_amount' => $decision->penalty_amount !== null ? (int) $decision->penalty_amount : null,
-                'action_date' => $decision->delivered_at->setTimezone('Africa/Addis_Ababa')->toDateString(),
-                'role_category' => $position === null ? null : ($position->is_unit_head ? RoleCategory::MeritLeader->value : RoleCategory::Professional->value),
-                'case_number' => $case?->case_number,
-                'used' => in_array((string) $decision->id, $used, true),
-            ];
-        })->values()->all();
+        return array_map(fn (array $decision): array => [
+            'decision_id' => $decision['decision_id'],
+            'employee_id' => (string) $decision['employee_id'],
+            'employee_name' => $decision['employee_name'],
+            'final_action' => self::finalActionFor($decision['penalty'])->value,
+            'penalty' => $decision['penalty']->value,
+            'penalty_amount' => $decision['penalty_amount'],
+            'action_date' => self::actionDate($decision),
+            'role_category' => $decision['is_unit_head'] === null ? null : ($decision['is_unit_head'] ? RoleCategory::MeritLeader->value : RoleCategory::Professional->value),
+            'case_number' => $decision['case_number'],
+            'used' => in_array($decision['decision_id'], $used, true),
+        ], $this->decisions($submission, $viewer));
     }
 
-    public function find(Submission $submission, User $viewer, string $decisionId): ?DisciplinaryDecision
+    /**
+     * One suggestible decision, or null when it is not final, outside the quarter or outside the viewer's scope.
+     *
+     * @return array{decision_id: string, case_number: ?string, employee_id: ?string, employee_name: ?string, is_unit_head: ?bool, penalty: DisciplinaryPenalty, penalty_amount: ?int, delivered_at: CarbonImmutable}|null
+     */
+    public function find(Submission $submission, User $viewer, string $decisionId): ?array
     {
-        return $this->query($submission, $viewer)->whereKey($decisionId)->first();
+        return $this->decisions($submission, $viewer, $decisionId)[0] ?? null;
     }
 
-    /** @return Builder<DisciplinaryDecision> */
-    private function query(Submission $submission, User $viewer): Builder
+    /** The delivery date in Addis Ababa, which is the Section I action date. */
+    public static function actionDate(array $decision): string
+    {
+        return $decision['delivered_at']->setTimezone('Africa/Addis_Ababa')->toDateString();
+    }
+
+    /** @return list<array{decision_id: string, case_number: ?string, employee_id: ?string, employee_name: ?string, is_unit_head: ?bool, penalty: DisciplinaryPenalty, penalty_amount: ?int, delivered_at: CarbonImmutable}> */
+    private function decisions(Submission $submission, User $viewer, ?string $decisionId = null): array
     {
         $period = $submission->period;
-        $organizations = $this->subtree($submission->organization_id);
+        // The organization and its descendants in the default (published) structure.
+        $organizations = array_values(array_unique([(string) $submission->organization_id, ...$this->hierarchy->subtreeIds((string) $submission->organization_id)]));
         if (! $this->scope->isUnrestricted($viewer)) {
             $organizations = array_values(array_intersect($organizations, $this->scope->allowedOrganizationIds($viewer)));
         }
-        $from = $period->starts_on->toDateString().' 00:00:00';
-        $to = $period->ends_on->toDateString().' 23:59:59';
 
-        return DisciplinaryDecision::query()
-            ->with(['disciplinaryCase.accused:id,full_name,first_name,last_name', 'disciplinaryCase.position:id,is_unit_head'])
-            ->whereIn('action', [DisciplinaryHeadAction::Approve->value, DisciplinaryHeadAction::Modify->value])
-            ->whereNotNull('penalty')
-            ->whereNotNull('delivered_at')
-            // Delivery moments are stored in UTC; the quarter is in Addis Ababa (UTC+3).
-            ->whereBetween('delivered_at', [
-                CarbonImmutable::parse($from, 'Africa/Addis_Ababa')->utc()->toDateTimeString(),
-                CarbonImmutable::parse($to, 'Africa/Addis_Ababa')->utc()->toDateTimeString(),
-            ])
-            ->whereHas('disciplinaryCase', fn (Builder $q): Builder => $q->whereIn('organization_id', $organizations)
-                ->whereIn('status', [DisciplinaryCaseStatus::DecisionDelivered->value, DisciplinaryCaseStatus::Closed->value]))
-            // Only the latest decision of a case is final.
-            ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('disciplinary_decisions as later')
-                ->whereColumn('later.case_id', 'disciplinary_decisions.case_id')
-                ->whereColumn('later.decided_at', '>', 'disciplinary_decisions.decided_at'))
-            ->orderBy('delivered_at');
-    }
-
-    /** @return list<string> the organization and its descendants in the published hierarchy */
-    private function subtree(string $organizationId): array
-    {
-        $version = HierarchyVersion::query()->where('status', HierarchyVersionStatus::Published->value)->latest('approval_date')->value('id');
-        $ids = $version === null ? [] : OrganizationClosurePath::query()->where('hierarchy_version_id', $version)
-            ->where('ancestor_organization_id', $organizationId)->pluck('descendant_organization_id')->map(fn ($id): string => (string) $id)->all();
-
-        return array_values(array_unique([$organizationId, ...$ids]));
+        // Delivery moments are stored in UTC; the quarter is in Addis Ababa (UTC+3).
+        return $this->cases->finalDecisionsDelivered(
+            $organizations,
+            CarbonImmutable::parse($period->starts_on->toDateString().' 00:00:00', 'Africa/Addis_Ababa'),
+            CarbonImmutable::parse($period->ends_on->toDateString().' 23:59:59', 'Africa/Addis_Ababa'),
+            $decisionId,
+        );
     }
 }

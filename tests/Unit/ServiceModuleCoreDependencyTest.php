@@ -34,6 +34,7 @@ const SERVICE_MODULES = [
     'communication' => '#Communication#i',
     'provider_portal' => '#(ProviderPortal|Nfc)#i',
     'organization_design' => '#OrganizationDesign#i',
+    'service_monitoring' => '#ServiceMonitoring#i',
 ];
 
 /** Backbone and integration-platform code is Core, not a service module. */
@@ -104,6 +105,11 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // 2026-10-30: 6; the cafeteria portal screens moved to Modules/Cafeteria and count there.
         'provider_portal' => 6,
         'organization_design' => 37,
+        // 2026-10-30: 11 for the new module (ADR 0018). People, the structure and Discipline go
+        // through contracts; what is left are Organization relations on its models (names on
+        // every report row), the HR-count prefill and the employee picker. Lower as Core
+        // publishes an organization read model and a workforce-count contract.
+        'service_monitoring' => 11,
     ];
 
     $current = serviceModuleCoreImports();

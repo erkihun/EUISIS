@@ -31,22 +31,21 @@ final readonly class AcceptDisciplineSuggestion
         if ($decision === null) {
             throw ValidationException::withMessages(['decision_id' => __('service-monitoring.validation.decision_unavailable')]);
         }
-        $case = $decision->disciplinaryCase;
-        $penalty = $decision->penalty;
-        $amount = $decision->penalty_amount !== null ? ' ('.$decision->penalty_amount.' '.($penalty->amountUnit() ?? '').')' : '';
+        $penalty = $decision['penalty'];
+        $amount = $decision['penalty_amount'] !== null ? ' ('.$decision['penalty_amount'].' '.($penalty->amountUnit() ?? '').')' : '';
 
         return $this->save->execute($submission, [
             'subject_type' => SubjectType::Employee->value,
-            'employee_id' => $case->accused_employee_id,
+            'employee_id' => $decision['employee_id'],
             'role_category' => $data['role_category'],
             'reason_category' => $data['reason_category'],
             'reason_detail' => $data['reason_detail'],
             'final_action' => AccountabilitySuggestionService::finalActionFor($penalty)->value,
-            'action_detail' => trim(__('service-monitoring.enums.final_action.'.AccountabilitySuggestionService::finalActionFor($penalty)->value).$amount.' — '.$penalty->article().($case->case_number ? ', '.$case->case_number : '')),
-            'action_date' => $decision->delivered_at->setTimezone('Africa/Addis_Ababa')->toDateString(),
+            'action_detail' => trim(__('service-monitoring.enums.final_action.'.AccountabilitySuggestionService::finalActionFor($penalty)->value).$amount.' — '.$penalty->article().($decision['case_number'] ? ', '.$decision['case_number'] : '')),
+            'action_date' => AccountabilitySuggestionService::actionDate($decision),
             'office_name' => $data['office_name'] ?? null,
             'remark' => $data['remark'] ?? null,
             'repeat_confirmed' => $data['repeat_confirmed'] ?? false,
-        ], $actor, null, EntrySource::Discipline, (string) $decision->id);
+        ], $actor, null, EntrySource::Discipline, $decision['decision_id']);
     }
 }

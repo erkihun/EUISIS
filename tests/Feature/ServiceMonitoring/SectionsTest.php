@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\Discipline\DisciplinaryPenalty;
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinaryDecision;
 use App\Models\Occupation;
 use App\Models\Position;
 use App\Models\Service;
@@ -14,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Discipline\Contracts\Data\DisciplinaryPenalty;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinaryDecision;
 use Modules\ServiceMonitoring\Application\Actions\SaveSection1Entry;
 use Modules\ServiceMonitoring\Application\Actions\SaveSection3Entry;
 use Modules\ServiceMonitoring\Application\Actions\SetNothingToReport;
