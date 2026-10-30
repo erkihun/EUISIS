@@ -26,8 +26,8 @@ use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
 use Modules\Cafeteria\Http\Requests\UpdateCafeteriaSettingsRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaDayRuleResource;
 use Modules\Cafeteria\Http\Resources\CafeteriaSubsidyRuleResource;
-use Modules\Entitlements\Domain\Models\ServiceProviderUser;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointUserRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class CafeteriaSettingController extends Controller
 {
@@ -105,7 +105,7 @@ class CafeteriaSettingController extends Controller
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
         ]);
 
-        $isCafeteriaProviderUser = ServiceProviderUser::query()
+        $isCafeteriaProviderUser = ServicePointUserRecord::query()
             ->whereKey($validated['service_provider_user_id'])
             ->whereHas('serviceType', fn ($query) => $query->where('code', 'cafeteria'))
             ->exists();
@@ -176,7 +176,7 @@ class CafeteriaSettingController extends Controller
 
     private function validateAssignmentRelations(array $values): void
     {
-        if (! empty($values['service_provider_user_id']) && ! ServiceProviderUser::query()
+        if (! empty($values['service_provider_user_id']) && ! ServicePointUserRecord::query()
             ->whereKey($values['service_provider_user_id'])
             ->whereHas('serviceType', fn ($query) => $query->where('code', 'cafeteria'))->exists()) {
             throw ValidationException::withMessages(['service_provider_user_id' => __('cafeteria.providerAccessDenied')]);
@@ -312,7 +312,7 @@ class CafeteriaSettingController extends Controller
     /** @return list<array<string, mixed>> */
     private function userOptions(): array
     {
-        $cafeteriaServiceTypeId = ServiceType::query()
+        $cafeteriaServiceTypeId = ServiceTypeRecord::query()
             ->where('code', 'cafeteria')
             ->value('id');
 
@@ -320,13 +320,13 @@ class CafeteriaSettingController extends Controller
             return [];
         }
 
-        return ServiceProviderUser::query()
+        return ServicePointUserRecord::query()
             ->where('service_type_id', $cafeteriaServiceTypeId)
             ->where('status', 'active')
             ->where('portal_enabled', true)
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'username'])
-            ->map(fn (ServiceProviderUser $user): array => [
+            ->map(fn (ServicePointUserRecord $user): array => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,

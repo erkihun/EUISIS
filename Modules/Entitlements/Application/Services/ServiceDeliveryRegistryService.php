@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Entitlements\Application\Services;
 
+use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Support\Str;
+use Modules\Entitlements\Application\Actions\Entitlements\GrantEntitlementAction;
+use Modules\Entitlements\Application\Actions\Entitlements\RecalculateEntitlementsAction;
 use Modules\Entitlements\Contracts\Data\NewServiceProvider;
 use Modules\Entitlements\Contracts\Data\NewServiceTransaction;
 use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
+use Modules\Entitlements\Domain\Models\Entitlement;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceTransaction;
 use Modules\Entitlements\Domain\Models\ServiceType;
@@ -70,5 +75,22 @@ final class ServiceDeliveryRegistryService implements ServiceDeliveryRegistry
             'amount' => $transaction->amount,
             'metadata' => $transaction->metadata,
         ])->getKey();
+    }
+
+    public function grantEntitlement(string $employeeId, string $serviceTypeId, ?string $servicePointId, int $actorId, ?int $quotaLimit = null): string
+    {
+        return (string) app(GrantEntitlementAction::class)->execute(
+            Employee::query()->findOrFail($employeeId),
+            ServiceType::query()->findOrFail($serviceTypeId),
+            $servicePointId === null ? null : ServiceProvider::query()->findOrFail($servicePointId),
+            User::query()->findOrFail($actorId),
+            $quotaLimit,
+        )->getKey();
+    }
+
+    public function recalculateEntitlementsFor(string $employeeId): void
+    {
+        Entitlement::query()->where('employee_id', $employeeId)->get()
+            ->each(fn (Entitlement $entitlement) => app(RecalculateEntitlementsAction::class)->execute($entitlement));
     }
 }

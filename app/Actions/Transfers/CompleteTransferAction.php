@@ -34,14 +34,14 @@ use App\Services\Positions\PositionCapacityService;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Modules\Entitlements\Application\Actions\Entitlements\RecalculateEntitlementsAction;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 
 /** Canonical, assignment-only implementation for an approved transfer application. */
 readonly class CompleteTransferAction
 {
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
-        private RecalculateEntitlementsAction $recalculateEntitlementsAction,
+        private ServiceDeliveryRegistry $serviceDelivery,
         private EmployeeAgreementService $employeeAgreements,
         private PositionCapacityService $capacityService,
         private IdCardSnapshotComparisonService $idCardSnapshotComparison,
@@ -260,8 +260,6 @@ readonly class CompleteTransferAction
         if ($settings->service_recalculation_policy === TransferServiceRecalculationPolicy::NoRecalculation) {
             return;
         }
-        foreach ($employee->entitlements as $entitlement) {
-            $this->recalculateEntitlementsAction->execute($entitlement);
-        }
+        $this->serviceDelivery->recalculateEntitlementsFor((string) $employee->getKey());
     }
 }

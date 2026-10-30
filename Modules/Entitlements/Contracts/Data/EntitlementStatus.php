@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Entitlements\Domain\Enums;
+namespace Modules\Entitlements\Contracts\Data;
 
 enum EntitlementStatus: string
 {

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class Position extends Model
 {
@@ -62,7 +63,7 @@ class Position extends Model
      */
     public function serviceTypes(): BelongsToMany
     {
-        return $this->belongsToMany(ServiceType::class, 'position_service_type')
+        return $this->belongsToMany(ServiceTypeRecord::class, 'position_service_type', 'position_id', 'service_type_id')
             ->withPivot(['id', 'service_no', 'is_active', 'is_performance_evaluation_enabled', 'sort_order'])
             ->withTimestamps()
             ->orderByPivot('sort_order')

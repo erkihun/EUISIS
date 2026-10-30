@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\EntitlementStoreRequest;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\User;
@@ -14,11 +15,10 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Contracts\CafeteriaDirectory;
-use Modules\Entitlements\Application\Actions\Entitlements\GrantEntitlementAction;
-use Modules\Entitlements\Domain\Models\Entitlement;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
-use Modules\Entitlements\Domain\Models\ServiceType;
-use Modules\Entitlements\Http\Requests\EntitlementStoreRequest;
+use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 
 class EntitlementController extends Controller
 {
@@ -26,12 +26,12 @@ class EntitlementController extends Controller
 
     public function index(Request $request): Response
     {
-        $this->authorize('viewAny', Entitlement::class);
+        $this->authorize('viewAny', EntitlementRecord::class);
 
         /** @var User $user */
         $user = $request->user();
 
-        $entitlements = Entitlement::query()
+        $entitlements = EntitlementRecord::query()
             // Only the fields the list shows; never the full employee record.
             ->with([
                 'employee:id,employee_number,full_name,name_en',
@@ -54,29 +54,24 @@ class EntitlementController extends Controller
 
         return Inertia::render('Entitlements/Index', [
             'entitlements' => $entitlements,
-            'serviceTypes' => ServiceType::query()->orderBy('name_en')->get(['id', 'name_en']),
-            'providers' => ServiceProvider::query()->orderBy('name')->get(['id', 'name', 'service_type_id']),
+            'serviceTypes' => ServiceTypeRecord::query()->orderBy('name_en')->get(['id', 'name_en']),
+            'providers' => ServicePointRecord::query()->orderBy('name')->get(['id', 'name', 'service_type_id']),
             'cafeteriaProviders' => app(CafeteriaDirectory::class)->locations(),
         ]);
     }
 
-    public function store(EntitlementStoreRequest $request, GrantEntitlementAction $grantEntitlementAction): RedirectResponse
+    public function store(EntitlementStoreRequest $request, ServiceDeliveryRegistry $serviceDelivery): RedirectResponse
     {
-        $this->authorize('create', Entitlement::class);
+        $this->authorize('create', EntitlementRecord::class);
 
         $employee = Employee::query()->findOrFail($request->string('employee_id')->toString());
         abort_unless($this->scope->canAccessEmployee($request->user(), $employee), 403);
 
-        $serviceType = ServiceType::query()->findOrFail($request->string('service_type_id')->toString());
-        $provider = $request->string('service_provider_id')->toString() !== ''
-            ? ServiceProvider::query()->findOrFail($request->string('service_provider_id')->toString())
-            : null;
-
-        $grantEntitlementAction->execute(
-            $employee,
-            $serviceType,
-            $provider,
-            $request->user(),
+        $serviceDelivery->grantEntitlement(
+            (string) $employee->getKey(),
+            $request->string('service_type_id')->toString(),
+            $request->string('service_provider_id')->toString() ?: null,
+            $request->user()->id,
             $request->integer('quota_limit') ?: null,
         );
 

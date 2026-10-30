@@ -97,6 +97,13 @@ model. The Providers internal-use baseline went from 37 classes to 4, then to 2 
 provider admin page moved to the read model and to `ProviderRegistry::revise`/`archive` (it had
 updated and deleted provider records with the Providers module's own model), and to 0 with
 `ProviderPortalAccount` (the signed-in portal user's own account, for the profile page and the
-portal export policy). Providers is the first module with no frozen readers. Read models were chosen over
+portal export policy). Providers is the first module with no frozen readers.
+
+The same day Entitlements followed: five read models, `CardServiceAuthorization` for the card APIs
+and terminals, `grantEntitlement`/`recalculateEntitlementsFor` on `ServiceDeliveryRegistry`, its
+enums published as `Contracts\Data`, and its recycle-bin and code-rule registrations moved into
+its provider. Its frozen list (31) is empty. The old-name check now also catches an unqualified
+old name used from inside the old namespace (`Entitlement::class` in `App\Models`), which had let
+five Core and platform models keep relations to moved models through the aliases. Read models were chosen over
 id-only relations because most uses are display fields and eager loads; the behaviour other modules
 need (`hasService`, `trashed`) is on the read model or in `ProviderDirectory`.

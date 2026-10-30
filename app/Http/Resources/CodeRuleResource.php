@@ -11,7 +11,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class CodeRuleResource extends JsonResource
 {
@@ -76,7 +76,7 @@ class CodeRuleResource extends JsonResource
                 ? OrganizationUnitType::query()->whereKey($this->scope_id)->value('name_en')
                 : __('code-rules.scope_type_organization_unit_type'),
             CodeRuleScopeType::ServiceType->value => $this->scope_id !== null
-                ? ServiceType::query()->whereKey($this->scope_id)->value('name_en')
+                ? ServiceTypeRecord::query()->whereKey($this->scope_id)->value('name_en')
                 : __('code-rules.scope_type_service_type'),
             default => null,
         };

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Actions\Workflows;
+namespace Modules\Entitlements\Application\Actions\Settlements;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

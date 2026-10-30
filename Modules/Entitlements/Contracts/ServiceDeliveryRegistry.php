@@ -16,4 +16,10 @@ interface ServiceDeliveryRegistry
     public function createProvider(NewServiceProvider $provider): string;
 
     public function recordTransaction(NewServiceTransaction $transaction): string;
+
+    /** Grants an employee a service entitlement (at one service point, or any); returns its id. */
+    public function grantEntitlement(string $employeeId, string $serviceTypeId, ?string $servicePointId, int $actorId, ?int $quotaLimit = null): string;
+
+    /** Re-evaluates the employee's entitlements after a placement change (an exhausted quota is marked). */
+    public function recalculateEntitlementsFor(string $employeeId): void;
 }

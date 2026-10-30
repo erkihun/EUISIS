@@ -68,7 +68,7 @@ use Modules\Cafeteria\Infrastructure\Console\CafeteriaPlatformPing;
 use Modules\Cafeteria\Infrastructure\Console\CafeteriaProviderUsersMigrateCommand;
 use Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProviders;
 use Modules\Cafeteria\Infrastructure\Console\SyncCafeteriaPolicyStatuses;
-use Modules\Entitlements\Domain\Models\ServiceProvider as ServiceProviderModel;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
@@ -144,7 +144,7 @@ final class CafeteriaServiceProvider extends ServiceProvider
             ->oldest());
         ProviderRecord::resolveRelationUsing('cafeterias', fn (ProviderRecord $provider): HasMany => $provider->hasMany(CafeteriaProvider::class, 'provider_id'));
         ProviderRecord::resolveRelationUsing('cafeteriaNetworks', fn (ProviderRecord $provider): HasMany => $provider->hasMany(CafeteriaServiceNetwork::class, 'provider_id'));
-        ServiceProviderModel::resolveRelationUsing('cafeteriaDetails', fn (ServiceProviderModel $provider): HasOne => $provider->hasOne(CafeteriaProvider::class));
+        ServicePointRecord::resolveRelationUsing('cafeteriaDetails', fn (ServicePointRecord $provider): HasOne => $provider->hasOne(CafeteriaProvider::class, 'service_provider_id'));
         ServiceTerminal::resolveRelationUsing('cafeteriaProvider', fn (ServiceTerminal $terminal): BelongsTo => $terminal->belongsTo(CafeteriaProvider::class, 'cafeteria_provider_id'));
         User::resolveRelationUsing('cafeteriaProviders', fn (User $user): BelongsToMany => $user->belongsToMany(CafeteriaProvider::class, 'cafeteria_provider_assignments')
             ->withPivot(['role', 'provider_role', 'is_active', 'assigned_by', 'effective_from', 'effective_to'])

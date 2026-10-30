@@ -11,7 +11,7 @@ use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
@@ -97,7 +97,7 @@ class IntegrationAccessService
     }
 
     /** The service provider a machine client is bound to (F16); null for a person. */
-    public function boundProvider(Request $request): ?ServiceProvider
+    public function boundProvider(Request $request): ?ServicePointRecord
     {
         $principal = $this->principal($request);
 

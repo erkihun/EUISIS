@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Providers\Domain\Models\ProviderUserServicePermission;
@@ -181,7 +181,7 @@ class ProviderUserAccountService
             ProviderUserServicePermission::query()->firstOrCreate(
                 ['provider_user_id' => $account->id, 'permission_key' => $key],
                 [
-                    'service_type_id' => ServiceType::query()->where('code', ProviderUserPermissionCatalog::serviceOf($key))->value('id'),
+                    'service_type_id' => app(ServiceDeliveryRegistry::class)->serviceTypeId(ProviderUserPermissionCatalog::serviceOf($key)),
                     'is_allowed' => true,
                     'granted_by' => $actor->id,
                     'granted_at' => now(),

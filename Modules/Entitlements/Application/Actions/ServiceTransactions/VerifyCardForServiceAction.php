@@ -15,7 +15,7 @@ use App\Models\IdCard;
 use App\Models\User;
 use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Http\Request;
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
 use Modules\Entitlements\Domain\Models\Entitlement;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceType;

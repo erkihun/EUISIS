@@ -13,7 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 use Modules\Providers\Application\Services\ProviderUserAccountService;
 use Modules\Providers\Application\Services\ProviderUserPermissionCatalog;
 use Modules\Providers\Domain\Models\Provider;
@@ -353,11 +353,11 @@ class ProviderUserController extends Controller
     /** @return list<array<string, mixed>> */
     private function serviceOptions(): array
     {
-        return ServiceType::query()
+        return ServiceTypeRecord::query()
             ->where('is_active', true)
             ->orderBy('name_en')
             ->get(['code', 'name_en', 'name_am'])
-            ->map(fn (ServiceType $type): array => ['code' => $type->code, 'name_en' => $type->name_en, 'name_am' => $type->name_am])
+            ->map(fn (ServiceTypeRecord $type): array => ['code' => $type->code, 'name_en' => $type->name_en, 'name_am' => $type->name_am])
             ->all();
     }
 

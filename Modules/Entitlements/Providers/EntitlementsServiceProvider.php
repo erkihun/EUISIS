@@ -8,6 +8,7 @@ use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Enums\CodeRuleEntityType;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
+use App\Services\RecycleBin\RecycleBinRegistry;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -16,8 +17,11 @@ use Modules\Entitlements\Application\Policies\EntitlementRulePolicy;
 use Modules\Entitlements\Application\Policies\ServiceProviderPolicy;
 use Modules\Entitlements\Application\Policies\ServiceTransactionPolicy;
 use Modules\Entitlements\Application\Policies\ServiceTypePolicy;
+use Modules\Entitlements\Application\Services\CardServiceAuthorizationService;
 use Modules\Entitlements\Application\Services\ServiceDeliveryRegistryService;
 use Modules\Entitlements\Application\Services\ServiceProviderCodeLookup;
+use Modules\Entitlements\Contracts\CardServiceAuthorization;
+use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
 use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 use Modules\Entitlements\Domain\Models\Entitlement;
 use Modules\Entitlements\Domain\Models\EntitlementRule;
@@ -33,6 +37,7 @@ final class EntitlementsServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ProviderCodeLookup::class, ServiceProviderCodeLookup::class);
         $this->app->bind(ServiceDeliveryRegistry::class, ServiceDeliveryRegistryService::class);
+        $this->app->bind(CardServiceAuthorization::class, CardServiceAuthorizationService::class);
     }
 
     public function boot(): void
@@ -47,6 +52,7 @@ final class EntitlementsServiceProvider extends ServiceProvider
         ]);
 
         Gate::policy(Entitlement::class, EntitlementPolicy::class);
+        Gate::policy(EntitlementRecord::class, EntitlementPolicy::class);
         Gate::policy(EntitlementRule::class, EntitlementRulePolicy::class);
         Gate::policy(ServiceProviderModel::class, ServiceProviderPolicy::class);
         Gate::policy(ServiceTransaction::class, ServiceTransactionPolicy::class);
@@ -61,5 +67,25 @@ final class EntitlementsServiceProvider extends ServiceProvider
             'immutable_after_create' => false,
         ]);
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ServiceProvider, ServiceProviderModel::class, 'code');
+        CodeRuleTargetRegistry::registerTarget(CodeRuleEntityType::ServiceType, [
+            'model' => ServiceType::class,
+            'table' => 'service_types',
+            'code_column' => 'code',
+            'label' => 'Service Type Code',
+            'immutable_after_create' => false,
+        ]);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ServiceType, ServiceType::class, 'code', true);
+        RecycleBinRegistry::registerType('service_types', [
+            'model' => ServiceType::class,
+            'label_key' => 'recycleBin.types.service_types',
+            'restore_permission' => 'service-types.restore',
+            'view_deleted_permission' => 'service-types.viewDeleted',
+        ]);
+        RecycleBinRegistry::registerType('entitlement_rules', [
+            'model' => EntitlementRule::class,
+            'label_key' => 'recycleBin.types.entitlement_rules',
+            'restore_permission' => 'entitlement-rules.restore',
+            'view_deleted_permission' => 'entitlement-rules.viewDeleted',
+        ]);
     }
 }

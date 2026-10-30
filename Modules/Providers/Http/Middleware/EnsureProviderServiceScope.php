@@ -10,10 +10,11 @@ use App\Models\ExternalApplication;
 use App\Models\User;
 use App\Support\Api\ApiError;
 use Closure;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -77,7 +78,7 @@ readonly class EnsureProviderServiceScope
 
         $serviceTypeCode = $request->route('serviceType') ?? $request->input('service_type');
         $serviceType = is_string($serviceTypeCode) && $serviceTypeCode !== ''
-            ? ServiceType::query()->where('code', $serviceTypeCode)->first()
+            ? ServiceTypeRecord::query()->where('code', $serviceTypeCode)->first()
             : null;
 
         $scopes = $principal->organizationScopes;
@@ -120,7 +121,7 @@ readonly class EnsureProviderServiceScope
         }
 
         // A code that resolves to no provider is never silently accepted for a machine client.
-        $known = ServiceProvider::query()->whereIn('code', $references->all())->pluck('code');
+        $known = ServicePointRecord::query()->whereIn('code', $references->all())->pluck('code');
         if ($references->diff($known)->isNotEmpty()) {
             return ApiError::response($request, 403, 'provider_binding_denied', 'This application may not act for that service provider.');
         }
@@ -146,18 +147,19 @@ readonly class EnsureProviderServiceScope
 
     /**
      * @param  Collection<int, string>  $codes
-     * @return Collection<int, ServiceProvider>
+     * @return Collection<int, ServicePointRecord>
      */
     private function resolveProviders(Request $request, Collection $codes): Collection
     {
-        $providers = $codes->isEmpty() ? collect() : ServiceProvider::query()->whereIn('code', $codes->all())->get();
+        $providers = $codes->isEmpty() ? collect() : ServicePointRecord::query()->whereIn('code', $codes->all())->get();
 
+        // The route's provider is the Entitlements module's own model; it is read back as a record.
         $routeProvider = $request->route('provider');
-        if ($routeProvider instanceof ServiceProvider) {
-            $providers->push($routeProvider);
+        if ($routeProvider instanceof Model && ($record = ServicePointRecord::query()->find($routeProvider->getKey())) !== null) {
+            $providers->push($record);
         }
 
-        return $providers->unique(fn (ServiceProvider $provider): string => (string) $provider->getKey())->values();
+        return $providers->unique(fn (ServicePointRecord $provider): string => (string) $provider->getKey())->values();
     }
 
     private function routeScope(Request $request): ?string

@@ -19,7 +19,6 @@ use App\Models\Process;
 use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
 use App\Models\Service;
-use Modules\Entitlements\Domain\Models\ServiceType;
 
 /**
  * Which table and column hold the code of each code-rule entity type.
@@ -106,7 +105,6 @@ class CodeRuleTargetRegistry
             CodeRuleEntityType::Position->value => $check(Position::class, 'job_position_code', true),
             CodeRuleEntityType::EmployeePosition->value => $check(Position::class, 'job_position_code', true),
             CodeRuleEntityType::IdCard->value => $check(IdCard::class, 'card_number', false),
-            CodeRuleEntityType::ServiceType->value => $check(ServiceType::class, 'code', true),
             CodeRuleEntityType::OrganizationUnit->value => $check(OrganizationUnit::class, 'code', true),
             CodeRuleEntityType::OrganizationUnitType->value => $check(OrganizationUnitType::class, 'code', true),
         ];
@@ -213,13 +211,6 @@ class CodeRuleTargetRegistry
                 'code_column' => 'card_number',
                 'label' => 'ID Card Number',
                 'immutable_after_create' => true,
-            ],
-            CodeRuleEntityType::ServiceType->value => [
-                'model' => ServiceType::class,
-                'table' => 'service_types',
-                'code_column' => 'code',
-                'label' => 'Service Type Code',
-                'immutable_after_create' => false,
             ],
         ];
     }

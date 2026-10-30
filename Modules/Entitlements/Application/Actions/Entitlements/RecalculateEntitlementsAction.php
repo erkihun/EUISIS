@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Entitlements\Application\Actions\Entitlements;
 
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
 use Modules\Entitlements\Domain\Models\Entitlement;
 
 class RecalculateEntitlementsAction

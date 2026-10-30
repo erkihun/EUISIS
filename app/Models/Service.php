@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 /**
  * An institution's service (brief §9–11): what it delivers, justified by
@@ -47,7 +48,7 @@ class Service extends Model
 
     public function serviceType(): BelongsTo
     {
-        return $this->belongsTo(ServiceType::class);
+        return $this->belongsTo(ServiceTypeRecord::class, 'service_type_id');
     }
 
     public function classification(): BelongsTo

@@ -17,6 +17,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 
 /**
  * An approved external system permitted to call the integration API.
@@ -198,7 +199,7 @@ class ExternalApplication extends Model implements AuthenticatableContract
     /** The one service provider this application acts for on provider-service routes (F16). */
     public function serviceProvider(): BelongsTo
     {
-        return $this->belongsTo(ServiceProvider::class);
+        return $this->belongsTo(ServicePointRecord::class, 'service_provider_id');
     }
 
     /** @return MorphMany<PersonalAccessToken, $this> */

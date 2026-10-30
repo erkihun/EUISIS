@@ -9,7 +9,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Entitlements\Domain\Models\ServiceProviderUser;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointUserRecord;
 
 /**
  * Historical pivot: admin user ↔ cafeteria provider assignment.
@@ -67,7 +67,7 @@ class CafeteriaProviderAssignment extends Model
 
     public function serviceProviderUser(): BelongsTo
     {
-        return $this->belongsTo(ServiceProviderUser::class);
+        return $this->belongsTo(ServicePointUserRecord::class, 'service_provider_user_id');
     }
 
     public function assignedBy(): BelongsTo

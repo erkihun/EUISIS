@@ -54,8 +54,8 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Contracts\EmployeeCafeteriaActivity;
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
-use Modules\Entitlements\Domain\Models\ServiceTransaction;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTransactionRecord;
 use Modules\Transport\Contracts\EmployeeTransportActivity;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
@@ -523,7 +523,7 @@ class EmployeePortalController extends Controller
 
     private function buildServiceActivity(string $employeeId, ?string $serviceTypeId): array
     {
-        $txns = ServiceTransaction::query()
+        $txns = ServiceTransactionRecord::query()
             ->where('employee_id', $employeeId)
             ->when($serviceTypeId, fn ($q) => $q->where('service_type_id', $serviceTypeId))
             ->with('serviceType:id,name_en,name_am', 'serviceProvider:id,name')

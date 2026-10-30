@@ -30,7 +30,7 @@ Rules, all enforced by `tests/Feature/Architecture`:
 
 - Outside code (`app/` and other modules) uses only a module's `Contracts` (`ModulePublicApiTest`).
   Uses that existed when a module moved and could not be replaced in the same change are frozen in
-  `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Entitlements only); that list may only
+  `tests/Feature/Architecture/module-internal-use-baseline.php` (empty today); that list may only
   shrink.
 - Contracts are interfaces plus final data; they expose no model, builder, response, form request or
   internal class. The one model a module may publish is a read model in `Contracts\ReadModels`: a
@@ -68,7 +68,9 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Providers | `ProviderPortalSession::actor($request)`, `can($request, $permission)`, `actorHasService($request, $code)` | `?Data\PortalActor`, bool, bool | portal scans, trips, invoices, settlement disputes, exports, form requests |
 | Providers | `ProviderDirectory::offering($serviceCode, $activeOnly)`, `hasService($id, $code)`, `find($id)`, `activeServiceCodes($id)` | picker rows, bool, `?Data\ProviderSummary`, service codes | Transport admin pickers, form requests, services |
 | Providers | `ReadModels\ProviderRecord` (scopes `ofType($typeCode)`, `offering($serviceCode)`; `assignedOrganization`), `ReadModels\ProviderUserRecord` (read-only models of `providers`, `provider_users`) | Eloquent records that refuse writes | Transport and Cafeteria models' `provider()`, `payee()`, `submittedBy()`, `scannedBy()` relations; Transport's provider admin page; Cafeteria payee pages, settlements, reports |
-| Entitlements | `ServiceDeliveryRegistry::ensureServiceType(...)`, `createProvider(...)`, `recordTransaction(...)` | owned record ids | Providers service enablement and Cafeteria service-point/scan writes |
+| Entitlements | `ServiceDeliveryRegistry::ensureServiceType(...)`, `createProvider(...)`, `recordTransaction(...)`, `grantEntitlement(...)`, `recalculateEntitlementsFor($employeeId)`, `serviceTypeId($code)` | owned record ids | Providers service enablement, Cafeteria service-point/scan writes, the entitlement admin page, transfers |
+| Entitlements | `CardServiceAuthorization::verifyToken(...)`, `authorizeCard(...)` | verification result, `Data\ServiceAuthorizationOutcome` | card verification, offline sync and NFC APIs |
+| Entitlements | `ReadModels\ServiceTypeRecord` (`active()` scope), `ServicePointRecord`, `ServicePointUserRecord`, `EntitlementRecord`, `ServiceTransactionRecord`; `Data\EntitlementStatus`, `Data\ServiceDeliveryChannel` | Eloquent records that refuse writes; published values | Core and platform models' relations (employee entitlements, position and organization service types, terminals, bound applications), Cafeteria and Providers relations, admin pickers, code rules, dashboards, My Portal |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |

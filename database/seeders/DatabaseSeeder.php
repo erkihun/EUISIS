@@ -39,7 +39,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
 use Modules\Entitlements\Domain\Models\Entitlement;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceTransaction;

@@ -76,7 +76,6 @@ const MODULE_TABLE_READERS = [
     ],
     'Entitlements' => [
         // Settlement and dashboard aggregates; all are read-only.
-        'app/Actions/Workflows/GenerateSettlementReportAction.php' => 'reporting',
         'app/Console/Commands/Audit/AuditDuplicateData.php' => 'reporting',
         'app/Services/Dashboard/DashboardChartService.php' => 'reporting',
         'app/Services/Dashboard/DashboardMetricService.php' => 'reporting',
@@ -122,9 +121,15 @@ foreach ($modules as $module) {
         ->toBeInterfaces()
         ->ignoring(["{$ns}\\Contracts\\Data", "{$ns}\\Contracts\\Events", "{$ns}\\Contracts\\ReadModels"]);
 
+    // Published values (enums) sit beside the final data classes.
+    $enums = array_values(array_filter(
+        array_map(fn (string $f): string => "{$ns}\\Contracts\\Data\\".basename($f, '.php'), glob($root."/Modules/{$module}/Contracts/Data/*.php") ?: []),
+        fn (string $class): bool => enum_exists($class),
+    ));
     arch("{$module}: contract data is final")
         ->expect("{$ns}\\Contracts\\Data")
-        ->toBeFinal();
+        ->toBeFinal()
+        ->ignoring($enums);
 
     arch("{$module}: contract events are final")
         ->expect("{$ns}\\Contracts\\Events")
@@ -209,6 +214,22 @@ it('never uses a pre-move class name outside the compatibility bridge', function
             $source = str_replace('\\\\', '\\', (string) file_get_contents($file->getPathname()));
             if (preg_match($pattern, $source, $hit)) {
                 $offenders[] = "{$relative} ({$hit[1]})";
+
+                continue;
+            }
+            // A bare short name in the old namespace (Entitlement::class inside App\Models)
+            // resolves to the old class through its alias: the same old name, unqualified.
+            if (preg_match('/^namespace ([^;]+);/m', $source, $ns) !== 1) {
+                continue;
+            }
+            preg_match_all('/^use ([^;]+?)(?: as (\w+))?;/m', $source, $uses, PREG_SET_ORDER);
+            $imported = array_map(fn (array $u): string => $u[2] ?? substr($u[1], (int) strrpos('\\'.$u[1], '\\')), $uses);
+            preg_match_all('/(?<![\w\\\\$>:])([A-Z]\w+)(?=::|\s+\$\w|\s*\|)/', $source, $bare);
+            foreach (array_unique($bare[1]) as $short) {
+                $old = $ns[1].'\\'.$short;
+                if (isset($map[$old]) && ! in_array($short, $imported, true) && preg_match('/^(?:final |abstract |readonly )*(?:class|interface|trait|enum) '.$short.'\b/m', $source) !== 1) {
+                    $offenders[] = "{$relative} ({$old}, unqualified)";
+                }
             }
         }
     }

@@ -15,7 +15,7 @@ use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
 use Modules\Entitlements\Application\Actions\ServiceTransactions\RecordServiceTransactionAction;
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
 use Modules\Entitlements\Domain\Models\Entitlement;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceTransaction;

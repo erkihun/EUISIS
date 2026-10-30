@@ -21,14 +21,14 @@ use App\Services\Vacancy\VacancyTransferService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Modules\Entitlements\Application\Actions\Entitlements\RecalculateEntitlementsAction;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 
 readonly class CompleteVacancyTransferAction
 {
     public function __construct(
         private VacancyTransferService $vacancyTransferService,
         private PositionCapacityService $capacityService,
-        private RecalculateEntitlementsAction $recalculateEntitlements,
+        private ServiceDeliveryRegistry $serviceDelivery,
         private WriteAuditLogAction $writeAuditLogAction,
         private JobDescriptionService $jobDescriptions,
         private TransferEvents $transferEvents,
@@ -144,9 +144,7 @@ readonly class CompleteVacancyTransferAction
 
             $this->vacancyTransferService->closeAnnouncementIfFull($announcement, $actor->id);
 
-            foreach ($employee->entitlements as $entitlement) {
-                $this->recalculateEntitlements->execute($entitlement);
-            }
+            $this->serviceDelivery->recalculateEntitlementsFor((string) $employee->getKey());
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::AssignmentChanged,

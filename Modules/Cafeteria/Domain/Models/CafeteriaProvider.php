@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Enums\CafeteriaOperationalStatus;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
@@ -93,7 +93,7 @@ class CafeteriaProvider extends Model
 
     public function serviceProvider(): BelongsTo
     {
-        return $this->belongsTo(ServiceProvider::class);
+        return $this->belongsTo(ServicePointRecord::class, 'service_provider_id');
     }
 
     public function provider(): BelongsTo

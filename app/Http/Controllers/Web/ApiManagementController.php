@@ -24,7 +24,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 
 /**
  * System Settings → API Management.
@@ -749,8 +749,8 @@ class ApiManagementController extends Controller
     /** @return list<array{value: string, label: string}> */
     private function providerOptions(): array
     {
-        return ServiceProvider::query()->orderBy('name')->get(['id', 'code', 'name'])
-            ->map(fn (ServiceProvider $provider): array => ['value' => (string) $provider->id, 'label' => $provider->name.' ('.$provider->code.')'])
+        return ServicePointRecord::query()->orderBy('name')->get(['id', 'code', 'name'])
+            ->map(fn (ServicePointRecord $provider): array => ['value' => (string) $provider->id, 'label' => $provider->name.' ('.$provider->code.')'])
             ->all();
     }
 

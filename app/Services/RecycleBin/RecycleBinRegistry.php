@@ -11,17 +11,29 @@ use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Entitlements\Domain\Models\EntitlementRule;
-use Modules\Entitlements\Domain\Models\ServiceType;
 
 class RecycleBinRegistry
 {
+    /** @var array<string, array{model: class-string<Model>, label_key: string, restore_permission: string, view_deleted_permission: string}> */
+    private static array $registered = [];
+
+    /**
+     * A module registers its soft-deleted types from its service provider (ADR 0017);
+     * the platform's own types are listed below.
+     *
+     * @param  array{model: class-string<Model>, label_key: string, restore_permission: string, view_deleted_permission: string}  $definition
+     */
+    public static function registerType(string $type, array $definition): void
+    {
+        self::$registered[$type] = $definition;
+    }
+
     /**
      * @return array<string, array{model: class-string<Model>, label_key: string, restore_permission: string, view_deleted_permission: string}>
      */
     public function supportedTypes(): array
     {
-        return [
+        return self::$registered + [
             'organizations' => [
                 'model' => Organization::class,
                 'label_key' => 'recycleBin.types.organizations',
@@ -51,18 +63,6 @@ class RecycleBinRegistry
                 'label_key' => 'recycleBin.types.positions',
                 'restore_permission' => 'positions.restore',
                 'view_deleted_permission' => 'positions.viewDeleted',
-            ],
-            'service_types' => [
-                'model' => ServiceType::class,
-                'label_key' => 'recycleBin.types.service_types',
-                'restore_permission' => 'service-types.restore',
-                'view_deleted_permission' => 'service-types.viewDeleted',
-            ],
-            'entitlement_rules' => [
-                'model' => EntitlementRule::class,
-                'label_key' => 'recycleBin.types.entitlement_rules',
-                'restore_permission' => 'entitlement-rules.restore',
-                'view_deleted_permission' => 'entitlement-rules.viewDeleted',
             ],
             'code_rules' => [
                 'model' => CodeRule::class,

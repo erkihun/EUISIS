@@ -12,11 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cafeteria\Contracts\CafeteriaTerminalScan;
-use Modules\Entitlements\Application\Actions\ServiceTransactions\RecordServiceTransactionAction;
-use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
-use Modules\Entitlements\Domain\Models\Entitlement;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\CardServiceAuthorization;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 use Ramsey\Uuid\Uuid;
 
 class NfcController extends Controller
@@ -59,8 +57,8 @@ class NfcController extends Controller
             }
             $terminal = $result['terminal'];
             $card = $result['card'];
-            $serviceType = ServiceType::where('code', $payload['service_type'])->first();
-            $provider = ServiceProvider::whereKey($terminal->provider_id)->lockForUpdate()->first();
+            $serviceType = ServiceTypeRecord::query()->where('code', $payload['service_type'])->first();
+            $provider = ServicePointRecord::query()->whereKey($terminal->provider_id)->lockForUpdate()->first();
             $allowed = false;
             $reason = 'SERVICE_NOT_ALLOWED';
             $transactionReference = null;
@@ -87,25 +85,11 @@ class NfcController extends Controller
                         $transactionReference = $scan->transactionNumber;
                     }
                 } else {
-                    $entitlement = Entitlement::where('employee_id', $card->employee_id)->where('service_type_id', $serviceType->id)
-                        ->where(fn ($q) => $q->whereNull('service_provider_id')->orWhere('service_provider_id', $provider->id))
-                        ->where('status', 'active')
-                        ->where(fn ($q) => $q->whereNull('effective_from')->orWhereDate('effective_from', '<=', today()))
-                        ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', today()))
-                        ->lockForUpdate()->first();
-                    $check = app(VerifyCardForServiceAction::class)->verifyResolvedCard($card, $serviceType, $provider, null, $request);
-                    $allowed = $check['allowed'];
-                    $reason = $this->reason($check['result_code']);
-                    if ($allowed && $purpose === 'record') {
-                        try {
-                            $transaction = app(RecordServiceTransactionAction::class)->execute($card->employee, $card, $serviceType, $provider, $entitlement, 'authorized', null,
-                                ['reference' => $payload['reference'], 'source' => 'nfc']);
-                            $transactionReference = $transaction->reference;
-                        } catch (\DomainException) {
-                            $allowed = false;
-                            $reason = 'ALREADY_SERVED';
-                        }
-                    }
+                    // The entitlement check and the transaction belong to Entitlements.
+                    $outcome = app(CardServiceAuthorization::class)->authorizeCard((string) $card->getKey(), (string) $serviceType->id, (string) $provider->id, $purpose === 'record', $payload['reference'] ?? null, $request);
+                    $allowed = $outcome->allowed;
+                    $reason = $this->reason($outcome->resultCode);
+                    $transactionReference = $outcome->transactionReference;
                 }
             }
             $result['eligible'] = $allowed;

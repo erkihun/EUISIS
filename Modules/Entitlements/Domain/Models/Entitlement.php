@@ -9,7 +9,7 @@ use App\Models\Employee;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
 
 class Entitlement extends Model
 {

@@ -7,7 +7,7 @@ namespace Modules\Providers\Domain\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class ProviderUserServicePermission extends Model
 {
@@ -37,6 +37,6 @@ class ProviderUserServicePermission extends Model
 
     public function serviceType(): BelongsTo
     {
-        return $this->belongsTo(ServiceType::class);
+        return $this->belongsTo(ServiceTypeRecord::class, 'service_type_id');
     }
 }

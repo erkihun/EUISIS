@@ -36,10 +36,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use Modules\Entitlements\Domain\Enums\EntitlementStatus;
-use Modules\Entitlements\Domain\Models\Entitlement;
-use Modules\Entitlements\Domain\Models\ServiceProvider;
-use Modules\Entitlements\Domain\Models\ServiceTransaction;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
+use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTransactionRecord;
 
 class DashboardMetricService
 {
@@ -1057,7 +1057,7 @@ class DashboardMetricService
     public function entitlementQuery(array $scope): Builder
     {
         // Joins only when an organization scope needs them (see cardQuery).
-        return Entitlement::query()
+        return EntitlementRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query
@@ -1082,7 +1082,7 @@ class DashboardMetricService
         // Scoped by a subquery instead of joining employees and assignments on
         // every chart: global and provider dashboards no longer pay for two
         // joins per transaction (load test 2026-10-11).
-        return ServiceTransaction::query()
+        return ServiceTransactionRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('service_transactions.employee_id', DB::table('employees')
@@ -1127,7 +1127,7 @@ class DashboardMetricService
 
     public function providerQuery(array $scope): Builder
     {
-        return ServiceProvider::query()
+        return ServicePointRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('service_providers.organization_id', $scope['organization_ids'])

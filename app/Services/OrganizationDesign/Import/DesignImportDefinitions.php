@@ -15,7 +15,7 @@ use App\Models\Process;
 use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
 use App\Models\Service;
-use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 /**
  * What each kind of import sheet looks like (ADR-LB-004): its columns, which
@@ -81,7 +81,7 @@ final class DesignImportDefinitions
                 ],
                 'references' => [
                     'function_codes' => ['model' => OrganizationFunction::class, 'column' => 'code', 'scope' => 'organization', 'multiple' => true, 'label' => 'function'],
-                    'service_type_code' => ['model' => ServiceType::class, 'column' => 'code', 'scope' => 'global', 'label' => 'service_type'],
+                    'service_type_code' => ['model' => ServiceTypeRecord::class, 'column' => 'code', 'scope' => 'global', 'label' => 'service_type'],
                     'owner_unit_code' => ['model' => OrganizationUnit::class, 'column' => 'code', 'scope' => 'organization', 'label' => 'unit'],
                 ],
             ],

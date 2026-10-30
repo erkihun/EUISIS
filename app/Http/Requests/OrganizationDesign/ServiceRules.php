@@ -7,7 +7,7 @@ namespace App\Http\Requests\OrganizationDesign;
 use App\Enums\ServiceBeneficiaryType;
 use App\Models\ServiceClassification;
 use Illuminate\Validation\Rule;
-use Modules\Entitlements\Domain\Enums\ServiceDeliveryChannel;
+use Modules\Entitlements\Contracts\Data\ServiceDeliveryChannel;
 
 /** The service fields a designer writes, shared by store, update and new-version requests. */
 final class ServiceRules
