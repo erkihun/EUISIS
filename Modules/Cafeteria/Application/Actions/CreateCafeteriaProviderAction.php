@@ -15,7 +15,7 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Entitlements\Contracts\Data\NewServiceProvider;
 use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Creates a cafeteria location end to end: the operating provider (payee)
@@ -47,7 +47,7 @@ readonly class CreateCafeteriaProviderAction
                     'email' => $attributes['email'] ?? null,
                     'address' => $attributes['location'] ?? null,
                 ], $actor)
-                : Provider::query()->findOrFail($attributes['provider_id']);
+                : ProviderRecord::query()->findOrFail($attributes['provider_id']);
             $this->providers->ensureCafeteriaService($payee, $actor);
 
             $type = CafeteriaLocationType::from($attributes['location_type'] ?? CafeteriaLocationType::Main->value);

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * The contractual authorization of a provider to serve an organization: at
@@ -58,7 +58,7 @@ class CafeteriaServiceAssignment extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function network(): BelongsTo

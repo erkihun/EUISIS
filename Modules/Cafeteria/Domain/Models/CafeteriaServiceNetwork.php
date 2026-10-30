@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /** One provider's group of cafeteria locations: a main cafeteria, branches and service points. */
 class CafeteriaServiceNetwork extends Model
@@ -32,7 +32,7 @@ class CafeteriaServiceNetwork extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function cafeterias(): HasMany

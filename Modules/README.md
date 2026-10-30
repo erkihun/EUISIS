@@ -33,7 +33,10 @@ Rules, all enforced by `tests/Feature/Architecture`:
   `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Providers and Entitlements); that list may only
   shrink.
 - Contracts are interfaces plus final data; they expose no model, builder, response, form request or
-  internal class. `Illuminate\Http\Request` may pass through as request context (audit, IP), as in
+  internal class. The one model a module may publish is a read model in `Contracts\ReadModels`: a
+  final class extending `App\Support\Database\ReadOnlyModel` on the module's own table, for other
+  modules' Eloquent relations and eager loads. Every write through it (save, delete, query-builder
+  update, insert, create) throws `ReadOnlyModelException`. `Illuminate\Http\Request` may pass through as request context (audit, IP), as in
   the Core's own contracts.
 - Every contract is bound in the module's provider; modules do not depend on each other in a cycle.
 - Every model, and so every table, has one owner in [`ownership.php`](ownership.php)
@@ -62,6 +65,7 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Providers | `ProviderPortalSession::providerId($request)`, `providerHasService($id, $code)`, `providerPayload($request)` | id, bool, layout props | Cafeteria and Transport portal pages |
 | Providers | `ProviderPortalSession::actor($request)`, `can($request, $permission)`, `actorHasService($request, $code)` | `?Data\PortalActor`, bool, bool | portal scans, trips, invoices, settlement disputes, exports, form requests |
 | Providers | `ProviderDirectory::offering($serviceCode, $activeOnly)`, `hasService($id, $code)`, `find($id)` | picker rows, bool, `?Data\ProviderSummary` | Transport admin pickers, form requests, services |
+| Providers | `ReadModels\ProviderRecord` (with the `ofType($typeCode)` scope), `ReadModels\ProviderUserRecord` (read-only models of `providers`, `provider_users`) | Eloquent records that refuse writes | Transport and Cafeteria models' `provider()`, `payee()`, `submittedBy()`, `scannedBy()` relations; Cafeteria payee pages, settlements, reports |
 | Entitlements | `ServiceDeliveryRegistry::ensureServiceType(...)`, `createProvider(...)`, `recordTransaction(...)` | owned record ids | Providers service enablement and Cafeteria service-point/scan writes |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |

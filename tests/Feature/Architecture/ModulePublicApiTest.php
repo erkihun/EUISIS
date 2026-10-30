@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\ReadOnlyModel;
 use App\Support\Retention\RetentionMatrix;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cafeteria\Contracts\Data\TransactionStatus;
@@ -104,12 +105,22 @@ foreach ($modules as $module) {
         ->expect("{$ns}\\Contracts")
         // Illuminate\Http\Request may pass through as request context (audit, IP), as in the Core's contracts.
         ->not->toUse(["{$ns}\\Domain", "{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers", 'Illuminate\\Database',
-            'Illuminate\\Http\\Response', 'Illuminate\\Http\\JsonResponse', 'Illuminate\\Http\\RedirectResponse', 'Illuminate\\Http\\Resources', 'Illuminate\\Http\\UploadedFile', 'Illuminate\\Foundation\\Http']);
+            'Illuminate\\Http\\Response', 'Illuminate\\Http\\JsonResponse', 'Illuminate\\Http\\RedirectResponse', 'Illuminate\\Http\\Resources', 'Illuminate\\Http\\UploadedFile', 'Illuminate\\Foundation\\Http'])
+        // Published read models are Eloquent by design, and read-only (checked below).
+        ->ignoring("{$ns}\\Contracts\\ReadModels");
+
+    // An owner may publish read models of its records for other modules' relations
+    // (ADR 0017): final, read-only (every write throws), and free of the module's internals.
+    arch("{$module}: published read models are read-only")
+        ->expect("{$ns}\\Contracts\\ReadModels")
+        ->toExtend(ReadOnlyModel::class)
+        ->toBeFinal()
+        ->not->toUse(["{$ns}\\Domain", "{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers"]);
 
     arch("{$module}: Contracts are interfaces")
         ->expect("{$ns}\\Contracts")
         ->toBeInterfaces()
-        ->ignoring(["{$ns}\\Contracts\\Data", "{$ns}\\Contracts\\Events"]);
+        ->ignoring(["{$ns}\\Contracts\\Data", "{$ns}\\Contracts\\Events", "{$ns}\\Contracts\\ReadModels"]);
 
     arch("{$module}: contract data is final")
         ->expect("{$ns}\\Contracts\\Data")
@@ -182,6 +193,8 @@ it('never uses a pre-move class name outside the compatibility bridge', function
         'Modules/legacy-class-map.php',
         'tests/Feature/Architecture/ModuleMoveCompatibilityTest.php',
         ...array_map(fn (string $p): string => substr($p, strlen($root) + 1), glob($root.'/Modules/*/Providers/*ServiceProvider.php') ?: []),
+        // Published read models store the owner's names in polymorphic columns (getMorphClass).
+        ...array_map(fn (string $p): string => substr($p, strlen($root) + 1), glob($root.'/Modules/*/Contracts/ReadModels/*.php') ?: []),
     ];
     $pattern = '/(?<![A-Za-z0-9_\\\\])('.implode('|', array_map(fn (string $old): string => preg_quote($old, '/'), array_keys($map))).')(?![A-Za-z0-9_])/';
 

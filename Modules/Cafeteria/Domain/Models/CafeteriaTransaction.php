@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 class CafeteriaTransaction extends Model
 {
@@ -106,7 +106,7 @@ class CafeteriaTransaction extends Model
     /** The payee: the provider that delivered the service. */
     public function payee(): BelongsTo
     {
-        return $this->belongsTo(Provider::class, 'provider_id');
+        return $this->belongsTo(ProviderRecord::class, 'provider_id');
     }
 
     public function network(): BelongsTo

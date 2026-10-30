@@ -11,7 +11,7 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Option lists and organization scope for the cafeteria administration pages.
@@ -61,8 +61,8 @@ trait CafeteriaAdminContext
     /** @return list<array<string, mixed>> */
     protected function providerOptions(): array
     {
-        return Provider::query()
-            ->whereHas('providerType', fn (Builder $q) => $q->where('code', 'CAFETERIA'))
+        return ProviderRecord::query()
+            ->ofType('CAFETERIA')
             ->orderBy('name_en')
             ->get(['id', 'provider_code', 'name_en', 'name_am', 'status'])
             ->toArray();

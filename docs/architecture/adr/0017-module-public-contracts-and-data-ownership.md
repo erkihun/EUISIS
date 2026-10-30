@@ -24,7 +24,11 @@ make to Core records) and `App\Backbone\Events`. Service modules should be shape
    `Modules/<Name>/{Contracts, Domain, Application, Infrastructure, Http, Providers}`:
    - `Contracts`: its public API. Interfaces, plus immutable data (`Contracts\Data`) and published
      integration events (`Contracts\Events`). No Eloquent model, builder, response, form request or
-     internal class appears in a signature. `Illuminate\Http\Request` may be passed as request
+     internal class appears in a signature. One exception, for records other modules hold in
+     Eloquent relations: a module may publish read models (`Contracts\ReadModels`), final classes
+     extending `App\Support\Database\ReadOnlyModel` on its own tables. They serialize and store
+     morph names as the owner's models do, and every write through the model or its query builder
+     throws, so data ownership (3) still holds; only the owner's own models and commands write. `Illuminate\Http\Request` may be passed as request
      context (audit trail, client IP), as the Core's `ServiceEligibility` already does.
    - `Providers`: one service provider that binds the contracts to their implementations and
      registers everything else the framework must know (policies, morph map, event listeners,
@@ -85,3 +89,10 @@ policy registration, morph compatibility, service-provider code rules and the Ba
 service transactions through `ServiceDeliveryRegistry`; remaining direct readers are frozen in the
 shrinking internal-use baseline. The entitlement admin page remains in `app/` because it composes
 Entitlements with Cafeteria data at the application composition boundary.
+
+Also on 2026-10-30, Providers published `ProviderRecord` and `ProviderUserRecord` read models.
+Transport's and Cafeteria's 21 model relations, Cafeteria's payee pages, settlements, policy
+resolution and reports moved to them, and Cafeteria attaches its provider relations to the read
+model. The Providers internal-use baseline went from 37 classes to 4. Read models were chosen over
+id-only relations because most uses are display fields and eager loads; the behaviour other modules
+need (`hasService`, `trashed`) is on the read model or in `ProviderDirectory`.

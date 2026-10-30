@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Transport\Domain\Enums\TransportEligibilityStatus;
 use Modules\Transport\Domain\Enums\TransportEligibilitySubject;
 
@@ -53,7 +53,7 @@ class TransportEligibility extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function contract(): BelongsTo

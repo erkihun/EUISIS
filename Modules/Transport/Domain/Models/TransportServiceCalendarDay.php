@@ -7,7 +7,7 @@ namespace Modules\Transport\Domain\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /** A day the service runs although the calendar says not (operating), or does not run (suspended). */
 class TransportServiceCalendarDay extends Model
@@ -27,7 +27,7 @@ class TransportServiceCalendarDay extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function route(): BelongsTo

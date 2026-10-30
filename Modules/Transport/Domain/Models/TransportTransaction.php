@@ -10,8 +10,8 @@ use App\Models\IdCard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
+use Modules\Providers\Contracts\ReadModels\ProviderUserRecord;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportSyncState;
 use Modules\Transport\Domain\Enums\TransportVerificationMethod;
@@ -79,7 +79,7 @@ class TransportTransaction extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function employee(): BelongsTo
@@ -124,7 +124,7 @@ class TransportTransaction extends Model
 
     public function scannedBy(): BelongsTo
     {
-        return $this->belongsTo(ProviderUser::class, 'scanned_by_provider_user_id');
+        return $this->belongsTo(ProviderUserRecord::class, 'scanned_by_provider_user_id');
     }
 
     public function settlement(): BelongsTo

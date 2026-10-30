@@ -9,7 +9,7 @@ use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Transport\Domain\Enums\TransportExceptionStatus;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
 
@@ -35,7 +35,7 @@ class TransportException extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function trip(): BelongsTo

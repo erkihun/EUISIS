@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Cafeteria\Domain\Enums\CafeteriaSettlementStatus;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /** What one provider (the payee) is owed for a period, split by employee organization and cafeteria. */
 class CafeteriaSettlement extends Model
@@ -55,7 +55,7 @@ class CafeteriaSettlement extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function lines(): HasMany

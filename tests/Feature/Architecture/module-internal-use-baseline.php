@@ -8,12 +8,13 @@ declare(strict_types=1);
  * fails when one no longer needs it, so the list can only shrink: replace a use
  * with the module's Contracts and delete the line.
  *
- * Providers (2026-10-30): what is left is Transport and Cafeteria models that hold
- * provider records in Eloquent relations (provider(), submittedBy(), scannedBy()),
- * Cafeteria code that manages its payee providers, the provider-guard export
- * policy, and the portal profile page. Writes go through ProviderRegistry; pickers,
- * checks, portal pages and actors use ProviderDirectory and ProviderPortalSession.
- * Next: a provider read model or id-only relations (Modules/MIGRATION.md).
+ * Providers (2026-10-30): other modules hold provider records in relations through
+ * the published Providers\Contracts\ReadModels and write through ProviderRegistry;
+ * pickers, checks, portal pages and actors use ProviderDirectory and
+ * ProviderPortalSession. Left: the provider-guard export policy (the Gate hands it
+ * the internal ProviderUser), the portal profile page (edits the user's own
+ * account), and Transport's provider admin page and the transportProfile relation
+ * its provider attaches to the internal Provider model.
  */
 return [
     'Entitlements' => [
@@ -52,42 +53,9 @@ return [
     ],
     'Providers' => [
         // Modules\Cafeteria
-        'Modules\Cafeteria\Application\Actions\CreateCafeteriaProviderAction',
-        'Modules\Cafeteria\Application\Actions\UpdateCafeteriaProviderAction',
         'Modules\Cafeteria\Application\Policies\CafeteriaTransactionPolicy',
-        'Modules\Cafeteria\Application\Services\Network\CafeteriaAssignmentService',
-        'Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry',
-        'Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyResolution',
-        'Modules\Cafeteria\Application\Services\Reports\CafeteriaAnalyticsReportService',
-        'Modules\Cafeteria\Application\Services\Settlement\CafeteriaSettlementService',
-        'Modules\Cafeteria\Domain\Models\CafeteriaProvider',
-        'Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment',
-        'Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork',
-        'Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy',
-        'Modules\Cafeteria\Domain\Models\CafeteriaSettlement',
-        'Modules\Cafeteria\Domain\Models\CafeteriaTransaction',
-        'Modules\Cafeteria\Http\Controllers\CafeteriaPayeeController',
-        'Modules\Cafeteria\Http\Controllers\CafeteriaProviderController',
-        'Modules\Cafeteria\Http\Controllers\CafeteriaSettlementController',
-        'Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext',
         'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderProfileController',
-        'Modules\Cafeteria\Providers\CafeteriaServiceProvider',
         // Modules\Transport
-        'Modules\Transport\Domain\Models\TransportContract',
-        'Modules\Transport\Domain\Models\TransportDevice',
-        'Modules\Transport\Domain\Models\TransportDriver',
-        'Modules\Transport\Domain\Models\TransportEligibility',
-        'Modules\Transport\Domain\Models\TransportException',
-        'Modules\Transport\Domain\Models\TransportInvoice',
-        'Modules\Transport\Domain\Models\TransportPass',
-        'Modules\Transport\Domain\Models\TransportProviderProfile',
-        'Modules\Transport\Domain\Models\TransportRoute',
-        'Modules\Transport\Domain\Models\TransportSchedule',
-        'Modules\Transport\Domain\Models\TransportServiceCalendarDay',
-        'Modules\Transport\Domain\Models\TransportSettlement',
-        'Modules\Transport\Domain\Models\TransportTransaction',
-        'Modules\Transport\Domain\Models\TransportTrip',
-        'Modules\Transport\Domain\Models\TransportVehicle',
         'Modules\Transport\Http\Controllers\TransportProviderController',
         'Modules\Transport\Providers\TransportServiceProvider',
     ],

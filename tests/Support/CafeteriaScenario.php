@@ -23,6 +23,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
 
@@ -39,7 +40,7 @@ use Modules\Providers\Domain\Models\ProviderType;
  */
 final class CafeteriaScenario
 {
-    public Provider $provider;
+    public Provider|ProviderRecord $provider;
 
     public CafeteriaServiceNetwork $network;
 

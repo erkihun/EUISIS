@@ -35,7 +35,7 @@ test('50-51 a provider settlement is split by employee organization and by cafet
     ($this->scan)($b, $this->s->main, '2026-09-21 12:05');   // Org 2 at main
     ($this->scan)($c, $this->s->branch, '2026-09-21 12:10'); // Org 2 at branch
 
-    $settlement = $this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]);
+    $settlement = $this->settlements->createDraft($this->s->provider->id, ...[...$this->period, $this->actor]);
     $lines = $settlement->lines->map(fn ($line) => [$line->employee_organization_id, $line->cafeteria_id, (string) $line->subsidy_amount]);
 
     expect($lines->all())->toEqualCanonicalizing([
@@ -53,7 +53,7 @@ test('49 52 settlements use the applied snapshot; a later policy change moves no
     // The policy rate changes after the meal was recorded.
     CafeteriaServicePolicy::query()->where('organization_id', $this->org2->id)->update(['daily_subsidy_amount' => '999.00', 'provider_price' => '999.00']);
 
-    $settlement = $this->settlements->finalize($this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]), $this->finalizer);
+    $settlement = $this->settlements->finalize($this->settlements->createDraft($this->s->provider->id, ...[...$this->period, $this->actor]), $this->finalizer);
 
     expect($settlement->status)->toBe(CafeteriaSettlementStatus::Finalized)
         ->and((string) $settlement->total_subsidy_amount)->toBe('150.00');
@@ -61,14 +61,14 @@ test('49 52 settlements use the applied snapshot; a later policy change moves no
     // A finalized settlement is final: its transactions cannot be reversed or settled again.
     expect(fn () => app(ReverseCafeteriaTransactionAction::class)->execute(CafeteriaTransaction::query()->sole(), $this->actor))
         ->toThrow(ValidationException::class)
-        ->and(fn () => $this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]))
+        ->and(fn () => $this->settlements->createDraft($this->s->provider->id, ...[...$this->period, $this->actor]))
         ->toThrow(ValidationException::class);
 });
 
 test('D-6 the person who drafted a settlement cannot finalize it', function (): void {
     [, $card] = $this->s->employee($this->org1);
     ($this->scan)($card, $this->s->main, '2026-09-21 12:00');
-    $draft = $this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]);
+    $draft = $this->settlements->createDraft($this->s->provider->id, ...[...$this->period, $this->actor]);
 
     expect(fn () => $this->settlements->finalize($draft, $this->actor))->toThrow(ValidationException::class);
     expect($draft->fresh()->status)->toBe(CafeteriaSettlementStatus::Draft);
@@ -81,9 +81,9 @@ test('a cancelled draft releases its transactions for a new settlement', functio
     [, $card] = $this->s->employee($this->org2);
     ($this->scan)($card, $this->s->main, '2026-09-21 12:00');
 
-    $this->settlements->cancel($this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]), $this->actor);
+    $this->settlements->cancel($this->settlements->createDraft($this->s->provider->id, ...[...$this->period, $this->actor]), $this->actor);
 
-    expect($this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor])->transaction_count)->toBe(1);
+    expect($this->settlements->createDraft($this->s->provider->id, ...[...$this->period, $this->actor])->transaction_count)->toBe(1);
 });
 
 test('another provider cannot settle transactions it did not serve', function (): void {
@@ -91,5 +91,5 @@ test('another provider cannot settle transactions it did not serve', function ()
     ($this->scan)($card, $this->s->main, '2026-09-21 12:00');
     $other = CafeteriaScenario::make('B');
 
-    expect(fn () => $this->settlements->createDraft($other->provider, ...[...$this->period, $this->actor]))->toThrow(ValidationException::class);
+    expect(fn () => $this->settlements->createDraft($other->provider->id, ...[...$this->period, $this->actor]))->toThrow(ValidationException::class);
 });

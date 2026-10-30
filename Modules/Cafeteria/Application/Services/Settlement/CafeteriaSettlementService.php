@@ -18,7 +18,6 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaSettlementStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaSettlement;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
-use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Provider settlements (docs/cafeteria-settlement-rules.md).
@@ -41,21 +40,21 @@ class CafeteriaSettlementService
      *
      * @return array{lines: list<array<string, mixed>>, totals: array<string, mixed>}
      */
-    public function preview(Provider $provider, Carbon $from, Carbon $to): array
+    public function preview(string $providerId, Carbon $from, Carbon $to): array
     {
-        return $this->summarize($this->unsettled($provider, $from, $to));
+        return $this->summarize($this->unsettled($providerId, $from, $to));
     }
 
-    public function createDraft(Provider $provider, Carbon $from, Carbon $to, User $actor, ?string $notes = null, ?Request $request = null): CafeteriaSettlement
+    public function createDraft(string $providerId, Carbon $from, Carbon $to, User $actor, ?string $notes = null, ?Request $request = null): CafeteriaSettlement
     {
         if ($to->lt($from)) {
             throw ValidationException::withMessages(['period_end' => __('cafeteria-policy.validation.settlement_period')]);
         }
 
-        return DB::transaction(function () use ($provider, $from, $to, $actor, $notes, $request): CafeteriaSettlement {
+        return DB::transaction(function () use ($providerId, $from, $to, $actor, $notes, $request): CafeteriaSettlement {
             $settlement = CafeteriaSettlement::query()->create([
                 'settlement_number' => 'SET-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
-                'provider_id' => $provider->id,
+                'provider_id' => $providerId,
                 'period_start' => $from->toDateString(),
                 'period_end' => $to->toDateString(),
                 'status' => CafeteriaSettlementStatus::Draft->value,
@@ -69,7 +68,7 @@ class CafeteriaSettlementService
             // never load or bind every transaction id in PHP. The UPDATE locks
             // each row it changes, and PostgreSQL re-checks the IS NULL
             // condition after waiting, so a parallel draft cannot take them too.
-            $claimed = $this->unsettled($provider, $from, $to)->update(['cafeteria_settlement_id' => $settlement->id]);
+            $claimed = $this->unsettled($providerId, $from, $to)->update(['cafeteria_settlement_id' => $settlement->id]);
             if ($claimed === 0) {
                 throw ValidationException::withMessages(['period_start' => __('cafeteria-policy.validation.settlement_empty')]);
             }
@@ -79,7 +78,7 @@ class CafeteriaSettlementService
             $this->storeSummary($settlement, $summary);
 
             $this->audit->execute(AuditEventType::CafeteriaSettlementCreated, $actor, $settlement, null,
-                newValues: ['provider_id' => $provider->id, 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), ...$summary['totals']],
+                newValues: ['provider_id' => $providerId, 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), ...$summary['totals']],
                 request: $request);
 
             return $settlement->fresh('lines');
@@ -146,10 +145,10 @@ class CafeteriaSettlementService
     }
 
     /** @return Builder<CafeteriaTransaction> */
-    private function unsettled(Provider $provider, Carbon $from, Carbon $to): Builder
+    private function unsettled(string $providerId, Carbon $from, Carbon $to): Builder
     {
         return CafeteriaTransaction::query()
-            ->where('provider_id', $provider->id)
+            ->where('provider_id', $providerId)
             ->where('status', CafeteriaTransactionStatus::Accepted->value)
             ->whereNull('cafeteria_settlement_id')
             // transaction_date is a DATE column: plain range bounds keep the index usable.

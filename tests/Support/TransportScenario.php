@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
 use Modules\Providers\Domain\Models\ProviderUser;
@@ -116,7 +117,7 @@ final class TransportScenario
     }
 
     /** @param  list<string>  $keys  provider-user permission keys (operators hold only these) */
-    public function portalUser(Provider $provider, string $role = 'operator', array $keys = []): ProviderUser
+    public function portalUser(Provider|ProviderRecord $provider, string $role = 'operator', array $keys = []): ProviderUser
     {
         $user = ProviderUser::query()->create([
             'provider_id' => $provider->id, 'name' => 'Portal '.$role, 'email' => strtolower($role).'-'.self::next().'@example.test',
@@ -135,7 +136,7 @@ final class TransportScenario
     }
 
     /** @param  array<string, mixed>  $overrides */
-    public function route(Provider $provider, array $overrides = []): TransportRoute
+    public function route(Provider|ProviderRecord $provider, array $overrides = []): TransportRoute
     {
         return TransportRoute::query()->create($overrides + [
             'provider_id' => $provider->id, 'route_code' => 'R-'.self::next(), 'name_en' => 'Route '.self::$sequence,
@@ -144,7 +145,7 @@ final class TransportScenario
     }
 
     /** @param  array<string, mixed>  $overrides */
-    public function vehicle(Provider $provider, array $overrides = []): TransportVehicle
+    public function vehicle(Provider|ProviderRecord $provider, array $overrides = []): TransportVehicle
     {
         return TransportVehicle::query()->create($overrides + [
             'provider_id' => $provider->id, 'vehicle_code' => 'V-'.self::next(), 'plate_number' => 'AA-'.self::next(),
@@ -190,7 +191,7 @@ final class TransportScenario
     }
 
     /** A registered scanner; returns the device and its plain credential. @param  array<string, mixed>  $overrides @return array{0: TransportDevice, 1: string} */
-    public function device(Provider $provider, ?TransportVehicle $vehicle = null, array $overrides = []): array
+    public function device(Provider|ProviderRecord $provider, ?TransportVehicle $vehicle = null, array $overrides = []): array
     {
         $plain = TransportDevice::CREDENTIAL_PREFIX.Str::random(40);
         $device = TransportDevice::query()->create($overrides + [
@@ -211,7 +212,7 @@ final class TransportScenario
     }
 
     /** @param  array<string, mixed>  $overrides */
-    public function contract(Provider $provider, string $model = 'per_verified_boarding', array $terms = ['rate_per_boarding' => '12.50'], array $overrides = []): TransportContract
+    public function contract(Provider|ProviderRecord $provider, string $model = 'per_verified_boarding', array $terms = ['rate_per_boarding' => '12.50'], array $overrides = []): TransportContract
     {
         return TransportContract::query()->create($overrides + [
             'contract_reference' => 'CTR-'.self::next(), 'provider_id' => $provider->id, 'version_no' => 1, 'status' => 'active',
@@ -221,7 +222,7 @@ final class TransportScenario
     }
 
     /** @param  array<string, mixed>  $overrides */
-    public function pass(Employee $employee, Provider $provider, ?TransportRoute $route = null, array $overrides = []): TransportPass
+    public function pass(Employee $employee, Provider|ProviderRecord $provider, ?TransportRoute $route = null, array $overrides = []): TransportPass
     {
         return TransportPass::query()->create($overrides + [
             'employee_id' => $employee->id, 'provider_id' => $provider->id, 'transport_route_id' => $route?->id,

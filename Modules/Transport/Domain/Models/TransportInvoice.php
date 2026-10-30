@@ -7,8 +7,8 @@ namespace Modules\Transport\Domain\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
+use Modules\Providers\Contracts\ReadModels\ProviderUserRecord;
 use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
 
 /** The provider's claim for a period. Claimed ≠ verified ≠ approved: all three are kept. */
@@ -39,7 +39,7 @@ class TransportInvoice extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function contract(): BelongsTo
@@ -54,6 +54,6 @@ class TransportInvoice extends Model
 
     public function submittedBy(): BelongsTo
     {
-        return $this->belongsTo(ProviderUser::class, 'submitted_by_provider_user_id');
+        return $this->belongsTo(ProviderUserRecord::class, 'submitted_by_provider_user_id');
     }
 }

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Modules\Cafeteria\Domain\Enums\CafeteriaExtraScanPolicy;
 use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * The financial and entitlement terms for one organization's employees at one
@@ -137,7 +137,7 @@ class CafeteriaServicePolicy extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function network(): BelongsTo

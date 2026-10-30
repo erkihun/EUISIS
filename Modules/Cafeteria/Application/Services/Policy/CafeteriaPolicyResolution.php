@@ -10,7 +10,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Everything the resolver established for one employee at one cafeteria on
@@ -25,7 +25,7 @@ final class CafeteriaPolicyResolution
         public readonly ?string $reason,
         public readonly CafeteriaProvider $cafeteria,
         public readonly ?EmployeeAssignment $employeeAssignment = null,
-        public readonly ?Provider $provider = null,
+        public readonly ?ProviderRecord $provider = null,
         public readonly ?CafeteriaServiceNetwork $network = null,
         public readonly ?OrganizationCafeteriaAccess $access = null,
         public readonly ?CafeteriaServiceAssignment $serviceAssignment = null,

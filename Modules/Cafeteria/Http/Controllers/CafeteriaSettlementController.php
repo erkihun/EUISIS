@@ -17,7 +17,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaSettlement;
 use Modules\Cafeteria\Domain\Models\CafeteriaSettlementLine;
 use Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 
 /** Cafeteria Management → Settlements (provider payables by employee organization). */
 class CafeteriaSettlementController extends Controller
@@ -51,8 +51,8 @@ class CafeteriaSettlementController extends Controller
         $preview = null;
         if ($request->filled(['provider_id', 'period_start', 'period_end'])) {
             $data = $this->period($request);
-            $provider = Provider::query()->findOrFail($data['provider_id']);
-            $preview = $this->present($this->settlements->preview($provider, Carbon::parse($data['period_start']), Carbon::parse($data['period_end'])));
+            $providerId = $this->existingProvider($data['provider_id']);
+            $preview = $this->present($this->settlements->preview($providerId, Carbon::parse($data['period_start']), Carbon::parse($data['period_end'])));
         }
 
         return Inertia::render('Cafeteria/Settlements/Create', [
@@ -66,7 +66,7 @@ class CafeteriaSettlementController extends Controller
     {
         $data = $this->period($request) + $request->validate(['notes' => ['nullable', 'string', 'max:2000']]);
         $settlement = $this->settlements->createDraft(
-            Provider::query()->findOrFail($data['provider_id']),
+            $this->existingProvider($data['provider_id']),
             Carbon::parse($data['period_start']),
             Carbon::parse($data['period_end']),
             $request->user(),
@@ -182,5 +182,13 @@ class CafeteriaSettlementController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /** The provider's id; 404 when there is no such provider (as findOrFail did). */
+    private function existingProvider(mixed $providerId): string
+    {
+        abort_if(! is_string($providerId) || app(ProviderDirectory::class)->find($providerId) === null, 404);
+
+        return $providerId;
     }
 }

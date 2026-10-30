@@ -8,7 +8,7 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 
@@ -75,7 +75,7 @@ class TransportTrip extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(Provider::class);
+        return $this->belongsTo(ProviderRecord::class);
     }
 
     public function route(): BelongsTo

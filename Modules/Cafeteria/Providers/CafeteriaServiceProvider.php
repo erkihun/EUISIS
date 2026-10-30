@@ -70,7 +70,7 @@ use Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProv
 use Modules\Cafeteria\Infrastructure\Console\SyncCafeteriaPolicyStatuses;
 use Modules\Entitlements\Domain\Models\ServiceProvider as ServiceProviderModel;
 use Modules\Providers\Contracts\PortalLocationSource;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Everything the application needs to know about the Cafeteria module
@@ -137,12 +137,13 @@ final class CafeteriaServiceProvider extends ServiceProvider
 
         // Cafeteria locations and staff assignments belong to Cafeteria, so Cafeteria
         // attaches these relations; the provider, terminal and user models know nothing of it.
-        Provider::resolveRelationUsing('cafeteriaProvider', fn (Provider $provider): HasOne => $provider->hasOne(CafeteriaProvider::class)
+        // Provider relations go on the read model the Providers module publishes.
+        ProviderRecord::resolveRelationUsing('cafeteriaProvider', fn (ProviderRecord $provider): HasOne => $provider->hasOne(CafeteriaProvider::class, 'provider_id')
             // The provider's default location: its main cafeteria, else the oldest one.
             ->orderByRaw("case when location_type = 'main' then 0 else 1 end")
             ->oldest());
-        Provider::resolveRelationUsing('cafeterias', fn (Provider $provider): HasMany => $provider->hasMany(CafeteriaProvider::class));
-        Provider::resolveRelationUsing('cafeteriaNetworks', fn (Provider $provider): HasMany => $provider->hasMany(CafeteriaServiceNetwork::class));
+        ProviderRecord::resolveRelationUsing('cafeterias', fn (ProviderRecord $provider): HasMany => $provider->hasMany(CafeteriaProvider::class, 'provider_id'));
+        ProviderRecord::resolveRelationUsing('cafeteriaNetworks', fn (ProviderRecord $provider): HasMany => $provider->hasMany(CafeteriaServiceNetwork::class, 'provider_id'));
         ServiceProviderModel::resolveRelationUsing('cafeteriaDetails', fn (ServiceProviderModel $provider): HasOne => $provider->hasOne(CafeteriaProvider::class));
         ServiceTerminal::resolveRelationUsing('cafeteriaProvider', fn (ServiceTerminal $terminal): BelongsTo => $terminal->belongsTo(CafeteriaProvider::class, 'cafeteria_provider_id'));
         User::resolveRelationUsing('cafeteriaProviders', fn (User $user): BelongsToMany => $user->belongsToMany(CafeteriaProvider::class, 'cafeteria_provider_assignments')

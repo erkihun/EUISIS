@@ -22,7 +22,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Http\Requests\StoreCafeteriaProviderRequest;
 use Modules\Cafeteria\Http\Requests\UpdateCafeteriaProviderRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaProviderResource;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 class CafeteriaProviderController extends Controller
 {
@@ -205,8 +205,8 @@ class CafeteriaProviderController extends Controller
     private function placementOptions(): array
     {
         return [
-            'payees' => Provider::query()
-                ->whereHas('providerType', fn ($q) => $q->where('code', 'CAFETERIA'))
+            'payees' => ProviderRecord::query()
+                ->ofType('CAFETERIA')
                 ->orderBy('name_en')
                 ->get(['id', 'provider_code', 'name_en', 'name_am', 'status'])
                 ->toArray(),

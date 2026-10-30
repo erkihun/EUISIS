@@ -19,7 +19,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaSettlement;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransactionConsumedDay;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Cafeteria analytics (docs/cafeteria-settlement-rules.md → Reporting).
@@ -259,7 +259,7 @@ class CafeteriaAnalyticsReportService
             $ids = $rows->pluck($column)->filter()->unique()->values()->all();
             $lookups[$column] = match ($labels[$index]) {
                 'organization' => Organization::query()->whereIn('id', $ids)->pluck('name_en', 'id'),
-                'provider' => Provider::query()->whereIn('id', $ids)->pluck('name_en', 'id'),
+                'provider' => ProviderRecord::query()->whereIn('id', $ids)->pluck('name_en', 'id'),
                 'network' => CafeteriaServiceNetwork::query()->whereIn('id', $ids)->pluck('name_en', 'id'),
                 'cafeteria' => CafeteriaProvider::query()->withTrashed()->whereIn('id', $ids)->pluck('name_en', 'id'),
                 'employee' => Employee::query()->whereIn('id', $ids)->get(['id', 'employee_number', 'full_name'])

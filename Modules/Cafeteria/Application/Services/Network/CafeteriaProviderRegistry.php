@@ -8,7 +8,7 @@ use App\Models\User;
 use Modules\Providers\Contracts\Data\NewProvider;
 use Modules\Providers\Contracts\Data\ProviderDetails;
 use Modules\Providers\Contracts\ProviderRegistry;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Providers as payees: the organization that operates cafeterias and is paid
@@ -21,7 +21,7 @@ class CafeteriaProviderRegistry
     public function __construct(private readonly ProviderRegistry $providers) {}
 
     /** @param array<string, mixed> $data */
-    public function create(array $data, User $actor): Provider
+    public function create(array $data, User $actor): ProviderRecord
     {
         $providerId = $this->providers->register(new NewProvider(
             code: strtoupper(trim((string) $data['provider_code'])),
@@ -41,11 +41,11 @@ class CafeteriaProviderRegistry
             stampUpdatedBy: true,
         ));
 
-        return Provider::query()->findOrFail($providerId);
+        return ProviderRecord::query()->findOrFail($providerId);
     }
 
     /** @param array<string, mixed> $data */
-    public function update(Provider $provider, array $data, User $actor): Provider
+    public function update(ProviderRecord $provider, array $data, User $actor): ProviderRecord
     {
         $this->providers->updateDetails((string) $provider->id, new ProviderDetails(
             nameEn: trim((string) $data['name_en']),
@@ -62,7 +62,7 @@ class CafeteriaProviderRegistry
         return $provider->refresh();
     }
 
-    public function ensureCafeteriaService(Provider $provider, ?User $actor = null): void
+    public function ensureCafeteriaService(ProviderRecord $provider, ?User $actor = null): void
     {
         $this->providers->enableService((string) $provider->id, 'cafeteria', $actor?->id, 'Cafeteria Service');
     }

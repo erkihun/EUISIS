@@ -9,6 +9,7 @@ use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaNetworkService;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {
@@ -22,7 +23,7 @@ test('1 a provider can have a network', function (): void {
     ], User::factory()->create());
 
     expect($network->code)->toBe('NET-TWO')
-        ->and($this->s->provider->cafeteriaNetworks()->pluck('id')->all())->toContain($network->id, $this->s->network->id);
+        ->and(ProviderRecord::query()->findOrFail($this->s->provider->id)->cafeteriaNetworks()->pluck('id')->all())->toContain($network->id, $this->s->network->id);
 });
 
 test('2 a network has one main cafeteria', function (): void {

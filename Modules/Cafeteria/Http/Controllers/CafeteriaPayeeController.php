@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -13,7 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Cafeteria Management → Providers: the payees that operate cafeterias.
@@ -29,8 +28,8 @@ class CafeteriaPayeeController extends Controller
     {
         $search = $request->string('search')->toString();
 
-        $providers = Provider::query()
-            ->whereHas('providerType', fn (Builder $q) => $q->where('code', 'CAFETERIA'))
+        $providers = ProviderRecord::query()
+            ->ofType('CAFETERIA')
             ->withCount(['cafeteriaNetworks as network_count', 'cafeterias as cafeteria_count'])
             ->when($search !== '', fn ($q) => $q->where(fn ($inner) => $inner
                 ->where('provider_code', ci_like_operator(), "%{$search}%")
@@ -41,7 +40,7 @@ class CafeteriaPayeeController extends Controller
             ->withQueryString();
 
         return Inertia::render('Cafeteria/Payees/Index', [
-            'rows' => collect($providers->items())->map(fn (Provider $p): array => [
+            'rows' => collect($providers->items())->map(fn (ProviderRecord $p): array => [
                 'id' => $p->id,
                 'code' => $p->provider_code,
                 'name_en' => $p->name_en,
@@ -70,7 +69,7 @@ class CafeteriaPayeeController extends Controller
         return to_route('cafeteria.payees.index')->with('flash', ['message' => __('cafeteria.providerCreated'), 'type' => 'success']);
     }
 
-    public function edit(Provider $payee): Response
+    public function edit(ProviderRecord $payee): Response
     {
         return Inertia::render('Cafeteria/Payees/Form', [
             'provider' => [
@@ -88,7 +87,7 @@ class CafeteriaPayeeController extends Controller
         ]);
     }
 
-    public function update(Request $request, Provider $payee): RedirectResponse
+    public function update(Request $request, ProviderRecord $payee): RedirectResponse
     {
         $this->registry->update($payee, $this->validated($request, $payee), $request->user());
 
@@ -96,7 +95,7 @@ class CafeteriaPayeeController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function validated(Request $request, ?Provider $provider = null): array
+    private function validated(Request $request, ?ProviderRecord $provider = null): array
     {
         return $request->validate([
             'provider_code' => [$provider ? 'prohibited' : 'required', 'string', 'max:30', 'regex:/^[A-Za-z0-9_-]+$/', Rule::unique('providers', 'provider_code')],

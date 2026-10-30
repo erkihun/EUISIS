@@ -17,7 +17,7 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Organization ↔ provider (↔ network | cafeteria) service assignments: which
@@ -161,7 +161,7 @@ class CafeteriaAssignmentService
             $errors['organization_id'] = __('validation.exists', ['attribute' => 'organization']);
         }
 
-        $provider = Provider::query()->find($data['provider_id'] ?? null);
+        $provider = ProviderRecord::query()->find($data['provider_id'] ?? null);
         if ($provider === null) {
             $errors['provider_id'] = __('validation.exists', ['attribute' => 'provider']);
         }

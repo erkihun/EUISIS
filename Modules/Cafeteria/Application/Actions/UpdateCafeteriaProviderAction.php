@@ -14,7 +14,7 @@ use Modules\Cafeteria\Application\Services\Network\CafeteriaNetworkService;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ReadModels\ProviderRecord;
 
 /**
  * Updates a cafeteria location's identity, placement and operations. The
@@ -47,7 +47,7 @@ readonly class UpdateCafeteriaProviderAction
                     throw ValidationException::withMessages(['provider_id' => __('cafeteria-policy.validation.cafeteria_not_in_provider')]);
                 }
                 $payeeId = $attributes['provider_id'];
-                app(CafeteriaProviderRegistry::class)->ensureCafeteriaService(Provider::query()->findOrFail($payeeId), $actor);
+                app(CafeteriaProviderRegistry::class)->ensureCafeteriaService(ProviderRecord::query()->findOrFail($payeeId), $actor);
             }
 
             $type = CafeteriaLocationType::from($attributes['location_type'] ?? $provider->location_type?->value ?? CafeteriaLocationType::Main->value);
