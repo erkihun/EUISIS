@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportQrScanService;
 use Modules\Transport\Application\Services\TransportSettings;
 use Modules\Transport\Domain\Models\TransportRoute;
@@ -27,11 +27,7 @@ class TransportScanController extends Controller
     public function index(Request $request, TransportSettings $settings): Response
     {
         return Inertia::render('Transport/Scan', [
-            'providers' => Provider::query()
-                ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
-                ->where('status', 'active')
-                ->orderBy('name_en')
-                ->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport', activeOnly: true),
             'routes' => TransportRouteResource::collection(
                 TransportRoute::query()
                     ->where('is_active', true)
@@ -85,8 +81,8 @@ class TransportScanController extends Controller
     public function store(TransportScanRequest $request, TransportQrScanService $scanService): JsonResponse
     {
         $data = $request->validated();
-        $provider = Provider::query()->findOrFail($data['provider_id']);
-        $result = $scanService->processForAdmin($provider, $data, $request->user());
+        $providerId = $this->existingProvider($data['provider_id']);
+        $result = $scanService->processForAdmin($providerId, $data, $request->user());
 
         return response()->json([
             'accepted' => $result['accepted'],
@@ -96,5 +92,13 @@ class TransportScanController extends Controller
             'transaction' => $result['transaction'] ? (new TransportTransactionResource($result['transaction']->loadMissing(['employee.currentAssignment.organization', 'route', 'trip'])))->resolve() : null,
             'trip' => $result['transaction']?->trip ? ['id' => $result['transaction']->trip->id, 'boarded_count' => $result['transaction']->trip->boarded_count, 'effective_capacity' => $result['transaction']->trip->effectiveCapacity(), 'status' => $result['transaction']->trip->status?->value] : null,
         ], $result['accepted'] ? 201 : 422);
+    }
+
+    /** The provider's id; 404 when there is no such provider (as findOrFail did). */
+    private function existingProvider(mixed $providerId): string
+    {
+        abort_if(! is_string($providerId) || app(ProviderDirectory::class)->find($providerId) === null, 404);
+
+        return $providerId;
     }
 }

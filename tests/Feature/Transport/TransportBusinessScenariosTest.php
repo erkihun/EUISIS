@@ -38,7 +38,7 @@ beforeEach(function (): void {
     $this->settlements = app(TransportSettlementService::class);
 
     $this->board = fn (IdCard $card, TransportTrip $trip, ?string $key = null): BoardingDecision => $this->engine->board(new BoardingRequest(
-        provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+        providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
         credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: $key ?? (string) Str::uuid(), providerUser: $this->manager,
     ));
     $this->setting = function (string $key, string $value, string $type = 'string'): void {
@@ -48,7 +48,7 @@ beforeEach(function (): void {
         ]);
         app(TransportSettings::class)->forget();
     };
-    $this->basis = fn () => $this->settlements->basis($this->provider, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'));
+    $this->basis = fn () => $this->settlements->basis($this->provider->id, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'));
 });
 
 it('A: an employee assigned Route A boards Bus 1 in the morning and Bus 3 in the evening', function (): void {
@@ -81,7 +81,7 @@ it('B: an eligible, assigned employee who never rides yields no verified boardin
     $this->trips->complete($this->s->trip($this->routeA), $this->manager);
 
     $reports = app(TransportReportService::class);
-    $row = collect($reports->routeUtilization($reports->normaliseFilters(['date_from' => '2026-10-14', 'date_to' => '2026-10-14']), $this->provider))->firstWhere('route_id', $this->routeA->id);
+    $row = collect($reports->routeUtilization($reports->normaliseFilters(['date_from' => '2026-10-14', 'date_to' => '2026-10-14']), $this->provider->id))->firstWhere('route_id', $this->routeA->id);
     expect($row['assigned_employees'])->toBe(1)->and($row['unique_riders'])->toBe(0)->and($row['boardings'])->toBe(0)
         ->and(($this->basis)()['verified_boardings'])->toBe(0)
         ->and(($this->basis)()['completed_trips'])->toBe(1);
@@ -158,11 +158,11 @@ it('F: a claim of fifty against thirty-seven verified boardings shows the discre
     $riders->each(fn (IdCard $card) => ($this->board)($card, $trip));
     $this->trips->complete($trip, $this->manager);
     $contract = $this->s->contract($this->provider);
-    $invoice = app(TransportInvoiceService::class)->draft($this->provider, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 50, 'claimed_amount' => '625.00', 'invoice_number' => null], $this->manager);
+    $invoice = app(TransportInvoiceService::class)->draft($this->provider->id, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 50, 'claimed_amount' => '625.00', 'invoice_number' => null], $this->manager);
     $finance = $this->s->staff(['transport-settlements.manage']);
     $this->travelTo(Carbon::parse('2026-11-02 09:00'));
 
-    $settlement = $this->settlements->compute($this->provider, $contract, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'), $finance, $invoice);
+    $settlement = $this->settlements->compute($this->provider->id, $contract, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'), $finance, $invoice);
     $reconciliation = $this->settlements->reconciliation($settlement);
 
     expect($reconciliation['claimed_boardings'])->toBe(50)->and($reconciliation['verified_boardings'])->toBe(37)->and($reconciliation['boardings_difference'])->toBe(13)
@@ -180,8 +180,8 @@ it('G: a scheduled trip nobody boards is still completed, and what it is worth d
     $this->travelTo(Carbon::parse('2026-11-02 09:00'));
     [$from, $to] = [Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31')];
 
-    $perTrip = $this->settlements->compute($this->provider, $this->s->contract($this->provider, 'per_completed_trip', ['rate_per_trip' => '800.00']), $from, $to, $finance);
-    $perBoarding = $this->settlements->compute($other, $this->s->contract($other, 'per_verified_boarding', ['rate_per_boarding' => '12.50']), $from, $to, $finance);
+    $perTrip = $this->settlements->compute($this->provider->id, $this->s->contract($this->provider, 'per_completed_trip', ['rate_per_trip' => '800.00']), $from, $to, $finance);
+    $perBoarding = $this->settlements->compute($other->id, $this->s->contract($other, 'per_verified_boarding', ['rate_per_boarding' => '12.50']), $from, $to, $finance);
 
     expect($trip->fresh()->status->value)->toBe('completed')
         ->and($perTrip->completed_trips)->toBe(1)->and($perTrip->verified_boardings)->toBe(0)->and((string) $perTrip->calculated_amount)->toBe('800.00')

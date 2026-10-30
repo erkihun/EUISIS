@@ -12,7 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Enums\TransportExceptionStatus;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
 use Modules\Transport\Domain\Models\TransportException;
@@ -38,7 +38,7 @@ class TransportExceptionController extends Controller
         return Inertia::render('Transport/Exceptions/Index', [
             'exceptions' => TransportExceptionResource::collection($exceptions)->response()->getData(true),
             'filters' => ['status' => $request->status ?: 'open'] + $request->only('provider_id', 'type', 'severity'),
-            'providers' => Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             'types' => TransportExceptionType::values(),
             'can' => ['review' => $user->can('transport-exceptions.review')],
         ]);

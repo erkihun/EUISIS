@@ -53,7 +53,7 @@ beforeEach(function (): void {
                 if ($direction === 'outbound' && $index === 2) {
                     continue;
                 }
-                $this->engine->board(new BoardingRequest(provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+                $this->engine->board(new BoardingRequest(providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
                     credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager));
             }
             $this->trips->complete($trip, $this->manager);
@@ -63,7 +63,7 @@ beforeEach(function (): void {
     $this->travelTo(Carbon::parse('2026-10-08 07:00'));
     $cancelled = $this->s->trip($this->route, ['trip_date' => '2026-10-08']);
     [$employee, $card] = $this->riders[0];
-    $this->engine->board(new BoardingRequest(provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+    $this->engine->board(new BoardingRequest(providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
         credential: $this->s->qr($card), tripId: $cancelled->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager));
     $this->trips->cancel($cancelled, 'Breakdown', $this->manager);
     $this->travelTo(Carbon::parse('2026-11-01 09:00'));
@@ -71,7 +71,7 @@ beforeEach(function (): void {
 });
 
 it('counts boardings, unique riders, employee-days and trips from evidence, never from claims', function (): void {
-    $basis = $this->settlements->basis($this->provider, ...$this->period);
+    $basis = $this->settlements->basis($this->provider->id, ...$this->period);
 
     expect($basis['verified_boardings'])->toBe(15)   // 3 days × (3 morning + 2 evening)
         ->and($basis['unique_riders'])->toBe(3)
@@ -112,12 +112,12 @@ it('never uses floating point: amounts round-trip as integer cents', function ()
 
 it('reconciles the provider claim against the verified basis without overwriting either figure (scenario F)', function (): void {
     $contract = $this->s->contract($this->provider, 'per_verified_boarding', ['rate_per_boarding' => '10.00']);
-    $invoice = app(TransportInvoiceService::class)->draft($this->provider, [
+    $invoice = app(TransportInvoiceService::class)->draft($this->provider->id, [
         'invoice_number' => 'INV-OCT', 'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 50, 'claimed_amount' => '500.00',
     ], $this->manager);
     app(TransportInvoiceService::class)->submit($invoice, $this->manager);
 
-    $statement = $this->settlements->compute($this->provider, $contract, ...[...$this->period, $this->finance, $invoice]);
+    $statement = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance, $invoice]);
     $reconciliation = $this->settlements->reconciliation($statement->fresh());
 
     expect($statement->verified_boardings)->toBe(15)
@@ -132,7 +132,7 @@ it('reconciles the provider claim against the verified basis without overwriting
         ->and(TransportTransaction::query()->where('transport_settlement_id', $statement->id)->count())->toBe(15)
         ->and(TransportTransaction::query()->where('transport_settlement_id', $statement->id)->whereHas('trip', fn ($q) => $q->where('status', 'cancelled'))->count())->toBe(0);
 
-    expect(fn () => $this->settlements->compute($this->provider, $contract, ...[...$this->period, $this->finance]))->toThrow(DomainException::class);
+    expect(fn () => $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance]))->toThrow(DomainException::class);
 });
 
 it('pays a completed trip with no riders under a per-trip contract and nothing under a per-boarding one (scenario G)', function (): void {
@@ -142,14 +142,14 @@ it('pays a completed trip with no riders under a per-trip contract and nothing u
     $this->travelTo(Carbon::parse('2026-11-01 09:00'));
 
     $perTrip = $this->s->contract($this->provider, 'per_completed_trip', ['rate_per_trip' => '100.00']);
-    $statement = $this->settlements->compute($this->provider, $perTrip, ...[...$this->period, $this->finance]);
+    $statement = $this->settlements->compute($this->provider->id, $perTrip, ...[...$this->period, $this->finance]);
     expect($statement->completed_trips)->toBe(7)->and((string) $statement->calculated_amount)->toBe('700.00');
 });
 
 it('freezes the contract version a statement applied: a later version changes nothing historical', function (): void {
     $contracts = app(TransportContractService::class);
     $v1 = $this->s->contract($this->provider, 'per_verified_boarding', ['rate_per_boarding' => '10.00'], ['created_by' => $this->finance->id]);
-    $statement = $this->settlements->compute($this->provider, $v1, ...[...$this->period, $this->finance]);
+    $statement = $this->settlements->compute($this->provider->id, $v1, ...[...$this->period, $this->finance]);
 
     $v2 = $contracts->newVersion($v1, $this->finance);
     $contracts->updateDraft($v2, ['terms' => ['rate_per_boarding' => '99.00'], 'effective_from' => '2026-11-01'], $this->finance);
@@ -162,12 +162,12 @@ it('freezes the contract version a statement applied: a later version changes no
         ->and($statement->fresh()->contract_snapshot['terms']['rate_per_boarding'])->toBe('10.00')
         ->and((string) $statement->fresh()->calculated_amount)->toBe('150.00');
     // The superseded version still covers October for a recompute; v2 does not.
-    expect(fn () => $this->settlements->compute($this->provider, $v2, ...[...$this->period, $this->finance]))->toThrow(DomainException::class);
+    expect(fn () => $this->settlements->compute($this->provider->id, $v2, ...[...$this->period, $this->finance]))->toThrow(DomainException::class);
 });
 
 it('runs maker-checker: adjustments and disputes are decided first, and the computer cannot approve', function (): void {
     $contract = $this->s->contract($this->provider, 'per_verified_boarding', ['rate_per_boarding' => '10.00']);
-    $statement = $this->settlements->compute($this->provider, $contract, ...[...$this->period, $this->finance]);
+    $statement = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance]);
 
     // The provider disputes a missing transaction; the organization deducts a cancelled-trip boarding.
     $dispute = $this->settlements->requestAdjustment($statement, TransportAdjustmentOrigin::ProviderDispute, ['dispute_type' => 'missing_transaction', 'amount' => '10.00', 'quantity' => 1, 'reason' => 'Device outage 06 Oct, 1 rider'], $this->manager);
@@ -196,7 +196,7 @@ it('runs maker-checker: adjustments and disputes are decided first, and the comp
 
 it('needs an explicit approved amount when the model yields none, and keeps the flag', function (): void {
     $contract = $this->s->contract($this->provider, 'other_approved_model', []);
-    $statement = $this->settlements->compute($this->provider, $contract, ...[...$this->period, $this->finance]);
+    $statement = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance]);
     expect($statement->calculated_amount)->toBeNull()->and($statement->policy_gaps)->toBe(['NEEDS_POLICY_DECISION_TRANSPORT_SETTLEMENT_MODEL']);
 
     $this->settlements->submitForReview($statement, $this->finance);
@@ -207,11 +207,11 @@ it('needs an explicit approved amount when the model yields none, and keeps the 
 
 it('lets a rejected statement release its evidence for a new one', function (): void {
     $contract = $this->s->contract($this->provider, 'per_verified_boarding', ['rate_per_boarding' => '10.00']);
-    $statement = $this->settlements->compute($this->provider, $contract, ...[...$this->period, $this->finance]);
+    $statement = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance]);
     $this->settlements->submitForReview($statement, $this->finance);
     $this->settlements->reject($statement, 'Wrong period', $this->approver);
 
     expect(TransportTransaction::query()->whereNotNull('transport_settlement_id')->count())->toBe(0);
-    $again = $this->settlements->compute($this->provider, $contract, ...[...$this->period, $this->finance]);
+    $again = $this->settlements->compute($this->provider->id, $contract, ...[...$this->period, $this->finance]);
     expect($again->verified_boardings)->toBe(15);
 });

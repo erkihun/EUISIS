@@ -32,7 +32,7 @@ beforeEach(function (): void {
     $this->theirRoute = $this->s->route($this->theirs);
     $this->theirTrip = $this->s->trip($this->theirRoute);
     [$this->theirDevice] = $this->s->device($this->theirs);
-    $this->theirInvoice = app(TransportInvoiceService::class)->draft($this->theirs, ['period_start' => '2026-09-01', 'period_end' => '2026-09-30', 'claimed_amount' => '100.00', 'invoice_number' => null], $this->them);
+    $this->theirInvoice = app(TransportInvoiceService::class)->draft($this->theirs->id, ['period_start' => '2026-09-01', 'period_end' => '2026-09-30', 'claimed_amount' => '100.00', 'invoice_number' => null], $this->them);
     $this->as = fn ($user) => $this->actingAs($user, 'provider');
 });
 
@@ -57,7 +57,7 @@ it("never shows, edits or submits another provider's invoice, and never shows a 
     expect((string) $this->theirInvoice->fresh()->claimed_amount)->toBe('100.00')->and($this->theirInvoice->fresh()->status->value)->toBe('draft');
 
     $finance = $this->s->staff(['transport-settlements.manage']);
-    $draft = app(TransportSettlementService::class)->compute($this->theirs, $this->s->contract($this->theirs), Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30'), $finance);
+    $draft = app(TransportSettlementService::class)->compute($this->theirs->id, $this->s->contract($this->theirs), Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30'), $finance);
     ($this->as)($this->them)->get(route('provider.portal.transport.settlements.show', $draft))->assertNotFound();
     ($this->as)($this->me)->get(route('provider.portal.transport.settlements.show', $draft))->assertForbidden();
     app(TransportSettlementService::class)->submitForReview($draft, $finance);
@@ -130,8 +130,8 @@ it('lets the lookup follow the any-eligible route policy the boarding engine app
 it("keeps a scoped officer out of another organization's statement and lets them read their own", function (): void {
     $finance = $this->s->staff(['transport-settlements.manage']);
     $settlements = app(TransportSettlementService::class);
-    $forB = $settlements->compute($this->mine, $this->s->contract($this->mine, overrides: ['organization_id' => $this->s->org['subcity_b']->id]), Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30'), $finance);
-    $forA = $settlements->compute($this->mine, $this->s->contract($this->mine, overrides: ['organization_id' => $this->s->org['subcity_a']->id]), Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30'), $finance);
+    $forB = $settlements->compute($this->mine->id, $this->s->contract($this->mine, overrides: ['organization_id' => $this->s->org['subcity_b']->id]), Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30'), $finance);
+    $forA = $settlements->compute($this->mine->id, $this->s->contract($this->mine, overrides: ['organization_id' => $this->s->org['subcity_a']->id]), Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30'), $finance);
     $officer = $this->s->staff(['transport-settlements.view', 'transport-settlements.viewAny'], 'subcity_a');
 
     $this->actingAs($officer)->get(route('transport.settlements.show', $forB))->assertForbidden();
@@ -146,7 +146,7 @@ it('voids only within scope and never a settled boarding, and the manifest keeps
     $trip = $this->s->trip($route);
     [$employee, $card] = $this->s->employee('woreda_a1');
     $this->s->pass($employee, $this->mine, $route);
-    $decision = app(TransportBoardingService::class)->board(new BoardingRequest(provider: $this->mine, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+    $decision = app(TransportBoardingService::class)->board(new BoardingRequest(providerId: $this->mine->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
         credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->me));
     $transaction = $decision->transaction;
 

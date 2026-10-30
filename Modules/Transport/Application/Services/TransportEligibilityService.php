@@ -8,7 +8,7 @@ use App\Models\Employee;
 use App\Models\IdCard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Enums\TransportEligibilitySubject;
 use Modules\Transport\Domain\Models\TransportEligibility;
 use Modules\Transport\Domain\Models\TransportPass;
@@ -41,17 +41,18 @@ class TransportEligibilityService
     public function __construct(
         private readonly TransportRouteAccessService $routeAccess,
         private readonly TransportSettings $settings,
+        private readonly ProviderDirectory $providers,
     ) {}
 
     /**
      * @return array{eligible: bool, reason: string|null, pass: TransportPass|null, grant: TransportEligibility|null, basis: string|null, alternative_route: bool, snapshot: array<string, mixed>}
      */
-    public function check(Employee $employee, ?IdCard $card, Provider $provider, ?TransportRoute $route = null, ?Carbon $date = null): array
+    public function check(Employee $employee, ?IdCard $card, string $providerId, ?TransportRoute $route = null, ?Carbon $date = null): array
     {
         $date ??= Carbon::today();
         $day = $date->toDateString();
 
-        if (! $provider->hasService('transport')) {
+        if (! $this->providers->hasService($providerId, 'transport')) {
             return $this->deny('provider_transport_service_disabled', $employee, $card, $day);
         }
 
@@ -69,7 +70,7 @@ class TransportEligibilityService
 
         $passes = TransportPass::query()
             ->where('employee_id', $employee->id)
-            ->where('provider_id', $provider->id)
+            ->where('provider_id', $providerId)
             ->validOn($day)
             ->orderByRaw('transport_route_id IS NULL')
             ->get();
@@ -98,7 +99,7 @@ class TransportEligibilityService
         }
 
         if ($this->settings->organizationGrantsBoardWithoutPass()) {
-            $grant = $this->grantFor($employee, $provider, $day);
+            $grant = $this->grantFor($employee, $providerId, $day);
             if ($grant !== null) {
                 $basis = $grant->subject_type === TransportEligibilitySubject::Employee ? self::BASIS_EMPLOYEE_GRANT : self::BASIS_ORGANIZATION_GRANT;
 
@@ -123,28 +124,28 @@ class TransportEligibilityService
      * including the any-eligible alternative-route policy that check() applies
      * only once a route is chosen.
      */
-    public function mayCarry(Employee $employee, Provider $provider, ?Carbon $date = null): bool
+    public function mayCarry(Employee $employee, string $providerId, ?Carbon $date = null): bool
     {
         $date ??= Carbon::today();
-        if ($this->check($employee, null, $provider, null, $date)['eligible']) {
+        if ($this->check($employee, null, $providerId, null, $date)['eligible']) {
             return true;
         }
 
-        return $provider->hasService('transport')
+        return $this->providers->hasService($providerId, 'transport')
             && $employee->currentAssignment !== null
             && $this->settings->alternativeRoutePolicy() === TransportSettings::ALTERNATIVE_ROUTE_ANY_ELIGIBLE
             && TransportPass::query()->where('employee_id', $employee->id)->validOn($date->toDateString())->exists();
     }
 
     /** The grant covering the employee on the date: their own, their office's, or an ancestor's subtree grant. */
-    public function grantFor(Employee $employee, ?Provider $provider, string $day): ?TransportEligibility
+    public function grantFor(Employee $employee, ?string $providerId, string $day): ?TransportEligibility
     {
         $organizationId = $employee->currentAssignment?->organization_id;
         $ancestors = $organizationId === null ? [] : $this->routeAccess->ancestorIds($organizationId);
 
         return TransportEligibility::query()
             ->effectiveOn($day)
-            ->when($provider !== null, fn (Builder $q) => $q->where(fn (Builder $inner) => $inner->whereNull('provider_id')->orWhere('provider_id', $provider->id)))
+            ->when($providerId !== null, fn (Builder $q) => $q->where(fn (Builder $inner) => $inner->whereNull('provider_id')->orWhere('provider_id', $providerId)))
             ->where(function (Builder $query) use ($employee, $organizationId, $ancestors): void {
                 $query->where(fn (Builder $q) => $q->where('subject_type', TransportEligibilitySubject::Employee->value)->where('employee_id', $employee->id));
                 if ($organizationId !== null) {

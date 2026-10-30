@@ -10,8 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Application\Services\ProviderPortalContext;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\Settlement\TransportSettlementService;
 use Modules\Transport\Application\Services\TransportExportService;
@@ -30,11 +29,11 @@ class TransportSettlementController extends Controller
 {
     private const VISIBLE = ['under_review', 'approved', 'paid', 'rejected'];
 
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
-        $provider = $this->provider($request, $context);
+        $providerId = $this->providerId($request, $context);
 
-        $settlements = TransportSettlement::query()->with('invoice')->where('provider_id', $provider->id)->whereIn('status', self::VISIBLE)
+        $settlements = TransportSettlement::query()->with('invoice')->where('provider_id', $providerId)->whereIn('status', self::VISIBLE)
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->latest('period_start')->latest('created_at')->paginate(25)->withQueryString();
 
@@ -45,7 +44,7 @@ class TransportSettlementController extends Controller
         ]);
     }
 
-    public function show(Request $request, ProviderPortalContext $context, TransportSettlement $settlement, TransportSettlementService $settlements): Response
+    public function show(Request $request, ProviderPortalSession $context, TransportSettlement $settlement, TransportSettlementService $settlements): Response
     {
         $this->assertOwn($request, $context, $settlement);
         $settlement->load(['invoice', 'adjustments']);
@@ -59,12 +58,12 @@ class TransportSettlementController extends Controller
         ]);
     }
 
-    public function dispute(TransportAdjustmentRequest $request, ProviderPortalContext $context, TransportSettlement $settlement, TransportSettlementService $settlements): RedirectResponse
+    public function dispute(TransportAdjustmentRequest $request, ProviderPortalSession $context, TransportSettlement $settlement, TransportSettlementService $settlements): RedirectResponse
     {
-        $provider = $this->assertOwn($request, $context, $settlement);
+        $providerId = $this->assertOwn($request, $context, $settlement);
         $data = $request->safe()->except('evidence');
         if ($request->hasFile('evidence')) {
-            $data['evidence_path'] = $request->file('evidence')->store('transport/disputes/'.$provider->id, 'local');
+            $data['evidence_path'] = $request->file('evidence')->store('transport/disputes/'.$providerId, 'local');
         }
 
         try {
@@ -76,7 +75,7 @@ class TransportSettlementController extends Controller
         return back()->with('flash', ['type' => 'success', 'message' => __('transport.dispute_recorded')]);
     }
 
-    public function pdf(Request $request, ProviderPortalContext $context, TransportSettlement $settlement, TransportExportService $exports)
+    public function pdf(Request $request, ProviderPortalSession $context, TransportSettlement $settlement, TransportExportService $exports)
     {
         $this->assertOwn($request, $context, $settlement);
 
@@ -91,21 +90,22 @@ class TransportSettlementController extends Controller
         return $user;
     }
 
-    private function provider(Request $request, ProviderPortalContext $context): Provider
+    /** The signed-in portal user's provider, as an id, when it runs transport. */
+    private function providerId(Request $request, ProviderPortalSession $context): string
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $context->providerId($request);
+        abort_if($providerId === null || ! $context->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
-        return $provider;
+        return $providerId;
     }
 
-    private function assertOwn(Request $request, ProviderPortalContext $context, TransportSettlement $settlement): Provider
+    private function assertOwn(Request $request, ProviderPortalSession $context, TransportSettlement $settlement): string
     {
-        $provider = $this->provider($request, $context);
-        abort_if($settlement->provider_id !== $provider->id, 403, __('transport.own_data_only'));
+        $providerId = $this->providerId($request, $context);
+        abort_if($settlement->provider_id !== $providerId, 403, __('transport.own_data_only'));
         // A draft is the city's working copy; the provider sees a statement once it is under review.
         abort_unless(in_array($settlement->status->value, self::VISIBLE, true), 404);
 
-        return $provider;
+        return $providerId;
     }
 }

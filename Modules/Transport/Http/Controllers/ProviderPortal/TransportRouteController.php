@@ -9,8 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Application\Services\ProviderPortalContext;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Domain\Models\TransportRoute;
 use Modules\Transport\Http\Requests\StoreTransportRouteRequest;
 use Modules\Transport\Http\Requests\UpdateTransportRouteRequest;
@@ -18,33 +17,33 @@ use Modules\Transport\Http\Resources\TransportRouteResource;
 
 class TransportRouteController extends Controller
 {
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
-        $provider = $this->provider($request, $context);
+        $providerId = $this->providerId($request, $context);
 
         return Inertia::render('ProviderPortal/Transport/Routes/Index', [
-            'routes' => TransportRouteResource::collection(TransportRoute::query()->where('provider_id', $provider->id)->orderBy('name_en')->get())->resolve(),
+            'routes' => TransportRouteResource::collection(TransportRoute::query()->where('provider_id', $providerId)->orderBy('name_en')->get())->resolve(),
         ]);
     }
 
-    public function create(Request $request, ProviderPortalContext $context): Response
+    public function create(Request $request, ProviderPortalSession $context): Response
     {
-        $this->provider($request, $context);
+        $this->providerId($request, $context);
         abort_unless(auth('provider')->user()?->canUseServicePermission('provider.transport.routes.manage') ?? false, 403);
 
         return Inertia::render('ProviderPortal/Transport/Routes/Create');
     }
 
-    public function store(StoreTransportRouteRequest $request, ProviderPortalContext $context): RedirectResponse
+    public function store(StoreTransportRouteRequest $request, ProviderPortalSession $context): RedirectResponse
     {
-        $provider = $this->provider($request, $context);
+        $providerId = $this->providerId($request, $context);
 
-        TransportRoute::query()->create(array_merge($request->validated(), ['provider_id' => $provider->id]));
+        TransportRoute::query()->create(array_merge($request->validated(), ['provider_id' => $providerId]));
 
         return to_route('provider.portal.transport.routes.index')->with('flash', ['type' => 'success', 'message' => __('transport.route_created')]);
     }
 
-    public function edit(Request $request, ProviderPortalContext $context, TransportRoute $route): Response
+    public function edit(Request $request, ProviderPortalSession $context, TransportRoute $route): Response
     {
         $this->assertOwnRoute($request, $context, $route);
 
@@ -53,7 +52,7 @@ class TransportRouteController extends Controller
         ]);
     }
 
-    public function update(UpdateTransportRouteRequest $request, ProviderPortalContext $context, TransportRoute $route): RedirectResponse
+    public function update(UpdateTransportRouteRequest $request, ProviderPortalSession $context, TransportRoute $route): RedirectResponse
     {
         $this->assertOwnRoute($request, $context, $route);
         $route->update($request->validated());
@@ -61,16 +60,17 @@ class TransportRouteController extends Controller
         return to_route('provider.portal.transport.routes.index')->with('flash', ['type' => 'success', 'message' => __('transport.route_updated')]);
     }
 
-    private function provider(Request $request, ProviderPortalContext $context): Provider
+    /** The signed-in portal user's provider, as an id, when it runs transport. */
+    private function providerId(Request $request, ProviderPortalSession $context): string
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $context->providerId($request);
+        abort_if($providerId === null || ! $context->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
-        return $provider;
+        return $providerId;
     }
 
-    private function assertOwnRoute(Request $request, ProviderPortalContext $context, TransportRoute $route): void
+    private function assertOwnRoute(Request $request, ProviderPortalSession $context, TransportRoute $route): void
     {
-        abort_if($route->provider_id !== $this->provider($request, $context)->id, 403, __('transport.own_data_only'));
+        abort_if($route->provider_id !== $this->providerId($request, $context), 403, __('transport.own_data_only'));
     }
 }

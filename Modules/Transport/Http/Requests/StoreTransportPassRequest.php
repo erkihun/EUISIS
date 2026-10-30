@@ -10,7 +10,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportRouteAccessService;
 use Modules\Transport\Domain\Models\TransportPass;
 use Modules\Transport\Domain\Models\TransportRoute;
@@ -47,8 +47,7 @@ class StoreTransportPassRequest extends FormRequest
                 'required',
                 'uuid',
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    $provider = Provider::query()->find($value);
-                    if ($provider === null || ! $provider->hasService('transport')) {
+                    if (! is_string($value) || ! app(ProviderDirectory::class)->hasService($value, 'transport')) {
                         $fail(__('transport.provider_required'));
                     }
                 },

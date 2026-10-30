@@ -37,7 +37,7 @@ class BoardingController extends Controller
         $data = $request->validated();
 
         $decision = $this->engine->board(new BoardingRequest(
-            provider: $device->provider,
+            providerId: (string) $device->provider_id,
             source: BoardingRequest::SOURCE_DEVICE_API,
             method: TransportVerificationMethod::from($data['credential']['type']),
             credential: $data['credential']['value'],
@@ -62,7 +62,7 @@ class BoardingController extends Controller
         $results = [];
         foreach ($request->validated('boardings') as $item) {
             $decision = $this->engine->board(new BoardingRequest(
-                provider: $device->provider,
+                providerId: (string) $device->provider_id,
                 source: BoardingRequest::SOURCE_OFFLINE_SYNC,
                 method: TransportVerificationMethod::from($item['credential']['type']),
                 credential: $item['credential']['value'],

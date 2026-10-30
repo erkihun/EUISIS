@@ -11,8 +11,8 @@ use App\Models\Employee;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Providers\Application\Services\ProviderPortalContext;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Application\Services\TransportEligibilityService;
 
 /**
@@ -32,7 +32,7 @@ class TransportManualLookupController extends Controller
     public function __invoke(
         Request $request,
         EmployeeDirectory $directory,
-        ProviderPortalContext $portal,
+        ProviderPortalSession $portal,
         TransportEligibilityService $eligibility,
         OrganizationScopeService $scope,
     ): JsonResponse {
@@ -53,18 +53,18 @@ class TransportManualLookupController extends Controller
         return response()->json(['id' => $identity->employeeUuid, 'employee_number' => $identity->employeeNumber, 'full_name' => $identity->fullName]);
     }
 
-    private function mayLookUp(Request $request, Employee $employee, ?string $providerId, ProviderPortalContext $portal, TransportEligibilityService $eligibility, OrganizationScopeService $scope): bool
+    private function mayLookUp(Request $request, Employee $employee, ?string $providerId, ProviderPortalSession $portal, TransportEligibilityService $eligibility, OrganizationScopeService $scope): bool
     {
         if ($request->routeIs('provider.portal.*')) {
-            $provider = $portal->provider($request);
+            $portalProviderId = $portal->providerId($request);
 
-            return $provider !== null && $eligibility->mayCarry($employee, $provider);
+            return $portalProviderId !== null && $eligibility->mayCarry($employee, $portalProviderId);
         }
 
         if ($providerId !== null) {
-            $provider = Provider::query()->where('status', 'active')->find($providerId);
+            $provider = app(ProviderDirectory::class)->find($providerId);
 
-            return $provider !== null && $eligibility->mayCarry($employee, $provider);
+            return $provider !== null && $provider->isActive() && $eligibility->mayCarry($employee, $provider->id);
         }
 
         $user = $request->user();

@@ -72,7 +72,7 @@ class TransportTripPlanner
         $vehicle = $schedule->defaultVehicle;
         $vehicleId = $vehicle !== null && $vehicle->isAvailableOn($date) ? $vehicle->id : null;
 
-        return $this->trips->plan($schedule->provider, [
+        return $this->trips->plan((string) $schedule->provider_id, [
             'transport_route_id' => $schedule->transport_route_id,
             'transport_schedule_id' => $schedule->id,
             'transport_vehicle_id' => $vehicleId,

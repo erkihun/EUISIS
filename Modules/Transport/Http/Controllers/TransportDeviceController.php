@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportDeviceService;
 use Modules\Transport\Application\Services\TransportSettings;
 use Modules\Transport\Domain\Enums\TransportDeviceStatus;
@@ -54,8 +54,8 @@ class TransportDeviceController extends Controller
 
     public function store(StoreTransportDeviceRequest $request, TransportDeviceService $devices): RedirectResponse
     {
-        $provider = Provider::query()->findOrFail($request->validated('provider_id'));
-        $result = $devices->register($provider, $request->validated(), $request->user(), $request);
+        $providerId = $this->existingProvider($request->validated('provider_id'));
+        $result = $devices->register($providerId, $request->validated(), $request->user(), $request);
 
         // Shown once, on the next page only; never stored in plain text.
         return to_route('transport.devices.index')->with('transport_device_credential', ['device_code' => $result['device']->device_code, 'credential' => $result['credential']])
@@ -92,6 +92,14 @@ class TransportDeviceController extends Controller
 
     private function providers()
     {
-        return Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']);
+        return app(ProviderDirectory::class)->offering('transport');
+    }
+
+    /** The provider's id; 404 when there is no such provider (as findOrFail did). */
+    private function existingProvider(mixed $providerId): string
+    {
+        abort_if(! is_string($providerId) || app(ProviderDirectory::class)->find($providerId) === null, 404);
+
+        return $providerId;
     }
 }

@@ -7,11 +7,10 @@ namespace Modules\Transport\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Models\TransportRoute;
 use Modules\Transport\Http\Requests\StoreTransportRouteRequest;
 use Modules\Transport\Http\Requests\UpdateTransportRouteRequest;
@@ -88,11 +87,8 @@ class TransportRouteController extends Controller
         ];
     }
 
-    private function transportProviders(): Collection
+    private function transportProviders(): array
     {
-        return Provider::query()
-            ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
-            ->orderBy('name_en')
-            ->get(['id', 'provider_code', 'name_en', 'name_am']);
+        return app(ProviderDirectory::class)->offering('transport');
     }
 }

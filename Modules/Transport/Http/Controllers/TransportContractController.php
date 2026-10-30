@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\Settlement\TransportContractService;
 use Modules\Transport\Domain\Enums\TransportSettlementModel;
 use Modules\Transport\Domain\Enums\TransportSettlementPeriod;
@@ -186,6 +186,6 @@ class TransportContractController extends Controller
 
     private function providers()
     {
-        return Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']);
+        return app(ProviderDirectory::class)->offering('transport');
     }
 }

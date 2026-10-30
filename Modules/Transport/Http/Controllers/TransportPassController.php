@@ -12,7 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportEmployeeNotifier;
 use Modules\Transport\Domain\Models\TransportPass;
 use Modules\Transport\Domain\Models\TransportRoute;
@@ -113,10 +113,7 @@ class TransportPassController extends Controller
     {
         return [
             'today' => today()->toDateString(),
-            'providers' => Provider::query()
-                ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
-                ->orderBy('name_en')
-                ->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             // Each route carries provider_id; the form lists only the chosen provider's.
             'routes' => TransportRouteResource::collection(TransportRoute::query()->where('is_active', true)->orderBy('name_en')->get())->resolve(),
             // Each stop carries transport_route_id; the form lists the chosen route's.

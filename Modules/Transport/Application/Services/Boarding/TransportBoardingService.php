@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportEligibilityService;
 use Modules\Transport\Application\Services\TransportExceptionRecorder;
 use Modules\Transport\Application\Services\TransportSettings;
@@ -57,18 +58,19 @@ final class TransportBoardingService
         private readonly TransportExceptionRecorder $exceptions,
         private readonly BoardingLock $lock,
         private readonly WriteAuditLogAction $audit,
+        private readonly ProviderDirectory $providers,
     ) {}
 
     public function board(BoardingRequest $request): BoardingDecision
     {
-        $provider = $request->provider;
+        $providerId = $request->providerId;
 
-        if (! $provider->hasService('transport')) {
+        if (! $this->providers->hasService($providerId, 'transport')) {
             return BoardingDecision::refuse('provider_transport_service_disabled');
         }
 
         $nonce = $request->idempotencyKey;
-        if ($nonce !== null && ($replay = $this->replay($provider->id, $nonce)) !== null) {
+        if ($nonce !== null && ($replay = $this->replay($providerId, $nonce)) !== null) {
             return $replay;
         }
         $nonce ??= (string) Str::uuid();
@@ -91,25 +93,25 @@ final class TransportBoardingService
         }
 
         if ($request->device !== null && ! $request->device->isActive()) {
-            $this->exceptions->record($provider->id, TransportExceptionType::UnregisteredDevice, ['device_code' => $request->device->device_code, 'status' => $request->device->status->value], ['device_id' => $request->device->id], 'critical');
+            $this->exceptions->record($providerId, TransportExceptionType::UnregisteredDevice, ['device_code' => $request->device->device_code, 'status' => $request->device->status->value], ['device_id' => $request->device->id], 'critical');
 
             return BoardingDecision::refuse('device_revoked');
         }
 
         // ── Trip authority ─────────────────────────────────────────────────
-        $trip = $request->tripId === null ? null : TransportTrip::query()->with(['route', 'vehicle'])->where('provider_id', $provider->id)->whereKey($request->tripId)->first();
+        $trip = $request->tripId === null ? null : TransportTrip::query()->with(['route', 'vehicle'])->where('provider_id', $providerId)->whereKey($request->tripId)->first();
         if ($request->tripId !== null && $trip === null) {
             return BoardingDecision::refuse('trip_not_found');
         }
         if ($trip !== null && $request->device?->transport_vehicle_id !== null && $trip->transport_vehicle_id !== $request->device->transport_vehicle_id) {
-            $this->exceptions->record($provider->id, TransportExceptionType::DeviceTripMismatch, [
+            $this->exceptions->record($providerId, TransportExceptionType::DeviceTripMismatch, [
                 'device_vehicle_id' => $request->device->transport_vehicle_id, 'trip_vehicle_id' => $trip->transport_vehicle_id,
             ], ['trip_id' => $trip->id, 'device_id' => $request->device->id, 'vehicle_id' => $trip->transport_vehicle_id], 'critical');
 
             return BoardingDecision::refuse('device_trip_mismatch');
         }
 
-        $route = $trip?->route ?? ($request->routeId === null ? null : TransportRoute::query()->where('provider_id', $provider->id)->whereKey($request->routeId)->first());
+        $route = $trip?->route ?? ($request->routeId === null ? null : TransportRoute::query()->where('provider_id', $providerId)->whereKey($request->routeId)->first());
         if ($request->routeId !== null && ($route === null || $route->id !== $request->routeId)) {
             return BoardingDecision::refuse($trip === null ? 'route_not_found' : 'trip_route_mismatch');
         }
@@ -143,7 +145,7 @@ final class TransportBoardingService
             $resolved = $this->cards->resolve($request->method, (string) $request->credential);
             $card = $resolved['card'];
             if ($card === null || $card->employee === null) {
-                $this->exceptions->record($provider->id, TransportExceptionType::UnknownCard, [
+                $this->exceptions->record($providerId, TransportExceptionType::UnknownCard, [
                     'reason' => $resolved['reason'], 'method' => $request->method->value, 'credential_hash' => hash('sha256', (string) $request->credential),
                 ], ['trip_id' => $trip?->id, 'device_id' => $request->device?->id], 'info', $boardedAt);
 
@@ -152,12 +154,12 @@ final class TransportBoardingService
             $employee = $card->employee;
 
             $attemptedBy = $request->providerUser?->id ?? $request->device?->id;
-            $gate = $this->serviceEligibility->checkCard((string) $card->getKey(), 'transport', providerId: (string) $provider->id, attemptedBy: $attemptedBy === null ? null : (string) $attemptedBy);
+            $gate = $this->serviceEligibility->checkCard((string) $card->getKey(), 'transport', providerId: $providerId, attemptedBy: $attemptedBy === null ? null : (string) $attemptedBy);
             $state = ['eligible' => $gate->eligible, 'reason_code' => $gate->reasonCode, 'card_status' => $gate->cardStatus];
             if (! $state['eligible']) {
                 $transaction = $this->writeRefusal($request, $nonce, $boardedAt, $employee, $card, $trip, $route, $stop, (string) $state['reason_code'], ['card_status' => $state['card_status']]);
                 if (in_array($state['reason_code'], ['id_card_revoked', 'id_card_suspended', 'id_card_lost', 'id_card_replaced', 'id_card_expired'], true)) {
-                    $this->exceptions->record($provider->id, TransportExceptionType::InactiveCardUse, ['reason' => $state['reason_code']], $this->links($transaction), 'warning', $boardedAt);
+                    $this->exceptions->record($providerId, TransportExceptionType::InactiveCardUse, ['reason' => $state['reason_code']], $this->links($transaction), 'warning', $boardedAt);
                 }
 
                 return BoardingDecision::refuse((string) $state['reason_code'], $transaction);
@@ -165,11 +167,11 @@ final class TransportBoardingService
         }
 
         // ── Transport eligibility ──────────────────────────────────────────
-        $eligibility = $this->eligibility->check($employee, $card, $provider, $route, $boardedAt->copy());
+        $eligibility = $this->eligibility->check($employee, $card, $providerId, $route, $boardedAt->copy());
         if (! $eligibility['eligible']) {
             $transaction = $this->writeRefusal($request, $nonce, $boardedAt, $employee, $card, $trip, $route, $stop, (string) $eligibility['reason'], [], $eligibility);
             if (in_array($eligibility['reason'], ['route_not_allowed_for_employee', 'route_not_assigned'], true)) {
-                $this->exceptions->record($provider->id, TransportExceptionType::WrongRoute, ['reason' => $eligibility['reason'], 'assigned_route_id' => $eligibility['snapshot']['assigned_route_id'] ?? null], $this->links($transaction), 'info', $boardedAt);
+                $this->exceptions->record($providerId, TransportExceptionType::WrongRoute, ['reason' => $eligibility['reason'], 'assigned_route_id' => $eligibility['snapshot']['assigned_route_id'] ?? null], $this->links($transaction), 'info', $boardedAt);
             }
 
             return BoardingDecision::refuse((string) $eligibility['reason'], $transaction);
@@ -229,11 +231,11 @@ final class TransportBoardingService
         } catch (UniqueConstraintViolationException) {
             // Either the same nonce raced in twice (answer with the first) or
             // two scanners hit the (trip, employee) index at once: one boarding.
-            if (($replay = $this->replay($provider->id, $nonce)) !== null) {
+            if (($replay = $this->replay($providerId, $nonce)) !== null) {
                 return $replay;
             }
             $transaction = $this->writeRefusal($request, (string) Str::uuid(), $boardedAt, $employee, $card, $trip, $route, $stop, 'already_boarded', ['race' => true], $eligibility);
-            $this->exceptions->record($provider->id, TransportExceptionType::DuplicateBoardingAttempt, ['race' => true], $this->links($transaction), 'info', $boardedAt);
+            $this->exceptions->record($providerId, TransportExceptionType::DuplicateBoardingAttempt, ['race' => true], $this->links($transaction), 'info', $boardedAt);
 
             return BoardingDecision::refuse('already_boarded', $transaction);
         }
@@ -358,7 +360,7 @@ final class TransportBoardingService
     private function row(BoardingRequest $request, string $nonce, Carbon $boardedAt, Employee $employee, ?IdCard $card, ?TransportTrip $trip, ?TransportRoute $route, ?TransportRouteStop $stop, bool $accepted, string $resultCode, ?array $eligibility, ?string $leg): array
     {
         return [
-            'provider_id' => $request->provider->id,
+            'provider_id' => $request->providerId,
             'employee_id' => $employee->id,
             'id_card_id' => $card?->id,
             'transport_pass_id' => $eligibility['pass']?->id ?? null,
@@ -396,7 +398,7 @@ final class TransportBoardingService
     /** @param array<string, mixed> $flags */
     private function recordOutcomeExceptions(BoardingRequest $request, TransportTransaction $transaction, array $flags, Carbon $at): void
     {
-        $providerId = $request->provider->id;
+        $providerId = $request->providerId;
         $links = $this->links($transaction);
 
         if (isset($flags['duplicate'])) {

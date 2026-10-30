@@ -11,7 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;
@@ -35,7 +35,7 @@ class TransportTransactionController extends Controller
         return Inertia::render('Transport/Transactions/Index', [
             'transactions' => TransportTransactionResource::collection($transactions)->response()->getData(true),
             'filters' => $filters,
-            'providers' => Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             'can' => ['export' => $user->can('transport-transactions.export'), 'void' => $user->can('transport-transactions.void')],
         ]);
     }

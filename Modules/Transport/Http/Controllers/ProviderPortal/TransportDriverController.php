@@ -9,8 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Application\Services\ProviderPortalContext;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Domain\Models\TransportDriver;
 use Modules\Transport\Domain\Models\TransportVehicle;
 use Modules\Transport\Http\Requests\StoreTransportDriverRequest;
@@ -20,31 +19,31 @@ use Modules\Transport\Http\Resources\TransportVehicleResource;
 
 class TransportDriverController extends Controller
 {
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
-        $provider = $this->provider($request, $context);
+        $providerId = $this->providerId($request, $context);
 
         return Inertia::render('ProviderPortal/Transport/Drivers/Index', [
-            'drivers' => TransportDriverResource::collection(TransportDriver::query()->with('vehicle')->where('provider_id', $provider->id)->orderBy('full_name')->get())->resolve(),
+            'drivers' => TransportDriverResource::collection(TransportDriver::query()->with('vehicle')->where('provider_id', $providerId)->orderBy('full_name')->get())->resolve(),
         ]);
     }
 
-    public function create(Request $request, ProviderPortalContext $context): Response
+    public function create(Request $request, ProviderPortalSession $context): Response
     {
         return Inertia::render('ProviderPortal/Transport/Drivers/Create', $this->formPayload($request, $context));
     }
 
-    public function store(StoreTransportDriverRequest $request, ProviderPortalContext $context): RedirectResponse
+    public function store(StoreTransportDriverRequest $request, ProviderPortalSession $context): RedirectResponse
     {
-        $provider = $this->provider($request, $context);
-        TransportDriver::query()->create(array_merge($request->validated(), ['provider_id' => $provider->id]));
+        $providerId = $this->providerId($request, $context);
+        TransportDriver::query()->create(array_merge($request->validated(), ['provider_id' => $providerId]));
 
         return to_route('provider.portal.transport.drivers.index')->with('flash', ['type' => 'success', 'message' => __('transport.driver_created')]);
     }
 
-    public function edit(Request $request, ProviderPortalContext $context, TransportDriver $driver): Response
+    public function edit(Request $request, ProviderPortalSession $context, TransportDriver $driver): Response
     {
-        abort_if($driver->provider_id !== $this->provider($request, $context)->id, 403, __('transport.own_data_only'));
+        abort_if($driver->provider_id !== $this->providerId($request, $context), 403, __('transport.own_data_only'));
 
         return Inertia::render('ProviderPortal/Transport/Drivers/Edit', [
             'driver' => (new TransportDriverResource($driver->load('vehicle')))->resolve(),
@@ -52,29 +51,30 @@ class TransportDriverController extends Controller
         ]);
     }
 
-    public function update(UpdateTransportDriverRequest $request, ProviderPortalContext $context, TransportDriver $driver): RedirectResponse
+    public function update(UpdateTransportDriverRequest $request, ProviderPortalSession $context, TransportDriver $driver): RedirectResponse
     {
-        abort_if($driver->provider_id !== $this->provider($request, $context)->id, 403, __('transport.own_data_only'));
+        abort_if($driver->provider_id !== $this->providerId($request, $context), 403, __('transport.own_data_only'));
         $driver->update($request->validated());
 
         return to_route('provider.portal.transport.drivers.index')->with('flash', ['type' => 'success', 'message' => __('transport.driver_updated')]);
     }
 
     /** @return array<string, mixed> */
-    private function formPayload(Request $request, ProviderPortalContext $context): array
+    private function formPayload(Request $request, ProviderPortalSession $context): array
     {
-        $provider = $this->provider($request, $context);
+        $providerId = $this->providerId($request, $context);
 
         return [
-            'vehicles' => TransportVehicleResource::collection(TransportVehicle::query()->where('provider_id', $provider->id)->orderBy('vehicle_code')->get())->resolve(),
+            'vehicles' => TransportVehicleResource::collection(TransportVehicle::query()->where('provider_id', $providerId)->orderBy('vehicle_code')->get())->resolve(),
         ];
     }
 
-    private function provider(Request $request, ProviderPortalContext $context): Provider
+    /** The signed-in portal user's provider, as an id, when it runs transport. */
+    private function providerId(Request $request, ProviderPortalSession $context): string
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $context->providerId($request);
+        abort_if($providerId === null || ! $context->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
-        return $provider;
+        return $providerId;
     }
 }

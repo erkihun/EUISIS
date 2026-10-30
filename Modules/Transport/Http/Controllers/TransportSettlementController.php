@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\Settlement\TransportSettlementService;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Domain\Enums\TransportAdjustmentOrigin;
@@ -73,12 +73,12 @@ class TransportSettlementController extends Controller
     public function store(TransportSettlementComputeRequest $request, TransportSettlementService $settlements): RedirectResponse
     {
         $data = $request->validated();
-        $provider = Provider::query()->findOrFail($data['provider_id']);
+        $providerId = $this->existingProvider($data['provider_id']);
         $contract = TransportContract::query()->findOrFail($data['transport_contract_id']);
         $invoice = isset($data['transport_invoice_id']) ? TransportInvoice::query()->find($data['transport_invoice_id']) : null;
 
         try {
-            $settlement = $settlements->compute($provider, $contract, Carbon::parse($data['period_start']), Carbon::parse($data['period_end']), $request->user(), $invoice, null, $request);
+            $settlement = $settlements->compute($providerId, $contract, Carbon::parse($data['period_start']), Carbon::parse($data['period_end']), $request->user(), $invoice, null, $request);
         } catch (DomainException $e) {
             throw ValidationException::withMessages(['period_start' => $e->getMessage()]);
         }
@@ -111,7 +111,7 @@ class TransportSettlementController extends Controller
         abort_unless($request->user()?->can('transport-settlements.manage'), 403);
         $this->guardScope($request, $settlement, $scope);
 
-        return $this->act(fn () => $settlements->compute($settlement->provider, $settlement->contract, $settlement->period_start, $settlement->period_end, $request->user(), $settlement->invoice, $settlement, $request), __('transport.settlement_computed'));
+        return $this->act(fn () => $settlements->compute((string) $settlement->provider_id, $settlement->contract, $settlement->period_start, $settlement->period_end, $request->user(), $settlement->invoice, $settlement, $request), __('transport.settlement_computed'));
     }
 
     public function transition(Request $request, TransportSettlement $settlement, TransportSettlementService $settlements, OrganizationScopeService $scope): RedirectResponse
@@ -188,6 +188,14 @@ class TransportSettlementController extends Controller
 
     private function providers()
     {
-        return Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']);
+        return app(ProviderDirectory::class)->offering('transport');
+    }
+
+    /** The provider's id; 404 when there is no such provider (as findOrFail did). */
+    private function existingProvider(mixed $providerId): string
+    {
+        abort_if(! is_string($providerId) || app(ProviderDirectory::class)->find($providerId) === null, 404);
+
+        return $providerId;
     }
 }

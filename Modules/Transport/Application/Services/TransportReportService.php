@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 use Modules\Transport\Domain\Models\TransportTransaction;
 use Modules\Transport\Domain\Models\TransportTrip;
@@ -143,10 +142,10 @@ class TransportReportService
      * @param  array<string, string|null>  $filters
      * @return list<array<string, mixed>>
      */
-    public function routeUtilization(array $filters, ?Provider $provider = null, ?User $viewer = null): array
+    public function routeUtilization(array $filters, ?string $providerId = null, ?User $viewer = null): array
     {
         $inScope = $viewer !== null ? $this->scope->employeeIdsInScope($viewer) : null;
-        $trips = $this->tripQuery($filters, $provider);
+        $trips = $this->tripQuery($filters, $providerId);
 
         $tripStats = (clone $trips)->leftJoin('transport_vehicles', 'transport_vehicles.id', '=', 'transport_trips.transport_vehicle_id')
             ->select('transport_trips.transport_route_id',
@@ -156,7 +155,7 @@ class TransportReportService
                 DB::raw("SUM(CASE WHEN transport_trips.status = 'completed' THEN COALESCE(transport_trips.capacity, transport_vehicles.capacity + COALESCE(transport_vehicles.standing_capacity, 0), 0) ELSE 0 END) AS seats"))
             ->groupBy('transport_trips.transport_route_id')->get()->keyBy('transport_route_id');
 
-        $boardings = $this->verifiedQuery($filters, $provider, $inScope)
+        $boardings = $this->verifiedQuery($filters, $providerId, $inScope)
             ->select('transport_transactions.transport_route_id', DB::raw('COUNT(*) AS boardings'), DB::raw('COUNT(DISTINCT transport_transactions.employee_id) AS riders'),
                 DB::raw("SUM(CASE WHEN transport_transactions.direction = 'inbound' THEN 1 ELSE 0 END) AS inbound"),
                 DB::raw("SUM(CASE WHEN transport_transactions.direction = 'outbound' THEN 1 ELSE 0 END) AS outbound"))
@@ -169,7 +168,7 @@ class TransportReportService
             ->groupBy('transport_route_id')->pluck('assigned', 'transport_route_id');
 
         $routeIds = collect($tripStats->keys())->merge($boardings->keys())->merge($assigned->keys())->filter()->unique()->values();
-        $routes = DB::table('transport_routes')->whereIn('id', $routeIds->all())->when($provider !== null, fn ($q) => $q->where('provider_id', $provider->id))
+        $routes = DB::table('transport_routes')->whereIn('id', $routeIds->all())->when($providerId !== null, fn ($q) => $q->where('provider_id', $providerId))
             ->when($filters['route_id'], fn ($q, $id) => $q->where('id', $id))->get(['id', 'route_code', 'name_en', 'name_am', 'provider_id'])->keyBy('id');
 
         return $routes->map(function ($route) use ($tripStats, $boardings, $assigned): array {
@@ -203,9 +202,9 @@ class TransportReportService
      * @param  array<string, string|null>  $filters
      * @return list<array<string, mixed>>
      */
-    public function vehicleUtilization(array $filters, ?Provider $provider = null): array
+    public function vehicleUtilization(array $filters, ?string $providerId = null): array
     {
-        $rows = $this->tripQuery($filters, $provider)
+        $rows = $this->tripQuery($filters, $providerId)
             ->join('transport_vehicles', 'transport_vehicles.id', '=', 'transport_trips.transport_vehicle_id')
             ->select('transport_vehicles.id', 'transport_vehicles.vehicle_code', 'transport_vehicles.plate_number', 'transport_vehicles.capacity', 'transport_vehicles.standing_capacity',
                 DB::raw('COUNT(*) AS trips'),
@@ -277,19 +276,19 @@ class TransportReportService
      * @param  array<string, string|null>  $filters
      * @return list<array<string, mixed>>
      */
-    public function dailyUsage(array $filters, ?Provider $provider = null, ?User $viewer = null): array
+    public function dailyUsage(array $filters, ?string $providerId = null, ?User $viewer = null): array
     {
         $inScope = $viewer !== null ? $this->scope->employeeIdsInScope($viewer) : null;
-        $boardings = $this->verifiedQuery($filters, $provider, $inScope)
+        $boardings = $this->verifiedQuery($filters, $providerId, $inScope)
             ->select('transport_transactions.transaction_date', DB::raw('COUNT(*) AS boardings'), DB::raw('COUNT(DISTINCT transport_transactions.employee_id) AS riders'),
                 DB::raw("COUNT(DISTINCT CASE WHEN transport_transactions.direction = 'inbound' THEN transport_transactions.employee_id END) AS morning_riders"),
                 DB::raw("COUNT(DISTINCT CASE WHEN transport_transactions.direction = 'outbound' THEN transport_transactions.employee_id END) AS evening_riders"))
             ->groupBy('transport_transactions.transaction_date')->get()->keyBy(fn ($r) => Carbon::parse($r->transaction_date)->toDateString());
-        $trips = $this->tripQuery($filters, $provider)
+        $trips = $this->tripQuery($filters, $providerId)
             ->select('transport_trips.trip_date', DB::raw("SUM(CASE WHEN transport_trips.status = 'completed' THEN 1 ELSE 0 END) AS completed"),
                 DB::raw("COUNT(DISTINCT CASE WHEN transport_trips.status = 'completed' THEN transport_trips.transport_vehicle_id END) AS vehicles"))
             ->groupBy('transport_trips.trip_date')->get()->keyBy(fn ($r) => Carbon::parse($r->trip_date)->toDateString());
-        $assigned = (int) DB::table('transport_passes')->where('status', 'active')->when($provider !== null, fn ($q) => $q->where('provider_id', $provider->id))
+        $assigned = (int) DB::table('transport_passes')->where('status', 'active')->when($providerId !== null, fn ($q) => $q->where('provider_id', $providerId))
             ->whereDate('valid_from', '<=', $filters['date_to'])->where(fn ($q) => $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', $filters['date_from']))
             ->when($inScope !== null, fn ($q) => $q->whereIn('employee_id', $inScope))->distinct()->count('employee_id');
 
@@ -363,23 +362,23 @@ class TransportReportService
     }
 
     /** Kept for the provider dashboard. @return array{total: int, accepted: int, rejected: int} */
-    public function transactionSummary(Provider $provider, ?string $dateFrom = null, ?string $dateTo = null): array
+    public function transactionSummary(string $providerId, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $summary = $this->report($this->forProvider((string) $provider->id, $this->normaliseFilters(['date_from' => $dateFrom, 'date_to' => $dateTo])), false)['summary'];
+        $summary = $this->report($this->forProvider($providerId, $this->normaliseFilters(['date_from' => $dateFrom, 'date_to' => $dateTo])), false)['summary'];
 
         return ['total' => $summary['total'], 'accepted' => $summary['accepted'], 'rejected' => $summary['rejected']];
     }
 
     /** Verified boardings in the period as a query builder on transport_transactions (joined to trips). */
     /** The upper bound carries a time: a date column stored with one (SQLite) would otherwise drop the last day of the window. */
-    private function verifiedQuery(array $filters, ?Provider $provider, ?Builder $inScope): QueryBuilder
+    private function verifiedQuery(array $filters, ?string $providerId, ?Builder $inScope): QueryBuilder
     {
         return DB::table('transport_transactions')
             ->join('transport_trips', 'transport_trips.id', '=', 'transport_transactions.transport_trip_id')
             ->where('transport_transactions.status', 'accepted')->whereNull('transport_transactions.voided_at')
             ->whereNotIn('transport_trips.status', [TransportTripStatus::Cancelled->value, TransportTripStatus::Failed->value])
             ->whereBetween('transport_transactions.transaction_date', [$filters['date_from'], $filters['date_to'].' 23:59:59'])
-            ->when($provider !== null, fn ($q) => $q->where('transport_transactions.provider_id', $provider->id))
+            ->when($providerId !== null, fn ($q) => $q->where('transport_transactions.provider_id', $providerId))
             ->when($filters['provider_id'] ?? null, fn ($q, $id) => $q->where('transport_transactions.provider_id', $id))
             ->when($filters['route_id'] ?? null, fn ($q, $id) => $q->where('transport_transactions.transport_route_id', $id))
             ->when($filters['vehicle_id'] ?? null, fn ($q, $id) => $q->where('transport_transactions.transport_vehicle_id', $id))
@@ -387,11 +386,11 @@ class TransportReportService
             ->when($inScope !== null, fn ($q) => $q->whereIn('transport_transactions.employee_id', $inScope));
     }
 
-    private function tripQuery(array $filters, ?Provider $provider): QueryBuilder
+    private function tripQuery(array $filters, ?string $providerId): QueryBuilder
     {
         return DB::table('transport_trips')
             ->whereBetween('transport_trips.trip_date', [$filters['date_from'], $filters['date_to'].' 23:59:59'])
-            ->when($provider !== null, fn ($q) => $q->where('transport_trips.provider_id', $provider->id))
+            ->when($providerId !== null, fn ($q) => $q->where('transport_trips.provider_id', $providerId))
             ->when($filters['provider_id'] ?? null, fn ($q, $id) => $q->where('transport_trips.provider_id', $id))
             ->when($filters['route_id'] ?? null, fn ($q, $id) => $q->where('transport_trips.transport_route_id', $id))
             ->when($filters['vehicle_id'] ?? null, fn ($q, $id) => $q->where('transport_trips.transport_vehicle_id', $id))

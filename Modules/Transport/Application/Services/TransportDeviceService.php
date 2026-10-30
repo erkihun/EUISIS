@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportDeviceStatus;
 use Modules\Transport\Domain\Models\TransportDevice;
 
@@ -28,12 +27,12 @@ class TransportDeviceService
      * @param  array{device_code: string, name: string, transport_vehicle_id?: string|null, platform?: string|null, software_version?: string|null}  $data
      * @return array{device: TransportDevice, credential: string} the plain credential is returned once and never stored
      */
-    public function register(Provider $provider, array $data, ?User $actor, ?Request $request = null): array
+    public function register(string $providerId, array $data, ?User $actor, ?Request $request = null): array
     {
         $plain = TransportDevice::CREDENTIAL_PREFIX.Str::random(40);
 
         $device = TransportDevice::query()->create([
-            'provider_id' => $provider->id,
+            'provider_id' => $providerId,
             'transport_vehicle_id' => $data['transport_vehicle_id'] ?? null,
             'device_code' => $data['device_code'],
             'name' => $data['name'],
@@ -46,7 +45,7 @@ class TransportDeviceService
         ]);
 
         $this->audit->execute(AuditEventType::TransportDeviceRegistered, $actor, $device, null,
-            newValues: ['provider_id' => $provider->id, 'device_code' => $device->device_code, 'transport_vehicle_id' => $device->transport_vehicle_id], request: $request);
+            newValues: ['provider_id' => $providerId, 'device_code' => $device->device_code, 'transport_vehicle_id' => $device->transport_vehicle_id], request: $request);
 
         return ['device' => $device, 'credential' => $plain];
     }

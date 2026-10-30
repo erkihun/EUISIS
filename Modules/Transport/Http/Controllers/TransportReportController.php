@@ -7,7 +7,7 @@ namespace Modules\Transport\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;
 use Modules\Transport\Domain\Models\TransportRoute;
@@ -30,7 +30,7 @@ class TransportReportController extends Controller
             'vehicleUtilization' => $reports->vehicleUtilization($filters, null),
             'providerPerformance' => $reports->providerPerformance($filters, $user),
             'filters' => $filters,
-            'providers' => Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             'routes' => TransportRoute::query()->where('is_active', true)->orderBy('route_code')->get(['id', 'provider_id', 'route_code', 'name_en', 'name_am']),
             'can' => ['viewTransactions' => $user->can('transport-transactions.viewAny'), 'export' => $user->can('transport-reports.export')],
         ]);

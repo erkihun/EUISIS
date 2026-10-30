@@ -10,7 +10,7 @@ use App\Models\User;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
 use Modules\Transport\Domain\Models\TransportInvoice;
@@ -22,16 +22,19 @@ use Modules\Transport\Domain\Models\TransportInvoice;
  */
 class TransportInvoiceService
 {
-    public function __construct(private readonly WriteAuditLogAction $audit) {}
+    public function __construct(
+        private readonly WriteAuditLogAction $audit,
+        private readonly ProviderDirectory $providers,
+    ) {}
 
     /** @param  array<string, mixed>  $data */
-    public function draft(Provider $provider, array $data, ProviderUser $actor): TransportInvoice
+    public function draft(string $providerId, array $data, ProviderUser $actor): TransportInvoice
     {
         $this->guardPeriod($data['period_start'], $data['period_end']);
 
         return TransportInvoice::query()->create([
-            'invoice_number' => ($data['invoice_number'] ?? null) ?: $this->newNumber($provider, $data['period_start']),
-            'provider_id' => $provider->id,
+            'invoice_number' => ($data['invoice_number'] ?? null) ?: $this->newNumber($providerId, $data['period_start']),
+            'provider_id' => $providerId,
             'transport_contract_id' => $data['transport_contract_id'] ?? null,
             'period_start' => $data['period_start'],
             'period_end' => $data['period_end'],
@@ -167,11 +170,11 @@ class TransportInvoiceService
         }
     }
 
-    private function newNumber(Provider $provider, string $periodStart): string
+    private function newNumber(string $providerId, string $periodStart): string
     {
         do {
-            $number = 'INV-'.$provider->provider_code.'-'.substr(str_replace('-', '', $periodStart), 0, 6).'-'.Str::upper(Str::random(4));
-        } while (TransportInvoice::query()->where('provider_id', $provider->id)->where('invoice_number', $number)->exists());
+            $number = 'INV-'.$this->providers->find($providerId)?->code.'-'.substr(str_replace('-', '', $periodStart), 0, 6).'-'.Str::upper(Str::random(4));
+        } while (TransportInvoice::query()->where('provider_id', $providerId)->where('invoice_number', $number)->exists());
 
         return $number;
     }

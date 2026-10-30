@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services;
 
 use App\Models\User;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\Boarding\BoardingRequest;
 use Modules\Transport\Application\Services\Boarding\CardCredentialResolver;
@@ -20,7 +20,7 @@ use Modules\Transport\Domain\Models\TransportTransaction;
  */
 class TransportQrScanService
 {
-    public function __construct(private readonly TransportBoardingService $engine) {}
+    public function __construct(private readonly TransportBoardingService $engine, private readonly ProviderDirectory $providers) {}
 
     /**
      * @param  array{qr_token?: string|null, verification_method?: string|null, scan_nonce?: string|null, transport_route_id?: string|null, transport_trip_id?: string|null, transport_route_stop_id?: string|null, scanned_at?: string|null, manual_employee_id?: string|null, manual_reason?: string|null}  $payload
@@ -28,21 +28,21 @@ class TransportQrScanService
      */
     public function process(ProviderUser $providerUser, array $payload): array
     {
-        $provider = $providerUser->provider;
-        abort_if($provider === null || ! $providerUser->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        // hasService is false when the user's provider is missing or archived.
+        abort_unless($providerUser->hasService('transport'), 403, __('transport.provider_service_disabled'));
 
-        return $this->engine->board($this->request($provider, $payload, BoardingRequest::SOURCE_PROVIDER_PORTAL, providerUser: $providerUser))->toArray();
+        return $this->engine->board($this->request((string) $providerUser->provider_id, $payload, BoardingRequest::SOURCE_PROVIDER_PORTAL, providerUser: $providerUser))->toArray();
     }
 
     /**
      * @param  array{qr_token?: string|null, verification_method?: string|null, scan_nonce?: string|null, transport_route_id?: string|null, transport_trip_id?: string|null, transport_route_stop_id?: string|null, scanned_at?: string|null, manual_employee_id?: string|null, manual_reason?: string|null}  $payload
      * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string, warnings: array}
      */
-    public function processForAdmin(Provider $provider, array $payload, ?User $user = null): array
+    public function processForAdmin(string $providerId, array $payload, ?User $user = null): array
     {
-        abort_unless($provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        abort_unless($this->providers->hasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
-        return $this->engine->board($this->request($provider, $payload, BoardingRequest::SOURCE_ADMIN_TERMINAL, user: $user))->toArray();
+        return $this->engine->board($this->request($providerId, $payload, BoardingRequest::SOURCE_ADMIN_TERMINAL, user: $user))->toArray();
     }
 
     /** @param  array{result_code: string, message_key: string}  $result */
@@ -54,7 +54,7 @@ class TransportQrScanService
     }
 
     /** @param  array<string, mixed>  $payload */
-    private function request(Provider $provider, array $payload, string $source, ?ProviderUser $providerUser = null, ?User $user = null): BoardingRequest
+    private function request(string $providerId, array $payload, string $source, ?ProviderUser $providerUser = null, ?User $user = null): BoardingRequest
     {
         $credential = isset($payload['qr_token']) && $payload['qr_token'] !== '' ? (string) $payload['qr_token'] : null;
         $manual = ($payload['manual_employee_id'] ?? null) !== null && $credential === null;
@@ -67,7 +67,7 @@ class TransportQrScanService
         };
 
         return new BoardingRequest(
-            provider: $provider,
+            providerId: $providerId,
             source: $source,
             method: $method,
             credential: $credential,

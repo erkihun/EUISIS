@@ -10,7 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;
 use Modules\Transport\Application\Services\TransportTripService;
@@ -71,9 +71,9 @@ class TransportTripController extends Controller
     /** An extra trip, approved by the staff member who plans it. */
     public function store(AdminTransportTripRequest $request, TransportTripService $trips): RedirectResponse
     {
-        $provider = Provider::query()->findOrFail($request->validated('provider_id'));
+        $providerId = $this->existingProvider($request->validated('provider_id'));
         $data = $request->safe()->except('provider_id') + ['is_extra' => true, 'approved_by' => $request->user()->id];
-        $trip = $trips->plan($provider, $data, $request->user(), $request);
+        $trip = $trips->plan($providerId, $data, $request->user(), $request);
 
         return to_route('transport.trips.show', $trip)->with('flash', ['type' => 'success', 'message' => __('transport.trip_created')]);
     }
@@ -128,6 +128,14 @@ class TransportTripController extends Controller
 
     private function providers()
     {
-        return Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']);
+        return app(ProviderDirectory::class)->offering('transport');
+    }
+
+    /** The provider's id; 404 when there is no such provider (as findOrFail did). */
+    private function existingProvider(mixed $providerId): string
+    {
+        abort_if(! is_string($providerId) || app(ProviderDirectory::class)->find($providerId) === null, 404);
+
+        return $providerId;
     }
 }

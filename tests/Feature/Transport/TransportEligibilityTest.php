@@ -33,7 +33,7 @@ beforeEach(function (): void {
 
     $this->board = function (?string $tripId = null) {
         return app(TransportBoardingService::class)->board(new BoardingRequest(
-            provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+            providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
             credential: $this->s->qr($this->card), tripId: $tripId ?? $this->trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
         ));
     };

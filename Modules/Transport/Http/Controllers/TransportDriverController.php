@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Models\TransportDriver;
 use Modules\Transport\Domain\Models\TransportVehicle;
 use Modules\Transport\Http\Requests\StoreTransportDriverRequest;
@@ -83,10 +83,7 @@ class TransportDriverController extends Controller
     private function formPayload(): array
     {
         return [
-            'providers' => Provider::query()
-                ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
-                ->orderBy('name_en')
-                ->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             'vehicles' => TransportVehicleResource::collection(TransportVehicle::query()->orderBy('vehicle_code')->get())->resolve(),
         ];
     }

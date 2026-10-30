@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
@@ -45,7 +44,7 @@ class TransportTripService
      *
      * @param  array<string, mixed>  $data
      */
-    public function plan(Provider $provider, array $data, ProviderUser|User|null $actor, ?Request $request = null): TransportTrip
+    public function plan(string $providerId, array $data, ProviderUser|User|null $actor, ?Request $request = null): TransportTrip
     {
         $data['trip_number'] = $data['trip_number'] ?? $this->newTripNumber();
         $data['status'] = ($data['transport_vehicle_id'] ?? null) !== null ? TransportTripStatus::Assigned : TransportTripStatus::Planned;
@@ -54,12 +53,12 @@ class TransportTripService
         $data['planned_arrival_at'] = isset($data['arrival_time']) ? $date->copy()->setTimeFromTimeString($data['arrival_time']) : null;
 
         $trip = TransportTrip::query()->create($data + [
-            'provider_id' => $provider->id,
+            'provider_id' => $providerId,
             'created_by' => $actor instanceof User ? $actor->id : null,
         ]);
 
         $this->audit->execute(AuditEventType::TransportTripCreated, $actor instanceof User ? $actor : null, $trip, null,
-            newValues: ['trip_number' => $trip->trip_number, 'provider_id' => $provider->id, 'trip_date' => $trip->trip_date->toDateString(), 'direction' => $trip->direction?->value, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null, 'is_extra' => (bool) $trip->is_extra],
+            newValues: ['trip_number' => $trip->trip_number, 'provider_id' => $providerId, 'trip_date' => $trip->trip_date->toDateString(), 'direction' => $trip->direction?->value, 'provider_user_id' => $actor instanceof ProviderUser ? $actor->id : null, 'is_extra' => (bool) $trip->is_extra],
             request: $request);
 
         return $trip;

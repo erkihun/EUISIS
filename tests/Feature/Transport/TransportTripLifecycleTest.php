@@ -98,7 +98,7 @@ it('runs the lifecycle: a vehicle to start, boarding at later stops, a reconcile
     [$employee, $card] = $this->s->employee();
     $this->s->pass($employee, $this->provider, $this->route);
     $decision = app(TransportBoardingService::class)->board(new BoardingRequest(
-        provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+        providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
         credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
     ));
     expect($decision->accepted)->toBeTrue();
@@ -121,7 +121,7 @@ it('needs a reason to cancel, records the exception and keeps any boarding evide
     [$employee, $card] = $this->s->employee();
     $this->s->pass($employee, $this->provider, $this->route);
     app(TransportBoardingService::class)->board(new BoardingRequest(
-        provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+        providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
         credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
     ));
 
@@ -148,7 +148,7 @@ it('replaces the vehicle mid-trip: earlier boardings stay on the first bus, late
         $this->s->pass($employee, $this->provider, $this->route);
 
         return $engine->board(new BoardingRequest(
-            provider: $this->provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+            providerId: $this->provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
             credential: $this->s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->manager,
         ));
     };

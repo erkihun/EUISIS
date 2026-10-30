@@ -12,7 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Models\TransportContract;
 use Modules\Transport\Domain\Models\TransportEligibility;
 use Modules\Transport\Http\Requests\StoreTransportEligibilityRequest;
@@ -103,7 +103,7 @@ class TransportEligibilityController extends Controller
     {
         return [
             'today' => today()->toDateString(),
-            'providers' => Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             'contracts' => TransportContract::query()->where('status', 'active')->orderBy('contract_reference')->get(['id', 'contract_reference', 'version_no', 'provider_id', 'organization_id']),
         ];
     }

@@ -6,7 +6,6 @@ namespace Modules\Transport\Application\Services\Boarding;
 
 use App\Models\User;
 use Illuminate\Support\Carbon;
-use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportVerificationMethod;
 use Modules\Transport\Domain\Models\TransportDevice;
@@ -27,7 +26,7 @@ final readonly class BoardingRequest
     public const SOURCE_OFFLINE_SYNC = 'offline_sync';
 
     public function __construct(
-        public Provider $provider,
+        public string $providerId,
         public string $source,
         public TransportVerificationMethod $method,
         /** The scanned QR value or NFC credential reference; null for a manual exception. */

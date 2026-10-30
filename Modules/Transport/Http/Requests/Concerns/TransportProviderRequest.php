@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Exists;
 use Illuminate\Validation\Rules\Unique;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Domain\Models\ProviderUser;
 
 /**
@@ -81,8 +81,7 @@ trait TransportProviderRequest
             'required',
             'uuid',
             function (string $attribute, mixed $value, Closure $fail): void {
-                $provider = Provider::query()->find($value);
-                if ($provider === null || ! $provider->hasService('transport')) {
+                if (! is_string($value) || ! app(ProviderDirectory::class)->hasService($value, 'transport')) {
                     $fail(__('transport.provider_required'));
                 }
             },

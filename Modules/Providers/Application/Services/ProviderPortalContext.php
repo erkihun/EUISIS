@@ -7,6 +7,7 @@ namespace Modules\Providers\Application\Services;
 use App\Support\Features;
 use Illuminate\Http\Request;
 use Modules\Providers\Contracts\PortalLocationSource;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
@@ -22,7 +23,7 @@ class ProviderPortalContext implements ProviderPortalSession
 
     public function providerHasService(string $providerId, string $serviceCode): bool
     {
-        return Provider::query()->whereKey($providerId)->first()?->hasService($serviceCode) ?? false;
+        return app(ProviderDirectory::class)->hasService($providerId, $serviceCode);
     }
 
     public function providerUser(Request $request): ?ProviderUser

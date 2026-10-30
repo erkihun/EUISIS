@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\TransportTripPlanner;
 use Modules\Transport\Domain\Models\TransportDriver;
 use Modules\Transport\Domain\Models\TransportRoute;
@@ -121,6 +121,6 @@ class TransportScheduleController extends Controller
 
     private function providers()
     {
-        return Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']);
+        return app(ProviderDirectory::class)->offering('transport');
     }
 }

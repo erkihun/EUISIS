@@ -58,7 +58,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
                     continue;
                 }
                 $trip = $dayTrips[$i % 2];
-                $decision = $engine->board(new BoardingRequest(provider: $provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+                $decision = $engine->board(new BoardingRequest(providerId: $provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
                     credential: $s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $manager));
                 if ($i > 95) {
                     expect($decision->accepted)->toBeFalse()->and($decision->resultCode)->toBe('active_transport_pass_missing');
@@ -71,7 +71,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
                 $plan[$i][$day][] = $direction;
                 // Three riders scan twice on Monday morning: refused, idempotent on the ledger.
                 if ($d === 0 && $direction === 'inbound' && in_array($i, [7, 21, 42], true)) {
-                    $again = $engine->board(new BoardingRequest(provider: $provider, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
+                    $again = $engine->board(new BoardingRequest(providerId: $provider->id, source: BoardingRequest::SOURCE_PROVIDER_PORTAL, method: TransportVerificationMethod::Qr,
                         credential: $s->qr($card), tripId: $trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $manager));
                     expect($again->resultCode)->toBe('already_boarded');
                     $expectedRejected++;
@@ -113,7 +113,7 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
     $settlements = app(TransportSettlementService::class);
     $from = Carbon::parse('2026-10-01');
     $to = Carbon::parse('2026-10-31');
-    $basis = $settlements->basis($provider, $from, $to);
+    $basis = $settlements->basis($provider->id, $from, $to);
     expect($basis['verified_boardings'])->toBe($expectedVerified)
         ->and($basis['unique_riders'])->toBe($expectedRiders)
         ->and($basis['employee_days'])->toBe($expectedEmployeeDays)
@@ -122,8 +122,8 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
 
     $contract = $s->contract($provider, 'per_verified_boarding', ['rate_per_boarding' => '12.50']);
     $claimedBoardings = $expectedVerified + 50;
-    $invoice = app(TransportInvoiceService::class)->draft($provider, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => $claimedBoardings, 'claimed_amount' => TransportMoney::format($claimedBoardings * 1250), 'invoice_number' => null], $manager);
-    $settlement = $settlements->compute($provider, $contract, $from, $to, $staff, $invoice);
+    $invoice = app(TransportInvoiceService::class)->draft($provider->id, ['period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => $claimedBoardings, 'claimed_amount' => TransportMoney::format($claimedBoardings * 1250), 'invoice_number' => null], $manager);
+    $settlement = $settlements->compute($provider->id, $contract, $from, $to, $staff, $invoice);
     $reconciliation = $settlements->reconciliation($settlement);
 
     expect((string) $settlement->calculated_amount)->toBe(TransportMoney::format($expectedVerified * 1250))
@@ -136,10 +136,10 @@ it('reconciles one hundred employees over a week exactly, from plan to statement
     // The reports agree with the basis: daily usage sums to the same boardings; route utilization sees 95 assigned.
     $reports = app(TransportReportService::class);
     $filters = $reports->normaliseFilters(['date_from' => '2026-10-05', 'date_to' => '2026-10-09']);
-    $daily = $reports->dailyUsage($filters, $provider);
+    $daily = $reports->dailyUsage($filters, $provider->id);
     expect(array_sum(array_column($daily, 'boardings')))->toBe($expectedVerified)
         ->and(array_sum(array_column($daily, 'completed_trips')))->toBe(20);
-    $row = collect($reports->routeUtilization($filters, $provider))->firstWhere('route_id', $route->id);
+    $row = collect($reports->routeUtilization($filters, $provider->id))->firstWhere('route_id', $route->id);
     expect($row['assigned_employees'])->toBe(95)->and($row['unique_riders'])->toBe($expectedRiders)->and($row['boardings'])->toBe($expectedVerified)
         ->and($row['seats_offered'])->toBe(20 * 60);
     // Organization scope: a Subcity B officer's report sees only the 40 riders of Subcity B.

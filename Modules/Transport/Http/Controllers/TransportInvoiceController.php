@@ -10,7 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Application\Services\Settlement\TransportInvoiceService;
 use Modules\Transport\Domain\Models\TransportContract;
 use Modules\Transport\Domain\Models\TransportInvoice;
@@ -34,7 +34,7 @@ class TransportInvoiceController extends Controller
         return Inertia::render('Transport/Invoices/Index', [
             'invoices' => TransportInvoiceResource::collection($invoices)->response()->getData(true),
             'filters' => $request->only('provider_id', 'status'),
-            'providers' => Provider::query()->whereHas('services.serviceType', fn ($q) => $q->where('code', 'transport'))->orderBy('name_en')->get(['id', 'provider_code', 'name_en', 'name_am']),
+            'providers' => app(ProviderDirectory::class)->offering('transport'),
             'can' => ['review' => $user->can('transport-invoices.review'), 'settlements' => $user->can('transport-settlements.manage')],
         ]);
     }

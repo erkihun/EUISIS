@@ -8,7 +8,7 @@ use App\Rules\OrganizationInScope;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Enums\TransportSettlementModel;
 use Modules\Transport\Domain\Enums\TransportSettlementPeriod;
 
@@ -32,8 +32,7 @@ class StoreTransportContractRequest extends FormRequest
             'contract_reference' => ['required', 'string', 'max:60', 'regex:/^[A-Za-z0-9\-\/_.]+$/'],
             'organization_id' => ['nullable', 'uuid', 'exists:organizations,id', new OrganizationInScope($this->user())],
             'provider_id' => ['required', 'uuid', function (string $attribute, mixed $value, Closure $fail): void {
-                $provider = Provider::query()->find($value);
-                if ($provider === null || ! $provider->hasService('transport')) {
+                if (! is_string($value) || ! app(ProviderDirectory::class)->hasService($value, 'transport')) {
                     $fail(__('transport.provider_required'));
                 }
             }],

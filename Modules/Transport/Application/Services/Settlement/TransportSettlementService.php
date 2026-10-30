@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\TransportRouteAccessService;
 use Modules\Transport\Application\Services\TransportSettings;
@@ -55,10 +54,10 @@ class TransportSettlementService
      *
      * @return array<string, mixed>
      */
-    public function basis(Provider $provider, Carbon $from, Carbon $to, ?string $organizationId = null): array
+    public function basis(string $providerId, Carbon $from, Carbon $to, ?string $organizationId = null): array
     {
-        $boardings = $this->verifiedBoardings($provider->id, $from, $to, $organizationId);
-        $trips = $this->tripsInPeriod($provider->id, $from, $to, $organizationId);
+        $boardings = $this->verifiedBoardings($providerId, $from, $to, $organizationId);
+        $trips = $this->tripsInPeriod($providerId, $from, $to, $organizationId);
 
         $byDirection = (clone $boardings)->select('transport_transactions.direction', DB::raw('COUNT(*) AS n'))->groupBy('transport_transactions.direction')->pluck('n', 'direction');
         $byRoute = (clone $boardings)->select('transport_transactions.transport_route_id', DB::raw('COUNT(*) AS n'), DB::raw('COUNT(DISTINCT transport_transactions.employee_id) AS riders'))
@@ -74,7 +73,7 @@ class TransportSettlementService
             ->leftJoin('transport_vehicles', 'transport_vehicles.id', '=', 'transport_trips.transport_vehicle_id')->value('seats');
 
         $uncompleted = (clone $boardings)->whereIn('transport_trips.status', [TransportTripStatus::Boarding->value, TransportTripStatus::InProgress->value, TransportTripStatus::Planned->value, TransportTripStatus::Assigned->value])->count();
-        $pendingOffline = TransportTransaction::query()->where('provider_id', $provider->id)->whereBetween('transaction_date', [$from->toDateString(), $to->toDateString().' 23:59:59'])
+        $pendingOffline = TransportTransaction::query()->where('provider_id', $providerId)->whereBetween('transaction_date', [$from->toDateString(), $to->toDateString().' 23:59:59'])
             ->where('status', TransportTransaction::STATUS_ACCEPTED)->whereNull('voided_at')->where('sync_state', TransportSyncState::OfflinePending->value)->count();
 
         return [
@@ -105,19 +104,19 @@ class TransportSettlementService
      * Compute (or recompute while draft) the statement for a provider,
      * contract and period. Claims the evidence rows so they are settled once.
      */
-    public function compute(Provider $provider, TransportContract $contract, Carbon $from, Carbon $to, User $actor, ?TransportInvoice $invoice = null, ?TransportSettlement $existing = null, ?Request $request = null): TransportSettlement
+    public function compute(string $providerId, TransportContract $contract, Carbon $from, Carbon $to, User $actor, ?TransportInvoice $invoice = null, ?TransportSettlement $existing = null, ?Request $request = null): TransportSettlement
     {
-        if ($contract->provider_id !== $provider->id) {
+        if ($contract->provider_id !== $providerId) {
             throw new DomainException(__('transport.own_data_only'));
         }
         if (! $contract->status->isBinding() || $contract->effective_from->gt($from) || ($contract->effective_to !== null && $contract->effective_to->lt($to))) {
             throw new DomainException(__('transport.contract_not_covering'));
         }
-        if ($invoice !== null && $invoice->provider_id !== $provider->id) {
+        if ($invoice !== null && $invoice->provider_id !== $providerId) {
             throw new DomainException(__('transport.own_data_only'));
         }
 
-        return DB::transaction(function () use ($provider, $contract, $from, $to, $actor, $invoice, $existing, $request): TransportSettlement {
+        return DB::transaction(function () use ($providerId, $contract, $from, $to, $actor, $invoice, $existing, $request): TransportSettlement {
             if ($existing !== null) {
                 $existing = TransportSettlement::query()->whereKey($existing->id)->lockForUpdate()->firstOrFail();
                 if ($existing->status !== TransportSettlementStatus::Draft) {
@@ -125,7 +124,7 @@ class TransportSettlementService
                 }
                 TransportTransaction::query()->where('transport_settlement_id', $existing->id)->update(['transport_settlement_id' => null]);
             } else {
-                $overlap = TransportSettlement::query()->where('provider_id', $provider->id)->where('transport_contract_id', $contract->id)
+                $overlap = TransportSettlement::query()->where('provider_id', $providerId)->where('transport_contract_id', $contract->id)
                     ->whereNotIn('status', [TransportSettlementStatus::Cancelled->value, TransportSettlementStatus::Rejected->value])
                     ->whereDate('period_start', '<=', $to->toDateString())->whereDate('period_end', '>=', $from->toDateString())->exists();
                 if ($overlap) {
@@ -133,13 +132,13 @@ class TransportSettlementService
                 }
             }
 
-            $basis = $this->basis($provider, $from, $to, $contract->organization_id);
+            $basis = $this->basis($providerId, $from, $to, $contract->organization_id);
             $snapshot = $contract->snapshot();
             $calc = $this->calculator->calculate($snapshot, $basis);
 
             $settlement = $existing ?? new TransportSettlement(['settlement_number' => $this->newNumber()]);
             $settlement->fill([
-                'provider_id' => $provider->id,
+                'provider_id' => $providerId,
                 'transport_contract_id' => $contract->id,
                 'transport_invoice_id' => $invoice?->id ?? $settlement->transport_invoice_id,
                 'organization_id' => $contract->organization_id,
@@ -163,7 +162,7 @@ class TransportSettlementService
             $settlement->save();
 
             // Claim the evidence: settled rows cannot be voided or settled again.
-            $this->verifiedBoardings($provider->id, $from, $to, $contract->organization_id)->whereNull('transport_transactions.transport_settlement_id')
+            $this->verifiedBoardings($providerId, $from, $to, $contract->organization_id)->whereNull('transport_transactions.transport_settlement_id')
                 ->update(['transport_transactions.transport_settlement_id' => $settlement->id]);
 
             if ($invoice !== null && $invoice->transport_settlement_id !== $settlement->id) {
@@ -176,7 +175,7 @@ class TransportSettlementService
             $this->refreshTotals($settlement);
 
             $this->audit->execute(AuditEventType::TransportSettlementComputed, $actor, $settlement, $contract->organization_id,
-                newValues: ['settlement_number' => $settlement->settlement_number, 'provider_id' => $provider->id, 'contract_version' => $contract->version_no, 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(),
+                newValues: ['settlement_number' => $settlement->settlement_number, 'provider_id' => $providerId, 'contract_version' => $contract->version_no, 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(),
                     'verified_boardings' => $basis['verified_boardings'], 'calculated_amount' => $calc['amount'], 'claimed_amount' => $settlement->claimed_amount, 'policy_gaps' => $calc['gaps']], request: $request);
 
             return $settlement->refresh();

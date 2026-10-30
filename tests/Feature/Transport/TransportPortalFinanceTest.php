@@ -65,7 +65,7 @@ it('lets the provider dispute a statement under review, marks the claim disputed
     ($this->as)()->post(route('provider.portal.transport.invoices.store'), ['transport_contract_id' => $this->contract->id, 'period_start' => '2026-10-01', 'period_end' => '2026-10-31', 'claimed_boardings' => 40, 'claimed_amount' => '500.00']);
     $invoice = TransportInvoice::query()->firstOrFail();
     ($this->as)()->post(route('provider.portal.transport.invoices.submit', $invoice));
-    $settlement = $settlements->compute($this->provider, $this->contract, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'), $this->finance, $invoice);
+    $settlement = $settlements->compute($this->provider->id, $this->contract, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-31'), $this->finance, $invoice);
 
     // Draft: invisible to the provider.
     ($this->as)()->get(route('provider.portal.transport.settlements.index'))->assertOk()->assertInertia(fn ($page) => $page->where('settlements.meta.total', 0));
