@@ -1,3 +1,4 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
@@ -151,7 +152,7 @@ export default function Section3Panel({ submissionId, definition, totals, servic
                     </div>
                     <div>
                         <label htmlFor={`${id}-live`} className={labelCls}>{sm('edit.section3.goLive')}</label>
-                        <input id={`${id}-live`} type="date" min={fiscalYear.from} max={fiscalYear.to} className={inputCls} value={form.data.go_live_on} onChange={(e) => form.setData('go_live_on', e.target.value)} required />
+                        <LocalizedDatePicker id={`${id}-live`} min={fiscalYear.from} max={fiscalYear.to} className={inputCls} value={form.data.go_live_on} onChange={(iso) => form.setData('go_live_on', iso)} required />
                         <p className="mt-1 text-xs text-(--app-muted-foreground)">{sm('edit.section3.goLiveHint', { from: formatDateDisplay(fiscalYear.from, calendar, locale), to: formatDateDisplay(fiscalYear.to, calendar, locale) })}</p>
                         {form.errors.go_live_on && <p className={errorCls}>{form.errors.go_live_on}</p>}
                     </div>

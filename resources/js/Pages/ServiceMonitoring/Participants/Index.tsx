@@ -1,3 +1,4 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import { ListPagination } from '@/Components/ui';
@@ -118,11 +119,11 @@ export default function ParticipantsIndex({ participants, filters, sub_cities, o
                         )}
                         <div>
                             <label htmlFor="sm-from" className={labelCls}>{sm('participants.activeFrom')}</label>
-                            <input id="sm-from" type="date" className={inputCls} value={form.data.active_from} onChange={(e) => form.setData('active_from', e.target.value)} required />
+                            <LocalizedDatePicker id="sm-from" className={inputCls} value={form.data.active_from} onChange={(iso) => form.setData('active_from', iso)} required />
                         </div>
                         <div>
                             <label htmlFor="sm-to" className={labelCls}>{sm('participants.activeTo')}</label>
-                            <input id="sm-to" type="date" className={inputCls} value={form.data.active_to} onChange={(e) => form.setData('active_to', e.target.value)} />
+                            <LocalizedDatePicker id="sm-to" className={inputCls} value={form.data.active_to} onChange={(iso) => form.setData('active_to', iso)} />
                             {form.errors.active_to && <p className={errorCls}>{form.errors.active_to}</p>}
                         </div>
                         <div className="flex gap-2 sm:col-span-2">
@@ -204,7 +205,7 @@ export default function ParticipantsIndex({ participants, filters, sub_cities, o
                                     <div className="flex flex-wrap items-end gap-2">
                                         <div>
                                             <label htmlFor="sm-apply-from" className={labelCls}>{sm('participants.activeFrom')}</label>
-                                            <input id="sm-apply-from" type="date" className={inputCls} value={apply.data.active_from} onChange={(e) => apply.setData('active_from', e.target.value)} />
+                                            <LocalizedDatePicker id="sm-apply-from" className={inputCls} value={apply.data.active_from} onChange={(iso) => apply.setData('active_from', iso)} />
                                         </div>
                                         <button type="button" className={primaryBtn} disabled={picked.length === 0 || apply.processing} onClick={register}>{sm('participants.register')}</button>
                                     </div>

@@ -158,6 +158,7 @@ export default {
         problems: 'Before you can submit',
         readOnly: 'This report can no longer be changed.',
         returnedBanner: 'Returned for correction. Fix the lines the reviewer commented on and submit again.',
+        returnedReason: "The reviewer's reason: {reason}",
         askSupport: 'Ask a support officer',
         refreshPrefill: 'Refresh system figures',
         section1: {

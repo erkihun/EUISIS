@@ -1,7 +1,8 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import { ListPagination } from '@/Components/ui';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, textareaCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FiscalYearRow, Named, NamedWithId, Paginated, VisitStatus } from '@/types/serviceMonitoring';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -50,11 +51,11 @@ export default function VisitsIndex({ visits, participants, years, team_candidat
                         </div>
                         <div>
                             <label htmlFor="sm-v-date" className={labelCls}>{sm('visits.visitedOn')}</label>
-                            <input id="sm-v-date" type="date" className={inputCls} value={form.data.visited_on} onChange={(e) => form.setData('visited_on', e.target.value)} required />
+                            <LocalizedDatePicker id="sm-v-date" className={inputCls} value={form.data.visited_on} onChange={(iso) => form.setData('visited_on', iso)} required />
                         </div>
                         <div className="sm:col-span-2">
                             <label htmlFor="sm-v-purpose" className={labelCls}>{sm('visits.purpose')}</label>
-                            <textarea id="sm-v-purpose" rows={3} className={inputCls} value={form.data.purpose} onChange={(e) => form.setData('purpose', e.target.value)} required />
+                            <textarea id="sm-v-purpose" rows={3} className={textareaCls} value={form.data.purpose} onChange={(e) => form.setData('purpose', e.target.value)} required />
                             {form.errors.purpose && <p className={errorCls}>{form.errors.purpose}</p>}
                         </div>
                         <fieldset className="grid gap-1 sm:col-span-2 sm:grid-cols-3">

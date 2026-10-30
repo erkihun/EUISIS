@@ -124,7 +124,7 @@ final class SubmissionController extends Controller
 
         return response()->json(Employee::query()
             ->whereHas('currentAssignment', fn ($q) => $q->where('organization_id', $submission->organization_id))
-            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w->where('full_name', 'like', "%{$search}%")->orWhere('employee_number', 'like', "%{$search}%")))
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w->whereLike('full_name', "%{$search}%", caseSensitive: false)->orWhereLike('employee_number', "%{$search}%", caseSensitive: false)))
             ->orderBy('full_name')->limit(20)->get(['id', 'full_name', 'employee_number'])
             ->map(fn (Employee $e): array => ['id' => $e->id, 'full_name' => $e->full_name, 'employee_number' => $e->employee_number])->all());
     }

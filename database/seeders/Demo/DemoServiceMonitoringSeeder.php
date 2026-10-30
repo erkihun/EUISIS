@@ -34,7 +34,8 @@ use Modules\ServiceMonitoring\Domain\Models\Submission;
  * FY 2019 E.C. and its periods, a sample sub-city with two woredas plus the
  * demo Civic Services Bureau as a center institution, and first-quarter
  * reports in mixed states (accepted, submitted, returned) plus a second-
- * quarter draft. Everything goes through the module's actions.
+ * quarter draft once that quarter has opened. Everything goes through the
+ * module's actions.
  *
  * Reports are made "as of" two days after the period opened (the clock is
  * set for the run and restored), so the deadline rules apply as they would
@@ -91,16 +92,27 @@ class DemoServiceMonitoringSeeder extends DemoSeeder
         $this->asOf($q2, fn () => $this->report($q2, $w1, $maker, 'draft'));
     }
 
+    /**
+     * Runs $work "as of" two days after the period opened, but never later
+     * than now, and skips a period that has not opened yet: nothing in the
+     * demo is dated in the future. The caller's frozen clock, if any, is kept.
+     */
     private function asOf(ReportingPeriod $period, callable $work): void
     {
-        $moment = CarbonImmutable::parse($period->opens_on->toDateString().' 09:00', ReportingPeriod::TIMEZONE)->addDays(2)->utc();
+        $now = CarbonImmutable::now();
+        $opens = CarbonImmutable::parse($period->opens_on->toDateString().' 09:00', ReportingPeriod::TIMEZONE)->utc();
+        if ($opens->greaterThan($now)) {
+            return;
+        }
+        $moment = $opens->addDays(2)->min($now);
+        $before = [Carbon::getTestNow(), CarbonImmutable::getTestNow()];
         Carbon::setTestNow($moment);
         CarbonImmutable::setTestNow($moment);
         try {
             $work();
         } finally {
-            Carbon::setTestNow();
-            CarbonImmutable::setTestNow();
+            Carbon::setTestNow($before[0]);
+            CarbonImmutable::setTestNow($before[1]);
         }
     }
 

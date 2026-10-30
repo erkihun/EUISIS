@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import { ListPagination } from '@/Components/ui';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, textareaCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ClarificationStatus, Named, NamedWithId, Paginated } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -49,7 +49,7 @@ export default function ClarificationsIndex({ threads, filters, own_participants
                         </div>
                         <div className="sm:col-span-2">
                             <label htmlFor="sm-cl-body" className={labelCls}>{sm('clarifications.message')}</label>
-                            <textarea id="sm-cl-body" rows={4} className={inputCls} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} required />
+                            <textarea id="sm-cl-body" rows={4} className={textareaCls} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} required />
                             {form.errors.body && <p className={errorCls}>{form.errors.body}</p>}
                         </div>
                         <div className="flex gap-2 sm:col-span-2">

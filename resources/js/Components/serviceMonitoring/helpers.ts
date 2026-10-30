@@ -1,5 +1,5 @@
 import { useLocale } from '@/hooks/useLocale';
-import { cx, tableClassName } from '@/Components/ui';
+import { cx, tableClassName, textareaClassName } from '@/Components/ui';
 import { fill } from '@/Components/dailyActivity/helpers';
 import type { Named } from '@/types/serviceMonitoring';
 
@@ -8,10 +8,13 @@ export { dangerBtn, fill, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn
 /** Wide official tables scroll inside their own container, never the page (360 px screens). */
 export const scrollCls = 'overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)';
 
+/** Textareas grow with their text (the kit's textarea); inputCls would pin them to one line. */
+export const textareaCls = cx(textareaClassName, 'w-full');
+
 /** The kit's table class with collapsed borders: the official forms draw a full cell grid. */
 export const tableCls = cx(tableClassName, 'min-w-full border-collapse');
 
-export const thCls ='border border-(--app-border) bg-(--app-surface-muted) px-2 py-1.5 text-start text-xs font-medium text-(--app-foreground) align-top';
+export const thCls = 'border border-(--app-border) bg-(--app-surface-muted) px-2 py-1.5 text-start text-xs font-medium text-(--app-foreground) align-top';
 
 export const tdCls = 'border border-(--app-border) px-2 py-1.5 text-sm text-(--app-foreground) align-top';
 

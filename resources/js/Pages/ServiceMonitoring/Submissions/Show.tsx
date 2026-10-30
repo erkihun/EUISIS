@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import ExportPanel from '@/Components/serviceMonitoring/ExportPanel';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import OfficialTables from '@/Components/serviceMonitoring/OfficialTables';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -64,7 +64,7 @@ export default function SubmissionShow({ submission, definition, revisions, hist
                 {correcting && (
                     <form onSubmit={requestCorrection} className={`${panelCls} space-y-2 p-4`}>
                         <label htmlFor="sm-corr" className={labelCls}>{sm('show.correctionReason')}</label>
-                        <textarea id="sm-corr" rows={3} minLength={20} className={inputCls} value={correction.data.reason} onChange={(e) => correction.setData('reason', e.target.value)} required />
+                        <textarea id="sm-corr" rows={3} minLength={20} className={textareaCls} value={correction.data.reason} onChange={(e) => correction.setData('reason', e.target.value)} required />
                         {correction.errors.reason && <p className={errorCls}>{correction.errors.reason}</p>}
                         {(correction.errors as Record<string, string>).submission && <p className={errorCls}>{(correction.errors as Record<string, string>).submission}</p>}
                         <div className="flex gap-2">

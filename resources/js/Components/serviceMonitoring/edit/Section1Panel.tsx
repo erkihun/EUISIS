@@ -1,5 +1,6 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { dangerBtn, errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { dangerBtn, errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import type { AccountabilityRow, FinalAction, FormDescription, ReasonCategory, ReportingLevel, RoleCategory, SubjectType, Suggestion, Summary } from '@/types/serviceMonitoring';
 import { Deferred, router, useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -119,7 +120,7 @@ export default function Section1Panel({ submissionId, level, quarter, definition
                                 <td className={tdCls}>{named ? row.full_name ?? '—' : sm(`enums.subject_type.${row.subject_type}`)}{row.source === 'discipline' && <span className="ms-1 text-xs text-(--app-muted-foreground)">({sm('enums.source.discipline')})</span>}</td>
                                 <td className={tdCls}>{roleLabel(row.role_category)}</td>
                                 <td className={tdCls}>{named ? row.reason_detail : sm(`enums.reason_category.${row.reason_category}`)}</td>
-                                <td className={tdCls}>{named ? row.action_detail : sm(`enums.final_action.${row.final_action}`)}<p className="text-xs text-(--app-muted-foreground)">{sm(`enums.final_action.${row.final_action}`)}</p></td>
+                                <td className={tdCls}>{named ? <>{row.action_detail}<p className="text-xs text-(--app-muted-foreground)">{sm(`enums.final_action.${row.final_action}`)}</p></> : sm(`enums.final_action.${row.final_action}`)}</td>
                                 <td className={tdCls}><LocalizedDateDisplay value={row.action_date} /></td>
                                 <td className={tdCls}>{[row.office_name, row.remark].filter(Boolean).join(' — ') || '—'}{row.repeat_warning && <p className="text-xs text-amber-800 dark:text-amber-200">{sm('edit.section1.repeat')}</p>}</td>
                                 {editable && (
@@ -165,17 +166,16 @@ export default function Section1Panel({ submissionId, level, quarter, definition
                             {REASONS.map((r) => <option key={r} value={r}>{sm(`enums.reason_category.${r}`)}</option>)}
                         </select>
                     ))}
-                    {field('reason_detail', definition.section_1.columns[2].label, <textarea id={`${id}-reason_detail`} rows={3} className={inputCls} value={form.data.reason_detail} onChange={(e) => form.setData('reason_detail', e.target.value)} required />)}
+                    {field('reason_detail', definition.section_1.columns[2].label, <textarea id={`${id}-reason_detail`} rows={3} className={textareaCls} value={form.data.reason_detail} onChange={(e) => form.setData('reason_detail', e.target.value)} required />)}
                     {field('final_action', sm('edit.section1.finalAction'), (
                         <select id={`${id}-final_action`} className={inputCls} value={form.data.final_action} onChange={(e) => form.setData('final_action', e.target.value as FinalAction)}>
                             {ACTIONS.map((a) => <option key={a} value={a}>{sm(`enums.final_action.${a}`)}</option>)}
                         </select>
                     ))}
-                    {field('action_detail', definition.section_1.columns[3].label, <textarea id={`${id}-action_detail`} rows={3} className={inputCls} value={form.data.action_detail} onChange={(e) => form.setData('action_detail', e.target.value)} required />)}
+                    {field('action_detail', definition.section_1.columns[3].label, <textarea id={`${id}-action_detail`} rows={3} className={textareaCls} value={form.data.action_detail} onChange={(e) => form.setData('action_detail', e.target.value)} required />)}
                     {field('action_date', sm('edit.section1.actionDate'), (
                         <div>
-                            <input id={`${id}-action_date`} type="date" min={quarter.starts_on} max={quarter.ends_on} className={inputCls} value={form.data.action_date} onChange={(e) => form.setData('action_date', e.target.value)} required />
-                            <p className="mt-1 text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={form.data.action_date} /></p>
+                            <LocalizedDatePicker id={`${id}-action_date`} min={quarter.starts_on} max={quarter.ends_on} className={inputCls} value={form.data.action_date} onChange={(iso) => form.setData('action_date', iso)} required />
                         </div>
                     ))}
                     {field('office_name', sm('edit.section1.office'), <input id={`${id}-office_name`} className={inputCls} value={form.data.office_name} required={level === 'woreda'} onChange={(e) => form.setData('office_name', e.target.value)} />)}
@@ -225,7 +225,7 @@ export default function Section1Panel({ submissionId, level, quarter, definition
                             </div>
                             <div className="sm:col-span-2">
                                 <label htmlFor={`${id}-acc-detail`} className={labelCls}>{definition.section_1.columns[2].label}</label>
-                                <textarea id={`${id}-acc-detail`} rows={2} className={inputCls} value={accept.data.reason_detail} onChange={(e) => accept.setData('reason_detail', e.target.value)} required />
+                                <textarea id={`${id}-acc-detail`} rows={2} className={textareaCls} value={accept.data.reason_detail} onChange={(e) => accept.setData('reason_detail', e.target.value)} required />
                                 {accept.errors.reason_detail && <p className={errorCls}>{accept.errors.reason_detail}</p>}
                             </div>
                             <div>

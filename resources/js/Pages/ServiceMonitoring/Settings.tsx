@@ -1,5 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, textareaCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { NamedWithId } from '@/types/serviceMonitoring';
 import { Head, useForm } from '@inertiajs/react';
@@ -39,7 +39,7 @@ export default function ServiceMonitoringSettings({ settings, occupations, organ
                     {(['declaration_text_am', 'declaration_text_en'] as const).map((key) => (
                         <div key={key}>
                             <label htmlFor={`sm-${key}`} className={labelCls}>{sm(key === 'declaration_text_am' ? 'settings.declarationAm' : 'settings.declarationEn')}</label>
-                            <textarea id={`sm-${key}`} rows={3} className={inputCls} value={form.data[key]} onChange={(e) => form.setData(key, e.target.value)} required />
+                            <textarea id={`sm-${key}`} rows={3} className={textareaCls} value={form.data[key]} onChange={(e) => form.setData(key, e.target.value)} required />
                             {form.errors[key] && <p className={errorCls}>{form.errors[key]}</p>}
                         </div>
                     ))}

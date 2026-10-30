@@ -1,4 +1,4 @@
-import { errorCls, inputCls, labelCls, panelCls, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import type { FormDescription, PrefillRow } from '@/types/serviceMonitoring';
 import { router, useForm } from '@inertiajs/react';
 import { useId, type JSX } from 'react';
@@ -96,7 +96,7 @@ export default function Section2Panel({ submissionId, definition, values, prefil
                                                     <div>
                                                         <label htmlFor={`${inputId}-reason`} className={labelCls}>{sm('edit.section2.overrideTitle')}</label>
                                                         <p className="text-xs text-(--app-muted-foreground)">{sm('edit.section2.overrideHint', { value: p.system_value ?? '' })}</p>
-                                                        <textarea id={`${inputId}-reason`} rows={2} minLength={10} className={inputCls} disabled={!editable}
+                                                        <textarea id={`${inputId}-reason`} rows={2} minLength={10} className={textareaCls} disabled={!editable}
                                                             value={form.data.override_reasons[f.key] ?? ''} onChange={(e) => form.setData('override_reasons', { ...form.data.override_reasons, [f.key]: e.target.value })} />
                                                     </div>
                                                 )}
@@ -112,7 +112,7 @@ export default function Section2Panel({ submissionId, definition, values, prefil
 
             <div className={`${panelCls} p-3`}>
                 <label htmlFor={`${id}-narrative`} className={labelCls}>{definition.section_2.narrative}</label>
-                <textarea id={`${id}-narrative`} rows={4} className={inputCls} disabled={!editable} value={form.data.narrative} onChange={(e) => form.setData('narrative', e.target.value)} />
+                <textarea id={`${id}-narrative`} rows={4} className={textareaCls} disabled={!editable} value={form.data.narrative} onChange={(e) => form.setData('narrative', e.target.value)} />
                 {(form.errors as Record<string, string>).section_2 && <p className={errorCls}>{(form.errors as Record<string, string>).section_2}</p>}
             </div>
         </div>

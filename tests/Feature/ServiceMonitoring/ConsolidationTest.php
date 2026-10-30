@@ -130,6 +130,17 @@ it('locks a period only when every sub-city certified, then reads it from the sn
     expect(fn () => app(RecordNonSubmission::class)->execute($period->fresh(), $this->s->p['wA1'], 'Trying to change a locked period.', $coordinator))->toThrow(ValidationException::class);
 });
 
+it('neither offers nor allows locking a period that has not opened yet', function (): void {
+    $period = $this->s->period(2);
+    $coordinator = $this->s->coordinator();
+    $this->s->clock($period->opens_on->subDay()->toDateString());
+
+    expect($coordinator->can('lock', $period))->toBeFalse()
+        ->and(fn () => app(LockPeriod::class)->execute($period->fresh(), $coordinator))->toThrow(ValidationException::class);
+    $this->actingAs($coordinator)->post(route('service-monitoring.periods.lock', $period))->assertForbidden();
+    expect($period->fresh()->isLocked())->toBeFalse();
+});
+
 it('reopens a locked period with a reason, audits it and reads live figures again', function (): void {
     $period = $this->s->period(1);
     $coordinator = $this->s->coordinator();

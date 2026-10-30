@@ -1,4 +1,4 @@
-import { errorCls, inputCls, labelCls, panelCls, scrollCls, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, scrollCls, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import type { FormDescription } from '@/types/serviceMonitoring';
 import { useForm } from '@inertiajs/react';
 import { useId, type JSX } from 'react';
@@ -85,7 +85,7 @@ export default function Section4Panel({ submissionId, definition, totals, values
                 {(['below_reasons', 'actions_taken'] as const).map((key) => (
                     <div key={key}>
                         <label htmlFor={`${id}-${key}`} className={labelCls}>{c[key]}</label>
-                        <textarea id={`${id}-${key}`} rows={3} className={inputCls} disabled={!editable} required={below} minLength={below ? minText : undefined}
+                        <textarea id={`${id}-${key}`} rows={3} className={textareaCls} disabled={!editable} required={below} minLength={below ? minText : undefined}
                             value={form.data[key]} onChange={(e) => form.setData(key, e.target.value)} />
                         {form.errors[key] && <p className={errorCls}>{form.errors[key]}</p>}
                     </div>

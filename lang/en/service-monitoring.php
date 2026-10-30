@@ -177,6 +177,7 @@ return [
         'parent_level' => 'A woreda must report through a sub-city participant; other levels have no parent.',
         'certify_pending' => 'Every woreda must be accepted or recorded as not submitted before the sub-city certifies (pending: :names).',
         'certify_own' => 'The sub-city\'s own submission must be accepted before it certifies.',
+        'lock_not_open' => 'This period has not opened yet, so it cannot be locked.',
         'lock_pending' => 'Sub-cities still to certify: :names.',
         'correction_open' => 'A correction request is already open for this submission.',
         'correction_state' => 'Only an accepted submission of an unlocked period can be corrected.',

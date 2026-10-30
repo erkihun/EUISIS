@@ -20,7 +20,9 @@ const SECTIONS: SectionNumber[] = [1, 2, 3, 4];
  * the attestation dialog with the declaration and the stamped copy (D10, D11).
  */
 export default function SubmissionEdit(props: SubmissionProps & { suggestions?: Suggestion[] }): JSX.Element {
-    const { submission, definition, section1, section2, section3, section4, problems, completeness, comments, attachments, declaration, require_stamped_copy, can, suggestions } = props;
+    const { submission, definition, section1, section2, section3, section4, problems, completeness, comments, attachments, declaration, require_stamped_copy, can, suggestions, history } = props;
+    // The reviewer's reason for the latest return, shown with the banner.
+    const returnReason = [...history].reverse().find((h) => h.to === 'returned')?.reason ?? null;
     const { sm, name } = useSm();
     const id = useId();
     const [tab, setTab] = useState<SectionNumber>(1);
@@ -70,7 +72,12 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
                     <span>{sm('edit.deadline', { date: '' })}<LocalizedDateDisplay value={submission.period.submission_due_on} /></span>
                     {submission.extension_due_at && <span className="text-amber-800 dark:text-amber-200">{sm('edit.extended', { date: '' })}<LocalizedDateDisplay value={submission.extension_due_at} withTime /></span>}
                 </div>
-                {submission.status === 'returned' && <p className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">{sm('edit.returnedBanner')}</p>}
+                {submission.status === 'returned' && (
+                    <div className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                        <p>{sm('edit.returnedBanner')}</p>
+                        {returnReason && <p className="mt-1 font-medium">{sm('edit.returnedReason', { reason: returnReason })}</p>}
+                    </div>
+                )}
                 {!editable && <p className={`${panelCls} p-3 text-sm`}>{sm('edit.readOnly')}</p>}
                 {serverErrors.length > 0 && (
                     <div role="alert" className="rounded-panel border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100">

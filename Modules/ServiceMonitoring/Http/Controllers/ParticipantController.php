@@ -38,7 +38,7 @@ final class ParticipantController extends Controller
         $participants = $this->access->scopeParticipants(Participant::query(), $user)
             ->with(['organization:id,name_en,name_am', 'parent.organization:id,name_en,name_am', 'supportOfficers:id,name'])
             ->when(in_array($level, ReportingLevel::values(), true), fn ($q) => $q->where('level', $level))
-            ->when($search !== '', fn ($q) => $q->whereHas('organization', fn ($o) => $o->where('name_en', 'like', "%{$search}%")->orWhere('name_am', 'like', "%{$search}%")))
+            ->when($search !== '', fn ($q) => $q->whereHas('organization', fn ($o) => $o->whereLike('name_en', "%{$search}%", caseSensitive: false)->orWhereLike('name_am', "%{$search}%", caseSensitive: false)))
             ->orderBy('level')
             ->paginate(50)->withQueryString();
 

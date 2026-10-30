@@ -35,6 +35,9 @@ final readonly class LockPeriod
         if ($period->isLocked()) {
             throw ValidationException::withMessages(['period' => __('service-monitoring.validation.period_locked')]);
         }
+        if ($period->effectiveStatus() === PeriodStatus::Scheduled) {
+            throw ValidationException::withMessages(['period' => __('service-monitoring.validation.lock_not_open')]);
+        }
         $certified = Certification::query()->where('period_id', $period->id)->pluck('participant_id')->map(fn ($id): string => (string) $id)->all();
         $pending = $this->participants->subCities($period)->reject(fn ($p): bool => in_array($p->id, $certified, true));
         if ($pending->isNotEmpty()) {

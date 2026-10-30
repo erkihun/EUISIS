@@ -1,7 +1,8 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import ActionItemCard from '@/Components/serviceMonitoring/ActionItemCard';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, textareaCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ActionItemRow, FindingSeverity, Named, VisitStatus } from '@/types/serviceMonitoring';
 import { Head, useForm } from '@inertiajs/react';
@@ -50,8 +51,8 @@ export default function VisitShow({ visit, severities, team_candidates, can }: P
                 <form onSubmit={saveDetails} className={`${panelCls} grid gap-3 p-4 sm:grid-cols-2`}>
                     <div>
                         <label htmlFor="sm-vd-date" className={labelCls}>{sm('visits.visitedOn')}</label>
-                        <input id="sm-vd-date" type="date" className={inputCls} disabled={!can.update} value={details.data.visited_on} onChange={(e) => details.setData('visited_on', e.target.value)} />
-                        <p className="mt-1 text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={details.data.visited_on} />{visit.period_label ? ` · ${visit.period_label}` : ''}</p>
+                        <LocalizedDatePicker id="sm-vd-date" className={inputCls} disabled={!can.update} value={details.data.visited_on} onChange={(iso) => details.setData('visited_on', iso)} />
+                        {visit.period_label && <p className="mt-1 text-xs text-(--app-muted-foreground)">{visit.period_label}</p>}
                     </div>
                     <div>
                         <label htmlFor="sm-vd-status" className={labelCls}>{sm('common.status')}</label>
@@ -61,11 +62,11 @@ export default function VisitShow({ visit, severities, team_candidates, can }: P
                     </div>
                     <div className="sm:col-span-2">
                         <label htmlFor="sm-vd-purpose" className={labelCls}>{sm('visits.purpose')}</label>
-                        <textarea id="sm-vd-purpose" rows={2} className={inputCls} disabled={!can.update} value={details.data.purpose} onChange={(e) => details.setData('purpose', e.target.value)} />
+                        <textarea id="sm-vd-purpose" rows={2} className={textareaCls} disabled={!can.update} value={details.data.purpose} onChange={(e) => details.setData('purpose', e.target.value)} />
                     </div>
                     <div className="sm:col-span-2">
                         <label htmlFor="sm-vd-summary" className={labelCls}>{sm('visits.summary')}</label>
-                        <textarea id="sm-vd-summary" rows={4} className={inputCls} disabled={!can.update} value={details.data.summary} onChange={(e) => details.setData('summary', e.target.value)} />
+                        <textarea id="sm-vd-summary" rows={4} className={textareaCls} disabled={!can.update} value={details.data.summary} onChange={(e) => details.setData('summary', e.target.value)} />
                     </div>
                     <fieldset className="grid gap-1 sm:col-span-2 sm:grid-cols-3">
                         <legend className={labelCls}>{sm('visits.team')}</legend>
@@ -122,7 +123,7 @@ export default function VisitShow({ visit, severities, team_candidates, can }: P
                             </div>
                             <div>
                                 <label htmlFor="sm-i-due" className={labelCls}>{sm('common.due')}</label>
-                                <input id="sm-i-due" type="date" className={inputCls} value={item.data.due_on} onChange={(e) => item.setData('due_on', e.target.value)} required />
+                                <LocalizedDatePicker id="sm-i-due" className={inputCls} value={item.data.due_on} onChange={(iso) => item.setData('due_on', iso)} required />
                             </div>
                             <div>
                                 <label htmlFor="sm-i-finding" className={labelCls}>{sm('visits.findings')}</label>

@@ -1,6 +1,6 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, labelCls, panelCls, primaryBtn, secondaryBtn, textareaCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ClarificationStatus, Named } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -44,7 +44,7 @@ export default function ClarificationShow({ clarification, can }: Props): JSX.El
                 {can.reply && (
                     <form onSubmit={reply} className={`${panelCls} space-y-2 p-4`}>
                         <label htmlFor="sm-reply" className={labelCls}>{sm('clarifications.reply')}</label>
-                        <textarea id="sm-reply" rows={4} className={inputCls} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} required />
+                        <textarea id="sm-reply" rows={4} className={textareaCls} value={form.data.body} onChange={(e) => form.setData('body', e.target.value)} required />
                         {form.errors.body && <p className={errorCls}>{form.errors.body}</p>}
                         <button type="submit" className={primaryBtn} disabled={form.processing}>{sm('clarifications.send')}</button>
                     </form>

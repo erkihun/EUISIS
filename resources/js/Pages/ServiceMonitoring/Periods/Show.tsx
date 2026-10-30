@@ -1,6 +1,7 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -78,8 +79,7 @@ export default function PeriodShow({ period, rows, extensions, tally, can }: Pro
                     {(['opens_on', 'submission_due_on', 'subcity_review_due_on', 'city_review_due_on'] as const).map((key) => (
                         <div key={key}>
                             <label htmlFor={`sm-${key}`} className={labelCls}>{sm(({ opens_on: 'periods.opens', submission_due_on: 'periods.submissionDue', subcity_review_due_on: 'periods.subcityReviewDue', city_review_due_on: 'periods.cityReviewDue' })[key])}</label>
-                            <input id={`sm-${key}`} type="date" className={inputCls} value={schedule.data[key]} disabled={!can.manage || period.status === 'locked'} onChange={(e) => schedule.setData(key, e.target.value)} />
-                            <p className="mt-1 text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={schedule.data[key]} /></p>
+                            <LocalizedDatePicker id={`sm-${key}`} className={inputCls} value={schedule.data[key]} disabled={!can.manage || period.status === 'locked'} onChange={(iso) => schedule.setData(key, iso)} />
                             {schedule.errors[key] && <p className={errorCls}>{schedule.errors[key]}</p>}
                         </div>
                     ))}
@@ -133,7 +133,7 @@ export default function PeriodShow({ period, rows, extensions, tally, can }: Pro
                         </div>
                         <div className="sm:col-span-2">
                             <label htmlFor="sm-ext-reason" className={labelCls}>{sm('periods.extensionReason')}</label>
-                            <textarea id="sm-ext-reason" rows={2} minLength={20} className={inputCls} value={extension.data.reason} onChange={(e) => extension.setData('reason', e.target.value)} required />
+                            <textarea id="sm-ext-reason" rows={2} minLength={20} className={textareaCls} value={extension.data.reason} onChange={(e) => extension.setData('reason', e.target.value)} required />
                             {extension.errors.reason && <p className={errorCls}>{extension.errors.reason}</p>}
                             {extension.errors.participant_id && <p className={errorCls}>{extension.errors.participant_id}</p>}
                         </div>

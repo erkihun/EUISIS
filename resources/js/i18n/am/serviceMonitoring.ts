@@ -158,6 +158,7 @@ export default {
         problems: 'ከማቅረብዎ በፊት',
         readOnly: 'ይህን ሪፖርት ከእንግዲህ መቀየር አይቻልም።',
         returnedBanner: 'ለእርማት ተመልሷል። ገምጋሚው አስተያየት የሰጠባቸውን መስመሮች አስተካክለው እንደገና ያቅርቡ።',
+        returnedReason: 'የገምጋሚው ምክንያት፦ {reason}',
         askSupport: 'ደጋፊ ባለሙያን ጠይቅ',
         refreshPrefill: 'የሲስተም አሃዞችን አድስ',
         section1: {

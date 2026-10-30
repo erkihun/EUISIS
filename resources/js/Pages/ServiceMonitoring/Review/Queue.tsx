@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FormType, Named, ReportingLevel, SectionNumber } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -75,7 +75,7 @@ export default function ReviewQueue({ pending, corrections }: { pending: Pending
                     <h2 id="sm-return-title" className="text-base font-semibold">{sm('review.returnTitle')}{returning ? `: ${name(returning.organization)}` : ''}</h2>
                     <div>
                         <label htmlFor="sm-return-reason" className={labelCls}>{sm('review.returnReason')}</label>
-                        <textarea id="sm-return-reason" rows={3} minLength={10} autoFocus className={inputCls} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} required />
+                        <textarea id="sm-return-reason" rows={3} minLength={10} autoFocus className={textareaCls} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} required />
                         {form.errors.reason && <p className={errorCls}>{form.errors.reason}</p>}
                     </div>
                     {form.data.comments.map((c, i) => (
