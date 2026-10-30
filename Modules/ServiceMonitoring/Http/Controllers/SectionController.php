@@ -105,15 +105,20 @@ final class SectionController extends Controller
 
     public function section4(SaveSection4Request $request, Submission $submission, SaveSection4 $save): RedirectResponse
     {
+        // Section III saves only the totals and Section IV everything: only fields sent are written.
         $data = $request->validated();
         $int = fn (string $key): ?int => isset($data[$key]) ? (int) $data[$key] : null;
         $performance = [];
-        foreach (FormDefinition::SECTION_4 as $field) {
-            $performance[$field] = $int($field);
+        foreach ([...FormDefinition::SECTION_4, 'below_reasons', 'actions_taken'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $performance[$field] = in_array($field, FormDefinition::SECTION_4, true) ? $int($field) : $data[$field];
+            }
         }
-        $performance['below_reasons'] = $data['below_reasons'] ?? null;
-        $performance['actions_taken'] = $data['actions_taken'] ?? null;
-        $save->execute($submission, ['main_total' => $int('main_total'), 'sub_total' => $int('sub_total')], $performance, $request->user());
+        $totals = $submission->serviceTotals;
+        $save->execute($submission, [
+            'main_total' => array_key_exists('main_total', $data) ? $int('main_total') : $totals?->main_total,
+            'sub_total' => array_key_exists('sub_total', $data) ? $int('sub_total') : $totals?->sub_total,
+        ], $performance, $request->user());
 
         return back()->with('success', __('service-monitoring.flash.saved'));
     }

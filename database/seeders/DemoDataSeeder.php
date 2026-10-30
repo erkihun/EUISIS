@@ -20,6 +20,7 @@ use Database\Seeders\Demo\DemoPositionSeeder;
 use Database\Seeders\Demo\DemoProviderSeeder;
 use Database\Seeders\Demo\DemoReferenceSeeder;
 use Database\Seeders\Demo\DemoSeeder;
+use Database\Seeders\Demo\DemoServiceMonitoringSeeder;
 use Database\Seeders\Demo\DemoStructureSeeder;
 use Database\Seeders\Demo\DemoUserSeeder;
 
@@ -55,6 +56,7 @@ class DemoDataSeeder extends DemoSeeder
             DemoPerformanceSeeder::class,
             DemoGrievanceSeeder::class,
             DemoOrganizationDesignSeeder::class,
+            DemoServiceMonitoringSeeder::class,
         ]);
 
         if ($this->command === null) {

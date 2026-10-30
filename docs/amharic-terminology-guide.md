@@ -516,3 +516,27 @@ Amharic language reviewer signs it off in the audit document.
   Amharic.
 - Run `node scripts/i18n-audit.mjs --json report.json` for the full findings,
   including warnings such as Latin words inside Amharic sentences.
+
+## 9. Service Delivery Monitoring & Support terms
+
+The official FY 2019 forms are printed with their own spelling; the module shows those labels
+verbatim (`service-monitoring.form.*`, and the role, reason and final-action enum labels), and
+`resources/data/amharic-terminology.json` allows them for those keys only. Everywhere else the
+recommended spelling applies.
+
+| English | Amharic | Note |
+| --- | --- | --- |
+| Service Delivery Monitoring & Support | የአገልግሎት አሰጣጥ ክትትልና ድጋፍ | module name |
+| Center / Sub-city / Woreda (reporting level) | ማዕከል / ክ/ከተማ / ወረዳ | as on the forms |
+| Nothing to report | የለም | per section flag |
+| Support expert | ደጋፊ ባለሙያ | the forms' term for support officers |
+| Stamped copy | በማህተም የተረጋገጠ ቅጂ | |
+| Appointed leader | ሹመኛ አመራር | form label |
+| Merit leader (director / team leader) | ሜሪት አመራር /ዳይሬክተር ቡድን መሪ/ | form label |
+| Professional / employee | ባለሙያ /ሰራተኛ/ | form label (form spelling) |
+| Customer | ተገልጋይ | |
+| Delaying service / theft / malpractice | በአገልግሎት ማዘግየት / ሌብነት / ብልሹ አሰራር | form wording |
+| Reconcile (6-, 9-month and annual reports) | ማናበብ እና ማረጋገጥ | |
+| Extension (of a deadline) | የጊዜ ማራዘሚያ | |
+| Clarification | የማብራሪያ ጥያቄ | |
+| Monitoring visit / finding / action item | የክትትል ጉብኝት / ግኝት / የድርጊት ተግባር | |

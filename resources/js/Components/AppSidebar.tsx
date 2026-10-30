@@ -529,6 +529,32 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        /*
+         * Service Delivery Monitoring & Support (docs/service-monitoring.md): the
+         * quarterly service-delivery report, its review and consolidation, and
+         * the support around it. Each entry is gated by the permission its page
+         * checks; the page re-checks permission and organization scope.
+         */
+        key: 'serviceMonitoring',
+        labelKey: 'serviceMonitoring.nav.group',
+        icon: ClipboardCheckIcon,
+        items: [
+            { routeName: 'service-monitoring.dashboard', labelKey: 'serviceMonitoring.nav.dashboard', icon: LayoutDashboard, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.submissions.index', labelKey: 'serviceMonitoring.nav.submissions', icon: ClipboardListIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.review.queue', labelKey: 'serviceMonitoring.nav.review', icon: ClipboardCheckIcon, permission: 'service_monitoring.review' },
+            { routeName: 'service-monitoring.consolidation.sub-city', labelKey: 'serviceMonitoring.nav.subCity', icon: FileSpreadsheetIcon, permission: 'service_monitoring.consolidate' },
+            { routeName: 'service-monitoring.consolidation.city', labelKey: 'serviceMonitoring.nav.city', icon: FileChartIcon, permission: 'service_monitoring.consolidate', citywideOnly: true },
+            { routeName: 'service-monitoring.verification.index', labelKey: 'serviceMonitoring.nav.verification', icon: BadgeCheckIcon, permission: 'service_monitoring.technology.verify' },
+            { routeName: 'service-monitoring.periods.index', labelKey: 'serviceMonitoring.nav.periods', icon: CalendarDateIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.participants.index', labelKey: 'serviceMonitoring.nav.participants', icon: CityIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.clarifications.index', labelKey: 'serviceMonitoring.nav.clarifications', icon: MessageSquareIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.visits.index', labelKey: 'serviceMonitoring.nav.visits', icon: MapIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.action-items.index', labelKey: 'serviceMonitoring.nav.actionItems', icon: AlarmIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.reports.index', labelKey: 'serviceMonitoring.nav.reports', icon: PieChartIcon, permission: 'service_monitoring.reports.view' },
+            { routeName: 'service-monitoring.settings.edit', labelKey: 'serviceMonitoring.nav.settings', icon: SettingsIcon, permission: 'service_monitoring.settings.manage', citywideOnly: true },
+        ],
+    },
+    {
         key: 'transferManagement',
         labelKey: 'nav.transferManagement',
         icon: ArrowLeftRightIcon,
@@ -793,7 +819,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];
@@ -870,6 +896,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
         || (!features.court_cases && routeName.startsWith('court-cases.'))
+        || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
         || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
     // Keep the existing permission contract, including independently permitted child links.

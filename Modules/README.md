@@ -88,6 +88,7 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Daily work | `DailyWorkCalendarSettings::workWeekDays()`, `timezone()`, `today()` | settings | platform work calendar, task standards |
 | Communication | `Data\CommunicationRoles`, `Data\CommunicationTelemetry` | published values | the default role matrix, system telemetry |
 | Daily work | `Data\DailyActivityStatus`, `Data\DailyActivityDayStatus`, `Data\DailyActivityRoles`; `ReadModels\DailyActivityLogRecord`, `DailyActivityItemRecord`, `DailyActivityReviewerAssignmentRecord` | published values; read-only models | Situation Room, sign-up, the role matrix; Performance evidence, work structure, Assessment evaluators |
+| Service monitoring | `ServiceMonitoringIndicators::snapshot($organizationIds, $from, $to)`; `Data\ServiceMonitoringRoles` | `Data\ServiceMonitoringIndicatorSnapshot` (counts only); published permission sets | Situation Room `service_monitoring` category; the default role matrix |
 
 Transport reacts to the Core's `AssignmentChanged` and `EmployeeChanged` events and reads people and
 cards through `App\Backbone` contracts (`CredentialLookup`, `ServiceEligibility`, `EmployeeDirectory`).

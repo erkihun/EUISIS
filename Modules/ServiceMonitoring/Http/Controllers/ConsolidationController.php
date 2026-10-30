@@ -29,6 +29,7 @@ use Modules\ServiceMonitoring\Domain\Models\MonitoringExport;
 use Modules\ServiceMonitoring\Domain\Models\Participant;
 use Modules\ServiceMonitoring\Domain\Models\ReportingPeriod;
 use Modules\ServiceMonitoring\Http\Requests\ReasonRequest;
+use Modules\ServiceMonitoring\Infrastructure\Exports\OfficialFormLayout;
 
 /**
  * Sub-city and city consolidations for a quarter or the 6-month, 9-month and
@@ -73,8 +74,8 @@ final class ConsolidationController extends Controller
             'selection' => ['fiscal_year_id' => $year->id, 'quarter' => $quarter, 'range' => $range->value, 'participant_id' => $selected->id],
             'years' => $this->periods->years(),
             'period' => $this->periods->period($period),
-            'definition' => FormDefinition::describe(FormType::B, $period->form_version, (int) $year->ec_year, app()->getLocale()),
-            'report' => $report,
+            'report' => $this->summaryOf($report, $named),
+            'forms' => [$this->form(FormType::B, $period, (int) $year->ec_year, $report, $named)],
             'woredas' => $woredas->map(fn (Participant $p): array => [
                 'participant_id' => $p->id, 'level' => $p->level->value,
                 'organization' => ['name_en' => $p->organization?->name_en, 'name_am' => $p->organization?->name_am],
@@ -111,11 +112,11 @@ final class ConsolidationController extends Controller
             'selection' => ['fiscal_year_id' => $year->id, 'quarter' => $quarter, 'range' => $range->value],
             'years' => $this->periods->years(),
             'period' => $this->periods->period($period),
-            'definitions' => [
-                'A' => FormDefinition::describe(FormType::A, $period->form_version, (int) $year->ec_year, app()->getLocale()),
-                'B' => FormDefinition::describe(FormType::B, $period->form_version, (int) $year->ec_year, app()->getLocale()),
+            'report' => $this->summaryOf($report, $named),
+            'forms' => [
+                $this->form(FormType::A, $period, (int) $year->ec_year, $report, $named),
+                $this->form(FormType::B, $period, (int) $year->ec_year, $report, $named),
             ],
-            'report' => $report,
             'sub_cities' => $subCities->map(fn (Participant $p): array => [
                 'participant_id' => $p->id, 'name_en' => $p->organization?->name_en, 'name_am' => $p->organization?->name_am,
                 'certified_at' => isset($certified[$p->id]) ? (string) $certified[$p->id] : null,
@@ -161,6 +162,38 @@ final class ConsolidationController extends Controller
     private function empty(?FiscalYear $year, int $quarter, ReportRange $range): array
     {
         return ['selection' => ['fiscal_year_id' => $year?->id, 'quarter' => $quarter, 'range' => $range->value], 'years' => $this->periods->years(), 'report' => null];
+    }
+
+    /**
+     * One form's tables in the official layout, as the exports print them.
+     *
+     * @param  array<string, mixed>  $report
+     * @return array<string, mixed>
+     */
+    private function form(FormType $type, ReportingPeriod $period, int $ecYear, array $report, bool $named): array
+    {
+        $locale = app()->getLocale();
+        $definition = FormDefinition::describe($type, $period->form_version, $ecYear, $locale);
+
+        return [
+            'form_type' => $type->value,
+            'title' => $definition['title'],
+            'general_notes' => $definition['general_notes'],
+            'sections' => OfficialFormLayout::sections($type, $period->form_version, $ecYear, $report, $named, $locale),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $report
+     * @return array<string, mixed>
+     */
+    private function summaryOf(array $report, bool $named): array
+    {
+        return [
+            'range' => $report['range'], 'quarters' => $report['quarters'], 'from' => $report['from'], 'to' => $report['to'],
+            'from_snapshot' => $report['from_snapshot'], 'named' => $named, 'totals' => $report['totals'],
+            'participants' => count($report['rows']), 'accountability' => $report['summary']['grand_total'],
+        ];
     }
 
     /** @param array<string, mixed> $report */

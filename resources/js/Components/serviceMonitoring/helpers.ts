@@ -1,0 +1,35 @@
+import { useLocale } from '@/hooks/useLocale';
+import { fill } from '@/Components/dailyActivity/helpers';
+import type { Named } from '@/types/serviceMonitoring';
+
+export { dangerBtn, fill, inputCls, labelCls, panelCls, primaryBtn, secondaryBtn } from '@/Components/dailyActivity/helpers';
+
+/** Wide official tables scroll inside their own container, never the page (360 px screens). */
+export const scrollCls = 'overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)';
+
+export const thCls = 'border border-(--app-border) bg-(--app-surface-muted) px-2 py-1.5 text-start text-xs font-medium text-(--app-foreground) align-top';
+
+export const tdCls = 'border border-(--app-border) px-2 py-1.5 text-sm text-(--app-foreground) align-top';
+
+export const errorCls = 'mt-1 text-xs text-red-700 dark:text-red-400';
+
+/** The module's translator: `sm('edit.title', { name })` reads serviceMonitoring.edit.title and fills placeholders. */
+export function useSm() {
+    const { t, locale } = useLocale();
+    const sm = (key: string, params?: Record<string, string | number>): string => {
+        const text = t(`serviceMonitoring.${key}`);
+        return params ? fill(text, params) : text;
+    };
+    const name = (value: Named | null | undefined): string => {
+        if (!value) return '—';
+        return (locale === 'am' ? value.name_am || value.name_en : value.name_en || value.name_am) ?? '—';
+    };
+
+    return { sm, t, locale, name };
+}
+
+/** Days from today (Addis Ababa) to a deadline; negative once it has passed. */
+export function daysUntil(deadlineIso: string): number {
+    const ms = new Date(deadlineIso).getTime() - Date.now();
+    return Math.ceil(ms / 86_400_000);
+}

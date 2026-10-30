@@ -71,4 +71,20 @@ class MonitoringVisit extends Model
     {
         return $this->hasMany(ActionItem::class, 'visit_id')->orderBy('due_on');
     }
+
+    /**
+     * Sets the team. The pivot rows have their own UUID key, so they are
+     * written as VisitMember records rather than through sync().
+     *
+     * @param  list<int>  $userIds
+     */
+    public function syncMembers(array $userIds): void
+    {
+        $userIds = array_values(array_unique(array_map('intval', $userIds)));
+        VisitMember::query()->where('visit_id', $this->id)->whereNotIn('user_id', $userIds)->delete();
+        $existing = VisitMember::query()->where('visit_id', $this->id)->pluck('user_id')->map(fn ($id): int => (int) $id)->all();
+        foreach (array_diff($userIds, $existing) as $userId) {
+            VisitMember::query()->create(['visit_id' => $this->id, 'user_id' => $userId]);
+        }
+    }
 }

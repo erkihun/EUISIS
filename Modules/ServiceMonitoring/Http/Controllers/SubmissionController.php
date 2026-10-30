@@ -16,6 +16,7 @@ use Modules\ServiceMonitoring\Application\Actions\StartSubmission;
 use Modules\ServiceMonitoring\Application\Actions\SubmitSubmission;
 use Modules\ServiceMonitoring\Application\Actions\UploadStampedCopy;
 use Modules\ServiceMonitoring\Application\Services\AccountabilitySuggestionService;
+use Modules\ServiceMonitoring\Application\Services\ConsolidationService;
 use Modules\ServiceMonitoring\Application\Services\PeriodDirectory;
 use Modules\ServiceMonitoring\Application\Services\ServiceMonitoringAccess;
 use Modules\ServiceMonitoring\Application\Services\SubmissionPresenter;
@@ -27,6 +28,7 @@ use Modules\ServiceMonitoring\Domain\Models\Submission;
 use Modules\ServiceMonitoring\Http\Requests\SetNothingToReportRequest;
 use Modules\ServiceMonitoring\Http\Requests\SubmitSubmissionRequest;
 use Modules\ServiceMonitoring\Http\Requests\UploadFileRequest;
+use Modules\ServiceMonitoring\Infrastructure\Exports\OfficialFormLayout;
 
 /** Submission list, start, entry screen, read-only view, "የለም" flags, stamped copy and submit. */
 final class SubmissionController extends Controller
@@ -95,12 +97,21 @@ final class SubmissionController extends Controller
         ]);
     }
 
-    public function show(Request $request, Submission $submission): Response
+    public function show(Request $request, Submission $submission, ConsolidationService $consolidation): Response
     {
         $this->authorize('view', $submission);
+        $props = $this->presenter->present($submission, $request->user(), false);
+        $locale = app()->getLocale();
+        $period = $submission->period;
+        $report = $consolidation->forSubmission($submission, $props['section1']['named']);
 
-        return Inertia::render('ServiceMonitoring/Submissions/Show', $this->presenter->present($submission, $request->user(), false) + [
+        return Inertia::render('ServiceMonitoring/Submissions/Show', $props + [
             'diff' => $this->presenter->diff($submission),
+            'form' => [
+                'form_type' => $submission->form_type->value,
+                'sections' => OfficialFormLayout::sections($submission->form_type, $submission->form_version, (int) $period->fiscalYear->ec_year, $report, $props['section1']['named'], $locale),
+            ],
+            'years' => [['id' => $period->fiscal_year_id, 'ec_year' => $period->fiscalYear->ec_year]],
         ]);
     }
 

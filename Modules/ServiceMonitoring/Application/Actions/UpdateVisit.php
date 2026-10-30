@@ -27,7 +27,7 @@ final readonly class UpdateVisit
                 'status' => VisitStatus::from($data['status']),
             ])->save();
             if (array_key_exists('member_ids', $data)) {
-                $visit->members()->sync(array_values(array_unique($data['member_ids'])));
+                $visit->syncMembers($data['member_ids']);
             }
             $this->audit->record(AuditEventType::ServiceMonitoringVisitSaved, $actor, $visit, $visit->participant?->organization_id, ['status' => $data['status'], 'visited_on' => $data['visited_on']]);
 

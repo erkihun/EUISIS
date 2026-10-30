@@ -51,3 +51,21 @@ Last updated: 2026-05-12
 - `consumer-*`
 - `support-tickets`
 - `notifications_foundation`
+
+## Service Delivery Monitoring & Support
+
+Feature flag `service_monitoring`; sidebar group "የአገልግሎት አሰጣጥ ክትትልና ድጋፍ" (docs/service-monitoring.md).
+
+- `service-monitoring.dashboard` -> `/service-monitoring`
+- `service-monitoring.submissions.*` -> `/service-monitoring/submissions` (entry screen `/{submission}/edit`, read-only `/{submission}`)
+- `service-monitoring.review.queue` -> `/service-monitoring/review`
+- `service-monitoring.consolidation.sub-city` -> `/service-monitoring/consolidation/sub-city`
+- `service-monitoring.consolidation.city` -> `/service-monitoring/consolidation/city`
+- `service-monitoring.verification.index` -> `/service-monitoring/verification`
+- `service-monitoring.periods.*` -> `/service-monitoring/periods`
+- `service-monitoring.participants.index` -> `/service-monitoring/participants`
+- `service-monitoring.clarifications.*` -> `/service-monitoring/clarifications`
+- `service-monitoring.visits.*` -> `/service-monitoring/visits`
+- `service-monitoring.action-items.index` -> `/service-monitoring/action-items`
+- `service-monitoring.reports.index` -> `/service-monitoring/reports`
+- `service-monitoring.settings.edit` -> `/service-monitoring/settings`

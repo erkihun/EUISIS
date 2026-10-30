@@ -30,7 +30,7 @@ final readonly class CreateVisit
                 'status' => VisitStatus::Planned,
                 'created_by' => $actor->id,
             ]);
-            $visit->members()->sync(array_values(array_unique([$actor->id, ...($data['member_ids'] ?? [])])));
+            $visit->syncMembers([$actor->id, ...($data['member_ids'] ?? [])]);
             $this->audit->record(AuditEventType::ServiceMonitoringVisitSaved, $actor, $visit, $participant->organization_id, ['visited_on' => $data['visited_on'], 'members' => $visit->members()->pluck('users.id')->all()]);
 
             return $visit;

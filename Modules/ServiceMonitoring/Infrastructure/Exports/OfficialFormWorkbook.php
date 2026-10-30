@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\ServiceMonitoring\Infrastructure\Exports;
 
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 /**
@@ -11,7 +12,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
  * (I.1, I.2, II, III, IV) and one for the printed notes. A city export holds
  * the Form A and Form B tables one after the other on each sheet.
  */
-final class OfficialFormWorkbook implements WithMultipleSheets
+final class OfficialFormWorkbook implements Export, WithMultipleSheets
 {
     /**
      * @param  array<string, mixed>  $document  OfficialFormDocument::build()
