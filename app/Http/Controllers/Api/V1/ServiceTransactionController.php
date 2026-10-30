@@ -14,7 +14,7 @@ use App\Models\IdCard;
 use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
 use DomainException;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 class ServiceTransactionController extends Controller
 {

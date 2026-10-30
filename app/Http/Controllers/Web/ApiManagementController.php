@@ -24,7 +24,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 /**
  * System Settings → API Management.

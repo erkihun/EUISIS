@@ -4,51 +4,58 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Application\Services;
 
-use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ProviderService;
-use Modules\Providers\Domain\Models\ProviderType;
-use Modules\Providers\Domain\Models\ProviderUser;
+use Modules\Providers\Contracts\Data\NewProvider;
+use Modules\Providers\Contracts\Data\ProviderOwnerAccount;
+use Modules\Providers\Contracts\ProviderRegistry;
 use Modules\Transport\Domain\Models\TransportProviderProfile;
 
+/**
+ * Registers a transport provider: the provider record, its transport service
+ * and optional first portal account through the Providers module's registry,
+ * and the transport profile (licence, service area) that Transport owns.
+ */
 class TransportProviderService
 {
-    /** @param array<string, mixed> $data */
-    public function create(array $data, ?int $actorId = null): Provider
+    public function __construct(private readonly ProviderRegistry $providers) {}
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return string the new provider's id
+     */
+    public function create(array $data, ?int $actorId = null): string
     {
-        return DB::transaction(function () use ($data, $actorId): Provider {
-            $providerType = ProviderType::query()->where('code', 'TRANSPORT')->firstOrFail();
-            $serviceType = ServiceType::query()->where('code', 'transport')->firstOrFail();
+        return DB::transaction(function () use ($data, $actorId): string {
+            $scope = $data['assigned_scope_type'] ?? 'self';
+            $owner = null;
+            if (($data['create_provider_user'] ?? false) && ! empty($data['user_name']) && (! empty($data['user_email']) || ! empty($data['username']))) {
+                // Never a constant fallback: the controller always supplies a
+                // policy-checked or generated one-time password.
+                if (blank($data['user_password'] ?? null)) {
+                    throw new \InvalidArgumentException('A provider portal account needs an initial password.');
+                }
+                $owner = new ProviderOwnerAccount($data['user_name'], $data['user_email'] ?? null, $data['username'] ?? null, (string) $data['user_password']);
+            }
 
-            $provider = Provider::query()->create([
-                'provider_code' => $data['provider_code'],
-                'provider_type_id' => $providerType->id,
-                'name_en' => $data['name_en'],
-                'name_am' => $data['name_am'] ?? null,
-                'assigned_scope_type' => $data['assigned_scope_type'] ?? 'self',
-                'assigned_organization_id' => ($data['assigned_scope_type'] ?? 'self') === 'citywide'
-                    ? null
-                    : ($data['assigned_organization_id'] ?? null),
-                'contact_person' => $data['contact_person'] ?? null,
-                'phone_number' => $data['phone_number'] ?? null,
-                'email' => $data['email'] ?? null,
-                'address' => $data['address'] ?? null,
-                'status' => $data['status'] ?? 'active',
-                'created_by' => $actorId,
-            ]);
-
-            ProviderService::query()->create([
-                'provider_id' => $provider->id,
-                'service_type_id' => $serviceType->id,
-                'status' => 'active',
-                'enabled_at' => now(),
-                'created_by' => $actorId,
-            ]);
+            $providerId = $this->providers->register(new NewProvider(
+                code: $data['provider_code'],
+                nameEn: $data['name_en'],
+                nameAm: $data['name_am'] ?? null,
+                typeCode: 'TRANSPORT',
+                typeNameIfMissing: null,
+                serviceCode: 'transport',
+                contactPerson: $data['contact_person'] ?? null,
+                phoneNumber: $data['phone_number'] ?? null,
+                email: $data['email'] ?? null,
+                address: $data['address'] ?? null,
+                status: $data['status'] ?? 'active',
+                assignedScopeType: $scope,
+                assignedOrganizationId: $scope === 'citywide' ? null : ($data['assigned_organization_id'] ?? null),
+                actorId: $actorId,
+            ), $owner);
 
             TransportProviderProfile::query()->create([
-                'provider_id' => $provider->id,
+                'provider_id' => $providerId,
                 'license_number' => $data['license_number'] ?? null,
                 'registration_number' => $data['registration_number'] ?? null,
                 'contact_person' => $data['contact_person'] ?? null,
@@ -59,29 +66,7 @@ class TransportProviderService
                 'created_by' => $actorId,
             ]);
 
-            if (($data['create_provider_user'] ?? false) && ! empty($data['user_name']) && (! empty($data['user_email']) || ! empty($data['username']))) {
-                // Never a constant fallback: the controller always supplies a
-                // policy-checked or generated one-time password.
-                if (blank($data['user_password'] ?? null)) {
-                    throw new \InvalidArgumentException('A provider portal account needs an initial password.');
-                }
-
-                ProviderUser::query()->create([
-                    'provider_id' => $provider->id,
-                    'name' => $data['user_name'],
-                    'email' => $data['user_email'] ?? null,
-                    'username' => $data['username'] ?? null,
-                    'password' => Hash::make((string) $data['user_password']),
-                    // Someone other than the holder knows this password.
-                    'must_change_password' => true,
-                    'provider_role' => 'owner',
-                    'status' => 'active',
-                    'portal_enabled' => true,
-                    'created_by' => $actorId,
-                ]);
-            }
-
-            return $provider->load(['transportProfile', 'services.serviceType', 'users']);
+            return $providerId;
         });
     }
 }

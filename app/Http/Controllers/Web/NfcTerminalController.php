@@ -20,7 +20,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Contracts\CafeteriaDirectory;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 /**
  * Terminal registry CRUD.

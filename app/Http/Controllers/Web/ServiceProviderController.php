@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Providers\Http\Controllers;
+namespace App\Http\Controllers\Web;
 
 use App\Enums\TransactionStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreServiceProviderRequest;
+use App\Http\Requests\UpdateServiceProviderRequest;
 use App\Models\Organization;
+use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,9 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Domain\Models\ServiceProvider;
-use Modules\Providers\Http\Requests\StoreServiceProviderRequest;
-use Modules\Providers\Http\Requests\UpdateServiceProviderRequest;
 
 class ServiceProviderController extends Controller
 {

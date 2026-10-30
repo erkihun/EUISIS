@@ -70,7 +70,7 @@ use Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProv
 use Modules\Cafeteria\Infrastructure\Console\SyncCafeteriaPolicyStatuses;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ServiceProvider as ServiceProviderModel;
+use App\Models\ServiceProvider as ServiceProviderModel;
 
 /**
  * Everything the application needs to know about the Cafeteria module

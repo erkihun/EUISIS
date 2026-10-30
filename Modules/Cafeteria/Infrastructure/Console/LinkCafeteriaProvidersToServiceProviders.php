@@ -8,7 +8,7 @@ use App\Models\ServiceType;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 class LinkCafeteriaProvidersToServiceProviders extends Command
 {

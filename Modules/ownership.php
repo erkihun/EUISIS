@@ -162,15 +162,17 @@ return [
             'Modules\Providers\Domain\Models\ProviderType',
             'Modules\Providers\Domain\Models\ProviderUser',
             'Modules\Providers\Domain\Models\ProviderUserServicePermission',
-            'Modules\Providers\Domain\Models\ServiceProvider',
-            'Modules\Providers\Domain\Models\ServiceProviderUser',
         ],
     ],
     'Entitlements' => [
         'home' => 'app',
+        // Service delivery: service types, entitlements, service transactions, and the service
+        // providers (service points) they run at, for the partner API and NFC terminals.
         'models' => [
             'App\Models\Entitlement',
             'App\Models\EntitlementRule',
+            'App\Models\ServiceProvider',
+            'App\Models\ServiceProviderUser',
             'App\Models\ServiceTransaction',
             'App\Models\ServiceType',
         ],

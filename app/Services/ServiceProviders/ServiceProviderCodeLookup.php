@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Providers\Application\Services;
+namespace App\Services\ServiceProviders;
 
 use App\Backbone\Contracts\ProviderCodeLookup;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 /** Service delivery's side of the backbone's ProviderCodeLookup contract. */
 final class ServiceProviderCodeLookup implements ProviderCodeLookup

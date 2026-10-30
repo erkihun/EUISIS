@@ -18,7 +18,7 @@ use Modules\Providers\Application\Services\ProviderUserPermissionCatalog;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
 use Modules\Providers\Domain\Models\ProviderUser;
-use Modules\Providers\Domain\Models\ServiceProviderUser;
+use App\Models\ServiceProviderUser;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

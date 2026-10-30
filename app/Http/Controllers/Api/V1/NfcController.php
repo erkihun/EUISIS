@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cafeteria\Contracts\CafeteriaTerminalScan;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 use Ramsey\Uuid\Uuid;
 
 class NfcController extends Controller

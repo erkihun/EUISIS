@@ -139,7 +139,7 @@ use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderTransactionControl
 use Modules\Providers\Http\Controllers\Portal\ProviderLoginController;
 use Modules\Providers\Http\Controllers\Portal\ProviderPasswordResetController;
 use Modules\Providers\Http\Controllers\ProviderUserController;
-use Modules\Providers\Http\Controllers\ServiceProviderController;
+use App\Http\Controllers\Web\ServiceProviderController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDashboardController as ProviderTransportDashboardController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDeviceController as ProviderTransportDeviceController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDriverController as ProviderTransportDriverController;

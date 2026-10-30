@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OfflineSyncTransactionRequest;
 use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 class OfflineSyncController extends Controller
 {

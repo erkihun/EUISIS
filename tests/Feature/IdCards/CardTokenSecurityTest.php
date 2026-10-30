@@ -19,7 +19,7 @@ use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\IdCardQrCodeRenderer;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

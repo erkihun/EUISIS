@@ -7,7 +7,7 @@ namespace App\Actions\Workflows;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 /**
  * Settlement total for one provider over one period.

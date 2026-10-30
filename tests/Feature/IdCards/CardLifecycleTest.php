@@ -18,7 +18,7 @@ use App\Models\IdCard;
 use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

@@ -66,9 +66,9 @@ class TransportProviderController extends Controller
             $data['user_password'] = $temporary;
         }
 
-        $provider = $service->create($data, $request->user()?->id);
+        $providerId = $service->create($data, $request->user()?->id);
 
-        return to_route('transport.providers.show', $provider)->with('flash', array_filter([
+        return to_route('transport.providers.show', $providerId)->with('flash', array_filter([
             'type' => 'success',
             'message' => __('transport.provider_created').($temporary ? ' '.__('password-policy.temporary_password_created') : ''),
             'temporary_password' => $temporary,

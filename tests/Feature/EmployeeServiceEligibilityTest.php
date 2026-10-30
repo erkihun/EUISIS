@@ -19,7 +19,7 @@ use App\Models\User;
 use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 function serviceEmployee(EmployeeStatus $status = EmployeeStatus::Active): Employee
 {

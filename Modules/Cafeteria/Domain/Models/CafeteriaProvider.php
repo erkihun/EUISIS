@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Enums\CafeteriaOperationalStatus;
 use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 /**
  * A cafeteria LOCATION (main, branch or service point) inside a provider's

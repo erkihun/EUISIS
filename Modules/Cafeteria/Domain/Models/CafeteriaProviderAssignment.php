@@ -9,7 +9,7 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Providers\Domain\Models\ServiceProviderUser;
+use App\Models\ServiceProviderUser;
 
 /**
  * Historical pivot: admin user ↔ cafeteria provider assignment.

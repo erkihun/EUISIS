@@ -16,7 +16,7 @@ use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 /**
  * Creates a cafeteria location end to end: the operating provider (payee)

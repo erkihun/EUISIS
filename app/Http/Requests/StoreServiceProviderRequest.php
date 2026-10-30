@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Providers\Http\Requests;
+namespace App\Http\Requests;
 
+use App\Models\ServiceProvider;
 use Illuminate\Foundation\Http\FormRequest;
-use Modules\Providers\Domain\Models\ServiceProvider;
 
 class StoreServiceProviderRequest extends FormRequest
 {

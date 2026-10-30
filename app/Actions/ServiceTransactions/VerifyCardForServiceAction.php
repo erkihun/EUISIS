@@ -18,7 +18,7 @@ use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Http\Request;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 readonly class VerifyCardForServiceAction
 {

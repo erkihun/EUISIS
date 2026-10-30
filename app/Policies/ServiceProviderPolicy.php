@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Providers\Application\Policies;
+namespace App\Policies;
 
+use App\Models\ServiceProvider;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
-use Modules\Providers\Domain\Models\ServiceProvider;
 
 class ServiceProviderPolicy
 {

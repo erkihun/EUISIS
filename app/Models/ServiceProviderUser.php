@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Modules\Providers\Domain\Models;
+namespace App\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\ServiceType;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;

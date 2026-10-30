@@ -7,7 +7,7 @@ use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

@@ -24,8 +24,8 @@ use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Services\ServiceFeedback\EmployeeFeedbackLinkAdapter;
 use Illuminate\Support\Str;
-use Modules\Providers\Application\Services\ServiceProviderCodeLookup;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Services\ServiceProviders\ServiceProviderCodeLookup;
+use App\Models\ServiceProvider;
 
 /*
  * Stage 5 of the master backbone separation: the backbone's registries are

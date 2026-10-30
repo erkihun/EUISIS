@@ -4,67 +4,66 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Application\Services\Network;
 
-use App\Models\ServiceType;
 use App\Models\User;
+use Modules\Providers\Contracts\Data\NewProvider;
+use Modules\Providers\Contracts\Data\ProviderDetails;
+use Modules\Providers\Contracts\ProviderRegistry;
 use Modules\Providers\Domain\Models\Provider;
-use Modules\Providers\Domain\Models\ProviderService;
-use Modules\Providers\Domain\Models\ProviderType;
 
 /**
  * Providers as payees: the organization that operates cafeterias and is paid
  * for their service. A cafeteria provider always carries the `cafeteria`
  * service, which the provider portal requires to open its cafeteria pages.
+ * The provider records themselves are written by the Providers module.
  */
 class CafeteriaProviderRegistry
 {
+    public function __construct(private readonly ProviderRegistry $providers) {}
+
     /** @param array<string, mixed> $data */
     public function create(array $data, User $actor): Provider
     {
-        $provider = Provider::query()->create([
-            'provider_code' => strtoupper(trim((string) $data['provider_code'])),
-            'provider_type_id' => ProviderType::query()->firstOrCreate(['code' => 'CAFETERIA'], ['name_en' => 'Cafeteria', 'is_active' => true])->id,
-            'name_en' => trim((string) $data['name_en']),
-            'name_am' => filled($data['name_am'] ?? null) ? trim((string) $data['name_am']) : null,
-            'contact_person' => $data['contact_person'] ?? null,
-            'phone_number' => $data['phone_number'] ?? null,
-            'email' => $data['email'] ?? null,
-            'address' => $data['address'] ?? null,
-            'status' => $data['status'] ?? 'active',
-            'metadata' => array_filter(['settlement_details' => $data['settlement_details'] ?? null]),
-            'created_by' => $actor->id,
-            'updated_by' => $actor->id,
-        ]);
+        $providerId = $this->providers->register(new NewProvider(
+            code: strtoupper(trim((string) $data['provider_code'])),
+            nameEn: trim((string) $data['name_en']),
+            nameAm: filled($data['name_am'] ?? null) ? trim((string) $data['name_am']) : null,
+            typeCode: 'CAFETERIA',
+            typeNameIfMissing: 'Cafeteria',
+            serviceCode: 'cafeteria',
+            serviceTypeNameIfMissing: 'Cafeteria Service',
+            contactPerson: $data['contact_person'] ?? null,
+            phoneNumber: $data['phone_number'] ?? null,
+            email: $data['email'] ?? null,
+            address: $data['address'] ?? null,
+            status: $data['status'] ?? 'active',
+            metadata: array_filter(['settlement_details' => $data['settlement_details'] ?? null]),
+            actorId: $actor->id,
+            stampUpdatedBy: true,
+        ));
 
-        $this->ensureCafeteriaService($provider, $actor);
-
-        return $provider;
+        return Provider::query()->findOrFail($providerId);
     }
 
     /** @param array<string, mixed> $data */
     public function update(Provider $provider, array $data, User $actor): Provider
     {
-        $provider->fill([
-            'name_en' => trim((string) $data['name_en']),
-            'name_am' => filled($data['name_am'] ?? null) ? trim((string) $data['name_am']) : null,
-            'contact_person' => $data['contact_person'] ?? null,
-            'phone_number' => $data['phone_number'] ?? null,
-            'email' => $data['email'] ?? null,
-            'address' => $data['address'] ?? null,
-            'status' => $data['status'] ?? $provider->status,
-            'metadata' => [...($provider->metadata ?? []), 'settlement_details' => $data['settlement_details'] ?? null],
-            'updated_by' => $actor->id,
-        ])->save();
+        $this->providers->updateDetails((string) $provider->id, new ProviderDetails(
+            nameEn: trim((string) $data['name_en']),
+            nameAm: filled($data['name_am'] ?? null) ? trim((string) $data['name_am']) : null,
+            contactPerson: $data['contact_person'] ?? null,
+            phoneNumber: $data['phone_number'] ?? null,
+            email: $data['email'] ?? null,
+            address: $data['address'] ?? null,
+            status: $data['status'] ?? null,
+            metadata: ['settlement_details' => $data['settlement_details'] ?? null],
+            actorId: $actor->id,
+        ));
 
-        return $provider;
+        return $provider->refresh();
     }
 
     public function ensureCafeteriaService(Provider $provider, ?User $actor = null): void
     {
-        $serviceType = ServiceType::query()->firstOrCreate(['code' => 'cafeteria'], ['name_en' => 'Cafeteria Service', 'is_active' => true]);
-
-        ProviderService::query()->firstOrCreate(
-            ['provider_id' => $provider->id, 'service_type_id' => $serviceType->id],
-            ['status' => 'active', 'enabled_at' => now(), 'created_by' => $actor?->id, 'updated_by' => $actor?->id],
-        );
+        $this->providers->enableService((string) $provider->id, 'cafeteria', $actor?->id, 'Cafeteria Service');
     }
 }

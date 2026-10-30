@@ -37,7 +37,8 @@ Rules, all enforced by `tests/Feature/Architecture`:
   the Core's own contracts.
 - Every contract is bound in the module's provider; modules do not depend on each other in a cycle.
 - Every model, and so every table, has one owner in [`ownership.php`](ownership.php)
-  (`ModuleOwnershipTest`). Only the owner writes it. Outside SQL on a module's tables is allowed only
+  (`ModuleOwnershipTest`). Only the owner writes it; outside code creating a module's records
+  (`create`, `firstOrCreate`, `insert`, `new`) fails `ModulePublicApiTest`. Outside SQL on a module's tables is allowed only
   for the read-only readers listed in `ModulePublicApiTest`, which may not write.
 - Class names from before a move live only in the bridge: [`legacy-class-map.php`](legacy-class-map.php)
   (loaded lazily by [`legacy-aliases.php`](legacy-aliases.php)) and the morph map in the module's provider.
@@ -56,6 +57,8 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Transport | `Data\TripStatus` constants | the trip status values | Situation Room reports |
 | Cafeteria | `EmployeeCafeteriaActivity::forEmployee($employeeId, $today)` | My Portal's cafeteria card (array) | My Portal |
 | Providers | `PortalLocationSource::selection($request)` (implemented by Cafeteria) | `Data\PortalLocationSelection` | provider-portal context |
+| Providers | `ProviderRegistry::register(NewProvider, ?ProviderOwnerAccount)` | the new provider's id | Transport and Cafeteria provider registration |
+| Providers | `ProviderRegistry::enableService(...)`, `updateDetails(...)` | — | Cafeteria payees |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |

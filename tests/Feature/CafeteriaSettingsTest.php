@@ -15,7 +15,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProviderAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaProviderBranch;
 use Modules\Cafeteria\Domain\Models\CafeteriaSetting;
 use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
-use Modules\Providers\Domain\Models\ServiceProviderUser;
+use App\Models\ServiceProviderUser;
 use Spatie\Permission\Models\Permission;
 
 function cafeteriaSettingsUser(bool $canUpdate = true): User

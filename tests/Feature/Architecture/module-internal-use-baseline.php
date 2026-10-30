@@ -8,34 +8,14 @@ declare(strict_types=1);
  * fails when one no longer needs it, so the list can only shrink: replace a use
  * with the module's Contracts and delete the line.
  *
- * Providers (2026-10-30): provider and service-provider models are referenced by
- * Eloquent relations and portal controllers across Transport, Cafeteria and the
- * entitlement, service-transaction and partner-API code. Replacing them needs
- * provider lookup contracts in those modules (Modules/MIGRATION.md).
+ * Providers (2026-10-30): Transport and Cafeteria hold provider records in
+ * Eloquent relations and type hints, and their portal controllers pass the
+ * signed-in ProviderUser and the portal context into their services. Writes
+ * already go through Providers\Contracts\ProviderRegistry. Next: a portal
+ * session contract and a provider read model (Modules/MIGRATION.md).
  */
 return [
     'Providers' => [
-        // App
-        'App\Actions\Entitlements\GrantEntitlementAction',
-        'App\Actions\ServiceTransactions\RecordServiceTransactionAction',
-        'App\Actions\ServiceTransactions\VerifyCardForServiceAction',
-        'App\Actions\Workflows\GenerateSettlementReportAction',
-        'App\Http\Controllers\Api\V1\CardVerificationController',
-        'App\Http\Controllers\Api\V1\NfcController',
-        'App\Http\Controllers\Api\V1\OfflineSyncController',
-        'App\Http\Controllers\Api\V1\ProviderSettlementController',
-        'App\Http\Controllers\Api\V1\ServiceAuthorizationController',
-        'App\Http\Controllers\Api\V1\ServiceTransactionController',
-        'App\Http\Controllers\Web\ApiManagementController',
-        'App\Http\Controllers\Web\EntitlementController',
-        'App\Http\Controllers\Web\NfcTerminalController',
-        'App\Models\Entitlement',
-        'App\Models\ExternalApplication',
-        'App\Models\ServiceTerminal',
-        'App\Models\ServiceTransaction',
-        'App\Models\ServiceType',
-        'App\Services\Dashboard\DashboardMetricService',
-        'App\Services\Integration\IntegrationAccessService',
         // Modules\Cafeteria
         'Modules\Cafeteria\Application\Actions\CreateCafeteriaProviderAction',
         'Modules\Cafeteria\Application\Actions\ProcessCafeteriaQrScanAction',
@@ -49,7 +29,6 @@ return [
         'Modules\Cafeteria\Application\Services\Reports\CafeteriaAnalyticsReportService',
         'Modules\Cafeteria\Application\Services\Settlement\CafeteriaSettlementService',
         'Modules\Cafeteria\Domain\Models\CafeteriaProvider',
-        'Modules\Cafeteria\Domain\Models\CafeteriaProviderAssignment',
         'Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment',
         'Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork',
         'Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy',
@@ -57,7 +36,6 @@ return [
         'Modules\Cafeteria\Domain\Models\CafeteriaTransaction',
         'Modules\Cafeteria\Http\Controllers\CafeteriaPayeeController',
         'Modules\Cafeteria\Http\Controllers\CafeteriaProviderController',
-        'Modules\Cafeteria\Http\Controllers\CafeteriaSettingController',
         'Modules\Cafeteria\Http\Controllers\CafeteriaSettlementController',
         'Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext',
         'Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData',
@@ -70,7 +48,6 @@ return [
         'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderScanController',
         'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderTransactionController',
         'Modules\Cafeteria\Http\Requests\ProviderPortal\ProviderScanRequest',
-        'Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProviders',
         'Modules\Cafeteria\Providers\CafeteriaServiceProvider',
         // Modules\Transport
         'Modules\Transport\Application\Services\Boarding\BoardingRequest',
@@ -79,7 +56,6 @@ return [
         'Modules\Transport\Application\Services\TransportDashboardService',
         'Modules\Transport\Application\Services\TransportDeviceService',
         'Modules\Transport\Application\Services\TransportEligibilityService',
-        'Modules\Transport\Application\Services\TransportProviderService',
         'Modules\Transport\Application\Services\TransportQrScanService',
         'Modules\Transport\Application\Services\TransportReportService',
         'Modules\Transport\Application\Services\TransportTripService',

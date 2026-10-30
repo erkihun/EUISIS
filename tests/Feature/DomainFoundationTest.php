@@ -43,7 +43,7 @@ use App\Models\TransferSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Laravel\Sanctum\Sanctum;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

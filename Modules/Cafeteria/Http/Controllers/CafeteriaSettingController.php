@@ -27,7 +27,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
 use Modules\Cafeteria\Http\Requests\UpdateCafeteriaSettingsRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaDayRuleResource;
 use Modules\Cafeteria\Http\Resources\CafeteriaSubsidyRuleResource;
-use Modules\Providers\Domain\Models\ServiceProviderUser;
+use App\Models\ServiceProviderUser;
 
 class CafeteriaSettingController extends Controller
 {

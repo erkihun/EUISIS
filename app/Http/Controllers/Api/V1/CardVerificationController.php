@@ -10,7 +10,7 @@ use App\Http\Requests\Api\VerifyCardApiRequest;
 use App\Http\Resources\VerificationResultResource;
 use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 class CardVerificationController extends Controller
 {

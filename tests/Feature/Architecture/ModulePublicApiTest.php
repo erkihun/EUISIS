@@ -67,8 +67,6 @@ const MODULE_TABLE_READERS = [
     'Providers' => [
         // Provider names for the Situation Room transport panel.
         'app/Services/SituationRoom/Analytics/TransportAnalytics.php' => 'reporting',
-        // Home dashboard counts of service providers.
-        'app/Services/Dashboard/DashboardMetricService.php' => 'reporting',
         // Transport's data-quality checks (providers without a contract) and its reports (provider names).
         'Modules/Transport/Application/Services/TransportDataQualityService.php' => 'reporting',
         'Modules/Transport/Application/Services/TransportReportService.php' => 'reporting',
@@ -229,6 +227,33 @@ it('keeps a module\'s tables to the module and its declared read-only readers', 
             // No declared reader writes the module's tables, whatever else it writes.
             expect($source)->not->toMatch('/table\([\'"]('.$names.')[\'"]\)[^;]*->(insert\w*|upsert|update\w*|delete|truncate|increment|decrement)\(/', "{$path} writes {$module} tables");
         }
+    }
+});
+
+it('lets only the owning module create its records', function () use ($root, $modules): void {
+    // Static creation calls on a module's models (or `new` on them) outside the module.
+    // Updates through save() cannot be told apart statically; the frozen list and
+    // review cover those. Other modules create through the owner's Contracts.
+    $ownership = require $root.'/Modules/ownership.php';
+    foreach ($modules as $module) {
+        $short = array_map(fn (string $model): string => substr($model, strrpos($model, '\\') + 1), $ownership[$module]['models']);
+        $names = implode('|', array_map(fn (string $s): string => preg_quote($s, '/'), $short));
+        $create = '/\b('.$names.')::(?:query\(\)\s*->\s*)?(?:withTrashed\(\)\s*->\s*)?(create|firstOrCreate|updateOrCreate|forceCreate|createQuietly|insert\w*|upsert)\(|\bnew ('.$names.')\(/';
+
+        $offenders = [];
+        foreach (['app', 'Modules'] as $dir) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/'.$dir, FilesystemIterator::SKIP_DOTS)) as $file) {
+                $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+                if ($file->getExtension() !== 'php' || str_starts_with($relative, "Modules/{$module}/") || in_array($relative, MODULE_DEV_TOOLING, true)) {
+                    continue;
+                }
+                $source = (string) file_get_contents($file->getPathname());
+                if (str_contains($source, "Modules\\{$module}\\Domain") && preg_match($create, $source, $hit)) {
+                    $offenders[] = "{$relative} ({$hit[0]})";
+                }
+            }
+        }
+        expect($offenders)->toBe([], "{$module} records created outside the module");
     }
 });
 

@@ -18,7 +18,7 @@ use App\Models\User;
 use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 readonly class RecordServiceTransactionAction
 {

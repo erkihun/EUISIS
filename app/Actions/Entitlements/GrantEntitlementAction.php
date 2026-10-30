@@ -11,7 +11,7 @@ use App\Models\Employee;
 use App\Models\Entitlement;
 use App\Models\ServiceType;
 use App\Models\User;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 
 readonly class GrantEntitlementAction
 {

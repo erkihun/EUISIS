@@ -11,7 +11,7 @@ use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Providers\Domain\Models\ServiceProvider;
+use App\Models\ServiceProvider;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
