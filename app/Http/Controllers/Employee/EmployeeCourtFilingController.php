@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\DisciplinaryCase;
 use App\Models\Grievance;
 use App\Models\Organization;
 use App\Services\CourtMs\CourtMsException;
@@ -19,6 +18,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Discipline\Contracts\DisciplineCases;
 
 /**
  * My Portal > My court cases > File a case (court-ms Flow 5). Only an employee
@@ -55,14 +55,7 @@ class EmployeeCourtFilingController extends Controller
                     'documents' => $filing->documentCount($g, $user),
                 ])->values()->all(),
             // The employee's decided discipline cases (ADR 0013 #14): a case may challenge one, and its record travels with it.
-            'disciplines' => $filing->disciplines($employee)->latest('delivered_at')->limit(50)->get()
-                ->map(fn (DisciplinaryCase $c): array => [
-                    'id' => (string) $c->getKey(),
-                    'case_number' => $c->case_number,
-                    'summary' => $c->summary ? mb_substr(strip_tags((string) $c->summary), 0, 200) : null,
-                    'status' => $c->status?->value,
-                    'delivered_at' => $c->delivered_at?->toIso8601String(),
-                ])->values()->all(),
+            'disciplines' => app(DisciplineCases::class)->deliveredCasesOf((string) $employee->getKey()),
             // The court's register of verified lawyers (ADR 0013 #13): name and licence number only.
             'lawyers' => $portal->lawyers(),
             'limits' => ['documents' => EmployeeCourtFiling::MAX_DOCUMENTS, 'documentMb' => EmployeeCourtFiling::MAX_DOCUMENT_BYTES / 1024 / 1024],
@@ -103,7 +96,7 @@ class EmployeeCourtFilingController extends Controller
             throw ValidationException::withMessages(['grievance_ids' => __('validation.exists', ['attribute' => 'grievance'])]);
         }
         $disciplineIds = array_values(array_unique((array) ($data['discipline_ids'] ?? [])));
-        if ($disciplineIds !== [] && $filing->disciplines($employee)->whereKey($disciplineIds)->count() !== count($disciplineIds)) {
+        if ($disciplineIds !== [] && count(app(DisciplineCases::class)->ownDeliveredCaseIds((string) $employee->getKey(), $disciplineIds)) !== count($disciplineIds)) {
             throw ValidationException::withMessages(['discipline_ids' => __('validation.exists', ['attribute' => 'discipline case'])]);
         }
         $coApplicants = [];

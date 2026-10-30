@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Enums\Discipline\DisciplinaryCaseStatus;
-use App\Models\DisciplinaryCase;
 use App\Models\StatutoryDeadline;
-use App\Services\Discipline\DisciplinaryCasePresenter;
-use App\Services\Discipline\DisciplinaryCaseService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Discipline\Application\Services\DisciplinaryCasePresenter;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
+use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
 use Tests\Support\DisciplineScenario;
 
 /*

@@ -13,7 +13,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
-use App\Support\Discipline\DisciplineRoles;
+use Modules\Discipline\Contracts\Data\DisciplineRoles;
 
 /**
  * One institution with an Art. 5 disciplinary committee:

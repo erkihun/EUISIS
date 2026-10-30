@@ -3,7 +3,7 @@
 Where the move to `Modules/<Name>/{Contracts,Domain,Application,Infrastructure,Http,Providers}`
 stands ([ADR 0016](../docs/architecture/adr/0016-module-boundaries.md),
 [ADR 0017](../docs/architecture/adr/0017-module-public-contracts-and-data-ownership.md)). Update it
-in the same change as each step. **Verdict today: incomplete** — Transport, Cafeteria, Providers, Entitlements, Field work, Daily work, Communication and Assessment have moved with no frozen inbound uses left; the other owners below are still in `app/`.
+in the same change as each step. **Verdict today: incomplete** — Transport, Cafeteria, Providers, Entitlements, Field work, Daily work, Communication, Assessment and Discipline have moved with no frozen inbound uses left; the other owners below are still in `app/`.
 
 Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (enforced by
 `tests/Feature/Architecture/ModuleOwnershipTest.php`).
@@ -31,7 +31,7 @@ Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (en
 | Performance (EPMS) | app | — | |
 | Assessment | `Modules/Assessment` (2026-10-30) | `Data\AssessmentCoverageValues` (the gender spellings its coverage groups by, for the Situation Room's workforce panel). 71 classes moved; its policy, three commands and the oversight cache invalidation on record and response saves are registered from its provider; the form-version validation rules are an Application class (`AssessmentFormVersionRules`) shared by the builder's request and the importer. `EmployeeCompetencyAssessment` stays with Core employees (Performance's competency self-assessment, not this module). The direct-manager rule moved to Daily work (`DailyWorkReviewers::directManager`), whose reviewer assignments it reads; Assessment and Field work ask it there. | Inbound: none. Outbound: Daily work through `DailyWorkReviewers`; Core employees (`EmployeeWorkContextResolver`); Performance models in `app/` (rating scales) and Core models under the ratchet. |
 | Grievance | app | — | |
-| Discipline / appeal | app | — | |
+| Discipline / appeal | `Modules/Discipline` (2026-10-30) | `DisciplineCases` (whether an employee was penalised since a date under Art. 6(2), for the statutory committee rules; an employee's delivered cases, their ids and court-ms snapshots, for the court filing; a statutory deadline's alert target); `Data\DisciplinaryCaseStatus`, `DisciplinaryFinding`, `DisciplinaryPenalty`, `DisciplinarySeverity`, `DisciplineRoles`; `ReadModels\DisciplinaryCaseRecord` (recognising a deadline's subject). 29 classes moved; its case-number collision check is registered from its provider. | Inbound: none; the Situation Room case summary is a declared reader. Outbound: Grievance's committees (`GrievanceCommittee`, `GrievanceCommitteeMember`, in `app/` until Grievance moves) and Core models under the ratchet. |
 | Feedback (public and service) | app | implements Core `EmployeeFeedbackLinks` | |
 | Public site | app | — | |
 | Organization design | app | uses Core `StampJobDescriptionOnCurrentAssignments` | |

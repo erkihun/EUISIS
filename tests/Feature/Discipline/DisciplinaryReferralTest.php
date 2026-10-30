@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\Discipline\DisciplinaryCaseStatus;
-use App\Enums\Discipline\DisciplinarySeverity;
-use App\Enums\Discipline\DisciplinaryTrack;
-use App\Services\Discipline\DisciplinaryCaseService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
+use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
+use Modules\Discipline\Contracts\Data\DisciplinarySeverity;
+use Modules\Discipline\Domain\Enums\DisciplinaryTrack;
 use Tests\Support\DisciplineScenario;
 
 /*

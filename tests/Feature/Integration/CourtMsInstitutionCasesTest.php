@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\CourtCaseOfficer;
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinaryCharge;
-use App\Models\DisciplinaryDecision;
 use App\Models\InstitutionCourtCase;
 use App\Notifications\InstitutionCourtCaseNotification;
 use App\Services\CourtMs\CourtMsStatusSync;
@@ -15,6 +12,9 @@ use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinaryCharge;
+use Modules\Discipline\Domain\Models\DisciplinaryDecision;
 use Tests\Support\GrievanceScenario;
 
 /*

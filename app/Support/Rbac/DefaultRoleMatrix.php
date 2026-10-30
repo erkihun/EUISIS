@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Support\Rbac;
 
-use App\Support\Discipline\DisciplineRoles;
 use App\Support\Grievances\GrievanceRoles;
 use App\Support\Intelligence\IntelligenceRoles;
 use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
 use Modules\Communication\Contracts\Data\CommunicationRoles;
 use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
+use Modules\Discipline\Contracts\Data\DisciplineRoles;
 use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 
 /**

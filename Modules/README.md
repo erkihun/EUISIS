@@ -79,6 +79,7 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Field work | `Data\FieldWorkStatus`, `Data\FieldWorkRoles`; `ReadModels\FieldWorkTypeRecord` | published values; a read-only model | Situation Room reports, the default role matrix |
 | Daily work | `DailyWorkReviewers::coverage($user)`, `directManager($employee, $assignment, $date)` | `Data\DailyActivityCoverage`, `?User` | Performance and Field work team views; Assessment evaluators and Field work supervisors |
 | Assessment | `Data\AssessmentCoverageValues::GENDER_VALUES` | published values | Situation Room workforce panel |
+| Discipline | `DisciplineCases::penalisedSince(...)`, `deliveredCasesOf(...)`, `ownDeliveredCaseIds(...)`, `courtSnapshots(...)`, `deadlineAlertTarget($caseId)` | bool, case rows, ids, snapshots, alert target | statutory committee rules, employee court filing, statutory deadline alerts |
 | Daily work | `EmployeeDailyWork::today()`, `dashboard($employeeId)` | date string, the panel array | My Portal |
 | Daily work | `DailyWorkOutputs::finalQuantity(...)` | `{count, quantity}` | Performance KPI actuals |
 | Daily work | `DailyWorkCalendarSettings::workWeekDays()`, `timezone()`, `today()` | settings | platform work calendar, task standards |

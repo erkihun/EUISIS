@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinarySuspension;
-use App\Services\Discipline\DisciplinaryCaseService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinarySuspension;
 use Tests\Support\DisciplineScenario;
 
 /*

@@ -88,6 +88,10 @@ const MODULE_TABLE_READERS = [
         'app/Services/SituationRoom/Analytics/FieldWorkAnalytics.php' => 'reporting',
         'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
     ],
+    'Discipline' => [
+        // The Situation Room case summary counts discipline cases by status within scope (totals only).
+        'app/Services/SituationRoom/Analytics/CaseSummaryAnalytics.php' => 'reporting',
+    ],
     'DailyWork' => [
         // Situation Room panels and the Intelligence service analysis aggregate daily logs and items (totals only).
         'app/Services/SituationRoom/Analytics/DailyOperationsAnalytics.php' => 'reporting',

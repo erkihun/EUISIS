@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\DisciplinaryCase;
 use App\Models\Grievance;
 use App\Models\StatutoryDeadline;
 use App\Models\User;
 use App\Notifications\StatutoryDeadlineNotification;
 use App\Services\Calendar\WorkingDayCalculator;
-use App\Services\Discipline\DisciplinaryCaseAccess;
 use App\Services\Grievances\GrievanceNotifier;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Console\Command;
+use Modules\Discipline\Contracts\DisciplineCases;
+use Modules\Discipline\Contracts\ReadModels\DisciplinaryCaseRecord;
 
 /**
  * Warns the people who must act when a Regulation 201/2018 deadline that the
@@ -46,7 +46,7 @@ class SendStatutoryDeadlineAlerts extends Command
 
     protected $description = 'Alert responsible staff to Regulation 201/2018 deadlines that are due soon or overdue';
 
-    public function handle(WorkingDayCalculator $calendar, StatutoryDeadlineService $deadlines, GrievanceNotifier $grievanceNotifier, DisciplinaryCaseAccess $disciplineAccess): int
+    public function handle(WorkingDayCalculator $calendar, StatutoryDeadlineService $deadlines, GrievanceNotifier $grievanceNotifier, DisciplineCases $discipline): int
     {
         $now = now();
         $horizon = $calendar->addWorkingDays($now->copy(), self::LEAD_WORKING_DAYS, $deadlines->workWeekDays());
@@ -59,7 +59,7 @@ class SendStatutoryDeadlineAlerts extends Command
             ->where('due_at', '<=', $horizon)
             ->where(fn ($q) => $q->whereNull('due_soon_notified_at')->orWhereNull('overdue_notified_at'))
             ->orderBy('due_at')
-            ->chunkById(200, function ($rows) use ($now, $grievanceNotifier, $disciplineAccess, &$sent): void {
+            ->chunkById(200, function ($rows) use ($now, $grievanceNotifier, $discipline, &$sent): void {
                 foreach ($rows as $deadline) {
                     /** @var StatutoryDeadline $deadline */
                     $kind = $deadline->due_at->lt($now) ? 'overdue' : 'due_soon';
@@ -68,7 +68,7 @@ class SendStatutoryDeadlineAlerts extends Command
                         continue;
                     }
 
-                    [$caseNumber, $url, $recipients] = $this->target($deadline, $grievanceNotifier, $disciplineAccess);
+                    [$caseNumber, $url, $recipients] = $this->target($deadline, $grievanceNotifier, $discipline);
                     if ($caseNumber !== null) {
                         foreach ($recipients as $user) {
                             $user->notify(new StatutoryDeadlineNotification($kind, $deadline->rule_key, $caseNumber, $deadline->due_at->toDateString(), $url));
@@ -86,19 +86,14 @@ class SendStatutoryDeadlineAlerts extends Command
     }
 
     /** @return array{0: string|null, 1: string|null, 2: list<User>} */
-    private function target(StatutoryDeadline $deadline, GrievanceNotifier $grievanceNotifier, DisciplinaryCaseAccess $disciplineAccess): array
+    private function target(StatutoryDeadline $deadline, GrievanceNotifier $grievanceNotifier, DisciplineCases $discipline): array
     {
-        $subject = $deadline->subject;
-
-        if ($subject instanceof DisciplinaryCase) {
-            if ($subject->status->isFinal()) {
-                return [null, null, []];
-            }
-            $users = User::permission('discipline.manage')->where('status', 'active')->get()
-                ->filter(fn (User $u) => $disciplineAccess->canOperate($u, $subject, 'discipline.manage'))->values()->all();
-
-            return [(string) $subject->case_number, '/discipline/cases/'.$subject->getKey(), $users];
+        // A discipline case answers for itself (the Discipline module decides who acts on it).
+        if ($deadline->subject_type === (new DisciplinaryCaseRecord)->getMorphClass()) {
+            return $discipline->deadlineAlertTarget((string) $deadline->subject_id);
         }
+
+        $subject = $deadline->subject;
 
         if ($subject instanceof Grievance) {
             $stage = $subject->currentStage;

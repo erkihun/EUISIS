@@ -3,21 +3,21 @@
 declare(strict_types=1);
 
 use App\Enums\AuditEventType;
-use App\Enums\Discipline\DisciplinaryCaseStatus;
-use App\Enums\Discipline\DisciplinaryFinding;
-use App\Enums\Discipline\DisciplinaryPenalty;
 use App\Models\AuditLog;
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinaryCaseMember;
 use App\Models\GrievanceCommitteeMember;
-use App\Services\Discipline\DisciplinaryCaseAccess;
-use App\Services\Discipline\DisciplinaryCaseService;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Discipline\Application\Services\DisciplinaryCaseAccess;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
+use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
+use Modules\Discipline\Contracts\Data\DisciplinaryFinding;
+use Modules\Discipline\Contracts\Data\DisciplinaryPenalty;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinaryCaseMember;
 use Tests\Support\DisciplineScenario;
 
 beforeEach(function (): void {

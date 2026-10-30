@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinaryDecision;
-use App\Services\Discipline\DisciplinaryCaseService;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinaryDecision;
 use Tests\Support\DisciplineScenario;
 use Tests\Support\GrievanceScenario;
 

@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Notifications\StatutoryDeadlineNotification;
-use App\Services\Discipline\DisciplinaryCaseService;
 use App\Support\Legal\Regulation201;
 use App\Support\NotificationPresenter;
 use Illuminate\Support\Carbon;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
 use Tests\Support\DisciplineScenario;
 
 /*

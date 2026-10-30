@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 use App\Enums\AuditEventType;
-use App\Enums\Discipline\DisciplinaryCaseStatus;
 use App\Models\AuditLog;
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinaryEvidence;
-use App\Services\Discipline\DisciplinaryCaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
+use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinaryEvidence;
 use Tests\Support\DisciplineScenario;
 
 beforeEach(function (): void {

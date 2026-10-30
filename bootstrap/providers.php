@@ -8,6 +8,7 @@ use Modules\Assessment\Providers\AssessmentServiceProvider;
 use Modules\Cafeteria\Providers\CafeteriaServiceProvider;
 use Modules\Communication\Providers\CommunicationServiceProvider;
 use Modules\DailyWork\Providers\DailyWorkServiceProvider;
+use Modules\Discipline\Providers\DisciplineServiceProvider;
 use Modules\Entitlements\Providers\EntitlementsServiceProvider;
 use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
@@ -27,5 +28,6 @@ return [
     DailyWorkServiceProvider::class,
     CommunicationServiceProvider::class,
     AssessmentServiceProvider::class,
+    DisciplineServiceProvider::class,
     FieldWorkServiceProvider::class,
 ];

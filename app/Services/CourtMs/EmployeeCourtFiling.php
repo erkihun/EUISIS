@@ -9,7 +9,6 @@ use App\Enums\Grievance\GrievanceDecisionStatus;
 use App\Enums\Grievance\GrievanceLetterStatus;
 use App\Enums\GrievanceStatus;
 use App\Enums\OrganizationStatus;
-use App\Models\DisciplinaryCase;
 use App\Models\Employee;
 use App\Models\Grievance;
 use App\Models\GrievanceDecision;
@@ -19,6 +18,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Modules\Discipline\Contracts\DisciplineCases;
 
 /**
  * My Portal > My court cases > File a case (court-ms Flow 5). Employees file
@@ -92,7 +92,7 @@ final class EmployeeCourtFiling
     {
         $organization = $this->organizations()->findOrFail($data['organization_id']);
         $grievances = $this->grievances($user)->whereKey($grievanceIds)->with('category')->orderBy('submitted_at')->get();
-        $disciplines = $disciplineIds === [] ? collect() : $this->disciplines($employee)->whereKey($disciplineIds)->with(['charges', 'responses', 'decisions'])->orderBy('charged_at')->get();
+        $disciplines = app(DisciplineCases::class)->courtSnapshots(app(DisciplineCases::class)->ownDeliveredCaseIds((string) $employee->getKey(), $disciplineIds));
 
         $documents = [];
         foreach ($grievances as $grievance) {
@@ -119,64 +119,13 @@ final class EmployeeCourtFiling
             ], fn (mixed $value): bool => $value !== null && $value !== ''),
             'grievances' => json_encode($grievances->map(fn (Grievance $g): array => $this->snapshot($g))->values()->all(), JSON_UNESCAPED_UNICODE),
             // The discipline cases it concerns, in the grievances' form (ADR 0013 #14): the appeal record starts there.
-            'disciplines' => $disciplines->isEmpty() ? null : json_encode($disciplines->map(fn (DisciplinaryCase $c): array => $this->disciplineSnapshot($c))->values()->all(), JSON_UNESCAPED_UNICODE),
+            'disciplines' => $disciplines === [] ? null : json_encode($disciplines, JSON_UNESCAPED_UNICODE),
             'co_applicants' => $coApplicants !== [] ? $coApplicants : null,
             'lawyer_license_number' => $powerOfAttorney !== null ? $lawyerLicense : null,
         ], array_slice($documents, 0, self::MAX_DOCUMENTS), $powerOfAttorney !== null && $lawyerLicense !== null ? [
             'name' => $powerOfAttorney->getClientOriginalName() ?: 'power-of-attorney.pdf',
             'contents' => (string) $powerOfAttorney->get(),
         ] : null);
-    }
-
-    /**
-     * The employee's own discipline cases that were decided and the decision
-     * delivered to them: the ones a case at the tribunal may challenge.
-     */
-    public function disciplines(Employee $employee): Builder
-    {
-        return DisciplinaryCase::query()->where('accused_employee_id', $employee->getKey())->whereNotNull('delivered_at');
-    }
-
-    /**
-     * What court-ms keeps of a discipline case, in the grievances' form: the
-     * charges, the employee's answers (as responses) and the delivered
-     * decisions, as plain text.
-     *
-     * @return array<string, mixed>
-     */
-    public function disciplineSnapshot(DisciplinaryCase $case): array
-    {
-        $charges = $case->charges->map(fn ($charge): string => trim(implode(' — ', array_filter([(string) $charge->title, $charge->violated_provision ? (string) $charge->violated_provision : null]))))->filter()->values();
-
-        return [
-            'uuid' => (string) $case->getKey(),
-            'reference' => $case->case_number,
-            'subject' => $charges->first() ?: ((string) $case->summary ?: (string) $case->case_number),
-            'category' => $case->severity?->value,
-            'status' => $case->status?->value,
-            'description' => trim(implode("\n\n", array_filter([
-                $this->plain((string) $case->summary),
-                ...$case->charges->map(fn ($charge): string => trim(implode("\n", array_filter([(string) $charge->title, $this->plain((string) $charge->particulars)]))))->all(),
-            ]))),
-            'submitted_at' => $case->charged_at?->toIso8601String(),
-            'closed_at' => ($case->closed_at ?? $case->delivered_at)?->toIso8601String(),
-            'responses' => [
-                ...$case->responses->map(fn ($response): array => [
-                    'body' => $this->plain(trim(implode("\n\n", array_filter([(string) $response->objection_text, (string) $response->defense_evidence_list])))),
-                    'at' => $response->received_at?->toDateString(),
-                ])->filter(fn (array $row): bool => $row['body'] !== '')->values()->all(),
-                ...($case->final_statement ? [['body' => $this->plain((string) $case->final_statement), 'at' => $case->final_statement_at?->toDateString()]] : []),
-            ],
-            'decisions' => $case->decisions->whereNotNull('delivered_at')->map(fn ($decision): array => [
-                'number' => null,
-                // The penalty in words, its amount and the article it rests on, e.g. "Written warning (Art. 69)".
-                'type' => $decision->penalty !== null
-                    ? trim(ucfirst(str_replace('_', ' ', $decision->penalty->value)).($decision->penalty_amount ? ' '.$decision->penalty_amount : '').' ('.$decision->penalty->article().')')
-                    : ($decision->action?->value !== null ? ucfirst(str_replace('_', ' ', $decision->action->value)) : null),
-                'text' => $this->plain((string) $decision->reason),
-                'at' => ($decision->decided_at ?? $decision->delivered_at)?->toDateString(),
-            ])->values()->all(),
-        ];
     }
 
     /**

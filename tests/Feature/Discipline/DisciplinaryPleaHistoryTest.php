@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Services\Discipline\DisciplinaryCaseService;
 use Illuminate\Support\Carbon;
+use Modules\Discipline\Application\Services\DisciplinaryCaseService;
 use Tests\Support\DisciplineScenario;
 
 /*

@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace App\Services\Legal;
 
 use App\Enums\CommitteeType;
-use App\Enums\Discipline\DisciplinaryFinding;
-use App\Enums\Discipline\DisciplinaryPenalty;
-use App\Models\DisciplinaryDecision;
 use App\Models\EmployeeAssignment;
 use App\Models\GrievanceCommittee;
 use App\Models\GrievanceCommitteeMember;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Modules\Discipline\Contracts\DisciplineCases;
 
 /**
  * Regulation 201/2018 committee rules, applied only to the two statutory
@@ -127,13 +125,7 @@ final class StatutoryCommitteeRules
         $member = (object) ['employee_id' => $employeeId];
 
         // A penalty set aside by the Administrative Court is not a penalty (Art. 6(2)).
-        $penalised = DisciplinaryDecision::query()
-            ->whereHas('disciplinaryCase', fn ($q) => $q->where('accused_employee_id', $member->employee_id))
-            ->where('finding', DisciplinaryFinding::Responsible->value)
-            ->whereIn('penalty', DisciplinaryPenalty::values())
-            ->where('decided_at', '>=', $on->copy()->subYears(2))
-            ->whereDoesntHave('appeal', fn ($q) => $q->where('outcome', 'reversed'))
-            ->exists();
+        $penalised = app(DisciplineCases::class)->penalisedSince((string) $member->employee_id, Carbon::parse($on)->subYears(2));
         if ($penalised) {
             $problems[] = 'disciplined_within_two_years';
         }

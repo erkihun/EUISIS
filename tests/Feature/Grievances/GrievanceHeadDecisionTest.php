@@ -5,8 +5,6 @@ declare(strict_types=1);
 use App\Enums\Grievance\GrievanceDecisionStatus;
 use App\Enums\Grievance\GrievanceLetterStatus;
 use App\Enums\Grievance\GrievanceSignatureMethod;
-use App\Models\DisciplinaryCase;
-use App\Models\DisciplinaryDecision;
 use App\Models\GrievanceApprovalRule;
 use App\Services\Grievances\GrievanceCaseService;
 use App\Services\Grievances\GrievanceCommitteeService;
@@ -17,6 +15,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
+use Modules\Discipline\Domain\Models\DisciplinaryCase;
+use Modules\Discipline\Domain\Models\DisciplinaryDecision;
 use Tests\Support\GrievanceScenario;
 
 /*
