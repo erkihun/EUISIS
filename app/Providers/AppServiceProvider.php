@@ -12,6 +12,7 @@ use App\Models\CodeRule;
 use App\Models\DesignImportBatch;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmployeePerformanceItem;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
 use App\Models\GradeLevel;
@@ -33,8 +34,8 @@ use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
-use App\Models\Permission;
-use App\Models\Position; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\Permission; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
 use App\Models\PositionService;
@@ -111,6 +112,7 @@ use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\Employees\NullEmployeeLeaveProvider;
 use App\Services\Integration\Events\IntegrationEventContext;
+use App\Services\Performance\DailyWorkPerformanceItems;
 use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\Security\SessionActivityService;
 use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
@@ -122,6 +124,7 @@ use App\Support\Mail\RuntimeMailSettings;
 use App\Support\Rbac\RoleBypassExemptions;
 use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
@@ -136,6 +139,8 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
+use Modules\DailyWork\Contracts\PerformanceItemSource;
+use Modules\DailyWork\Contracts\ReadModels\DailyActivityItemRecord;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -145,6 +150,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Performance implements Daily work's extension point (ADR 0017).
+        $this->app->bind(PerformanceItemSource::class, DailyWorkPerformanceItems::class);
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
         // Event integration: one correlation id and suppression set per request / job.
@@ -185,6 +192,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Performance attaches its item to Daily work's records (Daily work does not know Performance).
+        DailyActivityItemRecord::resolveRelationUsing('performanceItem', fn (DailyActivityItemRecord $item): BelongsTo => $item->belongsTo(EmployeePerformanceItem::class, 'employee_performance_item_id'));
         // Core Stage 6 deployment safety: migrate:fresh, migrate:refresh,
         // migrate:reset and db:wipe refuse to run in production, whoever types them.
         DB::prohibitDestructiveCommands($this->app->isProduction());

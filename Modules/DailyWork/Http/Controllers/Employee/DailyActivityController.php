@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Http\Controllers\Employee;
 
-use Modules\DailyWork\Domain\Enums\DailyActivityCategory;
-use Modules\DailyWork\Domain\Enums\DailyActivityProgressStatus;
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Http\Controllers\Controller;
-use Modules\DailyWork\Http\Requests\SaveDailyActivityRequest;
-use Modules\DailyWork\Http\Requests\UploadDailyActivityAttachmentRequest;
-use Modules\DailyWork\Domain\Models\DailyActivityAttachment;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
-use App\Models\EmployeePerformanceItem;
 use App\Models\PositionService;
-use Modules\DailyWork\Application\Services\DailyActivityCalendarService;
-use Modules\DailyWork\Application\Services\DailyActivityPresenter;
-use Modules\DailyWork\Application\Services\DailyActivityService;
-use Modules\DailyWork\Application\Services\DailyActivitySettings;
 use App\Services\Employees\EmployeeWorkContextResolver;
-use Modules\DailyWork\Application\Services\WorkStructureResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\DailyWork\Application\Services\DailyActivityCalendarService;
+use Modules\DailyWork\Application\Services\DailyActivityPresenter;
+use Modules\DailyWork\Application\Services\DailyActivityService;
+use Modules\DailyWork\Application\Services\DailyActivitySettings;
+use Modules\DailyWork\Application\Services\WorkStructureResolver;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Contracts\PerformanceItemSource;
+use Modules\DailyWork\Domain\Enums\DailyActivityCategory;
+use Modules\DailyWork\Domain\Enums\DailyActivityProgressStatus;
+use Modules\DailyWork\Domain\Models\DailyActivityAttachment;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
+use Modules\DailyWork\Http\Requests\SaveDailyActivityRequest;
+use Modules\DailyWork\Http\Requests\UploadDailyActivityAttachmentRequest;
 
 /**
  * Employee self-service: My Work > Daily Activity / Calendar / History.
@@ -91,13 +91,7 @@ class DailyActivityController extends Controller
             // Work execution register: service → sub-service → task → standard in force on the date.
             'work_structure' => $this->structure->catalog($positionId, $log?->organization_id ?? $assignment?->organization_id, $date),
             // EPMS: the employee's own KPIs agreed for this date (evidence link only).
-            'kpis' => EmployeePerformanceItem::query()->where('is_current', true)
-                ->whereHas('agreement', fn ($q) => $q->where('employee_id', $employee->id)
-                    ->whereIn('status', ['AGREED', 'ACTIVE', 'UNDER_REVIEW'])
-                    ->where('effective_from', '<=', $date->toDateString())->where('effective_to', '>=', $date->toDateString()))
-                ->with('kpi:id,code,name_en,name_am,unit_of_measure')->get()
-                ->map(fn (EmployeePerformanceItem $item): array => ['id' => $item->id, 'name_en' => $item->kpi->code.' — '.$item->kpi->name_en, 'name_am' => $item->kpi->code.' — '.($item->kpi->name_am ?? $item->kpi->name_en), 'unit' => $item->kpi->unit_of_measure])
-                ->all(),
+            'kpis' => app(PerformanceItemSource::class)->agreedItems((string) $employee->id, $date),
             'options' => [
                 'categories' => DailyActivityCategory::values(),
                 'progress_statuses' => DailyActivityProgressStatus::values(),

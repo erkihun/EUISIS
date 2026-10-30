@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Contracts\ReadModels;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\EmployeePerformanceItem;
 use App\Support\Database\ReadOnlyModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -43,13 +42,10 @@ final class DailyActivityItemRecord extends ReadOnlyModel
         return 'App\Models\DailyActivityItem';
     }
 
+    // performanceItem() is attached by the Performance module (it implements PerformanceItemSource).
+
     public function log(): BelongsTo
     {
         return $this->belongsTo(DailyActivityLogRecord::class, 'daily_activity_log_id');
-    }
-
-    public function performanceItem(): BelongsTo
-    {
-        return $this->belongsTo(EmployeePerformanceItem::class, 'employee_performance_item_id');
     }
 }

@@ -14,10 +14,12 @@ use Modules\DailyWork\Application\Queries\DailyWorkOutputsQuery;
 use Modules\DailyWork\Application\Queries\EmployeeDailyWorkQuery;
 use Modules\DailyWork\Application\Services\DailyActivityReviewerResolver;
 use Modules\DailyWork\Application\Services\DailyActivitySettings;
+use Modules\DailyWork\Application\Services\NoPerformanceItems;
 use Modules\DailyWork\Contracts\DailyWorkCalendarSettings;
 use Modules\DailyWork\Contracts\DailyWorkOutputs;
 use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use Modules\DailyWork\Contracts\EmployeeDailyWork;
+use Modules\DailyWork\Contracts\PerformanceItemSource;
 use Modules\DailyWork\Domain\Models\DailyActivityAttachment;
 use Modules\DailyWork\Domain\Models\DailyActivityHistory;
 use Modules\DailyWork\Domain\Models\DailyActivityItem;
@@ -41,6 +43,8 @@ final class DailyWorkServiceProvider extends ServiceProvider
         $this->app->bind(EmployeeDailyWork::class, EmployeeDailyWorkQuery::class);
         $this->app->bind(DailyWorkOutputs::class, DailyWorkOutputsQuery::class);
         $this->app->bind(DailyWorkCalendarSettings::class, DailyActivitySettings::class);
+        // The Performance module binds its own (AppServiceProvider until it moves).
+        $this->app->bindIf(PerformanceItemSource::class, NoPerformanceItems::class);
     }
 
     public function boot(): void

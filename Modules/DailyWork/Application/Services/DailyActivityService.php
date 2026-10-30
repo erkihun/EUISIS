@@ -6,18 +6,11 @@ namespace Modules\DailyWork\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
-use Modules\DailyWork\Domain\Enums\DailyActivityHistoryAction;
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
-use App\Enums\Performance\AgreementStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityAttachment;
-use Modules\DailyWork\Domain\Models\DailyActivityItem;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeePerformanceItem;
 use App\Models\PositionService;
 use App\Models\User;
+use App\Services\Employees\EmployeeWorkContextResolver;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -25,7 +18,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use App\Services\Employees\EmployeeWorkContextResolver;
+use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Contracts\PerformanceItemSource;
+use Modules\DailyWork\Domain\Enums\DailyActivityHistoryAction;
+use Modules\DailyWork\Domain\Models\DailyActivityAttachment;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * The Daily Activity workflow. Every state change goes through here.
@@ -589,17 +588,13 @@ class DailyActivityService
             return [];
         }
 
-        $valid = EmployeePerformanceItem::query()->whereIn('id', $ids)->where('is_current', true)
-            ->whereHas('agreement', fn ($q) => $q->where('employee_id', $employee->id)
-                ->whereIn('status', [AgreementStatus::Agreed->value, AgreementStatus::Active->value, AgreementStatus::UnderReview->value])
-                ->where('effective_from', '<=', $date->toDateString())->where('effective_to', '>=', $date->toDateString()))
-            ->get(['id', 'kpi_id', 'objective_id']);
+        $valid = app(PerformanceItemSource::class)->citableItems($ids, (string) $employee->id, $date);
 
-        if ($valid->count() !== count($ids)) {
+        if (count($valid) !== count($ids)) {
             throw ValidationException::withMessages(['items' => __('performance.errors.item_not_in_agreement')]);
         }
 
-        return $valid->mapWithKeys(fn (EmployeePerformanceItem $i) => [$i->id => ['id' => $i->id, 'kpi_id' => $i->kpi_id, 'objective_id' => $i->objective_id]])->all();
+        return $valid;
     }
 
     /**

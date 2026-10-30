@@ -187,9 +187,10 @@ final class PerformanceCascadeService
     /** A daily activity (the Daily work module's read model or its own record) traced to its goals. */
     public function activityTrace(Model $activity): array
     {
-        $item = $activity->performanceItem;
+        $itemId = $activity->getAttribute('employee_performance_item_id');
+        $objective = $itemId === null ? null : EmployeePerformanceItem::query()->with('objective')->find($itemId)?->objective;
 
-        return $item?->objective ? $this->trace($item->objective) : [];
+        return $objective ? $this->trace($objective) : [];
     }
 
     /**

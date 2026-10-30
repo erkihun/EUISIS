@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Application\Services;
 
+use App\Models\Employee;
+use Modules\DailyWork\Contracts\PerformanceItemSource;
 use Modules\DailyWork\Domain\Models\DailyActivityAttachment;
 use Modules\DailyWork\Domain\Models\DailyActivityHistory;
 use Modules\DailyWork\Domain\Models\DailyActivityItem;
 use Modules\DailyWork\Domain\Models\DailyActivityLog;
-use App\Models\Employee;
-use App\Services\Performance\PerformanceCascadeService;
 
 /**
  * Shapes logs for Inertia. Dates leave as Gregorian ISO strings; the browser
@@ -18,7 +18,7 @@ use App\Services\Performance\PerformanceCascadeService;
  */
 class DailyActivityPresenter
 {
-    public function __construct(private readonly PerformanceCascadeService $cascade) {}
+    public function __construct(private readonly PerformanceItemSource $performance) {}
 
     /** Eager loads every presenter method below relies on. */
     public const SUMMARY_WITH = [
@@ -56,8 +56,6 @@ class DailyActivityPresenter
             'items.positionService:id,name_en,name_am',
             'items.subService:id,code,name_en,name_am',
             'items.task:id,code,name_en,name_am',
-            'items.performanceItem.objective.plan',
-            'items.performanceItem.objective.positionService',
             'attachments',
             'histories.actor:id,name',
             'reopener:id,name',
@@ -97,8 +95,7 @@ class DailyActivityPresenter
             'activity_category' => $item->activity_category?->value,
             'position_service_id' => $item->position_service_id,
             'employee_performance_item_id' => $item->employee_performance_item_id,
-            'cascade_trace' => $item->relationLoaded('performanceItem') && $item->performanceItem?->relationLoaded('objective')
-                && $item->performanceItem->objective !== null ? $this->cascade->trace($item->performanceItem->objective) : [],
+            'cascade_trace' => $item->employee_performance_item_id !== null ? $this->performance->traceOf((string) $item->employee_performance_item_id) : [],
             'position_service' => $item->relationLoaded('positionService') && $item->positionService
                 ? $this->named($item->positionService->name_en, $item->positionService->name_am)
                 : null,

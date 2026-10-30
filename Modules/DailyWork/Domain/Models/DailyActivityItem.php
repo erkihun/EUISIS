@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Domain\Models;
 
 use App\Casts\RichTextHtml;
-use Modules\DailyWork\Domain\Enums\DailyActivityCategory;
-use Modules\DailyWork\Domain\Enums\DailyActivityProgressStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\EmployeePerformanceItem;
 use App\Models\PositionService;
 use App\Models\PositionServiceSubService;
 use App\Models\PositionServiceTask;
 use App\Models\PositionServiceTaskStandard;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\DailyWork\Domain\Enums\DailyActivityCategory;
+use Modules\DailyWork\Domain\Enums\DailyActivityProgressStatus;
 
 /**
  * One piece of work within a daily log.
@@ -75,14 +74,11 @@ class DailyActivityItem extends Model
         ];
     }
 
+    // performanceItem() is attached by the Performance module (it implements PerformanceItemSource).
+
     public function log(): BelongsTo
     {
         return $this->belongsTo(DailyActivityLog::class, 'daily_activity_log_id');
-    }
-
-    public function performanceItem(): BelongsTo
-    {
-        return $this->belongsTo(EmployeePerformanceItem::class, 'employee_performance_item_id');
     }
 
     public function positionService(): BelongsTo
