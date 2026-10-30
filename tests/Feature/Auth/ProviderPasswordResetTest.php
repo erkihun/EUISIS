@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Contracts\SmsGateway;
-use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -11,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Providers\Application\Notifications\ProviderPasswordResetCodeNotification;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderPasswordResetCode;

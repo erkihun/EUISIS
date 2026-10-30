@@ -18,12 +18,12 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Models\ServiceType;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 beforeEach(function (): void {
     $type = OrganizationType::query()->create(['code' => 'SF-TYPE', 'name_en' => 'Feedback Type']);

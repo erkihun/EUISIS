@@ -16,13 +16,13 @@ use App\Models\PerformanceObjective;
 use App\Models\PerformancePlan;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

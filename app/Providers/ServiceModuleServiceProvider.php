@@ -5,19 +5,16 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Backbone\Contracts\EmployeeFeedbackLinks;
-use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Enums\CodeRuleEntityType;
 use App\Models\DisciplinaryCase;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Grievance;
 use App\Models\GrievanceDecision;
 use App\Models\GrievanceLetter;
-use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\TransferApplication;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Services\ServiceFeedback\EmployeeFeedbackLinkAdapter;
-use App\Services\ServiceProviders\ServiceProviderCodeLookup;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -35,7 +32,6 @@ class ServiceModuleServiceProvider extends ServiceProvider
     /** @var array<class-string, class-string> */
     public array $singletons = [
         EmployeeFeedbackLinks::class => EmployeeFeedbackLinkAdapter::class,
-        ProviderCodeLookup::class => ServiceProviderCodeLookup::class,
     ];
 
     /**
@@ -45,7 +41,6 @@ class ServiceModuleServiceProvider extends ServiceProvider
      */
     private const ORGANIZATION_DEPENDENTS = [
         // Service delivery and providers
-        'service_providers' => ['organization_id'],
         'providers' => ['assigned_organization_id'],
         // Transfers and vacancies
         'employee_transfers' => ['from_organization_id', 'to_organization_id'],
@@ -82,13 +77,6 @@ class ServiceModuleServiceProvider extends ServiceProvider
             OrganizationDeletionGuard::registerDependent($table, ...$columns);
         }
 
-        CodeRuleTargetRegistry::registerTarget(CodeRuleEntityType::ServiceProvider, [
-            'model' => ServiceProviderModel::class,
-            'table' => 'service_providers',
-            'code_column' => 'code',
-            'label' => 'Service Provider Code',
-            'immutable_after_create' => false,
-        ]);
         CodeRuleTargetRegistry::registerTarget(CodeRuleEntityType::TransferApplication, [
             'model' => TransferApplication::class,
             'table' => 'transfer_applications',
@@ -97,7 +85,6 @@ class ServiceModuleServiceProvider extends ServiceProvider
             'immutable_after_create' => true,
         ]);
 
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ServiceProvider, ServiceProviderModel::class, 'code');
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransferApplication, TransferApplication::class, 'application_number', withTrashed: true);
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceComplaint, EmployeeServiceFeedback::class, 'reference_number');
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicTipOff, EmployeeServiceFeedback::class, 'reference_number');

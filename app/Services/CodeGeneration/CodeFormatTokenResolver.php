@@ -13,8 +13,8 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
-use App\Models\ServiceType;
 use Illuminate\Support\Carbon;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class CodeFormatTokenResolver
 {

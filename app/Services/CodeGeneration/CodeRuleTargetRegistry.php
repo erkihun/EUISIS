@@ -19,7 +19,7 @@ use App\Models\Process;
 use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
 use App\Models\Service;
-use App\Models\ServiceType;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 /**
  * Which table and column hold the code of each code-rule entity type.

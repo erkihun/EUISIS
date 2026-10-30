@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OfflineSyncTransactionRequest;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class OfflineSyncController extends Controller
 {

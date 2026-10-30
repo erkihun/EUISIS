@@ -73,6 +73,16 @@ const MODULE_TABLE_READERS = [
         // The cafeteria configuration audit counts portal users per provider.
         'Modules/Cafeteria/Infrastructure/Console/AuditCafeteriaConfiguration.php' => 'reporting',
     ],
+    'Entitlements' => [
+        // Settlement and dashboard aggregates; all are read-only.
+        'app/Actions/Workflows/GenerateSettlementReportAction.php' => 'reporting',
+        'app/Console/Commands/Audit/AuditDuplicateData.php' => 'reporting',
+        'app/Services/Dashboard/DashboardChartService.php' => 'reporting',
+        'app/Services/Dashboard/DashboardMetricService.php' => 'reporting',
+        'Modules/Transport/Application/Services/TransportDataQualityService.php' => 'reporting',
+        // One-off provider-user migration reads the old service-point association.
+        'Modules/Providers/Infrastructure/Console/MigrateLegacyProviderUsers.php' => 'migration',
+    ],
 ];
 
 /* Uses of a module's internals frozen when it moved; may only shrink (see the file). */

@@ -7,11 +7,11 @@ namespace App\Services\Integration;
 use App\Enums\ApiScope;
 use App\Models\Employee;
 use App\Models\ExternalApplication;
-use App\Models\ServiceProvider;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**

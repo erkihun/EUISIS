@@ -76,3 +76,12 @@ make to Core records) and `App\Backbone\Events`. Service modules should be shape
   actually call, not speculatively.
 - Deploying a move: drain the queue, deploy, `composer dump-autoload` (part of the normal deploy),
   `php artisan optimize:clear`. No database migration.
+
+## Implementation record
+
+On 2026-10-30, Entitlements/service delivery moved to `Modules/Entitlements`. Its provider owns
+policy registration, morph compatibility, service-provider code rules and the Backbone
+`ProviderCodeLookup` adapter. Cafeteria and Providers create service types, service points and
+service transactions through `ServiceDeliveryRegistry`; remaining direct readers are frozen in the
+shrinking internal-use baseline. The entitlement admin page remains in `app/` because it composes
+Entitlements with Cafeteria data at the application composition boundary.

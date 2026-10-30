@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Actions\Positions\UpdatePositionAction;
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Backbone\Commands\EndAssignment;
 use App\Backbone\Commands\StartAssignment;
 use App\Backbone\Commands\TransferAssignment;
@@ -21,7 +20,6 @@ use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionOccupancy;
-use App\Models\ServiceType;
 use App\Models\TransferApplication;
 use App\Models\User;
 use App\Support\Security\NationalIdHash;
@@ -30,6 +28,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 
 /*

@@ -165,16 +165,16 @@ return [
         ],
     ],
     'Entitlements' => [
-        'home' => 'app',
+        'home' => 'Modules/Entitlements',
         // Service delivery: service types, entitlements, service transactions, and the service
         // providers (service points) they run at, for the partner API and NFC terminals.
         'models' => [
-            'App\Models\Entitlement',
-            'App\Models\EntitlementRule',
-            'App\Models\ServiceProvider',
-            'App\Models\ServiceProviderUser',
-            'App\Models\ServiceTransaction',
-            'App\Models\ServiceType',
+            'Modules\Entitlements\Domain\Models\Entitlement',
+            'Modules\Entitlements\Domain\Models\EntitlementRule',
+            'Modules\Entitlements\Domain\Models\ServiceProvider',
+            'Modules\Entitlements\Domain\Models\ServiceProviderUser',
+            'Modules\Entitlements\Domain\Models\ServiceTransaction',
+            'Modules\Entitlements\Domain\Models\ServiceType',
         ],
     ],
     'Transport' => [

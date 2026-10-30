@@ -20,11 +20,11 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

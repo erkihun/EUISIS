@@ -9,8 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PublicHolidayResource;
 use App\Models\Organization;
 use App\Models\PublicHoliday;
-use App\Models\ServiceProviderUser;
-use App\Models\ServiceType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +26,8 @@ use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
 use Modules\Cafeteria\Http\Requests\UpdateCafeteriaSettingsRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaDayRuleResource;
 use Modules\Cafeteria\Http\Resources\CafeteriaSubsidyRuleResource;
+use Modules\Entitlements\Domain\Models\ServiceProviderUser;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class CafeteriaSettingController extends Controller
 {

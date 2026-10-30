@@ -9,9 +9,9 @@ use App\Enums\CodeRuleScopeType;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
-use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class CodeRuleResource extends JsonResource
 {

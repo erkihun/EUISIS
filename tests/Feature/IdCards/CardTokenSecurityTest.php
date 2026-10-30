@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Actions\Entitlements\GrantEntitlementAction;
 use App\Actions\IdCards\GenerateCardTokenAction;
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
@@ -15,11 +13,13 @@ use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\IdCardQrCodeRenderer;
+use Modules\Entitlements\Application\Actions\Entitlements\GrantEntitlementAction;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

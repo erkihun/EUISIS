@@ -16,6 +16,40 @@ declare(strict_types=1);
  * Next: a provider read model or id-only relations (Modules/MIGRATION.md).
  */
 return [
+    'Entitlements' => [
+        // Composition and owners that still read service-delivery records directly.
+        'App\\Actions\\Transfers\\CompleteTransferAction',
+        'App\\Actions\\Vacancy\\CompleteVacancyTransferAction',
+        'App\\Actions\\Workflows\\GenerateSettlementReportAction',
+        'App\\Http\\Controllers\\Api\\V1\\CardVerificationController',
+        'App\\Http\\Controllers\\Api\\V1\\NfcController',
+        'App\\Http\\Controllers\\Api\\V1\\OfflineSyncController',
+        'App\\Http\\Controllers\\Employee\\EmployeePortalController',
+        'App\\Http\\Controllers\\OrganizationDesign\\ServiceController',
+        'App\\Http\\Controllers\\Web\\ApiManagementController',
+        'App\\Http\\Controllers\\Web\\CodeRuleController',
+        'App\\Http\\Controllers\\Web\\EntitlementController',
+        'App\\Http\\Controllers\\Web\\NfcTerminalController',
+        'App\\Http\\Requests\\OrganizationDesign\\ServiceRules',
+        'App\\Http\\Requests\\StoreCodeRuleRequest',
+        'App\\Http\\Requests\\UpdateCodeRuleRequest',
+        'App\\Http\\Resources\\CodeRuleResource',
+        'App\\Services\\CodeGeneration\\CodeFormatTokenResolver',
+        'App\\Services\\CodeGeneration\\CodeRuleTargetRegistry',
+        'App\\Services\\Dashboard\\DashboardMetricService',
+        'App\\Services\\Integration\\IntegrationAccessService',
+        'App\\Services\\OrganizationDesign\\Import\\DesignImportDefinitions',
+        'App\\Services\\RecycleBin\\RecycleBinRegistry',
+        'Modules\\Cafeteria\\Domain\\Models\\CafeteriaProvider',
+        'Modules\\Cafeteria\\Domain\\Models\\CafeteriaProviderAssignment',
+        'Modules\\Cafeteria\\Http\\Controllers\\CafeteriaSettingController',
+        'Modules\\Cafeteria\\Providers\\CafeteriaServiceProvider',
+        'Modules\\Providers\\Application\\Services\\ProviderUserAccountService',
+        'Modules\\Providers\\Domain\\Models\\ProviderService',
+        'Modules\\Providers\\Domain\\Models\\ProviderUserServicePermission',
+        'Modules\\Providers\\Http\\Controllers\\ProviderUserController',
+        'Modules\\Providers\\Http\\Middleware\\EnsureProviderServiceScope',
+    ],
     'Providers' => [
         // Modules\Cafeteria
         'Modules\Cafeteria\Application\Actions\CreateCafeteriaProviderAction',

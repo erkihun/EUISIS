@@ -15,7 +15,7 @@ use App\Models\Process;
 use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
 use App\Models\Service;
-use App\Models\ServiceType;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 /**
  * What each kind of import sheet looks like (ADR-LB-004): its columns, which

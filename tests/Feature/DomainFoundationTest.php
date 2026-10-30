@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Actions\Employees\RegisterEmployeeAction;
-use App\Actions\Entitlements\GrantEntitlementAction;
 use App\Actions\IdCards\ActivateCardAction;
 use App\Actions\IdCards\ApproveCardRequestAction;
 use App\Actions\IdCards\CreatePrintBatchAction;
@@ -13,7 +12,6 @@ use App\Actions\IdCards\ReplaceCardAction;
 use App\Actions\IdCards\ReportLostOrDamagedCardAction;
 use App\Actions\IdCards\SubmitCardRequestAction;
 use App\Actions\Organizations\PublishHierarchyVersionAction;
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Actions\Transfers\CompleteTransferAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
@@ -36,14 +34,16 @@ use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
 use App\Models\TransferSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Laravel\Sanctum\Sanctum;
+use Modules\Entitlements\Application\Actions\Entitlements\GrantEntitlementAction;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

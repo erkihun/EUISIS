@@ -7,9 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\ExternalApplication;
 use App\Models\Organization;
-use App\Models\ServiceProvider;
 use App\Models\ServiceTerminal;
-use App\Models\ServiceType;
 use App\Services\Nfc\NfcAccess;
 use App\Services\Nfc\NfcAudit;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -21,6 +19,8 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Contracts\CafeteriaDirectory;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 /**
  * Terminal registry CRUD.

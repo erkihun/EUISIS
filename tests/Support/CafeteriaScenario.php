@@ -11,8 +11,6 @@ use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
@@ -23,6 +21,8 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
 

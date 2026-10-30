@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-use App\Actions\ServiceTransactions\RecordServiceTransactionAction;
 use App\Backbone\Adapters\CardBasedServiceEligibility;
 use App\Backbone\Contracts\ServiceEligibility;
 use App\Enums\AuditEventType;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
-use App\Enums\EntitlementStatus;
 use App\Models\AuditLog;
 use App\Models\Employee;
-use App\Models\Entitlement;
 use App\Models\IdCard;
-use App\Models\ServiceProvider;
-use App\Models\ServiceTransaction;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\RecordServiceTransactionAction;
+use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Domain\Models\Entitlement;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceTransaction;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 function serviceEmployee(EmployeeStatus $status = EmployeeStatus::Active): Employee
 {

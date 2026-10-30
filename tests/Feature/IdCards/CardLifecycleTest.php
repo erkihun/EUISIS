@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-use App\Actions\Entitlements\GrantEntitlementAction;
 use App\Actions\IdCards\ActivateCardAction;
 use App\Actions\IdCards\GenerateCardTokenAction;
 use App\Actions\IdCards\IssueCardAction;
 use App\Actions\IdCards\ReplaceCardAction;
 use App\Actions\IdCards\RevokeCardAction;
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\CardReplacement;
 use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\IdCard;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Modules\Entitlements\Application\Actions\Entitlements\GrantEntitlementAction;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

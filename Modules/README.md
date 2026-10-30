@@ -30,7 +30,7 @@ Rules, all enforced by `tests/Feature/Architecture`:
 
 - Outside code (`app/` and other modules) uses only a module's `Contracts` (`ModulePublicApiTest`).
   Uses that existed when a module moved and could not be replaced in the same change are frozen in
-  `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Providers); that list may only
+  `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Providers and Entitlements); that list may only
   shrink.
 - Contracts are interfaces plus final data; they expose no model, builder, response, form request or
   internal class. `Illuminate\Http\Request` may pass through as request context (audit, IP), as in
@@ -62,6 +62,7 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Providers | `ProviderPortalSession::providerId($request)`, `providerHasService($id, $code)`, `providerPayload($request)` | id, bool, layout props | Cafeteria and Transport portal pages |
 | Providers | `ProviderPortalSession::actor($request)`, `can($request, $permission)`, `actorHasService($request, $code)` | `?Data\PortalActor`, bool, bool | portal scans, trips, invoices, settlement disputes, exports, form requests |
 | Providers | `ProviderDirectory::offering($serviceCode, $activeOnly)`, `hasService($id, $code)`, `find($id)` | picker rows, bool, `?Data\ProviderSummary` | Transport admin pickers, form requests, services |
+| Entitlements | `ServiceDeliveryRegistry::ensureServiceType(...)`, `createProvider(...)`, `recordTransaction(...)` | owned record ids | Providers service enablement and Cafeteria service-point/scan writes |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |

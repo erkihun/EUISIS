@@ -7,8 +7,6 @@ use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\ApiEndpointCatalogService;
 use App\Services\Integration\PartnerAccessReviewService;
@@ -17,6 +15,8 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

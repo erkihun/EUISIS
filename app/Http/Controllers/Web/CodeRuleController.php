@@ -27,7 +27,6 @@ use App\Models\CodeRuleSequence;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
-use App\Models\ServiceType;
 use App\Services\CodeGeneration\CodeFormatTokenRegistry;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
@@ -36,6 +35,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class CodeRuleController extends Controller
 {

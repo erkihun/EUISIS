@@ -5,6 +5,7 @@ use App\Providers\BackboneServiceProvider;
 use App\Providers\IntelligenceServiceProvider;
 use App\Providers\ServiceModuleServiceProvider;
 use Modules\Cafeteria\Providers\CafeteriaServiceProvider;
+use Modules\Entitlements\Providers\EntitlementsServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
@@ -13,6 +14,7 @@ return [
     BackboneServiceProvider::class,
     // After the backbone: fills its registries and contract ports.
     ServiceModuleServiceProvider::class,
+    EntitlementsServiceProvider::class,
     IntelligenceServiceProvider::class,
     // Business modules under Modules/ (ADR 0017): each wires only itself.
     ProvidersServiceProvider::class,

@@ -17,15 +17,15 @@ use App\Models\Grievance;
 use App\Models\GrievanceCategory;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\TransferApplication;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Services\ServiceFeedback\EmployeeFeedbackLinkAdapter;
-use App\Services\ServiceProviders\ServiceProviderCodeLookup;
 use Illuminate\Support\Str;
+use Modules\Entitlements\Application\Services\ServiceProviderCodeLookup;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 /*
  * Stage 5 of the master backbone separation: the backbone's registries are
@@ -54,7 +54,7 @@ it('keeps every collision check the generator had, now registered by the owning 
         'position' => ['App\Models\Position', 'job_position_code', true],
         'employee_position' => ['App\Models\Position', 'job_position_code', true],
         'id_card' => ['App\Models\IdCard', 'card_number', false],
-        'service_type' => ['App\Models\ServiceType', 'code', true],
+        'service_type' => ['Modules\Entitlements\Domain\Models\ServiceType', 'code', true],
         'organization_unit' => ['App\Models\OrganizationUnit', 'code', true],
         'organization_unit_type' => ['App\Models\OrganizationUnitType', 'code', true],
         // Service-module entity types, registered by ServiceModuleServiceProvider.

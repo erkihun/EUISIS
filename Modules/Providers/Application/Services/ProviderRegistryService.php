@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Providers\Application\Services;
 
-use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 use Modules\Providers\Contracts\Data\NewProvider;
 use Modules\Providers\Contracts\Data\ProviderDetails;
 use Modules\Providers\Contracts\Data\ProviderOwnerAccount;
@@ -22,6 +22,8 @@ use Modules\Providers\Domain\Models\ProviderUser;
  */
 final class ProviderRegistryService implements ProviderRegistry
 {
+    public function __construct(private readonly ServiceDeliveryRegistry $serviceDelivery) {}
+
     public function register(NewProvider $provider, ?ProviderOwnerAccount $owner = null): string
     {
         return DB::transaction(function () use ($provider, $owner): string {
@@ -83,12 +85,15 @@ final class ProviderRegistryService implements ProviderRegistry
 
     public function enableService(string $providerId, string $serviceCode, ?int $actorId, ?string $serviceTypeNameIfMissing = null): void
     {
-        $serviceType = $serviceTypeNameIfMissing === null
-            ? ServiceType::query()->where('code', $serviceCode)->firstOrFail()
-            : ServiceType::query()->firstOrCreate(['code' => $serviceCode], ['name_en' => $serviceTypeNameIfMissing, 'is_active' => true]);
+        $serviceTypeId = $serviceTypeNameIfMissing === null
+            ? $this->serviceDelivery->serviceTypeId($serviceCode)
+            : $this->serviceDelivery->ensureServiceType($serviceCode, $serviceTypeNameIfMissing);
+        if ($serviceTypeId === null) {
+            throw new \DomainException("Unknown service type: {$serviceCode}");
+        }
 
         ProviderService::query()->firstOrCreate(
-            ['provider_id' => $providerId, 'service_type_id' => $serviceType->id],
+            ['provider_id' => $providerId, 'service_type_id' => $serviceTypeId],
             ['status' => 'active', 'enabled_at' => now(), 'created_by' => $actorId, 'updated_by' => $actorId],
         );
     }

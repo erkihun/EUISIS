@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Database\Seeders\Demo;
 
 use App\Models\OrganizationType;
-use App\Models\ServiceType;
 use App\Support\Demo\DemoDataset;
 use Database\Seeders\CodeRuleSeeder;
 use Database\Seeders\GrievanceDefaultsSeeder;
@@ -14,6 +13,7 @@ use Database\Seeders\OrganizationTypeSeeder;
 use Database\Seeders\OrganizationUnitTypeSeeder;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use RuntimeException;
 
 /**

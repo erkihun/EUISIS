@@ -15,12 +15,12 @@ use App\Models\CodeRule;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
-use App\Models\ServiceType;
 use App\Services\CodeGeneration\CodeFormatTokenRegistry;
 use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class StoreCodeRuleRequest extends FormRequest
 {

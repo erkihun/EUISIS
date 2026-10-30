@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Actions\Vacancy;
 
 use App\Actions\Audit\WriteAuditLogAction;
-use App\Actions\Entitlements\RecalculateEntitlementsAction;
 use App\Backbone\Commands\TransferAssignment;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
@@ -22,6 +21,7 @@ use App\Services\Vacancy\VacancyTransferService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Entitlements\Application\Actions\Entitlements\RecalculateEntitlementsAction;
 
 readonly class CompleteVacancyTransferAction
 {

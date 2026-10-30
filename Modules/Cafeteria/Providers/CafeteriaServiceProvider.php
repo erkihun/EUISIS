@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Providers;
 
-use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTerminal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -69,6 +68,7 @@ use Modules\Cafeteria\Infrastructure\Console\CafeteriaPlatformPing;
 use Modules\Cafeteria\Infrastructure\Console\CafeteriaProviderUsersMigrateCommand;
 use Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProviders;
 use Modules\Cafeteria\Infrastructure\Console\SyncCafeteriaPolicyStatuses;
+use Modules\Entitlements\Domain\Models\ServiceProvider as ServiceProviderModel;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Domain\Models\Provider;
 

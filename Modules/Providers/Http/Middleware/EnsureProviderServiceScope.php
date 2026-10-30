@@ -7,13 +7,13 @@ namespace Modules\Providers\Http\Middleware;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\ExternalApplication;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Support\Api\ApiError;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

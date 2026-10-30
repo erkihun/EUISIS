@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Actions\Entitlements\GrantEntitlementAction;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\EntitlementStoreRequest;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\Entitlement;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -19,6 +14,11 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Contracts\CafeteriaDirectory;
+use Modules\Entitlements\Application\Actions\Entitlements\GrantEntitlementAction;
+use Modules\Entitlements\Domain\Models\Entitlement;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Entitlements\Http\Requests\EntitlementStoreRequest;
 
 class EntitlementController extends Controller
 {

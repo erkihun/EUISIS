@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\MfaController;
 use App\Models\AuditLog;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Providers\AppServiceProvider;
 use App\Services\Security\SessionActivityService;
@@ -17,6 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
 use Modules\Providers\Domain\Models\ProviderUser;

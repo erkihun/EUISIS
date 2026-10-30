@@ -7,8 +7,6 @@ namespace Modules\Cafeteria\Application\Services\Policy;
 use App\Enums\TransactionStatus;
 use App\Models\Employee;
 use App\Models\IdCard;
-use App\Models\ServiceTransaction;
-use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
@@ -19,6 +17,8 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransactionConsumedDay;
+use Modules\Entitlements\Contracts\Data\NewServiceTransaction;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 
 /**
  * Persists an approved scan: the transaction with its historical snapshot,
@@ -31,7 +31,10 @@ use Modules\Cafeteria\Domain\Models\CafeteriaTransactionConsumedDay;
  */
 class CafeteriaTransactionService
 {
-    public function __construct(private readonly CafeteriaLedgerService $ledger) {}
+    public function __construct(
+        private readonly CafeteriaLedgerService $ledger,
+        private readonly ServiceDeliveryRegistry $serviceDelivery,
+    ) {}
 
     /**
      * @param  array{scan_nonce?: string|null, scan_request_hash?: string|null, service_terminal_id?: string|null}  $references
@@ -60,20 +63,20 @@ class CafeteriaTransactionService
                 $dailySubsidy = $pricing->employeePaid ? 0 : CafeteriaPricing::toCents((string) $policy->daily_subsidy_amount);
                 $availableBefore = CafeteriaPricing::format($dailySubsidy * count($decision->availableDates));
 
-                $serviceTransaction = ServiceTransaction::query()->create([
-                    'employee_id' => $employee->id,
-                    'id_card_id' => $card->id,
-                    'service_type_id' => ServiceType::query()->where('code', 'cafeteria')->value('id'),
-                    'service_provider_id' => $cafeteria->service_provider_id,
-                    'status' => TransactionStatus::Authorized,
-                    'occurred_at' => $scannedAt,
-                    'reference' => $number,
-                    'amount' => $pricing->total(),
-                    'metadata' => ['source' => 'cafeteria_scan', 'usage_mode' => $usageMode->value],
-                ]);
+                $serviceTransactionId = $this->serviceDelivery->recordTransaction(new NewServiceTransaction(
+                    employeeId: $employee->id,
+                    cardId: $card->id,
+                    serviceTypeCode: 'cafeteria',
+                    serviceProviderId: $cafeteria->service_provider_id,
+                    status: TransactionStatus::Authorized->value,
+                    occurredAt: $scannedAt,
+                    reference: $number,
+                    amount: $pricing->total(),
+                    metadata: ['source' => 'cafeteria_scan', 'usage_mode' => $usageMode->value],
+                ));
 
                 $transaction = CafeteriaTransaction::query()->create([
-                    'service_transaction_id' => $serviceTransaction->id,
+                    'service_transaction_id' => $serviceTransactionId,
                     'transaction_number' => $number,
                     'employee_id' => $employee->id,
                     'id_card_id' => $card->id,

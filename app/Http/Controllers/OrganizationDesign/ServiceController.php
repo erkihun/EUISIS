@@ -6,7 +6,6 @@ namespace App\Http\Controllers\OrganizationDesign;
 
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\ServiceBeneficiaryType;
-use App\Enums\ServiceDeliveryChannel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrganizationDesign\NewServiceVersionRequest;
 use App\Http\Requests\OrganizationDesign\StoreServiceRequest;
@@ -18,13 +17,14 @@ use App\Models\OrganizationFunction;
 use App\Models\OrganizationUnit;
 use App\Models\Service;
 use App\Models\ServiceClassification;
-use App\Models\ServiceType;
 use App\Services\OrganizationDesign\ServiceCatalogService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Entitlements\Domain\Enums\ServiceDeliveryChannel;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class ServiceController extends Controller
 {

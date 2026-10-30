@@ -9,7 +9,6 @@ use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
-use App\Enums\EntitlementStatus;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\TransferStatus;
 use App\Models\ApiEndpointDefinition;
@@ -22,7 +21,6 @@ use App\Models\Employee;
 use App\Models\EmployeeDuplicateFlag;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
-use App\Models\Entitlement;
 use App\Models\ExternalApplication;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
@@ -31,15 +29,17 @@ use App\Models\NfcVerificationLog;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\ServiceProvider;
 use App\Models\ServiceTerminal;
-use App\Models\ServiceTransaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Modules\Entitlements\Domain\Enums\EntitlementStatus;
+use Modules\Entitlements\Domain\Models\Entitlement;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceTransaction;
 
 class DashboardMetricService
 {

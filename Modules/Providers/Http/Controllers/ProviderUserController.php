@@ -6,7 +6,6 @@ namespace Modules\Providers\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Providers\Application\Services\ProviderUserAccountService;
 use Modules\Providers\Application\Services\ProviderUserPermissionCatalog;
 use Modules\Providers\Domain\Models\Provider;

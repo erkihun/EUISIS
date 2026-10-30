@@ -6,16 +6,15 @@ namespace Modules\Cafeteria\Application\Actions;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaNetworkService;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Entitlements\Contracts\Data\NewServiceProvider;
+use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
 use Modules\Providers\Domain\Models\Provider;
 
 /**
@@ -31,6 +30,7 @@ readonly class CreateCafeteriaProviderAction
         private WriteAuditLogAction $writeAuditLogAction,
         private CafeteriaNetworkService $networks,
         private CafeteriaProviderRegistry $providers,
+        private ServiceDeliveryRegistry $serviceDelivery,
     ) {}
 
     /** @param array<string, mixed> $attributes */
@@ -113,25 +113,19 @@ readonly class CreateCafeteriaProviderAction
 
     private function linkToServiceProviderRegistry(CafeteriaProvider $cafeteria): void
     {
-        $cafeteriaType = ServiceType::query()->where('code', 'cafeteria')->first();
-        if ($cafeteriaType === null) {
+        if ($this->serviceDelivery->serviceTypeId('cafeteria') === null) {
             return;
         }
 
-        $code = $cafeteria->code;
-        if (ServiceProvider::query()->where('code', $code)->exists()) {
-            $code = 'CAF-'.$code.'-'.Str::upper(Str::random(4));
-        }
+        $serviceProviderId = $this->serviceDelivery->createProvider(new NewServiceProvider(
+            serviceTypeCode: 'cafeteria',
+            organizationId: $cafeteria->organization_id,
+            name: $cafeteria->name_en,
+            code: $cafeteria->code,
+            status: $cafeteria->is_active ? 'active' : 'inactive',
+            collisionPrefix: 'CAF',
+        ));
 
-        $serviceProvider = ServiceProvider::query()->create([
-            'service_type_id' => $cafeteriaType->id,
-            'organization_id' => $cafeteria->organization_id,
-            'name' => $cafeteria->name_en,
-            'code' => $code,
-            'status' => $cafeteria->is_active ? 'active' : 'inactive',
-            'is_demo' => false,
-        ]);
-
-        $cafeteria->withoutTimestamps(fn () => $cafeteria->updateQuietly(['service_provider_id' => $serviceProvider->id]));
+        $cafeteria->withoutTimestamps(fn () => $cafeteria->updateQuietly(['service_provider_id' => $serviceProviderId]));
     }
 }

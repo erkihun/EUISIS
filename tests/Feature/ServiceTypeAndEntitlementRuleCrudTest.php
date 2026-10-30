@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\AuditLog;
-use App\Models\EntitlementRule;
-use App\Models\ServiceType;
 use App\Models\User;
+use Modules\Entitlements\Domain\Models\EntitlementRule;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

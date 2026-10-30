@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Providers\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class ProviderUserServicePermission extends Model
 {

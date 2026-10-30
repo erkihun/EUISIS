@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\ServiceType;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

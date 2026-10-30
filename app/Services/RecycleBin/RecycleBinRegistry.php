@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Services\RecycleBin;
 
 use App\Models\CodeRule;
-use App\Models\EntitlementRule;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
-use App\Models\ServiceType;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Entitlements\Domain\Models\EntitlementRule;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 class RecycleBinRegistry
 {

@@ -24,7 +24,7 @@ is allowed).
 | --- | --- | --- | --- | --- | --- |
 | Cafeteria (`Modules/Cafeteria`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | see the ratchet | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context); `EmployeeDirectory` (exclusion creation and selected ledger employee) | none (live verification per scan) | none |
 | Transport (`Modules/Transport`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | 15 | ADAPTER_INTRODUCED, EVENT_SYNCED | `CredentialLookup`, `ServiceEligibility` (boarding), `EmployeeDirectory` (manual lookup) | `AssignmentChanged`, `EmployeeChanged` (eligibility re-evaluation) | none |
-| Entitlements / service transactions | (in cafeteria and transport counts) | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup` | none | none |
+| Entitlements / service delivery | moved to `Modules/Entitlements`; Core imports remain in the ratchet | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup`; publishes `ServiceDeliveryRegistry` for owner writes | none | none |
 | Communication | 12 | EVENT_SYNCED | none | `AssignmentChanged`, `EmployeeChanged` (membership sync) | none |
 | Transfer | 15 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment` command | none | `TransferAssignment` only |
 | Recruitment / vacancy | 4 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment`, `PositionCapacityService` | none | `TransferAssignment` only |

@@ -6,7 +6,6 @@ namespace Modules\Providers\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Security\Passwords\PasswordLifecycle;
 use App\Security\Passwords\PasswordPolicy;
@@ -14,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Providers\Domain\Models\ProviderUserServicePermission;

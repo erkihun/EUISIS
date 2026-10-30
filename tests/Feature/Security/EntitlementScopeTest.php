@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
-use App\Models\Entitlement;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Entitlements\Domain\Models\Entitlement;
+use Modules\Entitlements\Domain\Models\ServiceType;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\GrievanceScenario;
 
