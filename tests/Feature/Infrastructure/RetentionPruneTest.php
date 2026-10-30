@@ -121,7 +121,7 @@ it('keeps audit rows of a grievance until the case is archived and off legal hol
         ...GrievanceScenario::application(),
     ])->assertRedirect();
     $grievance = Grievance::query()->latest('created_at')->firstOrFail();
-    $row = retentionAudit('-1000 days', Grievance::class, $grievance->id);
+    $row = retentionAudit('-1000 days', $grievance->getMorphClass(), $grievance->id);
 
     $this->artisan('data:prune-retention')->assertExitCode(0);
     expect(DB::table('audit_logs')->where('id', $row)->exists())->toBeTrue();
