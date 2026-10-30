@@ -14,13 +14,13 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaFoodOrder;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 class ProviderReportController extends Controller
 {
     use FormatsProviderPortalData;
 
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));

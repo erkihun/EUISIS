@@ -13,13 +13,13 @@ use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Domain\Models\CafeteriaFoodOrder;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\ProviderPortal\CafeteriaFoodOrderResource;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 class ProviderFoodOrderController extends Controller
 {
     use FormatsProviderPortalData;
 
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -45,7 +45,7 @@ class ProviderFoodOrderController extends Controller
         ]);
     }
 
-    public function show(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): Response
+    public function show(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $order->cafeteria_provider_id !== $provider->id, 404);
@@ -58,7 +58,7 @@ class ProviderFoodOrderController extends Controller
         ]);
     }
 
-    public function updateStatus(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): RedirectResponse
+    public function updateStatus(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): RedirectResponse
     {
         $validated = $request->validate([
             'status' => ['required', 'in:confirmed,preparing,ready,served,rejected,cancelled'],
@@ -68,22 +68,22 @@ class ProviderFoodOrderController extends Controller
         return $this->setStatus($request, $order, $context, $validated['status'], $validated['cancellation_reason'] ?? null);
     }
 
-    public function confirm(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): RedirectResponse
+    public function confirm(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): RedirectResponse
     {
         return $this->setStatus($request, $order, $context, 'confirmed');
     }
 
-    public function prepare(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): RedirectResponse
+    public function prepare(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): RedirectResponse
     {
         return $this->setStatus($request, $order, $context, 'preparing');
     }
 
-    public function serve(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): RedirectResponse
+    public function serve(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): RedirectResponse
     {
         return $this->setStatus($request, $order, $context, 'served');
     }
 
-    public function reject(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): RedirectResponse
+    public function reject(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): RedirectResponse
     {
         $validated = $request->validate([
             'cancellation_reason' => ['nullable', 'string', 'max:1000'],
@@ -92,7 +92,7 @@ class ProviderFoodOrderController extends Controller
         return $this->setStatus($request, $order, $context, 'rejected', $validated['cancellation_reason'] ?? null);
     }
 
-    public function cancel(Request $request, CafeteriaFoodOrder $order, ProviderPortalContext $context): RedirectResponse
+    public function cancel(Request $request, CafeteriaFoodOrder $order, ProviderPortalSession $context): RedirectResponse
     {
         $validated = $request->validate([
             'cancellation_reason' => ['nullable', 'string', 'max:1000'],
@@ -104,7 +104,7 @@ class ProviderFoodOrderController extends Controller
     private function setStatus(
         Request $request,
         CafeteriaFoodOrder $order,
-        ProviderPortalContext $context,
+        ProviderPortalSession $context,
         string $status,
         ?string $cancellationReason = null,
     ): RedirectResponse {

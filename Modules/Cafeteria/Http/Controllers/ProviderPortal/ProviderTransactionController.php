@@ -16,7 +16,7 @@ use Modules\Cafeteria\Application\Services\ProviderTransactionExportService;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\CafeteriaTransactionResource;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ProviderTransactionController extends Controller
@@ -26,7 +26,7 @@ class ProviderTransactionController extends Controller
 
     use FormatsProviderPortalData;
 
-    public function index(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): Response
+    public function index(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -60,7 +60,7 @@ class ProviderTransactionController extends Controller
         ]);
     }
 
-    public function show(Request $request, CafeteriaTransaction $transaction, ProviderPortalContext $context): Response
+    public function show(Request $request, CafeteriaTransaction $transaction, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $transaction->cafeteria_provider_id !== $provider->id, 404);
@@ -73,12 +73,12 @@ class ProviderTransactionController extends Controller
         ]);
     }
 
-    public function export(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function export(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         return $this->exportCsv($request, $context, $exportService);
     }
 
-    public function exportCsv(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function exportCsv(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -87,7 +87,7 @@ class ProviderTransactionController extends Controller
         return $exportService->csv($provider, $this->filters($request), $request->user(), $request);
     }
 
-    public function exportPaymentClaim(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function exportPaymentClaim(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -96,7 +96,7 @@ class ProviderTransactionController extends Controller
         return $exportService->csv($provider, $this->filters($request), $request->user(), $request, true);
     }
 
-    public function exportXlsx(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function exportXlsx(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -105,7 +105,7 @@ class ProviderTransactionController extends Controller
         return $exportService->xlsx($provider, $this->filters($request), $request->user(), $request);
     }
 
-    public function exportPdf(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function exportPdf(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -114,7 +114,7 @@ class ProviderTransactionController extends Controller
         return $exportService->pdf($provider, $this->filters($request), $request->user(), $request);
     }
 
-    public function exportPaymentClaimXlsx(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function exportPaymentClaimXlsx(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -123,7 +123,7 @@ class ProviderTransactionController extends Controller
         return $exportService->xlsx($provider, $this->filters($request), $request->user(), $request, true);
     }
 
-    public function exportPaymentClaimPdf(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): SymfonyResponse
+    public function exportPaymentClaimPdf(Request $request, ProviderPortalSession $context, ProviderTransactionExportService $exportService): SymfonyResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));

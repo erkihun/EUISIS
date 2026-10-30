@@ -15,13 +15,13 @@ use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Domain\Models\CafeteriaMenu;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\ProviderPortal\CafeteriaMenuResource;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 class ProviderMenuController extends Controller
 {
     use FormatsProviderPortalData;
 
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -47,7 +47,7 @@ class ProviderMenuController extends Controller
         ]);
     }
 
-    public function create(Request $request, ProviderPortalContext $context): Response
+    public function create(Request $request, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -58,7 +58,7 @@ class ProviderMenuController extends Controller
         ]);
     }
 
-    public function store(Request $request, ProviderPortalContext $context): RedirectResponse
+    public function store(Request $request, ProviderPortalSession $context): RedirectResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -83,7 +83,7 @@ class ProviderMenuController extends Controller
         ]);
     }
 
-    public function edit(Request $request, CafeteriaMenu $menu, ProviderPortalContext $context): Response
+    public function edit(Request $request, CafeteriaMenu $menu, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
@@ -96,7 +96,7 @@ class ProviderMenuController extends Controller
         ]);
     }
 
-    public function update(Request $request, CafeteriaMenu $menu, ProviderPortalContext $context): RedirectResponse
+    public function update(Request $request, CafeteriaMenu $menu, ProviderPortalSession $context): RedirectResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
@@ -118,7 +118,7 @@ class ProviderMenuController extends Controller
         ]);
     }
 
-    public function show(Request $request, CafeteriaMenu $menu, ProviderPortalContext $context): Response
+    public function show(Request $request, CafeteriaMenu $menu, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
@@ -131,7 +131,7 @@ class ProviderMenuController extends Controller
         ]);
     }
 
-    public function publish(Request $request, CafeteriaMenu $menu, ProviderPortalContext $context): RedirectResponse
+    public function publish(Request $request, CafeteriaMenu $menu, ProviderPortalSession $context): RedirectResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
@@ -141,7 +141,7 @@ class ProviderMenuController extends Controller
         return back()->with('flash', ['message' => __('provider-portal.menu_published'), 'type' => 'success']);
     }
 
-    public function close(Request $request, CafeteriaMenu $menu, ProviderPortalContext $context): RedirectResponse
+    public function close(Request $request, CafeteriaMenu $menu, ProviderPortalSession $context): RedirectResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
@@ -151,7 +151,7 @@ class ProviderMenuController extends Controller
         return back()->with('flash', ['message' => __('provider-portal.menu_closed'), 'type' => 'success']);
     }
 
-    public function destroy(Request $request, CafeteriaMenu $menu, ProviderPortalContext $context): RedirectResponse
+    public function destroy(Request $request, CafeteriaMenu $menu, ProviderPortalSession $context): RedirectResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);

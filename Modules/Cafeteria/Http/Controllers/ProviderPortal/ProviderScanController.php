@@ -23,7 +23,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Requests\ProviderPortal\ProviderScanRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaTransactionResource;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 class ProviderScanController extends Controller
 {
@@ -31,7 +31,7 @@ class ProviderScanController extends Controller
 
     public function __construct(private readonly CafeteriaCalendarService $calendarService) {}
 
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $context): Response
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -52,7 +52,7 @@ class ProviderScanController extends Controller
         ]);
     }
 
-    public function store(ProviderScanRequest $request, ProcessCafeteriaQrScanAction $action, ProviderPortalContext $context): RedirectResponse
+    public function store(ProviderScanRequest $request, ProcessCafeteriaQrScanAction $action, ProviderPortalSession $context): RedirectResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
@@ -95,7 +95,7 @@ class ProviderScanController extends Controller
         ]);
     }
 
-    public function today(Request $request, ProviderPortalContext $context): JsonResponse
+    public function today(Request $request, ProviderPortalSession $context): JsonResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403);
@@ -113,7 +113,7 @@ class ProviderScanController extends Controller
         ]);
     }
 
-    public function calendar(Request $request, ProviderPortalContext $context): JsonResponse
+    public function calendar(Request $request, ProviderPortalSession $context): JsonResponse
     {
         $provider = app(CafeteriaPortalSelector::class)->selectedProvider($request);
         abort_if($provider === null, 403);

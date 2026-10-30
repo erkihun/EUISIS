@@ -10,8 +10,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\Providers\Application\Policies\ProviderUserPolicy;
 use Modules\Providers\Application\Services\NoPortalLocations;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 use Modules\Providers\Application\Services\ProviderRegistryService;
 use Modules\Providers\Contracts\PortalLocationSource;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Contracts\ProviderRegistry;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderPasswordResetCode;
@@ -42,6 +44,7 @@ final class ProvidersServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(ProviderRegistry::class, ProviderRegistryService::class);
+        $this->app->bind(ProviderPortalSession::class, ProviderPortalContext::class);
         // A service module that runs portal locations (the cafeteria) binds its own.
         $this->app->bindIf(PortalLocationSource::class, NoPortalLocations::class);
     }

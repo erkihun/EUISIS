@@ -7,7 +7,7 @@ namespace Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 trait FormatsProviderPortalData
 {
@@ -22,7 +22,7 @@ trait FormatsProviderPortalData
     }
 
     /** @return array<string, mixed> */
-    private function portalPayload(Request $request, ProviderPortalContext $context, ?CafeteriaProvider $provider = null): array
+    private function portalPayload(Request $request, ProviderPortalSession $context, ?CafeteriaProvider $provider = null): array
     {
         $payload = $context->providerPayload($request);
 

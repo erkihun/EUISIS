@@ -7,9 +7,9 @@ namespace Modules\Cafeteria\Application\Services\Portal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
-use Modules\Providers\Application\Services\ProviderPortalContext;
 use Modules\Providers\Contracts\Data\PortalLocationSelection;
 use Modules\Providers\Contracts\PortalLocationSource;
+use Modules\Providers\Contracts\ProviderPortalSession;
 
 /**
  * The cafeteria location the provider portal is working at (moved from
@@ -22,7 +22,7 @@ final class CafeteriaPortalSelector implements PortalLocationSource
 {
     private const SELECTED_CAFETERIA = 'provider_portal.cafeteria_id';
 
-    public function __construct(private readonly ProviderPortalContext $context) {}
+    public function __construct(private readonly ProviderPortalSession $session) {}
 
     public function selectedProvider(Request $request): ?CafeteriaProvider
     {
@@ -48,13 +48,15 @@ final class CafeteriaPortalSelector implements PortalLocationSource
      */
     public function cafeterias(Request $request): Collection
     {
-        $provider = $this->context->provider($request);
+        $providerId = $this->session->providerId($request);
 
-        if ($provider === null || ! $provider->hasService('cafeteria')) {
+        if ($providerId === null || ! $this->session->providerHasService($providerId, 'cafeteria')) {
             return collect();
         }
 
-        return $provider->cafeterias()
+        // The provider's locations: Provider::cafeterias() is hasMany on provider_id.
+        return CafeteriaProvider::query()
+            ->where('provider_id', $providerId)
             ->where('is_active', true)
             ->orderByRaw("case when location_type = 'main' then 0 else 1 end")
             ->orderBy('name_en')

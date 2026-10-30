@@ -72,9 +72,9 @@ class TransportReportService
      * @param  array<string, string|null>  $filters
      * @return Builder<TransportTransaction>
      */
-    public function forProvider(Provider $provider, array $filters): Builder
+    public function forProvider(string $providerId, array $filters): Builder
     {
-        return $this->filtered(TransportTransaction::query()->where('transport_transactions.provider_id', $provider->id), $filters);
+        return $this->filtered(TransportTransaction::query()->where('transport_transactions.provider_id', $providerId), $filters);
     }
 
     /**
@@ -365,7 +365,7 @@ class TransportReportService
     /** Kept for the provider dashboard. @return array{total: int, accepted: int, rejected: int} */
     public function transactionSummary(Provider $provider, ?string $dateFrom = null, ?string $dateTo = null): array
     {
-        $summary = $this->report($this->forProvider($provider, $this->normaliseFilters(['date_from' => $dateFrom, 'date_to' => $dateTo])), false)['summary'];
+        $summary = $this->report($this->forProvider((string) $provider->id, $this->normaliseFilters(['date_from' => $dateFrom, 'date_to' => $dateTo])), false)['summary'];
 
         return ['total' => $summary['total'], 'accepted' => $summary['accepted'], 'rejected' => $summary['rejected']];
     }

@@ -9,19 +9,19 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Transport\Domain\Models\TransportTransaction;
 use Modules\Transport\Http\Resources\TransportTransactionResource;
 
 class TransportTransactionController extends Controller
 {
-    public function index(Request $request, ProviderPortalContext $context): Response
+    public function index(Request $request, ProviderPortalSession $session): Response
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $session->providerId($request);
+        abort_if($providerId === null || ! $session->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
         $filters = $this->filters($request);
-        $transactions = $this->filtered($provider->id, $filters)
+        $transactions = $this->filtered($providerId, $filters)
             ->with(['employee.currentAssignment.organization', 'route', 'trip'])
             ->latest('scanned_at')
             ->paginate(20)
@@ -33,23 +33,23 @@ class TransportTransactionController extends Controller
         ]);
     }
 
-    public function show(Request $request, ProviderPortalContext $context, TransportTransaction $transaction): Response
+    public function show(Request $request, ProviderPortalSession $session, TransportTransaction $transaction): Response
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || $transaction->provider_id !== $provider->id, 403, __('transport.own_data_only'));
+        $providerId = $session->providerId($request);
+        abort_if($providerId === null || $transaction->provider_id !== $providerId, 403, __('transport.own_data_only'));
 
         return Inertia::render('ProviderPortal/Transport/Transactions/Show', [
             'transaction' => (new TransportTransactionResource($transaction->load(['employee.currentAssignment.organization', 'route', 'trip', 'pass'])))->resolve(),
         ]);
     }
 
-    public function exportCsv(Request $request, ProviderPortalContext $context)
+    public function exportCsv(Request $request, ProviderPortalSession $session)
     {
-        $provider = $context->provider($request);
-        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $providerId = $session->providerId($request);
+        abort_if($providerId === null || ! $session->providerHasService($providerId, 'transport'), 403, __('transport.provider_service_disabled'));
 
         // lazyById walks the primary key, so no other ordering (it would break the keyset).
-        $query = $this->filtered($provider->id, $this->filters($request))->with(['employee', 'route']);
+        $query = $this->filtered($providerId, $this->filters($request))->with(['employee', 'route']);
 
         return response()->streamDownload(function () use ($query): void {
             $out = fopen('php://output', 'w');

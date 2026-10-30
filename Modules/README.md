@@ -59,6 +59,7 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Providers | `PortalLocationSource::selection($request)` (implemented by Cafeteria) | `Data\PortalLocationSelection` | provider-portal context |
 | Providers | `ProviderRegistry::register(NewProvider, ?ProviderOwnerAccount)` | the new provider's id | Transport and Cafeteria provider registration |
 | Providers | `ProviderRegistry::enableService(...)`, `updateDetails(...)` | — | Cafeteria payees |
+| Providers | `ProviderPortalSession::providerId($request)`, `providerHasService($id, $code)`, `providerPayload($request)` | id, bool, layout props | Cafeteria and Transport portal pages |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |

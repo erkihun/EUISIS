@@ -11,8 +11,9 @@ declare(strict_types=1);
  * Providers (2026-10-30): Transport and Cafeteria hold provider records in
  * Eloquent relations and type hints, and their portal controllers pass the
  * signed-in ProviderUser and the portal context into their services. Writes
- * already go through Providers\Contracts\ProviderRegistry. Next: a portal
- * session contract and a provider read model (Modules/MIGRATION.md).
+ * already go through Providers\Contracts\ProviderRegistry, and portal pages that
+ * need only the provider's id use ProviderPortalSession. Next: services that take
+ * a Provider for its id, then a provider read model (Modules/MIGRATION.md).
  */
 return [
     'Providers' => [
@@ -24,7 +25,6 @@ return [
         'Modules\Cafeteria\Application\Services\Network\CafeteriaAssignmentService',
         'Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry',
         'Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyResolution',
-        'Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector',
         'Modules\Cafeteria\Application\Services\ProviderTransactionExportService',
         'Modules\Cafeteria\Application\Services\Reports\CafeteriaAnalyticsReportService',
         'Modules\Cafeteria\Application\Services\Settlement\CafeteriaSettlementService',
@@ -38,22 +38,13 @@ return [
         'Modules\Cafeteria\Http\Controllers\CafeteriaProviderController',
         'Modules\Cafeteria\Http\Controllers\CafeteriaSettlementController',
         'Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderDashboardController',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderFoodOrderController',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderLedgerController',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderMenuController',
         'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderProfileController',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderReportController',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderScanController',
-        'Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderTransactionController',
         'Modules\Cafeteria\Http\Requests\ProviderPortal\ProviderScanRequest',
         'Modules\Cafeteria\Providers\CafeteriaServiceProvider',
         // Modules\Transport
         'Modules\Transport\Application\Services\Boarding\BoardingRequest',
         'Modules\Transport\Application\Services\Settlement\TransportInvoiceService',
         'Modules\Transport\Application\Services\Settlement\TransportSettlementService',
-        'Modules\Transport\Application\Services\TransportDashboardService',
         'Modules\Transport\Application\Services\TransportDeviceService',
         'Modules\Transport\Application\Services\TransportEligibilityService',
         'Modules\Transport\Application\Services\TransportQrScanService',
@@ -74,16 +65,12 @@ return [
         'Modules\Transport\Domain\Models\TransportTransaction',
         'Modules\Transport\Domain\Models\TransportTrip',
         'Modules\Transport\Domain\Models\TransportVehicle',
-        'Modules\Transport\Http\Controllers\ProviderPortal\TransportDashboardController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportDeviceController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportDriverController',
-        'Modules\Transport\Http\Controllers\ProviderPortal\TransportExceptionController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportInvoiceController',
-        'Modules\Transport\Http\Controllers\ProviderPortal\TransportReportController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportRouteController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportScanController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportSettlementController',
-        'Modules\Transport\Http\Controllers\ProviderPortal\TransportTransactionController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportTripController',
         'Modules\Transport\Http\Controllers\ProviderPortal\TransportVehicleController',
         'Modules\Transport\Http\Controllers\TransportContractController',
