@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Entitlements\Contracts\ReadModels;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
 use App\Support\Database\ReadOnlyModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Entitlements\Contracts\Data\EntitlementStatus;
@@ -34,6 +35,11 @@ final class EntitlementRecord extends ReadOnlyModel
     public function getMorphClass(): string
     {
         return 'App\Models\Entitlement';
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
     }
 
     public function serviceType(): BelongsTo

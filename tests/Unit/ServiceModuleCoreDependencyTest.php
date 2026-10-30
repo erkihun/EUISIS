@@ -89,9 +89,12 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         'grievance' => 15,
         'discipline' => 2,
         'performance' => 16,
-        'assessment' => 13,
-        'daily_work' => 12,
-        'field_work' => 8,
+        // 2026-10-30: 19, 14 and 10, not new coupling: the moves into Modules/ gave the
+        // modules' models `use App\Models\Employee/Organization/...` lines for relations
+        // they always had; in App\Models they shared the namespace and were not counted.
+        'assessment' => 19,
+        'daily_work' => 14,
+        'field_work' => 10,
         'recruitment' => 4,
         'transfer' => 15,
         'feedback' => 17,
