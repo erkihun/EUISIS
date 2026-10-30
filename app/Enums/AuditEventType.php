@@ -679,6 +679,45 @@ enum AuditEventType: string
     case FieldWorkPreciseLocationViewed = 'field_work.precise_location_viewed';
     case FieldWorkTypeSaved = 'field_work.type_saved';
 
+    // Service Delivery Monitoring & Support (docs/service-monitoring.md §Audit).
+    case ServiceMonitoringFiscalYearCreated = 'service_monitoring.fiscal_year_created';
+    case ServiceMonitoringScheduleUpdated = 'service_monitoring.schedule_updated';
+    case ServiceMonitoringPeriodLocked = 'service_monitoring.period_locked';
+    case ServiceMonitoringPeriodReopened = 'service_monitoring.period_reopened';
+    case ServiceMonitoringParticipantRegistered = 'service_monitoring.participant_registered';
+    case ServiceMonitoringParticipantUpdated = 'service_monitoring.participant_updated';
+    case ServiceMonitoringSupportAssigned = 'service_monitoring.support_assigned';
+    case ServiceMonitoringExtensionGranted = 'service_monitoring.extension_granted';
+    case ServiceMonitoringExtensionRevoked = 'service_monitoring.extension_revoked';
+    case ServiceMonitoringSubmissionStarted = 'service_monitoring.submission_started';
+    case ServiceMonitoringSectionSaved = 'service_monitoring.section_saved';
+    case ServiceMonitoringEntryDeleted = 'service_monitoring.entry_deleted';
+    case ServiceMonitoringPrefillCaptured = 'service_monitoring.prefill_captured';
+    case ServiceMonitoringStampedCopyUploaded = 'service_monitoring.stamped_copy_uploaded';
+    case ServiceMonitoringSubmitted = 'service_monitoring.submitted';
+    case ServiceMonitoringReturned = 'service_monitoring.returned';
+    case ServiceMonitoringAccepted = 'service_monitoring.accepted';
+    case ServiceMonitoringCorrectionRequested = 'service_monitoring.correction_requested';
+    case ServiceMonitoringCorrectionDecided = 'service_monitoring.correction_decided';
+    case ServiceMonitoringReviewCommentAdded = 'service_monitoring.review_comment_added';
+    case ServiceMonitoringDigitalServiceVerified = 'service_monitoring.digital_service_verified';
+    case ServiceMonitoringDigitalServiceRejected = 'service_monitoring.digital_service_rejected';
+    case ServiceMonitoringCertified = 'service_monitoring.certified';
+    case ServiceMonitoringNonSubmissionRecorded = 'service_monitoring.non_submission_recorded';
+    case ServiceMonitoringClarificationOpened = 'service_monitoring.clarification_opened';
+    case ServiceMonitoringClarificationReplied = 'service_monitoring.clarification_replied';
+    case ServiceMonitoringClarificationClosed = 'service_monitoring.clarification_closed';
+    case ServiceMonitoringVisitSaved = 'service_monitoring.visit_saved';
+    case ServiceMonitoringFindingAdded = 'service_monitoring.finding_added';
+    case ServiceMonitoringActionItemSaved = 'service_monitoring.action_item_saved';
+    case ServiceMonitoringActionItemEvidenceAdded = 'service_monitoring.action_item_evidence_added';
+    case ServiceMonitoringSettingsUpdated = 'service_monitoring.settings_updated';
+    case ServiceMonitoringExportRequested = 'service_monitoring.export_requested';
+    case ServiceMonitoringExported = 'service_monitoring.exported';
+    case ServiceMonitoringExportDownloaded = 'service_monitoring.export_downloaded';
+    case ServiceMonitoringNamedDataViewed = 'service_monitoring.named_data_viewed';
+    case ServiceMonitoringAttachmentDownloaded = 'service_monitoring.attachment_downloaded';
+
     // Work standards: sub-services, main tasks and task standards (BPR plans)
     case WorkStructureChanged = 'work_standards.structure_changed';
     case WorkStandardSaved = 'work_standards.standard_saved';

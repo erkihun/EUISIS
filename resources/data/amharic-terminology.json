@@ -1660,21 +1660,51 @@
       "recommended": "ካፌቴሪያ",
       "pattern": "ካፍቴሪያ",
       "block": true,
-      "reason": "One spelling."
+      "reason": "One spelling.",
+      "allowKeys": [
+        "service-monitoring.form.",
+        "service-monitoring.enums.role_category.",
+        "service-monitoring.enums.reason_category.",
+        "service-monitoring.enums.final_action.",
+        "serviceMonitoring.form.",
+        "serviceMonitoring.enums.role_category.",
+        "serviceMonitoring.enums.reason_category.",
+        "serviceMonitoring.enums.final_action."
+      ]
     },
     {
       "current": "ሰራተኛ",
       "recommended": "ሠራተኛ",
       "pattern": "ሰራተኛ|ሰራተኞ",
       "block": true,
-      "reason": "Spelling policy. The official system name is configured in config/branding.php, not in translations."
+      "reason": "Spelling policy. The official system name is configured in config/branding.php, not in translations.",
+      "allowKeys": [
+        "service-monitoring.form.",
+        "service-monitoring.enums.role_category.",
+        "service-monitoring.enums.reason_category.",
+        "service-monitoring.enums.final_action.",
+        "serviceMonitoring.form.",
+        "serviceMonitoring.enums.role_category.",
+        "serviceMonitoring.enums.reason_category.",
+        "serviceMonitoring.enums.final_action."
+      ]
     },
     {
       "current": "ስራ",
       "recommended": "ሥራ",
       "pattern": "(?<![ሀ-፿])(?:[የበለከ]|ወደ|እንደ)?ስራ",
       "block": true,
-      "reason": "Spelling policy."
+      "reason": "Spelling policy.",
+      "allowKeys": [
+        "service-monitoring.form.",
+        "service-monitoring.enums.role_category.",
+        "service-monitoring.enums.reason_category.",
+        "service-monitoring.enums.final_action.",
+        "serviceMonitoring.form.",
+        "serviceMonitoring.enums.role_category.",
+        "serviceMonitoring.enums.reason_category.",
+        "serviceMonitoring.enums.final_action."
+      ]
     },
     {
       "current": "ስርዓት / ሥርአት",
@@ -1709,7 +1739,17 @@
       "recommended": "ዓይነት",
       "pattern": "(?<![ሀ-፿])(?:[የበለከ])?አይነ[ትቶ]",
       "block": true,
-      "reason": "Spelling policy."
+      "reason": "Spelling policy.",
+      "allowKeys": [
+        "service-monitoring.form.",
+        "service-monitoring.enums.role_category.",
+        "service-monitoring.enums.reason_category.",
+        "service-monitoring.enums.final_action.",
+        "serviceMonitoring.form.",
+        "serviceMonitoring.enums.role_category.",
+        "serviceMonitoring.enums.reason_category.",
+        "serviceMonitoring.enums.final_action."
+      ]
     },
     {
       "current": "ቤተ መጽሐፍት (catalogue)",
@@ -1821,7 +1861,17 @@
       "recommended": "ሀሳብ, ሀብት, ዕቅድ, ዕለት, ኃይል, ሥልጣን, ሥልጠና, አሠራር, ማህደር, ጸደቀ, ማጽደቅ, ቅርጸት, ጸና, ዓመት, ሕግ, መንግሥት",
       "pattern": "(?<![ሀ-፿])(?:[የበለከ]|ወደ|እንደ)?(?:ሃሳ[ብቦ]|ሃብ[ትቶ]|እቅ[ድዶ]|እለት|ሃይ[ልሎ]|ስልጣ[ንኖ]|ስልጠና|አሰራ[ርሮ]|ማኅደ[ርሮ]|ፀደ|ፀድ|ማፅደ|ቅርፀ|ፀና|አመ[ትታ]|ህ[ግጎ]|መንግስ[ትታ])",
       "block": true,
-      "reason": "Spelling policy. ፀሐፊ (secretary) keeps the Regulation 201 spelling."
+      "reason": "Spelling policy. ፀሐፊ (secretary) keeps the Regulation 201 spelling.",
+      "allowKeys": [
+        "service-monitoring.form.",
+        "service-monitoring.enums.role_category.",
+        "service-monitoring.enums.reason_category.",
+        "service-monitoring.enums.final_action.",
+        "serviceMonitoring.form.",
+        "serviceMonitoring.enums.role_category.",
+        "serviceMonitoring.enums.reason_category.",
+        "serviceMonitoring.enums.final_action."
+      ]
     }
   ]
 }

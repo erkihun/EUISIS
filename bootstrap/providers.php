@@ -13,6 +13,7 @@ use Modules\Entitlements\Providers\EntitlementsServiceProvider;
 use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Grievance\Providers\GrievanceServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
+use Modules\ServiceMonitoring\Providers\ServiceMonitoringServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
 return [
@@ -32,4 +33,5 @@ return [
     GrievanceServiceProvider::class,
     DisciplineServiceProvider::class,
     FieldWorkServiceProvider::class,
+    ServiceMonitoringServiceProvider::class,
 ];

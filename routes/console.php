@@ -50,6 +50,10 @@ Schedule::command('assessments:oversight-monitor')->dailyAt('06:30')->withoutOve
 // Assessment execution: evaluator due-soon / overdue reminders (docs/assessment-evaluator-workflow.md).
 Schedule::command('assessments:evaluator-reminders')->dailyAt('07:00')->withoutOverlapping()->onOneServer();
 
+// Service Delivery Monitoring: period opened / due soon / due today / missing / overdue action items (docs/service-monitoring.md §Reminders).
+// Idempotent: the reminder log keeps each reminder to one per participant, subject and day.
+Schedule::command('service-monitoring:send-reminders')->dailyAt('06:15')->withoutOverlapping()->onOneServer();
+
 // Communication: re-check automatic channel memberships (the assignment observer covers moves as they happen).
 Schedule::command('communication:sync-memberships --queue')->dailyAt('03:40')->withoutOverlapping()->onOneServer();
 Schedule::command('communication:publish-scheduled')->everyMinute()->withoutOverlapping()->onOneServer();

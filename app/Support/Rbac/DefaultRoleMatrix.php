@@ -12,6 +12,7 @@ use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Modules\Discipline\Contracts\Data\DisciplineRoles;
 use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
 
 /**
  * Default system roles and their permissions (docs/default-role-permission-matrix.md).
@@ -123,7 +124,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, ServiceMonitoringRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -406,6 +407,28 @@ final class DefaultRoleMatrix
             DisciplineRoles::DECISION_AUTHORITY_ROLE => self::role(self::SCOPE_SCOPED, DisciplineRoles::DECISION_AUTHORITY_PERMISSIONS,
                 'Head of institution (or delegate): decides on submitted disciplinary recommendations in scope.',
                 'የተቋሙ የበላይ ኃላፊ (ወይም ወኪል)፡ በወሰኑ ውስጥ በቀረቡ የዲሲፕሊን የውሳኔ ሀሳቦች ላይ ይወስናል።'),
+
+            // ── Service Delivery Monitoring & Support (docs/service-monitoring.md) ─
+            // A role makes a user eligible; the participant's organization must be in
+            // scope, and city-level duties need city-wide reach (ServiceMonitoringAccess).
+            ServiceMonitoringRoles::REPORTER_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::REPORTER_PERMISSIONS,
+                'Prepares the institution\'s quarterly service-delivery report. Cannot attest or submit it.',
+                'የተቋሙን የሩብ ዓመት የአገልግሎት አሰጣጥ ሪፖርት ያዘጋጃል። ሪፖርቱን ማረጋገጥ ወይም ማቅረብ አይችልም።'),
+            ServiceMonitoringRoles::HEAD_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::HEAD_PERMISSIONS,
+                'Institution head or delegate: prepares, attests and submits the quarterly report and sees the names in Section I.',
+                'የተቋም ኃላፊ ወይም ወኪል፡ የሩብ ዓመት ሪፖርቱን ያዘጋጃል፣ ያረጋግጣል፣ ያቀርባል፤ በክፍል አንድ ያሉ ስሞችን ያያል።'),
+            ServiceMonitoringRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::REVIEWER_PERMISSIONS,
+                'Sub-city reviewer: returns or accepts the reports of the woredas in scope, consolidates and certifies the sub-city, exports its forms and answers clarifications.',
+                'የክ/ከተማ ገምጋሚ፡ በወሰኑ ውስጥ ያሉ ወረዳዎችን ሪፖርት ይመልሳል ወይም ይቀበላል፣ የክ/ከተማውን ማጠቃለያ ያረጋግጣል፣ ቅጾቹን ወደ ውጭ ይልካል፣ የማብራሪያ ጥያቄዎችን ይመልሳል።'),
+            ServiceMonitoringRoles::COORDINATOR_ROLE => self::role(self::SCOPE_GLOBAL, ServiceMonitoringRoles::COORDINATOR_PERMISSIONS,
+                'City coordinator: periods and deadlines, the registry of reporting institutions, extensions, review of sub-city and center reports, locking and reopening periods, exports and settings. Does not verify digital services.',
+                'የከተማ አስተባባሪ፡ ጊዜያትና የጊዜ ገደቦች፣ ሪፖርት የሚያቀርቡ ተቋማት መዝገብ፣ የጊዜ ማራዘሚያ፣ የክ/ከተማና የማዕከል ሪፖርቶች ግምገማ፣ ጊዜያትን መቆለፍና መክፈት፣ ቅጾችና ቅንብሮች። ዲጂታል አገልግሎቶችን አያረጋግጥም።'),
+            ServiceMonitoringRoles::VERIFIER_ROLE => self::role(self::SCOPE_GLOBAL, ServiceMonitoringRoles::VERIFIER_PERMISSIONS,
+                'Innovation & Technology Bureau: verifies or rejects the digital services the institutions report, city-wide.',
+                'የኢኖቬሽንና ቴክኖሎጂ ቢሮ፡ ተቋማት የሚያቀርቧቸውን ዲጂታል አገልግሎቶች በከተማ አቀፍ ደረጃ ያረጋግጣል ወይም ውድቅ ያደርጋል።'),
+            ServiceMonitoringRoles::SUPPORT_OFFICER_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::SUPPORT_OFFICER_PERMISSIONS,
+                'Support expert (ደጋፊ ባለሙያ): answers the clarifications of the institutions assigned to them and records monitoring visits, findings and action items.',
+                'ደጋፊ ባለሙያ፡ የተመደቡለትን ተቋማት የማብራሪያ ጥያቄዎች ይመልሳል፤ የክትትል ጉብኝቶችን፣ ግኝቶችንና የድርጊት ተግባሮችን ይመዘግባል።'),
 
             // ── Services and providers (admin side; provider portals use their own roles) ─
             'Cafeteria Admin' => self::role(self::SCOPE_SCOPED, [

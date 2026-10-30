@@ -45,6 +45,8 @@ final class PermissionCatalog
         'ID & Verification' => ['id-cards', 'id_card_templates', 'nfc_credentials', 'nfc_terminals', 'nfc_logs'],
         'Daily Activity' => ['daily_activities', 'daily_activity_settings', 'work_standards'],
         'Field Work Management' => ['field_work'],
+        // The quarterly service-delivery report and its support (docs/service-monitoring.md).
+        'Service Delivery Monitoring' => ['service_monitoring'],
         'Performance Management' => [
             'performance_cycles', 'strategic_goals', 'performance_plans', 'kpis', 'performance_agreements', 'performance_reviews',
             'performance_calibration', 'performance_appeals', 'performance_reports', 'performance_settings',

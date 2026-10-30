@@ -172,6 +172,7 @@ const permissions = {
         'service-transactions': 'የአገልግሎት ግብይቶች',
         'service-types': 'የአገልግሎት ዓይነቶች',
         'service_feedback': 'የሕዝብ አስተያየት',
+        'service_monitoring': 'የአገልግሎት አሰጣጥ ክትትልና ድጋፍ',
         'situation_room': 'የአመራር ሁኔታ መከታተያ ማዕከል',
         'intelligence': 'የ{brand} አስተውሎት',
         'support': 'የድጋፍ ማዕከል',

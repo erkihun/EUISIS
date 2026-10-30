@@ -1688,6 +1688,9 @@ require __DIR__.'/discipline.php';
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';
 
+// Service Delivery Monitoring & Support (docs/service-monitoring.md).
+require __DIR__.'/service-monitoring.php';
+
 // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
 require __DIR__.'/organization-design.php';
 

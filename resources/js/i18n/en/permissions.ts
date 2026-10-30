@@ -172,6 +172,7 @@ const permissions = {
         'service-transactions': 'Service Transactions',
         'service-types': 'Service Types',
         'service_feedback': 'Public feedback',
+        'service_monitoring': 'Service delivery monitoring & support',
         'situation_room': 'Executive Situation Room',
         'intelligence': '{brand} Intelligence',
         'support': 'Support Help Desk',
