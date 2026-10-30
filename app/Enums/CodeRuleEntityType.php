@@ -50,4 +50,5 @@ enum CodeRuleEntityType: string
     case Process = 'process';
     case ProcessActivity = 'process_activity';
     case ProcessTask = 'process_task';
+    case ReceptionDesk = 'reception_desk';
 }

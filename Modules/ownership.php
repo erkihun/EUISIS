@@ -545,6 +545,19 @@ return [
             'App\Models\SupportTicketEvent',
         ],
     ],
+    'Reception' => [
+        'home' => 'Modules/Reception',
+        'models' => [
+            'Modules\Reception\Domain\Models\ReceptionAppointment',
+            'Modules\Reception\Domain\Models\ReceptionCounter',
+            'Modules\Reception\Domain\Models\ReceptionDesk',
+            'Modules\Reception\Domain\Models\ReceptionQueueSequence',
+            'Modules\Reception\Domain\Models\ReceptionQueueTicket',
+            'Modules\Reception\Domain\Models\ReceptionReferral',
+            'Modules\Reception\Domain\Models\ReceptionVisit',
+            'Modules\Reception\Domain\Models\ReceptionVisitor',
+        ],
+    ],
     'Legal' => [
         'home' => 'app',
         'models' => [

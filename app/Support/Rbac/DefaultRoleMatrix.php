@@ -312,6 +312,7 @@ final class DefaultRoleMatrix
                 'service-types.viewAny', 'entitlement-rules.viewAny',
                 'hierarchy-versions.viewAny', 'hierarchy-versions.view', 'organization-edges.view',
                 'code-rules.viewAny', 'code-rules.view', 'code-rules.preview',
+                'reception.view', 'reception.reports.view', 'reception.audit',
                 ...GrievanceRoles::AUDITOR_PERMISSIONS,
             ], 'Read-only review of audit logs, history and approved records. Creates, changes and deletes nothing.',
                 'የኦዲት ምዝግቦችን፣ ታሪክን እና የጸደቁ መዝገቦችን በንባብ ብቻ ይገመግማል። ምንም አይፈጥርም፣ አይቀይርም፣ አይሰርዝም።'),
@@ -431,6 +432,18 @@ final class DefaultRoleMatrix
                 'ደጋፊ ባለሙያ፡ የተመደቡለትን ተቋማት የማብራሪያ ጥያቄዎች ይመልሳል፤ የክትትል ጉብኝቶችን፣ ግኝቶችንና የድርጊት ተግባሮችን ይመዘግባል።'),
 
             // ── Services and providers (admin side; provider portals use their own roles) ─
+            'Reception Administrator' => self::role(self::SCOPE_SCOPED, PermissionCatalog::matching('reception'),
+                'Configures and oversees reception desks, counters, officers, appointments, queues and scoped reports.',
+                'በተፈቀደው ወሰን የመቀበያ ጠረጴዛዎችን፣ መስኮቶችን፣ ሠራተኞችን፣ ቀጠሮዎችን፣ ወረፋዎችን እና ሪፖርቶችን ያስተዳድራል።'),
+            'Reception Supervisor' => self::role(self::SCOPE_SCOPED, ['reception.view', 'reception.operate', 'reception.supervise', 'reception.appointments.manage', 'reception.reports.view'],
+                'Supervises daily reception queues, counters, appointments and referrals within assigned scope.',
+                'በተመደበው ወሰን ዕለታዊ ወረፋዎችን፣ መስኮቶችን፣ ቀጠሮዎችን እና ሪፈራሎችን ይቆጣጠራል።'),
+            'Reception Officer' => self::role(self::SCOPE_SCOPED, ['reception.view', 'reception.operate'],
+                'Registers and serves visitors at assigned reception desks.',
+                'በተመደበበት መቀበያ ጠረጴዛ ጎብኚዎችን ይመዘግባል እና ያስተናግዳል።'),
+            'Information Officer' => self::role(self::SCOPE_SCOPED, ['reception.view'],
+                'Reads published service information and scoped reception records without changing operations.',
+                'የታተመ የአገልግሎት መረጃን እና በወሰን ውስጥ ያሉ መዝገቦችን ሳይቀይር ያነባል።'),
             'Cafeteria Admin' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view',
                 'cafeteria-provider-users.viewAny', 'cafeteria-provider-users.view', 'cafeteria-provider-users.create',

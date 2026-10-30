@@ -54,7 +54,7 @@ final class PermissionCatalog
             'assessments', 'assessment_assignments', 'assessment_results',
         ],
         'Service Management' => [
-            'service-types', 'entitlements', 'entitlement-rules', 'service-transactions', 'service_feedback', 'public-holidays',
+            'service-types', 'entitlements', 'entitlement-rules', 'service-transactions', 'service_feedback', 'public-holidays', 'reception',
             'cafeteria-providers', 'cafeteria-settings', 'cafeteria-transactions', 'cafeteria-reports', 'cafeteria-ledger', 'cafeteria-exclusions',
             'cafeteria-networks', 'cafeteria-access', 'cafeteria-assignments', 'cafeteria-policies', 'cafeteria-settlements',
             'transport-providers', 'transport-routes', 'transport-vehicles', 'transport-drivers', 'transport-passes',

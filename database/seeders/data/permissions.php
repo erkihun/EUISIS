@@ -2047,4 +2047,5 @@ return [
         'label_en' => 'Manage Communication Settings', 'label_am' => 'የኮሙኒኬሽን ቅንብሮችን ያስተዳድሩ',
         'description_en' => 'Allows changing the system-wide communication policy (attachments, edit windows, scope, retention).',
         'description_am' => 'የስርዓቱን የኮሙኒኬሽን ፖሊሲ ለመቀየር ይፈቅዳል (ፋይሎች፣ የማስተካከያ ጊዜ፣ ወሰን፣ የማቆያ ጊዜ)።'],
+    ...require __DIR__.'/reception-permissions.php',
 ];

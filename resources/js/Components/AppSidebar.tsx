@@ -646,6 +646,22 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        key: 'reception',
+        labelKey: 'nav.groupReception',
+        icon: UserHandsIcon,
+        items: [
+            { routeName: 'reception.dashboard', labelKey: 'nav.receptionDashboard', icon: LayoutDashboard, permission: 'reception.view' },
+            { routeName: 'reception.register', labelKey: 'nav.receptionRegister', icon: UserPlusIcon, permission: 'reception.operate' },
+            { routeName: 'reception.today', labelKey: 'nav.receptionToday', icon: Users, permission: 'reception.view' },
+            { routeName: 'reception.queue', labelKey: 'nav.receptionQueue', icon: TicketIcon, permission: 'reception.operate' },
+            { routeName: 'reception.appointments', labelKey: 'nav.receptionAppointments', icon: CalendarIcon, permission: 'reception.view' },
+            { routeName: 'reception.directory', labelKey: 'nav.receptionDirectory', icon: BookIcon, permission: 'reception.view' },
+            { routeName: 'reception.referrals', labelKey: 'nav.receptionReferrals', icon: SignpostIcon, permission: 'reception.view' },
+            { routeName: 'reception.desks', labelKey: 'nav.receptionConfiguration', icon: ShopIcon, permission: 'reception.configure' },
+            { routeName: 'reception.reports', labelKey: 'nav.receptionReports', icon: FileChartIcon, permission: 'reception.reports.view' },
+        ],
+    },
+    {
         /*
          * Public Feedback Management (brief §79–80): what the public said
          * through the employee and institution QR codes, and how it is routed,
@@ -819,7 +835,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];

@@ -173,6 +173,16 @@ class CodeRuleSeeder extends Seeder
                 'format' => '{PREFIX}-{YEAR}-{SEQUENCE}',
                 'sequence_length' => 6,
             ],
+            [
+                'entity_type' => CodeRuleEntityType::ReceptionDesk->value,
+                'scope_type' => null,
+                'scope_id' => null,
+                'name_en' => 'Reception Desk Code',
+                'name_am' => 'የመቀበያ ጠረጴዛ ኮድ',
+                'prefix' => 'REC',
+                'format' => '{PREFIX}-{SEQUENCE}',
+                'sequence_length' => 4,
+            ],
         ];
     }
 

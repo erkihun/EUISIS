@@ -33,6 +33,7 @@ is allowed).
 | Daily work | 12 | DIRECT_CORE_ACCESS | none | none | none |
 | Field work | 8 | DIRECT_CORE_ACCESS | none | none | none |
 | Public / service feedback | 17 | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core | implements `EmployeeFeedbackLinks` | none | none |
+| Reception / information desk (`Modules/Reception`) | 5 | DIRECT_CORE_ACCESS (scoped identity and organization/service directory reads) | organization-scope, audit, code-rule and work-calendar platform services | none | none |
 | Grievance | 15 | DIRECT_CORE_ACCESS | none | none | none |
 | Discipline / appeal | 3 | DIRECT_CORE_ACCESS | none | none | none |
 | Organization design | 37 | DIRECT_CORE_ACCESS; job-description stamp through Core | `StampJobDescriptionOnCurrentAssignments` | none | that command only |
@@ -71,6 +72,7 @@ imports does **not** complete Cafeteria's physical separation.
 | Daily work | daily logs, items, evidence, reviews |
 | Field work | requests, approvals, participants, locations |
 | Public feedback | feedback, suggestions, complaints, routing, responses |
+| Reception / information desk | desks, counters, visitor check-ins, queue tickets, appointments, referrals |
 | Grievance | cases, stages, hearings, decisions, letters |
 | Discipline / appeal | cases, charges, decisions, appeals |
 | Communication | conversations, channels, announcements |

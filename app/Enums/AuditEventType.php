@@ -965,4 +965,10 @@ enum AuditEventType: string
     case IntegrationSecretRotated = 'integration.secret_rotated';
     case IntegrationReplayRequested = 'integration.replay_requested';
     case IntegrationPayloadViewed = 'integration.payload_viewed';
+    case ReceptionConfigurationChanged = 'reception.configuration_changed';
+    case ReceptionVisitorCheckedIn = 'reception.visitor_checked_in';
+    case ReceptionQueueChanged = 'reception.queue_changed';
+    case ReceptionAppointmentChanged = 'reception.appointment_changed';
+    case ReceptionReferralChanged = 'reception.referral_changed';
+    case ReceptionReportExported = 'reception.report_exported';
 }

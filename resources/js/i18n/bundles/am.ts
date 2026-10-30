@@ -77,6 +77,7 @@ import amWorkStandards from '@/i18n/am/workStandards';
 import amAssessments from '@/i18n/am/assessments';
 import amAssessmentOversight from '@/i18n/am/assessmentOversight';
 import amAssessmentWorkspace from '@/i18n/am/assessmentWorkspace';
+import amReception from '@/i18n/am/reception';
 import type { TranslationTree } from '@/i18n/registry';
 
 const tree: TranslationTree = {
@@ -154,6 +155,7 @@ const tree: TranslationTree = {
     assessments: amAssessments,
     assessmentOversight: amAssessmentOversight,
     assessmentWorkspace: amAssessmentWorkspace,
+    reception: amReception,
     confirmations: amConfirmations,
     auth: amAuth,
     security: amSecurity,
