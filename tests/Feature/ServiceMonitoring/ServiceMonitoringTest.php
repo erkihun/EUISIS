@@ -283,3 +283,13 @@ it('renders the module pages for the bureau', function (): void {
     $this->get(route('service-monitoring.summary', ['form_code' => $form->code, 'period_id' => $this->period->id]))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('ServiceMonitoring/Summary/Index')->where('form.code', 'SM-FORM')->has('summary.tables', 2));
 });
+
+it('lands the bare module URL on the first page the user may open', function (): void {
+    $this->actingAs($this->institution)->get(route('service-monitoring.index'))->assertRedirect(route('service-monitoring.reports.index'));
+
+    $builder = smUser('SM Builder Only', ['service_monitoring.forms.manage'], global: true);
+    $this->actingAs($builder)->get(route('service-monitoring.index'))->assertRedirect(route('service-monitoring.forms.index'));
+
+    $nobody = smUser('SM Nobody', [], global: true);
+    $this->actingAs($nobody)->get(route('service-monitoring.index'))->assertForbidden();
+});

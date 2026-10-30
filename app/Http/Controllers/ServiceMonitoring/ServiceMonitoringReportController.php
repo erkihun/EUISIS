@@ -36,6 +36,19 @@ class ServiceMonitoringReportController extends Controller
         private readonly OrganizationScopeService $scope,
     ) {}
 
+    /** `/service-monitoring`: the reports for anyone who reports or reviews, else the form builder. */
+    public function home(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        return match (true) {
+            $user->can('viewAny', ServiceMonitoringSubmission::class) => to_route('service-monitoring.reports.index'),
+            $user->can('viewAny', ServiceMonitoringForm::class) => to_route('service-monitoring.forms.index'),
+            $user->can('viewAny', ServiceMonitoringPeriod::class) => to_route('service-monitoring.periods.index'),
+            default => abort(403),
+        };
+    }
+
     public function index(Request $request): Response
     {
         $this->authorize('viewAny', ServiceMonitoringSubmission::class);

@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->prefix('service-monitoring')->name('service-monitoring.')
     ->group(function (): void {
+        // The bare module URL lands on the first page the user may open.
+        Route::get('/', [ServiceMonitoringReportController::class, 'home'])->name('index');
+
         // Form builder. Static paths come before {form}.
         Route::controller(ServiceMonitoringFormController::class)->prefix('forms')->name('forms.')->group(function (): void {
             Route::get('/', 'index')->name('index');
