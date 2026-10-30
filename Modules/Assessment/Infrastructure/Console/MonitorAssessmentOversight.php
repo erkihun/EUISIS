@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Infrastructure\Console;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
-use Modules\Assessment\Domain\Models\AssessmentCycleOrganization;
-use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
 use App\Models\User;
-use App\Notifications\PerformanceNotification;
-use Modules\Assessment\Application\Services\Oversight\AssessmentInstitutionSubmissionService;
-use Modules\Assessment\Application\Services\Oversight\OversightAccess;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
+use Modules\Assessment\Application\Notifications\AssessmentNotification;
+use Modules\Assessment\Application\Services\Oversight\AssessmentInstitutionSubmissionService;
+use Modules\Assessment\Application\Services\Oversight\OversightAccess;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
+use Modules\Assessment\Domain\Models\AssessmentCycleOrganization;
+use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
 
 /**
  * Daily oversight compliance pass (docs/assessment-oversight.md#scheduler):
@@ -67,7 +67,7 @@ class MonitorAssessmentOversight extends Command
                     }
                     $reminded++;
                     if (! $dry) {
-                        Notification::send($recipients, new PerformanceNotification($kind, route('assessment-oversight.institution', ['organization' => $row->organization_id, 'cycle' => $cycle->id], false), ['database']));
+                        Notification::send($recipients, new AssessmentNotification($kind, route('assessment-oversight.institution', ['organization' => $row->organization_id, 'cycle' => $cycle->id], false), ['database']));
                         $row->update(['last_reminded_at' => now()]);
                     }
                 });
@@ -91,7 +91,7 @@ class MonitorAssessmentOversight extends Command
                     }
                     $verificationReminded++;
                     if (! $dry) {
-                        Notification::send($recipients, new PerformanceNotification($kind, route('assessment-oversight.submissions', ['cycle' => $cycle->id, 'status' => $submission->status], false), ['database']));
+                        Notification::send($recipients, new AssessmentNotification($kind, route('assessment-oversight.submissions', ['cycle' => $cycle->id, 'status' => $submission->status], false), ['database']));
                         $submission->update(['last_verification_reminded_at' => now()]);
                     }
                 });
@@ -106,7 +106,7 @@ class MonitorAssessmentOversight extends Command
             $reviewers = $reviewers->reject(fn (User $u) => $u->notifications()->whereDate('created_at', $today)->get(['data'])
                 ->contains(fn ($notification): bool => ($notification->data['kind'] ?? null) === 'assessment_verification_pending'));
             if ($reviewers->isNotEmpty()) {
-                Notification::send($reviewers, new PerformanceNotification('assessment_verification_pending', route('assessment-oversight.submissions', ['status' => 'submitted'], false), ['database']));
+                Notification::send($reviewers, new AssessmentNotification('assessment_verification_pending', route('assessment-oversight.submissions', ['status' => 'submitted'], false), ['database']));
             }
         }
 

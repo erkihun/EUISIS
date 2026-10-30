@@ -5,21 +5,10 @@ declare(strict_types=1);
 namespace Modules\Assessment\Application\Services\Execution;
 
 use App\Actions\Audit\WriteAuditLogAction;
-use Modules\Assessment\Domain\Enums\FormVersionStatus;
 use App\Enums\AuditEventType;
-use Modules\Assessment\Infrastructure\Jobs\GenerateCycleAssessmentsJob;
-use Modules\Assessment\Domain\Models\AssessmentCycle;
-use Modules\Assessment\Domain\Models\AssessmentCycleEligibility;
-use Modules\Assessment\Domain\Models\AssessmentEvaluatorChange;
-use Modules\Assessment\Domain\Models\AssessmentEvaluatorScheme;
-use Modules\Assessment\Domain\Models\AssessmentFormVersion;
-use Modules\Assessment\Domain\Models\AssessmentRecord;
-use Modules\Assessment\Domain\Models\AssessmentResponse;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\User;
-use App\Notifications\PerformanceNotification;
-use Modules\Assessment\Application\Services\Oversight\OversightAccess;
 use App\Services\Employees\EmployeeWorkContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
@@ -27,6 +16,17 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use Modules\Assessment\Application\Notifications\AssessmentNotification;
+use Modules\Assessment\Application\Services\Oversight\OversightAccess;
+use Modules\Assessment\Domain\Enums\FormVersionStatus;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
+use Modules\Assessment\Domain\Models\AssessmentCycleEligibility;
+use Modules\Assessment\Domain\Models\AssessmentEvaluatorChange;
+use Modules\Assessment\Domain\Models\AssessmentEvaluatorScheme;
+use Modules\Assessment\Domain\Models\AssessmentFormVersion;
+use Modules\Assessment\Domain\Models\AssessmentRecord;
+use Modules\Assessment\Domain\Models\AssessmentResponse;
+use Modules\Assessment\Infrastructure\Jobs\GenerateCycleAssessmentsJob;
 
 /**
  * Creates assessment assignments (records) and evaluator assignments
@@ -213,7 +213,7 @@ class AssessmentAssignmentService
         $byUser = $responses->groupBy('evaluator_id');
         $users = User::query()->whereIn('id', $byUser->keys())->where('status', 'active')->get();
         if ($users->isNotEmpty()) {
-            Notification::send($users, new PerformanceNotification('assessment_assigned', route('assessment-workspace.index', [], false), ['database']));
+            Notification::send($users, new AssessmentNotification('assessment_assigned', route('assessment-workspace.index', [], false), ['database']));
         }
     }
 

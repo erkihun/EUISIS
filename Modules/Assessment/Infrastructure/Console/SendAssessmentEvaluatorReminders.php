@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Infrastructure\Console;
 
-use Modules\Assessment\Domain\Models\AssessmentResponse;
 use App\Models\User;
-use App\Notifications\PerformanceNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Notification;
+use Modules\Assessment\Application\Notifications\AssessmentNotification;
+use Modules\Assessment\Domain\Models\AssessmentResponse;
 
 /**
  * Daily evaluator reminders (docs/assessment-evaluator-workflow.md#deadlines):
@@ -55,7 +55,7 @@ class SendAssessmentEvaluatorReminders extends Command
                         continue;
                     }
                     $users = User::query()->whereIn('id', array_keys($byUser))->where('status', 'active')->get();
-                    Notification::send($users, new PerformanceNotification($kind, route('assessment-workspace.index', ['status' => $kind === 'assessment_overdue' ? 'overdue' : 'due_soon'], false), ['database']));
+                    Notification::send($users, new AssessmentNotification($kind, route('assessment-workspace.index', ['status' => $kind === 'assessment_overdue' ? 'overdue' : 'due_soon'], false), ['database']));
                     AssessmentResponse::query()->whereIn('id', array_merge(...array_values($byUser)))->update(['last_reminded_at' => now()]);
                 }
             }, 'assessment_responses.id', 'id');

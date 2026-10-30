@@ -8,7 +8,6 @@ use App\Notifications\CourtLetterNotification;
 use App\Notifications\EmployeePortalNotification;
 use App\Notifications\InstitutionCourtCaseNotification;
 use App\Notifications\PasswordSecurityNotification;
-use App\Notifications\PerformanceNotification;
 use App\Notifications\PublicFeedbackNotification;
 use App\Notifications\StatutoryDeadlineNotification;
 use App\Notifications\TransferAnnouncementNotification;
@@ -29,7 +28,6 @@ final class NotificationPresenter
         'institution_court_case' => InstitutionCourtCaseNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
         'account_security' => PasswordSecurityNotification::class,
-        'performance' => PerformanceNotification::class,
         'public_feedback' => PublicFeedbackNotification::class,
         'statutory_deadline' => StatutoryDeadlineNotification::class,
         'transfer' => TransferAnnouncementNotification::class,

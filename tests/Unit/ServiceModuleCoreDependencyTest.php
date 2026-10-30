@@ -92,7 +92,12 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // they always had (119 and 14 such lines in the move commits).
         'grievance' => 40,
         'discipline' => 4,
-        'performance' => 16,
+        // 2026-10-31: 30, not new coupling. The move to Modules/Performance gave 12 models
+        // `use App\Models\Employee/Organization/...` lines for relations they always had (in
+        // App\Models they shared the namespace), and the EmployeePerformance contract with its
+        // implementation takes the EmployeeAssignment rows the transfer already passed to
+        // the agreement service.
+        'performance' => 30,
         // 2026-10-30: 19, 14 and 10, not new coupling: the moves into Modules/ gave the
         // modules' models `use App\Models\Employee/Organization/...` lines for relations
         // they always had; in App\Models they shared the namespace and were not counted.

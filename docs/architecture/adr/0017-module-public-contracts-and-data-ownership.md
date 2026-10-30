@@ -107,3 +107,11 @@ old name used from inside the old namespace (`Entitlement::class` in `App\Models
 five Core and platform models keep relations to moved models through the aliases. Read models were chosen over
 id-only relations because most uses are display fields and eager loads; the behaviour other modules
 need (`hasService`, `trashed`) is on the read model or in `ProviderDirectory`.
+
+On 2026-10-31, Performance (EPMS) moved to `Modules/Performance` with no frozen readers. My Portal's
+performance panel and the position page's plans moved behind `EmployeePerformance` and
+`PositionPerformance`, which take ids rather than Core models where they can; the transfer closes
+agreements through `EmployeePerformance`. Assessment no longer sends Performance's notification
+class: it has its own (module `assessment`), so it does not depend on Performance's internals.
+The two bindings `AppServiceProvider` held for Daily work's extension point moved into the
+Performance provider. Reporting SQL in Intelligence and the Situation Room is declared.

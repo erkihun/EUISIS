@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Providers;
 
+use App\Support\NotificationPresenter;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Modules\Assessment\Application\Notifications\AssessmentNotification;
 use Modules\Assessment\Application\Policies\AssessmentFormPolicy;
 use Modules\Assessment\Application\Services\Oversight\AssessmentCoverageService;
 use Modules\Assessment\Domain\Models\AssessmentCriterion;
@@ -82,6 +84,8 @@ final class AssessmentServiceProvider extends ServiceProvider
 
         // Policy discovery only looks in App\Policies.
         Gate::policy(AssessmentForm::class, AssessmentFormPolicy::class);
+
+        NotificationPresenter::registerRenderer('assessment', AssessmentNotification::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

@@ -12,7 +12,7 @@ use App\Models\PositionRequirement;
 use App\Models\PositionServiceTaskStandard;
 use App\Models\User;
 use App\Models\WorkforcePlanningMethodology;
-use App\Services\Performance\Calculation\Dec;
+use App\Support\Math\Dec;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

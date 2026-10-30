@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign\Calculation;
 
-use App\Services\Performance\Calculation\Dec;
+use App\Support\Math\Dec;
 
 /** FTE = driver quantity ÷ units per position (one position per N citizens, employees, cases…). */
 final class RatioStrategy implements ManpowerStrategy

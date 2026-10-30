@@ -13,7 +13,6 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\StrategicGoal;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -27,6 +26,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
 use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Performance\Domain\Models\StrategicGoal;
 use Modules\Providers\Domain\Models\ProviderUser;
 
 /**

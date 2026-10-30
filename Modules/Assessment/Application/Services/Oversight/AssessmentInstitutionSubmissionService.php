@@ -6,14 +6,14 @@ namespace Modules\Assessment\Application\Services\Oversight;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use Modules\Assessment\Domain\Models\AssessmentCycle;
-use Modules\Assessment\Domain\Models\AssessmentCycleOrganization;
-use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
 use App\Models\User;
-use App\Notifications\PerformanceNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use Modules\Assessment\Application\Notifications\AssessmentNotification;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
+use Modules\Assessment\Domain\Models\AssessmentCycleOrganization;
+use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
 
 /**
  * Institution sign-off of its assessment summary
@@ -277,7 +277,7 @@ class AssessmentInstitutionSubmissionService
     {
         $users = collect($users);
         if ($users->isNotEmpty()) {
-            Notification::send($users, new PerformanceNotification($kind, route('assessment-oversight.submissions', ['cycle' => $cycle->id], false), ['database']));
+            Notification::send($users, new AssessmentNotification($kind, route('assessment-oversight.submissions', ['cycle' => $cycle->id], false), ['database']));
         }
     }
 }

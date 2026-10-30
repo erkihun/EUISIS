@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Models\Kpi;
-use App\Models\KpiTarget;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
-use App\Models\PerformanceCycle;
-use App\Models\PerformanceObjective;
-use App\Models\PerformancePlan;
-use App\Models\StrategicGoal;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia;
+use Modules\Performance\Domain\Models\Kpi;
+use Modules\Performance\Domain\Models\KpiTarget;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformanceObjective;
+use Modules\Performance\Domain\Models\PerformancePlan;
+use Modules\Performance\Domain\Models\StrategicGoal;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

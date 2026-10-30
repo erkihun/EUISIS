@@ -6,27 +6,27 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeePerformanceAgreement;
-use App\Models\EmployeePerformanceItem;
 use App\Models\EmployeeServiceFeedback;
-use App\Models\Kpi;
-use App\Models\KpiActual;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
-use App\Models\PerformanceCycle;
-use App\Models\PerformanceObjective;
-use App\Models\PerformancePlan;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Services\Performance\EmployeeScoreCalculator;
-use App\Services\Performance\KpiActualService;
-use App\Services\Performance\ServiceFeedbackPerformanceSync;
-use App\Services\Performance\SystemKpiSourceRegistry;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Modules\Performance\Application\Services\EmployeeScoreCalculator;
+use Modules\Performance\Application\Services\KpiActualService;
+use Modules\Performance\Application\Services\ServiceFeedbackPerformanceSync;
+use Modules\Performance\Application\Services\SystemKpiSourceRegistry;
+use Modules\Performance\Domain\Models\EmployeePerformanceAgreement;
+use Modules\Performance\Domain\Models\EmployeePerformanceItem;
+use Modules\Performance\Domain\Models\Kpi;
+use Modules\Performance\Domain\Models\KpiActual;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformanceObjective;
+use Modules\Performance\Domain\Models\PerformancePlan;
 
 /*
  * Client feedback → position service → position plan item → agreement item → KPI actual.

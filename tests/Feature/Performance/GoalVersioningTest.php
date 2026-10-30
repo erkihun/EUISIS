@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Enums\Performance\StrategicGoalStatus;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
-use App\Models\PerformanceCycle;
-use App\Models\PerformanceObjective;
-use App\Models\PerformancePlan;
-use App\Models\StrategicGoal;
-use App\Models\StrategicGoalAllocation;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Performance\StrategicPlanningService;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Performance\Application\Services\StrategicPlanningService;
+use Modules\Performance\Domain\Enums\StrategicGoalStatus;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformanceObjective;
+use Modules\Performance\Domain\Models\PerformancePlan;
+use Modules\Performance\Domain\Models\StrategicGoal;
+use Modules\Performance\Domain\Models\StrategicGoalAllocation;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

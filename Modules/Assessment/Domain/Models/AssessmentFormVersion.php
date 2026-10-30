@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Domain\Models;
 
-use Modules\Assessment\Domain\Enums\FormVersionStatus;
-use Modules\Assessment\Domain\Enums\PeriodType;
-use Modules\Assessment\Domain\Enums\ScoringMethod;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\PerformanceRatingScale;
+use Modules\Assessment\Domain\Enums\FormVersionStatus;
+use Modules\Assessment\Domain\Enums\PeriodType;
+use Modules\Assessment\Domain\Enums\ScoringMethod;
+use Modules\Performance\Contracts\ReadModels\PerformanceRatingScaleRecord;
 
 /**
  * One version of an assessment form. A DRAFT is edited; once PUBLISHED it
@@ -94,7 +94,7 @@ class AssessmentFormVersion extends Model
 
     public function resultScale(): BelongsTo
     {
-        return $this->belongsTo(PerformanceRatingScale::class, 'result_scale_id');
+        return $this->belongsTo(PerformanceRatingScaleRecord::class, 'result_scale_id');
     }
 
     public function isDraft(): bool

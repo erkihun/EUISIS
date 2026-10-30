@@ -6,16 +6,16 @@ namespace Modules\Assessment\Application\Services\Execution;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use Modules\Assessment\Domain\Models\AssessmentRecord;
-use Modules\Assessment\Domain\Models\AssessmentResponse;
-use Modules\Assessment\Domain\Models\AssessmentResultBandPolicy;
 use App\Models\User;
-use App\Notifications\PerformanceNotification;
-use Modules\Assessment\Application\Services\Oversight\AssessmentResultDistributionService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use Modules\Assessment\Application\Notifications\AssessmentNotification;
+use Modules\Assessment\Application\Services\Oversight\AssessmentResultDistributionService;
+use Modules\Assessment\Domain\Models\AssessmentRecord;
+use Modules\Assessment\Domain\Models\AssessmentResponse;
+use Modules\Assessment\Domain\Models\AssessmentResultBandPolicy;
 
 /**
  * Review, return for correction, finalization and controlled reopening
@@ -68,7 +68,7 @@ class AssessmentReviewService
             ? User::query()->whereKey($record->reviewer_id)->get()
             : User::permission('assessments.finalize')->where('status', 'active')->limit(50)->get()->filter(fn (User $u) => $this->canFinalize($u, $record));
         if ($reviewers->isNotEmpty()) {
-            Notification::send($reviewers, new PerformanceNotification('assessment_review_pending', route('assessment-reviews.index', [], false), ['database']));
+            Notification::send($reviewers, new AssessmentNotification('assessment_review_pending', route('assessment-reviews.index', [], false), ['database']));
         }
     }
 
@@ -151,7 +151,7 @@ class AssessmentReviewService
             newValues: ['percentage' => $result['percentage'], 'band' => $band?->code, 'automatic' => $actor === null], reason: $comment, request: request());
         $employeeUsers = User::query()->where('employee_id', $record->employee_id)->where('status', 'active')->get();
         if ($employeeUsers->isNotEmpty()) {
-            Notification::send($employeeUsers, new PerformanceNotification('assessment_result_available', route('employee.assessments.index', [], false), ['database']));
+            Notification::send($employeeUsers, new AssessmentNotification('assessment_result_available', route('employee.assessments.index', [], false), ['database']));
         }
     }
 
@@ -165,7 +165,7 @@ class AssessmentReviewService
     {
         $user = User::query()->whereKey($userId)->where('status', 'active')->first();
         if ($user) {
-            $user->notify(new PerformanceNotification($kind, $url, ['database']));
+            $user->notify(new AssessmentNotification($kind, $url, ['database']));
         }
     }
 }

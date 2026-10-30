@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Demo;
 
-use App\Enums\Performance\CycleStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
-use App\Models\EmployeePerformanceAgreement;
-use App\Models\EmployeePerformanceItem;
-use App\Models\Kpi;
-use App\Models\KpiTarget;
-use App\Models\PerformanceCycle;
-use App\Models\PerformanceObjective;
-use App\Models\PerformancePlan;
 use App\Models\PositionService;
-use App\Models\StrategicGoal;
-use App\Services\Performance\PerformanceCycleService;
-use App\Services\Performance\StrategicPlanningService;
 use App\Support\Demo\DemoDataset;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
+use Modules\Performance\Application\Services\PerformanceCycleService;
+use Modules\Performance\Application\Services\StrategicPlanningService;
+use Modules\Performance\Domain\Enums\CycleStatus;
+use Modules\Performance\Domain\Models\EmployeePerformanceAgreement;
+use Modules\Performance\Domain\Models\EmployeePerformanceItem;
+use Modules\Performance\Domain\Models\Kpi;
+use Modules\Performance\Domain\Models\KpiTarget;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformanceObjective;
+use Modules\Performance\Domain\Models\PerformancePlan;
+use Modules\Performance\Domain\Models\StrategicGoal;
 
 /**
  * Minimal EPMS planning data for Organization 5, through the EPMS services:

@@ -106,6 +106,14 @@ const MODULE_TABLE_READERS = [
         'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
         'app/Services/Intelligence/Business/ServiceAnalysis.php' => 'reporting',
     ],
+    'Performance' => [
+        // The Intelligence performance analysis and the Situation Room panels aggregate cycles,
+        // agreements, reviews, KPI actuals and appeals within scope (totals only).
+        'app/Services/Intelligence/Business/PerformanceAnalysis.php' => 'reporting',
+        'app/Services/SituationRoom/Analytics/PerformanceAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/Analytics/CaseSummaryAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
+    ],
 ];
 
 /* Uses of a module's internals frozen when it moved; may only shrink (see the file). */

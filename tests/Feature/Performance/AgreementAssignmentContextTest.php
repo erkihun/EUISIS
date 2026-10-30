@@ -7,14 +7,14 @@ use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
-use App\Models\PerformanceCycle;
-use App\Models\PerformancePlan;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Performance\EmployeeAgreementService;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Performance\Application\Services\EmployeeAgreementService;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformancePlan;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {

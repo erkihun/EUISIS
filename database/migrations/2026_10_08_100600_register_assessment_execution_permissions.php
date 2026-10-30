@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Models\Permission;
-use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
-use App\Support\Performance\PerformanceRoles;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
+use Modules\Performance\Contracts\Data\PerformanceRoles;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 

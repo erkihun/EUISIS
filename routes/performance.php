@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Employee\MyPerformanceController;
-use App\Http\Controllers\Performance\EmployeeAgreementController;
-use App\Http\Controllers\Performance\KpiController;
-use App\Http\Controllers\Performance\PerformanceAppealController;
-use App\Http\Controllers\Performance\PerformanceCalibrationController;
-use App\Http\Controllers\Performance\PerformanceCycleController;
-use App\Http\Controllers\Performance\PerformanceDashboardController;
-use App\Http\Controllers\Performance\PerformanceLookupController;
-use App\Http\Controllers\Performance\PerformancePlanController;
-use App\Http\Controllers\Performance\PerformanceReportController;
-use App\Http\Controllers\Performance\PerformanceSettingController;
-use App\Http\Controllers\Performance\StrategicGoalController;
-use App\Http\Middleware\EnsurePerformanceEnabled;
 use Illuminate\Support\Facades\Route;
+use Modules\Performance\Http\Controllers\Employee\MyPerformanceController;
+use Modules\Performance\Http\Controllers\EmployeeAgreementController;
+use Modules\Performance\Http\Controllers\KpiController;
+use Modules\Performance\Http\Controllers\PerformanceAppealController;
+use Modules\Performance\Http\Controllers\PerformanceCalibrationController;
+use Modules\Performance\Http\Controllers\PerformanceCycleController;
+use Modules\Performance\Http\Controllers\PerformanceDashboardController;
+use Modules\Performance\Http\Controllers\PerformanceLookupController;
+use Modules\Performance\Http\Controllers\PerformancePlanController;
+use Modules\Performance\Http\Controllers\PerformanceReportController;
+use Modules\Performance\Http\Controllers\PerformanceSettingController;
+use Modules\Performance\Http\Controllers\StrategicGoalController;
+use Modules\Performance\Http\Middleware\EnsurePerformanceEnabled;
 
 /*
 |--------------------------------------------------------------------------

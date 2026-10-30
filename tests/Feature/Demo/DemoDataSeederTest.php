@@ -12,7 +12,6 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\StrategicGoal;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\IdCards\CardQrPayloadService;
@@ -37,6 +36,7 @@ use Modules\Grievance\Contracts\Data\GrievanceStatus;
 use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceRoute;
+use Modules\Performance\Domain\Models\StrategicGoal;
 use Modules\Providers\Domain\Models\ProviderUser;
 
 /*

@@ -33,7 +33,7 @@ final class PermissionUsageScanner
     private const GRANT_FILES = [
         'app/Support/Rbac/',
         'app/Support/DailyActivity/DailyActivityRoles.php',
-        'app/Support/Performance/PerformanceRoles.php',
+        'Modules/Performance/Contracts/Data/PerformanceRoles.php',
         'app/Support/Grievances/GrievanceRoles.php',
         'app/Support/FieldWork/FieldWorkRoles.php',
     ];

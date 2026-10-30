@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Intelligence\Business;
 
-use App\Enums\Performance\AgreementStatus;
-use App\Enums\Performance\AppealStatus;
-use App\Enums\Performance\CalibrationStatus;
-use App\Enums\Performance\PlanStatus;
-use App\Enums\Performance\ResultStatus;
-use App\Enums\Performance\ReviewStatus;
-use App\Enums\Performance\ReviewType;
 use App\Services\Intelligence\Analysis\Baseline;
 use App\Services\Intelligence\IntelligenceAnalysis;
 use App\Services\SituationRoom\Analytics\WorkforceQueries;
@@ -21,6 +14,13 @@ use App\Services\SituationRoom\SituationPanel;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Performance\Contracts\Data\AgreementStatus;
+use Modules\Performance\Contracts\Data\AppealStatus;
+use Modules\Performance\Contracts\Data\CalibrationStatus;
+use Modules\Performance\Contracts\Data\PlanStatus;
+use Modules\Performance\Contracts\Data\ResultStatus;
+use Modules\Performance\Contracts\Data\ReviewStatus;
+use Modules\Performance\Contracts\Data\ReviewType;
 
 /**
  * Performance Intelligence: how far the EPMS cycle has got, step by step,

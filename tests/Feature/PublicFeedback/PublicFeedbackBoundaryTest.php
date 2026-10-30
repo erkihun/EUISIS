@@ -11,11 +11,11 @@ use App\Models\PublicFeedbackReferral;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Dashboard\DashboardMetricService;
-use App\Services\Performance\SystemKpiSourceRegistry;
 use App\Services\ServiceFeedback\PublicFeedbackReferralService;
 use App\Services\ServiceFeedback\PublicFeedbackWorkflow;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Performance\Application\Services\SystemKpiSourceRegistry;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

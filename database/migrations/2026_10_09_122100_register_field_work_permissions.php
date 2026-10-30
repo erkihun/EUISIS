@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use App\Models\Permission;
-use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
-use App\Support\Performance\PerformanceRoles;
 use App\Support\Rbac\PermissionCatalog;
 use Database\Seeders\FieldWorkTypeSeeder;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
+use Modules\Performance\Contracts\Data\PerformanceRoles;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 

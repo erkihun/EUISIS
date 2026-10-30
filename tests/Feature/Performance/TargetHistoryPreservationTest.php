@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeePerformanceAgreement;
-use App\Models\Kpi;
-use App\Models\KpiActual;
-use App\Models\KpiTarget;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
-use App\Models\PerformanceCycle;
-use App\Models\PerformancePlan;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Performance\TargetAmendmentService;
 use Illuminate\Support\Str;
+use Modules\Performance\Application\Services\TargetAmendmentService;
+use Modules\Performance\Domain\Models\EmployeePerformanceAgreement;
+use Modules\Performance\Domain\Models\Kpi;
+use Modules\Performance\Domain\Models\KpiActual;
+use Modules\Performance\Domain\Models\KpiTarget;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformancePlan;
 use Spatie\Permission\Models\Permission;
 
 test('amending a target preserves published downstream lineage and copies explicit period targets', function (): void {

@@ -4,32 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Http\Controllers;
 
-use Modules\Assessment\Domain\Enums\EvaluatorType;
-use Modules\Assessment\Domain\Enums\FormVersionStatus;
-use Modules\Assessment\Domain\Enums\InputMode;
-use Modules\Assessment\Domain\Enums\PeriodType;
-use Modules\Assessment\Domain\Enums\ScoringMethod;
-use Modules\Assessment\Domain\Enums\SelectionMethod;
-use Modules\Assessment\Domain\Enums\TargetType;
 use App\Http\Controllers\Controller;
-use Modules\Assessment\Http\Requests\SaveAssessmentDraftRequest;
-use Modules\Assessment\Domain\Models\AssessmentCriterion;
-use Modules\Assessment\Domain\Models\AssessmentForm;
-use Modules\Assessment\Domain\Models\AssessmentFormSection;
-use Modules\Assessment\Domain\Models\AssessmentFormVersion;
-use Modules\Assessment\Domain\Models\AssessmentRatingOption;
-use Modules\Assessment\Domain\Models\AssessmentTargetRule;
-use Modules\Assessment\Domain\Models\AssessmentType;
 use App\Models\Competency;
 use App\Models\GradeLevel;
 use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
-use App\Models\PerformanceRatingScale;
 use App\Models\Position;
-use Modules\Assessment\Application\Services\AssessmentFormService;
-use Modules\Assessment\Application\Services\AssessmentScoringService;
-use Modules\Assessment\Application\Services\AssessmentTargetResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -38,6 +19,25 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Assessment\Application\Services\AssessmentFormService;
+use Modules\Assessment\Application\Services\AssessmentScoringService;
+use Modules\Assessment\Application\Services\AssessmentTargetResolver;
+use Modules\Assessment\Domain\Enums\EvaluatorType;
+use Modules\Assessment\Domain\Enums\FormVersionStatus;
+use Modules\Assessment\Domain\Enums\InputMode;
+use Modules\Assessment\Domain\Enums\PeriodType;
+use Modules\Assessment\Domain\Enums\ScoringMethod;
+use Modules\Assessment\Domain\Enums\SelectionMethod;
+use Modules\Assessment\Domain\Enums\TargetType;
+use Modules\Assessment\Domain\Models\AssessmentCriterion;
+use Modules\Assessment\Domain\Models\AssessmentForm;
+use Modules\Assessment\Domain\Models\AssessmentFormSection;
+use Modules\Assessment\Domain\Models\AssessmentFormVersion;
+use Modules\Assessment\Domain\Models\AssessmentRatingOption;
+use Modules\Assessment\Domain\Models\AssessmentTargetRule;
+use Modules\Assessment\Domain\Models\AssessmentType;
+use Modules\Assessment\Http\Requests\SaveAssessmentDraftRequest;
+use Modules\Performance\Contracts\ReadModels\PerformanceRatingScaleRecord;
 
 /**
  * Performance › Assessment Forms: the configurable form builder
@@ -157,7 +157,7 @@ class AssessmentFormController extends Controller
                 'target_types' => TargetType::values(),
                 'evaluator_types' => EvaluatorType::values(),
                 'selection_methods' => SelectionMethod::values(),
-                'result_scales' => PerformanceRatingScale::query()->where('scale_type', 'RESULT')->where('is_active', true)->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am']),
+                'result_scales' => PerformanceRatingScaleRecord::query()->where('scale_type', 'RESULT')->where('is_active', true)->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am']),
                 'grade_levels' => GradeLevel::query()->orderBy('name')->pluck('name')->all(),
                 'job_families' => Position::query()->whereNotNull('job_family')->where('job_family', '!=', '')->distinct()->orderBy('job_family')->limit(200)->pluck('job_family')->all(),
             ],

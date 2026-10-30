@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Enums\Performance\KpiAggregation;
-use App\Enums\Performance\KpiDirection;
-use App\Services\Performance\Calculation\AchievementResult;
-use App\Services\Performance\Calculation\KpiAchievementCalculator;
-use App\Services\Performance\Calculation\KpiAggregationService;
-use App\Services\Performance\Calculation\Observation;
+use Modules\Performance\Application\Services\Calculation\AchievementResult;
+use Modules\Performance\Application\Services\Calculation\KpiAchievementCalculator;
+use Modules\Performance\Application\Services\Calculation\KpiAggregationService;
+use Modules\Performance\Application\Services\Calculation\Observation;
+use Modules\Performance\Domain\Enums\KpiAggregation;
+use Modules\Performance\Domain\Enums\KpiDirection;
 
 /*
 |--------------------------------------------------------------------------

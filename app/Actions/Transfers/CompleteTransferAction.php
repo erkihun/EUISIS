@@ -29,12 +29,12 @@ use App\Models\User;
 use App\Services\IdCards\IdCardSnapshotComparisonService;
 use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
-use App\Services\Performance\EmployeeAgreementService;
 use App\Services\Positions\PositionCapacityService;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Entitlements\Contracts\ServiceDeliveryRegistry;
+use Modules\Performance\Contracts\EmployeePerformance;
 
 /** Canonical, assignment-only implementation for an approved transfer application. */
 readonly class CompleteTransferAction
@@ -42,7 +42,7 @@ readonly class CompleteTransferAction
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
         private ServiceDeliveryRegistry $serviceDelivery,
-        private EmployeeAgreementService $employeeAgreements,
+        private EmployeePerformance $employeePerformance,
         private PositionCapacityService $capacityService,
         private IdCardSnapshotComparisonService $idCardSnapshotComparison,
         private JobDescriptionService $jobDescriptions,
@@ -110,7 +110,7 @@ readonly class CompleteTransferAction
                 );
                 $this->capacityService->releaseOccupancyForAssignment($currentAssignment->id, 'transfer', $effectiveDate->copy()->subDay());
                 $this->capacityService->recordOccupancy($establishment, $newAssignment, $effectiveDate);
-                $this->employeeAgreements->closeForAssignmentChange($currentAssignment, $newAssignment, $actor);
+                $this->employeePerformance->closeForAssignmentChange($currentAssignment, $newAssignment, $actor);
 
                 // A final selection approval normally created this canonical transfer.
                 // Keep the fallback for legacy approved applications during rollout.
