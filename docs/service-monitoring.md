@@ -147,6 +147,8 @@ realized and the decisions taken during the build (D28 onward), with the reason.
 | D39 | City-wide reach | A user is city-wide when unrestricted by the scope service or holding an active city-wide scope record. The Coordinator and Verifier default roles are global. |
 | D40 | Named data and City Admin | `accountability.view_named` and `export_named` are withheld from City Admin and Public Service Bureau Admin, like discipline and field-work location data. |
 | D41 | Pages without `periods.manage` | Every module user may read the periods page; only the coordinator edits. |
+| D42 | Policies | One policy per aggregate root (period, participant, submission, digital service, clarification, visit, action item, attachment, export, settings), as Field Work has one policy for its request and child rows. Section rows, prefill, comments, corrections, histories and snapshots are authorized through their parent's policy. |
+| D43 | Phases and commits | The six phases were delivered in two commits (backend for phases 1–5 with their tests; pages, exports, Situation Room, demo data and docs), each with the module tests, Pint, typecheck, the i18n audit and the build passing. |
 
 ## Routes
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ServiceMonitoring\Application\Actions\CertifySubCityConsolidation;
@@ -151,7 +152,7 @@ final class ConsolidationController extends Controller
     private function selection(Request $request): array
     {
         $current = $this->periods->current();
-        $year = FiscalYear::query()->find($request->string('fiscal_year_id')->toString()) ?? $current?->fiscalYear ?? FiscalYear::query()->orderByDesc('ec_year')->first();
+        $year = FiscalYear::query()->find(self::uuidParam($request, 'fiscal_year_id')) ?? $current?->fiscalYear ?? FiscalYear::query()->orderByDesc('ec_year')->first();
         $quarter = max(1, min(4, (int) ($request->input('quarter') ?: ($current?->fiscal_year_id === $year?->id ? $current?->quarter : 1) ?: 1)));
         $range = ReportRange::tryFrom($request->string('range')->toString()) ?? ReportRange::Quarter;
 
@@ -213,5 +214,13 @@ final class ConsolidationController extends Controller
             'status' => $e->status->value, 'filename' => $e->filename, 'created_at' => $e->created_at?->toIso8601String(),
             'download_url' => $e->isReady() ? route('service-monitoring.exports.download', $e) : null,
         ])->all();
+    }
+
+    /** A UUID query parameter, or null when absent or malformed (PostgreSQL rejects a non-UUID on a uuid column). */
+    private static function uuidParam(Request $request, string $key): ?string
+    {
+        $value = $request->string($key)->toString();
+
+        return Str::isUuid($value) ? $value : null;
     }
 }

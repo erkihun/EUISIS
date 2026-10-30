@@ -1,5 +1,5 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { dangerBtn, errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { dangerBtn, errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import type { AccountabilityRow, FinalAction, FormDescription, ReasonCategory, ReportingLevel, RoleCategory, SubjectType, Suggestion, Summary } from '@/types/serviceMonitoring';
 import { Deferred, router, useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -98,7 +98,7 @@ export default function Section1Panel({ submissionId, level, quarter, definition
             {!named && <p className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">{sm('edit.section1.namesHidden')}</p>}
 
             <div className={scrollCls}>
-                <table className="min-w-full border-collapse">
+                <table className={tableCls}>
                     <thead>
                         <tr>
                             <th scope="col" className={thCls}>{definition.section_1.columns[0].label}</th>
@@ -252,7 +252,7 @@ export default function Section1Panel({ submissionId, level, quarter, definition
             <section aria-labelledby={`${id}-summary`} className="space-y-2">
                 <h3 id={`${id}-summary`} className="text-sm font-semibold">{sm('edit.section1.summary')}: {definition.section_1.summary.title}</h3>
                 <div className={scrollCls}>
-                    <table className="min-w-full border-collapse text-sm">
+                    <table className={tableCls}>
                         <thead>
                             <tr>
                                 <th scope="col" rowSpan={2} className={thCls}>{definition.section_1.summary.action_column}</th>

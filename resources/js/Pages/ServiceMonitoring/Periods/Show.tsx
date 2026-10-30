@@ -1,6 +1,6 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -98,7 +98,7 @@ export default function PeriodShow({ period, rows, extensions, tally, can }: Pro
                 </section>
 
                 <div className={scrollCls}>
-                    <table className="min-w-full border-collapse">
+                    <table className={tableCls}>
                         <thead>
                             <tr>{['common.institution', 'common.level', 'participants.parent', 'common.status', 'periods.certified', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k, { date: '' })}</th>)}</tr>
                         </thead>

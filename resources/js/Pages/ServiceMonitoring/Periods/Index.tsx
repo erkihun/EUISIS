@@ -1,6 +1,6 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FiscalYearRow } from '@/types/serviceMonitoring';
@@ -38,7 +38,7 @@ export default function PeriodsIndex({ years, can }: { years: FiscalYearRow[]; c
                             {sm('common.fiscalYear')} {year.ec_year} · <LocalizedDateDisplay value={year.starts_on} /> – <LocalizedDateDisplay value={year.ends_on} />
                         </h2>
                         <div className={scrollCls}>
-                            <table className="min-w-full border-collapse">
+                            <table className={tableCls}>
                                 <thead>
                                     <tr>
                                         {['common.quarter', 'periods.starts', 'periods.ends', 'periods.opens', 'periods.submissionDue', 'periods.subcityReviewDue', 'periods.cityReviewDue', 'common.status'].map((key) => (

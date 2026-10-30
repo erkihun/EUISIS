@@ -57,7 +57,7 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
     const serverErrors = Object.entries(errors).filter(([key]) => key.startsWith('section_') || ['deadline', 'period', 'submission', 'stamped_copy', 'attest'].includes(key));
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={sm('edit.title', { name: name(submission.organization) })} description={`${submission.period.label} · ${sm(`formType.${submission.form_type}`)} · ${sm('common.revision', { n: submission.revision_no })}`}
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={sm('edit.title', { name: name(submission.organization) })} description={`${submission.period.label} · ${sm(`formType.${submission.form_type}`)} · ${sm('common.revision', { n: submission.revision_no })}`}
             backHref={route('service-monitoring.submissions.index')}
             actions={<div className="flex flex-wrap gap-2">
                 {can.open_clarification && <Link className={secondaryBtn} href={route('service-monitoring.clarifications.index', { submission_id: submission.id })}>{sm('edit.askSupport')}</Link>}

@@ -2,7 +2,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import ConsolidationForms from '@/Components/serviceMonitoring/ConsolidationForms';
 import ExportPanel from '@/Components/serviceMonitoring/ExportPanel';
-import { inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import RangePicker from '@/Components/serviceMonitoring/RangePicker';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
@@ -42,14 +42,8 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
             actions={can?.certify ? <button type="button" className={primaryBtn} onClick={certify}>{sm('consolidation.certify')}</button> : undefined} />}>
             <Head title={sm('consolidation.subCityTitle')} />
             <div className="space-y-4">
-                <div className={`${panelCls} p-3`}>
-                    <label htmlFor="sm-subcity" className={labelCls}>{sm('consolidation.subCity')}</label>
-                    <select id="sm-subcity" className={inputCls} value={selection.participant_id ?? ''}
-                        onChange={(e) => router.get(route('service-monitoring.consolidation.sub-city'), { ...selection, participant_id: e.target.value } as Record<string, string | number>, { preserveScroll: true })}>
-                        {sub_cities.map((s) => <option key={s.id} value={s.id}>{name(s)}</option>)}
-                    </select>
-                </div>
-                <RangePicker years={years} selection={selection} routeName="service-monitoring.consolidation.sub-city" extra={{ participant_id: selection.participant_id ?? '' }} />
+                <RangePicker years={years} selection={selection} routeName="service-monitoring.consolidation.sub-city" extra={{ participant_id: selection.participant_id ?? '' }}
+                    scope={{ param: 'participant_id', label: sm('consolidation.subCity'), value: selection.participant_id ?? '', options: sub_cities.map((c) => ({ value: c.id, label: name(c) })) }} />
 
                 {report === null ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('consolidation.noData')}</p> : (
                     <>
@@ -64,7 +58,7 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
                             <section aria-labelledby="sm-woredas" className="space-y-2">
                                 <h2 id="sm-woredas" className="text-sm font-semibold">{sm('consolidation.woredas')}</h2>
                                 <div className={scrollCls}>
-                                    <table className="min-w-full border-collapse">
+                                    <table className={tableCls}>
                                         <thead><tr>{['common.institution', 'common.status', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                                         <tbody>
                                             {woredas.map((w) => (

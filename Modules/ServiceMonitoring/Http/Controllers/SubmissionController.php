@@ -9,6 +9,7 @@ use App\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ServiceMonitoring\Application\Actions\SetNothingToReport;
@@ -40,10 +41,10 @@ final class SubmissionController extends Controller
         $this->authorize('viewAny', ReportingPeriod::class);
         $user = $request->user();
         $filters = [
-            'period_id' => $request->string('period_id')->toString() ?: $periods->current()?->id,
+            'period_id' => self::uuidParam($request, 'period_id') ?? $periods->current()?->id,
             'level' => $request->string('level')->toString(),
             'status' => $request->string('status')->toString(),
-            'sub_city_id' => $request->string('sub_city_id')->toString(),
+            'sub_city_id' => self::uuidParam($request, 'sub_city_id') ?? '',
         ];
 
         $submissions = $this->access->scopeSubmissions(Submission::query(), $user)
@@ -148,5 +149,13 @@ final class SubmissionController extends Controller
         $submit->execute($submission, $request->user(), (bool) $request->validated('declaration'));
 
         return redirect()->route('service-monitoring.submissions.show', $submission)->with('success', __('service-monitoring.flash.submitted'));
+    }
+
+    /** A UUID query parameter, or null when absent or malformed (PostgreSQL rejects a non-UUID on a uuid column). */
+    private static function uuidParam(Request $request, string $key): ?string
+    {
+        $value = $request->string($key)->toString();
+
+        return Str::isUuid($value) ? $value : null;
     }
 }

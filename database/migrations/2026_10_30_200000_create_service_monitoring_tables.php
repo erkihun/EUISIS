@@ -75,7 +75,10 @@ return new class extends Migration
         });
 
         $this->create('service_monitoring_participants', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and the self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('organization_id')->constrained('organizations', 'id', 'sm_par_org_fk')->restrictOnDelete();
             $table->string('level', 20);
             $table->foreignUuid('parent_participant_id')->nullable()->constrained('service_monitoring_participants', 'id', 'sm_par_parent_fk')->nullOnDelete();
@@ -114,7 +117,10 @@ return new class extends Migration
         });
 
         $this->create('service_monitoring_submissions', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and the self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('period_id')->constrained('service_monitoring_periods', 'id', 'sm_sub_period_fk')->restrictOnDelete();
             $table->foreignUuid('participant_id')->constrained('service_monitoring_participants', 'id', 'sm_sub_par_fk')->restrictOnDelete();
             // Snapshots at creation: a later registry change never rewrites a submitted report.
@@ -219,7 +225,10 @@ return new class extends Migration
         });
 
         $this->create('service_monitoring_digital_services', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and the self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('submission_id')->constrained('service_monitoring_submissions', 'id', 'sm_dig_sub_fk')->cascadeOnDelete();
             $table->unsignedInteger('sequence');
             $table->foreignUuid('service_id')->nullable()->constrained('services', 'id', 'sm_dig_service_fk')->nullOnDelete();

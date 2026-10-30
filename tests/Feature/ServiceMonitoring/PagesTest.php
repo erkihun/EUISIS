@@ -53,6 +53,17 @@ it('renders the coordinator pages', function (): void {
         ->assertInertia(fn (Assert $page) => $page->where('report.range', 'annual')->has('forms', 2)->has('forms.0.sections.section_1'));
 });
 
+it('ignores empty or malformed id filters instead of failing on a uuid column', function (): void {
+    $coordinator = $this->s->coordinator();
+    foreach (['', 'not-a-uuid'] as $bad) {
+        $this->actingAs($coordinator)->get(route('service-monitoring.consolidation.city', ['fiscal_year_id' => $bad]))->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('selection.fiscal_year_id', $this->s->year->id));
+        $this->actingAs($coordinator)->get(route('service-monitoring.reports.index', ['fiscal_year_id' => $bad]))->assertOk();
+        $this->actingAs($coordinator)->get(route('service-monitoring.submissions.index', ['period_id' => $bad, 'sub_city_id' => $bad]))->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('filters.sub_city_id', ''));
+    }
+});
+
 it('renders the institution, verifier and support pages', function (): void {
     $head = $this->s->head('wA1');
     $submission = $this->s->start('wA1');

@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import type { LayoutTable } from '@/types/serviceMonitoring';
-import { scrollCls, tdCls, thCls } from './helpers';
+import { scrollCls, tableCls, tdCls, thCls } from './helpers';
 
 /**
  * Official form tables exactly as the exports print them (the server's
@@ -19,7 +19,7 @@ export default function OfficialTables({ tables, idPrefix }: { tables: LayoutTab
                             {table.subtitle && <span className="ms-2 font-normal text-(--app-muted-foreground)">— {table.subtitle}</span>}
                         </h3>
                         <div className={scrollCls}>
-                            <table className="min-w-full border-collapse">
+                            <table className={tableCls}>
                                 {table.header.length > 0 && (
                                     <thead>
                                         {table.header.map((row, r) => (

@@ -1,4 +1,4 @@
-import { errorCls, inputCls, labelCls, panelCls, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import type { FormDescription, PrefillRow } from '@/types/serviceMonitoring';
 import { router, useForm } from '@inertiajs/react';
 import { useId, type JSX } from 'react';
@@ -60,7 +60,7 @@ export default function Section2Panel({ submissionId, definition, values, prefil
             {definition.section_2.notes.map((n, i) => <p key={i} className="text-xs text-(--app-muted-foreground)">{n}</p>)}
 
             <div className={scrollCls}>
-                <table className="min-w-full border-collapse">
+                <table className={tableCls}>
                     <thead>
                         <tr>
                             <th scope="col" className={thCls}>{definition.section_2.institution_column}</th>

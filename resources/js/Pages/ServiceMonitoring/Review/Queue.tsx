@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import PageHeader from '@/Components/PageHeader';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FormType, Named, ReportingLevel, SectionNumber } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -31,7 +31,7 @@ export default function ReviewQueue({ pending, corrections }: { pending: Pending
             <div className="space-y-4">
                 {pending.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('review.empty')}</p> : (
                     <div className={scrollCls}>
-                        <table className="min-w-full border-collapse">
+                        <table className={tableCls}>
                             <thead><tr>{['common.institution', 'common.level', 'common.period', 'common.submittedAt', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                             <tbody>
                                 {pending.map((p) => (

@@ -1,5 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
-import { panelCls, scrollCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { panelCls, scrollCls, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import RangePicker from '@/Components/serviceMonitoring/RangePicker';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ComplianceStatus, ComplianceTally, FiscalYearRow, FinalAction, Named, ReportingLevel, RoleCategory, Selection, ServiceLevel, Summary, VerificationStatus } from '@/types/serviceMonitoring';
@@ -41,7 +41,7 @@ export default function ReportsIndex({ years, selection, compliance, report, cat
 
                 {tab === 'compliance' && (
                     <div className={scrollCls} role="tabpanel">
-                        <table className="min-w-full border-collapse text-sm">
+                        <table className={tableCls}>
                             <thead><tr><th scope="col" className={thCls}>{sm('common.period')}</th><th scope="col" className={thCls}>{sm('reports.participants')}</th>{STATUSES.map((s) => <th key={s} scope="col" className={thCls}>{sm(`compliance.${s}`)}</th>)}</tr></thead>
                             <tbody>{compliance.map((c) => <tr key={c.period_id}><th scope="row" className={thCls}>{c.label}</th><td className={`${tdCls} text-end`}>{c.participants}</td>{STATUSES.map((s) => <td key={s} className={`${tdCls} text-end tabular-nums`}>{c.tally[s]}</td>)}</tr>)}</tbody>
                         </table>
@@ -52,7 +52,7 @@ export default function ReportsIndex({ years, selection, compliance, report, cat
                     <div role="tabpanel" className="space-y-2">
                         <p className="text-sm">{sm('reports.people')}: <strong>{report.summary.grand_total}</strong></p>
                         <div className={scrollCls}>
-                            <table className="min-w-full border-collapse text-sm">
+                            <table className={tableCls}>
                                 <thead>
                                     <tr><th scope="col" rowSpan={2} className={thCls}>{sm('edit.section1.finalAction')}</th>{LEVELS.map((l) => <th key={l} scope="colgroup" colSpan={ROLES.length} className={`${thCls} text-center`}>{sm(`level.${l}`)}</th>)}</tr>
                                     <tr>{LEVELS.flatMap((l) => ROLES.map((r) => <th key={`${l}-${r}`} scope="col" className={thCls}>{sm(`enums.role_category.${r}`)}</th>))}</tr>
@@ -69,7 +69,7 @@ export default function ReportsIndex({ years, selection, compliance, report, cat
 
                 {tab === 'digital' && report && (
                     <div className={scrollCls} role="tabpanel">
-                        <table className="min-w-full border-collapse text-sm">
+                        <table className={tableCls}>
                             <thead><tr>{['common.institution', 'reports.digitalMain', 'reports.digitalSub', 'reports.systems'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                             <tbody>
                                 {report.rows.map((r) => <tr key={r.participant_id}><td className={tdCls}>{name(r)}</td><td className={`${tdCls} text-end`}>{r.digital.main}</td><td className={`${tdCls} text-end`}>{r.digital.sub}</td><td className={`${tdCls} text-end`}>{r.digital.systems}</td></tr>)}
@@ -82,7 +82,7 @@ export default function ReportsIndex({ years, selection, compliance, report, cat
                 {tab === 'gaps' && (
                     catalog_gaps.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('reports.gapsEmpty')}</p> : (
                         <div className={scrollCls} role="tabpanel">
-                            <table className="min-w-full border-collapse text-sm">
+                            <table className={tableCls}>
                                 <thead><tr>{['common.institution', 'reports.service', 'common.level', 'common.quarter', 'common.status'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                                 <tbody>{catalog_gaps.map((g) => <tr key={g.id}><td className={tdCls}>{name(g.organization)}</td><td className={tdCls}>{name({ name_am: g.service_name_am, name_en: g.service_name_en })}</td><td className={tdCls}>{sm(`enums.service_level.${g.level}`)}</td><td className={tdCls}>{g.quarter}</td><td className={tdCls}>{sm(`enums.verification_status.${g.verification_status}`)}</td></tr>)}</tbody>
                             </table>
@@ -92,7 +92,7 @@ export default function ReportsIndex({ years, selection, compliance, report, cat
 
                 {tab === 'standards' && report && (
                     <div className={scrollCls} role="tabpanel">
-                        <table className="min-w-full border-collapse text-sm">
+                        <table className={tableCls}>
                             <thead>
                                 <tr><th scope="col" rowSpan={2} className={thCls}>{sm('common.institution')}</th><th scope="colgroup" colSpan={3} className={`${thCls} text-center`}>{sm('reports.main')}</th><th scope="colgroup" colSpan={3} className={`${thCls} text-center`}>{sm('reports.sub')}</th></tr>
                                 <tr>{['main', 'sub'].flatMap((lv) => ['above', 'at', 'below'].map((p) => <th key={`${lv}-${p}`} scope="col" className={thCls}>{sm(`reports.${p}`)}</th>))}</tr>

@@ -6,6 +6,7 @@ namespace Modules\ServiceMonitoring\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ServiceMonitoring\Application\Services\ComplianceService;
@@ -37,7 +38,7 @@ final class ReportController extends Controller
         abort_unless($access->canViewReports($request->user()), 403);
         $user = $request->user();
         $current = $periods->current();
-        $year = FiscalYear::query()->find($request->string('fiscal_year_id')->toString()) ?? $current?->fiscalYear ?? FiscalYear::query()->orderByDesc('ec_year')->first();
+        $year = FiscalYear::query()->find(self::uuidParam($request, 'fiscal_year_id')) ?? $current?->fiscalYear ?? FiscalYear::query()->orderByDesc('ec_year')->first();
         $quarter = max(1, min(4, (int) ($request->input('quarter') ?: ($current?->quarter ?? 1))));
         $range = ReportRange::tryFrom($request->string('range')->toString()) ?? ReportRange::Quarter;
 
@@ -65,5 +66,13 @@ final class ReportController extends Controller
                     'organization' => ['name_en' => $d->submission->organization?->name_en, 'name_am' => $d->submission->organization?->name_am],
                 ])->all(),
         ]);
+    }
+
+    /** A UUID query parameter, or null when absent or malformed (PostgreSQL rejects a non-UUID on a uuid column). */
+    private static function uuidParam(Request $request, string $key): ?string
+    {
+        $value = $request->string($key)->toString();
+
+        return Str::isUuid($value) ? $value : null;
     }
 }

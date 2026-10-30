@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import ExportPanel from '@/Components/serviceMonitoring/ExportPanel';
-import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import OfficialTables from '@/Components/serviceMonitoring/OfficialTables';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -103,7 +103,7 @@ export default function SubmissionShow({ submission, definition, revisions, hist
                     <section aria-labelledby="sm-diff" className="space-y-2">
                         <h2 id="sm-diff" className="text-sm font-semibold">{sm('show.changes')}</h2>
                         <div className={scrollCls}>
-                            <table className="min-w-full border-collapse text-sm">
+                            <table className={tableCls}>
                                 <thead><tr>{['common.quarter', 'show.field', 'show.before', 'show.after'].map((k) => <th key={k} scope="col" className={thCls}>{k === 'common.quarter' ? sm('edit.section', { n: '' }) : sm(k)}</th>)}</tr></thead>
                                 <tbody>{diff.map((d, i) => <tr key={i}><td className={tdCls}>{d.section}</td><td className={tdCls}>{fieldLabel(d.field)}</td><td className={tdCls}>{d.before ?? '—'}</td><td className={tdCls}>{d.after ?? '—'}</td></tr>)}</tbody>
                             </table>

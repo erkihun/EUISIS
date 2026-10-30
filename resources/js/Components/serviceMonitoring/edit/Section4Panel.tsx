@@ -1,4 +1,4 @@
-import { errorCls, inputCls, labelCls, panelCls, scrollCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { errorCls, inputCls, labelCls, panelCls, scrollCls, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import type { FormDescription } from '@/types/serviceMonitoring';
 import { useForm } from '@inertiajs/react';
 import { useId, type JSX } from 'react';
@@ -43,7 +43,7 @@ export default function Section4Panel({ submissionId, definition, totals, values
                 {editable && <SaveIndicator state={state} />}
             </div>
             <div className={scrollCls}>
-                <table className="min-w-full border-collapse">
+                <table className={tableCls}>
                     <thead>
                         <tr>
                             <th scope="col" className={thCls} />

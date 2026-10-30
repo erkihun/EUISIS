@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { ListPagination } from '@/Components/ui';
-import { inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { FilterField, FilterPanel, ListPagination, Select } from '@/Components/ui';
+import { panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Named, Paginated, ServiceLevel, TechnologyType, VerificationStatus } from '@/types/serviceMonitoring';
@@ -18,21 +18,24 @@ type Row = {
 export default function VerificationIndex({ services, filters }: { services: Paginated<Row>; filters: { status: VerificationStatus } }): JSX.Element {
     const { sm, name } = useSm();
     const [rejecting, setRejecting] = useState<string | null>(null);
+    const [status, setStatus] = useState<VerificationStatus>(filters.status);
     const serviceName = (r: { service_name_am: string | null; service_name_en: string | null }) => name({ name_am: r.service_name_am, name_en: r.service_name_en });
 
     return (
         <AuthenticatedLayout header={<PageHeader title={sm('verification.title')} description={sm('verification.description')} />}>
             <Head title={sm('verification.title')} />
             <div className="space-y-4">
-                <div className={`${panelCls} p-3`}>
-                    <label htmlFor="sm-v-status" className={labelCls}>{sm('common.status')}</label>
-                    <select id="sm-v-status" className={inputCls} value={filters.status} onChange={(e) => router.get(route('service-monitoring.verification.index'), { status: e.target.value }, { preserveState: true })}>
-                        {(['pending', 'verified', 'rejected'] as const).map((s) => <option key={s} value={s}>{sm(`enums.verification_status.${s}`)}</option>)}
-                    </select>
-                </div>
+                <FilterPanel onSubmit={() => router.get(route('service-monitoring.verification.index'), { status }, { preserveState: true })}
+                    onReset={() => router.get(route('service-monitoring.verification.index'))} hasActiveFilters={filters.status !== 'pending'}>
+                    <FilterField label={sm('common.status')} htmlFor="sm-v-status">
+                        <Select id="sm-v-status" value={status} onChange={(e) => setStatus(e.target.value as VerificationStatus)}>
+                            {(['pending', 'verified', 'rejected'] as const).map((s) => <option key={s} value={s}>{sm(`enums.verification_status.${s}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
                 {services.data.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('verification.empty')}</p> : (
                     <div className={scrollCls}>
-                        <table className="min-w-full border-collapse">
+                        <table className={tableCls}>
                             <thead><tr>{['common.institution', 'edit.section3.nameAm', 'edit.section3.technology', 'edit.section3.goLive', 'common.status', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                             <tbody>
                                 {services.data.map((r) => (

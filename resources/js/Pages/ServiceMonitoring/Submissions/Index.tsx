@@ -1,7 +1,7 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import { ListPagination } from '@/Components/ui';
-import { inputCls, labelCls, panelCls, scrollCls, secondaryBtn, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
+import { inputCls, labelCls, panelCls, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FiscalYearRow, NamedWithId, Paginated, ReportingLevel, SubmissionListRow, SubmissionStatus } from '@/types/serviceMonitoring';
@@ -59,7 +59,7 @@ export default function SubmissionsIndex({ submissions, filters, years, sub_citi
 
                 {submissions.data.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('submissions.empty')}</p> : (
                     <div className={scrollCls}>
-                        <table className="min-w-full border-collapse">
+                        <table className={tableCls}>
                             <thead>
                                 <tr>{['common.institution', 'common.level', 'common.period', 'common.status', 'common.submittedAt', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr>
                             </thead>
