@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Communication\Infrastructure\Jobs;
+
+use App\Models\User;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Modules\Communication\Application\Services\ChannelMembershipSync;
+use Modules\Communication\Domain\Models\Channel;
+
+/** Brings one automatic channel's membership in line with the organizational assignments. */
+class SyncChannelMemberships implements ShouldBeUnique, ShouldQueue
+{
+    use Queueable;
+
+    public int $tries = 3;
+
+    public int $uniqueFor = 600;
+
+    public function __construct(public string $channelId, public ?int $actorId = null) {}
+
+    public function uniqueId(): string
+    {
+        return $this->channelId;
+    }
+
+    public function handle(ChannelMembershipSync $sync): void
+    {
+        $channel = Channel::query()->with('conversation')->find($this->channelId);
+        if ($channel !== null) {
+            $sync->syncChannel($channel, $this->actorId ? User::query()->find($this->actorId) : null);
+        }
+    }
+}

@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Communication\AnnouncementController;
-use App\Http\Controllers\Communication\AttachmentController;
-use App\Http\Controllers\Communication\BlockController;
-use App\Http\Controllers\Communication\ChannelController;
-use App\Http\Controllers\Communication\CommunicationController;
-use App\Http\Controllers\Communication\CommunicationSettingsController;
-use App\Http\Controllers\Communication\ConversationController;
-use App\Http\Controllers\Communication\DirectoryController;
-use App\Http\Controllers\Communication\GroupController;
-use App\Http\Controllers\Communication\InvestigationController;
-use App\Http\Controllers\Communication\MemberController;
-use App\Http\Controllers\Communication\MessageController;
-use App\Http\Controllers\Communication\MessagesController;
-use App\Http\Controllers\Communication\ModerationController;
-use App\Http\Controllers\Communication\PreferencesController;
-use App\Http\Controllers\Communication\TaskController;
-use App\Http\Middleware\EnsureCommunicationEnabled;
 use Illuminate\Support\Facades\Route;
+use Modules\Communication\Http\Controllers\AnnouncementController;
+use Modules\Communication\Http\Controllers\AttachmentController;
+use Modules\Communication\Http\Controllers\BlockController;
+use Modules\Communication\Http\Controllers\ChannelController;
+use Modules\Communication\Http\Controllers\CommunicationController;
+use Modules\Communication\Http\Controllers\CommunicationSettingsController;
+use Modules\Communication\Http\Controllers\ConversationController;
+use Modules\Communication\Http\Controllers\DirectoryController;
+use Modules\Communication\Http\Controllers\GroupController;
+use Modules\Communication\Http\Controllers\InvestigationController;
+use Modules\Communication\Http\Controllers\MemberController;
+use Modules\Communication\Http\Controllers\MessageController;
+use Modules\Communication\Http\Controllers\MessagesController;
+use Modules\Communication\Http\Controllers\ModerationController;
+use Modules\Communication\Http\Controllers\PreferencesController;
+use Modules\Communication\Http\Controllers\TaskController;
+use Modules\Communication\Http\Middleware\EnsureCommunicationEnabled;
 
 /*
 |--------------------------------------------------------------------------

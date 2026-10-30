@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\SendMessageAction;
-use App\Actions\Communication\StartDirectConversationAction;
 use App\Enums\AuditEventType;
-use App\Jobs\Communication\DeliverAnnouncement;
 use App\Models\AuditLog;
-use App\Models\Communication\Announcement;
-use App\Models\Communication\AnnouncementTarget;
-use App\Models\Communication\CommunicationReport;
-use App\Models\Communication\CommunicationUserSetting;
-use App\Models\Communication\Message;
-use App\Models\Communication\MessageAttachment;
-use App\Notifications\Communication\CommunicationNotification;
-use App\Services\Communication\CommunicationSettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Communication\Application\Actions\SendMessageAction;
+use Modules\Communication\Application\Actions\StartDirectConversationAction;
+use Modules\Communication\Application\Notifications\CommunicationNotification;
+use Modules\Communication\Application\Services\CommunicationSettings;
+use Modules\Communication\Domain\Models\Announcement;
+use Modules\Communication\Domain\Models\AnnouncementTarget;
+use Modules\Communication\Domain\Models\CommunicationReport;
+use Modules\Communication\Domain\Models\CommunicationUserSetting;
+use Modules\Communication\Domain\Models\Message;
+use Modules\Communication\Domain\Models\MessageAttachment;
+use Modules\Communication\Infrastructure\Jobs\DeliverAnnouncement;
 use Tests\Support\CommunicationScenario;
 
 /*

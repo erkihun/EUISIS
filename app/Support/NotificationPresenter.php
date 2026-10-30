@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Notifications\Communication\CommunicationNotification;
 use App\Notifications\CourtLetterNotification;
 use App\Notifications\EmployeePortalNotification;
 use App\Notifications\GrievanceNotification;
@@ -27,7 +26,6 @@ use Illuminate\Notifications\DatabaseNotification;
 final class NotificationPresenter
 {
     private const RENDERERS = [
-        'communication' => CommunicationNotification::class,
         'court_letter' => CourtLetterNotification::class,
         'institution_court_case' => InstitutionCourtCaseNotification::class,
         'employee_portal' => EmployeePortalNotification::class,

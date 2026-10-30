@@ -4,22 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Backbone\Events\AssignmentChanged;
-use App\Backbone\Events\EmployeeChanged;
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
 use App\Models\AssessmentForm;
 use App\Models\AuditLog;
 use App\Models\CardRequest;
 use App\Models\CodeRule;
-use App\Models\Communication\Announcement;
-use App\Models\Communication\Channel;
-use App\Models\Communication\CommunicationAccessRequest;
-use App\Models\Communication\CommunicationReport;
-use App\Models\Communication\CommunicationTask;
-use App\Models\Communication\Conversation;
-use App\Models\Communication\Message;
-use App\Models\Communication\MessageAttachment;
 use App\Models\DesignImportBatch;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -44,8 +34,8 @@ use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
-use App\Models\Permission; // alias to avoid clash with Illuminate\Support\ServiceProvider
-use App\Models\Position;
+use App\Models\Permission;
+use App\Models\Position; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
 use App\Models\PositionService;
@@ -69,14 +59,6 @@ use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
-use App\Policies\Communication\AnnouncementPolicy;
-use App\Policies\Communication\ChannelPolicy;
-use App\Policies\Communication\CommunicationAccessRequestPolicy;
-use App\Policies\Communication\CommunicationReportPolicy;
-use App\Policies\Communication\CommunicationTaskPolicy;
-use App\Policies\Communication\ConversationPolicy;
-use App\Policies\Communication\MessageAttachmentPolicy;
-use App\Policies\Communication\MessagePolicy;
 use App\Policies\DesignImportBatchPolicy;
 use App\Policies\EmployeePolicy;
 use App\Policies\EmployeeServiceFeedbackPolicy;
@@ -129,9 +111,6 @@ use App\Services\Backup\Infrastructure\ReportBackupAdapter;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
-use App\Services\Communication\AttachmentScanner;
-use App\Services\Communication\CommunicationMembershipSync;
-use App\Services\Communication\PendingAttachmentScanner;
 use App\Services\Employees\NullEmployeeLeaveProvider;
 use App\Services\Integration\Events\IntegrationEventContext;
 use App\Services\PublicAssistant\PublicAssistantSettings;
@@ -142,6 +121,7 @@ use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Mail\RuntimeMailSettings;
+use App\Support\Rbac\RoleBypassExemptions;
 use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
@@ -167,8 +147,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Communication malware-scan hook: replace with a real scanner binding in production.
-        $this->app->bindIf(AttachmentScanner::class, PendingAttachmentScanner::class);
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
         // Event integration: one correlation id and suppression set per request / job.
@@ -176,7 +154,6 @@ class AppServiceProvider extends ServiceProvider
         // One instance per request: validation, rendering and storage read the same questionnaire version.
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
         // One instance per request / job: holds the employees whose membership sync waits for the commit.
-        $this->app->scoped(CommunicationMembershipSync::class);
 
         $this->app->singleton(RuntimeMailSettings::class);
         $this->app->singleton(RichTextSanitizer::class, fn (): RichTextSanitizer => new RichTextSanitizer((array) config('richtext')));
@@ -230,16 +207,6 @@ class AppServiceProvider extends ServiceProvider
         EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
-        // Service modules follow the backbone through its domain events (master-backbone.md):
-        // Communication channel membership follows assignments and account status.
-        // Modules under Modules/ register their own listeners (Modules/<Name>/Providers).
-        Event::listen(AssignmentChanged::class, [CommunicationMembershipSync::class, 'onAssignmentChanged']);
-        Event::listen(EmployeeChanged::class, [CommunicationMembershipSync::class, 'onEmployeeChanged']);
-        User::saved(function (User $user): void {
-            if ($user->employee_id !== null && $user->wasChanged('status')) {
-                app(CommunicationMembershipSync::class)->queue($user->employee_id);
-            }
-        });
         $this->configureViteAssetMode();
         // No Vite::prefetch(): with 500+ page chunks it downloaded the whole 8 MB
         // bundle on every full page load, which is what made phones crawl. Pages
@@ -312,15 +279,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SystemSetting::class, SystemSettingPolicy::class);
         Gate::policy(PublicHoliday::class, PublicHolidayPolicy::class);
 
-        // Communication & Collaboration (docs/communication-module.md).
-        Gate::policy(Conversation::class, ConversationPolicy::class);
-        Gate::policy(Message::class, MessagePolicy::class);
-        Gate::policy(MessageAttachment::class, MessageAttachmentPolicy::class);
-        Gate::policy(Channel::class, ChannelPolicy::class);
-        Gate::policy(Announcement::class, AnnouncementPolicy::class);
-        Gate::policy(CommunicationTask::class, CommunicationTaskPolicy::class);
-        Gate::policy(CommunicationReport::class, CommunicationReportPolicy::class);
-        Gate::policy(CommunicationAccessRequest::class, CommunicationAccessRequestPolicy::class);
         // Modules under Modules/ register their own policies and morph-map names (ADR 0017).
 
         /*
@@ -334,17 +292,10 @@ class AppServiceProvider extends ServiceProvider
                 return null;
             }
             $target = $arguments[0] ?? null;
-            // Private communication is never opened by role (docs/communication-module.md §Privacy):
-            // the policy decides, by membership or an approved break-glass grant.
-            // Reported content and investigation access follow the same rule, whether the check is on a
-            // record or on the class (viewAny, create).
-            $private = [
-                Conversation::class,
-                Message::class,
-                MessageAttachment::class,
-                CommunicationAccessRequest::class,
-                CommunicationReport::class,
-            ];
+            // Records never opened by role (private communication, reported content, investigation
+            // access): their policies decide, by membership or an approved grant. Modules register
+            // theirs (RoleBypassExemptions), whether the check is on a record or on the class.
+            $private = RoleBypassExemptions::classes();
             if ((is_object($target) && in_array($target::class, $private, true)) || (is_string($target) && in_array($target, $private, true))) {
                 return null;
             }
@@ -375,10 +326,6 @@ class AppServiceProvider extends ServiceProvider
          * spend another card's budget, and so a single card cannot be used to
          * spam its holder with codes from many addresses.
          */
-        /*
-         * Communication (docs/communication-module.md §Abuse protection): per person,
-         * so one account cannot flood a conversation, the directory or the moderators.
-         */
         $perUser = static fn (Request $request): string => (string) ($request->user()?->getAuthIdentifier() ?? $request->ip());
         // Addis One Assistant (docs/assistant/security.md): per person, both ceilings from System Settings › Assistant.
         RateLimiter::for('assistant', function (Request $request) use ($perUser): array {
@@ -399,19 +346,6 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perDay($settings->dailyCap())->by('pa-d:'.$request->ip()),
             ];
         });
-        RateLimiter::for('communication-send', fn (Request $request): array => [
-            Limit::perMinute(40)->by('comm-send:'.$perUser($request)),
-            Limit::perHour(600)->by('comm-send-h:'.$perUser($request)),
-        ]);
-        RateLimiter::for('communication-start', fn (Request $request): Limit => Limit::perMinute(20)->by('comm-start:'.$perUser($request)));
-        RateLimiter::for('communication-upload', fn (Request $request): Limit => Limit::perMinute(20)->by('comm-upload:'.$perUser($request)));
-        RateLimiter::for('communication-search', fn (Request $request): Limit => Limit::perMinute(40)->by('comm-search:'.$perUser($request)));
-        RateLimiter::for('communication-react', fn (Request $request): Limit => Limit::perMinute(90)->by('comm-react:'.$perUser($request)));
-        RateLimiter::for('communication-typing', fn (Request $request): Limit => Limit::perMinute(30)->by('comm-typing:'.$perUser($request)));
-        RateLimiter::for('communication-group', fn (Request $request): Limit => Limit::perHour(15)->by('comm-group:'.$perUser($request)));
-        RateLimiter::for('communication-channel', fn (Request $request): Limit => Limit::perHour(15)->by('comm-channel:'.$perUser($request)));
-        RateLimiter::for('communication-report', fn (Request $request): Limit => Limit::perHour(20)->by('comm-report:'.$perUser($request)));
-
         RateLimiter::for('id-checker-send-otp', fn (Request $request): array => [
             Limit::perMinutes(10, 3)->by('pic-send:'.$request->route('cardUuid').'|'.$request->ip()),
             // Second ceiling: one IP may not farm codes across many cards.

@@ -7,7 +7,6 @@ use App\Backbone\Events\AssignmentChanged;
 use App\Backbone\Events\EmployeeChanged;
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
-use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -18,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Modules\Communication\Infrastructure\Jobs\SyncEmployeeCommunicationMemberships;
 use Modules\Transport\Infrastructure\Jobs\ReevaluateTransportEligibility;
 
 /*

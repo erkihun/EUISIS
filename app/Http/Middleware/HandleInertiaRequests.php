@@ -12,9 +12,6 @@ use App\Security\Passwords\PasswordPolicy;
 use App\Services\Assistant\AssistantSettings;
 use App\Services\Branding\BrandingService;
 use App\Services\Calendar\CalendarService;
-use App\Services\Communication\CommunicationInbox;
-use App\Services\Communication\CommunicationNavigation;
-use App\Services\Communication\CommunicationSettings;
 use App\Services\Core\CoreNavigation;
 use App\Services\Core\CoreWorkspace;
 use App\Services\Dashboard\DashboardDataService;
@@ -28,6 +25,7 @@ use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
+use Modules\Communication\Contracts\CommunicationTopBar;
 use Throwable;
 
 class HandleInertiaRequests extends Middleware
@@ -84,22 +82,8 @@ class HandleInertiaRequests extends Middleware
             // Addis One Help for anonymous visitors (docs/public-assistant/architecture.md): a separate public boundary.
             'publicAssistant' => ['enabled' => app(PublicAssistantSettings::class)->enabled()],
 
-            // The top-bar Messages button: on/off, the unread total (cached briefly by
-            // CommunicationInbox) and whether realtime is configured. Nothing else of
-            // Communication travels with every page.
-            'communication' => function () use ($user, $request): ?array {
-                if ($user === null || ! app(CommunicationSettings::class)->enabled() || ! $user->can('communication.access')) {
-                    return null;
-                }
-
-                return [
-                    'enabled' => true,
-                    // The workspace's own navigation (Communication has no sidebar entry), only on its pages.
-                    'nav' => $request->routeIs('communication.*') ? app(CommunicationNavigation::class)->for($user) : null,
-                    'unread_count' => app(CommunicationInbox::class)->totals($user)['total'],
-                    'realtime' => ! in_array(config('broadcasting.default'), [null, 'null', 'log'], true),
-                ];
-            },
+            // The top-bar Messages button; nothing else of Communication travels with every page.
+            'communication' => fn (): ?array => app(CommunicationTopBar::class)->props($user, $request),
 
             // The Core workspace (docs/architecture/core-workspace.md): its navigation while the
             // person works in Core, null everywhere else. Pages themselves do not change.

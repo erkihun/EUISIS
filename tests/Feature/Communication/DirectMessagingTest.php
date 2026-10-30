@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\SendMessageAction;
-use App\Actions\Communication\StartDirectConversationAction;
-use App\Models\Communication\CommunicationBlock;
-use App\Models\Communication\CommunicationUserSetting;
-use App\Models\Communication\Conversation;
-use App\Models\Communication\ConversationMember;
-use App\Models\Communication\Message;
-use App\Models\Communication\MessageReaction;
 use App\Models\User;
-use App\Notifications\Communication\CommunicationNotification;
-use App\Services\Communication\CommunicationInbox;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Communication\Application\Actions\SendMessageAction;
+use Modules\Communication\Application\Actions\StartDirectConversationAction;
+use Modules\Communication\Application\Notifications\CommunicationNotification;
+use Modules\Communication\Application\Services\CommunicationInbox;
+use Modules\Communication\Domain\Models\CommunicationBlock;
+use Modules\Communication\Domain\Models\CommunicationUserSetting;
+use Modules\Communication\Domain\Models\Conversation;
+use Modules\Communication\Domain\Models\ConversationMember;
+use Modules\Communication\Domain\Models\Message;
+use Modules\Communication\Domain\Models\MessageReaction;
 use Tests\Support\CommunicationScenario;
 
 /*

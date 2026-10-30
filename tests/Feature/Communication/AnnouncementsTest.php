@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\CreateGroupAction;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\Communication\Announcement;
-use App\Models\Communication\AnnouncementReceipt;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Notifications\Communication\CommunicationNotification;
-use App\Services\Communication\CommunicationInbox;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Support\Communication\CommunicationRoles;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Modules\Communication\Application\Actions\CreateGroupAction;
+use Modules\Communication\Application\Notifications\CommunicationNotification;
+use Modules\Communication\Application\Services\CommunicationInbox;
+use Modules\Communication\Contracts\Data\CommunicationRoles;
+use Modules\Communication\Domain\Models\Announcement;
+use Modules\Communication\Domain\Models\AnnouncementReceipt;
 use Tests\Support\CommunicationScenario;
 
 /*

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\StartDirectConversationAction;
-use App\Models\Communication\MessageAttachment;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Modules\Communication\Application\Actions\StartDirectConversationAction;
+use Modules\Communication\Domain\Models\MessageAttachment;
 use Tests\Support\CommunicationScenario;
 
 /*

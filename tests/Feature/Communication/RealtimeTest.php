@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\SendMessageAction;
-use App\Actions\Communication\StartDirectConversationAction;
-use App\Events\Communication\MessageSent;
-use App\Events\Communication\UserTyping;
 use App\Models\User;
 use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -14,6 +10,10 @@ use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
+use Modules\Communication\Application\Actions\SendMessageAction;
+use Modules\Communication\Application\Actions\StartDirectConversationAction;
+use Modules\Communication\Application\Events\MessageSent;
+use Modules\Communication\Application\Events\UserTyping;
 use Tests\Support\CommunicationScenario;
 
 /*

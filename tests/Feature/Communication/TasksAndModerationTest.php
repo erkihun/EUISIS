@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\CreateGroupAction;
-use App\Actions\Communication\SendMessageAction;
-use App\Actions\Communication\StartDirectConversationAction;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\Communication\CommunicationReport;
-use App\Models\Communication\CommunicationTask;
-use App\Models\Communication\Message;
-use App\Notifications\Communication\CommunicationNotification;
-use App\Support\Communication\CommunicationRoles;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
+use Modules\Communication\Application\Actions\CreateGroupAction;
+use Modules\Communication\Application\Actions\SendMessageAction;
+use Modules\Communication\Application\Actions\StartDirectConversationAction;
+use Modules\Communication\Application\Notifications\CommunicationNotification;
+use Modules\Communication\Contracts\Data\CommunicationRoles;
+use Modules\Communication\Domain\Models\CommunicationReport;
+use Modules\Communication\Domain\Models\CommunicationTask;
+use Modules\Communication\Domain\Models\Message;
 use Tests\Support\CommunicationScenario;
 
 /*

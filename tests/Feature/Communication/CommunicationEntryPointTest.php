@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Actions\Communication\CreateGroupAction;
-use App\Actions\Communication\MarkConversationReadAction;
-use App\Actions\Communication\SendMessageAction;
-use App\Actions\Communication\StartDirectConversationAction;
-use App\Events\Communication\UnreadCommunicationCountUpdated;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Communication\Application\Actions\CreateGroupAction;
+use Modules\Communication\Application\Actions\MarkConversationReadAction;
+use Modules\Communication\Application\Actions\SendMessageAction;
+use Modules\Communication\Application\Actions\StartDirectConversationAction;
+use Modules\Communication\Application\Events\UnreadCommunicationCountUpdated;
 use Tests\Support\CommunicationScenario;
 
 /*

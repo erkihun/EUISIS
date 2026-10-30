@@ -13,7 +13,6 @@ use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Security\MfaRequirementService;
-use App\Support\Communication\CommunicationRoles;
 use App\Support\EmployeeScanPhoto;
 use App\Support\Rbac\DefaultRoleMatrix;
 use Database\Seeders\PermissionSeeder;
@@ -21,6 +20,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Communication\Contracts\Data\CommunicationRoles;
 use Tests\Support\CommunicationScenario;
 
 /*

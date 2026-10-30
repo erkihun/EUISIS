@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Enums\EmployeeStatus;
-use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Modules\Communication\Infrastructure\Jobs\SyncEmployeeCommunicationMemberships;
 
 /*
  * A ShouldBeUnique job takes its lock when it is dispatched, even with

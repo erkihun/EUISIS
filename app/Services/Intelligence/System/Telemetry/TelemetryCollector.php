@@ -6,7 +6,6 @@ namespace App\Services\Intelligence\System\Telemetry;
 
 use App\Enums\AuditEventType;
 use App\Services\Backup\BackupStatusService;
-use App\Services\Communication\CommunicationBroadcaster;
 use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +14,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Communication\Contracts\Data\CommunicationTelemetry;
 use Modules\Transport\Contracts\TransportOperationalMetrics;
 use Predis\Client;
 use Throwable;
@@ -328,8 +328,8 @@ final class TelemetryCollector
                 $samples[] = $this->sample(Metrics::INTEGRATION_WEBHOOK_FAILURES, Metrics::COMPONENT_INTEGRATIONS, (int) $row->failures, $bucket, (string) $row->code, 'count');
             }
         }
-        if (class_exists(CommunicationBroadcaster::class) && defined(CommunicationBroadcaster::class.'::FAILURE_METRIC')) {
-            $samples[] = $this->sample(Metrics::INTEGRATION_BROADCAST_FAILURES_TOTAL, Metrics::COMPONENT_INTEGRATIONS, (int) Cache::get(CommunicationBroadcaster::FAILURE_METRIC, 0), $bucket, null, 'count');
+        if (class_exists(CommunicationTelemetry::class)) {
+            $samples[] = $this->sample(Metrics::INTEGRATION_BROADCAST_FAILURES_TOTAL, Metrics::COMPONENT_INTEGRATIONS, (int) Cache::get(CommunicationTelemetry::BROADCAST_FAILURES_KEY, 0), $bucket, null, 'count');
         }
 
         return $samples;
