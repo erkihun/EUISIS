@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\AssessmentForm;
-use App\Models\AssessmentType;
+use Modules\Assessment\Domain\Models\AssessmentForm;
+use Modules\Assessment\Domain\Models\AssessmentType;
 use App\Models\User;
-use App\Services\Assessment\AssessmentFormService;
+use Modules\Assessment\Application\Services\AssessmentFormService;
 use Illuminate\Database\Seeder;
 
 /**

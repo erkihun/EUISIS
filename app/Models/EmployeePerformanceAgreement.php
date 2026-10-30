@@ -10,6 +10,7 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\EmployeeCompetencyAssessment;
 
 /**
  * The agreed plan for one employee, assignment and cycle. Context (organization, unit, position) is a snapshot so transfers never rewrite history.

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Enums\Assessment\FormVersionStatus;
-use App\Models\AssessmentForm;
-use App\Models\AssessmentFormVersion;
-use App\Models\AssessmentRecord;
-use App\Models\AssessmentType;
+use Modules\Assessment\Domain\Enums\FormVersionStatus;
+use Modules\Assessment\Domain\Models\AssessmentForm;
+use Modules\Assessment\Domain\Models\AssessmentFormVersion;
+use Modules\Assessment\Domain\Models\AssessmentRecord;
+use Modules\Assessment\Domain\Models\AssessmentType;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -16,9 +16,9 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Assessment\AssessmentFormImporter;
-use App\Services\Assessment\AssessmentScoringService;
-use App\Services\Assessment\AssessmentTargetResolver;
+use Modules\Assessment\Application\Services\AssessmentFormImporter;
+use Modules\Assessment\Application\Services\AssessmentScoringService;
+use Modules\Assessment\Application\Services\AssessmentTargetResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Database\Seeders\AssessmentSampleFormSeeder;
 use Illuminate\Support\Carbon;

@@ -6,7 +6,6 @@ namespace App\Providers;
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
-use App\Models\AssessmentForm;
 use App\Models\AuditLog;
 use App\Models\CardRequest;
 use App\Models\CodeRule;
@@ -55,7 +54,6 @@ use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
 use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
-use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
@@ -231,7 +229,6 @@ class AppServiceProvider extends ServiceProvider
             Cache::store()->get('health:probe');
         });
 
-        Gate::policy(AssessmentForm::class, AssessmentFormPolicy::class);
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);

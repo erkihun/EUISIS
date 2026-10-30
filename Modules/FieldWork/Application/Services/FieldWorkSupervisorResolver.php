@@ -7,7 +7,7 @@ namespace Modules\FieldWork\Application\Services;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\User;
-use App\Services\Assessment\Execution\AssessmentEvaluatorResolver;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use Illuminate\Support\Carbon;
 use Modules\FieldWork\Domain\Models\FieldWorkRequest;
 
@@ -17,7 +17,7 @@ use Modules\FieldWork\Domain\Models\FieldWorkRequest;
  * Addis One records no supervisor on positions or units, so the answer comes
  * from the explicit line-manager (reviewer) assignments that already define
  * that authority for Daily Activity, EPMS and assessments — the same
- * resolution as AssessmentEvaluatorResolver::directManager(): the most
+ * resolution as DailyWorkReviewers::directManager(): the most
  * specific active assignment covering the requester's snapshot placement
  * (employee → nearest unit up the tree → organization). An ambiguous tie or
  * no assignment resolves to nobody: SUPERVISOR_NOT_RESOLVED, never "any user
@@ -33,7 +33,7 @@ use Modules\FieldWork\Domain\Models\FieldWorkRequest;
 class FieldWorkSupervisorResolver
 {
     public function __construct(
-        private readonly AssessmentEvaluatorResolver $managers,
+        private readonly DailyWorkReviewers $managers,
         private readonly FieldWorkSettings $settings,
     ) {}
 

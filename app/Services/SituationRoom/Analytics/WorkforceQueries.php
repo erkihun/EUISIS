@@ -6,7 +6,7 @@ namespace App\Services\SituationRoom\Analytics;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
-use App\Services\Assessment\Oversight\AssessmentCoverageService;
+use Modules\Assessment\Contracts\Data\AssessmentCoverageValues;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationMemo;
 use Carbon\CarbonImmutable;
@@ -57,8 +57,8 @@ final class WorkforceQueries
      */
     public static function genderExpression(string $column = 'e.gender'): array
     {
-        $male = AssessmentCoverageService::GENDER_VALUES['male'];
-        $female = AssessmentCoverageService::GENDER_VALUES['female'];
+        $male = AssessmentCoverageValues::GENDER_VALUES['male'];
+        $female = AssessmentCoverageValues::GENDER_VALUES['female'];
         $in = fn (array $values): string => implode(', ', array_fill(0, count($values), '?'));
 
         return [

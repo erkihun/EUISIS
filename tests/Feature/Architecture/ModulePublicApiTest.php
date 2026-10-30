@@ -213,7 +213,11 @@ it('never uses a pre-move class name outside the compatibility bridge', function
         // Published read models store the owner's names in polymorphic columns (getMorphClass).
         ...array_map(fn (string $p): string => substr($p, strlen($root) + 1), glob($root.'/Modules/*/Contracts/ReadModels/*.php') ?: []),
     ];
-    $pattern = '/(?<![A-Za-z0-9_\\\\])('.implode('|', array_map(fn (string $old): string => preg_quote($old, '/'), array_keys($map))).')(?![A-Za-z0-9_])/';
+    // One alternation per 150 names: PCRE caps the size of a compiled pattern.
+    $patterns = array_map(
+        fn (array $names): string => '/(?<![A-Za-z0-9_\\\\])('.implode('|', array_map(fn (string $old): string => preg_quote($old, '/'), $names)).')(?![A-Za-z0-9_])/',
+        array_chunk(array_keys($map), 150),
+    );
 
     $offenders = [];
     foreach (['app', 'Modules', 'routes', 'config', 'database', 'bootstrap', 'tests'] as $dir) {
@@ -224,10 +228,12 @@ it('never uses a pre-move class name outside the compatibility bridge', function
             }
             // Escaped strings ('App\\Models\\X') and plain names read the same.
             $source = str_replace('\\\\', '\\', (string) file_get_contents($file->getPathname()));
-            if (preg_match($pattern, $source, $hit)) {
-                $offenders[] = "{$relative} ({$hit[1]})";
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $source, $hit)) {
+                    $offenders[] = "{$relative} ({$hit[1]})";
 
-                continue;
+                    continue 2;
+                }
             }
             // A bare short name in the old namespace (Entitlement::class inside App\Models)
             // resolves to the old class through its alias: the same old name, unqualified.

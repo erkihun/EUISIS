@@ -4,6 +4,7 @@ use App\Providers\AppServiceProvider;
 use App\Providers\BackboneServiceProvider;
 use App\Providers\IntelligenceServiceProvider;
 use App\Providers\ServiceModuleServiceProvider;
+use Modules\Assessment\Providers\AssessmentServiceProvider;
 use Modules\Cafeteria\Providers\CafeteriaServiceProvider;
 use Modules\Communication\Providers\CommunicationServiceProvider;
 use Modules\DailyWork\Providers\DailyWorkServiceProvider;
@@ -25,5 +26,6 @@ return [
     TransportServiceProvider::class,
     DailyWorkServiceProvider::class,
     CommunicationServiceProvider::class,
+    AssessmentServiceProvider::class,
     FieldWorkServiceProvider::class,
 ];

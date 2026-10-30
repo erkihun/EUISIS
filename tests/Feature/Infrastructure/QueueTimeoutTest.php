@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Jobs\Assessment\GenerateAssessmentChunkJob;
-use App\Jobs\Assessment\GenerateCycleAssessmentsJob;
+use Modules\Assessment\Infrastructure\Jobs\GenerateAssessmentChunkJob;
+use Modules\Assessment\Infrastructure\Jobs\GenerateCycleAssessmentsJob;
 use App\Jobs\EscalateOverdueGrievancesJob;
 use App\Jobs\Performance\RecalculatePlanScore;
 use App\Jobs\Transfers\NotifyEligibleTransferAudience;

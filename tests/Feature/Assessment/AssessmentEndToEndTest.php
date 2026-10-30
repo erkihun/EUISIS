@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Models\AssessmentCycle;
-use App\Models\AssessmentForm;
-use App\Models\AssessmentInstitutionSubmission;
-use App\Models\AssessmentRecord;
-use App\Models\AssessmentResultBandPolicy;
-use App\Models\AssessmentType;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
+use Modules\Assessment\Domain\Models\AssessmentForm;
+use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
+use Modules\Assessment\Domain\Models\AssessmentRecord;
+use Modules\Assessment\Domain\Models\AssessmentResultBandPolicy;
+use Modules\Assessment\Domain\Models\AssessmentType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -16,7 +16,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Assessment\Oversight\OversightAccess;
+use Modules\Assessment\Application\Services\Oversight\OversightAccess;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
