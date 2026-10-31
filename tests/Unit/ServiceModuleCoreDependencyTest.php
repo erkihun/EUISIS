@@ -26,9 +26,9 @@ const SERVICE_MODULES = [
     'assessment' => '#Assessment#i',
     'daily_work' => '#DailyActivit#i',
     'field_work' => '#FieldWork#i',
-    'recruitment' => '#Vacanc#i',
+    'recruitment' => '#(Vacanc|Modules/Recruitment/)#i',
     'transfer' => '#Transfer#i',
-    'feedback' => '#(PublicFeedback|ServiceFeedback)#i',
+    'feedback' => '#(PublicFeedback|ServiceFeedback|Modules/Feedback/)#i',
     'intelligence' => '#(Intelligence|Assistant)#i',
     'situation_room' => '#SituationRoom#i',
     'communication' => '#Communication#i',
@@ -104,9 +104,16 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         'assessment' => 19,
         'daily_work' => 14,
         'field_work' => 10,
-        'recruitment' => 4,
+        // 2026-10-31: 6, not new coupling: the move to Modules/Recruitment gave the vacancy
+        // announcement and application models `use App\Models\...` lines for relations they
+        // always had (in App\Models they shared the namespace).
+        'recruitment' => 6,
         'transfer' => 15,
-        'feedback' => 17,
+        // 2026-10-31: 30, not new coupling. The move to Modules/Feedback took the files out of
+        // the path pattern (most no longer say "ServiceFeedback"), so the pattern now names the
+        // module folder; its models also gained `use App\Models\...` lines for relations they
+        // always had, and the QR, token and identity code was always counted under the old paths.
+        'feedback' => 30,
         'intelligence' => 2,
         'situation_room' => 12,
         'communication' => 12,

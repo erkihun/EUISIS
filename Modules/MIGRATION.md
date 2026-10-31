@@ -3,7 +3,7 @@
 Where the move to `Modules/<Name>/{Contracts,Domain,Application,Infrastructure,Http,Providers}`
 stands ([ADR 0016](../docs/architecture/adr/0016-module-boundaries.md),
 [ADR 0017](../docs/architecture/adr/0017-module-public-contracts-and-data-ownership.md)). Update it
-in the same change as each step. **Verdict today: incomplete** — Transport, Cafeteria, Providers, Entitlements, Field work, Daily work, Communication, Assessment, Discipline, Grievance, Performance, Reception, Service monitoring, Feedback and Public site have moved with no frozen inbound uses left; the other owners below are still in `app/`.
+in the same change as each step. **Verdict today: incomplete** — Transport, Cafeteria, Providers, Entitlements, Field work, Daily work, Communication, Assessment, Discipline, Grievance, Performance, Reception, Service monitoring, Feedback, Public site and Recruitment have moved with no frozen inbound uses left; the other owners below are still in `app/`.
 
 Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (enforced by
 `tests/Feature/Architecture/ModuleOwnershipTest.php`).
@@ -37,7 +37,7 @@ Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (en
 | Public site (the public website and its management) | `Modules/PublicSite` (2026-10-31) | `PublicSitePages` (header navigation, footer links, a page's sections, cache invalidation; `PAGE_VERIFY`), `PublicSiteRebranding` (owner command: the home intro titles, for the branding migration); read models `PublicPageSectionRecord`, `PublicFaqRecord`, `PublicServiceRecord`. 23 classes moved (8 models, 2 enums, 5 services, 6 controllers, the `public.site` middleware and the settings request); `PublicTransferAnnouncementController` (Transfer) and `PublicAssistantController` (Intelligence) stay with their owners in `app/`. Its morph names and the `public.site` middleware alias register from its provider (the alias was in `bootstrap/app.php`). | Inbound: none; the shared Inertia props, the ID checker's verify page, the branding migration and the public assistant use the contracts and read models; the public assistant is a declared reader (it checks the tables exist). Outbound: `PublicAnnouncementController` lists open transfer announcements with Transfer's `TransferAnnouncement` and `PublicTransferAnnouncementController::presentSummary` (Transfer is still in `app/`; it needs a Transfer contract when Transfer moves). `database/seeders/PublicSiteDefaultsSeeder` seeds its defaults. |
 | Organization design | app | uses Core `StampJobDescriptionOnCurrentAssignments` | |
 | Transfer | app | writes through Core `TransferAssignment` | |
-| Recruitment / vacancy | app | writes through Core `TransferAssignment` | |
+| Recruitment / vacancy | `Modules/Recruitment` (2026-10-31) | Read models `VacancyAnnouncementRecord`, `VacancyApplicationRecord`, `VacancyAnnouncementPositionRecord` (the Core transfer record's and the position establishment's relations); published values `Data\VacancyAnnouncementStatus`, `VacancyApplicationStatus`. 24 classes moved (4 models, 2 enums, 5 actions, 3 services, 2 controllers, 6 requests, 2 policies); its morph names and policies register from its provider (they were in `AppServiceProvider`). Reclassified: `StorePositionEstablishmentAction` and `ApprovePositionEstablishmentAction` sat in `Actions/Vacancy` but are Core position code; they moved to `app/Actions/Positions`. | Inbound: none; `EmployeeTransfer::vacancyApplication`/`vacancyAnnouncement` and `PositionEstablishment::vacancyAnnouncements` hold the read models. Outbound: a selected applicant moves through Core `TransferAssignment`; it records the Core `EmployeeTransfer` and emits `TransferEvents` (integration platform); Core models under the ratchet (6). |
 | Situation Room | app | — | reporting reader of other modules' tables |
 | Intelligence / assistant | app | — | |
 | Legal (court-ms letters, tribunal placeholder, statutory deadlines) | app | — | |
@@ -52,7 +52,7 @@ Next slices, in this order, with the design each needs (the move tooling lives i
 scratchpad: `move_lib.py`, one `move_<module>.py` and one `<module>_post.py` per module; write the
 provider and read models after the move, since the reference rewrite renames stored names):
 
-1. Organization design, Transfer, Recruitment, Situation Room, Intelligence,
+1. Organization design, Transfer, Situation Room, Intelligence,
    Legal, Integrations, ID cards; Core last.
 
 ## Notes

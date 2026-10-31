@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\Positions\ApprovePositionEstablishmentAction;
 use App\Actions\Positions\ArchivePositionAction;
 use App\Actions\Positions\CreatePositionAction;
 use App\Actions\Positions\MovePositionAction;
 use App\Actions\Positions\RestorePositionAction;
 use App\Actions\Positions\UpdatePositionAction;
-use App\Actions\Vacancy\ApprovePositionEstablishmentAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\HierarchyVersionStatus;

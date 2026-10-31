@@ -512,12 +512,13 @@ return [
         ],
     ],
     'Recruitment' => [
-        'home' => 'app',
+        'home' => 'Modules/Recruitment',
+        // Vacancy announcements, their positions, applications and documents; selection writes through Core TransferAssignment.
         'models' => [
-            'App\Models\VacancyAnnouncement',
-            'App\Models\VacancyAnnouncementPosition',
-            'App\Models\VacancyApplication',
-            'App\Models\VacancyApplicationDocument',
+            'Modules\Recruitment\Domain\Models\VacancyAnnouncement',
+            'Modules\Recruitment\Domain\Models\VacancyAnnouncementPosition',
+            'Modules\Recruitment\Domain\Models\VacancyApplication',
+            'Modules\Recruitment\Domain\Models\VacancyApplicationDocument',
         ],
     ],
     'SituationRoom' => [

@@ -17,6 +17,7 @@ use Modules\Performance\Providers\PerformanceServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\PublicSite\Providers\PublicSiteServiceProvider;
 use Modules\Reception\Providers\ReceptionServiceProvider;
+use Modules\Recruitment\Providers\RecruitmentServiceProvider;
 use Modules\ServiceMonitoring\Providers\ServiceMonitoringServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
@@ -42,4 +43,5 @@ return [
     ReceptionServiceProvider::class,
     FeedbackServiceProvider::class,
     PublicSiteServiceProvider::class,
+    RecruitmentServiceProvider::class,
 ];

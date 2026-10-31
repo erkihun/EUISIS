@@ -2,12 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Actions\Vacancy\CompleteVacancyTransferAction;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
-use App\Enums\VacancyAnnouncementStatus;
-use App\Enums\VacancyApplicationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeTransfer;
@@ -17,11 +14,14 @@ use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Models\VacancyAnnouncement;
-use App\Models\VacancyAnnouncementPosition;
-use App\Models\VacancyApplication;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
+use Modules\Recruitment\Application\Actions\CompleteVacancyTransferAction;
+use Modules\Recruitment\Contracts\Data\VacancyAnnouncementStatus;
+use Modules\Recruitment\Contracts\Data\VacancyApplicationStatus;
+use Modules\Recruitment\Domain\Models\VacancyAnnouncement;
+use Modules\Recruitment\Domain\Models\VacancyAnnouncementPosition;
+use Modules\Recruitment\Domain\Models\VacancyApplication;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

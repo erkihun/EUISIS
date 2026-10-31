@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\OrganizationDesign;
 
 use App\Actions\Positions\CreatePositionAction;
-use App\Actions\Vacancy\StorePositionEstablishmentAction;
+use App\Actions\Positions\StorePositionEstablishmentAction;
 use App\Enums\AuditEventType;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationDesignStatus;

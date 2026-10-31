@@ -27,7 +27,7 @@ is allowed).
 | Entitlements / service delivery | moved to `Modules/Entitlements`; Core imports remain in the ratchet | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup`; publishes `ServiceDeliveryRegistry` for owner writes | none | none |
 | Communication | 12 | EVENT_SYNCED | none | `AssignmentChanged`, `EmployeeChanged` (membership sync) | none |
 | Transfer | 15 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment` command | none | `TransferAssignment` only |
-| Recruitment / vacancy | 4 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment`, `PositionCapacityService` | none | `TransferAssignment` only |
+| Recruitment / vacancy (`Modules/Recruitment`) | 6 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment`, `PositionCapacityService` | none | `TransferAssignment` only |
 | EPMS / performance | 16 | DIRECT_CORE_ACCESS | none | none | none |
 | Assessment | 13 | DIRECT_CORE_ACCESS | none | none | none |
 | Daily work | 12 | DIRECT_CORE_ACCESS | none | none | none |

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationStatus;
-use App\Enums\VacancyAnnouncementStatus;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
-use App\Models\VacancyAnnouncement;
-use App\Models\VacancyAnnouncementPosition;
+use Modules\Recruitment\Contracts\Data\VacancyAnnouncementStatus;
+use Modules\Recruitment\Domain\Models\VacancyAnnouncement;
+use Modules\Recruitment\Domain\Models\VacancyAnnouncementPosition;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

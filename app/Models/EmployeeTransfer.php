@@ -8,6 +8,8 @@ use App\Enums\TransferStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Recruitment\Contracts\ReadModels\VacancyAnnouncementRecord;
+use Modules\Recruitment\Contracts\ReadModels\VacancyApplicationRecord;
 
 class EmployeeTransfer extends Model
 {
@@ -131,11 +133,11 @@ class EmployeeTransfer extends Model
 
     public function vacancyApplication(): BelongsTo
     {
-        return $this->belongsTo(VacancyApplication::class, 'vacancy_application_id');
+        return $this->belongsTo(VacancyApplicationRecord::class, 'vacancy_application_id');
     }
 
     public function vacancyAnnouncement(): BelongsTo
     {
-        return $this->belongsTo(VacancyAnnouncement::class, 'vacancy_announcement_id');
+        return $this->belongsTo(VacancyAnnouncementRecord::class, 'vacancy_announcement_id');
     }
 }
