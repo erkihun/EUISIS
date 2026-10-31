@@ -27,7 +27,7 @@ class SetLocale
             ?? $request->cookie('app_locale')
             ?? $this->defaultLocale();
 
-        $allowed = config('app.locales', ['en', 'am']);
+        $allowed = config('court.locales', ['en', 'am']);
         if (! in_array($locale, $allowed, true) && ! str_starts_with((string) $locale, 'am')) {
             $locale = config('app.fallback_locale', 'en');
         }

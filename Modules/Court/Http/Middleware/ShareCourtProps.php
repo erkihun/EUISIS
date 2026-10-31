@@ -13,6 +13,7 @@ use Modules\Court\Application\Support\EuisisParties;
 use Modules\Court\Domain\Models\CourtStaffMember;
 use Modules\Court\Http\Support\Ui\CourtNavigation;
 use Modules\Court\Http\Support\Ui\PortalNavigation;
+use Modules\Court\Http\Support\Ui\SharedSettings;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -78,6 +79,9 @@ final class ShareCourtProps
                 'warning' => $this->flashText(session('warning')),
                 'info' => $this->flashText(session('info')),
             ],
+            // The court's own name, logo and appearance (its System Settings), on its pages.
+            'settings' => fn (): array => app(SharedSettings::class)->all(),
+            'branding' => fn (): array => app(SharedSettings::class)->branding(),
             // The court's language (SetLocale, route middleware) is known only when the page renders.
             'locale' => fn (): string => app()->getLocale() === 'am' ? 'am' : 'en',
             'textLocale' => fn (): string => app()->getLocale(),

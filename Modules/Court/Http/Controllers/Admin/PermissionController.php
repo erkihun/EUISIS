@@ -112,7 +112,7 @@ class PermissionController extends Controller
     /** The locales a permission is described in, and the one its plain label falls back to. */
     private function localeProps(): array
     {
-        $locales = array_values((array) config('app.locales', [config('app.locale', 'en')]));
+        $locales = array_values((array) config('court.locales', [config('app.locale', 'en')]));
 
         return [
             'locales' => $locales,
@@ -174,7 +174,7 @@ class PermissionController extends Controller
 
     private function collectLocaleValues(array $values): array
     {
-        $locales = config('app.locales', [config('app.locale', 'en')]);
+        $locales = config('court.locales', [config('app.locale', 'en')]);
         $filtered = [];
 
         foreach ($locales as $locale) {

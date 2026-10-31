@@ -57,7 +57,7 @@ test('the new user form lists every role and the default password notice, and th
         ->and($created->status)->toBe('inactive')
         ->and($created->national_id)->toBe('1234567890123456')
         ->and($created->date_of_birth?->format('Y-m-d'))->toBe('1990-05-04')
-        ->and((bool) $created->must_change_password)->toBeTrue()
+        ->and((bool) $created->account->must_change_password)->toBeTrue()
         ->and($created->roles->pluck('id')->all())->toBe([$clerk->id]);
 });
 

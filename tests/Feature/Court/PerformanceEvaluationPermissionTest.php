@@ -48,12 +48,12 @@ test('performance evaluation routes declare independent backend permissions', fu
     $expected = [
         'court.performance-evaluations.index' => 'court.perm:performance-evaluations.view',
         'court.performance-evaluations.show' => 'court.perm:performance-evaluations.view',
-        'performance-evaluations.create' => 'court.perm:performance-evaluations.create',
+        'court.performance-evaluations.create' => 'court.perm:performance-evaluations.create',
         'court.performance-evaluations.store' => 'court.perm:performance-evaluations.create',
         'court.performance-evaluations.edit' => 'court.perm:performance-evaluations.update',
-        'performance-evaluations.update' => 'court.perm:performance-evaluations.update',
+        'court.performance-evaluations.update' => 'court.perm:performance-evaluations.update',
         'court.performance-evaluations.destroy' => 'court.perm:performance-evaluations.delete',
-        'performance-evaluations.review' => 'court.perm:performance-evaluations.review',
+        'court.performance-evaluations.review' => 'court.perm:performance-evaluations.review',
     ];
 
     foreach ($expected as $routeName => $middleware) {

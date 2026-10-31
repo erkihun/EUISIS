@@ -9,6 +9,9 @@ declare(strict_types=1);
  * and `euisis` (its services.euisis link, now the COURT_EUISIS_* variables).
  */
 return [
+    // The court's languages (court-ms config app.locales).
+    'locales' => ['en', 'am'],
+
     'compliance' => [
             'security' => [
                 'app_headers_enabled' => env('SECURITY_APP_HEADERS_ENABLED', false),

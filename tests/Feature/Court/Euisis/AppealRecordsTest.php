@@ -250,7 +250,7 @@ test('the appellate outcome is recorded and scores the judges of the panel in th
 test('institutions read the cases filed against them, follow one, ask to appeal and download the released record', function (): void {
     $token = appealToken();
     [$caseId, $judges] = appealCase($this, $token, appealEmployee());
-    $institution = fn (string $path, array $body = []) => $this->withToken($token)->postJson("/api/v1/integration/institutions/{$path}", $body);
+    $institution = fn (string $path, array $body = []) => $this->withToken($token)->postJson("/court/api/v1/integration/institutions/{$path}", $body);
 
     $feed = $institution('cases/new', ['since' => 0])->assertOk()->json();
     $row = collect($feed['data'])->firstWhere('case_id', $caseId);

@@ -36,6 +36,7 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0016](0016-module-boundaries.md) | Module boundaries: `Modules/<Name>/{Domain,Application,Infrastructure,Http}`, stored class names kept, one module per change (Transport first) | accepted 2026-10-30 |
 | [0018](0018-service-delivery-monitoring-module.md) | Service Delivery Monitoring & Support as `Modules/ServiceMonitoring`: quarterly reports, derived ranges, snapshots, one public contract | accepted 2026-10-30 |
 | [0019](0019-strategy-hierarchy-wlms-entry.md) | Strategy hierarchy entered the WLMS way: main strategy → strategy → goal → objective → activity, weight rules, two forms | accepted 2026-10-31 |
+| [0020](0020-court-module-in-euisis.md) | The court (court-ms) as `Modules/Court`: staff on platform accounts, own portals, `court_` tables, `/court` routes; data import and in-process link to follow | accepted 2026-10-31 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),

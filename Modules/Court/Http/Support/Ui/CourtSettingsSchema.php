@@ -272,7 +272,7 @@ final class CourtSettingsSchema
     private static function description(string $key, string $locale): ?string
     {
         foreach (['_desc', '_hint'] as $suffix) {
-            if (trans()->hasForLocale('settings.'.$key.$suffix, $locale)) {
+            if (trans()->hasForLocale('court::settings.'.$key.$suffix, $locale)) {
                 return (string) __('court::settings.'.$key.$suffix, [], $locale);
             }
         }

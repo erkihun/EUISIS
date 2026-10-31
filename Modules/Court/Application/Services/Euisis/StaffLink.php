@@ -252,6 +252,7 @@ final class StaffLink
                 'euisis_suspended_at' => now(),
                 'euisis_suspension_reason' => $reason,
             ])->save();
+            $user->tokens()->delete();
             EuisisStaffNotice::query()->create(['user_id' => $user->id, 'event' => EuisisStaffNotice::SUSPENDED, 'reason' => $reason]);
         });
     }

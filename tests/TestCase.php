@@ -71,6 +71,10 @@ abstract class TestCase extends BaseTestCase
         foreach (SessionActivityService::GUARDS as $name) {
             $session->forget('password_hash_'.$name);
         }
+        // A module's own guard (the court's applicant and respondent portals) signs in afresh too.
+        if (is_string($guard)) {
+            $session->forget('password_hash_'.$guard);
+        }
         $session->forget(SessionActivityService::LAST_ACTIVITY_KEY);
 
         return parent::actingAs($user, $guard);

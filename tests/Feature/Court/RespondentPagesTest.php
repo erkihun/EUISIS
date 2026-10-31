@@ -100,10 +100,10 @@ test('the dashboard shows the counts, recent cases, approved letters and replies
             ->where('notifications.items.0.case_number', $case['number'])
             // The shared portal props of the shell.
             ->where('portal.name', 'respondent')
-            ->where('portal.home', 'respondent.dashboard')
+            ->where('portal.home', 'court.respondent.dashboard')
             ->where('portal.logout', 'court.respondent.logout')
             ->where('auth.user.email', $person->email)
-            ->where('workspace.home', 'respondent.dashboard')
+            ->where('workspace.home', 'court.respondent.dashboard')
             ->where('workspace.nav', fn ($nav): bool => collect($nav)->pluck('groups')->flatten(1)->pluck('items')->flatten(1)->pluck('route')->contains('court.respondent.case.search')));
 
     $viewId = (int) DB::table('court_respondent_case_views')->where('case_id', $case['id'])->value('id');

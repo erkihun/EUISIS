@@ -163,7 +163,7 @@ test('the portal header gets its bell routes and guests cannot read a portal fee
         ->where('portal.viewAll', 'court.applicant.notifications.index'));
     $this->get(route('court.respondent.dashboard'))->assertInertia(fn (AssertableInertia $page) => $page
         ->where('portal.feed', 'court.respondent.notifications.feed')
-        ->where('portal.viewAll', 'respondent.dashboard'));
+        ->where('portal.viewAll', 'court.respondent.dashboard'));
 
     auth('applicant')->logout();
     $this->getJson(route('court.applicant.notifications.feed'))->assertUnauthorized();

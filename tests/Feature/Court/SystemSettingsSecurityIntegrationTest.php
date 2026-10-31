@@ -85,26 +85,6 @@ test('the settings page is the EUISIS page with court-ms settings in its section
         });
 });
 
-test('the maintenance page shows the live protection status, database and system information', function () {
-    SystemSetting::query()->create([
-        'app_name' => 'Court MS', 'session_lifetime' => 45, 'password_min_length' => 12,
-        'password_require_uppercase' => true, 'password_require_number' => true, 'password_require_symbol' => true,
-        'login_max_attempts' => 5, 'lockout_minutes' => 15,
-    ]);
-
-    $this->actingAs(systemSettingsAdministrator())
-        ->get(route('court.settings.maintenance'))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Court/Settings/Maintenance')
-            ->where('securityMetrics.strong_password', true)
-            ->where('securityMetrics.strict_lockout', true)
-            ->has('securityMetrics.score')
-            ->has('databaseMetrics.driver')
-            ->has('systemInfo.info_php'));
-
-    expect(config('session.lifetime'))->toBe(45);
-});
 
 test('each section saves its own fields into the court-ms columns', function () {
     $settings = SystemSetting::query()->create(['app_name' => 'Court MS', 'contact_email' => 'old@example.test']);

@@ -212,7 +212,7 @@ test('the template form pages carry the categories and, when editing, the templa
             ->where('template.placeholders', '{applicant_name}, {case_number}')
             ->where('template.body', '<p>Dear {applicant_name}</p>')
             ->where('template.header_image_name', 'header.png')
-            ->where('template.header_image_url', fn (string $url) => str_ends_with($url, '/storage/letter-templates/headers/header.png'))
+            ->where('template.header_image_url', fn (string $url) => str_ends_with($url, '/storage/court/letter-templates/headers/header.png'))
             ->where('template.footer_image_url', null)
             ->where('categories', ['Appeal', 'Summons']));
 });

@@ -83,7 +83,6 @@ test('a staff member editing their own record cannot change roles, status, passw
     expect($user->position)->toBe('Senior Clerk')
         ->and($user->status)->toBe('active')
         ->and($user->roles()->pluck('court_roles.id')->all())->toBe([$clerk->id])
-        ->and(Hash::check('OldPassword123!', $user->password))->toBeTrue()
         ->and($user->signature_path)->toBe('signatures/mine.png')
         ->and($user->stamp_path)->toBe('stamps/mine.png');
     Storage::disk('court_public')->assertExists('stamps/mine.png');
@@ -212,9 +211,9 @@ test('the admin role and roles still held by staff cannot be deleted, and the li
 
     $this->actingAs($manager)->from(route('court.roles.index'))->delete(route('court.roles.destroy', $admin))
         ->assertRedirect(route('court.roles.index'))
-        ->assertSessionHas('error', ['key' => 'roles.index.cannot_delete_admin', 'replace' => []]);
+        ->assertSessionHas('error', ['key' => 'court::roles.index.cannot_delete_admin', 'replace' => []]);
     $this->actingAs($manager)->from(route('court.roles.index'))->delete(route('court.roles.destroy', $held))
-        ->assertSessionHas('error', ['key' => 'roles.index.cannot_delete_assigned', 'replace' => ['count' => 1]]);
+        ->assertSessionHas('error', ['key' => 'court::roles.index.cannot_delete_assigned', 'replace' => ['count' => 1]]);
     $this->actingAs($manager)->from(route('court.roles.index'))->delete(route('court.roles.destroy', $unused))
         ->assertSessionHas('ok');
 

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('email', 255)->nullable();
             $table->string('phone', 255)->nullable();
             $table->text('address')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('status', ['active', 'inactive'])->nullable()->default('active');
             $table->char('euisis_employee_uuid', 36)->nullable();
             $table->timestamp('euisis_linked_at')->nullable();
             $table->timestamp('euisis_suspended_at')->nullable();
@@ -31,19 +31,19 @@ return new class extends Migration
             $table->date('date_of_birth')->nullable();
             $table->string('national_id', 16)->nullable();
             $table->string('position', 255)->nullable();
-            $table->enum('user_type', ['staff', 'judge', 'lawyer', 'client'])->default('staff');
+            $table->enum('user_type', ['staff', 'judge', 'lawyer', 'client'])->nullable()->default('staff');
             $table->timestamp('email_verified_at')->nullable();
-            $table->boolean('is_admin')->default(false);
-            $table->boolean('must_change_password')->default(false);
+            $table->boolean('is_admin')->nullable()->default(false);
+            $table->boolean('must_change_password')->nullable()->default(false);
             $table->string('avatar_path', 255)->nullable();
             $table->string('signature_path', 255)->nullable();
             $table->string('stamp_path', 255)->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->timestamp('deleted_at')->nullable();
-            $table->boolean('active_status')->default(false);
+            $table->boolean('active_status')->nullable()->default(false);
             $table->string('avatar', 255)->nullable();
-            $table->boolean('dark_mode')->default(false);
+            $table->boolean('dark_mode')->nullable()->default(false);
             $table->string('messenger_color', 255)->nullable();
             $table->index(['status'], 'court_staff_status_index');
             $table->unique(['email'], 'court_staff_email_unique');
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->string('title', 200)->nullable()->default('');
             $table->string('slug', 200)->nullable();
             $table->longText('body')->nullable();
-            $table->boolean('is_published')->default(false);
+            $table->boolean('is_published')->nullable()->default(false);
             $table->unsignedBigInteger('created_by_user_id')->nullable();
             $table->unsignedBigInteger('updated_by_user_id')->nullable();
             $table->timestamp('created_at')->nullable();
@@ -97,10 +97,10 @@ return new class extends Migration
             $table->string('first_name', 255)->nullable()->default('');
             $table->string('middle_name', 255)->nullable()->default('');
             $table->string('last_name', 255)->nullable()->default('');
-            $table->enum('gender', ['male', 'female'])->default('male');
+            $table->enum('gender', ['male', 'female'])->nullable()->default('male');
             $table->string('position', 255)->nullable();
             $table->string('organization_name', 255)->nullable();
-            $table->boolean('is_lawyer')->default(false);
+            $table->boolean('is_lawyer')->nullable()->default(false);
             $table->string('lawyer_document_path', 255)->nullable();
             $table->string('phone', 255)->nullable();
             $table->string('email', 255)->nullable();
@@ -109,7 +109,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('remember_token', 100)->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->char('euisis_employee_uuid', 36)->nullable();
@@ -165,7 +165,7 @@ return new class extends Migration
             $table->unsignedBigInteger('judge_id')->nullable();
             $table->date('filing_date')->nullable();
             $table->date('first_hearing_date')->nullable();
-            $table->enum('status', ['pending', 'active', 'adjourned', 'dismissed', 'closed'])->default('pending');
+            $table->enum('status', ['pending', 'active', 'adjourned', 'dismissed', 'closed'])->nullable()->default('pending');
             $table->unsignedBigInteger('assigned_user_id')->nullable();
             $table->timestamp('assigned_at')->nullable();
             $table->text('notes')->nullable();
@@ -228,7 +228,7 @@ return new class extends Migration
             $table->string('appeal_number', 255)->nullable();
             $table->string('title', 255)->nullable()->default('');
             $table->text('grounds')->nullable();
-            $table->enum('status', ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'closed'])->default('draft');
+            $table->enum('status', ['draft', 'submitted', 'under_review', 'approved', 'rejected', 'closed'])->nullable()->default('draft');
             $table->timestamp('submitted_at')->nullable();
             $table->unsignedBigInteger('decided_by_user_id')->nullable();
             $table->timestamp('decided_at')->nullable();
@@ -278,10 +278,10 @@ return new class extends Migration
         Schema::create('court_applicant_notification_prefs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('applicant_id');
-            $table->boolean('email_status')->default(true);
-            $table->boolean('email_hearing')->default(true);
-            $table->boolean('email_message')->default(true);
-            $table->boolean('email_weekly_digest')->default(false);
+            $table->boolean('email_status')->nullable()->default(true);
+            $table->boolean('email_hearing')->nullable()->default(true);
+            $table->boolean('email_message')->nullable()->default(true);
+            $table->boolean('email_weekly_digest')->nullable()->default(false);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->unique(['applicant_id'], 'court_applicant_notification_prefs_applicant_id_unique');
@@ -398,7 +398,7 @@ return new class extends Migration
             $table->string('title', 255)->nullable()->default('');
             $table->string('slug', 255)->nullable();
             $table->longText('body')->nullable();
-            $table->boolean('is_published')->default(false);
+            $table->boolean('is_published')->nullable()->default(false);
             $table->timestamp('published_at')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -424,7 +424,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->string('event', 255)->nullable()->default('');
             $table->string('auditable_type', 255)->nullable()->default('');
-            $table->unsignedBigInteger('auditable_id')->default(0);
+            $table->unsignedBigInteger('auditable_id')->nullable()->default(0);
             $table->text('old_values')->nullable();
             $table->text('new_values')->nullable();
             $table->text('url')->nullable();
@@ -540,7 +540,7 @@ return new class extends Migration
         Schema::create('court_case_evidences', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
-            $table->enum('type', ['document', 'human'])->default('document');
+            $table->enum('type', ['document', 'human'])->nullable()->default('document');
             $table->string('title', 255)->nullable();
             $table->text('description')->nullable();
             $table->string('path', 255)->nullable();
@@ -668,7 +668,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->unsignedBigInteger('user_id');
-            $table->enum('party_type', ['plaintiff', 'defendant', 'lawyer', 'witness', 'judge'])->default('plaintiff');
+            $table->enum('party_type', ['plaintiff', 'defendant', 'lawyer', 'witness', 'judge'])->nullable()->default('plaintiff');
             $table->text('representation')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -741,15 +741,15 @@ return new class extends Migration
             $table->string('location', 255)->nullable()->default('');
             $table->text('address')->nullable();
             $table->string('contact_info', 255)->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
         });
 
         Schema::create('court_members', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->unsignedInteger('sort_order')->nullable()->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->string('name', 255)->nullable()->default('');
             $table->string('role', 255)->nullable();
             $table->text('bio')->nullable();
@@ -810,7 +810,7 @@ return new class extends Migration
             $table->id();
             $table->string('title', 255)->nullable()->default('');
             $table->string('category', 255)->nullable();
-            $table->boolean('is_default')->default(false);
+            $table->boolean('is_default')->nullable()->default(false);
             $table->json('placeholders')->nullable();
             $table->longText('body')->nullable();
             $table->string('header_image_path', 255)->nullable();
@@ -889,7 +889,7 @@ return new class extends Migration
             $table->char('unit_uuid', 36)->nullable();
             $table->char('position_uuid', 36)->nullable();
             $table->char('assignment_uuid', 36)->nullable();
-            $table->unsignedInteger('last_sequence')->default(0);
+            $table->unsignedInteger('last_sequence')->nullable()->default(0);
             $table->timestamp('synced_at')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -902,7 +902,7 @@ return new class extends Migration
             $table->string('title', 255)->nullable()->default('');
             $table->string('category', 255)->nullable();
             $table->string('subject_prefix', 80)->nullable();
-            $table->unsignedInteger('reference_sequence')->default(0);
+            $table->unsignedInteger('reference_sequence')->nullable()->default(0);
             $table->json('placeholders')->nullable();
             $table->longText('body')->nullable();
             $table->string('header_image_path', 255)->nullable();
@@ -923,8 +923,8 @@ return new class extends Migration
             $table->string('subject', 255)->nullable();
             $table->longText('body')->nullable();
             $table->string('cc', 255)->nullable();
-            $table->boolean('send_to_applicant')->default(true);
-            $table->boolean('send_to_respondent')->default(true);
+            $table->boolean('send_to_applicant')->nullable()->default(true);
+            $table->boolean('send_to_respondent')->nullable()->default(true);
             $table->string('approved_by_name', 255)->nullable();
             $table->string('approved_by_title', 255)->nullable();
             $table->string('approval_status', 255)->nullable();
@@ -959,7 +959,7 @@ return new class extends Migration
             $table->string('name_en', 255)->nullable()->default('');
             $table->string('name_am', 255)->nullable();
             $table->string('status', 40)->nullable();
-            $table->unsignedInteger('last_sequence')->default(0);
+            $table->unsignedInteger('last_sequence')->nullable()->default(0);
             $table->timestamp('synced_at')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -975,7 +975,7 @@ return new class extends Migration
             $table->string('name_en', 255)->nullable()->default('');
             $table->string('name_am', 255)->nullable();
             $table->string('status', 40)->nullable();
-            $table->unsignedInteger('last_sequence')->default(0);
+            $table->unsignedInteger('last_sequence')->nullable()->default(0);
             $table->timestamp('synced_at')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -990,8 +990,8 @@ return new class extends Migration
             $table->string('code', 60)->nullable();
             $table->string('title_en', 255)->nullable()->default('');
             $table->string('title_am', 255)->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->unsignedInteger('last_sequence')->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
+            $table->unsignedInteger('last_sequence')->nullable()->default(0);
             $table->timestamp('synced_at')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -1014,7 +1014,7 @@ return new class extends Migration
         Schema::create('court_euisis_staff_units', function (Blueprint $table) {
             $table->char('unit_uuid', 36)->nullable()->default('');
             $table->char('organization_uuid', 36)->nullable()->default('');
-            $table->boolean('include_sub_units')->default(true);
+            $table->boolean('include_sub_units')->nullable()->default(true);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->primary(['unit_uuid'], 'court_euisis_staff_units_unit_uuid_primary');
@@ -1065,7 +1065,7 @@ return new class extends Migration
             $table->string('location', 255)->nullable();
             $table->text('purpose')->nullable();
             $table->text('outcome')->nullable();
-            $table->enum('status', ['scheduled', 'completed', 'adjourned', 'cancelled'])->default('scheduled');
+            $table->enum('status', ['scheduled', 'completed', 'adjourned', 'cancelled'])->nullable()->default('scheduled');
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->index(['court_case_id'], 'court_hearings_court_case_id_index');
@@ -1074,8 +1074,8 @@ return new class extends Migration
 
         Schema::create('court_home_faqs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->text('question')->nullable();
             $table->text('answer')->nullable();
             $table->timestamp('created_at')->nullable();
@@ -1085,9 +1085,9 @@ return new class extends Migration
 
         Schema::create('court_home_resources', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_featured')->default(false);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
+            $table->boolean('is_featured')->nullable()->default(false);
             $table->string('type', 20)->nullable()->default('post');
             $table->string('title', 255)->nullable()->default('');
             $table->text('description')->nullable();
@@ -1102,8 +1102,8 @@ return new class extends Migration
 
         Schema::create('court_home_services', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->string('title', 255)->nullable()->default('');
             $table->text('description')->nullable();
             $table->string('meta', 120)->nullable();
@@ -1126,8 +1126,8 @@ return new class extends Migration
 
         Schema::create('court_home_slides', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->string('badge', 120)->nullable();
             $table->string('title', 255)->nullable()->default('');
             $table->text('description')->nullable();
@@ -1144,8 +1144,8 @@ return new class extends Migration
 
         Schema::create('court_home_timeline_steps', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
+            $table->boolean('is_active')->nullable()->default(true);
             $table->string('title', 255)->nullable()->default('');
             $table->text('description')->nullable();
             $table->string('meta', 120)->nullable();
@@ -1160,7 +1160,7 @@ return new class extends Migration
             $table->id();
             $table->char('public_id', 36)->nullable();
             $table->string('holdable_type', 100)->nullable()->default('');
-            $table->unsignedBigInteger('holdable_id')->default(0);
+            $table->unsignedBigInteger('holdable_id')->nullable()->default(0);
             $table->text('reason')->nullable();
             $table->unsignedBigInteger('placed_by_user_id')->nullable();
             $table->timestamp('placed_at')->useCurrent();
@@ -1211,9 +1211,9 @@ return new class extends Migration
             $table->unsignedBigInteger('reviewed_by')->nullable();
             $table->date('period_start')->nullable();
             $table->date('period_end')->nullable();
-            $table->enum('period_type', ['monthly', 'quarterly', 'annual'])->default('monthly');
-            $table->decimal('overall_score', 5, 2)->default(0.00);
-            $table->enum('status', ['draft', 'submitted', 'reviewed'])->default('draft');
+            $table->enum('period_type', ['monthly', 'quarterly', 'annual'])->nullable()->default('monthly');
+            $table->decimal('overall_score', 5, 2)->nullable()->default(0.00);
+            $table->enum('status', ['draft', 'submitted', 'reviewed'])->nullable()->default('draft');
             $table->text('notes')->nullable();
             $table->text('reviewer_notes')->nullable();
             $table->timestamp('reviewed_at')->nullable();
@@ -1234,8 +1234,8 @@ return new class extends Migration
             $table->string('slug', 255)->nullable();
             $table->string('name', 255)->nullable()->default('');
             $table->string('name_am', 255)->nullable();
-            $table->boolean('active')->default(true);
-            $table->unsignedSmallInteger('sort_order')->default(0);
+            $table->boolean('active')->nullable()->default(true);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->unique(['slug'], 'court_performance_evaluation_categories_slug_unique');
@@ -1247,10 +1247,10 @@ return new class extends Migration
             $table->string('name_am', 255)->nullable();
             $table->string('category', 255)->nullable()->default('general');
             $table->string('source', 40)->nullable();
-            $table->unsignedTinyInteger('weight')->default(10);
+            $table->unsignedTinyInteger('weight')->nullable()->default(10);
             $table->text('description')->nullable();
-            $table->boolean('active')->default(true);
-            $table->unsignedSmallInteger('sort_order')->default(0);
+            $table->boolean('active')->nullable()->default(true);
+            $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
         });
@@ -1259,7 +1259,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('evaluation_id');
             $table->unsignedBigInteger('criterion_id');
-            $table->unsignedTinyInteger('score')->default(0);
+            $table->unsignedTinyInteger('score')->nullable()->default(0);
             $table->text('comment')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
@@ -1285,7 +1285,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 255)->nullable();
             $table->string('description', 255)->nullable();
-            $table->boolean('mfa_required')->default(false);
+            $table->boolean('mfa_required')->nullable()->default(false);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->unique(['name'], 'court_roles_name_unique');
@@ -1377,44 +1377,44 @@ return new class extends Migration
             $table->string('address', 255)->nullable();
             $table->string('website_url', 255)->nullable();
             $table->string('default_locale', 10)->nullable()->default('en');
-            $table->boolean('show_language_switcher')->default(true);
+            $table->boolean('show_language_switcher')->nullable()->default(true);
             $table->string('timezone', 60)->nullable()->default('Africa/Addis_Ababa');
             $table->string('date_format', 30)->nullable()->default('Y-m-d');
             $table->string('time_format', 10)->nullable()->default('H:i');
-            $table->boolean('use_ethiopian_calendar')->default(false);
-            $table->unsignedSmallInteger('session_lifetime')->default(120);
-            $table->unsignedSmallInteger('session_warning_minutes')->default(5);
-            $table->boolean('session_extend_on_activity')->default(true);
-            $table->unsignedTinyInteger('password_min_length')->default(8);
-            $table->boolean('password_require_uppercase')->default(true);
-            $table->boolean('password_require_number')->default(true);
-            $table->boolean('password_require_symbol')->default(false);
-            $table->unsignedTinyInteger('login_max_attempts')->default(5);
-            $table->unsignedSmallInteger('lockout_minutes')->default(15);
-            $table->boolean('force_https')->default(false);
-            $table->boolean('mfa_enabled')->default(false);
-            $table->boolean('audit_logging_enabled')->default(true);
-            $table->unsignedSmallInteger('audit_retention_days')->default(365);
-            $table->boolean('registration_open')->default(true);
+            $table->boolean('use_ethiopian_calendar')->nullable()->default(false);
+            $table->unsignedSmallInteger('session_lifetime')->nullable()->default(120);
+            $table->unsignedSmallInteger('session_warning_minutes')->nullable()->default(5);
+            $table->boolean('session_extend_on_activity')->nullable()->default(true);
+            $table->unsignedTinyInteger('password_min_length')->nullable()->default(8);
+            $table->boolean('password_require_uppercase')->nullable()->default(true);
+            $table->boolean('password_require_number')->nullable()->default(true);
+            $table->boolean('password_require_symbol')->nullable()->default(false);
+            $table->unsignedTinyInteger('login_max_attempts')->nullable()->default(5);
+            $table->unsignedSmallInteger('lockout_minutes')->nullable()->default(15);
+            $table->boolean('force_https')->nullable()->default(false);
+            $table->boolean('mfa_enabled')->nullable()->default(false);
+            $table->boolean('audit_logging_enabled')->nullable()->default(true);
+            $table->unsignedSmallInteger('audit_retention_days')->nullable()->default(365);
+            $table->boolean('registration_open')->nullable()->default(true);
             $table->string('accent_palette', 20)->nullable()->default('blue');
             $table->string('default_theme', 10)->nullable()->default('system');
-            $table->boolean('show_banner_on_login')->default(true);
+            $table->boolean('show_banner_on_login')->nullable()->default(true);
             $table->text('custom_css')->nullable();
-            $table->boolean('api_enabled')->default(false);
-            $table->unsignedSmallInteger('api_rate_limit')->default(60);
-            $table->boolean('mail_enabled')->default(false);
+            $table->boolean('api_enabled')->nullable()->default(false);
+            $table->unsignedSmallInteger('api_rate_limit')->nullable()->default(60);
+            $table->boolean('mail_enabled')->nullable()->default(false);
             $table->string('mail_mailer', 20)->nullable()->default('smtp');
             $table->string('mail_host', 255)->nullable();
-            $table->unsignedSmallInteger('mail_port')->default(587);
+            $table->unsignedSmallInteger('mail_port')->nullable()->default(587);
             $table->string('mail_username', 255)->nullable();
             $table->text('mail_password')->nullable();
             $table->string('mail_encryption', 10)->nullable()->default('tls');
             $table->string('mail_from_address', 255)->nullable();
             $table->string('mail_from_name', 255)->nullable();
-            $table->boolean('telegram_enabled')->default(false);
+            $table->boolean('telegram_enabled')->nullable()->default(false);
             $table->text('telegram_bot_token')->nullable();
             $table->string('telegram_default_chat_id', 255)->nullable();
-            $table->boolean('sms_enabled')->default(false);
+            $table->boolean('sms_enabled')->nullable()->default(false);
             $table->string('sms_provider', 30)->nullable()->default('infobip');
             $table->text('sms_api_key')->nullable();
             $table->string('sms_api_secret', 255)->nullable();
@@ -1422,7 +1422,7 @@ return new class extends Migration
             $table->string('sms_base_url', 255)->nullable();
             $table->string('contact_email', 255)->nullable();
             $table->string('contact_phone', 255)->nullable();
-            $table->boolean('maintenance_mode')->default(false);
+            $table->boolean('maintenance_mode')->nullable()->default(false);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->string('primary_color', 7)->nullable();

@@ -13,7 +13,7 @@ class LanguageController extends Controller
 {
     public function switch(Request $request, string $locale)
     {
-        $allowed = config('app.locales', ['en', 'am']);
+        $allowed = config('court.locales', ['en', 'am']);
         $allowed = array_unique(array_merge($allowed, ['am_ET']));
 
         if (!in_array($locale, $allowed, true)) {
