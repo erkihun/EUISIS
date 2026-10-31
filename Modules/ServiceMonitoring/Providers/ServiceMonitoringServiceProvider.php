@@ -12,6 +12,7 @@ use Modules\ServiceMonitoring\Application\Notifications\ServiceMonitoringNotific
 use Modules\ServiceMonitoring\Application\Policies\ActionItemPolicy;
 use Modules\ServiceMonitoring\Application\Policies\ClarificationPolicy;
 use Modules\ServiceMonitoring\Application\Policies\DigitalServicePolicy;
+use Modules\ServiceMonitoring\Application\Policies\FormTemplatePolicy;
 use Modules\ServiceMonitoring\Application\Policies\MonitoringAttachmentPolicy;
 use Modules\ServiceMonitoring\Application\Policies\MonitoringExportPolicy;
 use Modules\ServiceMonitoring\Application\Policies\MonitoringSettingPolicy;
@@ -27,6 +28,7 @@ use Modules\ServiceMonitoring\Contracts\ServiceMonitoringIndicators;
 use Modules\ServiceMonitoring\Domain\Models\ActionItem;
 use Modules\ServiceMonitoring\Domain\Models\Clarification;
 use Modules\ServiceMonitoring\Domain\Models\DigitalService;
+use Modules\ServiceMonitoring\Domain\Models\FormTemplate;
 use Modules\ServiceMonitoring\Domain\Models\MonitoringAttachment;
 use Modules\ServiceMonitoring\Domain\Models\MonitoringExport;
 use Modules\ServiceMonitoring\Domain\Models\MonitoringSetting;
@@ -68,6 +70,7 @@ final class ServiceMonitoringServiceProvider extends ServiceProvider
         Gate::policy(MonitoringAttachment::class, MonitoringAttachmentPolicy::class);
         Gate::policy(MonitoringExport::class, MonitoringExportPolicy::class);
         Gate::policy(MonitoringSetting::class, MonitoringSettingPolicy::class);
+        Gate::policy(FormTemplate::class, FormTemplatePolicy::class);
 
         // Every rule here depends on the record's state (locked period, accepted
         // report, own submission) as much as on the role, so the Super Admin role

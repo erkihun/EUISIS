@@ -32,6 +32,7 @@ final class ServiceMonitoringRoles
         'service_monitoring.accountability.view_named', 'service_monitoring.accountability.export_named',
         'service_monitoring.technology.verify', 'service_monitoring.support.respond', 'service_monitoring.visits.manage',
         'service_monitoring.reports.view', 'service_monitoring.reports.export', 'service_monitoring.settings.manage',
+        'service_monitoring.forms.manage',
     ];
 
     /** @var list<string> */
@@ -58,6 +59,7 @@ final class ServiceMonitoringRoles
         'service_monitoring.accountability.view_named', 'service_monitoring.accountability.export_named',
         'service_monitoring.support.respond', 'service_monitoring.visits.manage',
         'service_monitoring.reports.view', 'service_monitoring.reports.export', 'service_monitoring.settings.manage',
+        'service_monitoring.forms.manage',
     ];
 
     /** @var list<string> */

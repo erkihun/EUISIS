@@ -1,3 +1,5 @@
+import type { FormSchema as CustomSchema, ReportData as CustomData } from '@/Components/serviceMonitoring/builder/types';
+
 /*
  * Service Delivery Monitoring & Support — the props the module's pages
  * receive (Modules/ServiceMonitoring/Http/Controllers and
@@ -22,6 +24,9 @@ export type ReportRange = 'quarter' | 'six_months' | 'nine_months' | 'annual';
 export type ComplianceStatus = 'on_time' | 'late_extension' | 'in_review' | 'returned' | 'pending' | 'missing' | 'not_submitted';
 export type ServiceLevel = 'main' | 'sub';
 export type SectionNumber = 1 | 2 | 3 | 4;
+
+/** SubmissionValidator::CUSTOM: the key of the form template's additional sections. */
+export const CUSTOM_SECTION = 5 as const;
 
 export interface Named {
     name_en: string | null;
@@ -102,6 +107,10 @@ export interface FormDescription {
     newly_organized_rule: boolean;
     title: string;
     general_notes: string[];
+    /** The official sections the report's form template keeps (all four without a template). */
+    enabled_sections?: SectionNumber[];
+    /** The form template's additional sections (docs/service-monitoring.md §Form templates). */
+    custom?: CustomSchema;
     section_1: {
         title: string;
         heading: string;
@@ -289,13 +298,16 @@ export interface SubmissionProps {
         fiscal_year: { from: string; to: string };
     };
     section4: { values: Record<string, number | string | null>; min_text: number };
-    problems: Partial<Record<SectionNumber, string[]>>;
-    completeness: Record<SectionNumber, boolean>;
+    problems: Partial<Record<SectionNumber | typeof CUSTOM_SECTION, string[]>>;
+    /** 1–4 and, when the form template adds sections, 5 (CUSTOM_SECTION). */
+    completeness: Partial<Record<SectionNumber | typeof CUSTOM_SECTION, boolean>>;
     comments: ReviewCommentRow[];
     attachments: AttachmentRow[];
     history: { from: SubmissionStatus | null; to: SubmissionStatus; actor: string | null; reason: string | null; at: string | null }[];
     revisions: { id: string; revision_no: number; status: SubmissionStatus }[];
     corrections: { id: string; status: 'pending' | 'approved' | 'rejected'; reason: string; decision_note: string | null; created_at: string | null; new_submission_id: string | null }[];
+    template: { id: string; code: string; version: number; name_am: string | null; name_en: string | null } | null;
+    custom: { data: CustomData };
     declaration: string;
     require_stamped_copy: boolean;
     can: {

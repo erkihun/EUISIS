@@ -271,6 +271,12 @@ class ServiceMonitoringAccess
         return $user->can('service_monitoring.settings.manage') && $this->isCitywide($user);
     }
 
+    /** Form templates shape every institution's report, so building them is a city-wide duty. */
+    public function canManageForms(User $user): bool
+    {
+        return $user->can('service_monitoring.forms.manage') && $this->isCitywide($user);
+    }
+
     public function forget(): void
     {
         $this->citywide = [];

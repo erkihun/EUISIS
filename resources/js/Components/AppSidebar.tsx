@@ -375,6 +375,7 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-monitoring.visits.index', labelKey: 'serviceMonitoring.nav.visits', icon: MapIcon, permission: 'service_monitoring.view' },
             { routeName: 'service-monitoring.action-items.index', labelKey: 'serviceMonitoring.nav.actionItems', icon: AlarmIcon, permission: 'service_monitoring.view' },
             { routeName: 'service-monitoring.reports.index', labelKey: 'serviceMonitoring.nav.reports', icon: PieChartIcon, permission: 'service_monitoring.reports.view' },
+            { routeName: 'service-monitoring.forms.index', labelKey: 'serviceMonitoring.nav.forms', icon: FilePenIcon, permission: 'service_monitoring.forms.manage', citywideOnly: true },
             { routeName: 'service-monitoring.settings.edit', labelKey: 'serviceMonitoring.nav.settings', icon: SettingsIcon, permission: 'service_monitoring.settings.manage', citywideOnly: true },
         ],
     },

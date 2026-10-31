@@ -12,6 +12,7 @@ return [
     'declaration_default' => 'ይህ ሪፖርት የተሟላና ትክክለኛ መሆኑን፣ የዚህን ሩብ ዓመት ብቻ የሚሸፍን መሆኑን እና ተቋሙ በማህተሙ የሚያረጋግጠው መሆኑን አረጋግጣለሁ።',
 
     'enums' => [
+        'form_template_status' => ['draft' => 'ረቂቅ', 'published' => 'የታተመ', 'superseded' => 'የተተካ', 'archived' => 'በማህደር'],
         'reporting_level' => ['center' => 'ማዕከል', 'sub_city' => 'ክ/ከተማ', 'woreda' => 'ወረዳ'],
         'form_type' => ['A' => 'ቅጽ ሀ (ማዕከል)', 'B' => 'ቅጽ ለ (ክ/ከተማና ወረዳ)'],
         'period_status' => ['scheduled' => 'የታቀደ', 'open' => 'ክፍት', 'closed' => 'የተዘጋ', 'locked' => 'የተቆለፈ'],
@@ -257,7 +258,7 @@ return [
     'export' => [
         'sheet_section_1' => 'I.1 መዝገብ', 'sheet_summary' => 'I.2 ማጠቃለያ', 'sheet_section_2' => 'II የተቋም ግንባታ',
         'sheet_section_3' => 'III ቴክኖሎጂ', 'sheet_section_4' => 'IV ስታንዳርድ', 'sheet_notes' => 'ማሳሰቢያ',
-        'scope_submission' => 'ተቋም', 'scope_sub_city' => 'የክ/ከተማ ማጠቃለያ', 'scope_city' => 'የከተማ ማጠቃለያ',
+        'scope_submission' => 'ተቋም', 'scope_sub_city' => 'የበላይ ተቋም ማጠቃለያ', 'scope_city' => 'አጠቃላይ ማጠቃለያ',
         'range_line' => ':range — :year በጀት ዓመት (:from – :to)',
         'generated' => 'የተዘጋጀው :at በ:user',
         'masked' => 'ስሞች ተደብቀዋል፤ በምትካቸው የሥራ ድርሻው ይታያል።',
@@ -276,6 +277,30 @@ return [
             'office_level' => 'የተቋም ጽ/ቤት ደረጃ :level',
             'type_level' => 'የተቋም ዓይነት :type (የደረጃ ቅደም ተከተል :order)',
             'edge' => 'የጸደቀ መዋቅር፡ የ:parent ንዑስ',
+        ],
+    ],
+
+    // የቅጽ አብነቶች፡ የቅጽ ማዘጋጃው (docs/service-monitoring.md §Form templates)።
+    'form_templates' => [
+        'flash' => [
+            'saved' => 'የቅጽ አብነቱ ተቀምጧል።',
+            'published' => 'የቅጽ አብነቱ ታትሟል። ከአሁን ጀምሮ የተመደቡት የተቋም ዓይነቶች የሚጀምሯቸው ሪፖርቶች ይህን ቅጽ ይጠቀማሉ።',
+            'version_created' => 'አዲስ ረቂቅ እትም ተፈጥሯል።',
+            'duplicated' => 'አብነቱ ወደ አዲስ ረቂቅ ተቀድቷል።',
+            'archived' => 'የቅጽ አብነቱ በማህደር ተቀምጧል።',
+            'discarded' => 'ረቂቁ ተሰርዟል።',
+        ],
+        'errors' => [
+            'not_draft' => 'የታተመ አብነት ሊቀየር አይችልም። በምትኩ አዲስ እትም ይፍጠሩ።',
+            'no_types' => 'ከማተምዎ በፊት አብነቱን ቢያንስ ለአንድ የተቋም ዓይነት ይመድቡ።',
+            'types_taken' => 'ከእነዚህ የተቋም ዓይነቶች አንዳንዶቹ የታተመ አብነት አላቸው (:codes)። አንድ የተቋም ዓይነት ሪፖርት የሚያቀርበው በአንድ ቅጽ ነው።',
+            'draft_exists' => 'ይህ አብነት ረቂቅ እትም አለው። መጀመሪያ ያሻሽሉት ወይም ያትሙት።',
+            'draft_not_archivable' => 'ረቂቅ ይሰረዛል እንጂ በማህደር አይቀመጥም።',
+            'draft_in_use' => 'መሰረዝ የሚቻለው ምንም ሪፖርት ያልተጀመረበት ረቂቅ ብቻ ነው።',
+            'no_custom_sections' => 'የዚህ ሪፖርት ቅጽ ተጨማሪ ክፍሎች የሉትም።',
+        ],
+        'validation' => [
+            'custom_incomplete' => 'በተጨማሪ ክፍሎቹ ውስጥ :count የጎደሉ ወይም ትክክል ያልሆኑ መልሶች አሉ።',
         ],
     ],
 ];

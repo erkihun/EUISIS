@@ -7,6 +7,7 @@ namespace Modules\ServiceMonitoring\Application\Actions;
 use App\Enums\AuditEventType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Modules\ServiceMonitoring\Application\Services\FormTemplateResolver;
 use Modules\ServiceMonitoring\Application\Services\PrefillService;
 use Modules\ServiceMonitoring\Application\Services\ServiceMonitoringAudit;
 use Modules\ServiceMonitoring\Application\Services\SubmissionGuard;
@@ -27,6 +28,7 @@ final readonly class StartSubmission
         private SubmissionGuard $guard,
         private SubmissionStateMachine $states,
         private PrefillService $prefill,
+        private FormTemplateResolver $templates,
         private ServiceMonitoringAudit $audit,
     ) {}
 
@@ -52,6 +54,8 @@ final readonly class StartSubmission
                 'level' => $participant->level,
                 'form_type' => $participant->formType(),
                 'form_version' => $period->form_version,
+                // The participant's form template, pinned for the life of the report (null: the official form).
+                'form_template_id' => $this->templates->forParticipant($participant)?->id,
                 'revision_no' => 1,
                 'is_current' => true,
                 'status' => SubmissionStatus::Draft,

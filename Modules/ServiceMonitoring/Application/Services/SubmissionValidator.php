@@ -18,6 +18,9 @@ use Modules\ServiceMonitoring\Domain\Models\Submission;
  */
 class SubmissionValidator
 {
+    /** The key of the form template's additional sections in problems() and completeness(). */
+    public const CUSTOM = 5;
+
     /**
      * Problems per section (1–4); an empty array means the report may be submitted.
      *
@@ -25,23 +28,47 @@ class SubmissionValidator
      */
     public function problems(Submission $submission): array
     {
-        $submission->loadMissing(['accountabilityEntries', 'institutionBuilding', 'prefillValues', 'digitalServices', 'serviceTotals', 'standardPerformance']);
+        $submission->loadMissing(['accountabilityEntries', 'institutionBuilding', 'prefillValues', 'digitalServices', 'serviceTotals', 'standardPerformance', 'formTemplate']);
+        $template = $submission->templateContent();
         $problems = array_filter([
-            1 => $this->section1($submission),
-            2 => $this->section2($submission),
-            3 => $this->section3($submission),
-            4 => $this->section4($submission),
+            1 => $template->enabled(1) ? $this->section1($submission) : [],
+            2 => $template->enabled(2) ? $this->section2($submission) : [],
+            3 => $template->enabled(3) ? $this->section3($submission) : [],
+            4 => $template->enabled(4) ? $this->section4($submission) : [],
+            self::CUSTOM => $template->hasCustomSections() ? $this->custom($submission) : [],
         ]);
 
         return $problems;
     }
 
-    /** @return array<int, bool> section => complete */
+    /**
+     * Section => complete, for the official sections the report's form has
+     * (all four without a template) and, with additional sections, CUSTOM.
+     *
+     * @return array<int, bool>
+     */
     public function completeness(Submission $submission): array
     {
         $problems = $this->problems($submission);
+        $template = $submission->templateContent();
+        $sections = $template->enabledSections();
+        if ($template->hasCustomSections()) {
+            $sections[] = self::CUSTOM;
+        }
 
-        return [1 => ! isset($problems[1]), 2 => ! isset($problems[2]), 3 => ! isset($problems[3]), 4 => ! isset($problems[4])];
+        return array_combine($sections, array_map(static fn (int $n): bool => ! isset($problems[$n]), $sections)) ?: [];
+    }
+
+    /**
+     * The template's additional sections, with required answers enforced.
+     *
+     * @return list<string>
+     */
+    private function custom(Submission $submission): array
+    {
+        $result = $submission->templateContent()->custom()->normalize(is_array($submission->custom_data) ? $submission->custom_data : [], complete: true);
+
+        return $result['errors'] === [] ? [] : [__('service-monitoring.form_templates.validation.custom_incomplete', ['count' => count($result['errors'])])];
     }
 
     /** @return list<string> */
