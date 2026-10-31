@@ -7,16 +7,17 @@ import { useMemo, useState, type FormEvent, type JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
 interface Props {
-    settings: { require_stamped_copy: boolean; declaration_text_en: string; declaration_text_am: string; owner_organization_id: string | null; driver_occupation_ids: string[] };
+    // Not "settings": that name would override the shared system-settings prop (theme, branding).
+    moduleSettings: { require_stamped_copy: boolean; declaration_text_en: string; declaration_text_am: string; owner_organization_id: string | null; driver_occupation_ids: string[] };
     occupations: (NamedWithId & { code: string })[];
     organizations: NamedWithId[];
 }
 
 /** Module settings (D11, D18): declaration, stamped-copy rule, issuing organization of city exports, driver occupations. */
-export default function ServiceMonitoringSettings({ settings, occupations, organizations }: Props): JSX.Element {
+export default function ServiceMonitoringSettings({ moduleSettings, occupations, organizations }: Props): JSX.Element {
     const { sm, name } = useSm();
     const [query, setQuery] = useState('');
-    const form = useForm({ ...settings, owner_organization_id: settings.owner_organization_id ?? '' });
+    const form = useForm({ ...moduleSettings, owner_organization_id: moduleSettings.owner_organization_id ?? '' });
     const shown = useMemo(() => {
         const q = query.trim().toLowerCase();
         return occupations.filter((o) => form.data.driver_occupation_ids.includes(o.id) || q === '' || `${o.code} ${o.name_en ?? ''} ${o.name_am ?? ''}`.toLowerCase().includes(q)).slice(0, 200);

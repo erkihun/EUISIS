@@ -23,8 +23,9 @@ final class SettingsController extends Controller
         $this->authorize('manage', MonitoringSetting::class);
         $row = $settings->row();
 
+        // Not "settings": that name is the shared system-settings prop the layout reads for theme and branding.
         return Inertia::render('ServiceMonitoring/Settings', [
-            'settings' => [
+            'moduleSettings' => [
                 'require_stamped_copy' => (bool) $row->require_stamped_copy,
                 'declaration_text_en' => (string) $row->declaration_text_en,
                 'declaration_text_am' => (string) $row->declaration_text_am,
