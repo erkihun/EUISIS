@@ -103,8 +103,10 @@ class AdministrativeTribunalController extends Controller
 
         return [
             'enabled' => $enabled,
-            'admin_url' => $case->court_case_id !== null && filled(config('court_ms.url'))
-                ? config('court_ms.url').'/admin/cases/'.$case->court_case_id : null,
+            // The court's own case page: in this application (the court module), or on a separate court-ms.
+            'admin_url' => $case->court_case_id === null ? null
+                : ($client->inModule() ? route('court.cases.show', $case->court_case_id)
+                    : (filled(config('court_ms.url')) ? config('court_ms.url').'/admin/cases/'.$case->court_case_id : null)),
             'case_types' => $mayRefer ? $client->caseTypes() : [],
             'defaults' => $mayRefer ? $referrals->defaults($case) : null,
             'evidence' => $mayRefer ? array_map(fn (array $e): array => [

@@ -61,6 +61,14 @@ class IntegrationClient extends Model
     ];
 
     /** A new random token for this client; returns the plain text, shown once. */
+    public const IN_PROCESS_NAME = 'EUISIS (in process)';
+
+    /** EUISIS itself, calling through the CourtIntegration contract: referrals and filings keep naming their client. */
+    public static function inProcess(): self
+    {
+        return self::query()->firstOrCreate(['name' => self::IN_PROCESS_NAME, 'token_hash' => null], ['abilities' => self::DEFAULT_ABILITIES, 'allowed_ips' => []]);
+    }
+
     public function issueToken(): string
     {
         $plain = 'cms_'.Str::random(48);

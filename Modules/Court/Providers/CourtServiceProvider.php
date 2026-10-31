@@ -118,6 +118,8 @@ final class CourtServiceProvider extends ServiceProvider
 
     public function register(): void
     {
+        // The court's public contract: what EUISIS asks of it, answered in this process.
+        $this->app->bind(\Modules\Court\Contracts\CourtIntegration::class, \Modules\Court\Application\Queries\CourtIntegrationGateway::class);
         $this->app->bind(Models\Concerns\ApplicantMessages::class, \Modules\Court\Application\Notifications\ApplicantAccountMessages::class);
 
         $this->app['config']->set([

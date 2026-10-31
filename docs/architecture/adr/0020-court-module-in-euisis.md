@@ -1,6 +1,6 @@
 # ADR 0020: The court (court-ms) as a module of EUISIS
 
-- Status: accepted (2026-10-31), step 1 of 3 done
+- Status: accepted (2026-10-31); step 1 done, step 3 half done (EUISIS → court is direct)
 - Supersedes, in part: ADR 0013 (court-ms as a separate system linked by API) and the 2026-10-29
   note that court-ms is the one API-linked system. The owner asked for court-ms to be cloned into
   EUISIS as a real modular-monolith module.
@@ -49,12 +49,16 @@
 1. **Cut-over data import** (step 2): copy court-ms MySQL rows into the `court_` tables, map `users`
    to platform accounts (by `euisis_employee_uuid`, then email), morph types `App\Models\X` → `court_*`,
    disks `private/public` → `court_private/court_public`, and copy the files.
-2. **In-process EUISIS link** (step 3): the court still reads EUISIS over the partner API
-   (`COURT_EUISIS_*`, the `court_euisis_*` mirror tables) and EUISIS still calls court-ms over HTTP
-   (`COURT_MS_*`). Replace both with contracts: the court reads `App\Backbone` contracts and Grievance /
-   Discipline contracts, and publishes `Modules\Court\Contracts` for My Portal's court cases and the
-   tribunal referral, then retire the mirror tables and the integration API.
-3. Five of the 439 ported court tests fail: the signage board's day window (two tests; EUISIS's app
+2. **EUISIS → court: done (2026-10-31).** EUISIS asks the court through its public contract
+   `Modules\Court\Contracts\CourtIntegration` (answer: `Contracts\Data\CourtAnswer`), as it asks any
+   module. `CourtIntegrationGateway` runs the court's own integration action for the path as PHP (no
+   HTTP kernel, middleware, URL, token or network), as the `EUISIS (in process)` integration client.
+   `App\Services\CourtMs\CourtMsClient` uses it whenever `COURT_MS_URL` is empty; with a URL and a token
+   it still reaches the separate court-ms over HTTP, until the cut-over. Still to do: the court → EUISIS
+   direction — the court reads EUISIS employees and organizations over the partner API into its
+   `court_euisis_*` mirror tables (`court:euisis-sync`); replace that with `App\Backbone` contracts and
+   drop the mirror tables, the sync command and the court's integration API.
+3. Five of the 443 court tests fail: the signage board's day window (two tests; EUISIS's app
    timezone is Addis Ababa, court-ms's was UTC), one case-merge query, the API sign-in audit row, and
    the court API tokens of a staff member suspended by the EUISIS staff sync.
 
