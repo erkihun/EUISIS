@@ -992,3 +992,23 @@ html[data-animations="false"] .lg-card-slot { animation: none; }
 @media (prefers-reduced-motion: reduce) {
     .comm-flash { animation: none; outline: 2px solid var(--color-primary); outline-offset: -2px; }
 }
+/* A person keeps one of five soft tones (avatar, sender name) wherever they
+   appear; file tiles reuse them by kind (documents red, sheets green). */
+.comm-tone-0 { --comm-tone-bg: #dde3f5; --comm-tone-fg: #122170; }
+.comm-tone-1 { --comm-tone-bg: #dff3ea; --comm-tone-fg: #0f6b45; }
+.comm-tone-2 { --comm-tone-bg: #fdf0d9; --comm-tone-fg: #8a5300; }
+.comm-tone-3 { --comm-tone-bg: #fbe4e1; --comm-tone-fg: #9f1d14; }
+.comm-tone-4 { --comm-tone-bg: #e6ecfb; --comm-tone-fg: #1d3084; }
+.dark .comm-tone-0 { --comm-tone-bg: rgba(93, 114, 191, 0.28); --comm-tone-fg: #bcc7eb; }
+.dark .comm-tone-1 { --comm-tone-bg: rgba(16, 185, 129, 0.18); --comm-tone-fg: #8fd3b4; }
+.dark .comm-tone-2 { --comm-tone-bg: rgba(245, 158, 11, 0.18); --comm-tone-fg: #f5c97a; }
+.dark .comm-tone-3 { --comm-tone-bg: rgba(239, 68, 68, 0.18); --comm-tone-fg: #f4a39a; }
+.dark .comm-tone-4 { --comm-tone-bg: rgba(93, 114, 191, 0.18); --comm-tone-fg: #a9b8ee; }
+.comm-typing-dot { animation: comm-typing 1.2s infinite ease-in-out; }
+@keyframes comm-typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+    30% { transform: translateY(-3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .comm-typing-dot { animation: none; }
+}

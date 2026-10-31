@@ -4,7 +4,7 @@ const communication = {
     description: 'መልዕክቶች፣ ቡድኖች፣ ቻናሎችና ይፋዊ ማስታወቂያዎች።',
     messagesTitle: 'መልዕክቶች',
 
-    filters: { all: 'ሁሉም', DIRECT: 'ቀጥታ', GROUP: 'ቡድኖች', CHANNEL: 'ቻናሎች' },
+    filters: { all: 'ሁሉም', unread: 'ያልተነበቡ', DIRECT: 'ቀጥታ', GROUP: 'ቡድኖች', CHANNEL: 'ቻናሎች' },
     types: { DIRECT: 'ቀጥታ መልዕክት', GROUP: 'ቡድን', CHANNEL: 'ቻናል' },
 
     totals: {
@@ -50,6 +50,8 @@ const communication = {
         online: 'በመስመር ላይ',
         offline: 'ከመስመር ውጭ',
         lastSeen: 'ለመጨረሻ ጊዜ የታዩት :time',
+        recent: 'የቅርብ ጊዜ',
+        new: 'አዲስ',
     },
 
     chat: {
@@ -91,6 +93,8 @@ const communication = {
         repliedMessage: 'የተመለሰለት መልዕክት',
         attachmentWaiting: 'እየተፈተሸ ነው',
         scrollRegion: 'መልዕክቶች',
+        pinnedMessage: 'የተሰካ መልዕክት',
+        pinPosition: '1 ከ:n',
     },
 
     composer: {
@@ -110,6 +114,7 @@ const communication = {
         everyone: 'በዚህ ውይይት ያሉ ሁሉም',
         tooLarge: ':name ከ:max KB ይበልጣል።',
         typeNotAllowed: ':nameን ማያያዝ አይቻልም።',
+        mention: 'አንድ ሰው ይጥቀሱ',
     },
 
     actions: {
@@ -152,6 +157,19 @@ const communication = {
         roles: { owner: 'ባለቤት', admin: 'አስተዳዳሪ', member: 'አባል' },
         sources: { AUTO: 'ከተቋሙ', MANUAL: 'የተጨመረ', SYSTEM: 'ሥርዓት' },
         pinnedBy: 'የሰኩት :name',
+        title: 'ዝርዝሮች',
+        tabs: { members: 'አባላት', files: 'ፋይሎች', pinned: 'የተሰኩ', search: 'ፍለጋ' },
+        position: 'የሥራ መደብ',
+        unit: 'የሥራ ክፍል',
+        organization: 'ተቋም',
+        description: 'መግለጫ',
+        yourRole: 'የእርስዎ ሚና',
+        scope: 'ወሰን',
+        blockName: ':nameን ያግዱ',
+        reportGroup: 'ቡድኑን ሪፖርት ያድርጉ',
+        reportChannel: 'ቻናሉን ሪፖርት ያድርጉ',
+        leaveGroup: 'ከቡድኑ ይውጡ',
+        leaveChannel: 'ከቻናሉ ይውጡ',
     },
 
     newConversation: {

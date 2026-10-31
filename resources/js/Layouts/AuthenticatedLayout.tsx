@@ -51,6 +51,7 @@ export default function Authenticated({
     variant = 'default',
     contentWidth = 'full',
     mode = 'default',
+    flush = false,
 }: PropsWithChildren<{
     header?: ReactNode;
     variant?: 'default' | 'portal';
@@ -64,6 +65,8 @@ export default function Authenticated({
      * locale and menus.
      */
     mode?: 'default' | 'communication';
+    /** A communication page that draws its own edges (the chat workspace) fills the content area without padding. */
+    flush?: boolean;
 }>) {
     const { locale, t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
@@ -263,7 +266,7 @@ export default function Authenticated({
                 )}
 
                 {focus && !header ? (
-                    <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-hidden sm:p-3 lg:p-4">
+                    <main id="main-content" tabIndex={-1} className={`flex min-w-0 flex-1 flex-col outline-hidden ${flush ? '' : 'sm:p-3 lg:p-4'}`}>
                         <TemporaryPasswordNotice />
                         {children}
                     </main>

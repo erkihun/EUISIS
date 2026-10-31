@@ -4,7 +4,7 @@ import { communicationApi, firstError } from '@/lib/communication/api';
 import { fileSize, tr } from '@/lib/communication/format';
 import { bodyForEditing, bodyForSending } from '@/Components/Communication/MessageText';
 import EmojiPicker, { COMPOSER_EMOJI } from '@/Components/Communication/EmojiPicker';
-import { PaperclipIcon, SendIcon, SmileIcon, ReplyIcon, XMarkIcon } from '@/Components/NavIcons';
+import { PaperclipIcon, PenIcon, SendIcon, SmileIcon, ReplyIcon, XMarkIcon } from '@/Components/NavIcons';
 import type { Attachment, ConversationMemberRow, MessageItem, MessagesLimits } from '@/types/communication';
 
 type Upload = { key: string; file: File; percent: number; attachment: Attachment | null; error: string | null; controller: AbortController };
@@ -98,7 +98,7 @@ export default function Composer(props: Props): JSX.Element {
         const el = textarea.current;
         if (!el) return;
         el.style.height = 'auto';
-        el.style.height = `${Math.min(el.scrollHeight, 200)}px`;
+        el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
     }, [text]);
 
     const suggestions = query === null ? [] : [
@@ -208,11 +208,28 @@ export default function Composer(props: Props): JSX.Element {
         }
     };
 
+    const insertAt = () => {
+        const el = textarea.current;
+        const start = el?.selectionStart ?? text.length;
+        const end = el?.selectionEnd ?? text.length;
+        const before = text.slice(0, start);
+        const insert = before && !/\s$/.test(before) ? ' @' : '@';
+        const next = before + insert + text.slice(end);
+        const caret = start + insert.length;
+        setText(next);
+        detectMention(next, caret);
+        requestAnimationFrame(() => {
+            el?.focus();
+            el?.setSelectionRange(caret, caret);
+        });
+    };
+
     const listboxId = `${inputId}-mentions`;
+    const tool = 'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary pointer-coarse:h-10 pointer-coarse:w-10';
 
     return (
         <div
-            className="relative border-t border-(--app-border) bg-(--app-surface) px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 sm:pb-3"
+            className="relative shrink-0 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-1 min-[640px]:px-4 min-[1100px]:px-7"
             onDragOver={(event) => { if (canUpload && !editing && event.dataTransfer.types.includes('Files')) { event.preventDefault(); setDragging(true); } }}
             onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }}
             onDrop={(event) => {
@@ -222,106 +239,81 @@ export default function Composer(props: Props): JSX.Element {
                 addFiles(event.dataTransfer.files);
             }}
         >
-            {dragging && (
-                <div className="pointer-events-none absolute inset-1 z-20 flex items-center justify-center rounded-panel border-2 border-dashed border-primary bg-(--app-surface)/90 text-sm font-medium text-primary">
-                    {t('communication.composer.dropHere')}
-                </div>
-            )}
-
-            {(replyTo || editing) && (
-                <div className="mb-2 flex items-start gap-2 rounded-control bg-(--app-surface-muted) px-3 py-2 text-xs">
-                    <ReplyIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
-                    <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-(--app-foreground)">
-                            {editing ? t('communication.chat.editing') : tr(t('communication.chat.replyingTo'), { name: replyTo?.sender?.name ?? '' })}
-                        </p>
-                        {replyTo && !editing && (
-                            <p className="truncate text-(--app-muted-foreground)">
-                                {replyTo.body ? bodyForEditing(replyTo).text : t('communication.list.attachment')}
-                            </p>
-                        )}
+            <div className="relative mx-auto max-w-[804px] rounded-[14px] border border-[#dfe3ea] bg-(--app-surface) shadow-[0_2px_8px_rgba(15,23,42,0.05)] focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/12 dark:border-(--app-border)">
+                {dragging && (
+                    <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-[14px] border-2 border-dashed border-primary bg-(--app-surface)/90 text-sm font-medium text-primary">
+                        {t('communication.composer.dropHere')}
                     </div>
-                    <button
-                        type="button"
-                        onClick={editing ? props.onCancelEdit : props.onCancelReply}
-                        aria-label={editing ? t('communication.chat.cancelEdit') : t('communication.chat.cancelReply')}
-                        className="rounded-sm p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"
-                    >
-                        <XMarkIcon className="h-4 w-4" />
-                    </button>
-                </div>
-            )}
+                )}
 
-            {uploads.length > 0 && (
-                <ul className="mb-2 flex flex-wrap gap-2" aria-live="polite">
-                    {uploads.map((upload) => (
-                        <li
-                            key={upload.key}
-                            className={`relative flex max-w-[16rem] items-center gap-2 overflow-hidden rounded-control border px-2.5 py-1.5 text-xs ${upload.error ? 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2)' : 'border-(--app-border) bg-(--app-surface-muted)'}`}
-                        >
-                            <PaperclipIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                            <span className="min-w-0">
-                                <span className="block truncate font-medium text-(--app-foreground)">{upload.file.name}</span>
-                                <span className={`block ${upload.error ? 'text-(--color-danger,#b42318)' : 'text-(--app-muted-foreground)'}`}>
-                                    {upload.error ?? (upload.attachment ? fileSize(upload.file.size) : `${upload.percent}%`)}
-                                </span>
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => removeUpload(upload)}
-                                aria-label={upload.attachment || upload.error ? tr(t('communication.composer.remove'), { name: upload.file.name }) : t('communication.composer.cancelUpload')}
-                                className="shrink-0 rounded-sm p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"
-                            >
-                                <XMarkIcon className="h-3.5 w-3.5" />
-                            </button>
-                            {!upload.attachment && !upload.error && (
-                                <span
-                                    role="progressbar"
-                                    aria-label={tr(t('communication.composer.uploading'), { name: upload.file.name })}
-                                    aria-valuenow={upload.percent}
-                                    aria-valuemin={0}
-                                    aria-valuemax={100}
-                                    className="absolute inset-x-0 bottom-0 h-0.5 bg-primary transition-[width]"
-                                    style={{ width: `${upload.percent}%` }}
-                                />
+                {(replyTo || editing) && (
+                    <div className="mx-2 mt-2 flex items-center gap-2.5 rounded-[10px] bg-(--app-background) px-2.5 py-2">
+                        {editing ? <PenIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" /> : <ReplyIcon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-(--app-foreground)">
+                                {editing ? t('communication.chat.editing') : tr(t('communication.chat.replyingTo'), { name: replyTo?.sender?.name ?? '' })}
+                            </p>
+                            {replyTo && !editing && (
+                                <p className="truncate text-[12.5px] text-(--app-muted-foreground)">
+                                    {replyTo.body ? bodyForEditing(replyTo).text : t('communication.list.attachment')}
+                                </p>
                             )}
-                        </li>
-                    ))}
-                </ul>
-            )}
-
-            <div className="relative flex items-end gap-1 rounded-panel border border-(--app-border) bg-(--app-background) px-1.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
-                {canUpload && !editing && (
-                    <>
+                        </div>
                         <button
                             type="button"
-                            onClick={() => fileInput.current?.click()}
-                            aria-label={t('communication.composer.attach')}
-                            title={t('communication.composer.attach')}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) pointer-coarse:h-10 pointer-coarse:w-10"
+                            onClick={editing ? props.onCancelEdit : props.onCancelReply}
+                            aria-label={editing ? t('communication.chat.cancelEdit') : t('communication.chat.cancelReply')}
+                            title={editing ? t('communication.chat.cancelEdit') : t('communication.chat.cancelReply')}
+                            className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                         >
-                            <PaperclipIcon className="h-5 w-5" />
+                            <XMarkIcon className="h-4 w-4" />
                         </button>
-                        <input
-                            ref={fileInput}
-                            type="file"
-                            multiple
-                            className="sr-only"
-                            tabIndex={-1}
-                            accept={limits.allowedTypes.map((type) => `.${type}`).join(',')}
-                            onChange={(event) => {
-                                if (event.target.files) addFiles(event.target.files);
-                                event.target.value = '';
-                            }}
-                        />
-                    </>
+                    </div>
+                )}
+
+                {uploads.length > 0 && (
+                    <ul className="mx-2 mt-2 flex flex-wrap gap-2" aria-live="polite">
+                        {uploads.map((upload) => (
+                            <li
+                                key={upload.key}
+                                className={`relative flex max-w-[16rem] items-center gap-2 overflow-hidden rounded-lg border px-2.5 py-1.5 text-xs ${upload.error ? 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2)' : 'border-(--app-border) bg-(--app-background)'}`}
+                            >
+                                <PaperclipIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                <span className="min-w-0">
+                                    <span className="block truncate font-medium text-(--app-foreground)">{upload.file.name}</span>
+                                    <span className={`block ${upload.error ? 'text-(--color-danger,#b42318)' : 'text-(--app-muted-foreground)'}`}>
+                                        {upload.error ?? (upload.attachment ? fileSize(upload.file.size) : `${upload.percent}%`)}
+                                    </span>
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => removeUpload(upload)}
+                                    aria-label={upload.attachment || upload.error ? tr(t('communication.composer.remove'), { name: upload.file.name }) : t('communication.composer.cancelUpload')}
+                                    className="shrink-0 rounded-sm p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"
+                                >
+                                    <XMarkIcon className="h-3.5 w-3.5" />
+                                </button>
+                                {!upload.attachment && !upload.error && (
+                                    <span
+                                        role="progressbar"
+                                        aria-label={tr(t('communication.composer.uploading'), { name: upload.file.name })}
+                                        aria-valuenow={upload.percent}
+                                        aria-valuemin={0}
+                                        aria-valuemax={100}
+                                        className="absolute inset-x-0 bottom-0 h-0.5 bg-primary transition-[width]"
+                                        style={{ width: `${upload.percent}%` }}
+                                    />
+                                )}
+                            </li>
+                        ))}
+                    </ul>
                 )}
 
                 <label htmlFor={inputId} className="sr-only">{t('communication.composer.label')}</label>
                 <textarea
                     ref={textarea}
                     id={inputId}
-                    rows={1}
+                    rows={2}
                     value={text}
                     maxLength={limits.maxBody}
                     placeholder={props.placeholder}
@@ -343,33 +335,57 @@ export default function Composer(props: Props): JSX.Element {
                             addFiles(event.clipboardData.files);
                         }
                     }}
-                    className="max-h-[200px] min-h-[36px] min-w-0 flex-1 resize-none border-0 bg-transparent px-1.5 py-2 text-base leading-5 sm:text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:outline-hidden focus:ring-0"
+                    className="block max-h-[180px] min-h-[52px] w-full resize-none border-0 bg-transparent px-4 pb-1 pt-3 text-base leading-normal text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:outline-hidden focus:ring-0 sm:text-sm"
                 />
 
-                <div className="relative shrink-0">
+                <div className="flex items-center gap-0.5 px-2 pb-2 pt-1.5">
+                    {canUpload && !editing && (
+                        <>
+                            <button type="button" onClick={() => fileInput.current?.click()} aria-label={t('communication.composer.attach')} title={t('communication.composer.attach')} className={tool}>
+                                <PaperclipIcon className="h-5 w-5" />
+                            </button>
+                            <input
+                                ref={fileInput}
+                                type="file"
+                                multiple
+                                className="sr-only"
+                                tabIndex={-1}
+                                accept={limits.allowedTypes.map((type) => `.${type}`).join(',')}
+                                onChange={(event) => {
+                                    if (event.target.files) addFiles(event.target.files);
+                                    event.target.value = '';
+                                }}
+                            />
+                        </>
+                    )}
+
+                    <div className="relative shrink-0">
+                        <button type="button" onClick={() => setEmoji((v) => !v)} aria-label={t('communication.composer.emoji')} aria-expanded={emoji} title={t('communication.composer.emoji')} className={tool}>
+                            <SmileIcon className="h-5 w-5" />
+                        </button>
+                        {emoji && <EmojiPicker emoji={COMPOSER_EMOJI} label={t('communication.composer.emoji')} align="start" onPick={insertEmoji} onClose={() => setEmoji(false)} />}
+                    </div>
+
+                    <button type="button" onClick={insertAt} aria-label={t('communication.composer.mention')} title={t('communication.composer.mention')} className={`${tool} text-[17px] font-medium`}>
+                        @
+                    </button>
+
+                    <p id={hintId} className="min-w-0 flex-1 truncate ps-2 text-[11.5px] text-(--app-muted-foreground)">
+                        <span className="hidden sm:inline">{t('communication.composer.hint')}</span>
+                        {text.length > limits.maxBody * 0.9 && <span className="ms-2 tabular-nums">{text.length}/{limits.maxBody}</span>}
+                    </p>
+
                     <button
                         type="button"
-                        onClick={() => setEmoji((v) => !v)}
-                        aria-label={t('communication.composer.emoji')}
-                        aria-expanded={emoji}
-                        title={t('communication.composer.emoji')}
-                        className="flex h-9 w-9 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) pointer-coarse:h-10 pointer-coarse:w-10"
+                        onClick={() => void submit()}
+                        disabled={!canSubmit}
+                        aria-label={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
+                        className="flex h-[34px] shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3.5 text-[13px] font-semibold text-white transition-opacity hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-primary pointer-coarse:h-10"
                     >
-                        <SmileIcon className="h-5 w-5" />
+                        {editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
+                        {!editing && <SendIcon className="h-4 w-4" aria-hidden="true" />}
                     </button>
-                    {emoji && <EmojiPicker emoji={COMPOSER_EMOJI} label={t('communication.composer.emoji')} align="end" onPick={insertEmoji} onClose={() => setEmoji(false)} />}
                 </div>
-
-                <button
-                    type="button"
-                    onClick={() => void submit()}
-                    disabled={!canSubmit}
-                    aria-label={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
-                    title={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
-                    className="flex h-9 min-w-9 shrink-0 items-center justify-center gap-1.5 rounded-control bg-primary px-3 text-sm font-medium text-(--color-on-primary) transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-10 pointer-coarse:min-w-11"
-                >
-                    {editing ? t('communication.chat.saveEdit') : <SendIcon className="h-4 w-4" />}
-                </button>
 
                 {suggestions.length > 0 && (
                     <ul
@@ -395,10 +411,6 @@ export default function Composer(props: Props): JSX.Element {
                     </ul>
                 )}
             </div>
-            <p id={hintId} className="mt-1 hidden px-1 text-[11px] text-(--app-muted-foreground) sm:block">
-                {t('communication.composer.hint')}
-                {text.length > limits.maxBody * 0.9 && <span className="ms-2 tabular-nums">{text.length}/{limits.maxBody}</span>}
-            </p>
         </div>
     );
 }

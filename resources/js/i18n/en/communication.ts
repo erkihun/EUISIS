@@ -4,7 +4,7 @@ const communication = {
     description: 'Messages, groups, channels and official announcements.',
     messagesTitle: 'Messages',
 
-    filters: { all: 'All', DIRECT: 'Direct', GROUP: 'Groups', CHANNEL: 'Channels' },
+    filters: { all: 'All', unread: 'Unread', DIRECT: 'Direct', GROUP: 'Groups', CHANNEL: 'Channels' },
     types: { DIRECT: 'Direct message', GROUP: 'Group', CHANNEL: 'Channel' },
 
     totals: {
@@ -50,6 +50,8 @@ const communication = {
         online: 'Online',
         offline: 'Offline',
         lastSeen: 'Last seen :time',
+        recent: 'Recent',
+        new: 'New',
     },
 
     chat: {
@@ -91,6 +93,8 @@ const communication = {
         repliedMessage: 'Replied message',
         attachmentWaiting: 'Being checked',
         scrollRegion: 'Messages',
+        pinnedMessage: 'Pinned message',
+        pinPosition: '1 of :n',
     },
 
     composer: {
@@ -110,6 +114,7 @@ const communication = {
         everyone: 'Everyone in this conversation',
         tooLarge: ':name is larger than :max KB.',
         typeNotAllowed: ':name cannot be attached.',
+        mention: 'Mention someone',
     },
 
     actions: {
@@ -152,6 +157,19 @@ const communication = {
         roles: { owner: 'Owner', admin: 'Admin', member: 'Member' },
         sources: { AUTO: 'From organization', MANUAL: 'Added', SYSTEM: 'System' },
         pinnedBy: 'Pinned by :name',
+        title: 'Details',
+        tabs: { members: 'Members', files: 'Files', pinned: 'Pinned', search: 'Search' },
+        position: 'Position',
+        unit: 'Unit',
+        organization: 'Organization',
+        description: 'Description',
+        yourRole: 'Your role',
+        scope: 'Scope',
+        blockName: 'Block :name',
+        reportGroup: 'Report group',
+        reportChannel: 'Report channel',
+        leaveGroup: 'Leave group',
+        leaveChannel: 'Leave channel',
     },
 
     newConversation: {
