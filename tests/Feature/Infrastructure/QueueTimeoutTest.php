@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Jobs\Transfers\NotifyEligibleTransferAudience;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Assessment\Infrastructure\Jobs\GenerateAssessmentChunkJob;
 use Modules\Assessment\Infrastructure\Jobs\GenerateCycleAssessmentsJob;
 use Modules\Grievance\Infrastructure\Jobs\EscalateOverdueGrievancesJob;
 use Modules\Performance\Infrastructure\Jobs\RecalculatePlanScore;
+use Modules\Transfer\Infrastructure\Jobs\NotifyEligibleTransferAudience;
 
 /*
  * Production risk register INF-2/INF-3: a job still running when the

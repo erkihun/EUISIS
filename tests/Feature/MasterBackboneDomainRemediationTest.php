@@ -3,14 +3,11 @@
 declare(strict_types=1);
 
 use App\Actions\Positions\ArchivePositionAction;
-use App\Actions\Transfers\CompleteTransferAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationStatus;
-use App\Enums\TransferAnnouncementStatus;
-use App\Enums\TransferApplicationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\JobDescription;
@@ -19,12 +16,15 @@ use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
-use App\Models\TransferAnnouncement;
-use App\Models\TransferApplication;
-use App\Models\TransferSetting;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Transfer\Application\Actions\CompleteTransferAction;
+use Modules\Transfer\Contracts\Data\TransferAnnouncementStatus;
+use Modules\Transfer\Contracts\Data\TransferApplicationStatus;
+use Modules\Transfer\Domain\Models\TransferAnnouncement;
+use Modules\Transfer\Domain\Models\TransferApplication;
+use Modules\Transfer\Domain\Models\TransferSetting;
 use Spatie\Permission\Models\Permission;
 
 /**

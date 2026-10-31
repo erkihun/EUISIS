@@ -108,7 +108,11 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // announcement and application models `use App\Models\...` lines for relations they
         // always had (in App\Models they shared the namespace).
         'recruitment' => 6,
-        'transfer' => 15,
+        // 2026-10-31: 19, not new coupling: the move to Modules/Transfer gave the transfer
+        // models `use App\Models\Employee/Organization/...` lines for relations they always had,
+        // and My Portal's transfer screens left EmployeePortalController (outside the pattern)
+        // for the module with the Employee reads they already made.
+        'transfer' => 19,
         // 2026-10-31: 30, not new coupling. The move to Modules/Feedback took the files out of
         // the path pattern (most no longer say "ServiceFeedback"), so the pattern now names the
         // module folder; its models also gained `use App\Models\...` lines for relations they

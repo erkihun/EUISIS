@@ -502,16 +502,17 @@ return [
         ],
     ],
     'Transfer' => [
-        'home' => 'app',
+        'home' => 'Modules/Transfer',
+        // Transfer announcements, applications, screening, approvals, rule overrides and settings; completion writes the Core EmployeeTransfer record and moves the assignment through Core TransferAssignment.
         'models' => [
-            'App\Models\TransferAnnouncement',
-            'App\Models\TransferAnnouncementPosition',
-            'App\Models\TransferApplication',
-            'App\Models\TransferApplicationDocument',
-            'App\Models\TransferApproval',
-            'App\Models\TransferRuleOverride',
-            'App\Models\TransferScreeningReview',
-            'App\Models\TransferSetting',
+            'Modules\Transfer\Domain\Models\TransferAnnouncement',
+            'Modules\Transfer\Domain\Models\TransferAnnouncementPosition',
+            'Modules\Transfer\Domain\Models\TransferApplication',
+            'Modules\Transfer\Domain\Models\TransferApplicationDocument',
+            'Modules\Transfer\Domain\Models\TransferApproval',
+            'Modules\Transfer\Domain\Models\TransferRuleOverride',
+            'Modules\Transfer\Domain\Models\TransferScreeningReview',
+            'Modules\Transfer\Domain\Models\TransferSetting',
         ],
     ],
     'Recruitment' => [

@@ -10,7 +10,6 @@ use App\Backbone\Commands\TransferAssignment;
 use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
-use App\Enums\TransferApplicationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\ExternalApplication;
@@ -20,7 +19,6 @@ use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionOccupancy;
-use App\Models\TransferApplication;
 use App\Models\User;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Http\Request;
@@ -30,6 +28,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Entitlements\Application\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Transfer\Contracts\Data\TransferApplicationStatus;
+use Modules\Transfer\Domain\Models\TransferApplication;
 use Spatie\Permission\Models\Permission;
 
 /*

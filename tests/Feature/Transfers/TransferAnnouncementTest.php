@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Actions\Transfers\CancelTransferAnnouncementAction;
-use App\Actions\Transfers\CloseTransferAnnouncementAction;
-use App\Actions\Transfers\PublishTransferAnnouncementAction;
-use App\Actions\Transfers\UpdateTransferAnnouncementAction;
-use App\Enums\TransferAnnouncementStatus;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
-use App\Models\TransferAnnouncement;
-use App\Models\TransferAnnouncementPosition;
 use App\Models\User;
+use Modules\Transfer\Application\Actions\CancelTransferAnnouncementAction;
+use Modules\Transfer\Application\Actions\CloseTransferAnnouncementAction;
+use Modules\Transfer\Application\Actions\PublishTransferAnnouncementAction;
+use Modules\Transfer\Application\Actions\UpdateTransferAnnouncementAction;
+use Modules\Transfer\Contracts\Data\TransferAnnouncementStatus;
+use Modules\Transfer\Domain\Models\TransferAnnouncement;
+use Modules\Transfer\Domain\Models\TransferAnnouncementPosition;
 use Spatie\Permission\Models\Permission;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

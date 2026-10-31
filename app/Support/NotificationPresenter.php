@@ -9,7 +9,6 @@ use App\Notifications\EmployeePortalNotification;
 use App\Notifications\InstitutionCourtCaseNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\StatutoryDeadlineNotification;
-use App\Notifications\TransferAnnouncementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -28,7 +27,6 @@ final class NotificationPresenter
         'employee_portal' => EmployeePortalNotification::class,
         'account_security' => PasswordSecurityNotification::class,
         'statutory_deadline' => StatutoryDeadlineNotification::class,
-        'transfer' => TransferAnnouncementNotification::class,
     ];
 
     /** @var array<string, class-string> renderers of modules under Modules/, added by their providers */

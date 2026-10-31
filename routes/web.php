@@ -18,11 +18,6 @@ use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileDeviceController;
-use App\Http\Controllers\Public\PublicTransferAnnouncementController;
-use App\Http\Controllers\Transfers\TransferAnnouncementController;
-use App\Http\Controllers\Transfers\TransferApplicationController;
-use App\Http\Controllers\Transfers\TransferDashboardController;
-use App\Http\Controllers\Transfers\TransferSettingController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BackupRecoveryController;
@@ -140,6 +135,12 @@ use Modules\PublicSite\Http\Controllers\PublicSupportController;
 use Modules\PublicSite\Http\Controllers\PublicVerifyController;
 use Modules\Recruitment\Http\Controllers\VacancyAnnouncementController;
 use Modules\Recruitment\Http\Controllers\VacancyApplicationController;
+use Modules\Transfer\Http\Controllers\EmployeeTransferPortalController;
+use Modules\Transfer\Http\Controllers\PublicTransferAnnouncementController;
+use Modules\Transfer\Http\Controllers\TransferAnnouncementController;
+use Modules\Transfer\Http\Controllers\TransferApplicationController;
+use Modules\Transfer\Http\Controllers\TransferDashboardController;
+use Modules\Transfer\Http\Controllers\TransferSettingController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDashboardController as ProviderTransportDashboardController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDeviceController as ProviderTransportDeviceController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDriverController as ProviderTransportDriverController;
@@ -453,11 +454,11 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::get('/my-portal/entitlements', fn () => redirect()->route('employee.services'))
         ->name('employee.entitlements');
 
-    Route::get('/my-portal/transfer-applications', [EmployeePortalController::class, 'myTransferApplications'])
+    Route::get('/my-portal/transfer-applications', [EmployeeTransferPortalController::class, 'myTransferApplications'])
         ->name('employee.transfer-applications');
-    Route::post('/my-portal/transfer-applications/{application}/withdraw', [EmployeePortalController::class, 'withdrawTransferApplication'])
+    Route::post('/my-portal/transfer-applications/{application}/withdraw', [EmployeeTransferPortalController::class, 'withdrawTransferApplication'])
         ->whereUuid('application')->name('employee.transfer-applications.withdraw');
-    Route::get('/my-portal/transfer-application-documents/{document}', [EmployeePortalController::class, 'downloadTransferApplicationDocument'])
+    Route::get('/my-portal/transfer-application-documents/{document}', [EmployeeTransferPortalController::class, 'downloadTransferApplicationDocument'])
         ->whereUuid('document')->name('employee.transfer-application-documents.download');
 
     /*
@@ -471,16 +472,16 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
      * site read the same way. The literal `transfers` and `transfer` segments
      * are distinct, so neither can shadow the other.
      */
-    Route::get('/my-portal/announcements/transfers', [EmployeePortalController::class, 'announcements'])
+    Route::get('/my-portal/announcements/transfers', [EmployeeTransferPortalController::class, 'announcements'])
         ->name('employee.announcements');
 
-    Route::get('/my-portal/announcements/transfer/{announcement}', [EmployeePortalController::class, 'announcementShow'])
+    Route::get('/my-portal/announcements/transfer/{announcement}', [EmployeeTransferPortalController::class, 'announcementShow'])
         ->name('employee.announcements.show');
 
-    Route::get('/my-portal/announcements/transfer/{announcement}/apply', [EmployeePortalController::class, 'announcementApply'])
+    Route::get('/my-portal/announcements/transfer/{announcement}/apply', [EmployeeTransferPortalController::class, 'announcementApply'])
         ->name('employee.announcements.apply');
 
-    Route::post('/my-portal/announcements/transfer/{announcement}/apply', [EmployeePortalController::class, 'announcementApplyStore'])
+    Route::post('/my-portal/announcements/transfer/{announcement}/apply', [EmployeeTransferPortalController::class, 'announcementApplyStore'])
         ->name('employee.announcements.apply.store');
 
     Route::get('/announcements/transfer/{announcement}/apply', [PublicTransferAnnouncementController::class, 'apply'])

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Enums\CodeRuleEntityType;
-use App\Models\TransferApplication;
-use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,14 +27,8 @@ class ServiceModuleServiceProvider extends ServiceProvider
     private const ORGANIZATION_DEPENDENTS = [
         // Service delivery and providers
         'providers' => ['assigned_organization_id'],
-        // Transfers and vacancies
+        // Core transfer records (Transfer and Recruitment register their own tables)
         'employee_transfers' => ['from_organization_id', 'to_organization_id'],
-        'vacancy_announcements' => ['organization_id'],
-        'vacancy_announcement_positions' => ['organization_id'],
-        'vacancy_applications' => ['current_organization_id'],
-        'transfer_announcements' => ['organization_id'],
-        'transfer_announcement_positions' => ['organization_id'],
-        'transfer_applications' => ['releasing_organization_id', 'receiving_organization_id'],
         // Cafeteria
         'cafeteria_providers' => ['organization_id'],
         'cafeteria_subsidy_rules' => ['organization_id'],
@@ -64,15 +55,5 @@ class ServiceModuleServiceProvider extends ServiceProvider
         foreach (self::ORGANIZATION_DEPENDENTS as $table => $columns) {
             OrganizationDeletionGuard::registerDependent($table, ...$columns);
         }
-
-        CodeRuleTargetRegistry::registerTarget(CodeRuleEntityType::TransferApplication, [
-            'model' => TransferApplication::class,
-            'table' => 'transfer_applications',
-            'code_column' => 'application_number',
-            'label' => 'Transfer Application Number',
-            'immutable_after_create' => true,
-        ]);
-
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransferApplication, TransferApplication::class, 'application_number', withTrashed: true);
     }
 }

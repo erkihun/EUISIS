@@ -19,6 +19,7 @@ use Modules\PublicSite\Providers\PublicSiteServiceProvider;
 use Modules\Reception\Providers\ReceptionServiceProvider;
 use Modules\Recruitment\Providers\RecruitmentServiceProvider;
 use Modules\ServiceMonitoring\Providers\ServiceMonitoringServiceProvider;
+use Modules\Transfer\Providers\TransferServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
 return [
@@ -44,4 +45,5 @@ return [
     FeedbackServiceProvider::class,
     PublicSiteServiceProvider::class,
     RecruitmentServiceProvider::class,
+    TransferServiceProvider::class,
 ];

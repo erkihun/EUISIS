@@ -43,9 +43,6 @@ use App\Models\Role;
 use App\Models\Service;
 use App\Models\ServiceClassification;
 use App\Models\SystemSetting;
-use App\Models\TransferAnnouncement;
-use App\Models\TransferApplication;
-use App\Models\TransferSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\WorkforcePlanningMethodology;
@@ -84,9 +81,6 @@ use App\Policies\RolePolicy;
 use App\Policies\ServiceClassificationPolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\SystemSettingPolicy;
-use App\Policies\TransferAnnouncementPolicy;
-use App\Policies\TransferApplicationPolicy;
-use App\Policies\TransferSettingPolicy;
 use App\Policies\UserOrganizationScopePolicy;
 use App\Policies\UserPolicy;
 use App\Policies\WorkforcePlanningMethodologyPolicy;
@@ -109,6 +103,7 @@ use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Mail\RuntimeMailSettings;
+use App\Support\Rbac\ApplicantOwnedRecord;
 use App\Support\Rbac\RoleBypassExemptions;
 use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -222,9 +217,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Employee::class, EmployeePolicy::class);
         Gate::policy(PositionService::class, PositionServicePolicy::class);
         Gate::policy(EmployeeTransfer::class, EmployeeTransferPolicy::class);
-        Gate::policy(TransferSetting::class, TransferSettingPolicy::class);
-        Gate::policy(TransferAnnouncement::class, TransferAnnouncementPolicy::class);
-        Gate::policy(TransferApplication::class, TransferApplicationPolicy::class);
         Gate::policy(IdCard::class, IdCardPolicy::class);
         Gate::policy(CardRequest::class, CardRequestPolicy::class);
         Gate::policy(CodeRule::class, CodeRulePolicy::class);
@@ -294,8 +286,8 @@ class AppServiceProvider extends ServiceProvider
             }
             // Same rule for transfer and vacancy applications: the policy refuses the
             // applicant every workflow decision, even a Super Admin applicant.
-            if (($target instanceof TransferApplication || $target instanceof VacancyApplication)
-                && $user->employee_id !== null && $target->employee_id === $user->employee_id) {
+            if ($target instanceof ApplicantOwnedRecord
+                && $user->employee_id !== null && $target->applicantEmployeeId() === $user->employee_id) {
                 return null;
             }
 

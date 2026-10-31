@@ -23,6 +23,7 @@ use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
 use Modules\Feedback\Contracts\Data\FeedbackTokenStatus;
 use Modules\Feedback\Contracts\ReadModels\EmployeeFeedbackTokenRecord;
 use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
+use Modules\Transfer\Contracts\ReadModels\TransferApplicationRecord;
 
 class Employee extends Model
 {
@@ -196,7 +197,7 @@ class Employee extends Model
 
     public function transferApplications(): HasMany
     {
-        return $this->hasMany(TransferApplication::class);
+        return $this->hasMany(TransferApplicationRecord::class, 'employee_id');
     }
 
     public function feedbackTokens(): HasMany

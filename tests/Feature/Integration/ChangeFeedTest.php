@@ -3,15 +3,15 @@
 declare(strict_types=1);
 
 use App\Actions\IdCards\RevokeCardAction;
-use App\Actions\Transfers\CompleteTransferAction;
-use App\Enums\TransferAnnouncementStatus;
-use App\Enums\TransferApplicationStatus;
 use App\Models\Integration\IntegrationEvent;
-use App\Models\TransferAnnouncement;
-use App\Models\TransferApplication;
-use App\Models\TransferSetting;
 use App\Models\User;
 use App\Services\Integration\Events\FeedCursor;
+use Modules\Transfer\Application\Actions\CompleteTransferAction;
+use Modules\Transfer\Contracts\Data\TransferAnnouncementStatus;
+use Modules\Transfer\Contracts\Data\TransferApplicationStatus;
+use Modules\Transfer\Domain\Models\TransferAnnouncement;
+use Modules\Transfer\Domain\Models\TransferApplication;
+use Modules\Transfer\Domain\Models\TransferSetting;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\IntegrationScenario;
 

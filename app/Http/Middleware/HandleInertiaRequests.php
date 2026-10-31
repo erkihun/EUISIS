@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\CalendarSystem;
-use App\Enums\TransferAnnouncementStatus;
-use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
 use App\Services\Assistant\AssistantSettings;
@@ -26,6 +24,7 @@ use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 use Modules\Communication\Contracts\CommunicationTopBar;
 use Modules\PublicSite\Contracts\PublicSitePages;
+use Modules\Transfer\Contracts\TransferAnnouncementListings;
 use Throwable;
 
 class HandleInertiaRequests extends Middleware
@@ -293,7 +292,7 @@ class HandleInertiaRequests extends Middleware
             return Cache::remember(
                 'published_transfer_announcement_count',
                 60, // 1 minute
-                fn (): int => TransferAnnouncement::where('status', TransferAnnouncementStatus::Published)->count(),
+                fn (): int => app(TransferAnnouncementListings::class)->publishedCount(),
             );
         } catch (Throwable) {
             return 0;

@@ -100,6 +100,8 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Public site | `PublicSitePages::navigation()`, `footerLinks()`, `sections($page)`, `forgetCache()`; `PublicSiteRebranding::setHomeIntroTitles($titles)` | safe-rendered links and sections; owner command | shared Inertia props, the ID checker's verify page, the branding migration |
 | Public site | `ReadModels\PublicPageSectionRecord`, `PublicFaqRecord`, `PublicServiceRecord` (`visible()` scopes) | read-only models | the branding migration's report, the public assistant |
 | Recruitment | `ReadModels\VacancyAnnouncementRecord`, `VacancyApplicationRecord`, `VacancyAnnouncementPositionRecord`; `Data\VacancyAnnouncementStatus`, `VacancyApplicationStatus` | read-only models; published values | the Core transfer record, the position establishment page |
+| Transfer | `EmployeeTransferActivity::forEmployee($employeeId)`; `TransferAnnouncementListings::publishedCount()`, `openPublicSummaries($limit)` | My Portal's card arrays; count; public summaries | My Portal, the navigation badge, the public announcements page |
+| Transfer | `ReadModels\TransferApplicationRecord`; `Data\TransferAnnouncementStatus`, `TransferApplicationStatus` | read-only model; published values | the Core employee's relation |
 | Service monitoring | `ServiceMonitoringIndicators::snapshot($organizationIds, $from, $to)`; `Data\ServiceMonitoringRoles` | `Data\ServiceMonitoringIndicatorSnapshot` (counts only); published permission sets | Situation Room `service_monitoring` category; the default role matrix |
 
 Transport reacts to the Core's `AssignmentChanged` and `EmployeeChanged` events and reads people and

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Recruitment\Providers;
 
+use App\Services\Organizations\OrganizationDeletionGuard;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -35,5 +36,10 @@ final class RecruitmentServiceProvider extends ServiceProvider
 
         Gate::policy(VacancyAnnouncement::class, VacancyAnnouncementPolicy::class);
         Gate::policy(VacancyApplication::class, VacancyApplicationPolicy::class);
+
+        // Vacancy records that block deleting an organization.
+        OrganizationDeletionGuard::registerDependent('vacancy_announcements', 'organization_id');
+        OrganizationDeletionGuard::registerDependent('vacancy_announcement_positions', 'organization_id');
+        OrganizationDeletionGuard::registerDependent('vacancy_applications', 'current_organization_id');
     }
 }

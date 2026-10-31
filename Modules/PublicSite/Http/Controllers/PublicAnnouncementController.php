@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Modules\PublicSite\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Public\PublicTransferAnnouncementController;
-use App\Models\TransferAnnouncement;
 use App\Services\SystemSettings\PublicSettingsService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,13 +12,14 @@ use Inertia\Response;
 use Modules\PublicSite\Application\Services\PublicSiteContent;
 use Modules\PublicSite\Application\Services\PublicSiteSectionRegistry as Registry;
 use Modules\PublicSite\Domain\Models\PublicAnnouncement;
+use Modules\Transfer\Contracts\TransferAnnouncementListings;
 
 /**
  * Public announcements: general notices managed in Public Site Management,
  * with currently open transfer opportunities listed alongside.
  *
  * Transfer announcements remain their own business entity with their own
- * detail and application routes (PublicTransferAnnouncementController); they
+ * detail and application routes in the Transfer module; they
  * are only summarised here, never re-implemented.
  */
 class PublicAnnouncementController extends Controller
@@ -56,13 +55,7 @@ class PublicAnnouncementController extends Controller
             'announcements' => $announcements,
             'categories' => PublicAnnouncement::query()->visible()->whereNotNull('category')
                 ->distinct()->orderBy('category')->pluck('category'),
-            'openTransfers' => TransferAnnouncement::query()
-                ->open()
-                ->with(['organization:id,name_en,name_am', 'position:id,title_en,title_am'])
-                ->orderBy('closing_date')
-                ->limit(5)
-                ->get()
-                ->map(fn (TransferAnnouncement $transfer): array => PublicTransferAnnouncementController::presentSummary($transfer)),
+            'openTransfers' => app(TransferAnnouncementListings::class)->openPublicSummaries(5),
             'filters' => ['search' => $search, 'category' => $category],
             'meta' => $this->content->meta(Registry::PAGE_ANNOUNCEMENTS),
         ]);

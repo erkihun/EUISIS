@@ -3,17 +3,17 @@
 declare(strict_types=1);
 
 use App\Enums\EmployeeStatus;
-use App\Enums\TransferAnnouncementStatus;
-use App\Enums\TransferApplicationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
-use App\Models\TransferAnnouncement;
-use App\Models\TransferApplication;
-use App\Models\TransferSetting;
 use App\Models\User;
+use Modules\Transfer\Contracts\Data\TransferAnnouncementStatus;
+use Modules\Transfer\Contracts\Data\TransferApplicationStatus;
+use Modules\Transfer\Domain\Models\TransferAnnouncement;
+use Modules\Transfer\Domain\Models\TransferApplication;
+use Modules\Transfer\Domain\Models\TransferSetting;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

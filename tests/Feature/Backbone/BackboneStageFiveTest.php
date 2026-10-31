@@ -14,7 +14,6 @@ use App\Models\CodeRule;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\TransferApplication;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
@@ -26,6 +25,7 @@ use Modules\Feedback\Application\Services\EmployeeFeedbackLinkAdapter;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Transfer\Domain\Models\TransferApplication;
 
 /*
  * Stage 5 of the master backbone separation: the backbone's registries are

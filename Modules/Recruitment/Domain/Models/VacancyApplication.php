@@ -10,12 +10,13 @@ use App\Models\EmployeeTransfer;
 use App\Models\Organization;
 use App\Models\Position;
 use App\Models\User;
+use App\Support\Rbac\ApplicantOwnedRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Recruitment\Contracts\Data\VacancyApplicationStatus;
 
-class VacancyApplication extends Model
+class VacancyApplication extends Model implements ApplicantOwnedRecord
 {
     use HasUuidPrimaryKey;
 
@@ -110,5 +111,11 @@ class VacancyApplication extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(VacancyApplicationDocument::class);
+    }
+
+    /** The employee who applied (the Gate's role bypass never lets them decide their own application). */
+    public function applicantEmployeeId(): ?string
+    {
+        return $this->employee_id;
     }
 }
