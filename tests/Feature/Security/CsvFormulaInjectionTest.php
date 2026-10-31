@@ -42,7 +42,7 @@ test('every fputcsv call site sanitises its row', function (): void {
     $files = [
         'Modules/Cafeteria/Application/Services/ProviderTransactionExportService.php',
         'Modules/Transport/Http/Controllers/ProviderPortal/TransportTransactionController.php',
-        'app/Http/Controllers/Web/ServiceFeedbackController.php',
+        'Modules/Feedback/Http/Controllers/ServiceFeedbackController.php',
     ];
 
     $unsanitised = [];

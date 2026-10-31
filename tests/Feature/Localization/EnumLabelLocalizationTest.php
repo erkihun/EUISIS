@@ -11,8 +11,17 @@ use Illuminate\Support\Facades\App;
 function selfLabelledEnums(): array
 {
     $enums = [];
-    foreach (glob(app_path('Enums/*.php')) as $file) {
-        $class = 'App\\Enums\\'.basename($file, '.php');
+    // Enums of modules moved into Modules/ live in their Domain or published Contracts\Data.
+    $files = [
+        ...glob(app_path('Enums/*.php')),
+        ...glob(base_path('Modules/*/Domain/Enums/*.php')),
+        ...glob(base_path('Modules/*/Contracts/Data/*.php')),
+    ];
+    foreach ($files as $file) {
+        if (preg_match('/^namespace ([^;]+);/m', (string) file_get_contents($file), $ns) !== 1) {
+            continue;
+        }
+        $class = $ns[1].'\\'.basename($file, '.php');
         if (enum_exists($class) && (method_exists($class, 'label') || method_exists($class, 'labelAm'))) {
             $enums[] = $class;
         }

@@ -52,7 +52,14 @@ Next slices, in this order, with the design each needs (the move tooling lives i
 scratchpad: `move_lib.py`, one `move_<module>.py` and one `<module>_post.py` per module; write the
 provider and read models after the move, since the reference rewrite renames stored names):
 
-1. Organization design, Situation Room, Intelligence,
+1. Situation Room and Intelligence first need a design step: Situation Room's analytics types
+   (`SituationContext`, `SituationPanel`, `SituationLabel`, `SituationPeriod`, `SituationScope`,
+   `SituationScopeResolver`, `SituationSettings`, `SituationMemo`, `OrganizationRollup`,
+   `WorkforceQueries`, `DailyOperationsAnalytics`) are the framework every Intelligence analysis is
+   built on (27 Intelligence files use them). Extract that kernel into a shared platform package
+   (`app/Support/Analytics` or a published `SituationRoom\Contracts` kernel) before moving either,
+   or the move leaves Intelligence on Situation Room internals.
+2. Organization design, Situation Room, Intelligence,
    Legal, Integrations, ID cards; Core last.
 
 ## Notes
