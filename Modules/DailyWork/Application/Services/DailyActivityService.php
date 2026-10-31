@@ -584,14 +584,19 @@ class DailyActivityService
     private function performanceLinks(array $items, Employee $employee, Carbon $date): array
     {
         $ids = array_values(array_unique(array_filter(array_column($items, 'employee_performance_item_id'))));
-        if ($ids === []) {
-            return [];
-        }
-
-        $valid = app(PerformanceItemSource::class)->citableItems($ids, (string) $employee->id, $date);
+        $valid = $ids === [] ? [] : app(PerformanceItemSource::class)->citableItems($ids, (string) $employee->id, $date);
 
         if (count($valid) !== count($ids)) {
             throw ValidationException::withMessages(['items' => __('performance.errors.item_not_in_agreement')]);
+        }
+
+        // A main / detailed activity must belong to the cited KPI's objective (ADR 0019).
+        foreach ($items as $index => $item) {
+            $activityId = $item['objective_activity_id'] ?? null;
+            if ($activityId !== null && $activityId !== ''
+                && ! in_array($activityId, $valid[$item['employee_performance_item_id'] ?? '']['activity_ids'] ?? [], true)) {
+                throw ValidationException::withMessages(["items.$index.objective_activity_id" => __('performance.errors.activity_not_in_objective')]);
+            }
         }
 
         return $valid;
@@ -718,9 +723,12 @@ class DailyActivityService
             } else {
                 $item = $log->items()->make($attributes);
             }
+            $activityId = $data['objective_activity_id'] ?? null;
             $item->forceFill([
                 'kpi_id' => $link['kpi_id'] ?? null,
                 'performance_objective_id' => $link['objective_id'] ?? null,
+                // Verified against the item's activities in performanceLinks().
+                'objective_activity_id' => in_array($activityId, $link['activity_ids'] ?? [], true) ? $activityId : null,
                 ...array_intersect_key($data, array_flip(self::RESOLVED_FIELDS)),
             ])->save();
 
@@ -753,13 +761,14 @@ class DailyActivityService
                 continue;
             }
 
-            $row = Arr::only($item, [...self::ITEM_FIELDS, 'id']);
+            // The objective activity is checked against the KPI item and set apart from the fillable fields.
+            $row = Arr::only($item, [...self::ITEM_FIELDS, 'id', 'objective_activity_id']);
 
             foreach (['title', 'description', 'output_result', 'unit_of_measure', 'challenge_issue', 'next_action'] as $field) {
                 $row[$field] = $this->nullableText($row[$field] ?? null);
             }
             $row['title'] = (string) ($row['title'] ?? '');
-            foreach (['activity_category', 'position_service_id', 'sub_service_id', 'task_id', 'started_at', 'ended_at', 'id'] as $field) {
+            foreach (['activity_category', 'position_service_id', 'sub_service_id', 'task_id', 'started_at', 'ended_at', 'id', 'objective_activity_id'] as $field) {
                 $row[$field] = blank($row[$field] ?? null) ? null : (string) $row[$field];
             }
             $row['duration_minutes'] = blank($row['duration_minutes'] ?? null) ? null : (int) $row['duration_minutes'];

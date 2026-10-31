@@ -61,6 +61,16 @@ Decisions taken where the request left room:
    service, and the server refuses a name, code or weight change there. The dashboard's setup steps
    follow the same order: cycle → strategy and goals → allocation and approval → plans → agreements.
 
+10. Daily work (2026-10-31): a daily entry that cites a KPI item may also name one main / detailed
+    activity of that item's objective, or of the organization objective it was cascaded from
+    (`daily_activity_items.objective_activity_id`). Daily work learns the activities through its
+    `PerformanceItemSource` contract and validates the choice; Performance reads the totals through
+    `DailyWorkOutputs::activityProgress()` (final logs only: approved where managers review). An
+    objective's progress is the weight of its activities marked completed; a goal's progress weighs
+    its objectives. KPI actuals still come from quantities (data source DAILY_ACTIVITY), unchanged.
+    The goal lists read only the organization plan's objectives; cascaded unit and position copies
+    point at the same goal and would double it.
+
 ## Consequences
 
 - Goals entered on the old Strategic goals page before this change (no strategy) still work and are

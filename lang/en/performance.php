@@ -76,6 +76,7 @@ return [
         'amend_only_published' => 'Only targets of a published plan are amended; edit draft plans directly.',
         'amend_only_active' => 'Only an agreed or active agreement is amended; edit drafts directly.',
         'item_not_in_agreement' => 'The KPI does not belong to your active agreement.',
+        'activity_not_in_objective' => 'Choose a main / detailed activity of the chosen KPI\'s objective.',
         'kpi_in_use' => 'This KPI is used by submitted plans or agreements, so how it is measured and scored can no longer change. Create a new KPI for a different rule.',
         'band_overlap' => 'This range overlaps the band ":label". Bands of one scale must not overlap.',
         'cycle_period_locked' => 'Plans are being cascaded into this cycle: its code, period and planning window can no longer change.',

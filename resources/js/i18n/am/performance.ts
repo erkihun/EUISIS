@@ -79,6 +79,8 @@ const performance = {
             selectedStrategyWeightLabel: 'የተመረጠ የስትራቴጂ ክብደት (ዋና ስትራቴጂ)', givenWeight: 'የተሰጠ',
             givenMainWeight: 'የተሰጠ የዋና ስትራቴጂ ክብደት', mainStrategyGroup: 'ዋና ስትራቴጂ', noTasks: 'ምንም ስትራቴጂክ ግብ አልተገኘም።',
             deleteConfirm: 'ይህን ስትራቴጂክ ግብ ማጥፋት ይፈልጋሉ?',
+            progress: 'አፈጻጸም', progressHelp: 'በዕለት ውሎ "ተጠናቋል" የተባሉ ተግባራት ክብደት ድምር (ዓላማ)፤ ግቡ በዓላማዎቹ ክብደት ይመዘናል።',
+            spentTime: 'የተሠራበት ጊዜ', minutes: 'ደቂቃ', entries: 'ምዝገባ', completed: 'ተጠናቋል',
         },
     },
     notCalculated: 'ገና አልተሰላም',

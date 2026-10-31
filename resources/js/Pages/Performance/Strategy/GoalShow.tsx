@@ -1,5 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
-import { Pill, dangerBtn, primaryBtn, secondaryBtn } from '@/Components/performance/ui';
+import { Bar, Pill, dangerBtn, primaryBtn, secondaryBtn } from '@/Components/performance/ui';
 import { BalanceBadge, GivenWeight, contextLine, off, ok, pct, units, type Can, type Context, type GoalRow } from '@/Components/performance/strategy';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -48,6 +48,11 @@ export default function GoalShow({ goal, can, context }: Props) {
                         <span className="font-medium">{g('weightHealth')}:</span>
                         <BalanceBadge balanced={goal.balanced} labels={{ balanced: g('balanced'), needsFix: g('needsFix') }} />
                     </div>
+                    <div className="sm:col-span-3">
+                        <span className="font-medium">{g('progress')}:</span> <span className="tabular-nums">{pct(goal.progress)}%</span>
+                        <div className="mt-1 max-w-md"><Bar value={goal.progress} /></div>
+                        <p className="mt-1 text-xs text-(--app-muted-foreground)">{g('progressHelp')}</p>
+                    </div>
                 </div>
 
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
@@ -67,14 +72,22 @@ export default function GoalShow({ goal, can, context }: Props) {
                                     <span className={units(o.activities_total) === 1000000 ? ok : off}>{g('activitiesLabel')}: {pct(o.activities_total)}%</span>
                                 </div>
                             </div>
-                            <p className="mt-1 text-xs text-(--app-muted-foreground)">{g('activitiesLabel')}: {o.activities.length}</p>
+                            <p className="mt-1 text-xs text-(--app-muted-foreground) tabular-nums">
+                                {g('activitiesLabel')}: {o.activities.length}
+                                {' · '}{g('progress')}: {pct(o.progress)}%
+                                {' · '}{g('spentTime')}: {o.spent_minutes} / {o.planned_minutes} {g('minutes')}
+                            </p>
                             {o.activities.length === 0 ? <p className="text-sm">{c('none')}</p> : (
                                 <ul className="mt-2 divide-y divide-(--app-border) text-sm">
                                     {o.activities.map((a) => (
                                         <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-1.5">
-                                            <span>{a.serial} {a.title}</span>
+                                            <span className="flex flex-wrap items-center gap-2">
+                                                {a.serial} {a.title}
+                                                {a.completed && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">{g('completed')}</span>}
+                                            </span>
                                             <span className="flex gap-3 tabular-nums">
                                                 <span className="text-xs text-(--app-muted-foreground)">{g('timeMinutes')}: {a.time_minutes ?? 0}</span>
+                                                <span className="text-xs text-(--app-muted-foreground)">{g('spentTime')}: {a.spent_minutes} ({a.entries} {g('entries')})</span>
                                                 <span className="font-semibold">{pct(a.weight_percent)}%</span>
                                             </span>
                                         </li>

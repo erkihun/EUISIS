@@ -29,4 +29,26 @@ final class DailyWorkOutputsQuery implements DailyWorkOutputs
 
         return ['count' => $count, 'quantity' => $count === 0 ? '0' : (string) (clone $query)->sum('quantity')];
     }
+
+    public function activityProgress(array $activityIds, string $organizationId): array
+    {
+        if ($activityIds === []) {
+            return [];
+        }
+
+        return DailyActivityItem::query()
+            ->whereIn('objective_activity_id', $activityIds)
+            ->whereHas('log', fn ($log) => $log->where('organization_id', $organizationId)
+                ->where(fn ($final) => $this->reviewPolicy->constrainToFinal($final, $organizationId)))
+            ->toBase()
+            ->selectRaw("objective_activity_id, count(*) as entries, coalesce(sum(duration_minutes), 0) as minutes, sum(case when progress_status = 'completed' then 1 else 0 end) as completed")
+            ->groupBy('objective_activity_id')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [(string) $row->objective_activity_id => [
+                'entries' => (int) $row->entries,
+                'minutes' => (int) $row->minutes,
+                'completed' => (int) $row->completed > 0,
+            ]])
+            ->all();
+    }
 }

@@ -7,6 +7,7 @@ use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Performance\Application\Services\StrategicPlanningService;
@@ -295,6 +296,19 @@ it('orders the organization plan by strategy numbering and refuses a second targ
     $this->actingAs($this->planner)->post(route('performance.objectives.targets.store', $objective), ['kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100])->assertSessionHasNoErrors();
     $this->actingAs($this->planner)->post(route('performance.objectives.targets.store', $objective), ['kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100])->assertSessionHasErrors('kpi_id');
     expect($objective->targets()->count())->toBe(1);
+});
+
+it('lists only the organization plan objectives of a goal, not their cascaded copies', function (): void {
+    $strategy = hierarchyMain($this)->strategies()->first();
+    $goal = $this->service->saveGoal(null, ['strategy_id' => $strategy->id, 'objectives' => hierarchyObjectives()], $this->planner);
+    $parent = PerformanceObjective::query()->where('code', 'SG-1-1-O1')->sole();
+    $unitPlan = new PerformancePlan(['cycle_id' => $this->cycle->id, 'organization_id' => $this->org->id, 'plan_type' => 'UNIT', 'title' => 'Unit plan', 'parent_plan_id' => $parent->performance_plan_id]);
+    $unitPlan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => (string) Str::uuid()])->save();
+    $unitPlan->objectives()->create(['code' => 'SG-1-1-O1.1', 'title_en' => 'Copy', 'objective_type' => 'INHERITED', 'weight' => 100, 'absolute_weight_percent' => 25, 'strategic_goal_id' => $goal->id, 'parent_objective_id' => $parent->id]);
+
+    $this->actingAs($this->planner)->get(route('performance.strategy.goals.index', ['cycle_id' => $this->cycle->id, 'organization_id' => $this->org->id]))
+        ->assertInertia(fn (Assert $page) => $page->has('groups.0.goals.0.objectives', 2)->where('groups.0.goals.0.objectives_total', '40.00')
+            ->has('groups.0.goals.0.objectives.0.activities', 2)->where('groups.0.goals.0.progress', '0.00'));
 });
 
 it('sends date-only fields as the calendar date in Addis Ababa time', function (): void {

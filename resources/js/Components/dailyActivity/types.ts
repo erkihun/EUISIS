@@ -12,6 +12,8 @@ export type ActivityItem = {
     position_service_id: string | null;
     /** EPMS: the employee's own KPI item this activity is evidence for. */
     employee_performance_item_id?: string | null;
+    /** The main / detailed activity of that KPI's objective the work was done for. */
+    objective_activity_id?: string | null;
     position_service?: Named;
     title: string;
     description: string | null;
@@ -136,6 +138,9 @@ export type PageLink = { url: string | null; label: string; active: boolean };
 export type Paginated<T> = { data: T[]; meta: PaginationMetaData; links: PageLink[] };
 
 export type Option = { id: string; name_en: string; name_am: string | null };
+
+/** A KPI item of the employee's agreement, with the main / detailed activities of its objective (ADR 0019). */
+export type KpiOption = Option & { unit?: string | null; activities?: { id: string; title: string; time_minutes: number | null }[] };
 
 export type FilterOptions = {
     organizations: Option[];

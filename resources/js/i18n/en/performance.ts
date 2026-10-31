@@ -79,6 +79,8 @@ const performance = {
             selectedStrategyWeightLabel: 'Selected strategy weight (main strategy)', givenWeight: 'Given',
             givenMainWeight: 'Given Main Strategy Weight', mainStrategyGroup: 'Main Strategy', noTasks: 'No strategic goals found.',
             deleteConfirm: 'Delete this strategic goal?',
+            progress: 'Progress', progressHelp: 'For an objective, the weight of its activities marked completed in daily work; the goal weighs its objectives.',
+            spentTime: 'Time spent', minutes: 'min', entries: 'entries', completed: 'Completed',
         },
     },
     notCalculated: 'Not calculated yet',

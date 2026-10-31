@@ -14,10 +14,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\DailyWork\Contracts\DailyWorkOutputs;
 use Modules\Performance\Application\Services\EpmsAccess;
 use Modules\Performance\Application\Services\PerformanceCycleService;
 use Modules\Performance\Application\Services\PerformancePlanService;
 use Modules\Performance\Application\Services\StrategyHierarchyService;
+use Modules\Performance\Domain\Enums\PlanType;
 use Modules\Performance\Domain\Enums\StrategicGoalStatus;
 use Modules\Performance\Domain\Models\MainStrategy;
 use Modules\Performance\Domain\Models\PerformanceCycle;
@@ -37,6 +39,7 @@ class StrategyHierarchyController extends PerformanceController
         private readonly StrategyHierarchyService $hierarchy,
         private readonly OrganizationScopeService $scope,
         private readonly EpmsAccess $access,
+        private readonly DailyWorkOutputs $dailyWork,
     ) {}
 
     public function index(Request $request): Response
@@ -286,11 +289,15 @@ class StrategyHierarchyController extends PerformanceController
         return $mains;
     }
 
-    /** The goal's objectives in the organization plan that is in force, with their activities. */
+    /**
+     * The goal's objectives in the organization plan that is in force, with
+     * their activities. Unit and position plans carry cascaded copies that
+     * point at the same goal; counting them would double the goal's weight.
+     */
     private function liveObjectives(StrategicGoal $goal): Collection
     {
         return $goal->objectives()->where('status', 'ACTIVE')
-            ->whereHas('plan', fn ($plan) => $plan->whereNotIn('status', ['SUPERSEDED', 'CLOSED']))
+            ->whereHas('plan', fn ($plan) => $plan->where('plan_type', PlanType::Organization->value)->whereNotIn('status', ['SUPERSEDED', 'CLOSED']))
             ->with('activities')->orderBy('sort_order')->get();
     }
 
@@ -326,8 +333,18 @@ class StrategyHierarchyController extends PerformanceController
         $serial = $mainNumber.'.'.$strategy->sort_order;
         $total = Dec::str($this->objectivesTotal($goal), 2);
         $normalized = StrategyHierarchyService::share($total, $strategy->weight_percent);
+        $progress = $this->dailyWork->activityProgress(
+            $goal->objectives->flatMap(fn (PerformanceObjective $o) => $o->activities->pluck('id'))->map(fn ($id) => (string) $id)->values()->all(),
+            $goal->organization_id,
+        );
+        // An objective is as far along as the weight of its activities marked completed in daily work.
+        $objectiveProgress = $goal->objectives->mapWithKeys(fn (PerformanceObjective $o) => [$o->getKey() => Dec::sum($o->activities
+            ->filter(fn ($a) => $progress[(string) $a->id]['completed'] ?? false)->map(fn ($a) => Dec::of($a->weight_percent)))]);
+        $goalProgress = Dec::div(Dec::sum($goal->objectives->map(fn (PerformanceObjective $o) => Dec::of($o->absolute_weight_percent ?? $o->weight)
+            ->multipliedBy($objectiveProgress[$o->getKey()]))), $this->objectivesTotal($goal));
 
         return [
+            'progress' => Dec::str($goalProgress ?? Dec::zero(), 2),
             'id' => $goal->getKey(),
             'code' => $goal->code,
             'serial' => $serial,
@@ -343,9 +360,16 @@ class StrategyHierarchyController extends PerformanceController
                 'weight_percent' => $objective->absolute_weight_percent ?? $objective->weight,
                 'normalized' => StrategyHierarchyService::share((string) ($objective->absolute_weight_percent ?? $objective->weight), $strategy->weight_percent),
                 'activities_total' => Dec::str(Dec::sum($objective->activities->map(fn ($a) => Dec::of($a->weight_percent))), 2),
+                'progress' => Dec::str($objectiveProgress[$objective->getKey()], 2),
+                'planned_minutes' => (int) $objective->activities->sum('time_minutes'),
+                'spent_minutes' => (int) $objective->activities->sum(fn ($a) => $progress[(string) $a->id]['minutes'] ?? 0),
                 'activities' => $objective->activities->values()->map(fn ($activity, int $a) => [
                     ...$activity->only(['id', 'title', 'weight_percent', 'time_minutes']),
                     'serial' => $serial.'.'.($index + 1).'.'.($a + 1),
+                    // Work recorded against it in final daily logs.
+                    'spent_minutes' => $progress[(string) $activity->id]['minutes'] ?? 0,
+                    'entries' => $progress[(string) $activity->id]['entries'] ?? 0,
+                    'completed' => $progress[(string) $activity->id]['completed'] ?? false,
                 ])->all(),
             ])->all(),
             'activities_count' => $goal->objectives->sum(fn (PerformanceObjective $o) => $o->activities->count()),

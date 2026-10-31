@@ -95,6 +95,7 @@ class DailyActivityPresenter
             'activity_category' => $item->activity_category?->value,
             'position_service_id' => $item->position_service_id,
             'employee_performance_item_id' => $item->employee_performance_item_id,
+            'objective_activity_id' => $item->objective_activity_id,
             'cascade_trace' => $item->employee_performance_item_id !== null ? $this->performance->traceOf((string) $item->employee_performance_item_id) : [],
             'position_service' => $item->relationLoaded('positionService') && $item->positionService
                 ? $this->named($item->positionService->name_en, $item->positionService->name_am)

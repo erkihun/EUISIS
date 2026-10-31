@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Performance\Application\Services;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Modules\DailyWork\Contracts\PerformanceItemSource;
 use Modules\Performance\Contracts\Data\AgreementStatus;
 use Modules\Performance\Domain\Models\EmployeePerformanceItem;
+use Modules\Performance\Domain\Models\ObjectiveActivity;
+use Modules\Performance\Domain\Models\PerformanceObjective;
 
 /**
  * The performance items daily work may cite (moved here from Daily work's
@@ -28,6 +31,8 @@ final class DailyWorkPerformanceItems implements PerformanceItemSource
                 'name_en' => $item->kpi->code.' — '.$item->kpi->name_en,
                 'name_am' => $item->kpi->code.' — '.($item->kpi->name_am ?? $item->kpi->name_en),
                 'unit' => $item->kpi->unit_of_measure,
+                'activities' => $this->activitiesOf($item->objective_id)
+                    ->map(fn (ObjectiveActivity $a): array => ['id' => (string) $a->id, 'title' => $a->title, 'time_minutes' => $a->time_minutes])->values()->all(),
             ])->values()->all();
     }
 
@@ -38,8 +43,33 @@ final class DailyWorkPerformanceItems implements PerformanceItemSource
         }
 
         return $this->inForce($employeeId, $date)->whereIn('id', $itemIds)->get(['id', 'kpi_id', 'objective_id'])
-            ->mapWithKeys(fn (EmployeePerformanceItem $i): array => [(string) $i->id => ['id' => (string) $i->id, 'kpi_id' => $i->kpi_id, 'objective_id' => $i->objective_id]])
+            ->mapWithKeys(fn (EmployeePerformanceItem $i): array => [(string) $i->id => [
+                'id' => (string) $i->id, 'kpi_id' => $i->kpi_id, 'objective_id' => $i->objective_id,
+                'activity_ids' => $this->activitiesOf($i->objective_id)->map(fn (ObjectiveActivity $a): string => (string) $a->id)->values()->all(),
+            ]])
             ->all();
+    }
+
+    /**
+     * The main / detailed activities an item's work can be recorded against:
+     * those of its objective, or of the nearest objective it was cascaded from
+     * (activities are entered once, on the organization plan's objective).
+     *
+     * @return Collection<int, ObjectiveActivity>
+     */
+    private function activitiesOf(?string $objectiveId): Collection
+    {
+        $seen = [];
+        while ($objectiveId !== null && ! isset($seen[$objectiveId])) {
+            $seen[$objectiveId] = true;
+            $activities = ObjectiveActivity::query()->where('objective_id', $objectiveId)->orderBy('sort_order')->get();
+            if ($activities->isNotEmpty()) {
+                return $activities;
+            }
+            $objectiveId = PerformanceObjective::query()->whereKey($objectiveId)->value('parent_objective_id');
+        }
+
+        return new Collection;
     }
 
     public function traceOf(string $itemId): array

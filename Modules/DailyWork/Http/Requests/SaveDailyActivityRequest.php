@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Http\Requests;
 
-use Modules\DailyWork\Domain\Enums\DailyActivityCategory;
-use Modules\DailyWork\Domain\Enums\DailyActivityProgressStatus;
 use App\Rules\RichTextContent;
-use Modules\DailyWork\Application\Services\DailyActivityService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\DailyWork\Application\Services\DailyActivityService;
+use Modules\DailyWork\Domain\Enums\DailyActivityCategory;
+use Modules\DailyWork\Domain\Enums\DailyActivityProgressStatus;
 
 /**
  * Draft save / submit of the signed-in employee's own daily activity.
@@ -72,6 +72,8 @@ class SaveDailyActivityRequest extends FormRequest
             'items.*.next_action' => ['nullable', 'string', 'max:5000'],
             // EPMS: ownership and dates are verified by DailyActivityService.
             'items.*.employee_performance_item_id' => ['nullable', 'uuid'],
+            // The KPI objective's main / detailed activity, verified the same way.
+            'items.*.objective_activity_id' => ['nullable', 'uuid'],
             'late_reason' => ['nullable', 'string', 'max:2000'],
         ];
 

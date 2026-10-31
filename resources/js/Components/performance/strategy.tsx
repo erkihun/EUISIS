@@ -19,10 +19,15 @@ export type MainRow = {
     id: string; number: number; title: string; description: string | null; weight_percent: string;
     strategies: StrategyRow[]; strategies_total: string; normalized_total: string | null; balanced: boolean;
 };
-export type ActivityRow = { id: string; serial: string; title: string; weight_percent: string; time_minutes: number | null };
-export type ObjectiveRow = { id: string; serial: string; title: string; weight_percent: string; normalized: string | null; activities_total: string; activities: ActivityRow[] };
+/** spent_minutes, entries and completed come from final daily-work logs that name the activity. */
+export type ActivityRow = { id: string; serial: string; title: string; weight_percent: string; time_minutes: number | null; spent_minutes: number; entries: number; completed: boolean };
+export type ObjectiveRow = {
+    id: string; serial: string; title: string; weight_percent: string; normalized: string | null; activities_total: string; activities: ActivityRow[];
+    /** Weight of the activities marked completed in daily work, out of 100. */
+    progress: string; planned_minutes: number; spent_minutes: number;
+};
 export type GoalRow = {
-    id: string; code: string; serial: string; strategy_title: string; strategy_weight: string; description: string | null;
+    id: string; code: string; serial: string; strategy_title: string; strategy_weight: string; description: string | null; progress: string;
     is_active: boolean; status: string; objectives: ObjectiveRow[]; activities_count: number;
     objectives_total: string; normalized_total: string | null; balanced: boolean;
 };

@@ -103,7 +103,7 @@ function GroupRows({ group, open, toggle, can, onDelete }: { group: Group; open:
                             <div className="space-y-1 text-xs">
                                 {goal.objectives.map((o) => (
                                     <div key={o.id} className="flex flex-wrap justify-between gap-2">
-                                        <span>{o.serial}. {truncate(o.title, 90)} ({o.activities.length})</span>
+                                        <span>{o.serial}. {truncate(o.title, 90)} ({o.activities.length}) <span className="text-(--app-muted-foreground) tabular-nums">· {g('progress')}: {pct(o.progress)}%</span></span>
                                         <GivenWeight given={o.weight_percent} share={o.normalized} label={g('givenWeight')} />
                                     </div>
                                 ))}
@@ -113,6 +113,7 @@ function GroupRows({ group, open, toggle, can, onDelete }: { group: Group; open:
                     <td className={`${wTd} tabular-nums`}>{goal.activities_count}</td>
                     <td className={wTd}>
                         <p className="font-semibold tabular-nums">{pct(goal.normalized_total)}%</p>
+                        <p className="text-xs text-(--app-muted-foreground) tabular-nums">{g('progress')}: {pct(goal.progress)}%</p>
                         <BalanceBadge balanced={goal.balanced} labels={{ balanced: g('balanced'), needsFix: g('needsFix') }} />
                     </td>
                     <td className={wTd}>
