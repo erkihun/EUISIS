@@ -129,7 +129,7 @@ class ApplicantCaseController extends Controller
         // Lock rows for this prefix/year while computing the next sequence to avoid duplicates on concurrent requests.
         $maxSeq = DB::table('court_cases')
             ->where('case_number', 'LIKE', "{$prifix}/%/{$year}")
-            ->lockForUpdate()
+            ->tap(fn ($q) => \Modules\Court\Domain\Support\AggregateLock::apply($q, 'court_cases'))
             ->selectRaw("MAX(".\Modules\Court\Application\Support\Sql::middleSegmentNumber('case_number').") as max_seq")
             ->value('max_seq');
 

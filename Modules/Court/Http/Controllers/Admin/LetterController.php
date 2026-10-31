@@ -45,7 +45,7 @@ class LetterController extends Controller
             ->select('court_letters.*')
             ->selectRaw("NULLIF(TRIM(c.title), '') as applicant_name")
             ->selectRaw("NULLIF(TRIM(CONCAT_WS(' ', NULLIF(a.first_name, ''), NULLIF(a.middle_name, ''), NULLIF(a.last_name, ''))), '') as applicant_lawyer_name")
-            ->selectRaw('COALESCE(a.is_lawyer, 0) as applicant_is_lawyer')
+            ->selectRaw('CASE WHEN a.is_lawyer THEN 1 ELSE 0 END as applicant_is_lawyer')
             ->selectRaw("NULLIF(TRIM(c.respondent_name), '') as respondent_name")
             ->when($statusFilter === 'approved', fn($query) => $query->where('court_letters.approval_status', 'approved'))
             ->when($statusFilter === 'rejected', fn($query) => $query->where('court_letters.approval_status', 'rejected'))

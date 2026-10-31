@@ -40,9 +40,9 @@ class ApplicantDashboardController extends Controller
             ->whereIn('id', CaseParties::caseIdsFor((int) $applicantId))
             ->selectRaw("
                 COUNT(*) as total,
-                SUM(status = 'pending') as pending,
-                SUM(status = 'active') as active,
-                SUM(status IN ('closed', 'dismissed')) as closed
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
+                SUM(CASE WHEN status IN ('closed', 'dismissed') THEN 1 ELSE 0 END) as closed
             ")
             ->first();
 

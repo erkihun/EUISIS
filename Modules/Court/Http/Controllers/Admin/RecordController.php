@@ -458,13 +458,13 @@ class RecordController extends Controller
                 'u.name as author',
                 'j1.name as judge_one_name',
                 'j1.signature_path as judge_one_signature',
-                DB::raw('COALESCE(j1.position, "") as judge_one_title'),
+                DB::raw('COALESCE(j1.position, \'\') as judge_one_title'),
                 'j2.name as judge_two_name',
                 'j2.signature_path as judge_two_signature',
-                DB::raw('COALESCE(j2.position, "") as judge_two_title'),
+                DB::raw('COALESCE(j2.position, \'\') as judge_two_title'),
                 'j3.name as judge_three_name',
                 'j3.signature_path as judge_three_signature',
-                DB::raw('COALESCE(j3.position, "") as judge_three_title')
+                DB::raw('COALESCE(j3.position, \'\') as judge_three_title')
             )
             ->where('b.case_id', $case->id)
             ->orderByDesc('b.created_at')

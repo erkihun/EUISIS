@@ -109,7 +109,7 @@ final class AuditController extends Controller
             'ip',
             'module as target_type',
             DB::raw('NULL as target_id'),
-            'context',
+            DB::raw('CAST(context AS TEXT) as context'),
             DB::raw('NULL as old_values'),
             DB::raw('NULL as new_values'),
         ]);
@@ -129,7 +129,7 @@ final class AuditController extends Controller
             DB::raw('NULL as ip'),
             DB::raw("'court_case' as target_type"),
             'case_id as target_id',
-            'meta as context',
+            DB::raw('CAST(meta AS TEXT) as context'),
             DB::raw('NULL as old_values'),
             DB::raw('NULL as new_values'),
         ]);
@@ -149,9 +149,9 @@ final class AuditController extends Controller
             'ip_address as ip',
             'auditable_type as target_type',
             'auditable_id as target_id',
-            'tags as context',
-            'old_values',
-            'new_values',
+            DB::raw('CAST(tags AS TEXT) as context'),
+            DB::raw('CAST(old_values AS TEXT) as old_values'),
+            DB::raw('CAST(new_values AS TEXT) as new_values'),
         ]);
 
         return $system->unionAll($case)->unionAll($legacy);

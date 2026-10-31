@@ -25,7 +25,7 @@ final class CaseNumbers
 
         $maxSeq = DB::table('court_cases')
             ->where('case_number', 'LIKE', "{$prefix}/%/{$year}")
-            ->lockForUpdate()
+            ->tap(fn ($q) => \Modules\Court\Domain\Support\AggregateLock::apply($q, 'court_cases'))
             ->selectRaw("MAX(".\Modules\Court\Application\Support\Sql::middleSegmentNumber('case_number').") as max_seq")
             ->value('max_seq');
 

@@ -159,7 +159,7 @@ class DashboardController extends Controller
 
             $caseTypeCounts = DB::table('court_cases as c')
                 ->leftJoin('court_case_types as t', 't.id', '=', 'c.case_type_id')
-                ->select(DB::raw('COALESCE(t.name, "Unknown") as label'), DB::raw('COUNT(*) as total'))
+                ->select(DB::raw('COALESCE(t.name, \'Unknown\') as label'), DB::raw('COUNT(*) as total'))
                 ->groupBy('label')
                 ->orderByDesc('total')
                 ->limit(8)
@@ -575,7 +575,7 @@ class DashboardController extends Controller
 
             $caseTypeCounts = DB::table('court_cases as c')
                 ->leftJoin('court_case_types as t', 't.id', '=', 'c.case_type_id')
-                ->select(DB::raw('COALESCE(t.name, "Unknown") as label'), DB::raw('COUNT(*) as total'))
+                ->select(DB::raw('COALESCE(t.name, \'Unknown\') as label'), DB::raw('COUNT(*) as total'))
                 ->whereBetween('c.created_at', [$start, $end])
                 ->groupBy('label')
                 ->orderByDesc('total')

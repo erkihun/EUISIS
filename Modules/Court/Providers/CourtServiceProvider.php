@@ -118,7 +118,8 @@ final class CourtServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        // The court's public contract: what EUISIS asks of it, answered in this process.
+        // The court's public contracts: what EUISIS asks of it, and who works in it.
+        $this->app->bind(\Modules\Court\Contracts\CourtStaffAccess::class, \Modules\Court\Application\Queries\CourtStaffAccessQuery::class);
         $this->app->bind(\Modules\Court\Contracts\CourtIntegration::class, \Modules\Court\Application\Queries\CourtIntegrationGateway::class);
         $this->app->bind(Models\Concerns\ApplicantMessages::class, \Modules\Court\Application\Notifications\ApplicantAccountMessages::class);
 
@@ -187,7 +188,7 @@ final class CourtServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 AccessUpgradeReport::class, CheckSrsCompliance::class, EuisisIntegrationTokenCommand::class,
-                EuisisSyncCommand::class, ExportClientTranslations::class,
+                EuisisSyncCommand::class, ExportClientTranslations::class, \Modules\Court\Infrastructure\Console\CourtStaffCommand::class,
             ]);
         }
 

@@ -154,6 +154,8 @@ class HandleInertiaRequests extends Middleware
             // Whether the account is linked to an employee record at all
             // (admin or not). Self-service links are pointless without one.
             'has_employee_record' => $user !== null && $this->resolveHasEmployeeRecord($user),
+            // The court module's staff (ADR 0020): its entry in the menu.
+            'court_staff' => fn (): bool => $user !== null && app(\Modules\Court\Contracts\CourtStaffAccess::class)->worksInCourt((int) $user->getKey()),
             // Idle policy for the browser's warning/heartbeat; null when signed out.
             'session_policy' => fn (): ?array => $this->sessionPolicy($request),
             'flash' => [

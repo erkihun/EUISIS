@@ -31,7 +31,7 @@ class RespondentResponse extends Model
         }
 
         /** @var int $existingCount */
-        $existingCount = (int) $query->lockForUpdate()->count();
+        $existingCount = (int) \Modules\Court\Domain\Support\AggregateLock::apply($query, 'court_respondent_responses')->count();
 
         if ($existingCount === 0) {
             return "\u{1218}/{$caseNumber}";

@@ -167,6 +167,8 @@ type NavSubItem = {
     employeeOnly?: boolean;
     /** City-level page: the server refuses organization-scoped users even when they hold the permission. */
     citywideOnly?: boolean;
+    /** The court module (ADR 0020): shown to accounts with a court staff record. */
+    courtStaffOnly?: boolean;
     /** Unread count shown as a badge (Communication). */
     badge?: number | null;
 };
@@ -635,6 +637,8 @@ const navGroups: NavGroup[] = [
             // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
             { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
+            // The court itself (Modules/Court, ADR 0020): its own workspace and menu.
+            { routeName: 'court.admin.dashboard', labelKey: 'court.workspaceName', icon: ScaleIcon, courtStaffOnly: true },
         ],
     },
     {
@@ -894,6 +898,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const { props: pageProps, url: pageUrl } = usePage();
     const isEmployeeUser = pageProps.is_employee_user === true;
     const hasEmployeeRecord = pageProps.has_employee_record === true;
+    const courtStaff = (pageProps as { court_staff?: boolean }).court_staff === true;
     const authFlags = (pageProps as { auth?: { canViewDashboard?: boolean; unrestrictedScope?: boolean; isSuperAdmin?: boolean } }).auth ?? {};
     // Roles without dashboard access sign in to My Portal, so that is their home link too.
     const canViewDashboard = authFlags.canViewDashboard !== false;
@@ -924,6 +929,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)
         && (!item.employeeOnly || hasEmployeeRecord)
         && (!item.citywideOnly || citywide)
+        && (!item.courtStaffOnly || courtStaff)
         && (!item.permission || can(item.permission))
         && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
     const allowedItems = (items: NavItem[]): NavSubItem[] => items

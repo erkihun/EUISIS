@@ -88,13 +88,13 @@ class ReportController extends Controller
             ->get();
 
         $letterApprovalBreakdown = Letter::query()
-            ->selectRaw('COALESCE(approval_status, "pending") as status, count(*) as total')
+            ->selectRaw('COALESCE(approval_status, \'pending\') as status, count(*) as total')
             ->groupBy('status')
             ->orderByDesc('total')
             ->get();
 
         $applicantStatusBreakdown = Applicant::query()
-            ->selectRaw('CASE WHEN is_active THEN "active" ELSE "inactive" END as state, count(*) as total')
+            ->selectRaw('CASE WHEN is_active THEN \'active\' ELSE \'inactive\' END as state, count(*) as total')
             ->groupBy('state')
             ->get();
 
