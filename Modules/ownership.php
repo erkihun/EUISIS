@@ -278,6 +278,7 @@ return [
             'Modules\ServiceMonitoring\Domain\Models\DigitalService',
             'Modules\ServiceMonitoring\Domain\Models\DriverOccupation',
             'Modules\ServiceMonitoring\Domain\Models\FiscalYear',
+            'Modules\ServiceMonitoring\Domain\Models\FormTemplate',
             'Modules\ServiceMonitoring\Domain\Models\InstitutionBuilding',
             'Modules\ServiceMonitoring\Domain\Models\MonitoringAttachment',
             'Modules\ServiceMonitoring\Domain\Models\MonitoringExport',
