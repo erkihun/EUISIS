@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -50,6 +51,16 @@ return new class extends Migration
                 ->constrained('service_monitoring_form_templates', 'id', 'sm_sub_template_fk')->restrictOnDelete();
             $table->json('custom_data')->nullable()->after('special_support_narrative');
         });
+
+        // SQLite cannot add a foreign key in place, so the table above is rebuilt, and the
+        // rebuild re-creates its partial unique indexes without their WHERE: "one current
+        // revision" would then refuse a correction's revision n+1. Put them back as they were.
+        if (DB::getDriverName() === 'sqlite') {
+            foreach (['sm_sub_one_current_uq' => 'is_current = 1', 'sm_sub_one_accepted_uq' => "status = 'accepted'"] as $name => $where) {
+                DB::statement("DROP INDEX IF EXISTS {$name}");
+                DB::statement("CREATE UNIQUE INDEX {$name} ON service_monitoring_submissions (period_id, participant_id) WHERE {$where}");
+            }
+        }
     }
 
     public function down(): void
