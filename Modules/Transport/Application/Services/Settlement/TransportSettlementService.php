@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services\Settlement;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\User;
 use DomainException;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Transport\Application\Services\TransportRouteAccessService;
 use Modules\Transport\Application\Services\TransportSettings;
@@ -443,12 +444,9 @@ class TransportSettlementService
             ->select('employees.id');
     }
 
+    /** From the transport-settlement code rule (TST-YYYYMMDD-NNNN by default). */
     private function newNumber(): string
     {
-        do {
-            $number = 'TST-'.now()->format('Ymd').'-'.Str::upper(Str::random(6));
-        } while (TransportSettlement::query()->where('settlement_number', $number)->exists());
-
-        return $number;
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::TransportSettlement, [], null, null, 'settlement_number');
     }
 }

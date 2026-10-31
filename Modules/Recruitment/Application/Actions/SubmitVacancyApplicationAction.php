@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Modules\Recruitment\Application\Actions;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\Employee;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Recruitment\Application\Services\VacancyAvailabilityService;
 use Modules\Recruitment\Contracts\Data\VacancyApplicationStatus;
@@ -71,8 +72,9 @@ readonly class SubmitVacancyApplicationAction
         return $application;
     }
 
+    /** From the vacancy-application code rule (APP-YYYYMM-NNNNN by default). */
     private function generateNumber(): string
     {
-        return 'APP-'.now()->format('Ym').'-'.strtoupper(Str::random(6));
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::VacancyApplication, [], null, null, 'application_number');
     }
 }

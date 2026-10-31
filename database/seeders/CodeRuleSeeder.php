@@ -183,7 +183,50 @@ class CodeRuleSeeder extends Seeder
                 'format' => '{PREFIX}-{SEQUENCE}',
                 'sequence_length' => 4,
             ],
+            // Record numbers that were built in code until 2026-10-31. Each default keeps the
+            // number's earlier shape (prefix, date part, sequence length and restart), with a
+            // sequence where a random suffix used to be. These records are numbered as they
+            // are created, so without an active rule they could not be created at all.
+            ...self::recordNumber(CodeRuleEntityType::ReceptionVisit, 'Reception Visit Reference', 'የእንግዳ ጉብኝት መለያ ቁጥር', 'VIS', '{PREFIX}-{DATE}-{SEQUENCE}', 4, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::ReceptionAppointment, 'Reception Appointment Reference', 'የቀጠሮ መለያ ቁጥር', 'APT', '{PREFIX}-{DATE}-{SEQUENCE}', 4, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::CardPrintBatch, 'ID Card Print Batch Number', 'የመታወቂያ ካርድ የሕትመት ጥቅል ቁጥር', 'BATCH', '{PREFIX}-{DATE}-{SEQUENCE}', 4, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::PositionEstablishment, 'Position Establishment Number', 'የሥራ መደብ ማቋቋሚያ ቁጥር', 'EST', '{PREFIX}-{YEAR}{MONTH}-{SEQUENCE}', 5, CodeRuleResetFrequency::Monthly),
+            ...self::recordNumber(CodeRuleEntityType::SupportTicket, 'Support Ticket Number', 'የድጋፍ ጥያቄ ቁጥር', 'TKT', '{PREFIX}-{YEAR_SHORT}{MONTH}-{SEQUENCE}', 4, CodeRuleResetFrequency::Monthly),
+            ...self::recordNumber(CodeRuleEntityType::VacancyAnnouncement, 'Vacancy Announcement Number', 'የክፍት የሥራ መደብ ማስታወቂያ ቁጥር', 'VCY', '{PREFIX}-{YEAR}{MONTH}-{SEQUENCE}', 4, CodeRuleResetFrequency::Monthly),
+            ...self::recordNumber(CodeRuleEntityType::VacancyApplication, 'Vacancy Application Number', 'የክፍት የሥራ መደብ ማመልከቻ ቁጥር', 'APP', '{PREFIX}-{YEAR}{MONTH}-{SEQUENCE}', 5, CodeRuleResetFrequency::Monthly),
+            ...self::recordNumber(CodeRuleEntityType::TransportTrip, 'Transport Trip Number', 'የትራንስፖርት ጉዞ ቁጥር', 'TRP', '{PREFIX}-{DATE}-{SEQUENCE}', 5, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::TransportSettlement, 'Transport Settlement Number', 'የትራንስፖርት ሂሳብ ማወራረጃ ቁጥር', 'TST', '{PREFIX}-{DATE}-{SEQUENCE}', 4, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::TransportInvoice, 'Transport Invoice Number', 'የትራንስፖርት የክፍያ መጠየቂያ ቁጥር', 'INV', '{PREFIX}-{YEAR}{MONTH}-{SEQUENCE}', 5, CodeRuleResetFrequency::Monthly),
+            ...self::recordNumber(CodeRuleEntityType::CafeteriaSettlement, 'Cafeteria Settlement Number', 'የካፌቴሪያ ሂሳብ ማወራረጃ ቁጥር', 'SET', '{PREFIX}-{DATE}-{SEQUENCE}', 4, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::CafeteriaReport, 'Cafeteria Report Number', 'የካፌቴሪያ ሪፖርት ቁጥር', 'RPT', '{PREFIX}-{YEAR}-{SEQUENCE}', 4, CodeRuleResetFrequency::Yearly),
+            ...self::recordNumber(CodeRuleEntityType::FieldWorkRequest, 'Field Work Request Reference', 'የመስክ ሥራ ጥያቄ መለያ ቁጥር', 'FW', '{PREFIX}-{DATE}-{SEQUENCE}', 4, CodeRuleResetFrequency::Daily),
+            ...self::recordNumber(CodeRuleEntityType::OrganizationalChangeRequest, 'Organizational Change Request Number', 'የአደረጃጀት ለውጥ ጥያቄ ቁጥር', 'OCR', '{PREFIX}-{YEAR}-{SEQUENCE}', 6, CodeRuleResetFrequency::Yearly),
+            ...self::recordNumber(CodeRuleEntityType::PerformanceAppeal, 'Performance Appeal Number', 'የአፈጻጸም ይግባኝ ቁጥር', 'PA', '{PREFIX}-{YEAR}-{SEQUENCE}', 5, CodeRuleResetFrequency::Yearly),
+            ...self::recordNumber(CodeRuleEntityType::ManpowerPlan, 'Manpower Plan Reference', 'የሰው ኃይል ዕቅድ መለያ ቁጥር', 'MPP', '{PREFIX}-{YEAR}-{SEQUENCE}', 4, CodeRuleResetFrequency::Yearly),
+            ...self::recordNumber(CodeRuleEntityType::LegacyBaseline, 'Legacy Organization Baseline Reference', 'የነባር አደረጃጀት መነሻ መለያ ቁጥር', 'LOB', '{PREFIX}-{YEAR}-{SEQUENCE}', 4, CodeRuleResetFrequency::Yearly),
+            ...self::recordNumber(CodeRuleEntityType::DesignImportBatch, 'Design Import Batch Reference', 'የአደረጃጀት ጥናት ማስገቢያ ጥቅል መለያ ቁጥር', 'DIB', '{PREFIX}-{YEAR}-{SEQUENCE}', 4, CodeRuleResetFrequency::Yearly),
+            ...self::recordNumber(CodeRuleEntityType::OrganizationDesignStudy, 'Organization Design Study Reference', 'የአደረጃጀት ጥናት መለያ ቁጥር', 'ODS', '{PREFIX}-{YEAR}-{SEQUENCE}', 4, CodeRuleResetFrequency::Yearly),
         ];
+    }
+
+    /**
+     * The default rule of a record number, as a one-item list to spread into defaults().
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function recordNumber(CodeRuleEntityType $entityType, string $nameEn, string $nameAm, string $prefix, string $format, int $length, CodeRuleResetFrequency $reset): array
+    {
+        return [[
+            'entity_type' => $entityType->value,
+            'scope_type' => null,
+            'scope_id' => null,
+            'name_en' => $nameEn,
+            'name_am' => $nameAm,
+            'prefix' => $prefix,
+            'format' => $format,
+            'sequence_length' => $length,
+            'reset_frequency' => $reset,
+        ]];
     }
 
     /** @param  array<string, mixed>  $default */
@@ -209,7 +252,7 @@ class CodeRuleSeeder extends Seeder
                 'suffix' => null,
                 'separator' => $default['separator'] ?? '-',
                 'next_number' => 1,
-                'reset_frequency' => CodeRuleResetFrequency::Never,
+                'reset_frequency' => $default['reset_frequency'] ?? CodeRuleResetFrequency::Never,
                 'year_format' => 'Y',
                 'is_active' => true,
                 'allow_manual_override' => false,

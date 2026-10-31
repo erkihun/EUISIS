@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Application\Services\Settlement;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Cafeteria\Application\Services\Policy\CafeteriaPricing;
 use Modules\Cafeteria\Domain\Enums\CafeteriaSettlementStatus;
@@ -53,7 +54,7 @@ class CafeteriaSettlementService
 
         return DB::transaction(function () use ($providerId, $from, $to, $actor, $notes, $request): CafeteriaSettlement {
             $settlement = CafeteriaSettlement::query()->create([
-                'settlement_number' => 'SET-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
+                'settlement_number' => app(GenerateCodeAction::class)->execute(CodeRuleEntityType::CafeteriaSettlement, [], null, null, 'settlement_number'),
                 'provider_id' => $providerId,
                 'period_start' => $from->toDateString(),
                 'period_end' => $to->toDateString(),

@@ -6,6 +6,8 @@ namespace Modules\Transport\Providers;
 
 use App\Backbone\Events\AssignmentChanged;
 use App\Backbone\Events\EmployeeChanged;
+use App\Enums\CodeRuleEntityType;
+use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Support\NotificationPresenter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -70,6 +72,10 @@ final class TransportServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransportTrip, TransportTrip::class, 'trip_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransportSettlement, TransportSettlement::class, 'settlement_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransportInvoice, TransportInvoice::class, 'invoice_number');
         // Moved models keep their old class names in the database (roles, audit logs, tokens).
         Relation::morphMap([
             'App\Models\TransportContract' => TransportContract::class,

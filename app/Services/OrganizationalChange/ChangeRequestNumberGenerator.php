@@ -4,38 +4,20 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationalChange;
 
-use App\Models\OrganizationalChangeRequest;
-use Illuminate\Support\Facades\DB;
+use App\Actions\CodeRules\GenerateCodeAction;
+use App\Enums\CodeRuleEntityType;
 
 /**
- * Centralised request numbering: OCR-{year}-{6-digit sequence}.
- *
- * The sequence is per calendar year and is derived under a row lock on the
- * existing rows for that year, so two concurrent submissions cannot take the
- * same number. The unique index on request_no is the final guard.
+ * Request numbers from the organizational-change code rule (OCR-{year}-{6-digit
+ * sequence}, restarting each year, by default). The code-rule sequence is taken
+ * under a row lock; the unique index on request_no is the final guard.
  */
 final class ChangeRequestNumberGenerator
 {
-    private const PREFIX = 'OCR';
+    public function __construct(private readonly GenerateCodeAction $codes) {}
 
-    public function generate(?int $year = null): string
+    public function generate(): string
     {
-        $year ??= (int) now()->format('Y');
-        $prefix = self::PREFIX.'-'.$year.'-';
-
-        return DB::transaction(function () use ($prefix): string {
-            $last = OrganizationalChangeRequest::query()
-                ->withTrashed()
-                ->where('request_no', 'like', $prefix.'%')
-                ->lockForUpdate()
-                ->orderByDesc('request_no')
-                ->value('request_no');
-
-            $next = $last === null
-                ? 1
-                : ((int) substr((string) $last, strlen($prefix))) + 1;
-
-            return $prefix.str_pad((string) $next, 6, '0', STR_PAD_LEFT);
-        });
+        return $this->codes->execute(CodeRuleEntityType::OrganizationalChangeRequest, [], null, null, 'request_no');
     }
 }

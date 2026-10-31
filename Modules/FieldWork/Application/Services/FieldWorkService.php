@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\FieldWork\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -662,14 +664,10 @@ class FieldWorkService
         ]);
     }
 
+    /** From the field-work code rule (FW-YYYYMMDD-NNNN by default). */
     private function newReference(): string
     {
-        $prefix = 'FW-'.$this->settings->today()->format('Ymd').'-';
-        do {
-            $reference = $prefix.Str::upper(Str::random(6));
-        } while (FieldWorkRequest::query()->where('reference_number', $reference)->exists());
-
-        return $reference;
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::FieldWorkRequest, [], null, null, 'reference_number');
     }
 
     private function nullableText(mixed $value): ?string

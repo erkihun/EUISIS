@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\IdCards;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
+use App\Enums\CodeRuleEntityType;
 use App\Models\CardPrintBatch;
 use App\Models\CardRequest;
 use App\Models\IdCard;
@@ -15,7 +17,6 @@ use App\Models\User;
 use DomainException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 readonly class CreatePrintBatchAction
 {
@@ -59,7 +60,7 @@ readonly class CreatePrintBatchAction
         }
 
         return DB::transaction(function () use ($cards, $actor): CardPrintBatch {
-            $batchNumber = 'BATCH-'.now()->format('Ymd').'-'.strtoupper(Str::random(6));
+            $batchNumber = app(GenerateCodeAction::class)->execute(CodeRuleEntityType::CardPrintBatch, [], null, null, 'batch_number');
 
             $batch = CardPrintBatch::query()->create([
                 'batch_number' => $batchNumber,

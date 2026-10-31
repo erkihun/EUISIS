@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Recruitment\Providers;
 
+use App\Enums\CodeRuleEntityType;
+use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +28,9 @@ final class RecruitmentServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::VacancyAnnouncement, VacancyAnnouncement::class, 'announcement_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::VacancyApplication, VacancyApplication::class, 'application_number');
         // Moved models keep their old class names in the database (audit logs, documents).
         Relation::morphMap([
             'App\Models\VacancyAnnouncement' => VacancyAnnouncement::class,

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\User;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
@@ -258,17 +259,10 @@ class TransportTripService
             ->count('employee_id');
     }
 
-    /**
-     * TRP-YYYYMMDD-XXXXXX with a random suffix: unique without counting (a
-     * count collides under concurrency and after any deletion).
-     */
+    /** From the transport-trip code rule (TRP-YYYYMMDD-NNNNN by default). */
     public function newTripNumber(): string
     {
-        do {
-            $number = 'TRP-'.now()->format('Ymd').'-'.Str::upper(Str::random(6));
-        } while (TransportTrip::query()->where('trip_number', $number)->exists());
-
-        return $number;
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::TransportTrip, [], null, null, 'trip_number');
     }
 
     public static function directionFor(string $value): TransportDirection

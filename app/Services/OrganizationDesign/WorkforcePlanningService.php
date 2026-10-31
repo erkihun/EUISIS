@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign;
 
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\OrganizationDesignStatus;
 use App\Models\ManpowerPlan;
 use App\Models\ManpowerPlanLine;
@@ -32,8 +34,6 @@ class WorkforcePlanningService
     public const PLAN_FIELDS = ['hierarchy_version_id', 'study_id', 'methodology_id', 'title_en', 'title_am', 'notes', 'planning_period_start', 'planning_period_end'];
 
     public const LINE_FIELDS = ['organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'inputs', 'notes', 'sequence', 'workload_source_type', 'workload_source_reference'];
-
-    private const PREFIX = 'MPP';
 
     public function __construct(private readonly OrganizationDesignAudit $audit, private readonly ManpowerCalculationService $calculator) {}
 
@@ -431,13 +431,10 @@ class WorkforcePlanningService
         }
     }
 
+    /** From the manpower-plan code rule (MPP-YYYY-NNNN by default). */
     private function nextReference(): string
     {
-        $prefix = self::PREFIX.'-'.now()->format('Y').'-';
-        $last = ManpowerPlan::query()->withTrashed()->where('reference_number', 'like', $prefix.'%')->lockForUpdate()->orderByDesc('reference_number')->value('reference_number');
-        $next = $last === null ? 1 : ((int) substr((string) $last, strlen($prefix))) + 1;
-
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::ManpowerPlan, [], null, null, 'reference_number');
     }
 
     /** @return array<string, mixed> */

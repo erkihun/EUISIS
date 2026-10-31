@@ -116,7 +116,7 @@ final readonly class ReceptionOperations
             ]);
 
             $visit = ReceptionVisit::query()->create([
-                'reference' => 'VIS-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
+                'reference' => $this->codes->execute(CodeRuleEntityType::ReceptionVisit, ['organization_id' => $desk->organization_id], $actor, null, 'reference'),
                 'visitor_id' => $visitor->id,
                 'organization_id' => $desk->organization_id,
                 'organization_unit_id' => $data['organization_unit_id'] ?? null,
@@ -231,7 +231,7 @@ final readonly class ReceptionOperations
             throw ValidationException::withMessages(['scheduled_at' => __('reception.validation.non_working_day')]);
         }
         $appointment = ReceptionAppointment::query()->create([
-            ...$data, 'reference' => 'APT-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
+            ...$data, 'reference' => $this->codes->execute(CodeRuleEntityType::ReceptionAppointment, ['organization_id' => $desk->organization_id], $actor, null, 'reference'),
             'organization_id' => $desk->organization_id, 'created_by' => $actor->id,
         ]);
         $this->audit->execute(AuditEventType::ReceptionAppointmentChanged, $actor, $appointment, $desk->organization_id, newValues: ['status' => $appointment->status]);

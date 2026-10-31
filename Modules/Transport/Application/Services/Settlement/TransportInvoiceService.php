@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services\Settlement;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\User;
 use DomainException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
@@ -33,7 +34,7 @@ class TransportInvoiceService
         $this->guardPeriod($data['period_start'], $data['period_end']);
 
         return TransportInvoice::query()->create([
-            'invoice_number' => ($data['invoice_number'] ?? null) ?: $this->newNumber($providerId, $data['period_start']),
+            'invoice_number' => ($data['invoice_number'] ?? null) ?: $this->newNumber(),
             'provider_id' => $providerId,
             'transport_contract_id' => $data['transport_contract_id'] ?? null,
             'period_start' => $data['period_start'],
@@ -170,12 +171,9 @@ class TransportInvoiceService
         }
     }
 
-    private function newNumber(string $providerId, string $periodStart): string
+    /** From the transport-invoice code rule (INV-YYYYMM-NNNNN by default). */
+    private function newNumber(): string
     {
-        do {
-            $number = 'INV-'.$this->providers->find($providerId)?->code.'-'.substr(str_replace('-', '', $periodStart), 0, 6).'-'.Str::upper(Str::random(4));
-        } while (TransportInvoice::query()->where('provider_id', $providerId)->where('invoice_number', $number)->exists());
-
-        return $number;
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::TransportInvoice, [], null, null, 'invoice_number');
     }
 }

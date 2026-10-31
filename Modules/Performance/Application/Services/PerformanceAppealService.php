@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Performance\Application\Services;
 
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\User;
 use App\Support\Math\Dec;
 use Illuminate\Http\UploadedFile;
@@ -164,12 +166,9 @@ final class PerformanceAppealService
         return $new;
     }
 
+    /** From the performance-appeal code rule (PA-YYYY-NNNNN by default). */
     private function nextNumber(): string
     {
-        $prefix = 'PA-'.now()->format('Y').'-';
-        $last = PerformanceAppeal::query()->where('appeal_no', 'like', $prefix.'%')->lockForUpdate()->orderByDesc('appeal_no')->value('appeal_no');
-        $next = $last === null ? 1 : ((int) substr($last, strlen($prefix))) + 1;
-
-        return $prefix.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::PerformanceAppeal, [], null, null, 'appeal_no');
     }
 }

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Actions\Positions;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\EstablishmentStatus;
 use App\Models\PositionEstablishment;
 use App\Models\User;
-use Illuminate\Support\Str;
 
 readonly class StorePositionEstablishmentAction
 {
@@ -42,8 +43,9 @@ readonly class StorePositionEstablishmentAction
         return $establishment;
     }
 
+    /** From the position-establishment code rule (EST-YYYYMM-NNNNN by default). */
     private function generateNumber(): string
     {
-        return 'EST-'.now()->format('Ym').'-'.strtoupper(Str::random(6));
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::PositionEstablishment, [], null, null, 'establishment_number');
     }
 }

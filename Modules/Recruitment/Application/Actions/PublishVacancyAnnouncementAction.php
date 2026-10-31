@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Modules\Recruitment\Application\Actions;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\EstablishmentStatus;
 use App\Models\PositionEstablishment;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Recruitment\Contracts\Data\VacancyAnnouncementStatus;
 use Modules\Recruitment\Domain\Models\VacancyAnnouncement;
@@ -105,8 +106,9 @@ readonly class PublishVacancyAnnouncementAction
         return $fresh;
     }
 
+    /** From the vacancy-announcement code rule (VCY-YYYYMM-NNNN by default). */
     private function generateNumber(): string
     {
-        return 'VCY-'.now()->format('Ym').'-'.strtoupper(Str::random(6));
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::VacancyAnnouncement, [], null, null, 'announcement_number');
     }
 }

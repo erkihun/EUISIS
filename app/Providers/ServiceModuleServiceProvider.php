@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Enums\CodeRuleEntityType;
+use App\Models\CardPrintBatch;
+use App\Models\DesignImportBatch;
+use App\Models\LegacyBaseline;
+use App\Models\ManpowerPlan;
+use App\Models\OrganizationalChangeRequest;
+use App\Models\OrganizationDesignStudy;
+use App\Models\PositionEstablishment;
+use App\Models\SupportTicket;
+use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use Illuminate\Support\ServiceProvider;
 
@@ -52,6 +62,15 @@ class ServiceModuleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::CardPrintBatch, CardPrintBatch::class, 'batch_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PositionEstablishment, PositionEstablishment::class, 'establishment_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::SupportTicket, SupportTicket::class, 'reference');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::OrganizationalChangeRequest, OrganizationalChangeRequest::class, 'request_no', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ManpowerPlan, ManpowerPlan::class, 'reference_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::LegacyBaseline, LegacyBaseline::class, 'reference_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::DesignImportBatch, DesignImportBatch::class, 'reference_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::OrganizationDesignStudy, OrganizationDesignStudy::class, 'reference_number', withTrashed: true);
         foreach (self::ORGANIZATION_DEPENDENTS as $table => $columns) {
             OrganizationDeletionGuard::registerDependent($table, ...$columns);
         }

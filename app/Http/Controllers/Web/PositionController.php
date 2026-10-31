@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Actions\Positions\ApprovePositionEstablishmentAction;
 use App\Actions\Positions\ArchivePositionAction;
 use App\Actions\Positions\CreatePositionAction;
@@ -11,6 +12,7 @@ use App\Actions\Positions\MovePositionAction;
 use App\Actions\Positions\RestorePositionAction;
 use App\Actions\Positions\UpdatePositionAction;
 use App\Enums\AssignmentStatus;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\EstablishmentStatus;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OccupancyStatus;
@@ -860,10 +862,7 @@ class PositionController extends Controller
 
         if ($establishment === null) {
             $establishment = PositionEstablishment::create([
-                // The id's random tail: its head is a timestamp (UUIDv7), so positions
-                // created close together shared it and the second approval of the month
-                // hit the unique index.
-                'establishment_number' => 'EST-'.now()->format('Ym').'-'.strtoupper(substr(str_replace('-', '', $position->id), -10)),
+                'establishment_number' => app(GenerateCodeAction::class)->execute(CodeRuleEntityType::PositionEstablishment, [], null, null, 'establishment_number'),
                 'organization_id' => $position->organization_id,
                 'organization_unit_id' => $position->organization_unit_id,
                 'position_id' => $position->id,

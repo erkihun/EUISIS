@@ -21,6 +21,9 @@ final class ReceptionServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ReceptionVisit, ReceptionVisit::class, 'reference');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ReceptionAppointment, ReceptionAppointment::class, 'reference');
         Relation::morphMap([
             ReceptionDesk::class => ReceptionDesk::class, ReceptionCounter::class => ReceptionCounter::class,
             ReceptionVisitor::class => ReceptionVisitor::class, ReceptionVisit::class => ReceptionVisit::class,

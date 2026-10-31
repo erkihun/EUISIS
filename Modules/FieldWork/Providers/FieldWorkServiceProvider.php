@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\FieldWork\Providers;
 
+use App\Enums\CodeRuleEntityType;
+use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Support\NotificationPresenter;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
@@ -33,6 +35,8 @@ final class FieldWorkServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::FieldWorkRequest, FieldWorkRequest::class, 'reference_number');
         // Moved models keep their old class names in the database (audit logs, notifications).
         Relation::morphMap([
             'App\Models\FieldWorkHistory' => FieldWorkHistory::class,

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Http\Controllers\ProviderPortal;
 
+use App\Actions\CodeRules\GenerateCodeAction;
+use App\Enums\CodeRuleEntityType;
 use App\Http\Controllers\Controller;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Providers\Contracts\ProviderPortalSession;
@@ -153,16 +154,9 @@ class TransportTripController extends Controller
         return $providerId;
     }
 
-    /**
-     * TRP-YYYYMMDD-XXXXXX with a random suffix: unique without counting (a
-     * count collides under concurrency and after any deletion).
-     */
+    /** From the transport-trip code rule (TRP-YYYYMMDD-NNNNN by default). */
     private function newTripNumber(): string
     {
-        do {
-            $number = 'TRP-'.now()->format('Ymd').'-'.Str::upper(Str::random(6));
-        } while (TransportTrip::query()->where('trip_number', $number)->exists());
-
-        return $number;
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::TransportTrip, [], null, null, 'trip_number');
     }
 }

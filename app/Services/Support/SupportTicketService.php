@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Support;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Models\IntelligenceIncident;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketEvent;
@@ -17,7 +19,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use RuntimeException;
 
 /**
  * The support help desk's write side (docs/assistant/support-helpdesk.md).
@@ -107,7 +108,7 @@ final class SupportTicketService
         return DB::transaction(function () use ($reporter, $description, $category, $priority, $title, $errorReference, $incident, $conversationId, $module, $routeName, $path, $context): SupportTicket {
             $now = CarbonImmutable::now();
             $ticket = SupportTicket::query()->create([
-                'reference' => $this->reference($now),
+                'reference' => $this->reference(),
                 'reporter_user_id' => $reporter->getKey(),
                 'organization_id' => $this->scope->assignedOrganizationIds($reporter)[0] ?? null,
                 'module' => $module,
@@ -279,19 +280,10 @@ final class SupportTicketService
         return IntelligenceIncident::query()->whereKey($id)->first(['id', 'reference', 'severity', 'status']);
     }
 
-    /** TKT-YYMM-NNNN, sequential within the month; retried on a collision. */
-    private function reference(CarbonImmutable $now): string
+    /** From the support-ticket code rule (TKT-YYMM-NNNN by default). */
+    private function reference(): string
     {
-        $prefix = 'TKT-'.$now->format('ym').'-';
-        $count = SupportTicket::query()->where('reference', 'like', $prefix.'%')->count();
-        for ($attempt = 0; $attempt < 5; $attempt++) {
-            $candidate = $prefix.str_pad((string) ($count + 1 + $attempt), 4, '0', STR_PAD_LEFT);
-            if (! SupportTicket::query()->where('reference', $candidate)->exists()) {
-                return $candidate;
-            }
-        }
-
-        throw new RuntimeException('Could not allocate a support ticket reference.');
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::SupportTicket, [], null, null, 'reference');
     }
 
     private static function assignmentLabel(?string $user, ?string $team): ?string

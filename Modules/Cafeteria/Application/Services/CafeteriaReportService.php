@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Application\Services;
 
+use App\Actions\CodeRules\GenerateCodeAction;
+use App\Enums\CodeRuleEntityType;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
@@ -178,7 +180,7 @@ class CafeteriaReportService
         $providerIds = $this->providerAccess->accessibleProviderIds($generatedBy);
 
         return CafeteriaReportRun::query()->create([
-            'report_number' => $this->generateReportNumber($reportType),
+            'report_number' => $this->generateReportNumber(),
             'report_type' => $reportType,
             'period_start' => $from->toDateString(),
             'period_end' => $to->toDateString(),
@@ -201,19 +203,9 @@ class CafeteriaReportService
         ]);
     }
 
-    private function generateReportNumber(CafeteriaReportType $type): string
+    /** From the cafeteria-report code rule (RPT-YYYY-NNNN by default; the report type is on the run). */
+    private function generateReportNumber(): string
     {
-        $prefix = match ($type) {
-            CafeteriaReportType::Daily => 'RPT-D',
-            CafeteriaReportType::Weekly => 'RPT-W',
-            CafeteriaReportType::Monthly => 'RPT-M',
-        };
-
-        $existing = CafeteriaReportRun::query()
-            ->where('report_type', $type)
-            ->whereYear('created_at', now()->year)
-            ->count();
-
-        return $prefix.'-'.now()->format('Y').'-'.str_pad((string) ($existing + 1), 4, '0', STR_PAD_LEFT);
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::CafeteriaReport, [], null, null, 'report_number');
     }
 }

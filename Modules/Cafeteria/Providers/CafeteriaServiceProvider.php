@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Providers;
 
+use App\Enums\CodeRuleEntityType;
 use App\Models\ServiceTerminal;
 use App\Models\User;
+use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -94,6 +96,9 @@ final class CafeteriaServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::CafeteriaSettlement, CafeteriaSettlement::class, 'settlement_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::CafeteriaReport, CafeteriaReportRun::class, 'report_number');
         // Moved models keep their old class names in the database (roles, audit logs, tokens).
         Relation::morphMap([
             'App\Models\CafeteriaDayRule' => CafeteriaDayRule::class,

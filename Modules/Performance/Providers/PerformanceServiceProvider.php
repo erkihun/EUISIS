@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Performance\Providers;
 
+use App\Enums\CodeRuleEntityType;
+use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Support\NotificationPresenter;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -63,6 +65,8 @@ final class PerformanceServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PerformanceAppeal, PerformanceAppeal::class, 'appeal_no');
         // Moved models keep their old class names in the database (audit logs, notifications, attachments).
         Relation::morphMap([
             'App\Models\EmployeePerformanceAgreement' => EmployeePerformanceAgreement::class,
