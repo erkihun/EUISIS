@@ -9,16 +9,16 @@ use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeFeedbackToken;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Domain\Models\EmployeeFeedbackToken;
 
 /**
  * One scanned-employee scenario for the public feedback tests: an active

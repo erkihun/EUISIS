@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use App\Models\EmployeeServiceFeedback;
 use App\Services\Intelligence\Contracts\TechnicalSignalSource;
 use App\Services\Intelligence\IntelligenceArea;
 use App\Services\Intelligence\IntelligencePermissions;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use Carbon\CarbonImmutable;
+use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\IntelligenceBusinessFixture as F;
 use Tests\Support\SituationRoomScenario;
 

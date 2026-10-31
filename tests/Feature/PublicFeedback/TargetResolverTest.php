@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicFeedbackSourceType;
-use App\Enums\PublicFeedbackTargetType;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
-use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Application\Services\PublicFeedbackTargetResolver;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

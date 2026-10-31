@@ -10,7 +10,6 @@ use App\Models\SituationRoomAction;
 use App\Models\User;
 use App\Rules\RichTextContent;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\SituationRoomActionService;
 use App\Services\SituationRoom\SituationRoomMetrics as M;
 use App\Services\SituationRoom\SituationRoomScope;
@@ -22,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\FeedbackVisibility;
 
 /**
  * The Situation Room Action Register: management follow-ups per institution.
@@ -33,7 +33,7 @@ class SituationRoomActionController extends Controller
     public function __construct(
         private readonly SituationRoomActionService $actions,
         private readonly OrganizationScopeService $scopes,
-        private readonly PublicFeedbackVisibility $visibility,
+        private readonly FeedbackVisibility $visibility,
     ) {}
 
     public function index(Request $request): Response

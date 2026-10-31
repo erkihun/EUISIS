@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Services\SituationRoom;
 
 use App\Models\Employee;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 /**
  * "Employee-targeted public submissions" inside an institution the leader may
@@ -27,7 +27,7 @@ final class EmployeeTargetedQuery
 
     public function __construct(private readonly CommunityVoiceQuery $voice) {}
 
-    /** @return Builder<EmployeeServiceFeedback> */
+    /** @return Builder<ServiceFeedbackRecord> */
     private function employeeRows(SituationRoomScope $scope, SituationRoomFilters $filters): Builder
     {
         return $this->voice->base($scope, $filters, $filters->start, $filters->end)
@@ -99,7 +99,7 @@ final class EmployeeTargetedQuery
         $organizations = Organization::query()->whereIn('id', $items->pluck('organization_id')->filter()->all())->get(['id', 'name_en', 'name_am'])->keyBy(fn ($o): string => (string) $o->id);
 
         return [
-            'rows' => $items->map(function (EmployeeServiceFeedback $item) use ($organizations, $withNarrative): array {
+            'rows' => $items->map(function (ServiceFeedbackRecord $item) use ($organizations, $withNarrative): array {
                 $organization = $item->organization_id ? ($organizations[(string) $item->organization_id] ?? null) : null;
                 $status = $item->status->value;
 

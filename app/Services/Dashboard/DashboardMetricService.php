@@ -9,7 +9,6 @@ use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
-use App\Enums\ServiceFeedbackStatus;
 use App\Enums\TransferStatus;
 use App\Models\ApiEndpointDefinition;
 use App\Models\ApiRequestLog;
@@ -19,7 +18,6 @@ use App\Models\CardRequest;
 use App\Models\CardVerification;
 use App\Models\Employee;
 use App\Models\EmployeeDuplicateFlag;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
 use App\Models\ExternalApplication;
 use App\Models\HierarchyVersion;
@@ -40,6 +38,8 @@ use Modules\Entitlements\Contracts\Data\EntitlementStatus;
 use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
 use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 use Modules\Entitlements\Contracts\ReadModels\ServiceTransactionRecord;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 class DashboardMetricService
 {
@@ -1153,7 +1153,7 @@ class DashboardMetricService
     /** Public submissions of every type, confined to the viewer's organization scope. */
     private function publicSubmissionQuery(array $scope): Builder
     {
-        return EmployeeServiceFeedback::query()
+        return ServiceFeedbackRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('employee_service_feedback.organization_id', $scope['organization_ids'])

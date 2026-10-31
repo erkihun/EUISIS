@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Backbone\Contracts\EmployeeFeedbackLinks;
 use App\Enums\CodeRuleEntityType;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\TransferApplication;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
-use App\Services\ServiceFeedback\EmployeeFeedbackLinkAdapter;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -20,16 +17,11 @@ use Illuminate\Support\ServiceProvider;
  * The backbone defines registries and contracts; the modules that own the
  * data fill them here. That keeps every dependency pointing from the modules
  * to the backbone, never the other way: code-rule targets and collision
- * checks, the tables that block deleting an organization, and the adapters
- * behind EmployeeFeedbackLinks and ProviderCodeLookup.
+ * checks and the tables that block deleting an organization. Modules under
+ * Modules/ fill them from their own providers.
  */
 class ServiceModuleServiceProvider extends ServiceProvider
 {
-    /** @var array<class-string, class-string> */
-    public array $singletons = [
-        EmployeeFeedbackLinks::class => EmployeeFeedbackLinkAdapter::class,
-    ];
-
     /**
      * Tables that reference organizations, by owning module.
      *
@@ -82,7 +74,5 @@ class ServiceModuleServiceProvider extends ServiceProvider
         ]);
 
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransferApplication, TransferApplication::class, 'application_number', withTrashed: true);
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceComplaint, EmployeeServiceFeedback::class, 'reference_number');
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicTipOff, EmployeeServiceFeedback::class, 'reference_number');
     }
 }

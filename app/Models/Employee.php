@@ -8,7 +8,6 @@ use App\Enums\CardStatus;
 use App\Enums\DisabilityType;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
-use App\Enums\FeedbackTokenStatus;
 use App\Enums\MaritalStatus;
 use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
@@ -21,6 +20,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
+use Modules\Feedback\Contracts\Data\FeedbackTokenStatus;
+use Modules\Feedback\Contracts\ReadModels\EmployeeFeedbackTokenRecord;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 class Employee extends Model
 {
@@ -199,7 +201,7 @@ class Employee extends Model
 
     public function feedbackTokens(): HasMany
     {
-        return $this->hasMany(EmployeeFeedbackToken::class);
+        return $this->hasMany(EmployeeFeedbackTokenRecord::class);
     }
 
     /** The token currently printed on this employee's feedback QR, if any. */
@@ -207,7 +209,7 @@ class Employee extends Model
     {
         // Ordered, not latestOfMany(): that compares keys with MAX(id), and
         // PostgreSQL has no MAX for uuid columns.
-        return $this->hasOne(EmployeeFeedbackToken::class)
+        return $this->hasOne(EmployeeFeedbackTokenRecord::class)
             ->where('status', FeedbackTokenStatus::Active->value)
             ->latest('created_at')
             ->latest('id');
@@ -215,7 +217,7 @@ class Employee extends Model
 
     public function serviceFeedback(): HasMany
     {
-        return $this->hasMany(EmployeeServiceFeedback::class);
+        return $this->hasMany(ServiceFeedbackRecord::class);
     }
 
     public function currentOrganization(): HasManyThrough

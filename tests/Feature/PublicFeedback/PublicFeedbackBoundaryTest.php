@@ -3,18 +3,18 @@
 declare(strict_types=1);
 
 use App\Enums\EmployeeStatus;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
-use App\Models\PublicFeedbackReferral;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Dashboard\DashboardMetricService;
-use App\Services\ServiceFeedback\PublicFeedbackReferralService;
-use App\Services\ServiceFeedback\PublicFeedbackWorkflow;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Application\Services\PublicFeedbackReferralService;
+use Modules\Feedback\Application\Services\PublicFeedbackWorkflow;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackReferral;
 use Modules\Performance\Application\Services\SystemKpiSourceRegistry;
 use Tests\Support\PublicFeedbackScenario;
 

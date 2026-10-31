@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Intelligence\Business;
 
 use App\Enums\EstablishmentStatus;
-use App\Enums\ServiceFeedbackType;
 use App\Services\Intelligence\Forecasting\Forecaster;
 use App\Services\Intelligence\IntelligenceAnalysis;
 use App\Services\Intelligence\IntelligenceSettings;
@@ -18,6 +17,7 @@ use App\Services\SituationRoom\SituationSettings;
 use App\Support\Database\SqlDateBucket;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
 
 /**
  * Forecasting: the last twelve complete months of complaint volume and of

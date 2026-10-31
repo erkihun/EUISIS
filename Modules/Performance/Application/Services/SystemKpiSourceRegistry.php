@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Performance\Application\Services;
 
 use App\Enums\TransferStatus;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
 use App\Models\IdCard;
 use App\Support\Math\Dec;
 use Brick\Math\BigDecimal;
 use Illuminate\Support\Carbon;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 /**
  * KPI actuals the system already knows (docs/epms-calculation-rules.md §5):
@@ -85,7 +85,7 @@ final class SystemKpiSourceRegistry
      */
     private function average(string $organizationId, ?string $employeeId, Carbon $from, Carbon $end, array $scope): array
     {
-        $query = EmployeeServiceFeedback::query()->whereBetween('created_at', [$from->copy()->startOfDay(), $end])
+        $query = ServiceFeedbackRecord::query()->whereBetween('created_at', [$from->copy()->startOfDay(), $end])
             ->where('type', 'feedback')
             ->where('organization_id', $organizationId)
             ->when($employeeId !== null, fn ($q) => $q->where('employee_id', $employeeId))

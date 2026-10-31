@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicFeedbackSourceType;
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackFormToken;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

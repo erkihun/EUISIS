@@ -4,15 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\PublicIntakeChannel;
-use App\Enums\PublicTipType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
 use App\Models\Employee;
 use App\Models\PositionService;
 use App\Models\Service;
-use App\Services\ServiceFeedback\PublicFeedbackAnswerStatistics;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
@@ -20,6 +14,12 @@ use App\Services\SituationRoom\SituationPermissions;
 use App\Services\SituationRoom\SituationSql;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\PublicIntakeChannel;
+use Modules\Feedback\Contracts\Data\PublicTipType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\FeedbackAnswerStatistics;
 
 /**
  * Community voice — public Feedback, Tip-offs (stored as `suggestion`) and
@@ -261,7 +261,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
     private function questionRatings(SituationContext $context): SituationPanel
     {
         $key = "{$this->prefix()}_question_ratings";
-        $statistics = app(PublicFeedbackAnswerStatistics::class);
+        $statistics = app(FeedbackAnswerStatistics::class);
         $summary = $statistics->ratingSummaryOf($this->inPeriodBase($context));
 
         if ($summary === []) {
@@ -294,7 +294,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
     private function questionChoices(SituationContext $context): SituationPanel
     {
         $key = "{$this->prefix()}_question_choices";
-        $statistics = app(PublicFeedbackAnswerStatistics::class);
+        $statistics = app(FeedbackAnswerStatistics::class);
         $summary = $statistics->choiceSummaryOf($this->inPeriodBase($context));
         $labels = $statistics->labels(array_column($summary, 'code'));
         usort($summary, fn (array $a, array $b): int => [$labels[$a['code']]['sort'] ?? PHP_INT_MAX, $a['code']] <=> [$labels[$b['code']]['sort'] ?? PHP_INT_MAX, $b['code']]);

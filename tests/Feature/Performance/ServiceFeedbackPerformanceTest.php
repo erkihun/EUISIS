@@ -6,16 +6,17 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Performance\Application\Services\EmployeeScoreCalculator;
 use Modules\Performance\Application\Services\KpiActualService;
 use Modules\Performance\Application\Services\ServiceFeedbackPerformanceSync;
@@ -107,7 +108,9 @@ it('keeps one non overlapping row per month however often or widely it is re-syn
 it('never moves ratings to another position or into a finalized agreement', function (): void {
     $sync = app(ServiceFeedbackPerformanceSync::class);
     // Given after a transfer: the snapshot names the new position, not this agreement's.
-    expect($sync->sync(storedFeedback($this, $this->recruitment, 5, '2026-10-05 09:00', $this->otherPosition)))->toBe(0);
+    // Performance reads submissions through the Feedback module's published read model.
+    $feedback = ServiceFeedbackRecord::query()->findOrFail(storedFeedback($this, $this->recruitment, 5, '2026-10-05 09:00', $this->otherPosition)->getKey());
+    expect($sync->sync($feedback))->toBe(0);
     expect(KpiActual::query()->count())->toBe(0);
 
     $this->agreement->forceFill(['status' => 'FINALIZED'])->save();

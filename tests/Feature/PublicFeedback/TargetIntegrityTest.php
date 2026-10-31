@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicFeedbackSourceType;
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
-use App\Models\EmployeeServiceFeedback;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

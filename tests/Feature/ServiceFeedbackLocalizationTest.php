@@ -6,14 +6,14 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\RateLimiter;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 
 /*
  * The anonymous feedback form speaks the visitor's language: every refusal a

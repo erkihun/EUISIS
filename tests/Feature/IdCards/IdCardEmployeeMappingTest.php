@@ -16,11 +16,11 @@ use App\Services\IdCards\IdCardAssetResolver;
 use App\Services\IdCards\IdCardRenderDataFactory;
 use App\Services\IdCards\IdCardSvgRenderer;
 use App\Services\PublicIdCheckerService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {

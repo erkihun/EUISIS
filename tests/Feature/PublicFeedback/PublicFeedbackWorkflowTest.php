@@ -3,17 +3,17 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationScopeType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
-use App\Models\PublicFeedbackStatusHistory;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\PublicFeedbackWorkflow;
 use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\PublicFeedbackWorkflow;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackStatusHistory;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

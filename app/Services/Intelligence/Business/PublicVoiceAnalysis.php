@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Intelligence\Business;
 
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
 use App\Models\PositionService;
 use App\Models\Service;
 use App\Services\Intelligence\Analysis\Baseline;
@@ -15,7 +12,6 @@ use App\Services\Intelligence\Insight;
 use App\Services\Intelligence\IntelligenceAnalysis;
 use App\Services\Intelligence\IntelligenceSettings;
 use App\Services\Intelligence\System\RouteGroups;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\Analytics\PublicVoiceAnalytics;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationContext;
@@ -26,6 +22,10 @@ use App\Support\Database\SqlDateBucket;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\FeedbackVisibility;
 
 /**
  * Public Voice Intelligence: what the public said — Feedback, Tip-offs
@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Grants: the area grant opens the aggregates; which TARGETS are counted
  * follows the same per-target grants as the public-feedback inboxes
- * (PublicFeedbackVisibility::applyTargetScope), so an aggregate never carries
+ * (FeedbackVisibility::applyTargetScope), so an aggregate never carries
  * a target type the viewer could not list. Rows written before the unified
  * model carry no target type and are employee submissions.
  */
@@ -64,7 +64,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
         OrganizationRollup $rollup,
         SituationSettings $settings,
         private readonly IntelligenceSettings $intelligence,
-        private readonly PublicFeedbackVisibility $visibility,
+        private readonly FeedbackVisibility $visibility,
         private readonly TechnicalSignalSource $technical,
     ) {
         parent::__construct($rollup, $settings);
@@ -184,7 +184,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
         return $query;
     }
 
-    /** The same rule as PublicFeedbackVisibility::applyTargetScope, on a query builder. */
+    /** The same rule as FeedbackVisibility::applyTargetScope, on a query builder. */
     private function applyTargetScope(Builder $query, SituationContext $context): void
     {
         $types = $this->visibility->visibleTargetTypes($context->user);

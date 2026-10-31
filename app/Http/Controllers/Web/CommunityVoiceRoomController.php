@@ -10,11 +10,8 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ExportSituationRoomReport;
 use App\Models\Employee;
 use App\Models\Organization;
-use App\Models\PublicFeedbackReportExport;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\ServiceFeedback\PublicFeedbackSettings;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\CommunityVoiceRoomService;
 use App\Services\SituationRoom\EmployeeTargetedQuery;
 use App\Services\SituationRoom\SituationPermissions;
@@ -30,6 +27,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\FeedbackReportExports;
+use Modules\Feedback\Contracts\FeedbackSettings;
+use Modules\Feedback\Contracts\FeedbackVisibility;
+use Modules\Feedback\Contracts\ReadModels\FeedbackReportExportRecord;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -45,10 +46,11 @@ class CommunityVoiceRoomController extends Controller
     public function __construct(
         private readonly CommunityVoiceRoomService $room,
         private readonly OrganizationScopeService $scopes,
-        private readonly PublicFeedbackVisibility $visibility,
+        private readonly FeedbackVisibility $visibility,
         private readonly EmployeeTargetedQuery $employees,
         private readonly WriteAuditLogAction $audit,
-        private readonly PublicFeedbackSettings $settings,
+        private readonly FeedbackSettings $settings,
+        private readonly FeedbackReportExports $exports,
     ) {}
 
     public function index(Request $request): Response
@@ -147,21 +149,19 @@ class CommunityVoiceRoomController extends Controller
         $scope = $this->scope($user, $request->input('organization'));
         $filters = SituationRoomFilters::fromInput($request->all());
 
-        $export = PublicFeedbackReportExport::query()->create([
-            'organization_id' => $scope->node?->getKey(),
-            'report' => ExportSituationRoomReport::REPORT,
-            'format' => $data['format'],
-            'filters' => $filters->toArray() + ['locale' => app()->getLocale()],
-            'status' => 'queued',
-            'disk' => 'local',
-            'requested_by' => $user->getKey(),
-        ]);
-        ExportSituationRoomReport::dispatch($export);
+        $exportId = $this->exports->queue(
+            report: ExportSituationRoomReport::REPORT,
+            format: $data['format'],
+            filters: $filters->toArray() + ['locale' => app()->getLocale()],
+            requestedBy: $user->getKey(),
+            organizationId: $scope->node?->getKey(),
+        );
+        ExportSituationRoomReport::dispatch($exportId);
 
         return back()->with('success', __('situation-room.export_queued'));
     }
 
-    public function download(PublicFeedbackReportExport $export): StreamedResponse
+    public function download(FeedbackReportExportRecord $export): StreamedResponse
     {
         abort_unless($export->report === ExportSituationRoomReport::REPORT, 404);
         $this->authorize('download', $export);
@@ -269,13 +269,13 @@ class CommunityVoiceRoomController extends Controller
     /** @return list<array<string, mixed>> */
     private function recentExports(User $user): array
     {
-        return PublicFeedbackReportExport::query()
+        return FeedbackReportExportRecord::query()
             ->where('requested_by', $user->getKey())
             ->where('report', ExportSituationRoomReport::REPORT)
             ->latest('created_at')
             ->limit(5)
             ->get()
-            ->map(fn (PublicFeedbackReportExport $export): array => [
+            ->map(fn (FeedbackReportExportRecord $export): array => [
                 'id' => (string) $export->id,
                 'format' => $export->format,
                 'status' => $export->status,

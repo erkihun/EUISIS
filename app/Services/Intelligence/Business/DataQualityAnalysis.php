@@ -8,7 +8,6 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationDesignStatus;
 use App\Services\Intelligence\IntelligenceAnalysis;
-use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
@@ -20,6 +19,7 @@ use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\FeedbackDataQuality;
 use Modules\Transport\Contracts\TransportDataQuality;
 
 /**
@@ -29,7 +29,7 @@ use Modules\Transport\Contracts\TransportDataQuality;
  * built on it is wrong; WARN: the figure is incomplete), what it affects
  * and where it is fixed. Nothing is corrected here and no record is listed.
  *
- * The public-feedback integrity checks (PublicFeedbackDataQuality) are
+ * The public-feedback integrity checks (FeedbackDataQuality) are
  * installation-wide, so they appear only for an unrestricted viewer.
  */
 final class DataQualityAnalysis extends IntelligenceAnalysis
@@ -244,7 +244,7 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
     /** Installation-wide public-feedback integrity: the FAIL and WARN findings, counts only (never the sample ids). */
     private function publicFeedback(): SituationPanel
     {
-        $findings = array_filter(app(PublicFeedbackDataQuality::class)->run(), fn (array $f): bool => in_array($f['severity'], [PublicFeedbackDataQuality::SEVERITY_FAIL, PublicFeedbackDataQuality::SEVERITY_WARN], true));
+        $findings = array_filter(app(FeedbackDataQuality::class)->run(), fn (array $f): bool => in_array($f['severity'], [FeedbackDataQuality::SEVERITY_FAIL, FeedbackDataQuality::SEVERITY_WARN], true));
         $rows = array_map(fn (array $f): array => [
             'check' => $f['label'],
             'severity' => $this->value('severity_code', $f['severity']),

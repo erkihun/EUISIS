@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\PublicAssistant;
 
-use App\Enums\PublicFeedbackTargetType;
 use App\Services\Intelligence\AI\Contracts\LLMGateway;
 use App\Services\Intelligence\IntelligenceSettings;
-use App\Services\ServiceFeedback\PublicEmployeeFeedbackIdentity;
-use App\Services\ServiceFeedback\PublicFeedbackSettings;
-use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
-use App\Services\ServiceFeedback\TargetContext;
 use App\Support\Phone\PublicContactPhone;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\FeedbackSettings;
+use Modules\Feedback\Contracts\PublicFeedbackTargets;
 use Throwable;
 
 /**
@@ -23,8 +21,8 @@ final class PublicAssistantContextResolver
 {
     public function __construct(
         private readonly PublicAssistantSettings $settings,
-        private readonly PublicFeedbackSettings $feedbackSettings,
-        private readonly PublicFeedbackTargetResolver $resolver,
+        private readonly FeedbackSettings $feedbackSettings,
+        private readonly PublicFeedbackTargets $targets,
         private readonly LLMGateway $gateway,
         private readonly IntelligenceSettings $intelligence,
     ) {}
@@ -64,23 +62,22 @@ final class PublicAssistantContextResolver
     {
         $organization = $kind === 'organization_qr' || ($kind === 'feedback_form' && str_starts_with($path, '/feedback/'));
         try {
-            $context = $organization ? $this->resolver->resolveOrganizationToken($token) : $this->resolver->resolveEmployeeToken($token);
+            $target = $organization ? $this->targets->organization($token, $locale) : $this->targets->employee($token, $locale);
         } catch (Throwable $e) {
             report($e);
 
             return null;
         }
-        if (! $context instanceof TargetContext) {
+        if ($target === null) {
             return null;
         }
 
-        if ($context->targetType === PublicFeedbackTargetType::Organization) {
-            $display = $context->publicDisplay($locale);
-            $phone = PublicContactPhone::parse($context->extras['public_contact_phone'] ?? null)?->toPublicArray();
+        if ($target->type === PublicFeedbackTargetType::Organization) {
+            $phone = PublicContactPhone::parse($target->publicContactPhone)?->toPublicArray();
 
             return [
-                'type' => 'organization', 'name' => (string) ($display['display_name'] ?? ''), 'position_title' => null,
-                'organization_id' => $context->organizationTargetId, 'phone' => $phone,
+                'type' => 'organization', 'name' => $target->name, 'position_title' => null,
+                'organization_id' => $target->organizationId, 'phone' => $phone,
                 'links' => [
                     'landing' => PublicAssistantPageRegistry::relative(route('public-feedback.organization.show', $token)),
                     'feedback' => PublicAssistantPageRegistry::relative(route('public-feedback.organization.form', ['token' => $token, 'type' => 'feedback'])),
@@ -91,10 +88,8 @@ final class PublicAssistantContextResolver
         }
 
         // Employee QR: exactly what the page shows (display name, position title) and nothing else.
-        $identity = PublicEmployeeFeedbackIdentity::fromContext($context, $token, $locale)->toArray();
-
         return [
-            'type' => 'employee', 'name' => (string) ($identity['display_name'] ?? ''), 'position_title' => $identity['position_title'] ?? null,
+            'type' => 'employee', 'name' => $target->name, 'position_title' => $target->positionTitle,
             'organization_id' => null, 'phone' => null,
             'links' => [
                 'landing' => PublicAssistantPageRegistry::relative(route('service-feedback.show', $token)),

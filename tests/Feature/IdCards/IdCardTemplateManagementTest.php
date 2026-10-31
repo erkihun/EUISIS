@@ -21,12 +21,12 @@ use App\Services\IdCards\IdCardPngExporter;
 use App\Services\IdCards\IdCardRenderDataFactory;
 use App\Services\IdCards\IdCardSvgRenderer;
 use App\Services\IdCards\IdCardTemplateService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
 use Spatie\Permission\Models\Permission;
 
 function templatePayload(array $overrides = []): array

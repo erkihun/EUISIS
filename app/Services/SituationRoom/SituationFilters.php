@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom;
 
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\PublicTipType;
-use App\Enums\ServiceFeedbackStatus;
 use Illuminate\Http\Request;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\PublicTipType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 
 /**
  * The filters a Situation Room view accepts, cleaned. Unknown keys are

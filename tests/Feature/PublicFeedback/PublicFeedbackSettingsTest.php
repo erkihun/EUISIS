@@ -5,20 +5,20 @@ declare(strict_types=1);
 use App\Actions\SystemSettings\UpdateSystemSettingsGroupAction;
 use App\Enums\AuditEventType;
 use App\Enums\OrganizationScopeType;
-use App\Enums\SubmitterIdentityMode;
 use App\Models\AuditLog;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackSettings;
+use Modules\Feedback\Domain\Enums\SubmitterIdentityMode;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

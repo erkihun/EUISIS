@@ -14,8 +14,8 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
 use Spatie\Permission\Models\Permission;
 
 function createPageTestCard(int $sequence, CardStatus $status = CardStatus::Active): IdCard

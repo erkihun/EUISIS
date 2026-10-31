@@ -5,8 +5,8 @@ declare(strict_types=1);
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

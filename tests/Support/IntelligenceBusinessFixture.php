@@ -13,13 +13,13 @@ use App\Models\User;
 use App\Services\Intelligence\IntelligenceArea;
 use App\Services\Intelligence\IntelligencePermissions;
 use App\Services\Intelligence\IntelligenceService;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 
 /**
  * Builders for the business intelligence tests on top of the Situation Room

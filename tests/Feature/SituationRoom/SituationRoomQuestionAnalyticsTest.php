@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicFeedbackQuestionSetStatus;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationEdge;
-use App\Models\PublicFeedbackAnswer;
-use App\Models\PublicFeedbackQuestion;
-use App\Models\PublicFeedbackQuestionSet;
 use App\Models\Service;
 use App\Models\User;
-use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\SituationRoom\SituationPermissions;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaire;
+use Modules\Feedback\Domain\Enums\PublicFeedbackQuestionSetStatus;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackAnswer;
+use Modules\Feedback\Domain\Models\PublicFeedbackQuestion;
+use Modules\Feedback\Domain\Models\PublicFeedbackQuestionSet;
 use Tests\Support\SituationRoomScenario;
 
 /*

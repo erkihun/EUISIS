@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\SituationRoom;
 
 use App\Models\Organization;
-use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use Modules\Feedback\Contracts\FeedbackSettings;
 
 /**
  * "Where must management attention go?" — the Attention Required list.
@@ -14,7 +14,7 @@ use App\Services\ServiceFeedback\PublicFeedbackSettings;
  * dates), never from reading complaint text. Rules that need a
  * policy value — a response deadline, an increase threshold, a repetition
  * threshold — stay silent until that value is configured
- * (PublicFeedbackSettings::situationRoomRules); nothing is called overdue or
+ * (FeedbackSettings::situationRoomRules); nothing is called overdue or
  * a spike on an invented number. Items are "information" unless a configured
  * rule is breached, which makes them "warning"; CRITICAL/HIGH grading is a
  * NEEDS_DECISION. Wording stays neutral: a count is not a finding.
@@ -25,7 +25,7 @@ final class AttentionCenter
 
     public function __construct(
         private readonly CommunityVoiceQuery $voice,
-        private readonly PublicFeedbackSettings $settings,
+        private readonly FeedbackSettings $settings,
     ) {}
 
     /**

@@ -11,7 +11,6 @@ use App\Enums\OrganizationRelationshipType;
 use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
@@ -23,6 +22,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\SituationRoom\SituationPermissions;
 use Illuminate\Support\Facades\Cache;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 
 /**
  * The Situation Room fixture: a published hierarchy

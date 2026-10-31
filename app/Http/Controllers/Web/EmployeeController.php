@@ -30,13 +30,13 @@ use App\Services\Hierarchy\HierarchyVersionResolver;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\EmployeeFeedbackQr;
 use Throwable;
 
 class EmployeeController extends Controller
@@ -576,7 +576,7 @@ class EmployeeController extends Controller
         Request $request,
         Employee $employee,
         OrganizationScopeService $organizationScopeService,
-        EmployeeFeedbackTokenService $feedbackTokenService,
+        EmployeeFeedbackQr $feedbackQr,
         IdCardQrCodeRenderer $qrRenderer,
     ): Response {
         $this->authorize('view', $employee);
@@ -599,7 +599,7 @@ class EmployeeController extends Controller
                 ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
                 ->orderBy('name_en')
                 ->get(['id', 'name_en']),
-            'qrCodes' => $this->qrCodes($request, $employee, $feedbackTokenService, $qrRenderer),
+            'qrCodes' => $this->qrCodes($request, $employee, $feedbackQr, $qrRenderer),
             'recentActivity' => $this->recentActivity($request, $employee),
         ]);
     }
@@ -653,7 +653,7 @@ class EmployeeController extends Controller
      *
      * Rendering this section never rotates a token. The feedback token is
      * provisioned only when one is genuinely missing for an active employee
-     * (see EmployeeFeedbackTokenService::ensureActiveTokenFor), which is a
+     * (see EmployeeFeedbackQr::ensureActiveFor), which is a
      * create-if-absent, never a regenerate. A printed QR therefore survives
      * every ordinary edit to the employee record.
      *
@@ -662,7 +662,7 @@ class EmployeeController extends Controller
     private function qrCodes(
         Request $request,
         Employee $employee,
-        EmployeeFeedbackTokenService $feedbackTokenService,
+        EmployeeFeedbackQr $feedbackQr,
         IdCardQrCodeRenderer $qrRenderer,
     ): array {
         $user = $request->user();
@@ -685,13 +685,13 @@ class EmployeeController extends Controller
         $feedback = null;
 
         if ($canManageFeedbackQr) {
-            $token = $feedbackTokenService->ensureActiveTokenFor($employee, $user, $request);
+            $link = $feedbackQr->ensureActiveFor($employee, $user, $request);
 
-            if ($token !== null) {
+            if ($link !== null) {
                 $feedback = [
-                    'url' => $token->publicUrl(),
-                    'qr_svg' => $qrRenderer->asSvgDataUri($token->publicUrl(), 200),
-                    'status' => $token->status->value,
+                    'url' => $link->url,
+                    'qr_svg' => $qrRenderer->asSvgDataUri($link->url, 200),
+                    'status' => $link->status,
                 ];
             }
         }

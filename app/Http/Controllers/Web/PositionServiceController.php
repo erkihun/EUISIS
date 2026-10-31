@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\Position;
 use App\Models\PositionService;
@@ -20,6 +19,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 use Modules\Performance\Contracts\PositionPerformance;
 
 /**
@@ -311,7 +311,7 @@ class PositionServiceController extends Controller
 
     private function feedbackExistsFor(PositionService $record): bool
     {
-        return EmployeeServiceFeedback::query()
+        return ServiceFeedbackRecord::query()
             ->where('position_service_id', $record->getKey())
             ->exists();
     }

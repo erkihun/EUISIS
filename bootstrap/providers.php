@@ -10,6 +10,7 @@ use Modules\Communication\Providers\CommunicationServiceProvider;
 use Modules\DailyWork\Providers\DailyWorkServiceProvider;
 use Modules\Discipline\Providers\DisciplineServiceProvider;
 use Modules\Entitlements\Providers\EntitlementsServiceProvider;
+use Modules\Feedback\Providers\FeedbackServiceProvider;
 use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Grievance\Providers\GrievanceServiceProvider;
 use Modules\Performance\Providers\PerformanceServiceProvider;
@@ -38,4 +39,5 @@ return [
     FieldWorkServiceProvider::class,
     ServiceMonitoringServiceProvider::class,
     ReceptionServiceProvider::class,
+    FeedbackServiceProvider::class,
 ];

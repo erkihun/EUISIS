@@ -27,7 +27,6 @@ use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Services\Organizations\OrganizationStatisticsService;
 use App\Services\Organizations\ParentOrganizationOptionsService;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrAccess;
 use App\Support\MapConfig;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DateTimeInterface;
@@ -38,6 +37,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\OrganizationFeedbackQrPermissions;
 
 class OrganizationController extends Controller
 {
@@ -305,7 +305,7 @@ class OrganizationController extends Controller
                 'archive' => $user?->can('archive', $organization) ?? false,
                 'deactivate' => $user?->can('deactivate', $organization) ?? false,
                 'createChild' => $user?->can('createChild', $organization) ?? false,
-                'feedbackQr' => $user !== null && app(OrganizationFeedbackQrAccess::class)->can($user, 'view', $organization),
+                'feedbackQr' => $user !== null && app(OrganizationFeedbackQrPermissions::class)->can($user, 'view', $organization),
             ],
             'deletionBlockers' => $organizationDeletionGuard->reasons($organization),
         ]);

@@ -3,17 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationScopeType;
-use App\Enums\ServiceFeedbackStatus;
 use App\Http\Middleware\RequestCorrelationId;
-use App\Jobs\ExportPublicFeedbackReport;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
-use App\Models\PublicFeedbackReportExport;
-use App\Models\PublicFeedbackRoutingRule;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use Illuminate\Contracts\Notifications\Dispatcher as NotificationDispatcher;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Log\Events\MessageLogged;
@@ -23,6 +17,12 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackReportExport;
+use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
+use Modules\Feedback\Infrastructure\Jobs\ExportPublicFeedbackReport;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

@@ -3,24 +3,24 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationScopeType;
-use App\Enums\PublicFeedbackHandlerType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
-use App\Models\PublicFeedbackAssignment;
-use App\Models\PublicFeedbackRoutingRule;
-use App\Models\PublicFeedbackStatusHistory;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
-use App\Services\ServiceFeedback\PublicFeedbackRoutingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackAssignmentService;
+use Modules\Feedback\Application\Services\PublicFeedbackRoutingService;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
+use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
+use Modules\Feedback\Domain\Models\PublicFeedbackStatusHistory;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 /**
  * A service a position delivers to the public.
@@ -75,7 +76,7 @@ class PositionService extends Model
 
     public function feedback(): HasMany
     {
-        return $this->hasMany(EmployeeServiceFeedback::class, 'position_service_id');
+        return $this->hasMany(ServiceFeedbackRecord::class, 'position_service_id');
     }
 
     public function creator(): BelongsTo

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use App\Enums\ServiceFeedbackStatus;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
-use App\Models\PublicFeedbackAssignment;
-use App\Models\PublicFeedbackReportExport;
-use App\Models\PublicFeedbackStatusHistory;
 use App\Models\User;
-use App\Services\ServiceFeedback\PublicFeedbackWorkflow;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\PublicFeedbackWorkflow;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
+use Modules\Feedback\Domain\Models\PublicFeedbackReportExport;
+use Modules\Feedback\Domain\Models\PublicFeedbackStatusHistory;
 use Tests\Support\SituationRoomScenario;
 
 /*

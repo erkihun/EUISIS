@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Models\OrganizationFeedbackQrCode;
 use App\Models\SystemSetting;
 use App\Models\User;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Str;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Domain\Models\OrganizationFeedbackQrCode;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

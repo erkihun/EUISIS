@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationScopeType;
-use App\Enums\PublicFeedbackQuestionSetStatus;
 use App\Models\AuditLog;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
-use App\Models\PublicFeedbackQuestionSet;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackQuestionnaireAdmin;
-use App\Services\ServiceFeedback\PublicFeedbackQuestionnaireTemplate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaireAdmin;
+use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaireTemplate;
+use Modules\Feedback\Domain\Enums\PublicFeedbackQuestionSetStatus;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackQuestionSet;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

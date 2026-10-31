@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 use App\Enums\AuditEventType;
 use App\Enums\OrganizationScopeType;
-use App\Enums\PublicFeedbackHandlerType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
 use App\Models\AuditLog;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
-use App\Models\PublicFeedbackReportExport;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
-use App\Services\ServiceFeedback\PublicFeedbackMetrics;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackAssignmentService;
+use Modules\Feedback\Application\Services\PublicFeedbackMetrics;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackReportExport;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

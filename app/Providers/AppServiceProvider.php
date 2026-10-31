@@ -12,7 +12,6 @@ use App\Models\CodeRule;
 use App\Models\DesignImportBatch;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
 use App\Models\GradeLevel;
 use App\Models\IdCard;
@@ -39,7 +38,6 @@ use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
 use App\Models\PositionService;
 use App\Models\Process;
-use App\Models\PublicFeedbackReportExport;
 use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\Service;
@@ -59,7 +57,6 @@ use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
 use App\Policies\DesignImportBatchPolicy;
 use App\Policies\EmployeePolicy;
-use App\Policies\EmployeeServiceFeedbackPolicy;
 use App\Policies\EmployeeTransferPolicy;
 use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
@@ -84,7 +81,6 @@ use App\Policies\PositionEstablishmentPolicy;
 use App\Policies\PositionPolicy;
 use App\Policies\PositionServicePolicy;
 use App\Policies\ProcessPolicy;
-use App\Policies\PublicFeedbackReportExportPolicy;
 use App\Policies\PublicHolidayPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\ServiceClassificationPolicy;
@@ -113,8 +109,6 @@ use App\Services\Employees\NullEmployeeLeaveProvider;
 use App\Services\Integration\Events\IntegrationEventContext;
 use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\Security\SessionActivityService;
-use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
-use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -149,8 +143,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(SituationMemo::class);
         // Event integration: one correlation id and suppression set per request / job.
         $this->app->scoped(IntegrationEventContext::class);
-        // One instance per request: validation, rendering and storage read the same questionnaire version.
-        $this->app->scoped(PublicFeedbackQuestionnaire::class);
         // One instance per request / job: holds the employees whose membership sync waits for the commit.
 
         $this->app->singleton(RuntimeMailSettings::class);
@@ -232,7 +224,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);
-        Gate::policy(EmployeeServiceFeedback::class, EmployeeServiceFeedbackPolicy::class);
         Gate::policy(PositionService::class, PositionServicePolicy::class);
         Gate::policy(EmployeeTransfer::class, EmployeeTransferPolicy::class);
         Gate::policy(TransferSetting::class, TransferSettingPolicy::class);
@@ -260,7 +251,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PositionProfile::class, PositionDesignPolicy::class);
         Gate::policy(JobDescription::class, PositionDesignPolicy::class);
         Gate::policy(OrganizationDesignReportExport::class, OrganizationDesignReportExportPolicy::class);
-        Gate::policy(PublicFeedbackReportExport::class, PublicFeedbackReportExportPolicy::class);
         Gate::policy(WorkforcePlanningMethodology::class, WorkforcePlanningMethodologyPolicy::class);
         Gate::policy(ServiceClassification::class, ServiceClassificationPolicy::class);
         Gate::policy(IsicActivity::class, IsicActivityPolicy::class);
@@ -351,47 +341,6 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('id-checker-verify-otp', fn (Request $request): array => [
             Limit::perMinute(5)->by('pic-verify:'.$request->route('cardUuid').'|'.$request->ip()),
-        ]);
-
-        /*
-         * Public service feedback submission.
-         *
-         * Two ceilings on purpose. The first stops one client hammering a
-         * single employee's QR to bury them in ratings; the second stops one
-         * address spraying fabricated feedback across many employees. Without
-         * the second, a script could rate every desk in a building from one
-         * machine and still stay under a per-token limit.
-         */
-        // Brief §37–38: per QR code and per address, thresholds from the public feedback policy.
-        RateLimiter::for('service-feedback-submit', function (Request $request): array {
-            $perSource = 3;
-            $perIp = 8;
-
-            try {
-                if (Schema::hasTable('system_settings')) {
-                    $policy = app(PublicFeedbackSettings::class);
-                    $perSource = $policy->rateLimitPerSource();
-                    $perIp = $policy->rateLimitPerIp();
-                }
-            } catch (Throwable) {
-                // Defaults stand while the database is unavailable.
-            }
-
-            return [
-                Limit::perMinutes(10, $perSource)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
-                Limit::perMinutes(10, $perIp)->by('sf-submit-ip:'.$request->ip()),
-            ];
-        });
-
-        /*
-         * The photo on the employee feedback page: about one request per screen
-         * of a visit, and the browser reuses it, so this only stops a script
-         * pulling photos in bulk. The per-IP ceiling stays generous because a
-         * whole service hall can share one mobile carrier address.
-         */
-        RateLimiter::for('service-feedback-photo', fn (Request $request): array => [
-            Limit::perMinute(30)->by('sf-photo:'.$request->route('token').'|'.$request->ip()),
-            Limit::perMinute(120)->by('sf-photo-ip:'.$request->ip()),
         ]);
 
         RateLimiter::for('api', function (Request $request): array {

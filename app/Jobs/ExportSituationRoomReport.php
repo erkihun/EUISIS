@@ -7,9 +7,7 @@ namespace App\Jobs;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Exports\PublicFeedbackSubmissionsExport;
-use App\Models\PublicFeedbackReportExport;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\CommunityVoiceQuery;
 use App\Services\SituationRoom\SituationRoomFilters;
 use App\Services\SituationRoom\SituationRoomScope;
@@ -20,6 +18,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel as ExcelFacade;
+use Modules\Feedback\Contracts\FeedbackReportExports;
+use Modules\Feedback\Contracts\FeedbackVisibility;
+use Modules\Feedback\Contracts\ReadModels\FeedbackReportExportRecord;
 use Throwable;
 
 /**
@@ -43,11 +44,11 @@ class ExportSituationRoomReport implements ShouldQueue
 
     public int $timeout = 600;
 
-    public function __construct(public PublicFeedbackReportExport $export) {}
+    public function __construct(public string $exportId) {}
 
-    public function handle(CommunityVoiceQuery $voice, OrganizationScopeService $scopes, PublicFeedbackVisibility $visibility, WriteAuditLogAction $audit): void
+    public function handle(CommunityVoiceQuery $voice, OrganizationScopeService $scopes, FeedbackVisibility $visibility, FeedbackReportExports $exports, WriteAuditLogAction $audit): void
     {
-        $export = $this->export->fresh();
+        $export = FeedbackReportExportRecord::query()->find($this->exportId);
 
         if ($export === null || $export->status !== 'queued') {
             return;
@@ -56,7 +57,7 @@ class ExportSituationRoomReport implements ShouldQueue
         $requester = $export->requester;
 
         if ($requester === null || ! $requester->can('situation_room.export')) {
-            $export->forceFill(['status' => 'failed', 'error' => 'requester missing or no longer allowed', 'completed_at' => now()])->save();
+            $exports->markFailed($export->getKey(), 'requester missing or no longer allowed');
 
             return;
         }
@@ -92,7 +93,8 @@ class ExportSituationRoomReport implements ShouldQueue
 
             ExcelFacade::store(new PublicFeedbackSubmissionsExport(self::COLUMNS, $labels, $rows, $csv), $path, $export->disk, $csv ? Excel::CSV : Excel::XLSX);
 
-            $export->forceFill(['status' => 'ready', 'path' => $path, 'filename' => $filename, 'row_count' => count($rows), 'completed_at' => now()])->save();
+            $exports->markReady($export->getKey(), $path, $filename, count($rows));
+            $export->refresh();
 
             $audit->execute(
                 eventType: AuditEventType::SituationRoomExportRequested,
@@ -103,7 +105,7 @@ class ExportSituationRoomReport implements ShouldQueue
                 reason: 'Situation Room institutions export built',
             );
         } catch (Throwable $exception) {
-            $export->forceFill(['status' => 'failed', 'error' => mb_substr($exception->getMessage(), 0, 2000), 'completed_at' => now()])->save();
+            $exports->markFailed($export->getKey(), $exception->getMessage());
 
             throw $exception;
         }
@@ -111,6 +113,6 @@ class ExportSituationRoomReport implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        $this->export->fresh()?->forceFill(['status' => 'failed', 'error' => mb_substr($exception->getMessage(), 0, 2000), 'completed_at' => now()])->save();
+        app(FeedbackReportExports::class)->markFailed($this->exportId, $exception->getMessage());
     }
 }

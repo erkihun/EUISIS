@@ -3,23 +3,23 @@
 declare(strict_types=1);
 
 use App\Enums\AuditEventType;
-use App\Enums\OrganizationFeedbackQrStatus;
 use App\Enums\OrganizationScopeType;
-use App\Enums\PublicFeedbackSourceType;
-use App\Enums\PublicFeedbackTargetType;
 use App\Models\AuditLog;
 use App\Models\Organization;
-use App\Models\OrganizationFeedbackQrCode;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackTargetResolver;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Domain\Enums\OrganizationFeedbackQrStatus;
+use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
+use Modules\Feedback\Domain\Models\OrganizationFeedbackQrCode;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

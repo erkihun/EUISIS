@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
-use App\Models\PublicFeedbackRoutingRule;
-use App\Models\PublicFeedbackStatusHistory;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackDataQuality;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
+use Modules\Feedback\Domain\Models\PublicFeedbackStatusHistory;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

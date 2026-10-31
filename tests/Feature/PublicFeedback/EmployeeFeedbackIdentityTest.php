@@ -6,18 +6,18 @@ use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\IdCard;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackFormToken;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

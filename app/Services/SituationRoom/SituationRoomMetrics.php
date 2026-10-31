@@ -45,7 +45,7 @@ final class SituationRoomMetrics
     public const TOP_N = 10;
 
     // Permissions. Narrative needs VIEW_DETAIL; submitter identity and attachments keep the
-    // existing service_feedback grants (PublicFeedbackVisibility).
+    // existing service_feedback grants (FeedbackVisibility).
     public const PERMISSION_VIEW = 'situation_room.view';
 
     public const PERMISSION_EMPLOYEE_TARGETED = 'situation_room.view_employee_targeted';

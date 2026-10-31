@@ -8,9 +8,9 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\BackupHealthNotification;
 use App\Services\Branding\BrandingService;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackTargetResolver;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

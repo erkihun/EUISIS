@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Performance\Application\Services;
 
-use App\Models\EmployeeServiceFeedback;
 use Illuminate\Support\Carbon;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 use Modules\Performance\Contracts\Data\AgreementStatus;
 use Modules\Performance\Domain\Enums\KpiDataSource;
 use Modules\Performance\Domain\Models\EmployeePerformanceItem;
@@ -30,7 +30,7 @@ final class ServiceFeedbackPerformanceSync
     public function __construct(private readonly KpiActualService $actuals) {}
 
     /** @return int number of agreement items re-measured */
-    public function sync(EmployeeServiceFeedback $feedback): int
+    public function sync(ServiceFeedbackRecord $feedback): int
     {
         if ($feedback->organization_id === null || $feedback->position_id === null) {
             return 0;

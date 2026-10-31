@@ -40,6 +40,8 @@ const MODULE_DEV_TOOLING = [
     'App\\Support\\Demo\\DemoDataValidator' => 'app/Support/Demo/DemoDataValidator.php',
     'App\\Console\\Commands\\Scale\\GenerateScaleData' => 'app/Console/Commands/Scale/GenerateScaleData.php',
     'App\\Console\\Commands\\Scale\\ExportApiLoadTestData' => 'app/Console/Commands/Scale/ExportApiLoadTestData.php',
+    'App\\Console\\Commands\\Scale\\SeedPublicFeedbackScale' => 'app/Console/Commands/Scale/SeedPublicFeedbackScale.php',
+    'App\\Console\\Commands\\Scale\\ExportLoadTestData' => 'app/Console/Commands/Scale/ExportLoadTestData.php',
 ];
 
 /*
@@ -113,6 +115,21 @@ const MODULE_TABLE_READERS = [
         'app/Services/SituationRoom/Analytics/PerformanceAnalytics.php' => 'reporting',
         'app/Services/SituationRoom/Analytics/CaseSummaryAnalytics.php' => 'reporting',
         'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
+    ],
+    'Feedback' => [
+        // Production readiness counts active routing rules and institutions with an active QR.
+        'app/Console/Commands/ProductionReadiness.php' => 'reporting',
+        // Intelligence reports count submissions, QR coverage and services rated, by scope and target grants (totals only).
+        'app/Services/Intelligence/Business/DataQualityAnalysis.php' => 'reporting',
+        'app/Services/Intelligence/Business/PublicVoiceAnalysis.php' => 'reporting',
+        'app/Services/Intelligence/Business/ServiceAnalysis.php' => 'reporting',
+        // Situation Room panels aggregate submissions within the viewer's scope and target grants (totals only).
+        'app/Services/SituationRoom/Analytics/CriticalAttentionAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/Analytics/DataQualityAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/Analytics/PublicVoiceAnalytics.php' => 'reporting',
+        'app/Services/SituationRoom/Analytics/ServiceDeliveryAnalytics.php' => 'reporting',
+        // The attention wall counts institutions without an active feedback QR.
+        'app/Services/SituationRoom/AttentionCenter.php' => 'reporting',
     ],
 ];
 

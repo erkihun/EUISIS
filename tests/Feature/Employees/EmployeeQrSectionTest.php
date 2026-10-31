@@ -8,7 +8,6 @@ use App\Enums\EmployeeStatus;
 use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeFeedbackToken;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
@@ -17,8 +16,9 @@ use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\IdCards\CardQrPayloadService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Domain\Models\EmployeeFeedbackToken;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

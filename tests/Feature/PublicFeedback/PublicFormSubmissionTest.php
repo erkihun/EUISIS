@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
 
 /*

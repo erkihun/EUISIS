@@ -32,7 +32,7 @@ is allowed).
 | Assessment | 13 | DIRECT_CORE_ACCESS | none | none | none |
 | Daily work | 12 | DIRECT_CORE_ACCESS | none | none | none |
 | Field work | 8 | DIRECT_CORE_ACCESS | none | none | none |
-| Public / service feedback | 17 | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core | implements `EmployeeFeedbackLinks` | none | none |
+| Public / service feedback (`Modules/Feedback`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | see the ratchet | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core from its provider | implements `EmployeeFeedbackLinks` | none | none |
 | Reception / information desk (`Modules/Reception`) | 5 | DIRECT_CORE_ACCESS (scoped identity and organization/service directory reads) | organization-scope, audit, code-rule and work-calendar platform services | none | none |
 | Grievance | 15 | DIRECT_CORE_ACCESS | none | none | none |
 | Discipline / appeal | 3 | DIRECT_CORE_ACCESS | none | none | none |

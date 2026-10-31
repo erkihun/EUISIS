@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicFeedbackQuestionSetStatus;
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\PublicServiceTimeBand;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
-use App\Enums\SubmitterIdentityMode;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
-use App\Models\PublicFeedbackAnswer;
-use App\Models\PublicFeedbackQuestionSet;
 use App\Models\Service;
 use App\Models\User;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
-use App\Services\ServiceFeedback\PublicFeedbackAnswerStatistics;
-use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
-use App\Services\ServiceFeedback\PublicFeedbackQuestionnaireAdmin;
-use App\Services\ServiceFeedback\PublicOrganizationServiceContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Application\Services\PublicFeedbackAnswerStatistics;
+use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaire;
+use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaireAdmin;
+use Modules\Feedback\Application\Services\PublicOrganizationServiceContext;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Domain\Enums\PublicFeedbackQuestionSetStatus;
+use Modules\Feedback\Domain\Enums\PublicServiceTimeBand;
+use Modules\Feedback\Domain\Enums\SubmitterIdentityMode;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackAnswer;
+use Modules\Feedback\Domain\Models\PublicFeedbackQuestionSet;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\PublicFeedbackScenario;
 

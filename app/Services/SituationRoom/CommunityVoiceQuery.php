@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom;
 
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Support\Database\SqlDateBucket;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Modules\Feedback\Contracts\FeedbackVisibility;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 /**
  * "What is the community saying?" — every Situation Room figure about public
@@ -22,16 +22,16 @@ final class CommunityVoiceQuery
 {
     private const T = 'employee_service_feedback';
 
-    public function __construct(private readonly PublicFeedbackVisibility $visibility) {}
+    public function __construct(private readonly FeedbackVisibility $visibility) {}
 
     /**
      * Visible, in-scope submissions, narrowed by the filters and (unless null) a date range.
      *
-     * @return Builder<EmployeeServiceFeedback>
+     * @return Builder<ServiceFeedbackRecord>
      */
     public function base(SituationRoomScope $scope, SituationRoomFilters $filters, ?Carbon $from = null, ?Carbon $to = null): Builder
     {
-        $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query(), $scope->user);
+        $query = $this->visibility->applyTargetScope(ServiceFeedbackRecord::query(), $scope->user);
         $query->whereNotIn(self::T.'.status', SituationRoomMetrics::EXCLUDED_STATUSES);
 
         if ($scope->user->employee_id !== null) {

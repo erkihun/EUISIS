@@ -7,10 +7,10 @@ use App\Models\User;
 use App\Services\Intelligence\Knowledge\KnowledgeDocumentService;
 use App\Services\PublicAssistant\PublicAssistantContextResolver;
 use App\Services\PublicAssistant\PublicAssistantToolRegistry;
-use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
 use Tests\Support\PublicFeedbackScenario;
 
 /*
