@@ -38,5 +38,9 @@ return [
     'invalid_target_unit' => 'የመድረሻ የሥራ ክፍል ንቁ፣ በተመሳሳይ ተቋም ውስጥ እና በእርስዎ ወሰን ውስጥ መሆን አለበት።',
     'move_reason_required' => 'የማንቀሳቀስ ምክንያት ያስፈልጋል።',
     'archived_position_cannot_move' => 'በማህደር የተቀመጠ ወይም ንቁ ያልሆነ የሥራ መደብ ሊንቀሳቀስ አይችልም።',
+    'unit_head_taken' => 'ይህ የሥራ ክፍል የኃላፊ የሥራ መደብ አለው፦ :position። መጀመሪያ ያንን ምልክት ያንሱ።',
     'archive_blocked_active_assignments' => 'ይህ የሥራ መደብ በማህደር ሊቀመጥ አይችልም፦ :count ንቁ ምደባ(ዎች) አሁንም በላዩ ላይ አሉ። መጀመሪያ እነዚያን ምደባዎች ያዛውሩ ወይም ያጠናቅቁ።',
+    'organization_required' => 'ይህ የሥራ መደብ የሚገኝበትን ተቋም ይምረጡ።',
+    'lifecycle_changed' => 'የሥራ መደቡ ሁኔታ ተቀይሯል።',
+    'job_master_saved' => 'የሥራ መሠረታዊ መረጃው ተቀምጧል።',
 ];

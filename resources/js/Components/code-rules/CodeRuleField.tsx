@@ -87,7 +87,10 @@ export default function CodeRuleField({
         if (abortRef.current) {
             abortRef.current.abort();
         }
-        abortRef.current = new AbortController();
+        const controller = new AbortController();
+        abortRef.current = controller;
+        // Only the latest request may touch the field; a superseded one is cancelled.
+        const superseded = () => abortRef.current !== controller;
 
         setLoading(true);
         setFetchError(null);
@@ -97,10 +100,11 @@ export default function CodeRuleField({
                 route('code-rules.preview-code'),
                 buildRequestBody(),
                 {
-                signal: abortRef.current.signal,
+                signal: controller.signal,
                 },
             );
 
+            if (superseded()) return;
             const data = response.data;
             setPreview(data);
 
@@ -109,7 +113,10 @@ export default function CodeRuleField({
                 onChange('');
             }
         } catch (err) {
-            if (err instanceof Error && err.name === 'AbortError') return;
+            // axios reports a cancelled request as CanceledError (ERR_CANCELED), fetch as AbortError.
+            const cancelled = err instanceof Error
+                && (err.name === 'AbortError' || err.name === 'CanceledError' || (err as { code?: string }).code === 'ERR_CANCELED');
+            if (cancelled || superseded()) return;
             const message =
                 typeof err === 'object' &&
                 err !== null &&
@@ -121,7 +128,7 @@ export default function CodeRuleField({
             setFetchError(message);
             setPreview(null);
         } finally {
-            setLoading(false);
+            if (!superseded()) setLoading(false);
         }
     }, [buildRequestBody, isEditReadOnly, isManualMode, onChange, t]);
 

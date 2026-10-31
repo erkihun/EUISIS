@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\Performance\AgreementStatus;
-use App\Enums\Performance\AppealStatus;
-use App\Enums\Performance\PlanStatus;
-use App\Enums\Performance\ResultStatus;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Performance\Contracts\Data\AgreementStatus;
+use Modules\Performance\Contracts\Data\AppealStatus;
+use Modules\Performance\Contracts\Data\PlanStatus;
+use Modules\Performance\Contracts\Data\ResultStatus;
 
 /**
  * Performance (EPMS) progress for the current cycle(s): how far planning,

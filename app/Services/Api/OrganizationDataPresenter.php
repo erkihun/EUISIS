@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Api;
 
 use App\Backbone\Data\AssignmentContext;
+use App\Enums\AssignmentStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -54,6 +55,21 @@ class OrganizationDataPresenter
                 ]
                 : null,
             'status' => $this->scalar($organization->status),
+            'short_name_en' => $organization->short_name_en,
+            'short_name_am' => $organization->short_name_am,
+            'contact' => [
+                'phone' => $organization->public_contact_phone,
+                'email' => $organization->official_email,
+                'website' => $organization->website,
+                'po_box' => $organization->po_box,
+            ],
+            'location' => [
+                'address_en' => $organization->address_en,
+                'address_am' => $organization->address_am,
+                'latitude' => $organization->latitude,
+                'longitude' => $organization->longitude,
+                'geofence_radius_m' => $organization->geofence_radius_m,
+            ],
             'updated_at' => $organization->updated_at?->toIso8601String(),
         ];
     }
@@ -92,7 +108,7 @@ class OrganizationDataPresenter
     {
         $occupied = $position->current_assignments_count !== null
             ? $position->current_assignments_count > 0
-            : $position->assignments()->where('is_current', true)->exists();
+            : $position->assignments()->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)->exists();
 
         return [
             'id' => $position->id,

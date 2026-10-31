@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Performance\Contracts\ReadModels\EmployeePerformanceAgreementRecord;
 
 /**
  * Competency rating inside an agreement (the employee self-rates; the manager rating counts).
@@ -38,7 +39,7 @@ class EmployeeCompetencyAssessment extends Model
 
     public function agreement(): BelongsTo
     {
-        return $this->belongsTo(EmployeePerformanceAgreement::class, 'agreement_id');
+        return $this->belongsTo(EmployeePerformanceAgreementRecord::class, 'agreement_id');
     }
 
     public function competency(): BelongsTo

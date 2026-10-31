@@ -14,8 +14,9 @@ use App\Support\Features;
  * launcher, the routes, the controller and the tests all read this list, so
  * adding a category is one case here plus its analytics class.
  *
- * Transport follows its module flag (config/features.php): off, the
- * category is not listed and its route answers 404 like the module.
+ * Transport and Service Monitoring follow their module flags
+ * (config/features.php): off, the category is not listed and its route
+ * answers 404 like the module.
  */
 enum SituationCategory: string
 {
@@ -30,6 +31,7 @@ enum SituationCategory: string
     case Performance = 'performance';
     case Movement = 'movement';
     case FieldWork = 'field_work';
+    case ServiceMonitoring = 'service_monitoring';
     case Cafeteria = 'cafeteria';
     case Transport = 'transport';
     case Cases = 'cases';
@@ -44,7 +46,7 @@ enum SituationCategory: string
             self::Overview, self::Structure, self::CriticalAttention, self::Trends, self::DataQuality => SituationPermissions::VIEW,
             self::Workforce, self::Movement => SituationPermissions::WORKFORCE,
             self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs => SituationPermissions::PUBLIC_VOICE,
-            self::DailyOperations, self::FieldWork => SituationPermissions::OPERATIONS,
+            self::DailyOperations, self::FieldWork, self::ServiceMonitoring => SituationPermissions::OPERATIONS,
             self::Performance => SituationPermissions::PERFORMANCE,
             self::Cafeteria => SituationPermissions::CAFETERIA,
             self::Transport => SituationPermissions::TRANSPORT,
@@ -59,7 +61,7 @@ enum SituationCategory: string
             self::Overview, self::CriticalAttention, self::Trends => 'command',
             self::Workforce, self::Structure, self::Movement => 'people',
             self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs => 'public_voice',
-            self::DailyOperations, self::Performance, self::FieldWork, self::Cafeteria, self::Transport => 'operations',
+            self::DailyOperations, self::Performance, self::FieldWork, self::ServiceMonitoring, self::Cafeteria, self::Transport => 'operations',
             self::Cases, self::DataQuality => 'governance',
         };
     }
@@ -79,6 +81,7 @@ enum SituationCategory: string
             self::Performance => 'TrendingUpIcon',
             self::Movement => 'ArrowLeftRightIcon',
             self::FieldWork => 'MapPinned',
+            self::ServiceMonitoring => 'ClipboardCheckIcon',
             self::Cafeteria => 'ReceiptTextIcon',
             self::Transport => 'BusIcon',
             self::Cases => 'ScaleIcon',
@@ -97,6 +100,9 @@ enum SituationCategory: string
     public function visibleTo(User $user): bool
     {
         if ($this === self::Transport && ! Features::enabled('transport')) {
+            return false;
+        }
+        if ($this === self::ServiceMonitoring && ! Features::enabled('service_monitoring')) {
             return false;
         }
 

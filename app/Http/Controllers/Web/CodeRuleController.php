@@ -27,7 +27,6 @@ use App\Models\CodeRuleSequence;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
-use App\Models\ServiceType;
 use App\Services\CodeGeneration\CodeFormatTokenRegistry;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
@@ -36,6 +35,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class CodeRuleController extends Controller
 {
@@ -393,10 +393,10 @@ class CodeRuleController extends Controller
                         'id' => $organizationUnitType->id,
                         'label' => trim(($organizationUnitType->prefix ?? $organizationUnitType->code ?? '').' - '.$organizationUnitType->name_en, ' -'),
                     ]),
-                CodeRuleScopeType::ServiceType->value => ServiceType::query()
+                CodeRuleScopeType::ServiceType->value => ServiceTypeRecord::query()
                     ->orderBy('name_en')
                     ->get(['id', 'name_en', 'code'])
-                    ->map(fn (ServiceType $serviceType): array => [
+                    ->map(fn (ServiceTypeRecord $serviceType): array => [
                         'id' => $serviceType->id,
                         'label' => "{$serviceType->code} - {$serviceType->name_en}",
                     ]),

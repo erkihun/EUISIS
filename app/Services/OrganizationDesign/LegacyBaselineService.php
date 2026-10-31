@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign;
 
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\OrganizationDesignStatus;
 use App\Models\InstitutionMandate;
 use App\Models\LegacyBaseline;
@@ -341,13 +343,10 @@ class LegacyBaselineService
         }
     }
 
+    /** From the legacy-baseline code rule (LOB-YYYY-NNNN by default). */
     private function nextReference(): string
     {
-        $prefix = self::PREFIX.'-'.now()->format('Y').'-';
-        $last = LegacyBaseline::query()->withTrashed()->where('reference_number', 'like', $prefix.'%')->lockForUpdate()->orderByDesc('reference_number')->value('reference_number');
-        $next = $last === null ? 1 : ((int) substr((string) $last, strlen($prefix))) + 1;
-
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::LegacyBaseline, [], null, null, 'reference_number');
     }
 
     /** @return array<string, mixed> */

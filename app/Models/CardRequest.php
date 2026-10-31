@@ -61,6 +61,23 @@ class CardRequest extends Model
         return $this->requested_by !== null && (string) $this->requested_by === (string) $user->getKey();
     }
 
+    /**
+     * The workflow state allows this step: verify a submitted request, approve
+     * a submitted or verified one, reject or cancel any that is not closed.
+     * A state rule, not a permission, so it binds a Super Admin too.
+     */
+    public function allowsStep(string $step): bool
+    {
+        $closed = in_array($this->status, [CardRequestStatus::Approved, CardRequestStatus::Rejected, CardRequestStatus::Cancelled], true);
+
+        return match ($step) {
+            'verify' => $this->status === CardRequestStatus::Submitted,
+            'approve' => in_array($this->status, [CardRequestStatus::Submitted, CardRequestStatus::Verified], true),
+            'reject', 'cancel' => ! $closed,
+            default => true,
+        };
+    }
+
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');

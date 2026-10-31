@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { Button, FormField, Input } from '@euisis/ui';
+import { Button, FormField, Input, Textarea } from '@euisis/ui';
 import { useState, type FormEvent } from 'react';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import OrganizationPicker from './OrganizationPicker';
@@ -67,7 +67,7 @@ export function ContractForm({ contract, today, providers, models, periods, term
             </Section>
             <Section title={t('transport.agreement')}>
                 <FormField label={t('transport.serviceCoverage')} error={form.errors.service_coverage} className="sm:col-span-2">
-                    {({ id }) => <textarea id={id} rows={3} className="w-full rounded-control border border-(--app-border) bg-(--app-surface) px-3 py-2 text-sm" value={form.data.service_coverage} onChange={(e) => form.setData('service_coverage', e.target.value)} />}
+                    {({ id }) => <Textarea id={id} rows={3} value={form.data.service_coverage} onChange={(e) => form.setData('service_coverage', e.target.value)} />}
                 </FormField>
                 <FormField label={t('transport.agreementFile')} description={t('transport.agreementFileHelp')} error={form.errors.agreement} className="sm:col-span-2">
                     {({ id }) => <Input id={id} type="file" accept="application/pdf" onChange={(e) => form.setData('agreement', e.target.files?.[0] ?? null)} />}

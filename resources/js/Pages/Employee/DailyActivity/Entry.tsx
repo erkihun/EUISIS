@@ -8,7 +8,7 @@ import ItemsReadOnly from '@/Components/dailyActivity/ItemsReadOnly';
 import {
     dangerBtn, fill, formatBytes, inputCls, labelCls, named, panelCls, primaryBtn, secondaryBtn,
 } from '@/Components/dailyActivity/helpers';
-import type { ActivityItem, EmployeeRef, LogDetail, Named, Option, WorkStructure } from '@/Components/dailyActivity/types';
+import type { ActivityItem, EmployeeRef, KpiOption, LogDetail, Named, Option, WorkStructure } from '@/Components/dailyActivity/types';
 import { ScoreRow, StandardSummary, hoursMinutes, minutesBetween, previewScores } from '@/Components/dailyActivity/WorkExecution';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -26,7 +26,7 @@ type Props = {
     tasks?: Option[];
     /** Service → sub-service → main task → standard in force on the date. */
     work_structure?: WorkStructure;
-    kpis?: (Option & { unit?: string | null })[];
+    kpis?: KpiOption[];
     options?: { categories: string[]; progress_statuses: string[] };
     rules?: {
         enabled: boolean;
@@ -153,7 +153,7 @@ type BodyProps = Props & {
     options: NonNullable<Props['options']>;
     tasks: Option[];
     structure: WorkStructure;
-    kpis: Option[];
+    kpis: KpiOption[];
     t: (key: string) => string;
     locale: string;
     confirm: ReturnType<typeof useConfirm>['confirm'];
@@ -570,7 +570,7 @@ type EditorProps = {
     structure: WorkStructure;
     structuredRequired: boolean;
     scoreRule: 'applicable_average' | 'all_three';
-    kpis: Option[];
+    kpis: KpiOption[];
     options: { categories: string[]; progress_statuses: string[] };
     requireOutput: boolean;
     errors: Record<string, string | undefined>;
@@ -597,6 +597,8 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
     const structured = Boolean(item.task_id);
     const minutes = minutesBetween(item.started_at, item.ended_at);
     const reviewerQuality = standard?.quality_source === 'reviewer';
+    // The chosen KPI's main / detailed activities (ADR 0019).
+    const kpiActivities = kpis.find((kpi) => kpi.id === item.employee_performance_item_id)?.activities ?? [];
     const preview = standard ? previewScores(standard, { quantity: item.quantity, minutes, quality: reviewerQuality ? null : item.actual_quality }, scoreRule) : null;
 
     const chooseTask = (taskId: string | null) => {
@@ -665,11 +667,26 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
                 {kpis.length > 0 && (
                     <div>
                         <label htmlFor={id('kpi')} className={labelCls}>{t('dailyActivities.fields.relatedKpi')}</label>
-                        <select id={id('kpi')} className={inputCls} value={item.employee_performance_item_id ?? ''} onChange={(e) => onChange({ employee_performance_item_id: e.target.value || null })}>
+                        <select id={id('kpi')} className={inputCls} value={item.employee_performance_item_id ?? ''} onChange={(e) => onChange({ employee_performance_item_id: e.target.value || null, objective_activity_id: null })}>
                             <option value="">—</option>
                             {kpis.map((kpi) => <option key={kpi.id} value={kpi.id}>{named(kpi, locale)}</option>)}
                         </select>
                         <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.relatedKpiHelp')}</p>
+                    </div>
+                )}
+                {kpiActivities.length > 0 && (
+                    <div>
+                        <label htmlFor={id('kpi-activity')} className={labelCls}>{t('dailyActivities.fields.objectiveActivity')}</label>
+                        <select id={id('kpi-activity')} className={inputCls} value={item.objective_activity_id ?? ''} onChange={(e) => onChange({ objective_activity_id: e.target.value || null })} aria-invalid={Boolean(error('objective_activity_id'))}>
+                            <option value="">—</option>
+                            {kpiActivities.map((activity, index) => (
+                                <option key={activity.id} value={activity.id}>
+                                    {index + 1}. {activity.title}{activity.time_minutes ? ` (${activity.time_minutes} ${t('dailyActivities.fields.minutesShort')})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.objectiveActivityHelp')}</p>
+                        {error('objective_activity_id') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('objective_activity_id')}</p>}
                     </div>
                 )}
                 {!item.position_service_id && !structuredRequired && (

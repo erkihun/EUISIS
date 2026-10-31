@@ -181,7 +181,8 @@ export function FormActions({
 
     return (
         <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+            {/* sm:pr-14 keeps the floating assistant button off the primary action. */}
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:pr-14">
                 <Link
                     href={cancelHref}
                     className="rounded-lg px-4 py-2 text-center text-sm font-medium text-(--app-foreground) transition hover:bg-(--app-surface-muted)"

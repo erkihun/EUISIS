@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign;
 
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Actions\OrganizationalChange\SaveChangeRequestAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\OrganizationalChangeRequestType;
 use App\Enums\OrganizationDesignStatus;
 use App\Models\OrganizationDesignStudy;
@@ -34,8 +36,6 @@ class DesignStudyService
         'proposal_type', 'existing_unit_id', 'parent_proposed_unit_id', 'parent_existing_unit_id', 'proposed_unit_type_id', 'unit_type',
         'name_en', 'name_am', 'description_en', 'description_am', 'design_rationale', 'effective_from', 'effective_to', 'sequence',
     ];
-
-    private const PREFIX = 'ODS';
 
     public function __construct(private readonly OrganizationDesignAudit $audit, private readonly SaveChangeRequestAction $changeRequests, private readonly OrganizationDesignValidationService $validation) {}
 
@@ -296,13 +296,10 @@ class DesignStudyService
 
     // ── Internals ────────────────────────────────────────────────────────
 
+    /** From the design-study code rule (ODS-YYYY-NNNN by default). */
     private function nextReference(): string
     {
-        $prefix = self::PREFIX.'-'.now()->format('Y').'-';
-        $last = OrganizationDesignStudy::query()->withTrashed()->where('reference_number', 'like', $prefix.'%')->lockForUpdate()->orderByDesc('reference_number')->value('reference_number');
-        $next = $last === null ? 1 : ((int) substr((string) $last, strlen($prefix))) + 1;
-
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::OrganizationDesignStudy, [], null, null, 'reference_number');
     }
 
     /** @param array<string, mixed> $data */

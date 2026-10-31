@@ -5,29 +5,26 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\CalendarSystem;
-use App\Enums\TransferAnnouncementStatus;
-use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
 use App\Services\Assistant\AssistantSettings;
 use App\Services\Branding\BrandingService;
 use App\Services\Calendar\CalendarService;
-use App\Services\Communication\CommunicationInbox;
-use App\Services\Communication\CommunicationNavigation;
-use App\Services\Communication\CommunicationSettings;
 use App\Services\Core\CoreNavigation;
 use App\Services\Core\CoreWorkspace;
 use App\Services\Dashboard\DashboardDataService;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\PublicAssistant\PublicAssistantSettings;
-use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
+use Modules\Communication\Contracts\CommunicationTopBar;
+use Modules\PublicSite\Contracts\PublicSitePages;
+use Modules\Transfer\Contracts\TransferAnnouncementListings;
 use Throwable;
 
 class HandleInertiaRequests extends Middleware
@@ -84,22 +81,8 @@ class HandleInertiaRequests extends Middleware
             // Addis One Help for anonymous visitors (docs/public-assistant/architecture.md): a separate public boundary.
             'publicAssistant' => ['enabled' => app(PublicAssistantSettings::class)->enabled()],
 
-            // The top-bar Messages button: on/off, the unread total (cached briefly by
-            // CommunicationInbox) and whether realtime is configured. Nothing else of
-            // Communication travels with every page.
-            'communication' => function () use ($user, $request): ?array {
-                if ($user === null || ! app(CommunicationSettings::class)->enabled() || ! $user->can('communication.access')) {
-                    return null;
-                }
-
-                return [
-                    'enabled' => true,
-                    // The workspace's own navigation (Communication has no sidebar entry), only on its pages.
-                    'nav' => $request->routeIs('communication.*') ? app(CommunicationNavigation::class)->for($user) : null,
-                    'unread_count' => app(CommunicationInbox::class)->totals($user)['total'],
-                    'realtime' => ! in_array(config('broadcasting.default'), [null, 'null', 'log'], true),
-                ];
-            },
+            // The top-bar Messages button; nothing else of Communication travels with every page.
+            'communication' => fn (): ?array => app(CommunicationTopBar::class)->props($user, $request),
 
             // The Core workspace (docs/architecture/core-workspace.md): its navigation while the
             // person works in Core, null everywhere else. Pages themselves do not change.
@@ -160,12 +143,12 @@ class HandleInertiaRequests extends Middleware
             'announcement_count' => $this->publishedAnnouncementCount(),
             /*
              * Public website chrome from Public Site Management. Published,
-             * allow-listed links only, cached by PublicSiteContent; both
+             * allow-listed links only, cached by the Public Site module (PublicSitePages); both
              * languages are sent and the browser picks one.
              */
             'publicSite' => fn (): array => [
-                'navigation' => app(PublicSiteContent::class)->navigation(),
-                'footerLinks' => app(PublicSiteContent::class)->footerLinks(),
+                'navigation' => app(PublicSitePages::class)->navigation(),
+                'footerLinks' => app(PublicSitePages::class)->footerLinks(),
             ],
             'is_employee_user' => $user !== null && $this->resolveIsEmployeeUser($user),
             // Whether the account is linked to an employee record at all
@@ -309,7 +292,7 @@ class HandleInertiaRequests extends Middleware
             return Cache::remember(
                 'published_transfer_announcement_count',
                 60, // 1 minute
-                fn (): int => TransferAnnouncement::where('status', TransferAnnouncementStatus::Published)->count(),
+                fn (): int => app(TransferAnnouncementListings::class)->publishedCount(),
             );
         } catch (Throwable) {
             return 0;

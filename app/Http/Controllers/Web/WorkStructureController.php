@@ -8,12 +8,12 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\TaskQualitySource;
 use App\Http\Controllers\Controller;
-use App\Models\DailyActivityItem;
+use Modules\DailyWork\Contracts\ReadModels\DailyActivityItemRecord;
 use App\Models\PositionService;
 use App\Models\PositionServiceSubService;
 use App\Models\PositionServiceTask;
 use App\Models\PositionServiceTaskStandard;
-use App\Services\DailyActivity\TaskStandardService;
+use App\Services\OrganizationDesign\TaskStandardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -290,7 +290,7 @@ class WorkStructureController extends Controller
     /** Recorded work keeps its structure: retire it (inactive) instead. */
     private function refuseIfUsed(string $column, string $id): void
     {
-        if (DailyActivityItem::query()->where($column, $id)->exists()) {
+        if (DailyActivityItemRecord::query()->where($column, $id)->exists()) {
             throw ValidationException::withMessages(['structure' => __('work-standards.in_use')]);
         }
     }

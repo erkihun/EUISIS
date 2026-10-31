@@ -66,15 +66,14 @@ final class SystemHealthAnalysis extends SystemAnalysis
                     $detail[] = str_replace('_', ' ', $k).': '.(is_float($v) ? round($v, 1) : $v);
                 }
             }
+            // Column values sit on the row itself: the panel table reads row[column.key].
             $rows[] = [
                 'key' => $component,
-                'cells' => [
-                    'component' => SituationLabel::key(self::PREFIX."components.{$component}"),
-                    'state' => SituationLabel::key(self::PREFIX."health.{$s['state']}"),
-                    'incidents' => $s['incidents'],
-                    'detail' => $detail === [] ? ($s['reason'] !== null ? SituationLabel::key(self::PREFIX."reasons.{$s['reason']}.title") : '') : implode(' · ', $detail),
-                    'at' => $s['at'],
-                ],
+                'component' => SituationLabel::key(self::PREFIX."components.{$component}"),
+                'state' => SituationLabel::key(self::PREFIX."health.{$s['state']}"),
+                'incidents' => $s['incidents'],
+                'detail' => $detail === [] ? ($s['reason'] !== null ? SituationLabel::key(self::PREFIX."reasons.{$s['reason']}.title") : '') : implode(' · ', $detail),
+                'at' => $s['at'],
                 'href' => $s['incidents'] > 0 ? route('intelligence.incidents.index', ['component' => $component]) : null,
             ];
         }

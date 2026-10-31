@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Discipline\DisciplinaryCaseController;
-use App\Http\Controllers\Discipline\DisciplinaryPortalController;
 use Illuminate\Support\Facades\Route;
+use Modules\Discipline\Http\Controllers\DisciplinaryCaseController;
+use Modules\Discipline\Http\Controllers\DisciplinaryPortalController;
 
 /*
 |--------------------------------------------------------------------------

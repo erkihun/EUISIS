@@ -45,6 +45,7 @@ type EmployeeRow = {
     status: string;
     employment_type: string | null;
     duplicate_flags_count?: number;
+    has_active_card?: boolean;
     current_assignment?: {
         assignment_status?: string | null;
         organization?: { id?: string; name_en: string; name_am?: string | null } | null;
@@ -91,6 +92,8 @@ interface Props {
     filters: Filters;
     sort: SortState;
     can: { create: boolean; update: boolean };
+    /** The statuses to filter by, when the server has its own list (the Core adds its verification stage). */
+    statusOptions?: string[];
 }
 
 export default function EmployeesIndex({
@@ -106,6 +109,7 @@ export default function EmployeesIndex({
     filters,
     sort,
     can,
+    statusOptions,
 }: Props) {
     const { t, locale } = useLocale();
     /* Localization settings govern how organization and employee names read. */
@@ -328,7 +332,7 @@ export default function EmployeesIndex({
                     <FilterField label={t('employees.systemStatus')}>
                         <Select value={filterForm.data.status} onChange={(e) => filterForm.setData('status', e.target.value)}>
                             <option value="">{t('employees.allStatuses')}</option>
-                            {SYSTEM_STATUSES.map((status) => (
+                            {(statusOptions ?? SYSTEM_STATUSES).map((status) => (
                                 <option key={status} value={status}>
                                     {t(`employees.${status}`)}
                                 </option>
@@ -460,6 +464,11 @@ export default function EmployeesIndex({
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     <StatusBadge status={employee.status} label={statusLabel(employee.status)} />
+                                                    {employee.has_active_card !== undefined && (
+                                                        <p className="mt-1 text-xs text-(--app-muted-foreground)">
+                                                            {employee.has_active_card ? t('employees.activeCard') : t('employees.noActiveCard')}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     {/*

@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\V1\CardStatusApiController;
 use App\Http\Controllers\Api\V1\CardVerificationController;
 use App\Http\Controllers\Api\V1\ChangeFeedController;
 use App\Http\Controllers\Api\V1\EmployeeDirectoryApiController;
-use App\Http\Controllers\Api\V1\EmployeeEntitlementController;
 use App\Http\Controllers\Api\V1\EmployeePhotoApiController;
 use App\Http\Controllers\Api\V1\IdCardVerificationApiController;
 use App\Http\Controllers\Api\V1\NfcController;
@@ -16,16 +15,17 @@ use App\Http\Controllers\Api\V1\OrganizationApiController;
 use App\Http\Controllers\Api\V1\OrganizationDirectoryController;
 use App\Http\Controllers\Api\V1\OrganizationUnitApiController;
 use App\Http\Controllers\Api\V1\PositionApiController;
-use App\Http\Controllers\Api\V1\ProviderSettlementController;
-use App\Http\Controllers\Api\V1\ServiceAuthorizationController;
-use App\Http\Controllers\Api\V1\ServiceTransactionController;
-use App\Http\Controllers\Api\V1\Transport\BoardingController as TransportBoardingController;
-use App\Http\Controllers\Api\V1\Transport\DeviceController as TransportDeviceController;
-use App\Http\Controllers\Api\V1\Transport\PositionController as TransportPositionController;
-use App\Http\Controllers\Api\V1\Transport\TripController as TransportTripController;
 use App\Http\Controllers\Api\V1\WebhookSubscriptionApiController;
 use App\Http\Middleware\NfcApplicationGate;
 use Illuminate\Support\Facades\Route;
+use Modules\Entitlements\Http\Controllers\Api\V1\EmployeeEntitlementController;
+use Modules\Entitlements\Http\Controllers\Api\V1\ProviderSettlementController;
+use Modules\Entitlements\Http\Controllers\Api\V1\ServiceAuthorizationController;
+use Modules\Entitlements\Http\Controllers\Api\V1\ServiceTransactionController;
+use Modules\Transport\Http\Controllers\Api\BoardingController as TransportBoardingController;
+use Modules\Transport\Http\Controllers\Api\DeviceController as TransportDeviceController;
+use Modules\Transport\Http\Controllers\Api\PositionController as TransportPositionController;
+use Modules\Transport\Http\Controllers\Api\TripController as TransportTripController;
 
 /*
  * Transport scanner devices (docs/transport/device-security.md). Each device

@@ -74,7 +74,7 @@ class OrganizationalChangeRequest extends Model
             'status' => OrganizationalChangeRequestStatus::class,
             'request_type' => OrganizationalChangeRequestType::class,
             'category' => OrganizationalChangeRequestCategory::class,
-            'requested_effective_date' => 'date',
+            'requested_effective_date' => 'date:Y-m-d',
             'submitted_at' => 'datetime',
             'review_started_at' => 'datetime',
             'approved_at' => 'datetime',

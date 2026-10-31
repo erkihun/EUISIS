@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\OrganizationDesign;
 
 use App\Enums\ServiceBeneficiaryType;
-use App\Enums\ServiceDeliveryChannel;
 use App\Models\ServiceClassification;
 use Illuminate\Validation\Rule;
+use Modules\Entitlements\Contracts\Data\ServiceDeliveryChannel;
 
 /** The service fields a designer writes, shared by store, update and new-version requests. */
 final class ServiceRules

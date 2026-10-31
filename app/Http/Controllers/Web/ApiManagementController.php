@@ -13,7 +13,6 @@ use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
 use App\Models\ExternalApplicationOrganizationScope;
 use App\Models\Organization;
-use App\Models\ServiceProvider;
 use App\Services\ApiEndpointCatalogService;
 use App\Services\Integration\PartnerAccessReviewService;
 use Illuminate\Http\RedirectResponse;
@@ -22,8 +21,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 
 /**
  * System Settings → API Management.
@@ -104,12 +105,16 @@ class ApiManagementController extends Controller
                 'name' => $externalApplication->name,
                 'code' => $externalApplication->code,
                 'owner_institution' => $externalApplication->owner_institution,
+                'expires_at' => $externalApplication->expires_at?->toDateString(),
+                'revoked_at' => $externalApplication->revoked_at?->toDateTimeString(),
+                'revocation_reason' => $externalApplication->revocation_reason,
                 'contact_person' => $externalApplication->contact_person,
                 'contact_email' => $externalApplication->contact_email,
                 'callback_url' => $externalApplication->callback_url,
                 'status' => $externalApplication->status,
                 'allowed_scopes' => $externalApplication->allowed_scopes ?? [],
                 'rate_limit_per_minute' => $externalApplication->rate_limit_per_minute,
+                'token_lifetime_days' => $externalApplication->token_lifetime_days,
                 'allowed_ips' => $externalApplication->allowed_ips ?? [],
                 'last_used_at' => $externalApplication->last_used_at?->toDateTimeString(),
                 'organization_access' => $externalApplication->organization_access,
@@ -191,6 +196,7 @@ class ApiManagementController extends Controller
         // application would be assigned an endpoint its token can never call.
         $data['allowed_scopes'] = $this->withRequiredScopes($data['allowed_scopes'] ?? [], $endpointIds);
         $data['created_by'] = Auth::id();
+        unset($data['revocation_reason']);
         $grants = $this->pullOrganizationGrants($data);
 
         $application = DB::transaction(function () use ($data, $endpointIds, $grants) {
@@ -225,8 +231,26 @@ class ApiManagementController extends Controller
         $grants = $this->pullOrganizationGrants($data);
         $accessBefore = $externalApplication->organization_access.'/'.($externalApplication->service_provider_id ?? '-');
 
-        DB::transaction(function () use ($externalApplication, $data, $endpointIds, $grants): void {
+        // Revocation is final (suspension is the reversible block): a revoked
+        // application keeps its revocation record and cannot be switched back on.
+        if ($externalApplication->revoked_at !== null && $data['status'] !== 'revoked') {
+            throw ValidationException::withMessages(['status' => __('apiManagement.revoked_is_final')]);
+        }
+        $revoking = $data['status'] === 'revoked' && $externalApplication->revoked_at === null;
+        $revocationReason = $data['revocation_reason'] ?? null;
+        unset($data['revocation_reason']);
+
+        DB::transaction(function () use ($externalApplication, $data, $endpointIds, $grants, $revoking, $revocationReason): void {
             $externalApplication->update($data);
+            if ($revoking) {
+                $externalApplication->forceFill([
+                    'revoked_at' => now(),
+                    'revoked_by' => Auth::id(),
+                    'revocation_reason' => $revocationReason,
+                ])->save();
+                // No live credential survives a revocation.
+                $externalApplication->tokens()->delete();
+            }
             $this->syncEndpointAssignments($externalApplication, $endpointIds);
             $this->syncOrganizationGrants($externalApplication, $grants);
         });
@@ -286,6 +310,8 @@ class ApiManagementController extends Controller
         $token = $externalApplication->createToken(
             $request->string('name')->toString() ?: $externalApplication->code,
             $abilities,
+            // TD-16: the application's token lifetime, or the 8-hour default.
+            $externalApplication->newTokenExpiry(),
         );
 
         $this->writeAuditLogAction->execute(
@@ -658,11 +684,17 @@ class ApiManagementController extends Controller
             'allowed_scopes' => ['array'],
             'allowed_scopes.*' => [Rule::in(ApiScope::values())],
             'rate_limit_per_minute' => ['required', 'integer', 'min:1', 'max:10000'],
+            // TD-16: days a new token lives; empty keeps the 8-hour default.
+            'token_lifetime_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'allowed_ips' => ['nullable', 'array'],
             'allowed_ips.*' => ['string', 'ip'],
             // Organization bound (F2) and provider binding (F16).
             'organization_access' => ['sometimes', 'required', Rule::in(ExternalApplication::ORGANIZATION_ACCESS)],
             'service_provider_id' => ['nullable', 'uuid', Rule::exists('service_providers', 'id')],
+            // Lifecycle (Golden Path Stage 1): approval expiry, owner organization, revocation reason.
+            'expires_at' => ['nullable', 'date', 'after:today'],
+            'owner_organization_id' => ['nullable', 'uuid', Rule::exists('organizations', 'id')],
+            'revocation_reason' => ['nullable', 'string', 'max:1000'],
             'organization_scopes' => ['sometimes', 'array', 'max:500'],
             'organization_scopes.*.organization_id' => ['required', 'uuid', 'distinct', Rule::exists('organizations', 'id')],
             'organization_scopes.*.scope_type' => ['required', Rule::in(ExternalApplicationOrganizationScope::TYPES)],
@@ -717,8 +749,8 @@ class ApiManagementController extends Controller
     /** @return list<array{value: string, label: string}> */
     private function providerOptions(): array
     {
-        return ServiceProvider::query()->orderBy('name')->get(['id', 'code', 'name'])
-            ->map(fn (ServiceProvider $provider): array => ['value' => (string) $provider->id, 'label' => $provider->name.' ('.$provider->code.')'])
+        return ServicePointRecord::query()->orderBy('name')->get(['id', 'code', 'name'])
+            ->map(fn (ServicePointRecord $provider): array => ['value' => (string) $provider->id, 'label' => $provider->name.' ('.$provider->code.')'])
             ->all();
     }
 

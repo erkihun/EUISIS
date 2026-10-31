@@ -56,6 +56,8 @@ final readonly class StartAssignment
         if ($endedOn === null || $startDate->toDateString() <= $endedOn) {
             // Undone on the day it was recorded (or earlier): reopen, no new history row.
             $latest->update(['assignment_status' => AssignmentStatus::Active, 'effective_to' => null, 'reason' => $reason]);
+            // The ending released its ledger row; the seat is held again.
+            $this->capacity->recordOccupancyForPlacement($latest);
 
             return $latest;
         }
@@ -75,6 +77,7 @@ final readonly class StartAssignment
             'reason' => $reason,
         ]);
         $employee->update(['current_assignment_id' => $next->getKey()]);
+        $this->capacity->recordOccupancyForPlacement($next);
 
         return $next;
     }

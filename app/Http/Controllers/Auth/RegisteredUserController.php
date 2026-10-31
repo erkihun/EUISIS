@@ -12,7 +12,7 @@ use App\Models\EmployeeRegistrationOtp;
 use App\Models\User;
 use App\Notifications\EmployeeRegistrationOtpNotification;
 use App\Security\Passwords\PasswordPolicy;
-use App\Support\DailyActivity\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;

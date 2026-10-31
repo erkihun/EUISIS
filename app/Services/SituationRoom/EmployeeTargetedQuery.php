@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Services\SituationRoom;
 
 use App\Models\Employee;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
-use App\Models\PublicFeedbackCategory;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 /**
  * "Employee-targeted public submissions" inside an institution the leader may
@@ -28,7 +27,7 @@ final class EmployeeTargetedQuery
 
     public function __construct(private readonly CommunityVoiceQuery $voice) {}
 
-    /** @return Builder<EmployeeServiceFeedback> */
+    /** @return Builder<ServiceFeedbackRecord> */
     private function employeeRows(SituationRoomScope $scope, SituationRoomFilters $filters): Builder
     {
         return $this->voice->base($scope, $filters, $filters->start, $filters->end)
@@ -95,14 +94,12 @@ final class EmployeeTargetedQuery
             ->orderByDesc(self::T.'.submitted_at')
             ->offset(($page - 1) * self::PER_PAGE)
             ->limit(self::PER_PAGE)
-            ->get([self::T.'.id', self::T.'.type', self::T.'.status', self::T.'.submitted_at', self::T.'.resolved_at', self::T.'.category_id', self::T.'.organization_id', self::T.'.organization_unit_id', self::T.'.service_name_snapshot', self::T.'.reference_number', self::T.'.rating', self::T.'.subject', self::T.'.comment']);
+            ->get([self::T.'.id', self::T.'.type', self::T.'.status', self::T.'.submitted_at', self::T.'.resolved_at', self::T.'.organization_id', self::T.'.organization_unit_id', self::T.'.service_name_snapshot', self::T.'.reference_number', self::T.'.rating', self::T.'.subject', self::T.'.comment']);
 
-        $categories = PublicFeedbackCategory::query()->whereIn('id', $items->pluck('category_id')->filter()->all())->get(['id', 'name_en', 'name_am'])->keyBy(fn ($c): string => (string) $c->id);
         $organizations = Organization::query()->whereIn('id', $items->pluck('organization_id')->filter()->all())->get(['id', 'name_en', 'name_am'])->keyBy(fn ($o): string => (string) $o->id);
 
         return [
-            'rows' => $items->map(function (EmployeeServiceFeedback $item) use ($categories, $organizations, $withNarrative): array {
-                $category = $item->category_id ? ($categories[(string) $item->category_id] ?? null) : null;
+            'rows' => $items->map(function (ServiceFeedbackRecord $item) use ($organizations, $withNarrative): array {
                 $organization = $item->organization_id ? ($organizations[(string) $item->organization_id] ?? null) : null;
                 $status = $item->status->value;
 
@@ -115,8 +112,6 @@ final class EmployeeTargetedQuery
                     'resolved_at' => $item->resolved_at?->toIso8601String(),
                     'reference' => $item->reference_number,
                     'rating' => $item->rating,
-                    'category_en' => $category?->name_en,
-                    'category_am' => $category?->name_am,
                     // Where it was recorded when submitted (submission-time context).
                     'organization_en' => $organization?->name_en,
                     'organization_am' => $organization?->name_am,

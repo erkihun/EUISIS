@@ -15,12 +15,12 @@ use App\Models\CodeRule;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
-use App\Models\ServiceType;
 use App\Services\CodeGeneration\CodeFormatTokenRegistry;
 use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class UpdateCodeRuleRequest extends FormRequest
 {
@@ -167,7 +167,7 @@ class UpdateCodeRuleRequest extends FormRequest
             CodeRuleScopeType::Organization->value => Organization::query()->whereKey($scopeId)->exists(),
             CodeRuleScopeType::OrganizationType->value => OrganizationType::query()->whereKey($scopeId)->exists(),
             CodeRuleScopeType::OrganizationUnitType->value => OrganizationUnitType::query()->whereKey($scopeId)->exists(),
-            CodeRuleScopeType::ServiceType->value => ServiceType::query()->whereKey($scopeId)->exists(),
+            CodeRuleScopeType::ServiceType->value => ServiceTypeRecord::query()->whereKey($scopeId)->exists(),
             default => false,
         };
     }

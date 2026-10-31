@@ -4,16 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\PublicIntakeChannel;
-use App\Enums\PublicTipType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
 use App\Models\Employee;
 use App\Models\PositionService;
-use App\Models\PublicFeedbackCategory;
 use App\Models\Service;
-use App\Services\ServiceFeedback\PublicFeedbackAnswerStatistics;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
@@ -21,6 +14,12 @@ use App\Services\SituationRoom\SituationPermissions;
 use App\Services\SituationRoom\SituationSql;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\PublicIntakeChannel;
+use Modules\Feedback\Contracts\Data\PublicTipType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\FeedbackAnswerStatistics;
 
 /**
  * Community voice — public Feedback, Tip-offs (stored as `suggestion`) and
@@ -73,7 +72,6 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
 
         return $panels + [
             "{$p}_target" => fn (): SituationPanel => $this->targets($context),
-            "{$p}_category" => fn (): SituationPanel => $this->categories($context),
             "{$p}_service" => fn (): SituationPanel => $this->services($context),
             "{$p}_question_ratings" => fn (): SituationPanel => $this->questionRatings($context),
             "{$p}_question_choices" => fn (): SituationPanel => $this->questionChoices($context),
@@ -100,7 +98,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
                 ? $query->where(fn ($q) => $q->where('f.target_type', $target)->orWhereNull('f.target_type'))
                 : $query->where('f.target_type', $target);
         }
-        foreach (['status' => 'f.status', 'category_id' => 'f.category_id', 'position_service_id' => 'f.position_service_id', 'organization_unit_id' => 'f.organization_unit_id'] as $key => $column) {
+        foreach (['status' => 'f.status', 'position_service_id' => 'f.position_service_id', 'organization_unit_id' => 'f.organization_unit_id'] as $key => $column) {
             if (($value = $filters->get($key)) !== null) {
                 $query->where($column, $value);
             }
@@ -224,22 +222,6 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
         ]);
     }
 
-    private function categories(SituationContext $context): SituationPanel
-    {
-        $counts = $this->countBy($this->inPeriodBase($context), "COALESCE(CAST(f.category_id AS VARCHAR(64)), '__none')");
-        $top = $this->topWithOther($counts);
-        $names = PublicFeedbackCategory::query()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($c): string => (string) $c->id);
-        $categories = array_map(fn ($key): array => match ((string) $key) {
-            '__none' => SituationLabel::key('situationRoom.values.common.not_categorised'),
-            '__other' => SituationLabel::key('situationRoom.values.common.other'),
-            default => SituationLabel::names($names[$key]->name_en ?? null, $names[$key]->name_am ?? null),
-        }, array_keys($top));
-
-        return $this->chart("{$this->prefix()}_category", 'hbar', self::SOURCE, $categories, [
-            ['key' => 'received', 'label' => SituationLabel::key('situationRoom.series.received'), 'values' => array_values($top)],
-        ]);
-    }
-
     /**
      * By the service named on the submission: the position service of an
      * employee-QR submission, or the institution catalog service chosen on the
@@ -279,7 +261,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
     private function questionRatings(SituationContext $context): SituationPanel
     {
         $key = "{$this->prefix()}_question_ratings";
-        $statistics = app(PublicFeedbackAnswerStatistics::class);
+        $statistics = app(FeedbackAnswerStatistics::class);
         $summary = $statistics->ratingSummaryOf($this->inPeriodBase($context));
 
         if ($summary === []) {
@@ -312,7 +294,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
     private function questionChoices(SituationContext $context): SituationPanel
     {
         $key = "{$this->prefix()}_question_choices";
-        $statistics = app(PublicFeedbackAnswerStatistics::class);
+        $statistics = app(FeedbackAnswerStatistics::class);
         $summary = $statistics->choiceSummaryOf($this->inPeriodBase($context));
         $labels = $statistics->labels(array_column($summary, 'code'));
         usort($summary, fn (array $a, array $b): int => [$labels[$a['code']]['sort'] ?? PHP_INT_MAX, $a['code']] <=> [$labels[$b['code']]['sort'] ?? PHP_INT_MAX, $b['code']]);

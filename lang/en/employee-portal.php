@@ -3,6 +3,7 @@
 return [
     'confirm_each_card' => 'Open each card, prepare its frozen print, and confirm successful printing before completing this batch.',
     'complete_master_edit' => 'For legal name or National ID corrections, update the HR master record first, then approve this request. Other approved fields are updated automatically.',
+    'employee_number_stable' => 'An issued employee number never changes. Reject this request.',
     'title' => 'Employee Self-Service', 'profile' => 'My Profile', 'employment' => 'Employment', 'organization' => 'Organization', 'position' => 'Position', 'id-card' => 'My ID Card', 'daily-activity' => 'Daily Activity', 'service-tasks' => 'Service Tasks', 'services' => 'My Services', 'documents' => 'My Documents', 'requests' => 'My Requests', 'notifications' => 'Notifications', 'security' => 'Security', 'overview' => 'Overview',
     'personal' => 'Personal information', 'official' => 'Official employment information', 'identity' => 'Identity information', 'editable' => 'Editable', 'read_only' => 'Read only — contact HR for corrections', 'save' => 'Save changes', 'saved' => 'Your information was saved.',
     'reprint_required' => 'Reprint Required', 'employee_notice' => 'Your profile information has changed since this card was printed. Your current Employee ID Card requires reprinting.', 'officer_notice' => 'Employee profile data changed after card issuance. Card reprint review required.',
@@ -78,5 +79,11 @@ return [
     ],
     'fields' => [
         'full_name' => 'Legal name', 'name' => 'Legal name', 'name_en' => 'English name', 'photo' => 'Profile photo', 'photo_path' => 'Profile photo', 'email' => 'Personal email', 'phone' => 'Phone number', 'address' => 'Current address', 'emergency_contact_name' => 'Emergency contact name', 'emergency_contact_phone' => 'Emergency contact phone', 'emergency_contact_relationship' => 'Relationship', 'preferred_language' => 'Preferred language', 'notification_preferences' => 'Email notifications', 'employee_number' => 'Employee number', 'employment_type' => 'Employment type', 'organization' => 'Organization', 'organization_unit' => 'Organization unit', 'position' => 'Position', 'job_grade' => 'Job grade', 'date_of_birth' => 'Date of birth', 'gender' => 'Sex', 'nationality' => 'Nationality', 'national_id' => 'National ID', 'effective_from' => 'Assignment start date',
+    ],
+    // Filing with others at the administrative court (court-ms, ADR 0013 #13).
+    'court' => [
+        'colleague_not_found' => 'No active employee has the number :number.',
+        'colleague_is_you' => 'You file the case yourself; add only the other employees filing with you.',
+        'lawyer_not_listed' => 'Choose a lawyer from the court\'s register.',
     ],
 ];

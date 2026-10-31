@@ -50,4 +50,19 @@ enum CodeRuleEntityType: string
     case Process = 'process';
     case ProcessActivity = 'process_activity';
     case ProcessTask = 'process_task';
+    case ReceptionDesk = 'reception_desk';
+    case ReceptionVisit = 'reception_visit';
+    case ReceptionAppointment = 'reception_appointment';
+    case CardPrintBatch = 'card_print_batch';
+    case TransportTrip = 'transport_trip';
+    case TransportSettlement = 'transport_settlement';
+    case TransportInvoice = 'transport_invoice';
+    case CafeteriaSettlement = 'cafeteria_settlement';
+    case FieldWorkRequest = 'field_work_request';
+    case OrganizationalChangeRequest = 'organizational_change_request';
+    case PerformanceAppeal = 'performance_appeal';
+    case ManpowerPlan = 'manpower_plan';
+    case LegacyBaseline = 'legacy_baseline';
+    case DesignImportBatch = 'design_import_batch';
+    case OrganizationDesignStudy = 'organization_design_study';
 }

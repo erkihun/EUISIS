@@ -14,7 +14,6 @@ export type RuleRecord = {
     target_type: 'employee' | 'organization' | null;
     submission_type: 'suggestion' | 'complaint' | null;
     tip_type: TipType | null;
-    category_id: string | null;
     organization_unit_id: string | null;
     handler_type: HandlerType;
     handler_id: string;
@@ -25,25 +24,22 @@ export type RuleRecord = {
 };
 
 export type OrganizationOption = { id: string; code: string; name_en: string; name_am: string | null };
-export type CategoryOption = { id: string; organization_id: string | null; name_en: string; name_am: string | null };
 type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
 
 type Props = {
     record: RuleRecord | null;
     organizations: OrganizationOption[];
-    categories: CategoryOption[];
     canManageCityWide: boolean;
 };
 
 /** The one routing-rule form, used by the create and the edit page. Saving returns to the list. */
-export default function RuleForm({ record, organizations, categories, canManageCityWide }: Props) {
+export default function RuleForm({ record, organizations, canManageCityWide }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({
         organization_id: record?.organization_id ?? (canManageCityWide ? '' : organizations[0]?.id ?? ''),
         target_type: record?.target_type ?? '',
         submission_type: record?.submission_type ?? '',
         tip_type: record?.tip_type ?? '',
-        category_id: record?.category_id ?? '',
         organization_unit_id: record?.organization_unit_id ?? '',
         handler_type: (record?.handler_type ?? 'user') as HandlerType,
         handler_id: record?.handler_id ?? '',
@@ -71,7 +67,6 @@ export default function RuleForm({ record, organizations, categories, canManageC
         : form.data.handler_type === 'user' ? options.users
             : form.data.handler_type === 'organization_unit' ? options.units.map((unit) => ({ id: unit.id, name: locale === 'am' && unit.name_am ? unit.name_am : unit.name }))
                 : options.roles;
-    const applicableCategories = categories.filter((category) => category.organization_id === null || category.organization_id === (form.data.organization_id || null));
     // The units a rule may be narrowed to: the institution's own. A city-wide rule has none.
     const unitChoices = form.data.organization_id === '' || options === null ? [] : options.units.map((unit) => ({ id: unit.id, name: locale === 'am' && unit.name_am ? unit.name_am : unit.name }));
 
@@ -84,7 +79,6 @@ export default function RuleForm({ record, organizations, categories, canManageC
             submission_type: data.submission_type === '' ? null : data.submission_type,
             // A tip type narrows only a Tip-off rule.
             tip_type: data.tip_type === '' || data.submission_type === 'complaint' ? null : data.tip_type,
-            category_id: data.category_id === '' ? null : data.category_id,
             organization_unit_id: data.organization_unit_id === '' || data.organization_id === '' ? null : data.organization_unit_id,
             effective_from: data.effective_from === '' ? null : data.effective_from,
             effective_to: data.effective_to === '' ? null : data.effective_to,
@@ -106,19 +100,11 @@ export default function RuleForm({ record, organizations, categories, canManageC
                 <div className="grid gap-4 p-6 sm:grid-cols-2">
                     <FormField id="rule-scope" label={t('serviceFeedback.categoryScope')} error={errors.organization_id}>
                         {({ id, describedBy, invalid }) => (
-                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.organization_id} onChange={(e) => form.setData((data) => ({ ...data, organization_id: e.target.value, category_id: '', organization_unit_id: '', handler_id: '' }))}>
+                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.organization_id} onChange={(e) => form.setData((data) => ({ ...data, organization_id: e.target.value, organization_unit_id: '', handler_id: '' }))}>
                                 {canManageCityWide && <option value="">{t('serviceFeedback.cityWide')}</option>}
                                 {organizations.map((organization) => (
                                     <option key={organization.id} value={organization.id}>{locale === 'am' && organization.name_am ? organization.name_am : organization.name_en}</option>
                                 ))}
-                            </Select>
-                        )}
-                    </FormField>
-                    <FormField id="rule-category" label={t('serviceFeedback.issueCategory')} error={errors.category_id}>
-                        {({ id, describedBy, invalid }) => (
-                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.category_id} onChange={(e) => form.setData('category_id', e.target.value)}>
-                                <option value="">{t('serviceFeedback.anyCategory')}</option>
-                                {applicableCategories.map((category) => <option key={category.id} value={category.id}>{locale === 'am' && category.name_am ? category.name_am : category.name_en}</option>)}
                             </Select>
                         )}
                     </FormField>

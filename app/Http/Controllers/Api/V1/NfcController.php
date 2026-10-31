@@ -2,15 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\ServiceTransactions\RecordServiceTransactionAction;
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NfcVerificationResource;
-use App\Models\CafeteriaProvider;
-use App\Models\Entitlement;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\CredentialVerificationService;
 use App\Services\Nfc\NfcAudit;
 use App\Services\Nfc\NfcPayloadParser;
@@ -18,6 +11,10 @@ use App\Services\Nfc\NfcVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Contracts\CafeteriaTerminalScan;
+use Modules\Entitlements\Contracts\CardServiceAuthorization;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 use Ramsey\Uuid\Uuid;
 
 class NfcController extends Controller
@@ -60,66 +57,39 @@ class NfcController extends Controller
             }
             $terminal = $result['terminal'];
             $card = $result['card'];
-            $serviceType = ServiceType::where('code', $payload['service_type'])->first();
-            $provider = ServiceProvider::whereKey($terminal->provider_id)->lockForUpdate()->first();
+            $serviceType = ServiceTypeRecord::query()->where('code', $payload['service_type'])->first();
+            $provider = ServicePointRecord::query()->whereKey($terminal->provider_id)->lockForUpdate()->first();
             $allowed = false;
             $reason = 'SERVICE_NOT_ALLOWED';
             $transactionReference = null;
             if ($serviceType && $provider && $provider->status === 'active' && $provider->service_type_id === $serviceType->id) {
                 if ($serviceType->code === 'cafeteria') {
-                    $cafeteria = CafeteriaProvider::whereKey($terminal->cafeteria_provider_id)->where('service_provider_id', $provider->id)->where('is_active', true)->first();
-                    if ($cafeteria) {
-                        // Run the exact QR rules; dry-run stops before persistence.
-                        DB::beginTransaction();
-                        try {
-                            // The cafeteria comes from the registered terminal, never from the
-                            // request. A terminal's meal_amount stays in the signed context
-                            // but is not money: the employee organization's policy prices it.
-                            $scan = app(CafeteriaQrScanService::class)->process($card, $cafeteria, now(), null, [
-                                'usage_mode' => $payload['usage_mode'] ?? 'single_day',
-                                // Bound by secure challenge; one uuid per terminal + reference, so
-                                // a retried request finds the first transaction. scan_nonce is a
-                                // uuid column: a sha256 hex did not fit it on MySQL or PostgreSQL.
-                                'scan_nonce' => isset($payload['reference'])
-                                    ? Uuid::uuid5(Uuid::NAMESPACE_URL, 'urn:euisis:nfc-scan:'.$terminal->id.':'.$payload['reference'])->toString()
-                                    : (string) Str::uuid(),
-                                'service_terminal_id' => $terminal->id,
-                            ], $request, $purpose === 'eligibility');
-                            $allowed = $scan['allowed'] && ! ($scan['duplicate'] ?? false);
-                            // Denials carry result_code 'rejected'; the specific
-                            // cause lives in denial_reason.
-                            $reason = ($scan['duplicate'] ?? false) ? 'ALREADY_SERVED' : $this->reason($scan['denial_reason'] ?? $scan['result_code']);
-                            $transactionReference = $allowed && $purpose === 'record' ? $scan['transaction']?->transaction_number : null;
-                            if ($purpose === 'eligibility' || ! $allowed) {
-                                DB::rollBack();
-                            } else {
-                                DB::commit();
-                            }
-                        } catch (\Throwable $exception) {
-                            DB::rollBack();
-                            throw $exception;
-                        }
+                    // The cafeteria comes from the registered terminal, never from the
+                    // request. A terminal's meal_amount stays in the signed context
+                    // but is not money: the employee organization's policy prices it.
+                    $scan = $terminal->cafeteria_provider_id === null ? null : app(CafeteriaTerminalScan::class)->scan((string) $card->getKey(), (string) $terminal->cafeteria_provider_id, (string) $provider->id, [
+                        'usage_mode' => $payload['usage_mode'] ?? 'single_day',
+                        // Bound by secure challenge; one uuid per terminal + reference, so
+                        // a retried request finds the first transaction. scan_nonce is a
+                        // uuid column: a sha256 hex did not fit it on MySQL or PostgreSQL.
+                        'scan_nonce' => isset($payload['reference'])
+                            ? Uuid::uuid5(Uuid::NAMESPACE_URL, 'urn:euisis:nfc-scan:'.$terminal->id.':'.$payload['reference'])->toString()
+                            : (string) Str::uuid(),
+                        'service_terminal_id' => $terminal->id,
+                    ], $request, $purpose === 'eligibility');
+                    if ($scan !== null) {
+                        $allowed = $scan->allowed;
+                        // Denials carry result_code 'rejected'; the specific
+                        // cause lives in denial_reason.
+                        $reason = $scan->duplicate ? 'ALREADY_SERVED' : $this->reason((string) ($scan->denialReason ?? $scan->resultCode));
+                        $transactionReference = $scan->transactionNumber;
                     }
                 } else {
-                    $entitlement = Entitlement::where('employee_id', $card->employee_id)->where('service_type_id', $serviceType->id)
-                        ->where(fn ($q) => $q->whereNull('service_provider_id')->orWhere('service_provider_id', $provider->id))
-                        ->where('status', 'active')
-                        ->where(fn ($q) => $q->whereNull('effective_from')->orWhereDate('effective_from', '<=', today()))
-                        ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', today()))
-                        ->lockForUpdate()->first();
-                    $check = app(VerifyCardForServiceAction::class)->verifyResolvedCard($card, $serviceType, $provider, null, $request);
-                    $allowed = $check['allowed'];
-                    $reason = $this->reason($check['result_code']);
-                    if ($allowed && $purpose === 'record') {
-                        try {
-                            $transaction = app(RecordServiceTransactionAction::class)->execute($card->employee, $card, $serviceType, $provider, $entitlement, 'authorized', null,
-                                ['reference' => $payload['reference'], 'source' => 'nfc']);
-                            $transactionReference = $transaction->reference;
-                        } catch (\DomainException) {
-                            $allowed = false;
-                            $reason = 'ALREADY_SERVED';
-                        }
-                    }
+                    // The entitlement check and the transaction belong to Entitlements.
+                    $outcome = app(CardServiceAuthorization::class)->authorizeCard((string) $card->getKey(), (string) $serviceType->id, (string) $provider->id, $purpose === 'record', $payload['reference'] ?? null, $request);
+                    $allowed = $outcome->allowed;
+                    $reason = $this->reason($outcome->resultCode);
+                    $transactionReference = $outcome->transactionReference;
                 }
             }
             $result['eligible'] = $allowed;

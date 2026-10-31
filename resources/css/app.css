@@ -24,9 +24,8 @@
 
 @plugin '@tailwindcss/forms';
 
-/* Laravel's pagination views live in vendor/, which automatic detection skips; the separate cafeteria app has its own build. */
+/* Laravel's pagination views live in vendor/, which automatic detection skips. */
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source not '../../external-apps';
 
 /* `dark` follows the `.dark` class on <html> (the theme toggle), not the OS setting. */
 @custom-variant dark (&:is(.dark *));

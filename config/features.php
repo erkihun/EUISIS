@@ -20,6 +20,8 @@ return [
     */
     'transport' => (bool) env('FEATURE_TRANSPORT', true),
     'court_cases' => (bool) env('FEATURE_COURT_CASES', false),
+    // service_monitoring — Service Delivery Monitoring & Support (docs/service-monitoring.md).
+    'service_monitoring' => (bool) env('FEATURE_SERVICE_MONITORING', true),
 
     /*
     | Staged rollout inside Transport (docs/transport/production-readiness.md).
@@ -47,6 +49,7 @@ return [
         ],
         'transport_gps' => ['api.transport.positions.'],
         'court_cases' => ['court-cases.'],
+        'service_monitoring' => ['service-monitoring.'],
     ],
 
     /*

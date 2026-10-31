@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Employee\MyAssessmentsController;
-use App\Http\Controllers\Web\AssessmentFormController;
-use App\Http\Controllers\Web\AssessmentOversightAdminController;
-use App\Http\Controllers\Web\AssessmentOversightController;
-use App\Http\Controllers\Web\AssessmentOversightExportController;
-use App\Http\Controllers\Web\AssessmentRecordController;
-use App\Http\Controllers\Web\AssessmentReviewController;
-use App\Http\Controllers\Web\AssessmentWorkspaceController;
+use Modules\Assessment\Http\Controllers\Employee\MyAssessmentsController;
+use Modules\Assessment\Http\Controllers\AssessmentFormController;
+use Modules\Assessment\Http\Controllers\AssessmentOversightAdminController;
+use Modules\Assessment\Http\Controllers\AssessmentOversightController;
+use Modules\Assessment\Http\Controllers\AssessmentOversightExportController;
+use Modules\Assessment\Http\Controllers\AssessmentRecordController;
+use Modules\Assessment\Http\Controllers\AssessmentReviewController;
+use Modules\Assessment\Http\Controllers\AssessmentWorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 

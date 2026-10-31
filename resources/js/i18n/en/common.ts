@@ -16,6 +16,8 @@ const common = {
     import: 'Import',
     actions: 'Actions',
     details: 'Details',
+    /** Breadcrumb of a `….correct` page (a record sent back for correction). */
+    correct: 'Correction',
     overview: 'Overview',
     status: 'Status',
     createdAt: 'Created At',

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\FieldWorkType;
 use Illuminate\Database\Seeder;
+use Modules\FieldWork\Domain\Models\FieldWorkType;
 
 /** Editable starter catalog; it contains examples, not permanent HR policy. */
 class FieldWorkTypeSeeder extends Seeder

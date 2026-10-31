@@ -17,6 +17,8 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use WeakMap;
+use WeakReference;
 
 class OrganizationScopeService
 {
@@ -34,6 +36,9 @@ class OrganizationScopeService
 
     /** @var array<string, Collection> */
     private array $requestCache = [];
+
+    /** @var WeakMap<User, array{0: WeakReference, 1: bool}>|null */
+    private static ?WeakMap $scopeRecords = null;
 
     public function __construct(
         private readonly PermissionScopeClassifier $permissionScopeClassifier = new PermissionScopeClassifier,
@@ -86,7 +91,7 @@ class OrganizationScopeService
             return $this->accessibleOrganizationIds($user)->contains($organizationId);
         }
 
-        $hasAnyScopeRecord = $user->organizationScopes()->exists();
+        $hasAnyScopeRecord = $this->hasAnyScopeRecord($user);
 
         // No scope record: an account holding an organization-level role is
         // confined to its own organization (fail closed); only accounts whose
@@ -301,7 +306,7 @@ class OrganizationScopeService
             return false;
         }
 
-        return ! $user->organizationScopes()->exists() && ! $this->requiresExplicitScope($user);
+        return ! $this->hasAnyScopeRecord($user) && ! $this->requiresExplicitScope($user);
     }
 
     /**
@@ -368,9 +373,35 @@ class OrganizationScopeService
         return (string) $organization;
     }
 
+    /**
+     * Whether the account has any scope record at all, asked once per request:
+     * policies ask it for every row of a list, which made each list page run
+     * two extra queries per row (Core Stage 6 query budgets). The answer is kept
+     * on the user object for the current request only, so a later request (or a
+     * test's next call) reads it again.
+     */
+    private function hasAnyScopeRecord(User $user): bool
+    {
+        self::$scopeRecords ??= new WeakMap;
+        $request = app()->bound('request') ? app('request') : null;
+        $memo = self::$scopeRecords[$user] ?? null;
+        if ($memo !== null && $memo[0]->get() === $request) {
+            return $memo[1];
+        }
+
+        $exists = $user->organizationScopes()->exists();
+        self::$scopeRecords[$user] = [WeakReference::create($request), $exists];
+
+        return $exists;
+    }
+
     public function clearCache(?User $user = null): void
     {
         if ($user !== null) {
+            if (self::$scopeRecords !== null) {
+                unset(self::$scopeRecords[$user]);
+            }
+
             foreach (array_keys($this->requestCache) as $key) {
                 if (str_starts_with($key, "org_scope.{$user->getKey()}.")) {
                     unset($this->requestCache[$key]);
@@ -378,6 +409,7 @@ class OrganizationScopeService
             }
         } else {
             $this->requestCache = [];
+            self::$scopeRecords = null;
         }
     }
 
@@ -660,7 +692,7 @@ class OrganizationScopeService
 
         $scopes = $user->organizationScopes()->active()->get();
 
-        if ($scopes->isEmpty() && $this->requiresExplicitScope($user) && ! $user->organizationScopes()->exists()) {
+        if ($scopes->isEmpty() && $this->requiresExplicitScope($user) && ! $this->hasAnyScopeRecord($user)) {
             return $this->requestCache[$cacheKey] = $this->ownOrganizationIds($user);
         }
 

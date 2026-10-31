@@ -39,7 +39,7 @@ readonly class ExternalApplicationGate
         }
 
         if (! $application->isActive()) {
-            return $this->deny($request, $application, 403, 'application_'.$application->status);
+            return $this->deny($request, $application, 403, $application->inactiveReason());
         }
 
         if (! $application->allowsIp($request->ip())) {

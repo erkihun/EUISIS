@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\CafeteriaProvider;
 use App\Models\ExternalApplication;
 use App\Models\Organization;
-use App\Models\ServiceProvider;
 use App\Models\ServiceTerminal;
-use App\Models\ServiceType;
 use App\Services\Nfc\NfcAccess;
 use App\Services\Nfc\NfcAudit;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -21,6 +18,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Cafeteria\Contracts\CafeteriaDirectory;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 /**
  * Terminal registry CRUD.
@@ -226,10 +226,10 @@ class NfcTerminalController extends Controller
             'types' => self::TYPES,
             'statuses' => self::STATUSES,
             'organizations' => $this->organizationOptions($request),
-            'providers' => ServiceProvider::query()->orderBy('name')->get(['id', 'name'])->all(),
-            'cafeteriaProviders' => CafeteriaProvider::query()->orderBy('name_en')->get(['id', 'name_en'])->all(),
+            'providers' => ServicePointRecord::query()->orderBy('name')->get(['id', 'name'])->all(),
+            'cafeteriaProviders' => array_map(fn (array $c): array => ['id' => $c['id'], 'name_en' => $c['name_en']], app(CafeteriaDirectory::class)->locations()),
             'applications' => ExternalApplication::query()->orderBy('name')->get(['id', 'name'])->all(),
-            'serviceTypes' => ServiceType::query()->orderBy('code')->get(['code'])->pluck('code')->all(),
+            'serviceTypes' => ServiceTypeRecord::query()->orderBy('code')->get(['code'])->pluck('code')->all(),
             'can' => $this->capabilities($request),
         ];
     }

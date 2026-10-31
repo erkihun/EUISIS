@@ -27,12 +27,16 @@ interface Props {
         name: string;
         code: string;
         owner_institution: string | null;
+        expires_at: string | null;
+        revoked_at: string | null;
+        revocation_reason: string | null;
         contact_person: string | null;
         contact_email: string | null;
         callback_url: string | null;
         status: string;
         allowed_scopes: string[];
         rate_limit_per_minute: number;
+        token_lifetime_days: number | null;
         allowed_ips: string[];
         last_used_at: string | null;
         organization_access: string;
@@ -80,12 +84,15 @@ export default function ApiManagementShow({
         name: application.name,
         code: application.code,
         owner_institution: application.owner_institution ?? '',
+        expires_at: application.expires_at ?? '',
+        revocation_reason: '',
         contact_person: application.contact_person ?? '',
         contact_email: application.contact_email ?? '',
         callback_url: application.callback_url ?? '',
         status: application.status,
         allowed_scopes: application.allowed_scopes,
         rate_limit_per_minute: application.rate_limit_per_minute,
+        token_lifetime_days: (application.token_lifetime_days ?? '') as number | '',
         allowed_ips: application.allowed_ips,
         // Preloaded so opening the edit form does not clear existing
         // assignments — sync() would otherwise detach every one of them.
@@ -242,6 +249,24 @@ export default function ApiManagementShow({
                         <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.ownerInstitution')}</dt>
                         <dd className="mt-1 text-sm text-(--app-foreground)">{application.owner_institution ?? '—'}</dd>
                     </div>
+                    <div>
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.tokenLifetime')}</dt>
+                        <dd className="mt-1 text-sm text-(--app-foreground)">
+                            {application.token_lifetime_days ? t('apiManagement.tokenLifetimeDays').replace('{days}', String(application.token_lifetime_days)) : t('apiManagement.tokenLifetimeDefault')}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.approvalExpires')}</dt>
+                        <dd className="mt-1 text-sm text-(--app-foreground)">{application.expires_at ?? t('apiManagement.noApprovalExpiry')}</dd>
+                    </div>
+                    {application.revoked_at && (
+                        <div>
+                            <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.revokedAt')}</dt>
+                            <dd className="mt-1 text-sm text-red-700 dark:text-red-300">
+                                {application.revoked_at}{application.revocation_reason ? ` · ${application.revocation_reason}` : ''}
+                            </dd>
+                        </div>
+                    )}
                 </dl>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">

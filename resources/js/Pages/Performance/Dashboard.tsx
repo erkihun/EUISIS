@@ -182,9 +182,10 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                         </div>
                         <div className="grid gap-3 p-5 md:grid-cols-2">
                             <SetupStep number={1} title={t('performance.dashboard.setupCycle')} description={t('performance.dashboard.setupCycleHelp')} href={route('performance.cycles.index')} />
-                            <SetupStep number={2} title={t('performance.dashboard.setupGoals')} description={t('performance.dashboard.setupGoalsHelp')} href={route('performance.strategic-goals.index')} />
-                            <SetupStep number={3} title={t('performance.dashboard.setupPlans')} description={t('performance.dashboard.setupPlansHelp')} href={route('performance.plans.index')} />
-                            <SetupStep number={4} title={t('performance.dashboard.setupAgreements')} description={t('performance.dashboard.setupAgreementsHelp')} href={route('performance.agreements.index')} />
+                            <SetupStep number={2} title={t('performance.dashboard.setupGoals')} description={t('performance.dashboard.setupGoalsHelp')} href={route('performance.strategy.main.index')} />
+                            <SetupStep number={3} title={t('performance.dashboard.setupApproval')} description={t('performance.dashboard.setupApprovalHelp')} href={route('performance.strategic-goals.index')} />
+                            <SetupStep number={4} title={t('performance.dashboard.setupPlans')} description={t('performance.dashboard.setupPlansHelp')} href={route('performance.plans.index')} />
+                            <SetupStep number={5} title={t('performance.dashboard.setupAgreements')} description={t('performance.dashboard.setupAgreementsHelp')} href={route('performance.agreements.index')} />
                         </div>
                     </section>
                 ) : (

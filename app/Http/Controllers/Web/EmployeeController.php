@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Actions\Audit\WriteAuditLogAction;
-use App\Actions\CodeRules\GenerateCodeAction;
 use App\Actions\Employees\RegisterEmployeeAction;
+use App\Actions\Employees\UpdateEmployeeAction;
+use App\Actions\Positions\CreatePositionAction;
 use App\Actions\Transfers\RequestEmployeeTransferAction;
-use App\Enums\AuditEventType;
-use App\Enums\CodeRuleEntityType;
 use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
@@ -19,24 +17,26 @@ use App\Http\Requests\EmployeeTransferRequest;
 use App\Http\Requests\EmployeeUpdateRequest;
 use App\Http\Resources\EmployeeDetailResource;
 use App\Http\Resources\EmployeeResource;
+use App\Models\AuditLog;
+use App\Models\EducationLevel;
 use App\Models\Employee;
-use App\Models\HierarchyVersion;
+use App\Models\EmployeeAssignment;
+use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
-use App\Services\Employees\EmploymentStatusTransition;
+use App\Services\Hierarchy\HierarchyVersionResolver;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\EmployeeFeedbackQr;
 use Throwable;
 
 class EmployeeController extends Controller
@@ -167,6 +167,8 @@ class EmployeeController extends Controller
         $employeesPaginated = Employee::query()
             ->with(['currentAssignment.organization', 'currentAssignment.organizationUnit', 'currentAssignment.position'])
             ->withCount('employeeDuplicateFlags')
+            // Card status per row in the same query (Core Stage 2 employee workspace).
+            ->withExists('activeIdCard as has_active_card')
             ->when(
                 $isOrganizationScoped,
                 fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->whereIn('organization_id', $allowedOrganizationIds))
@@ -356,7 +358,7 @@ class EmployeeController extends Controller
             'organizations' => $availableOrganizations,
             'organizationUnits' => $organizationUnitQuery
                 ->get(['id', 'organization_id', 'name_en', 'name_am', 'code']),
-            'hierarchyVersions' => HierarchyVersion::query()->orderByDesc('effective_from')->get(['id', 'version_name', 'status']),
+            'educationLevels' => $this->educationLevelOptions(),
             'positions' => $positionQuery
                 ->get(['id', 'job_position_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id']),
             'selectedOrganizationId' => $selectedOrganizationId,
@@ -560,14 +562,21 @@ class EmployeeController extends Controller
         // through transfers), so none is sent.
         return Inertia::render('Employees/Edit', [
             'employee' => (new EmployeeDetailResource($employee))->resolve(),
+            'educationLevels' => $this->educationLevelOptions(),
         ]);
+    }
+
+    /** The education ladder (organization design catalog), lowest first. */
+    private function educationLevelOptions(): array
+    {
+        return EducationLevel::query()->where('is_active', true)->orderBy('rank')->get(['id', 'name_en', 'name_am'])->all();
     }
 
     public function show(
         Request $request,
         Employee $employee,
         OrganizationScopeService $organizationScopeService,
-        EmployeeFeedbackTokenService $feedbackTokenService,
+        EmployeeFeedbackQr $feedbackQr,
         IdCardQrCodeRenderer $qrRenderer,
     ): Response {
         $this->authorize('view', $employee);
@@ -590,8 +599,49 @@ class EmployeeController extends Controller
                 ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
                 ->orderBy('name_en')
                 ->get(['id', 'name_en']),
-            'qrCodes' => $this->qrCodes($request, $employee, $feedbackTokenService, $qrRenderer),
+            'qrCodes' => $this->qrCodes($request, $employee, $feedbackQr, $qrRenderer),
+            'recentActivity' => $this->recentActivity($request, $employee),
         ]);
+    }
+
+    /**
+     * The latest audited changes to this employee, their assignments and cards
+     * (Core Stage 2 employee detail, Audit section). Event, time and actor only:
+     * values stay in the audit log, behind its own page and PII masking.
+     *
+     * @return list<array{event_type: string, created_at: string, actor: ?string}>|null
+     */
+    private function recentActivity(Request $request, Employee $employee): ?array
+    {
+        if (! $request->user()?->can('audit.view')) {
+            return null;
+        }
+
+        $subjects = [
+            Employee::class => [$employee->getKey()],
+            EmployeeAssignment::class => $employee->assignments->pluck('id')->all(),
+            IdCard::class => IdCard::query()->where('employee_id', $employee->getKey())->pluck('id')->all(),
+        ];
+
+        $logs = AuditLog::query()
+            ->where(function ($query) use ($subjects): void {
+                foreach ($subjects as $type => $ids) {
+                    if ($ids !== []) {
+                        $query->orWhere(fn ($q) => $q->where('auditable_type', $type)->whereIn('auditable_id', $ids));
+                    }
+                }
+            })
+            ->latest('created_at')
+            ->limit(15)
+            ->get(['id', 'event_type', 'created_at', 'actor_user_id']);
+
+        $actors = User::query()->whereIn('id', $logs->pluck('actor_user_id')->filter()->unique())->pluck('name', 'id');
+
+        return $logs->map(fn (AuditLog $log): array => [
+            'event_type' => $log->event_type->value,
+            'created_at' => $log->created_at?->toIso8601String() ?? '',
+            'actor' => $log->actor_user_id !== null ? ($actors[$log->actor_user_id] ?? null) : null,
+        ])->all();
     }
 
     /**
@@ -603,7 +653,7 @@ class EmployeeController extends Controller
      *
      * Rendering this section never rotates a token. The feedback token is
      * provisioned only when one is genuinely missing for an active employee
-     * (see EmployeeFeedbackTokenService::ensureActiveTokenFor), which is a
+     * (see EmployeeFeedbackQr::ensureActiveFor), which is a
      * create-if-absent, never a regenerate. A printed QR therefore survives
      * every ordinary edit to the employee record.
      *
@@ -612,7 +662,7 @@ class EmployeeController extends Controller
     private function qrCodes(
         Request $request,
         Employee $employee,
-        EmployeeFeedbackTokenService $feedbackTokenService,
+        EmployeeFeedbackQr $feedbackQr,
         IdCardQrCodeRenderer $qrRenderer,
     ): array {
         $user = $request->user();
@@ -635,13 +685,13 @@ class EmployeeController extends Controller
         $feedback = null;
 
         if ($canManageFeedbackQr) {
-            $token = $feedbackTokenService->ensureActiveTokenFor($employee, $user, $request);
+            $link = $feedbackQr->ensureActiveFor($employee, $user, $request);
 
-            if ($token !== null) {
+            if ($link !== null) {
                 $feedback = [
-                    'url' => $token->publicUrl(),
-                    'qr_svg' => $qrRenderer->asSvgDataUri($token->publicUrl(), 200),
-                    'status' => $token->status->value,
+                    'url' => $link->url,
+                    'qr_svg' => $qrRenderer->asSvgDataUri($link->url, 200),
+                    'status' => $link->status,
                 ];
             }
         }
@@ -657,7 +707,7 @@ class EmployeeController extends Controller
     public function store(
         EmployeeStoreRequest $request,
         RegisterEmployeeAction $registerEmployeeAction,
-        GenerateCodeAction $generateCodeAction,
+        CreatePositionAction $createPositionAction,
     ): RedirectResponse {
         $this->authorize('create', Employee::class);
 
@@ -675,31 +725,25 @@ class EmployeeController extends Controller
         }
 
         if ($positionId === null && $request->string('position_title')->toString() !== '') {
+            // Naming a position by title may create one, so it needs the position
+            // permission and goes through the Core action (code rules, owner/host
+            // checks, audit); only an active position is reused.
+            $this->authorize('create', Position::class);
+
             $position = Position::query()->where([
                 'organization_id' => $request->string('organization_id')->toString(),
                 'organization_unit_id' => $organizationUnitId,
                 'title_en' => $request->string('position_title')->toString(),
+                'is_active' => true,
             ])->first();
 
-            if ($position === null) {
-                $position = Position::query()->create([
-                    'organization_id' => $request->string('organization_id')->toString(),
-                    'organization_unit_id' => $organizationUnitId,
-                    'title_en' => $request->string('position_title')->toString(),
-                    'job_position_code' => $generateCodeAction->execute(
-                        CodeRuleEntityType::Position,
-                        [
-                            'organization_id' => $request->string('organization_id')->toString(),
-                            'organization_unit_id' => $organizationUnitId,
-                        ],
-                        $request->user(),
-                        null,
-                        'job_position_code',
-                    ),
-                    'is_active' => true,
-                    'effective_from' => now()->toDateString(),
-                ]);
-            }
+            $position ??= $createPositionAction->execute([
+                'organization_id' => $request->string('organization_id')->toString(),
+                'organization_unit_id' => $organizationUnitId,
+                'title_en' => $request->string('position_title')->toString(),
+                'is_active' => true,
+                'effective_from' => now()->toDateString(),
+            ], $request->user());
 
             $positionId = $position->id;
         }
@@ -716,6 +760,12 @@ class EmployeeController extends Controller
             'gender',
             'nationality',
             'employment_type',
+            'marital_status',
+            'education_level_id',
+            'field_of_study',
+            'has_disability',
+            'disability_type',
+            'service_start_date',
             'address',
             'emergency_contact_name',
             'emergency_contact_phone',
@@ -736,7 +786,8 @@ class EmployeeController extends Controller
             [
                 'organization_id' => $request->string('organization_id')->toString(),
                 'organization_unit_id' => $organizationUnitId,
-                'hierarchy_version_id' => $request->string('hierarchy_version_id')->toString() ?: null,
+                // The placement is recorded against the published chart; it is not the clerk's choice.
+                'hierarchy_version_id' => app(HierarchyVersionResolver::class)->resolveDefault()?->getKey(),
                 'position_id' => $positionId,
                 'effective_from' => $request->date('effective_from')?->toDateString() ?? now()->toDateString(),
                 'reason' => $request->input('reason'),
@@ -756,12 +807,9 @@ class EmployeeController extends Controller
     public function update(
         EmployeeUpdateRequest $request,
         Employee $employee,
-        WriteAuditLogAction $writeAuditLogAction,
-        EmploymentStatusTransition $statusTransition,
+        UpdateEmployeeAction $updateEmployeeAction,
     ): RedirectResponse {
         $this->authorize('update', $employee);
-
-        $oldValues = $employee->toArray();
 
         $attributes = $request->safe()->except(['photo', 'remove_photo']);
         $attributes['full_name'] = trim(implode(' ', array_filter([
@@ -782,14 +830,9 @@ class EmployeeController extends Controller
             $attributes['photo_path'] = $newPhoto;
         }
 
-        $previousStatus = $employee->status;
-
         try {
-            DB::transaction(function () use ($employee, $attributes, $previousStatus, $statusTransition, $request): void {
-                $employee->update($attributes);
-                // Ending or resuming employment ends or restores the placement (ADR 0002).
-                $statusTransition->apply($employee, $previousStatus, $employee->status, $request->user(), $request);
-            });
+            // Core action: row lock, status transition (ADR 0002) and audit in one transaction.
+            $updateEmployeeAction->execute($employee, $attributes, $request->user(), $request);
         } catch (Throwable $exception) {
             // Nothing was saved: keep the old photo and drop the new upload.
             if ($newPhoto !== null) {
@@ -802,16 +845,6 @@ class EmployeeController extends Controller
         if ($previousPhoto && ($newPhoto !== null || $request->boolean('remove_photo'))) {
             EmployeePhotoStorage::delete($previousPhoto);
         }
-
-        $writeAuditLogAction->execute(
-            AuditEventType::EmployeeUpdated,
-            $request->user(),
-            $employee->fresh(),
-            $employee->currentAssignment?->organization_id,
-            oldValues: $oldValues,
-            newValues: $employee->fresh()->toArray(),
-            request: $request,
-        );
 
         return to_route('employees.show', $employee)
             ->with('flash', ['message' => __('employees.updated_successfully'), 'type' => 'success']);

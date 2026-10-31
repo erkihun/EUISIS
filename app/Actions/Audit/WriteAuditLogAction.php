@@ -68,6 +68,11 @@ class WriteAuditLogAction
         ?Request $request = null,
     ): AuditLog {
         $organizationId = $this->validOrganizationId($organizationId);
+        // Core actions are called without the request; inside an HTTP request (the
+        // correlation middleware has run) its IP and user agent still belong on the row.
+        if ($request === null && app()->bound('request') && app('request')->attributes->has('correlation_id')) {
+            $request = app('request');
+        }
 
         return AuditLog::query()->create([
             'actor_user_id' => $actor?->getKey(),

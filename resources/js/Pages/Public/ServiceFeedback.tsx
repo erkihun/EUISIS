@@ -5,9 +5,9 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PublicQrActionDock, { type PublicQrCall } from '@/Components/public/PublicQrActionDock';
 import OrganizationFeedbackForm, { type OrganizationFormContext } from '@/Components/public/OrganizationFeedbackForm';
 import {
-    AboutYou, CategoryChips, EvidenceSection, FormNotice, IdentityFields, KINDS, RequirementMark, TIP_TYPE_COPY, TipTypeChooser,
+    AboutYou, EvidenceSection, FormNotice, IdentityFields, KINDS, RequirementMark, TIP_TYPE_COPY, TipTypeChooser,
     areaClass, cardClass, errorClass, evidenceError, fieldClass, labelClass, mutedClass, optionalClass, privacyNoteKey, sendButtonClass, useSubmissionOutcome,
-    type CategoryOption, type Links, type Receipt, type TargetDisplay,
+    type Links, type Receipt, type TargetDisplay,
 } from '@/Components/public/feedbackFormParts';
 import { AlertTriangle, Building2, ChevronRight, UserIcon } from '@/Components/NavIcons';
 import { Link, useForm } from '@inertiajs/react';
@@ -46,8 +46,6 @@ interface Props {
     target: TargetDisplay | null;
     links: Links;
     serviceTypes: ServiceTypeOption[];
-    /** Active categories that apply to this type and target; empty when none are defined. */
-    categories: CategoryOption[];
     submitted: boolean;
     type: 'feedback' | 'suggestion' | 'complaint' | null;
     reference: string | null;
@@ -249,7 +247,6 @@ function FormScreen({ formRef, onSubmit, requirements, processing, progress, sub
 interface FormProps {
     target: TargetDisplay;
     serviceTypes: ServiceTypeOption[];
-    categories: CategoryOption[];
     links: Links;
     formToken: string | null;
     requirements: SubmissionRequirements;
@@ -263,7 +260,7 @@ interface FormProps {
  * folded away; evidence and the tipster's own details are optional. Nothing
  * the system knows — channel, date received, reference — is asked.
  */
-function TipOffForm({ target, serviceTypes, categories, links, formToken, requirements, evidence, tipTypes }: FormProps & { tipTypes: TipType[] }) {
+function TipOffForm({ target, serviceTypes, links, formToken, requirements, evidence, tipTypes }: FormProps & { tipTypes: TipType[] }) {
     const { t } = useLocale();
     const formRef = useRef<HTMLFormElement>(null);
     const outcome = useSubmissionOutcome('suggestion', formRef);
@@ -275,7 +272,6 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
         incident_location: '',
         involved_parties: '',
         position_service_id: '',
-        category_id: '',
         client_name: '',
         client_contact: '',
         client_email: '',
@@ -309,7 +305,7 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
                     {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
                 </div>
 
-                <details className="group rounded-xl border border-(--app-border) p-3" open={Boolean(errors.incident_date || errors.incident_location || errors.involved_parties || errors.position_service_id || errors.category_id)}>
+                <details className="group rounded-xl border border-(--app-border) p-3" open={Boolean(errors.incident_date || errors.incident_location || errors.involved_parties || errors.position_service_id)}>
                     <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                         {t('serviceFeedback.tipMoreDetails')}
                         <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
@@ -347,8 +343,6 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
                 </details>
             </div>
 
-            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} kind="suggestion" />
-
             {requirements.evidence_allowed && (
                 <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
             )}
@@ -380,13 +374,13 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
 }
 
 /** The Complaint form: a named complainant, the details, optional when/where and evidence. */
-function ComplaintForm({ target, serviceTypes, categories, links, formToken, requirements, evidence }: FormProps) {
+function ComplaintForm({ target, serviceTypes, links, formToken, requirements, evidence }: FormProps) {
     const { t } = useLocale();
     const formRef = useRef<HTMLFormElement>(null);
     const outcome = useSubmissionOutcome('complaint', formRef);
     const { data, setData, post, processing, progress, errors, clearErrors } = useForm({
         form_token: formToken ?? '',
-        position_service_id: '', category_id: '', message: '',
+        position_service_id: '', message: '',
         client_name: '', client_contact: '', client_email: '', submitter_organization: '',
         incident_date: '', incident_location: '', attachments: [] as File[],
     });
@@ -410,8 +404,6 @@ function ComplaintForm({ target, serviceTypes, categories, links, formToken, req
                 <textarea id="entry-message" required aria-required="true" maxLength={5000} rows={7} value={data.message} onChange={(event) => { setData('message', event.target.value); clearErrors('message'); }} className={areaClass} />
                 {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
             </div>
-
-            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} kind="complaint" />
 
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional />
@@ -450,7 +442,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     );
 }
 
-function RatingForm({ target, serviceTypes, categories, links, formToken, requirements }: Omit<FormProps, 'evidence'>) {
+function RatingForm({ target, serviceTypes, links, formToken, requirements }: Omit<FormProps, 'evidence'>) {
     const { t } = useLocale();
     /*
      * Hover preview is tracked separately from the committed rating so the
@@ -463,7 +455,6 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, requir
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         form_token: formToken ?? '',
         position_service_id: '',
-        category_id: '',
         rating: 0,
         comment: '',
         client_name: '',
@@ -519,8 +510,6 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, requir
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={!requirements.service_required} />
             )}
-
-            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} kind="feedback" />
 
             <div className={cardClass} data-field>
                 <label htmlFor="comment" className={labelClass}>
@@ -719,7 +708,7 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
     );
 }
 
-export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], requirements, evidence, tipTypes = ['CORRUPTION', 'IMPROPER_PRACTICE'], formToken = null, call = null, questionnaire = null, serviceOptions = { mode: 'none', items: [] }, offices = [] }: Props) {
+export default function ServiceFeedback({ available, target, links, serviceTypes, submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], requirements, evidence, tipTypes = ['CORRUPTION', 'IMPROPER_PRACTICE'], formToken = null, call = null, questionnaire = null, serviceOptions = { mode: 'none', items: [] }, offices = [] }: Props) {
     const { t } = useLocale();
 
     /*
@@ -753,7 +742,6 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                     key={type}
                     kind={type}
                     target={target}
-                    categories={categories}
                     links={links}
                     formToken={formToken}
                     requirements={requirements[type]}
@@ -762,9 +750,9 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                     context={{ questionnaire, serviceOptions, offices }}
                 />
             ) : <>
-            {type === 'feedback' && <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} requirements={requirements.feedback} />}
-            {type === 'suggestion' && <TipOffForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} requirements={requirements.suggestion} evidence={evidence} tipTypes={tipTypes} />}
-            {type === 'complaint' && <ComplaintForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} requirements={requirements.complaint} evidence={evidence} />}
+            {type === 'feedback' && <RatingForm target={target} serviceTypes={serviceTypes} links={links} formToken={formToken} requirements={requirements.feedback} />}
+            {type === 'suggestion' && <TipOffForm target={target} serviceTypes={serviceTypes} links={links} formToken={formToken} requirements={requirements.suggestion} evidence={evidence} tipTypes={tipTypes} />}
+            {type === 'complaint' && <ComplaintForm target={target} serviceTypes={serviceTypes} links={links} formToken={formToken} requirements={requirements.complaint} evidence={evidence} />}
             </>}
         </FeedbackAppLayout>
     );

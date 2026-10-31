@@ -9,8 +9,6 @@ use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
-use App\Enums\EntitlementStatus;
-use App\Enums\ServiceFeedbackStatus;
 use App\Enums\TransferStatus;
 use App\Models\ApiEndpointDefinition;
 use App\Models\ApiRequestLog;
@@ -20,9 +18,7 @@ use App\Models\CardRequest;
 use App\Models\CardVerification;
 use App\Models\Employee;
 use App\Models\EmployeeDuplicateFlag;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
-use App\Models\Entitlement;
 use App\Models\ExternalApplication;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
@@ -31,15 +27,19 @@ use App\Models\NfcVerificationLog;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\ServiceProvider;
 use App\Models\ServiceTerminal;
-use App\Models\ServiceTransaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Modules\Entitlements\Contracts\Data\EntitlementStatus;
+use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTransactionRecord;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 class DashboardMetricService
 {
@@ -1057,7 +1057,7 @@ class DashboardMetricService
     public function entitlementQuery(array $scope): Builder
     {
         // Joins only when an organization scope needs them (see cardQuery).
-        return Entitlement::query()
+        return EntitlementRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query
@@ -1082,7 +1082,7 @@ class DashboardMetricService
         // Scoped by a subquery instead of joining employees and assignments on
         // every chart: global and provider dashboards no longer pay for two
         // joins per transaction (load test 2026-10-11).
-        return ServiceTransaction::query()
+        return ServiceTransactionRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('service_transactions.employee_id', DB::table('employees')
@@ -1127,7 +1127,7 @@ class DashboardMetricService
 
     public function providerQuery(array $scope): Builder
     {
-        return ServiceProvider::query()
+        return ServicePointRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('service_providers.organization_id', $scope['organization_ids'])
@@ -1153,7 +1153,7 @@ class DashboardMetricService
     /** Public submissions of every type, confined to the viewer's organization scope. */
     private function publicSubmissionQuery(array $scope): Builder
     {
-        return EmployeeServiceFeedback::query()
+        return ServiceFeedbackRecord::query()
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('employee_service_feedback.organization_id', $scope['organization_ids'])

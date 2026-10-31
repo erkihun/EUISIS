@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use App\Models\Permission;
 use App\Models\Role;
-use App\Support\Grievances\GrievanceRoles;
 use App\Support\Rbac\DefaultRoleMatrix;
 use App\Support\Rbac\PermissionCatalog;
 use App\Support\Rbac\RbacSynchronizer;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
 use Spatie\Permission\PermissionRegistrar;
 
 /*

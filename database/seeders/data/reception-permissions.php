@@ -1,0 +1,14 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    ['name' => 'reception.view', 'group' => 'reception', 'sort_order' => 10, 'is_system' => true, 'label_en' => 'View Reception', 'label_am' => 'መቀበያን ይመልከቱ', 'description_en' => 'View reception desks, scoped visits, queues and published service information.', 'description_am' => 'በተፈቀደው ወሰን የመቀበያ ጠረጴዛዎችን፣ ጉብኝቶችን፣ ወረፋዎችን እና የአገልግሎት መረጃን ይመልከቱ።'],
+    ['name' => 'reception.operate', 'group' => 'reception', 'sort_order' => 20, 'is_system' => true, 'label_en' => 'Operate Reception', 'label_am' => 'የመቀበያ ሥራን ያከናውኑ', 'description_en' => 'Register visitors, issue queue tickets, serve visitors and create authorized referrals.', 'description_am' => 'ጎብኚዎችን ይመዝግቡ፣ የወረፋ ትኬት ይስጡ፣ ያስተናግዱ እና የተፈቀደ ሪፈራል ይፍጠሩ።'],
+    ['name' => 'reception.supervise', 'group' => 'reception', 'sort_order' => 30, 'is_system' => true, 'label_en' => 'Supervise Reception', 'label_am' => 'መቀበያን ይቆጣጠሩ', 'description_en' => 'Monitor and reassign scoped reception queues and counter operations.', 'description_am' => 'በወሰን ውስጥ ያሉ ወረፋዎችን እና የመስኮት ሥራዎችን ይቆጣጠሩ።'],
+    ['name' => 'reception.configure', 'group' => 'reception', 'sort_order' => 40, 'is_system' => true, 'label_en' => 'Configure Reception', 'label_am' => 'መቀበያን ያዋቅሩ', 'description_en' => 'Configure reception desks, counters, supported services and staff assignments in scope.', 'description_am' => 'በወሰን ውስጥ ጠረጴዛዎችን፣ መስኮቶችን፣ አገልግሎቶችን እና የሠራተኛ ምደባን ያዋቅሩ።'],
+    ['name' => 'reception.appointments.manage', 'group' => 'reception', 'sort_order' => 50, 'is_system' => true, 'label_en' => 'Manage Reception Appointments', 'label_am' => 'የመቀበያ ቀጠሮዎችን ያስተዳድሩ', 'description_en' => 'Create, reschedule and cancel reception appointments within authorized scope.', 'description_am' => 'በተፈቀደው ወሰን የመቀበያ ቀጠሮዎችን ይፍጠሩ፣ ይቀይሩ እና ይሰርዙ።'],
+    ['name' => 'reception.reports.view', 'group' => 'reception', 'sort_order' => 60, 'is_system' => true, 'label_en' => 'View Reception Reports', 'label_am' => 'የመቀበያ ሪፖርቶችን ይመልከቱ', 'description_en' => 'View scoped reception workload, wait-time and service analytics.', 'description_am' => 'በወሰን ውስጥ የሥራ ጫና፣ የጥበቃ ጊዜ እና የአገልግሎት ትንታኔን ይመልከቱ።'],
+    ['name' => 'reception.reports.export', 'group' => 'reception', 'sort_order' => 70, 'is_system' => true, 'label_en' => 'Export Reception Reports', 'label_am' => 'የመቀበያ ሪፖርቶችን ያውጡ', 'description_en' => 'Export authorized reception records with an audit trail.', 'description_am' => 'የተፈቀዱ የመቀበያ መዝገቦችን ከኦዲት ታሪክ ጋር ያውጡ።'],
+    ['name' => 'reception.audit', 'group' => 'reception', 'sort_order' => 80, 'is_system' => true, 'label_en' => 'Audit Reception', 'label_am' => 'መቀበያን ኦዲት ያድርጉ', 'description_en' => 'Review authorized reception history and audit activity without changing operations.', 'description_am' => 'ሥራዎችን ሳይቀይሩ የተፈቀደ የመቀበያ ታሪክን እና የኦዲት እንቅስቃሴን ይመልከቱ።'],
+];

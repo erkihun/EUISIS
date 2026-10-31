@@ -2,13 +2,15 @@ import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import AppMetricCard from '@/Components/ui/AppMetricCard';
+import DashboardSection from '@/Components/dashboard/DashboardSection';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { CodeIcon, NetworkIcon } from '@/Components/NavIcons';
-import { buttonClassName } from '@/Components/ui';
-import { Card, EmptyState, Table, TBody, THead, Td, Th, Tr } from '@euisis/ui';
+import { AppMetricCard, Table, TableCard, TBody, Td, Th, THead, Tr, buttonClassName } from '@/Components/ui';
+import { Card, EmptyState } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatNumber } from '@/utils/displayFormat';
+import IntegrationWorkspace from '@/Components/coreIntegration/IntegrationWorkspace';
+import type { IntegrationCenterData } from '@/Components/coreIntegration/types';
 
 interface ApplicationRow {
     id: string;
@@ -28,46 +30,49 @@ interface Props {
     applications: ApplicationRow[] | null;
     events: EventFigures | null;
     can: { applications: boolean; events: boolean };
+    /** The standalone Core's own center (API clients, webhooks, deliveries, events, API calls), where the server offers it. */
+    center?: IntegrationCenterData | null;
 }
 
 /**
  * Core › Integration Center: partner applications and the event pipeline on one page.
  * No secret or token is ever sent here; details open on the existing screens.
  */
-export default function CoreIntegrationCenter({ applications, events, can }: Props) {
+export default function CoreIntegrationCenter({ applications, events, can, center = null }: Props) {
     const { t } = useLocale();
     const figure = (value: number | string | null | undefined) => (value === null || value === undefined ? t('core.none') : typeof value === 'number' ? formatNumber(value) : value);
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('core.integration.title')} description={t('core.integration.description')} />}>
+        <AuthenticatedLayout header={<PageHeader title={t('core.integration.title')} description={t(center ? 'core.integration.center.description' : 'core.integration.description')} />}>
             <Head title={t('core.integration.title')} />
 
-            <div className="space-y-6">
+            {center ? <IntegrationWorkspace center={center} /> : (
+            <div className="space-y-8">
                 {events && (
-                    <section aria-labelledby="integration-events" className="space-y-3">
-                        <div className="flex flex-wrap items-end justify-between gap-2">
-                            <h2 id="integration-events" className="text-base font-semibold text-(--app-foreground)">{t('core.integration.events')}</h2>
-                            <Link href={route('integrations.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('core.integration.openEvents')}</Link>
-                        </div>
+                    <DashboardSection
+                        title={t('core.integration.events')}
+                        actions={<Link href={route('integrations.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('core.integration.openEvents')}</Link>}
+                    >
                         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                             <AppMetricCard label={t('core.integration.pendingEvents')} value={figure(events.pending_events)} variant={Number(events.pending_events) > 0 ? 'warning' : 'neutral'} />
                             <AppMetricCard label={t('core.integration.publishedToday')} value={figure(events.published_24h)} variant="primary" />
                             <AppMetricCard label={t('core.integration.failedDeliveries')} value={figure(events.dead_deliveries)} variant={Number(events.dead_deliveries) > 0 ? 'danger' : 'neutral'} />
                             <AppMetricCard label={t('core.integration.activeSubscriptions')} value={figure(events.active_subscriptions)} variant="primary" />
                         </div>
-                    </section>
+                    </DashboardSection>
                 )}
 
                 {can.applications && (
-                    <section aria-labelledby="integration-applications" className="space-y-3">
-                        <div className="flex flex-wrap items-end justify-between gap-2">
-                            <h2 id="integration-applications" className="text-base font-semibold text-(--app-foreground)">{t('core.integration.applications')}</h2>
-                            <div className="flex flex-wrap gap-2">
+                    <DashboardSection
+                        title={t('core.integration.applications')}
+                        actions={(
+                            <>
                                 <Link href={route('api-management.docs')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('core.integration.apiDocs')}</Link>
                                 <Link href={route('api-management.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('core.integration.manageApplications')}</Link>
-                            </div>
-                        </div>
-                        <Card className="overflow-hidden p-0">
+                            </>
+                        )}
+                    >
+                        <TableCard>
                             {!applications || applications.length === 0 ? (
                                 <EmptyState icon={<CodeIcon className="h-8 w-8" />} title={t('core.integration.noApplications')} description={t('core.integration.noApplicationsHint')} />
                             ) : (
@@ -101,14 +106,15 @@ export default function CoreIntegrationCenter({ applications, events, can }: Pro
                                     </TBody>
                                 </Table>
                             )}
-                        </Card>
-                    </section>
+                        </TableCard>
+                    </DashboardSection>
                 )}
 
                 {!events && !can.applications && (
-                    <Card><EmptyState icon={<NetworkIcon className="h-8 w-8" />} title={t('core.emptyTitle')} description={t('core.emptyDescription')} /></Card>
+                    <Card className="p-0"><EmptyState icon={<NetworkIcon className="h-8 w-8" />} title={t('core.emptyTitle')} description={t('core.emptyDescription')} /></Card>
                 )}
             </div>
+            )}
         </AuthenticatedLayout>
     );
 }

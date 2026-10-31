@@ -132,6 +132,58 @@ class PositionCapacityService
         ]);
     }
 
+    /**
+     * Records a new placement on the establishment ledger, as a completed transfer
+     * does, so the ledger agrees with the assignments and EndAssignment can later
+     * release the row (and emit position.vacated). Placements by registration and
+     * resumption used to hold a seat with no ledger row.
+     *
+     * Uses an approved establishment in force on the start date that still has a
+     * free ledger slot; returns null when there is none (a position without an
+     * approved establishment has no ledger) or the assignment is already recorded.
+     * Runs inside the caller's transaction, under its position lock.
+     */
+    public function recordOccupancyForPlacement(EmployeeAssignment $assignment): ?PositionOccupancy
+    {
+        if ($assignment->position_id === null || $assignment->assignment_status !== AssignmentStatus::Active) {
+            return null;
+        }
+
+        $alreadyRecorded = PositionOccupancy::query()
+            ->where('employee_assignment_id', $assignment->id)
+            ->where('status', OccupancyStatus::Active->value)
+            ->exists();
+        if ($alreadyRecorded) {
+            return null;
+        }
+
+        $from = $assignment->effective_from !== null ? Carbon::parse($assignment->effective_from) : today();
+        // A historical start date is recorded as it is, but the establishment must be in force today.
+        $day = $from->greaterThan(today()) ? $from->toDateString() : today()->toDateString();
+
+        $establishments = PositionEstablishment::query()
+            ->where('position_id', $assignment->position_id)
+            ->where('status', EstablishmentStatus::Approved->value)
+            ->whereDate('effective_from', '<=', $day)
+            ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $day))
+            ->orderBy('effective_from')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($establishments as $establishment) {
+            $held = PositionOccupancy::query()
+                ->where('position_establishment_id', $establishment->id)
+                ->where('status', OccupancyStatus::Active->value)
+                ->count();
+
+            if ($held < (int) $establishment->approved_slots) {
+                return $this->recordOccupancy($establishment, $assignment, $from);
+            }
+        }
+
+        return null;
+    }
+
     public function releaseOccupancy(PositionOccupancy $occupancy, string $reason, Carbon $releasedOn): void
     {
         $occupancy->update([

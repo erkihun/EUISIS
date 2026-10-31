@@ -1,11 +1,12 @@
 /**
  * Route a scanned or pasted value to the page that can handle it.
  *
- * Two different public QR codes exist and a visitor does not know which one
+ * Three different public QR codes exist and a visitor does not know which one
  * they are holding:
  *
- *  - ID card QR  -> /id-checker/{uuid}          (dashed UUID)
- *  - Feedback QR -> /service-feedback/{token}   (64 hex characters)
+ *  - ID card QR               -> /id-checker/{uuid}          (dashed UUID)
+ *  - Employee feedback QR     -> /service-feedback/{token}   (64 hex characters)
+ *  - Organization feedback QR -> /feedback/{token}           (64 hex characters)
  *
  * Sending a feedback QR to the ID checker would fail with a confusing "card not
  * found", so the shape of the value decides the destination. A full URL is
@@ -20,8 +21,9 @@ export function resolveVerifyDestination(raw: string): string | null {
         return null;
     }
 
-    // An already-complete link to either public page: follow its own path.
-    const pathMatch = value.match(/\/(id-checker|service-feedback)\/([^/?#\s]+)/i);
+    // An already-complete link to any of the public pages: follow its own
+    // path, whichever host printed it.
+    const pathMatch = value.match(/\/(id-checker|service-feedback|feedback)\/([^/?#\s]+)/i);
 
     if (pathMatch) {
         return `/${pathMatch[1].toLowerCase()}/${pathMatch[2]}`;

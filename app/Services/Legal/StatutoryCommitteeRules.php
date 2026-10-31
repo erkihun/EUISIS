@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services\Legal;
 
-use App\Enums\CommitteeType;
-use App\Enums\Discipline\DisciplinaryFinding;
-use App\Enums\Discipline\DisciplinaryPenalty;
-use App\Models\DisciplinaryDecision;
 use App\Models\EmployeeAssignment;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Modules\Discipline\Contracts\DisciplineCases;
+use Modules\Grievance\Contracts\Data\CommitteeType;
 
 /**
  * Regulation 201/2018 committee rules, applied only to the two statutory
@@ -39,7 +36,7 @@ final class StatutoryCommitteeRules
 
     public const HR_REPRESENTATIVE = 'hr_representative';
 
-    public static function applies(GrievanceCommittee $committee): bool
+    public static function applies(Model $committee): bool
     {
         return in_array($committee->committee_type, [CommitteeType::Disciplinary, CommitteeType::Grievance], true);
     }
@@ -50,21 +47,21 @@ final class StatutoryCommitteeRules
      *
      * @return list<string>
      */
-    public function compositionProblems(GrievanceCommittee $committee, ?CarbonInterface $on = null): array
+    public function compositionProblems(Model $committee, ?CarbonInterface $on = null): array
     {
         if (! self::applies($committee)) {
             return [];
         }
 
         $members = $committee->members()->servingOn($on ?? now())->with('employee:id,gender')->get();
-        $bySource = fn (string $source): Collection => $members->filter(fn (GrievanceCommitteeMember $m): bool => $m->selection_source === $source);
-        $chairs = $members->filter(fn (GrievanceCommitteeMember $m): bool => $m->isChairperson());
+        $bySource = fn (string $source): Collection => $members->filter(fn (Model $m): bool => $m->selection_source === $source);
+        $chairs = $members->filter(fn (Model $m): bool => $m->isChairperson());
         $elected = $bySource(self::ELECTED);
         $hr = $bySource(self::HR_REPRESENTATIVE);
         $appointed = $bySource(self::APPOINTED);
 
         $problems = [];
-        if ($members->contains(fn (GrievanceCommitteeMember $m): bool => $m->selection_source === null)) {
+        if ($members->contains(fn (Model $m): bool => $m->selection_source === null)) {
             $problems[] = 'selection_source_missing';
         }
         if ($chairs->count() !== 1 || $chairs->first()?->selection_source !== self::APPOINTED) {
@@ -84,7 +81,7 @@ final class StatutoryCommitteeRules
         if ($members->count() !== 5) {
             $problems[] = 'member_count';
         }
-        if ($elected->isNotEmpty() && ! $elected->contains(fn (GrievanceCommitteeMember $m): bool => strtolower((string) $m->employee?->gender) === 'female')) {
+        if ($elected->isNotEmpty() && ! $elected->contains(fn (Model $m): bool => strtolower((string) $m->employee?->gender) === 'female')) {
             $problems[] = 'elected_woman_required';
         }
 
@@ -108,7 +105,7 @@ final class StatutoryCommitteeRules
      *
      * @return array{eligible: bool|null, problems: list<string>, needs_data: list<string>}
      */
-    public function eligibility(GrievanceCommitteeMember $member, ?CarbonInterface $on = null): array
+    public function eligibility(Model $member, ?CarbonInterface $on = null): array
     {
         return $this->employeeEligibility((string) $member->employee_id, $on);
     }
@@ -127,13 +124,7 @@ final class StatutoryCommitteeRules
         $member = (object) ['employee_id' => $employeeId];
 
         // A penalty set aside by the Administrative Court is not a penalty (Art. 6(2)).
-        $penalised = DisciplinaryDecision::query()
-            ->whereHas('disciplinaryCase', fn ($q) => $q->where('accused_employee_id', $member->employee_id))
-            ->where('finding', DisciplinaryFinding::Responsible->value)
-            ->whereIn('penalty', DisciplinaryPenalty::values())
-            ->where('decided_at', '>=', $on->copy()->subYears(2))
-            ->whereDoesntHave('appeal', fn ($q) => $q->where('outcome', 'reversed'))
-            ->exists();
+        $penalised = app(DisciplineCases::class)->penalisedSince((string) $member->employee_id, Carbon::parse($on)->subYears(2));
         if ($penalised) {
             $problems[] = 'disciplined_within_two_years';
         }

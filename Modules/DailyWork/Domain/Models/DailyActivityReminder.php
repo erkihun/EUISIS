@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\DailyWork\Domain\Models;
+
+use App\Models\Concerns\HasUuidPrimaryKey;
+use Illuminate\Database\Eloquent\Model;
+
+/** Idempotency record: one row per reminder actually sent. */
+class DailyActivityReminder extends Model
+{
+    use HasUuidPrimaryKey;
+
+    public $timestamps = false;
+
+    protected $fillable = ['employee_id', 'activity_date', 'reminder_type', 'sent_at', 'skipped'];
+
+    protected function casts(): array
+    {
+        return [
+            'activity_date' => 'date:Y-m-d',
+            'sent_at' => 'datetime',
+            // true = evaluated with no reminder due (no notification was sent).
+            'skipped' => 'boolean',
+        ];
+    }
+}

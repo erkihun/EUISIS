@@ -5,7 +5,8 @@ import { useRef, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import { toDateInput } from '@/lib/dateUtils';
-import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import BirthDatePicker from '@/Components/Calendar/BirthDatePicker';
+import EmployeeStatisticsSection, { employeeStatistics, employeeStatisticsPayload, type EducationLevelOption, type EmployeeStatistics } from '@/Components/employees/EmployeeStatisticsSection';
 import {
     BasicIcon,
     ContactIcon,
@@ -40,6 +41,13 @@ type Employee = {
     phone?: string | null;
     email?: string | null;
     date_of_birth?: string | null;
+    marital_status?: string | null;
+    education_level_id?: string | null;
+    field_of_study?: string | null;
+    has_disability?: boolean | null;
+    disability_type?: string | null;
+    service_start_date?: string | null;
+    can_view_sensitive?: boolean;
     gender?: string | null;
     address?: string | null;
     nationality?: string | null;
@@ -60,8 +68,10 @@ type Position = { id: string; title_en: string };
 
 export default function EmployeesEdit({
     employee,
+    educationLevels,
 }: {
     employee: Employee;
+    educationLevels: EducationLevelOption[];
     /** Supplied by the controller; placement is changed through Transfers, not here. */
     positions?: Position[];
 }) {
@@ -85,7 +95,7 @@ export default function EmployeesEdit({
         status: string;
         photo: File | null;
         remove_photo: boolean;
-    }>({
+    } & EmployeeStatistics>({
         first_name: employee.first_name ?? '',
         middle_name: employee.middle_name ?? '',
         last_name: employee.last_name ?? '',
@@ -103,7 +113,15 @@ export default function EmployeesEdit({
         status: employee.status ?? 'active',
         photo: null,
         remove_photo: false,
+        ...employeeStatistics(employee),
     });
+    const canViewSensitive = employee.can_view_sensitive === true;
+    const setStatistics = (values: Partial<EmployeeStatistics>) => form.setData((data) => ({ ...data, ...values }));
+    // Without the right to see health data the disability fields are left out, so they keep their value.
+    const withStatistics = (data: typeof form.data) => {
+        const { has_disability: _has, disability_type: _type, ...rest } = data;
+        return { ...rest, ...employeeStatisticsPayload(data, canViewSensitive), _method: 'patch' };
+    };
 
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const photoInputRef = useRef<HTMLInputElement>(null);
@@ -144,7 +162,7 @@ export default function EmployeesEdit({
     function submit(e: React.FormEvent) {
         e.preventDefault();
         if (form.processing) return;
-        form.transform((data) => ({ ...data, _method: 'patch' }));
+        form.transform(withStatistics);
         form.post(route('employees.update', employee.id));
     }
 
@@ -155,7 +173,7 @@ export default function EmployeesEdit({
      */
     function saveAndView() {
         if (form.processing) return;
-        form.transform((data) => ({ ...data, _method: 'patch' }));
+        form.transform(withStatistics);
         form.post(route('employees.update', employee.id));
     }
 
@@ -263,12 +281,8 @@ export default function EmployeesEdit({
                             </select>
                         </Field>
 
-                        <Field label={t('employees.dateOfBirth')} error={form.errors.date_of_birth}>
-                            <LocalizedDatePicker
-                                className={inputCls}
-                                value={form.data.date_of_birth}
-                                onChange={(iso) => form.setData('date_of_birth', iso)}
-                            />
+                        <Field label={t('employees.dateOfBirth')} error={form.errors.date_of_birth} htmlFor="date_of_birth">
+                            <BirthDatePicker id="date_of_birth" value={form.data.date_of_birth} onChange={(iso) => form.setData('date_of_birth', iso)} invalid={Boolean(form.errors.date_of_birth)} />
                         </Field>
 
                         {/* Photo spans the full card width so the preview has room. */}
@@ -416,7 +430,7 @@ export default function EmployeesEdit({
                         >
                             <textarea
                                 id="address"
-                                className={inputCls}
+                                className={`${inputCls} min-h-16 py-2`}
                                 rows={2}
                                 maxLength={1000}
                                 placeholder={t('employees.addressPlaceholder')}
@@ -478,6 +492,14 @@ export default function EmployeesEdit({
                             </div>
                         </div>
                     </FormCard>
+
+                    <EmployeeStatisticsSection
+                        data={form.data}
+                        errors={form.errors}
+                        set={setStatistics}
+                        educationLevels={educationLevels}
+                        canViewSensitive={canViewSensitive}
+                    />
 
                     {/* ── 4. Emergency Contact ──────────────────────────── */}
                     <FormCard

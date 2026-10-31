@@ -37,6 +37,16 @@ class Organization extends Model
         'branding_primary_color',
         'branding_secondary_color',
         'public_contact_phone',
+        'short_name_en',
+        'short_name_am',
+        'official_email',
+        'website',
+        'po_box',
+        'address_en',
+        'address_am',
+        'latitude',
+        'longitude',
+        'geofence_radius_m',
         'deleted_by',
         'deletion_reason',
     ];
@@ -47,10 +57,13 @@ class Organization extends Model
     {
         return [
             'status' => OrganizationStatus::class,
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'is_demo' => 'bool',
             'metadata' => 'array',
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'geofence_radius_m' => 'integer',
         ];
     }
 

@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Recruitment\Application\Actions;
+
+use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
+use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
+use App\Models\Employee;
+use App\Models\User;
+use Illuminate\Validation\ValidationException;
+use Modules\Recruitment\Application\Services\VacancyAvailabilityService;
+use Modules\Recruitment\Contracts\Data\VacancyApplicationStatus;
+use Modules\Recruitment\Domain\Models\VacancyAnnouncement;
+use Modules\Recruitment\Domain\Models\VacancyAnnouncementPosition;
+use Modules\Recruitment\Domain\Models\VacancyApplication;
+
+readonly class SubmitVacancyApplicationAction
+{
+    public function __construct(
+        private VacancyAvailabilityService $availabilityService,
+        private WriteAuditLogAction $writeAuditLogAction,
+    ) {}
+
+    public function execute(
+        VacancyAnnouncement $announcement,
+        VacancyAnnouncementPosition $positionEntry,
+        Employee $employee,
+        User $actor,
+    ): VacancyApplication {
+        if (! $announcement->isAcceptingApplications()) {
+            throw ValidationException::withMessages([
+                'announcement' => __('vacancies.notAcceptingApplications'),
+            ]);
+        }
+
+        if ($positionEntry->availableSlots() <= 0) {
+            throw ValidationException::withMessages([
+                'slots' => __('vacancies.noSlotsRemaining'),
+            ]);
+        }
+
+        if ($this->availabilityService->employeeHasApplicationForPosition($positionEntry->id, $employee->id)) {
+            throw ValidationException::withMessages([
+                'employee' => __('vacancies.alreadyApplied'),
+            ]);
+        }
+
+        $currentAssignment = $employee->currentAssignment;
+
+        $application = VacancyApplication::create([
+            'application_number' => $this->generateNumber(),
+            'vacancy_announcement_id' => $announcement->id,
+            'vacancy_announcement_position_id' => $positionEntry->id,
+            'employee_id' => $employee->id,
+            'current_organization_id' => $currentAssignment?->organization_id ?? $employee->organization_id,
+            'current_position_id' => $currentAssignment?->position_id,
+            'status' => VacancyApplicationStatus::Submitted->value,
+            'applied_at' => now(),
+        ]);
+
+        $this->writeAuditLogAction->execute(
+            AuditEventType::VacancyApplicationSubmitted,
+            $actor,
+            $application,
+            $positionEntry->organization_id,
+            newValues: $application->toArray(),
+        );
+
+        return $application;
+    }
+
+    /** From the vacancy-application code rule (APP-YYYYMM-NNNNN by default). */
+    private function generateNumber(): string
+    {
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::VacancyApplication, [], null, null, 'application_number');
+    }
+}

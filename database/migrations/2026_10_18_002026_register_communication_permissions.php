@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Support\Communication\CommunicationRoles;
-use App\Support\DailyActivity\DailyActivityRoles;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Communication\Contracts\Data\CommunicationRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;

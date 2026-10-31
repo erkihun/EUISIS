@@ -11,12 +11,24 @@ use App\Enums\EmployeeStatus;
 use App\Models\IdCard;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 readonly class ActivateCardAction
 {
     public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
 
     public function execute(IdCard $card, User $actor, ?string $notes = null): IdCard
+    {
+        // One transaction for the change, its event and its audit row; the card row
+        // lock stops two concurrent activations both passing the checks.
+        return DB::transaction(function () use ($card, $actor, $notes): IdCard {
+            $card = IdCard::query()->whereKey($card->getKey())->lockForUpdate()->firstOrFail();
+
+            return $this->activate($card, $actor, $notes);
+        });
+    }
+
+    private function activate(IdCard $card, User $actor, ?string $notes): IdCard
     {
         if ($card->status !== CardStatus::Issued) {
             throw new DomainException('Only issued cards can be activated. Current status: '.$card->status->value);

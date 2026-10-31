@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Grievance\Domain\Models;
+
+use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceLetterLanguage;
+use Modules\Grievance\Domain\Enums\GrievanceLetterType;
+
+/**
+ * Official letter template. Bodies use a fixed whitelist of {{tokens}}; nothing in a template is ever executed.
+ */
+class GrievanceLetterTemplate extends Model
+{
+    use HasUuidPrimaryKey;
+
+    protected $table = 'grievance_letter_templates';
+
+    protected $fillable = [
+        'organization_id',
+        'template_type',
+        'language',
+        'name',
+        'subject_template',
+        'body_template',
+        'header_config',
+        'footer_config',
+        'signature_config',
+        'seal_config',
+        'effective_from',
+        'effective_to',
+        'is_active',
+        'created_by',
+        'updated_by',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'template_type' => GrievanceLetterType::class,
+            'language' => GrievanceLetterLanguage::class,
+            'header_config' => 'array',
+            'footer_config' => 'array',
+            'signature_config' => 'array',
+            'seal_config' => 'array',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
+            'is_active' => 'bool',
+        ];
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
+    }
+}

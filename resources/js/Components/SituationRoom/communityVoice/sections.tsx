@@ -11,7 +11,6 @@ export type InstitutionRow = { id: string; code: string | null } & Name & Counts
 export type Institutions = { rows: InstitutionRow[]; own: Counts };
 export type AttentionItem = { code: string; tone: 'info' | 'warning'; count: number; params: Record<string, string | number | null>; filters: Record<string, string> };
 export type SummarySentence = { code: string; params: Record<string, string | number | null> };
-export type CategoryRow = { id: string | null; uncategorized: boolean } & Name & Counts;
 export type ServiceRow = { id: string; service_no: string | null; name: string | null } & Counts;
 /** A relevant work unit the public named, under its name at submission; `general` is the "General / Not sure" bucket. */
 export type UnitRow = { id: string | null; general: boolean } & Name & Counts;
@@ -161,7 +160,6 @@ export function AttentionSection({ items, rules, scope, filters, canManageAction
             days: p.days ?? undefined,
             previous: p.previous ?? undefined,
             percent: p.percent ?? undefined,
-            category: local(p.category_en, p.category_am),
             institution: local(p.organization_en, p.organization_am),
         });
     };
@@ -207,7 +205,6 @@ export function SummarySection({ sentences }: { sentences: SummarySentence[] }) 
                             {fmt(t(`situationRoom.summary_${sentence.code}`), {
                                 ...Object.fromEntries(Object.entries(p).filter(([, v]) => typeof v === 'number')) as Record<string, number>,
                                 type: p.type ? t(`situationRoom.type_${p.type}`) : undefined,
-                                category: local(p.category_en, p.category_am),
                                 institution: local(p.institution_en, p.institution_am),
                             })}
                         </li>
@@ -219,25 +216,6 @@ export function SummarySection({ sentences }: { sentences: SummarySentence[] }) 
 }
 
 /* ---------------------------------------------------------------- Breakdowns */
-
-export function CategorySection({ categories }: { categories: CategoryRow[] }) {
-    const { t } = useLocale();
-    const name = useNamer();
-    const max = Math.max(1, ...categories.map((row) => row.total));
-
-    return (
-        <Section id="sr-categories" title={t('situationRoom.categoriesTitle')}>
-            {categories.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.summary_no_submissions')}</p> : (
-                <ul className="space-y-3">
-                    {categories.slice(0, 10).map((row) => (
-                        <MeterRow key={row.id ?? 'none'} label={row.uncategorized ? t('situationRoom.uncategorized') : name(row)} value={row.total} max={max}
-                            hint={`${t('situationRoom.kpiFeedback')} ${row.feedback} · ${t('situationRoom.kpiSuggestions')} ${row.suggestion} · ${t('situationRoom.kpiComplaints')} ${row.complaint}`} />
-                    ))}
-                </ul>
-            )}
-        </Section>
-    );
-}
 
 export function ServiceSection({ services }: { services: ServiceRow[] }) {
     const { t } = useLocale();

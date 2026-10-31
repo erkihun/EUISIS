@@ -1,7 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 type MfaSetupPageProps = PageProps<{
@@ -74,9 +74,17 @@ export default function MfaSetup() {
                                     </li>
                                 ))}
                             </ul>
+                            {/* Enrolment is done: the codes are shown this once, the key never again. */}
+                            <Link
+                                href={route('dashboard')}
+                                className="mt-4 flex w-full items-center justify-center rounded-card bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+                            >
+                                {t('auth.mfaContinue')}
+                            </Link>
                         </div>
                     )}
 
+                    {recoveryCodes.length === 0 && (<>
                     <div className="mt-6 flex flex-col items-center gap-4">
                         <img
                             src={qrCodeUri}
@@ -133,6 +141,7 @@ export default function MfaSetup() {
                             {processing ? '…' : t('auth.mfaConfirmSetup')}
                         </button>
                     </form>
+                    </>)}
                 </div>
             </div>
         </div>

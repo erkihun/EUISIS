@@ -85,11 +85,22 @@ readonly class OrganizationTreeService
         return $options->unique('id')->values();
     }
 
+    /**
+     * The types offered for an organization-to-organization edge. Every edge,
+     * whatever its type, places the child under the parent (tree and scope),
+     * so only these four are offered; the others belong to unit relationships
+     * and reporting lines. An existing edge of another type keeps its type.
+     */
     public function relationshipTypeOptions(): array
     {
         return array_map(
             static fn (OrganizationRelationshipType $type) => $type->value,
-            OrganizationRelationshipType::cases(),
+            [
+                OrganizationRelationshipType::ReportsTo,
+                OrganizationRelationshipType::GeographicallyUnder,
+                OrganizationRelationshipType::ServiceScope,
+                OrganizationRelationshipType::Oversight,
+            ],
         );
     }
 

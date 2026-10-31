@@ -10,7 +10,7 @@ use App\Services\OrganizationDesign\Calculation\ManpowerStrategy;
 use App\Services\OrganizationDesign\Calculation\RatioStrategy;
 use App\Services\OrganizationDesign\Calculation\SpanOfControlStrategy;
 use App\Services\OrganizationDesign\Calculation\WorkloadStandardTimeStrategy;
-use App\Services\Performance\Calculation\Dec;
+use App\Support\Math\Dec;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Validation\ValidationException;

@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { AttentionSection, CategorySection, ExportsSection, InstitutionSection, KpiRow, RatingsSection, ResolutionSection, ServiceSection, SummarySection, SupportingSection, TrendSection, UnitSection, type AttentionItem, type CategoryRow, type ExportRow, type Institutions, type Kpis, type Ratings, type Resolution, type ServiceRow, type SummarySentence, type Trend, type UnitRow } from '@/Components/SituationRoom/communityVoice/sections';
+import { AttentionSection, ExportsSection, InstitutionSection, KpiRow, RatingsSection, ResolutionSection, ServiceSection, SummarySection, SupportingSection, TrendSection, UnitSection, type AttentionItem, type ExportRow, type Institutions, type Kpis, type Ratings, type Resolution, type ServiceRow, type SummarySentence, type Trend, type UnitRow } from '@/Components/SituationRoom/communityVoice/sections';
 import { Breadcrumb, FilterBar, SectionSkeleton, fmt, useDateLabel, useNamer, viewQuery, type FilterOptions, type Filters, type ScopeProps } from '@/Components/SituationRoom/communityVoice/shared';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, Button, Card, buttonClassName } from '@euisis/ui';
@@ -13,7 +13,7 @@ type Props = {
     filterOptions: FilterOptions;
     headline: { kpis: Kpis; trend: Trend; generated_at: string };
     comparison?: { institutions: Institutions; attention: AttentionItem[]; summary: SummarySentence[]; generated_at: string };
-    breakdown?: { categories: CategoryRow[]; services: ServiceRow[]; units: UnitRow[]; resolution: Resolution; targets: Record<string, Record<string, number>>; ratings: Ratings; generated_at: string };
+    breakdown?: { services: ServiceRow[]; units: UnitRow[]; resolution: Resolution; targets: Record<string, Record<string, number>>; ratings: Ratings; generated_at: string };
     supporting?: { cards: Record<string, Record<string, number | boolean>>; configuration: { without_qr: number; without_public_phone: number }; generated_at: string };
     exports: ExportRow[];
     rules: Record<string, number | null>;
@@ -89,7 +89,6 @@ export default function SituationRoomIndex({ scope, filters, filterOptions, head
                 <Deferred data={['breakdown', 'supporting']} fallback={<div className="grid gap-5 lg:grid-cols-2"><SectionSkeleton rows={5} /><SectionSkeleton rows={5} /></div>}>
                     {breakdown ? (
                         <div className="grid gap-5 lg:grid-cols-2">
-                            <CategorySection categories={breakdown.categories} />
                             <ResolutionSection resolution={breakdown.resolution} targets={breakdown.targets} />
                             <ServiceSection services={breakdown.services} />
                             <UnitSection units={breakdown.units} />

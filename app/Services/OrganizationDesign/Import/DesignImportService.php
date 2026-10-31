@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign\Import;
 
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Jobs\OrganizationDesign\ProcessDesignImportBatch;
 use App\Models\DesignImportBatch;
 use App\Models\DesignImportRow;
@@ -17,12 +19,12 @@ use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
 use App\Models\Service;
 use App\Models\User;
-use App\Services\DailyActivity\TaskStandardService;
 use App\Services\OrganizationDesign\FunctionService;
 use App\Services\OrganizationDesign\MandateService;
 use App\Services\OrganizationDesign\OrganizationDesignAudit;
 use App\Services\OrganizationDesign\ProcessArchitectureService;
 use App\Services\OrganizationDesign\ServiceCatalogService;
+use App\Services\OrganizationDesign\TaskStandardService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -501,12 +503,9 @@ class DesignImportService
         return array_intersect_key($data, array_flip($keys));
     }
 
+    /** From the design-import code rule (DIB-YYYY-NNNN by default). */
     private function nextReference(): string
     {
-        $prefix = self::PREFIX.'-'.now()->format('Y').'-';
-        $last = DesignImportBatch::query()->where('reference_number', 'like', $prefix.'%')->lockForUpdate()->orderByDesc('reference_number')->value('reference_number');
-        $next = $last === null ? 1 : ((int) substr((string) $last, strlen($prefix))) + 1;
-
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return app(GenerateCodeAction::class)->execute(CodeRuleEntityType::DesignImportBatch, [], null, null, 'reference_number');
     }
 }

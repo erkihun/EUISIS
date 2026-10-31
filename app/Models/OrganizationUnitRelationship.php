@@ -39,8 +39,8 @@ class OrganizationUnitRelationship extends Model
             'target_type' => RelationshipTargetType::class,
             'relationship_type' => OrganizationRelationshipType::class,
             'is_primary' => 'bool',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'status' => RelationshipStatus::class,
         ];
     }

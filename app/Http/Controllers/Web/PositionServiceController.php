@@ -7,9 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
-use App\Models\PerformanceObjective;
 use App\Models\Position;
 use App\Models\PositionService;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -21,6 +19,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
+use Modules\Performance\Contracts\PositionPerformance;
 
 /**
  * CRUD for the services each position provides to the public.
@@ -38,6 +38,7 @@ class PositionServiceController extends Controller
     public function __construct(
         private readonly OrganizationScopeService $scope,
         private readonly WriteAuditLogAction $writeAuditLogAction,
+        private readonly PositionPerformance $performance,
     ) {}
 
     public function index(Request $request): Response
@@ -56,11 +57,6 @@ class PositionServiceController extends Controller
             ->when(! $unrestricted, fn ($query) => $query->forOrganizations(
                 $this->scope->accessibleOrganizationIds($user)->all(),
             ))
-            // Usage only: the annual goal link lives on the plan item, never on the service.
-            ->when($canViewPlanUsage, fn ($query) => $query->withCount(['performanceObjectives as current_plan_items_count' => fn ($items) => $items
-                ->where('status', 'ACTIVE')
-                ->whereHas('plan', fn ($plan) => $plan->where('status', 'PUBLISHED')
-                    ->whereHas('cycle', fn ($cycle) => $cycle->whereNotIn('status', ['FINALIZED', 'CLOSED', 'CANCELLED'])))]))
             ->when($request->filled('organization_id'), fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
             ->when($request->filled('position_id'), fn ($query) => $query->where('position_id', $request->string('position_id')->toString()))
             ->when($request->filled('search'), function ($query) use ($request): void {
@@ -75,8 +71,12 @@ class PositionServiceController extends Controller
             ->orderBy('sort_order')
             ->orderBy('service_no')
             ->paginate(25)
-            ->withQueryString()
-            ->through(fn (PositionService $record): array => $this->present($record));
+            ->withQueryString();
+        // Usage only: the annual goal link lives on the plan item, never on the service.
+        $planItems = $canViewPlanUsage ? $this->performance->currentPlanItemCounts($records->getCollection()->modelKeys()) : null;
+        $records->through(fn (PositionService $record): array => $this->present(
+            $record->setAttribute('current_plan_items_count', $planItems === null ? null : ($planItems[$record->getKey()] ?? 0)),
+        ));
 
         return Inertia::render('PositionServices/Index', [
             'records' => $records,
@@ -311,7 +311,7 @@ class PositionServiceController extends Controller
 
     private function feedbackExistsFor(PositionService $record): bool
     {
-        return EmployeeServiceFeedback::query()
+        return ServiceFeedbackRecord::query()
             ->where('position_service_id', $record->getKey())
             ->exists();
     }
@@ -327,7 +327,7 @@ class PositionServiceController extends Controller
 
     private function performanceReferencesExistFor(PositionService $record): bool
     {
-        return PerformanceObjective::query()->where('position_service_id', $record->getKey())->exists();
+        return $this->performance->positionServiceInUse($record->getKey());
     }
 
     /** @return Collection<int, Organization> */

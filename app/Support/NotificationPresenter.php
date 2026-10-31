@@ -4,17 +4,11 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Notifications\Communication\CommunicationNotification;
-use App\Notifications\DailyActivityNotification;
+use App\Notifications\CourtLetterNotification;
 use App\Notifications\EmployeePortalNotification;
-use App\Notifications\FieldWorkNotification;
-use App\Notifications\GrievanceNotification;
+use App\Notifications\InstitutionCourtCaseNotification;
 use App\Notifications\PasswordSecurityNotification;
-use App\Notifications\PerformanceNotification;
-use App\Notifications\PublicFeedbackNotification;
 use App\Notifications\StatutoryDeadlineNotification;
-use App\Notifications\TransferAnnouncementNotification;
-use App\Notifications\TransportNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -28,18 +22,25 @@ use Illuminate\Notifications\DatabaseNotification;
 final class NotificationPresenter
 {
     private const RENDERERS = [
-        'communication' => CommunicationNotification::class,
-        'daily_activity' => DailyActivityNotification::class,
+        'court_letter' => CourtLetterNotification::class,
+        'institution_court_case' => InstitutionCourtCaseNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
-        'field_work' => FieldWorkNotification::class,
         'account_security' => PasswordSecurityNotification::class,
-        'performance' => PerformanceNotification::class,
-        'grievance' => GrievanceNotification::class,
-        'public_feedback' => PublicFeedbackNotification::class,
         'statutory_deadline' => StatutoryDeadlineNotification::class,
-        'transfer' => TransferAnnouncementNotification::class,
-        'transport' => TransportNotification::class,
     ];
+
+    /** @var array<string, class-string> renderers of modules under Modules/, added by their providers */
+    private static array $moduleRenderers = [];
+
+    /**
+     * A module's service provider adds the class whose static render(array $data,
+     * string $locale): array{title: string, message: string} words its stored
+     * notifications; the stored data names the module.
+     */
+    public static function registerRenderer(string $module, string $renderer): void
+    {
+        self::$moduleRenderers[$module] = $renderer;
+    }
 
     /** The UI language is chosen in the browser, so it arrives with the request. */
     public static function locale(Request $request): string
@@ -57,7 +58,7 @@ final class NotificationPresenter
     public static function present(DatabaseNotification $notification, string $locale): array
     {
         $data = is_array($notification->data) ? $notification->data : [];
-        $renderer = self::RENDERERS[$data['module'] ?? ''] ?? null;
+        $renderer = self::RENDERERS[$data['module'] ?? ''] ?? self::$moduleRenderers[$data['module'] ?? ''] ?? null;
         $text = $renderer !== null && isset($data['kind'])
             ? $renderer::render($data, $locale)
             : ['title' => (string) ($data['title'] ?? ''), 'message' => (string) ($data['message'] ?? '')];

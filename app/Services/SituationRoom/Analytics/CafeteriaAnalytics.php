@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\CafeteriaTransactionStatus;
-use App\Models\CafeteriaProvider;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Cafeteria\Contracts\Data\TransactionStatus;
 
 /**
  * Cafeteria: meals served, scans refused and subsidy applied for the
  * employees of the scope (by the organization recorded on each
  * transaction). Amounts are totals; no employee appears.
+ *
+ * A declared read-only reporting reader of Cafeteria's tables (ADR 0017,
+ * ModulePublicApiTest): it aggregates in SQL across the organization scope
+ * and never writes.
  */
 final class CafeteriaAnalytics extends SituationAnalytics
 {
@@ -43,7 +46,7 @@ final class CafeteriaAnalytics extends SituationAnalytics
 
     private function accepted(SituationContext $context): Builder
     {
-        return $this->base($context)->where('c.status', CafeteriaTransactionStatus::Accepted->value);
+        return $this->base($context)->where('c.status', TransactionStatus::ACCEPTED);
     }
 
     private function kpis(SituationContext $context): SituationPanel
@@ -53,8 +56,8 @@ final class CafeteriaAnalytics extends SituationAnalytics
         return SituationPanel::kpis('cafeteria_kpis', $this->title('cafeteria_kpis'), self::SOURCE, [
             $this->kpi('meals_served', (clone $accepted)->count()),
             $this->kpi('people_served', (clone $accepted)->distinct()->count('c.employee_id')),
-            $this->kpi('scans_refused', (clone $this->base($context))->where('c.status', CafeteriaTransactionStatus::Rejected->value)->count()),
-            $this->kpi('scans_pending_review', (clone $this->base($context))->where('c.status', CafeteriaTransactionStatus::PendingReview->value)->count()),
+            $this->kpi('scans_refused', (clone $this->base($context))->where('c.status', TransactionStatus::REJECTED)->count()),
+            $this->kpi('scans_pending_review', (clone $this->base($context))->where('c.status', TransactionStatus::PENDING_REVIEW)->count()),
             $this->kpi('subsidy_applied', round((float) (clone $accepted)->sum('c.subsidy_amount_applied'), 2), ['unit' => 'ETB']),
             $this->kpi('employee_contribution', round((float) (clone $accepted)->sum('c.employee_contribution_applied'), 2), ['unit' => 'ETB']),
         ]);
@@ -62,7 +65,7 @@ final class CafeteriaAnalytics extends SituationAnalytics
 
     private function trendPanel(SituationContext $context): SituationPanel
     {
-        $query = DB::table('cafeteria_transactions as c')->where('c.status', CafeteriaTransactionStatus::Accepted->value);
+        $query = DB::table('cafeteria_transactions as c')->where('c.status', TransactionStatus::ACCEPTED);
         $context->scope->apply($query, 'c.employee_organization_id');
         $trend = $this->trend($query, 'c.transaction_date', $context->period(), true);
 
@@ -83,7 +86,7 @@ final class CafeteriaAnalytics extends SituationAnalytics
     private function status(SituationContext $context): SituationPanel
     {
         $counts = $this->countBy($this->base($context), 'c.status');
-        $buckets = array_column(CafeteriaTransactionStatus::cases(), 'value');
+        $buckets = TransactionStatus::ALL;
 
         return $this->chart('cafeteria_status', 'donut', self::SOURCE, $this->valueLabels('cafeteria_status', $buckets), [
             ['key' => 'scans', 'label' => SituationLabel::key('situationRoom.series.scans'), 'values' => array_map(fn (string $b): int => $counts[$b] ?? 0, $buckets)],
@@ -93,7 +96,7 @@ final class CafeteriaAnalytics extends SituationAnalytics
     private function providers(SituationContext $context): SituationPanel
     {
         $top = $this->topWithOther($this->countBy($this->accepted($context), "COALESCE(CAST(c.cafeteria_provider_id AS VARCHAR(64)), '__none')"));
-        $names = CafeteriaProvider::withTrashed()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($p): string => (string) $p->id);
+        $names = DB::table('cafeteria_providers')->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($p): string => (string) $p->id);
 
         return $this->chart('cafeteria_providers', 'hbar', self::SOURCE, array_map(fn ($key): array => match ((string) $key) {
             '__none' => SituationLabel::key('situationRoom.values.common.not_recorded'),
@@ -106,7 +109,7 @@ final class CafeteriaAnalytics extends SituationAnalytics
 
     private function refusals(SituationContext $context): SituationPanel
     {
-        $counts = $this->countBy($this->base($context)->where('c.status', CafeteriaTransactionStatus::Rejected->value), "COALESCE(NULLIF(TRIM(c.blocked_reason), ''), '__none')");
+        $counts = $this->countBy($this->base($context)->where('c.status', TransactionStatus::REJECTED), "COALESCE(NULLIF(TRIM(c.blocked_reason), ''), '__none')");
         $top = $this->topWithOther($counts);
 
         // Refusal reasons are recorded as text by the scanning terminal, so they are shown as recorded.

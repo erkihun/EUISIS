@@ -68,7 +68,8 @@ final class PredictiveAnalysis extends SystemAnalysis
         foreach ($this->watched() as $series) {
             $trend = TrendDetector::deteriorating($series['values']);
             $verdict = $trend['points'] < TrendDetector::MIN_POINTS ? 'insufficient' : ($trend['deteriorating'] ? 'deteriorating' : 'stable');
-            $rows[] = ['key' => $series['key'], 'cells' => [
+            $rows[] = [
+                'key' => $series['key'],
                 'series' => $series['name'],
                 'window' => $series['window'],
                 'points' => $trend['points'],
@@ -77,7 +78,7 @@ final class PredictiveAnalysis extends SystemAnalysis
                 'change' => $trend['increase_percent'],
                 'verdict' => SituationLabel::key(self::PREFIX."values.trend_verdict.{$verdict}"),
                 'confidence' => $trend['confidence'] !== null ? SituationLabel::key(self::PREFIX."confidence.{$trend['confidence']}") : '',
-            ]];
+            ];
         }
 
         return SituationPanel::table('trend_watch', $this->title('trend_watch'), $this->hint('trend_watch'), $this->source('telemetry'), [

@@ -8,6 +8,7 @@ use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
+use App\Http\Requests\Concerns\ValidatesEmployeeStatistics;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
 use App\Support\Security\NationalIdHash;
@@ -17,6 +18,8 @@ use Illuminate\Validation\Rules\Enum;
 
 class EmployeeStoreRequest extends FormRequest
 {
+    use ValidatesEmployeeStatistics;
+
     public function authorize(): bool
     {
         return $this->user()?->can('employees.manage') ?? false;
@@ -24,6 +27,8 @@ class EmployeeStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeEmployeeStatistics();
+
         $nid = filled($this->input('national_id')) ? trim((string) $this->input('national_id')) : null;
         $this->merge([
             'national_id' => $nid,
@@ -62,8 +67,7 @@ class EmployeeStoreRequest extends FormRequest
             'photo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255'],
-            'date_of_birth' => ['nullable', 'date'],
-            'gender' => ['nullable', 'string', 'max:32'],
+            ...$this->employeeStatisticsRules(null),
             'nationality' => ['nullable', 'string', 'max:100'],
             'employment_type' => ['nullable', Rule::enum(EmploymentType::class)],
             'address' => ['nullable', 'string', 'max:500'],

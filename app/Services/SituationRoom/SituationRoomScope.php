@@ -9,11 +9,11 @@ use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\FeedbackVisibility;
 
 /**
  * Where a leader is looking: their authorized organizations, optionally
@@ -42,7 +42,7 @@ final class SituationRoomScope
     ) {}
 
     /** @throws AuthorizationException when the requested institution is outside the user's scope */
-    public static function for(User $user, ?string $nodeId, OrganizationScopeService $scope, PublicFeedbackVisibility $visibility): self
+    public static function for(User $user, ?string $nodeId, OrganizationScopeService $scope, FeedbackVisibility $visibility): self
     {
         $unrestricted = $scope->isUnrestricted($user);
         $allowed = $unrestricted ? null : array_values(array_map('strval', $scope->accessibleOrganizationIds($user)->all()));

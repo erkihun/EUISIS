@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Models\Communication\Conversation;
 use App\Models\User;
-use App\Services\Communication\CommunicationAccess;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Str;
+use Modules\Communication\Application\Services\CommunicationAccess;
+use Modules\Communication\Domain\Models\Conversation;
 
 /*
  * Private broadcast channels. Every subscription is checked here; the events

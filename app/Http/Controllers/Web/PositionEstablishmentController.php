@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Actions\Vacancy\ApprovePositionEstablishmentAction;
-use App\Actions\Vacancy\StorePositionEstablishmentAction;
+use App\Actions\Positions\ApprovePositionEstablishmentAction;
+use App\Actions\Positions\StorePositionEstablishmentAction;
 use App\Enums\EstablishmentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePositionEstablishmentRequest;

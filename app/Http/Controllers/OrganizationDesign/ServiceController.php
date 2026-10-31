@@ -6,7 +6,6 @@ namespace App\Http\Controllers\OrganizationDesign;
 
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\ServiceBeneficiaryType;
-use App\Enums\ServiceDeliveryChannel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrganizationDesign\NewServiceVersionRequest;
 use App\Http\Requests\OrganizationDesign\StoreServiceRequest;
@@ -18,13 +17,14 @@ use App\Models\OrganizationFunction;
 use App\Models\OrganizationUnit;
 use App\Models\Service;
 use App\Models\ServiceClassification;
-use App\Models\ServiceType;
 use App\Services\OrganizationDesign\ServiceCatalogService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Entitlements\Contracts\Data\ServiceDeliveryChannel;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class ServiceController extends Controller
 {
@@ -59,7 +59,7 @@ class ServiceController extends Controller
             'organizations' => $this->organizationOptions($user),
             'classifications' => $this->classificationOptions(ServiceClassification::SCHEME_LOCAL),
             'cpcClassifications' => $this->classificationOptions(ServiceClassification::SCHEME_CPC),
-            'serviceTypes' => ServiceType::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
+            'serviceTypes' => ServiceTypeRecord::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
             'statuses' => array_map(fn (OrganizationDesignStatus $s) => $s->value, OrganizationDesignStatus::cases()),
             'beneficiaryTypes' => ServiceBeneficiaryType::values(),
             'deliveryChannels' => ServiceDeliveryChannel::values(),
@@ -107,7 +107,7 @@ class ServiceController extends Controller
             'classifications' => $this->classificationOptions(ServiceClassification::SCHEME_LOCAL),
             'cpcClassifications' => $this->classificationOptions(ServiceClassification::SCHEME_CPC),
             'isicOptions' => IsicActivity::query()->where('is_active', true)->orderBy('isic_code')->limit(1000)->get(['id', 'isic_code', 'name_en', 'name_am', 'level'])->map->only(['id', 'isic_code', 'name_en', 'name_am', 'level']),
-            'serviceTypes' => ServiceType::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
+            'serviceTypes' => ServiceTypeRecord::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
             'beneficiaryTypes' => ServiceBeneficiaryType::values(),
             'deliveryChannels' => ServiceDeliveryChannel::values(),
             'can' => [

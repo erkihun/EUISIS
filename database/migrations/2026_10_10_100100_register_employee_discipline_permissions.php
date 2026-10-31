@@ -7,13 +7,13 @@ use App\Enums\CodeRuleResetFrequency;
 use App\Models\CodeRule;
 use App\Models\Permission;
 use App\Models\Role;
-use App\Support\Discipline\DisciplineRoles;
 use App\Support\Rbac\DefaultRoleMatrix;
 use App\Support\Rbac\PermissionCatalog;
 use App\Support\Rbac\RbacSynchronizer;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Discipline\Contracts\Data\DisciplineRoles;
 use Spatie\Permission\PermissionRegistrar;
 
 /*

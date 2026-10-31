@@ -6,6 +6,9 @@ type Values = {
     name: string; code: string; owner_institution: string; contact_person: string;
     contact_email: string; callback_url: string; rate_limit_per_minute: number;
     status: string; allowed_ips: string[];
+    expires_at?: string; revocation_reason?: string;
+    /** Days a new token lives (TD-16); empty keeps the 8-hour default. */
+    token_lifetime_days?: number | '';
 };
 
 /** Application details shared by the create (index) and edit (show) forms. */
@@ -41,6 +44,12 @@ export default function ApplicationFields({ values, onChange, errors, disabled }
                         value={values.rate_limit_per_minute} onChange={(event) => onChange({ ...values, rate_limit_per_minute: Number(event.target.value) })} />
                 )}
             </FormField>
+            <FormField label={t('apiManagement.tokenLifetime')} description={t('apiManagement.tokenLifetimeHint')} error={errors.token_lifetime_days}>
+                {({ id, describedBy, invalid }) => (
+                    <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} type="number" min={1} max={365} className="tabular-nums"
+                        value={values.token_lifetime_days ?? ''} onChange={(event) => onChange({ ...values, token_lifetime_days: event.target.value === '' ? '' : Number(event.target.value) })} />
+                )}
+            </FormField>
             <FormField label={t('common.status')} error={errors.status}>
                 {({ id, describedBy, invalid }) => (
                     <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={values.status} onChange={(event) => onChange({ ...values, status: event.target.value })}>
@@ -48,6 +57,20 @@ export default function ApplicationFields({ values, onChange, errors, disabled }
                     </Select>
                 )}
             </FormField>
+            <FormField label={t('apiManagement.approvalExpires')} description={t('apiManagement.approvalExpiresHint')} error={errors.expires_at}>
+                {({ id, describedBy, invalid }) => (
+                    <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} type="date"
+                        value={values.expires_at ?? ''} onChange={(event) => onChange({ ...values, expires_at: event.target.value })} />
+                )}
+            </FormField>
+            {values.status === 'revoked' && (
+                <FormField className="sm:col-span-2" label={t('apiManagement.revocationReason')} description={t('apiManagement.revocationFinal')} error={errors.revocation_reason}>
+                    {({ id, describedBy, invalid }) => (
+                        <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} maxLength={1000}
+                            value={values.revocation_reason ?? ''} onChange={(event) => onChange({ ...values, revocation_reason: event.target.value })} />
+                    )}
+                </FormField>
+            )}
             <FormField className="sm:col-span-2 xl:col-span-3" label={t('apiManagement.ipAllowlist')} description={t('apiManagement.anyIp')} error={ipError}>
                 {({ id, describedBy, invalid }) => (
                     <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} className="font-mono" value={ipText} placeholder={t('apiManagement.ipAllowlistHint')}

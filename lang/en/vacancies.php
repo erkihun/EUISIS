@@ -84,6 +84,9 @@ return [
     // Validation errors
     'notAcceptingApplications' => 'This vacancy is not currently accepting applications.',
     'noSlotsRemaining' => 'No vacancy slots remain for this announcement.',
+    'destinationNotSelectable' => 'The vacant position is not active on the effective date or no longer belongs to this organization.',
+    'employeeNotPlaced' => 'The employee no longer holds an active placement and cannot be transferred.',
+    'employeeOutOfScope' => 'You can apply only for yourself or for an employee in your organizations.',
     'alreadyApplied' => 'You have already applied for this vacancy.',
     'establishmentNotApproved' => 'The position establishment must be approved before creating a vacancy.',
     'notDraft' => 'Only draft announcements can be published.',

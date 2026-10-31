@@ -21,6 +21,9 @@ Schedule::command('data:prune-retention')->dailyAt('03:15')->withoutOverlapping(
 // Audit-log tamper evidence: seal each finished day shortly after midnight.
 Schedule::command('audit:seal')->dailyAt('00:20')->withoutOverlapping()->onOneServer();
 
+// Break-glass elevations end on time (access:elevate, Core Stage 6).
+Schedule::command('access:expire-elevations')->everyMinute()->withoutOverlapping()->onOneServer();
+
 // Cafeteria policy status bookkeeping (approved → active, ended → expired).
 // Scans follow policy dates, so this only keeps the labels current.
 Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05')->withoutOverlapping()->onOneServer();
@@ -47,6 +50,10 @@ Schedule::command('assessments:oversight-monitor')->dailyAt('06:30')->withoutOve
 // Assessment execution: evaluator due-soon / overdue reminders (docs/assessment-evaluator-workflow.md).
 Schedule::command('assessments:evaluator-reminders')->dailyAt('07:00')->withoutOverlapping()->onOneServer();
 
+// Service Delivery Monitoring: period opened / due soon / due today / missing / overdue action items (docs/service-monitoring.md §Reminders).
+// Idempotent: the reminder log keeps each reminder to one per participant, subject and day.
+Schedule::command('service-monitoring:send-reminders')->dailyAt('06:15')->withoutOverlapping()->onOneServer();
+
 // Communication: re-check automatic channel memberships (the assignment observer covers moves as they happen).
 Schedule::command('communication:sync-memberships --queue')->dailyAt('03:40')->withoutOverlapping()->onOneServer();
 Schedule::command('communication:publish-scheduled')->everyMinute()->withoutOverlapping()->onOneServer();
@@ -64,6 +71,10 @@ Schedule::command('intelligence:prune')->dailyAt('03:35')->withoutOverlapping()-
 Schedule::command('intelligence:alerts')->hourly()->withoutOverlapping()->onOneServer();
 Schedule::command('intelligence:forecast --evaluate')->dailyAt('04:10')->withoutOverlapping()->onOneServer();
 Schedule::command('assistant:prune')->dailyAt('03:50')->withoutOverlapping()->onOneServer();
+
+// court-ms (ADR 0013, docs/integration/court-ms.md): status of the tribunal cases referred to court-ms.
+// A no-op while COURT_MS_ENABLED is false.
+Schedule::command('court-ms:poll')->everyTenMinutes()->withoutOverlapping()->onOneServer();
 
 // Event integration layer (docs/integration/transactional-outbox.md): outbox →
 // change feed every ten seconds without the queue; webhook deliveries fan out

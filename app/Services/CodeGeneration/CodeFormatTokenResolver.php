@@ -13,8 +13,8 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
-use App\Models\ServiceType;
 use Illuminate\Support\Carbon;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class CodeFormatTokenResolver
 {
@@ -747,7 +747,7 @@ class CodeFormatTokenResolver
             );
         }
 
-        $code = ServiceType::query()->whereKey($serviceTypeId)->value('code');
+        $code = ServiceTypeRecord::query()->whereKey($serviceTypeId)->value('code');
 
         return $this->sanitize((string) ($code ?? ''));
     }
@@ -763,14 +763,14 @@ class CodeFormatTokenResolver
             );
         }
 
-        /** @var ServiceType|null $serviceType */
-        $serviceType = ServiceType::query()->whereKey($serviceTypeId)->first(['id', 'code']);
+        /** @var ServiceTypeRecord|null $serviceType */
+        $serviceType = ServiceTypeRecord::query()->whereKey($serviceTypeId)->first(['id', 'code']);
 
         if ($serviceType === null) {
             return '';
         }
 
-        // ServiceType does not have a 'prefix' column — derive from code
+        // ServiceTypeRecord does not have a 'prefix' column — derive from code
         $code = strtoupper($serviceType->code ?? '');
 
         if (preg_match('/^([A-Z]+)/', $code, $matches)) {

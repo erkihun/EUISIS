@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign\Calculation;
 
-use App\Services\Performance\Calculation\Dec;
+use App\Support\Math\Dec;
 
 /** FTE = subordinates ÷ span of control (supervisory positions). */
 final class SpanOfControlStrategy implements ManpowerStrategy

@@ -7,11 +7,11 @@ namespace Database\Seeders;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
 use App\Models\CodeRule;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceLetterTemplate;
-use App\Models\GrievanceReasonCode;
-use App\Models\GrievanceSlaProfile;
 use Illuminate\Database\Seeder;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceLetterTemplate;
+use Modules\Grievance\Domain\Models\GrievanceReasonCode;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 
 /**
  * Grievance Management defaults (docs/grievance-management.md §9). Idempotent:

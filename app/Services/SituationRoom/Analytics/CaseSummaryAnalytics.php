@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\Discipline\DisciplinaryCaseStatus;
-use App\Enums\GrievanceStatus;
-use App\Enums\Performance\AppealStatus;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Performance\Contracts\Data\AppealStatus;
 
 /**
  * Grievance, Discipline and Appeal — a summary of caseload, kept strictly

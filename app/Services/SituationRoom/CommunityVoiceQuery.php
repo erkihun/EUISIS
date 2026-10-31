@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom;
 
-use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
-use App\Models\PublicFeedbackCategory;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Support\Database\SqlDateBucket;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Modules\Feedback\Contracts\FeedbackVisibility;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
 
 /**
  * "What is the community saying?" — every Situation Room figure about public
@@ -23,16 +22,16 @@ final class CommunityVoiceQuery
 {
     private const T = 'employee_service_feedback';
 
-    public function __construct(private readonly PublicFeedbackVisibility $visibility) {}
+    public function __construct(private readonly FeedbackVisibility $visibility) {}
 
     /**
      * Visible, in-scope submissions, narrowed by the filters and (unless null) a date range.
      *
-     * @return Builder<EmployeeServiceFeedback>
+     * @return Builder<ServiceFeedbackRecord>
      */
     public function base(SituationRoomScope $scope, SituationRoomFilters $filters, ?Carbon $from = null, ?Carbon $to = null): Builder
     {
-        $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query(), $scope->user);
+        $query = $this->visibility->applyTargetScope(ServiceFeedbackRecord::query(), $scope->user);
         $query->whereNotIn(self::T.'.status', SituationRoomMetrics::EXCLUDED_STATUSES);
 
         if ($scope->user->employee_id !== null) {
@@ -49,11 +48,6 @@ final class CommunityVoiceQuery
             $query->where(fn (Builder $q) => $q->where(self::T.'.target_type', 'employee')->orWhereNull(self::T.'.target_type'));
         } elseif ($filters->target === 'organization') {
             $query->where(self::T.'.target_type', 'organization');
-        }
-        if ($filters->categoryId === 'none') {
-            $query->whereNull(self::T.'.category_id');
-        } elseif ($filters->categoryId !== null) {
-            $query->where(self::T.'.category_id', $filters->categoryId);
         }
         if ($filters->status !== null) {
             $query->whereIn(self::T.'.status', SituationRoomMetrics::STATUS_BUCKETS[$filters->status]);
@@ -174,29 +168,6 @@ final class CommunityVoiceQuery
         usort($rows, fn (array $a, array $b): int => [$b['total'], $a['name_en']] <=> [$a['total'], $b['name_en']]);
 
         return ['rows' => $rows, 'own' => $ownCounts];
-    }
-
-    /**
-     * Counts per approved category, uncategorized shown as its own row.
-     *
-     * @return list<array<string, mixed>>
-     */
-    public function byCategory(SituationRoomScope $scope, SituationRoomFilters $filters): array
-    {
-        $rows = $this->base($scope, $filters, $filters->start, $filters->end)->toBase()
-            ->selectRaw(self::T.'.category_id AS category_id')
-            ->selectRaw($this->countColumns())
-            ->groupBy(self::T.'.category_id')
-            ->get();
-
-        $names = PublicFeedbackCategory::query()->whereIn('id', $rows->pluck('category_id')->filter()->all())->get(['id', 'name_en', 'name_am'])->keyBy(fn ($c): string => (string) $c->id);
-
-        return $rows->map(fn ($row): array => [
-            'id' => $row->category_id !== null ? (string) $row->category_id : null,
-            'name_en' => $row->category_id !== null ? ($names[(string) $row->category_id]->name_en ?? null) : null,
-            'name_am' => $row->category_id !== null ? ($names[(string) $row->category_id]->name_am ?? null) : null,
-            'uncategorized' => $row->category_id === null,
-        ] + $this->countsFrom($row))->sortByDesc('total')->values()->all();
     }
 
     /**

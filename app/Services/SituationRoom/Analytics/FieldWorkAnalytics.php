@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Enums\FieldWorkStatus;
-use App\Models\FieldWorkType;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
+use Modules\FieldWork\Contracts\ReadModels\FieldWorkTypeRecord;
 
 /**
  * Field Work: who is out now (as a count), what is waiting for approval and
@@ -106,7 +106,7 @@ final class FieldWorkAnalytics extends SituationAnalytics
     {
         $counts = $this->countBy($this->inPeriod(self::base($context), 'r.starts_at', $context->period()), "COALESCE(CAST(r.field_work_type_id AS VARCHAR(64)), '__none')");
         $top = $this->topWithOther($counts);
-        $names = FieldWorkType::query()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($t): string => (string) $t->id);
+        $names = FieldWorkTypeRecord::query()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($t): string => (string) $t->id);
 
         return $this->chart('field_types', 'hbar', self::SOURCE, array_map(fn ($key): array => match ((string) $key) {
             '__none' => SituationLabel::key('situationRoom.values.common.not_recorded'),

@@ -6,8 +6,6 @@ namespace App\Services\Intelligence\System\Telemetry;
 
 use App\Enums\AuditEventType;
 use App\Services\Backup\BackupStatusService;
-use App\Services\Communication\CommunicationBroadcaster;
-use App\Services\Transport\TransportSettings;
 use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -16,6 +14,8 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Communication\Contracts\Data\CommunicationTelemetry;
+use Modules\Transport\Contracts\TransportOperationalMetrics;
 use Predis\Client;
 use Throwable;
 
@@ -328,8 +328,8 @@ final class TelemetryCollector
                 $samples[] = $this->sample(Metrics::INTEGRATION_WEBHOOK_FAILURES, Metrics::COMPONENT_INTEGRATIONS, (int) $row->failures, $bucket, (string) $row->code, 'count');
             }
         }
-        if (class_exists(CommunicationBroadcaster::class) && defined(CommunicationBroadcaster::class.'::FAILURE_METRIC')) {
-            $samples[] = $this->sample(Metrics::INTEGRATION_BROADCAST_FAILURES_TOTAL, Metrics::COMPONENT_INTEGRATIONS, (int) Cache::get(CommunicationBroadcaster::FAILURE_METRIC, 0), $bucket, null, 'count');
+        if (class_exists(CommunicationTelemetry::class)) {
+            $samples[] = $this->sample(Metrics::INTEGRATION_BROADCAST_FAILURES_TOTAL, Metrics::COMPONENT_INTEGRATIONS, (int) Cache::get(CommunicationTelemetry::BROADCAST_FAILURES_KEY, 0), $bucket, null, 'count');
         }
 
         return $samples;
@@ -377,24 +377,19 @@ final class TelemetryCollector
      */
     private function transport(CarbonImmutable $now, CarbonImmutable $bucket): array
     {
-        if (! Schema::hasTable('transport_devices')) {
+        $metrics = app(TransportOperationalMetrics::class)->snapshot($now);
+        if ($metrics === null) {
             return [];
         }
-        $timeout = app(TransportSettings::class)->deviceInactivityTimeoutMinutes();
-        $active = DB::table('transport_devices')->where('status', 'active')->whereNull('deleted_at');
-        $silent = (clone $active)->where(fn ($q) => $q->whereNull('last_seen_at')->orWhere('last_seen_at', '<', $now->subMinutes($timeout)->toDateTimeString()))->count();
-        $pending = DB::table('transport_transactions')->where('sync_state', 'offline_pending');
-        $oldest = (clone $pending)->min('scanned_at');
-        $since = $now->subMinutes(15)->toDateTimeString();
 
         return [
-            $this->sample(Metrics::TRANSPORT_DEVICES_ACTIVE, Metrics::COMPONENT_TRANSPORT, (clone $active)->count(), $bucket, null, 'count'),
-            $this->sample(Metrics::TRANSPORT_DEVICES_SILENT, Metrics::COMPONENT_TRANSPORT, $silent, $bucket, null, 'count'),
-            $this->sample(Metrics::TRANSPORT_OFFLINE_PENDING, Metrics::COMPONENT_TRANSPORT, (clone $pending)->count(), $bucket, null, 'count'),
-            $this->sample(Metrics::TRANSPORT_OFFLINE_OLDEST_MINUTES, Metrics::COMPONENT_TRANSPORT, $oldest ? max(0, (int) round(($now->getTimestamp() - CarbonImmutable::parse((string) $oldest)->getTimestamp()) / 60)) : 0, $bucket, null, 'minutes'),
-            $this->sample(Metrics::TRANSPORT_STALE_OPEN_TRIPS, Metrics::COMPONENT_TRANSPORT, DB::table('transport_trips')->whereDate('trip_date', '<', $now->toDateString())->whereIn('status', ['boarding', 'in_progress'])->count(), $bucket, null, 'count'),
-            $this->sample(Metrics::TRANSPORT_BOARDINGS_15M, Metrics::COMPONENT_TRANSPORT, DB::table('transport_transactions')->where('status', 'accepted')->where('created_at', '>=', $since)->count(), $bucket, null, 'count'),
-            $this->sample(Metrics::TRANSPORT_REFUSALS_15M, Metrics::COMPONENT_TRANSPORT, DB::table('transport_transactions')->where('status', 'rejected')->where('created_at', '>=', $since)->count(), $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_DEVICES_ACTIVE, Metrics::COMPONENT_TRANSPORT, $metrics->activeDevices, $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_DEVICES_SILENT, Metrics::COMPONENT_TRANSPORT, $metrics->silentDevices, $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_OFFLINE_PENDING, Metrics::COMPONENT_TRANSPORT, $metrics->offlineBoardingsPending, $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_OFFLINE_OLDEST_MINUTES, Metrics::COMPONENT_TRANSPORT, $metrics->oldestOfflineBoardingMinutes, $bucket, null, 'minutes'),
+            $this->sample(Metrics::TRANSPORT_STALE_OPEN_TRIPS, Metrics::COMPONENT_TRANSPORT, $metrics->staleOpenTrips, $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_BOARDINGS_15M, Metrics::COMPONENT_TRANSPORT, $metrics->boardingsLast15Minutes, $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_REFUSALS_15M, Metrics::COMPONENT_TRANSPORT, $metrics->refusalsLast15Minutes, $bucket, null, 'count'),
         ];
     }
 }

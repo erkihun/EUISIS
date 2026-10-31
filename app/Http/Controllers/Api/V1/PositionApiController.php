@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\AssignmentStatus;
 use App\Http\Controllers\Api\V1\Concerns\FiltersOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Models\Position;
@@ -36,7 +37,7 @@ class PositionApiController extends Controller
 
         $query = Position::query()
             ->withCount(['assignments as current_assignments_count' => fn ($assignments) => $assignments
-                ->where('is_current', true)]);
+                ->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)]);
 
         $this->access->scopeQuery($query, $request);
         $this->applyCodeFilter($query, $request, 'position_code', 'job_position_code');
@@ -75,7 +76,7 @@ class PositionApiController extends Controller
         $this->access->assertOrganization($request, (string) $position->organization_id);
 
         $position->loadCount(['assignments as current_assignments_count' => fn ($assignments) => $assignments
-            ->where('is_current', true)]);
+            ->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)]);
 
         return response()->json(['data' => $this->presenter->position($position)]);
     }

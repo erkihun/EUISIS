@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CardStatus;
+use App\Enums\DisabilityType;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
-use App\Enums\FeedbackTokenStatus;
+use App\Enums\MaritalStatus;
 use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Observers\EmployeeCardImpactObserver;
@@ -18,6 +19,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\Entitlements\Contracts\ReadModels\EntitlementRecord;
+use Modules\Feedback\Contracts\Data\FeedbackTokenStatus;
+use Modules\Feedback\Contracts\ReadModels\EmployeeFeedbackTokenRecord;
+use Modules\Feedback\Contracts\ReadModels\ServiceFeedbackRecord;
+use Modules\Transfer\Contracts\ReadModels\TransferApplicationRecord;
 
 class Employee extends Model
 {
@@ -44,6 +50,12 @@ class Employee extends Model
         'gender',
         'nationality',
         'employment_type',
+        'marital_status',
+        'education_level_id',
+        'field_of_study',
+        'has_disability',
+        'disability_type',
+        'service_start_date',
         'phone',
         'email',
         'address',
@@ -63,6 +75,10 @@ class Employee extends Model
     protected $hidden = [
         'national_id',
         'national_id_hash',
+        // A declared disability is health data: shown only through
+        // EmployeeDetailResource to holders of employees.viewPii.
+        'has_disability',
+        'disability_type',
     ];
 
     protected $appends = ['photo_url'];
@@ -70,9 +86,13 @@ class Employee extends Model
     protected function casts(): array
     {
         return [
-            'date_of_birth' => 'date',
+            'date_of_birth' => 'date:Y-m-d',
             'status' => EmployeeStatus::class,
             'employment_type' => EmploymentType::class,
+            'marital_status' => MaritalStatus::class,
+            'has_disability' => 'bool',
+            'disability_type' => DisabilityType::class,
+            'service_start_date' => 'date:Y-m-d',
             'data_quality_score' => 'float',
             'metadata' => 'array',
             'notification_preferences' => 'array',
@@ -128,6 +148,11 @@ class Employee extends Model
         return $this->hasMany(EmployeeAssignment::class);
     }
 
+    public function educationLevel(): BelongsTo
+    {
+        return $this->belongsTo(EducationLevel::class);
+    }
+
     public function currentAssignment(): BelongsTo
     {
         return $this->belongsTo(EmployeeAssignment::class, 'current_assignment_id');
@@ -152,7 +177,7 @@ class Employee extends Model
 
     public function entitlements(): HasMany
     {
-        return $this->hasMany(Entitlement::class);
+        return $this->hasMany(EntitlementRecord::class, 'employee_id');
     }
 
     public function employeeDuplicateFlags(): HasMany
@@ -172,12 +197,12 @@ class Employee extends Model
 
     public function transferApplications(): HasMany
     {
-        return $this->hasMany(TransferApplication::class);
+        return $this->hasMany(TransferApplicationRecord::class, 'employee_id');
     }
 
     public function feedbackTokens(): HasMany
     {
-        return $this->hasMany(EmployeeFeedbackToken::class);
+        return $this->hasMany(EmployeeFeedbackTokenRecord::class);
     }
 
     /** The token currently printed on this employee's feedback QR, if any. */
@@ -185,7 +210,7 @@ class Employee extends Model
     {
         // Ordered, not latestOfMany(): that compares keys with MAX(id), and
         // PostgreSQL has no MAX for uuid columns.
-        return $this->hasOne(EmployeeFeedbackToken::class)
+        return $this->hasOne(EmployeeFeedbackTokenRecord::class)
             ->where('status', FeedbackTokenStatus::Active->value)
             ->latest('created_at')
             ->latest('id');
@@ -193,7 +218,7 @@ class Employee extends Model
 
     public function serviceFeedback(): HasMany
     {
-        return $this->hasMany(EmployeeServiceFeedback::class);
+        return $this->hasMany(ServiceFeedbackRecord::class);
     }
 
     public function currentOrganization(): HasManyThrough

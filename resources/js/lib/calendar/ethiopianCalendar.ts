@@ -4,10 +4,13 @@
  * Algorithm: Julian Day Number (JDN).
  * Epoch: 1 Meskerem 1 = JDN 1724221 (August 29, 8 CE Julian).
  *
+ * The leap day (Pagume 6) ends every Ethiopian year Y with Y mod 4 = 3, so the
+ * following year starts on 12 September (the Gregorian year before a leap year).
+ *
  * Verified vectors:
- *   Sept 11 2023 Greg  =  Meskerem 1,  2016 Eth
- *   Jan 7  2024 Greg   =  Tahsas   29, 2016 Eth
- *   May 26 2026 Greg   =  Ginbot   18, 2018 Eth
+ *   Sept 12 2023 Greg  =  Meskerem 1,  2016 Eth  (Pagume 6, 2015 = Sept 11 2023)
+ *   Sept 11 2026 Greg  =  Meskerem 1,  2019 Eth
+ *   Apr 12 1988 Greg   =  Miyazia 4,   1980 Eth
  */
 
 const ETHIOPIAN_EPOCH = 1724221;
@@ -46,35 +49,21 @@ export function jdnToGregorian(jdn: number): { year: number; month: number; day:
 // ─── Ethiopian ↔ JDN ────────────────────────────────────────────────────────
 
 export function jdnToEthiopian(jdn: number): { year: number; month: number; day: number } {
-    let diff = jdn - ETHIOPIAN_EPOCH;
-    let baseYear = 0;
-
-    if (diff < 0) {
-        const cycles = Math.ceil(-diff / 1461);
-        diff += cycles * 1461;
-        baseYear = -4 * cycles;
-    }
-
-    const cycle = Math.trunc(diff / 1461);
-    const r = diff % 1461;
-    const yearInCycle = Math.trunc(r / 365) - Math.trunc(r / 1460);
-    const dayOfYear = r - yearInCycle * 365;
+    // Standard Amete Mihret arithmetic: a 1461-day cycle whose fourth year (Y mod 4 = 3) has Pagume 6.
+    const offset = ETHIOPIAN_EPOCH - 365;
+    const days = jdn - offset;
+    const r = ((days % 1461) + 1461) % 1461;
+    const n = (r % 365) + 365 * Math.trunc(r / 1460);
 
     return {
-        year: 4 * cycle + yearInCycle + 1 + baseYear,
-        month: Math.trunc(dayOfYear / 30) + 1,
-        day: (dayOfYear % 30) + 1,
+        year: 4 * Math.floor(days / 1461) + Math.trunc(r / 365) - Math.trunc(r / 1460),
+        month: Math.trunc(n / 30) + 1,
+        day: (n % 30) + 1,
     };
 }
 
 export function ethiopianToJdn(year: number, month: number, day: number): number {
-    return (
-        ETHIOPIAN_EPOCH +
-        1461 * Math.trunc((year - 1) / 4) +
-        365 * ((year - 1) % 4) +
-        30 * (month - 1) +
-        (day - 1)
-    );
+    return ETHIOPIAN_EPOCH + 365 * (year - 1) + Math.floor(year / 4) + 30 * (month - 1) + (day - 1);
 }
 
 // ─── Public conversions ──────────────────────────────────────────────────────

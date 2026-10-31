@@ -4,6 +4,7 @@ import {
     gregorianIsoToEthiopian,
     ethiopianToGregorianIso,
     ethiopianMonthLength,
+    ethiopianToJdn,
 } from '@/lib/calendar/ethiopianCalendar';
 import { todayEthiopian } from '@/lib/calendar/dateFormat';
 import { useLocale } from '@/hooks/useLocale';
@@ -143,11 +144,8 @@ export default function EthiopianDatePicker({
 
     // Build grid: first day of month weekday
     // Ethiopian months always start from Monday-Sunday cycle based on JDN
-    const firstDayJdn = (() => {
-        // JDN of day 1 of the current view month
-        const EPOCH = 1724221;
-        return EPOCH + 1461 * Math.trunc((viewYear - 1) / 4) + 365 * ((viewYear - 1) % 4) + 30 * (viewMonth - 1);
-    })();
+    // JDN of day 1 of the current view month (the shared conversion, so weekdays line up).
+    const firstDayJdn = ethiopianToJdn(viewYear, viewMonth, 1);
     // JDN mod 7: JDN 0 = Monday, so Sun=6,Mon=0,Tue=1... or use standard: JDN % 7 where 0=Mon
     // Standard: (jdn + 1) % 7 gives Sun=0
     // (jdn + 1) % 7 gives Sun=0; shifting by weekStart re-bases it on the

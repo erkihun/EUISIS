@@ -78,6 +78,7 @@ export default function PositionsIndex({
         job_family:  filters.job_family ?? '',
         grade_level: filters.grade_level ?? '',
         is_active:   filters.is_active ?? '',
+        occupancy:   filters.occupancy ?? '',
     });
 
     const displayOrg = localSelected ?? selectedOrganization;
@@ -208,7 +209,7 @@ export default function PositionsIndex({
                             <FilterPanel
                                 onSubmit={submit}
                                 onReset={() => router.get(route('positions.index'), { organization_id: displayOrg?.id ?? '', ...(selectedUnit ? { organization_unit_id: selectedUnit.id } : {}) }, { preserveState: true })}
-                                hasActiveFilters={Boolean(filters.search || filters.job_family || filters.grade_level || filters.is_active)}
+                                hasActiveFilters={Boolean(filters.search || filters.job_family || filters.grade_level || filters.is_active || filters.occupancy)}
                             >
                                 <FilterField label={t('common.search')} wide>
                                     <Input type="search" value={form.data.search} placeholder={t('positions.searchPositions')} onChange={(e) => form.setData('search', e.target.value)} />
@@ -224,6 +225,13 @@ export default function PositionsIndex({
                                         <option value="">{t('common.allStatuses')}</option>
                                         <option value="1">{t('common.active')}</option>
                                         <option value="0">{t('common.inactive')}</option>
+                                    </Select>
+                                </FilterField>
+                                <FilterField label={t('positions.occupancyFilter')}>
+                                    <Select value={form.data.occupancy} onChange={(e) => form.setData('occupancy', e.target.value)}>
+                                        <option value="">{t('positions.occupancyAll')}</option>
+                                        <option value="vacant">{t('positions.occupancyVacant')}</option>
+                                        <option value="held">{t('positions.occupancyHeld')}</option>
                                     </Select>
                                 </FilterField>
                             </FilterPanel>

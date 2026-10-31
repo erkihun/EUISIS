@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\OfflineSyncTransactionRequest;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
+use Modules\Entitlements\Contracts\CardServiceAuthorization;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
 
 class OfflineSyncController extends Controller
 {
-    public function __invoke(OfflineSyncTransactionRequest $request, VerifyCardForServiceAction $verifyCardForServiceAction, IntegrationAccessService $access): array
+    public function __invoke(OfflineSyncTransactionRequest $request, CardServiceAuthorization $cards, IntegrationAccessService $access): array
     {
         $results = [];
         $actor = $access->humanActor($request);
 
         foreach ($request->input('transactions', []) as $index => $transaction) {
-            $serviceType = ServiceType::query()->where('code', $transaction['service_type'])->first();
-            $provider = ServiceProvider::query()->where('code', $transaction['provider_code'])->first();
+            $serviceType = ServiceTypeRecord::query()->where('code', $transaction['service_type'])->first();
+            $provider = ServicePointRecord::query()->where('code', $transaction['provider_code'])->first();
 
             // One bad item never fails the whole batch with a 404: it is reported in place.
             if ($serviceType === null || $provider === null) {
@@ -34,7 +34,7 @@ class OfflineSyncController extends Controller
                 continue;
             }
 
-            $results[] = ['index' => $index, ...$verifyCardForServiceAction->execute($transaction['token'], $serviceType, $provider, $actor, $request)];
+            $results[] = ['index' => $index, ...$cards->verifyToken($transaction['token'], (string) $serviceType->id, (string) $provider->id, $actor, $request)];
         }
 
         return ['results' => $results];

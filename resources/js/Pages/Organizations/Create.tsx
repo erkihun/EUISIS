@@ -8,6 +8,8 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import ParentOrganizationSelect, { type ParentOrganizationOption } from '@/Components/organizations/ParentOrganizationSelect';
+import { ContactSection, LocationSection, SectionNav, ShortNameFields, organizationProfile, organizationProfilePayload, type OrganizationProfile } from '@/Components/organizations/OrganizationProfileSections';
+import type { MapConfig } from '@/Components/fieldWork/LocationMap';
 
 import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
@@ -17,10 +19,10 @@ const inputCls = cx(inputClassName, 'w-full');
 const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 const helpCls = 'mt-1 text-xs text-(--app-muted-foreground)';
 
-function Field({ label, error, children, help }: { label: string; error?: string; children: React.ReactNode; help?: string }) {
+function Field({ label, error, children, help, required }: { label: string; error?: string; children: React.ReactNode; help?: string; required?: boolean }) {
     return (
         <div>
-            <label className={labelCls}>{label}</label>
+            <label className={labelCls}>{label}{required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}</label>
             <div className="mt-1">{children}</div>
             {help && <p className={helpCls}>{help}</p>}
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -34,12 +36,14 @@ export default function CreateOrganization({
     parentOrganizationOptions,
     selectedParentOrganization,
     requiresParentOrganization,
+    map,
 }: {
     organizationTypes: OrgType[];
     hierarchyVersions: HierarchyVersion[];
     parentOrganizationOptions: ParentOrganizationOption[];
     selectedParentOrganization: ParentOrganizationOption | null;
     requiresParentOrganization: boolean;
+    map: MapConfig;
 }) {
     const { t, locale } = useLocale();
 
@@ -58,8 +62,7 @@ export default function CreateOrganization({
         logo: File | null;
         branding_primary_color: string;
         branding_secondary_color: string;
-        public_contact_phone: string;
-    }>({
+    } & OrganizationProfile>({
         organization_type_id: organizationTypes[0]?.id ?? '',
         code: '',
         name_en: '',
@@ -74,8 +77,10 @@ export default function CreateOrganization({
         logo: null,
         branding_primary_color: '',
         branding_secondary_color: '',
-        public_contact_phone: '',
+        ...organizationProfile(),
     });
+    const setProfile = (values: Partial<OrganizationProfile>) => form.setData((data) => ({ ...data, ...values }));
+    const profile: OrganizationProfile = organizationProfile(form.data);
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [selectedParent, setSelectedParent] = useState<ParentOrganizationOption | null>(selectedParentOrganization);
@@ -109,7 +114,7 @@ export default function CreateOrganization({
             relationship_type: data.relationship_type || null,
             branding_primary_color: data.branding_primary_color || null,
             branding_secondary_color: data.branding_secondary_color || null,
-            public_contact_phone: data.public_contact_phone.trim() || null,
+            ...organizationProfilePayload(organizationProfile(data)),
         }));
         form.post(route('organizations.store'), {
             forceFormData: form.data.logo !== null,
@@ -165,54 +170,19 @@ export default function CreateOrganization({
                         </div>
                     )}
 
+                    <SectionNav sections={[
+                        { id: 'organization-identity', label: t('organizations.sectionIdentity') },
+                        { id: 'organization-structure', label: t('organizations.sectionHierarchy') },
+                        { id: 'organization-location', label: t('organizations.sectionLocation') },
+                        { id: 'organization-contact', label: t('organizations.sectionContact') },
+                        { id: 'organization-legal', label: t('organizations.sectionLegalValidity') },
+                        { id: 'organization-branding', label: t('organizations.branding') },
+                    ]} />
+
                     <div className="space-y-6">
-                        {/* Basic Information */}
-                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')} columns={3}>
-                            <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
-                                <input
-                                    className={inputCls}
-                                    placeholder={t('organizations.fullNameEn')}
-                                    value={form.data.name_en}
-                                    onChange={(event) => form.setData('name_en', event.target.value)}
-                                />
-                            </Field>
-                            <Field label={t('organizations.nameAm')} error={form.errors.name_am}>
-                                <input
-                                    className={inputCls}
-                                    placeholder={t('organizations.fullNameAmPlaceholder')}
-                                    value={form.data.name_am}
-                                    onChange={(event) => form.setData('name_am', event.target.value)}
-                                />
-                            </Field>
-                            <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
-                                <input
-                                    className={inputCls}
-                                    placeholder={t('organizations.legalBasisPlaceholder')}
-                                    value={form.data.legal_basis_ref}
-                                    onChange={(event) => form.setData('legal_basis_ref', event.target.value)}
-                                />
-                            </Field>
-                        </FormSection>
-
-                        {/* Public contact: the Call action on this institution's and its employees' feedback QR pages. */}
-                        <FormSection title={t('organizations.sectionPublicContact')} description={t('organizations.sectionPublicContactHelp')}>
-                            <Field label={t('organizations.publicContactPhone')} error={form.errors.public_contact_phone} help={t('organizations.publicContactPhoneHelp')}>
-                                <input
-                                    className={inputCls}
-                                    type="tel"
-                                    inputMode="tel"
-                                    autoComplete="off"
-                                    maxLength={32}
-                                    placeholder="011 123 4567"
-                                    value={form.data.public_contact_phone}
-                                    onChange={(event) => form.setData('public_contact_phone', event.target.value)}
-                                />
-                            </Field>
-                        </FormSection>
-
-                        {/* Classification */}
-                        <FormSection title={t('organizations.sectionClassification')} description={t('organizations.sectionClassificationHelp')}>
-                            <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id} help={t('organizations.typeHelpText')}>
+                        {/* 1. Identity */}
+                        <FormSection id="organization-identity" step={1} title={t('organizations.sectionIdentity')} description={t('organizations.sectionIdentityHelp')}>
+                            <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id} help={t('organizations.typeHelpText')} required>
                                 <select
                                     className={inputCls}
                                     value={form.data.organization_type_id}
@@ -238,39 +208,28 @@ export default function CreateOrganization({
                                 canManualOverride={false}
                                 error={form.errors.code}
                             />
-                        </FormSection>
 
-                        {/* Status & Validity */}
-                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')} columns={3}>
-                            <Field label={t('common.status')} error={form.errors.status}>
-                                <select
+                            <Field label={t('organizations.nameEn')} error={form.errors.name_en} required>
+                                <input
                                     className={inputCls}
-                                    value={form.data.status}
-                                    onChange={(event) => form.setData('status', event.target.value)}
-                                >
-                                    <option value="active">{t('organizations.statusActive')}</option>
-                                    <option value="draft">{t('organizations.statusDraft')}</option>
-                                    <option value="inactive">{t('organizations.statusInactive')}</option>
-                                </select>
-                            </Field>
-                            <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
-                                <LocalizedDatePicker
-                                    className={inputCls}
-                                    value={form.data.effective_from}
-                                    onChange={(iso) => form.setData('effective_from', iso)}
+                                    placeholder={t('organizations.fullNameEn')}
+                                    value={form.data.name_en}
+                                    onChange={(event) => form.setData('name_en', event.target.value)}
                                 />
                             </Field>
-                            <Field label={t('common.effectiveTo')} error={form.errors.effective_to}>
-                                <LocalizedDatePicker
+                            <Field label={t('organizations.nameAm')} error={form.errors.name_am} required>
+                                <input
                                     className={inputCls}
-                                    value={form.data.effective_to}
-                                    onChange={(iso) => form.setData('effective_to', iso)}
+                                    placeholder={t('organizations.fullNameAmPlaceholder')}
+                                    value={form.data.name_am}
+                                    onChange={(event) => form.setData('name_am', event.target.value)}
                                 />
                             </Field>
+                            <ShortNameFields data={profile} errors={form.errors} set={setProfile} />
                         </FormSection>
 
-                        {/* Hierarchy Placement */}
-                        <FormSection title={t('organizations.sectionHierarchy')} grid={false}>
+                        {/* 2. Place in the structure */}
+                        <FormSection id="organization-structure" step={2} title={t('organizations.sectionHierarchy')} grid={false}>
                             <Field label={t('organizations.parentOrganization')} error={form.errors.parent_organization_id} help={t('organizations.parentHelpText')}>
                                 <ParentOrganizationSelect
                                     value={form.data.parent_organization_id}
@@ -342,16 +301,16 @@ export default function CreateOrganization({
                                             )}
                                         </Field>
 
-                                        <Field label={t('organizations.relationshipType')} error={form.errors.relationship_type}>
+                                        <Field label={t('organizations.relationshipType')} error={form.errors.relationship_type} help={t('hierarchyVersions.relationshipTypeHelp')}>
                                             <select
                                                 className={inputCls}
                                                 value={form.data.relationship_type}
                                                 onChange={(event) => form.setData('relationship_type', event.target.value)}
                                             >
-                                                <option value="reports_to">{t('organizations.reportsTo')}</option>
-                                                <option value="geographically_under">{t('organizations.administrative')}</option>
-                                                <option value="service_scope">{t('organizations.serviceScope')}</option>
-                                                <option value="oversight">{t('organizations.technical')}</option>
+                                                <option value="reports_to">{t('hierarchyVersions.relationshipTypes.reportsTo')}</option>
+                                                <option value="geographically_under">{t('hierarchyVersions.relationshipTypes.geographicallyUnder')}</option>
+                                                <option value="service_scope">{t('hierarchyVersions.relationshipTypes.serviceScope')}</option>
+                                                <option value="oversight">{t('hierarchyVersions.relationshipTypes.oversight')}</option>
                                             </select>
                                         </Field>
                                     </div>
@@ -359,8 +318,49 @@ export default function CreateOrganization({
                             )}
                         </FormSection>
 
+                        <LocationSection data={profile} errors={form.errors} set={setProfile} map={map} step={3} />
+
+                        <ContactSection data={profile} errors={form.errors} set={setProfile} step={4} />
+
+                        {/* 5. Legal basis & validity */}
+                        <FormSection id="organization-legal" step={5} title={t('organizations.sectionLegalValidity')} description={t('organizations.sectionLegalValidityHelp')}>
+                            <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.legalBasisPlaceholder')}
+                                    value={form.data.legal_basis_ref}
+                                    onChange={(event) => form.setData('legal_basis_ref', event.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('common.status')} error={form.errors.status} required>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.status}
+                                    onChange={(event) => form.setData('status', event.target.value)}
+                                >
+                                    <option value="active">{t('organizations.statusActive')}</option>
+                                    <option value="draft">{t('organizations.statusDraft')}</option>
+                                    <option value="inactive">{t('organizations.statusInactive')}</option>
+                                </select>
+                            </Field>
+                            <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
+                                <LocalizedDatePicker
+                                    className={inputCls}
+                                    value={form.data.effective_from}
+                                    onChange={(iso) => form.setData('effective_from', iso)}
+                                />
+                            </Field>
+                            <Field label={t('common.effectiveTo')} error={form.errors.effective_to}>
+                                <LocalizedDatePicker
+                                    className={inputCls}
+                                    value={form.data.effective_to}
+                                    onChange={(iso) => form.setData('effective_to', iso)}
+                                />
+                            </Field>
+                        </FormSection>
+
                         {/* Branding */}
-                        <FormSection title={t('organizations.branding')} description={t('organizations.brandingHelpText')} grid={false}>
+                        <FormSection id="organization-branding" step={6} title={t('organizations.branding')} description={t('organizations.brandingHelpText')} grid={false}>
                             <div className="grid gap-5 sm:grid-cols-2">
                                 <div>
                                     <label className={labelCls}>{t('organizations.logo')}</label>
@@ -458,7 +458,7 @@ export default function CreateOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) sm:pr-20! bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
                         <Link
                             href={route('organizations.index')}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"

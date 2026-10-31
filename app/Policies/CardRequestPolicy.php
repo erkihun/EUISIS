@@ -51,6 +51,7 @@ readonly class CardRequestPolicy
     public function verify(User $user, CardRequest $cardRequest): bool
     {
         return ($user->can('id-cards.verifyRequest') || $user->can('cards.manage'))
+            && $cardRequest->allowsStep('verify')
             && $this->organizationScopeService->canAccessEmployee($user, $cardRequest->employee);
     }
 
@@ -69,12 +70,14 @@ readonly class CardRequestPolicy
     public function reject(User $user, CardRequest $cardRequest): bool
     {
         return $user->can('id-cards.rejectRequest')
+            && $cardRequest->allowsStep('reject')
             && $this->organizationScopeService->canAccessEmployee($user, $cardRequest->employee);
     }
 
     public function cancel(User $user, CardRequest $cardRequest): bool
     {
         return ($user->can('id-cards.submitRequest') || $user->can('cards.manage'))
+            && $cardRequest->allowsStep('cancel')
             && $this->organizationScopeService->canAccessEmployee($user, $cardRequest->employee);
     }
 

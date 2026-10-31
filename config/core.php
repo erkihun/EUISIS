@@ -7,18 +7,23 @@ declare(strict_types=1);
  */
 return [
     /*
-     * Who may write Golden Path master data through this application:
+     * Who may write Golden Path master data through this application
+     * (App\Enums\MasterDataWriteMode):
      *
-     *  - 'open'   (default) the application is the authoritative writer;
-     *  - 'frozen' master-data changes are refused (organizations, units,
-     *    positions, employees, placements, ID cards and their reference data),
-     *    for a cutover or restore window. Reads, sign-in and service modules
-     *    keep working; service transactions are not master data.
+     *  - 'core'     (default) this application is the authoritative writer;
+     *  - 'legacy'   before cutover, this deployment is still the writer;
+     *  - 'cutover'  master-data changes are refused (organizations, units,
+     *    positions, employees, placements, ID cards and their reference data)
+     *    for the switch or a restore window;
+     *  - 'rollback' refused too, while the previous writer is reconciled.
      *
-     * The switch is the technical control the cutover runbook relies on, so
-     * that two writers never change the same master record.
+     * 'open' and 'frozen' still mean core and cutover. Reads, sign-in and
+     * service modules keep working; service transactions are not master data.
+     * An unknown value is read-only (fail closed). The switch is the technical
+     * control the cutover runbook relies on, so that two writers never change
+     * the same master record.
      */
-    'master_data_writes' => env('CORE_MASTER_DATA_WRITES', 'open'),
+    'master_data_writes' => env('CORE_MASTER_DATA_WRITES', 'core'),
 
     /** Route-name prefixes whose non-read requests change master data. */
     'master_data_routes' => [

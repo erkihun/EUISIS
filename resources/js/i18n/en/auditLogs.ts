@@ -99,6 +99,7 @@ const auditLogs = {
         card_lost: 'Card Reported Lost',
         card_damaged: 'Card Reported Damaged',
         card_suspended: 'Card Suspended',
+        card_reinstated: 'Card Reinstated',
         card_replaced: 'Card Replaced',
         card_revoked: 'Card Revoked',
         card_expired: 'Card Expired',
@@ -167,6 +168,8 @@ const auditLogs = {
         user_deactivation_blocked_self: 'Self-Deactivation Blocked',
         user_deactivation_blocked_last_super_admin: 'Last Admin Deactivation Blocked',
         user_last_super_admin_role_removal_blocked: 'Last Admin Role Removal Blocked',
+        temporary_role_granted: 'Temporary Role Granted (break-glass)',
+        temporary_role_ended: 'Temporary Role Ended',
         // Roles & Permissions
         role_created: 'Role Created',
         role_updated: 'Role Updated',

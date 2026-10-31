@@ -6,7 +6,6 @@ namespace App\Services\Retention;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Grievance;
 use App\Services\Audit\AuditLogSealer;
 use App\Support\Retention\RetentionMatrix;
 use Closure;
@@ -15,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Grievance\Contracts\ReadModels\GrievanceRecord;
 
 /**
  * Applies an approved retention decision to a record class the application
@@ -127,7 +127,7 @@ final readonly class RetentionProcessor
                 // Audit rows about a grievance stay until the case is archived and off legal hold.
                 ['audit_logs', 'id', 'created_at', fn (Builder $q) => $q->where(fn (Builder $w) => $w
                     ->whereNull('auditable_type')
-                    ->orWhere('auditable_type', '!=', Grievance::class)
+                    ->orWhere('auditable_type', '!=', (new GrievanceRecord)->getMorphClass())
                     ->orWhereNotIn('auditable_id', DB::table('grievances')
                         // auditable_id is a string column (it holds integer and uuid keys).
                         ->whereNull('archived_at')->orWhere('legal_hold', true)->selectRaw('CAST(id AS VARCHAR(64))')))],

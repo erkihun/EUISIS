@@ -8,7 +8,6 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationDesignStatus;
 use App\Services\Intelligence\IntelligenceAnalysis;
-use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
@@ -16,11 +15,12 @@ use App\Services\SituationRoom\SituationMemo;
 use App\Services\SituationRoom\SituationPanel;
 use App\Services\SituationRoom\SituationScopeResolver;
 use App\Services\SituationRoom\SituationSettings;
-use App\Services\Transport\TransportDataQualityService;
 use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\FeedbackDataQuality;
+use Modules\Transport\Contracts\TransportDataQuality;
 
 /**
  * Data Quality Intelligence: how far every other business figure can be
@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  * built on it is wrong; WARN: the figure is incomplete), what it affects
  * and where it is fixed. Nothing is corrected here and no record is listed.
  *
- * The public-feedback integrity checks (PublicFeedbackDataQuality) are
+ * The public-feedback integrity checks (FeedbackDataQuality) are
  * installation-wide, so they appear only for an unrestricted viewer.
  */
 final class DataQualityAnalysis extends IntelligenceAnalysis
@@ -130,7 +130,6 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
         $positions = $this->link('positions.index');
         $organizations = $this->link('organizations.index');
         $units = $this->link('organization-units.index');
-        $submissions = $this->link('service-submissions.index');
 
         $assignments = fn (): Builder => $context->scope->apply(DB::table('employee_assignments as ea'), 'ea.organization_id');
         $establishments = function () use ($context, $today): Builder {
@@ -160,8 +159,6 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
             ['qr_without_public_phone', self::WARN, (int) $context->scope->apply(DB::table('organizations as o')->whereNull('o.deleted_at'), 'o.id')
                 ->whereExists(fn ($q) => $q->selectRaw('1')->from('organization_feedback_qr_codes as q')->whereColumn('q.organization_id', 'o.id')->where('q.status', 'active'))
                 ->where(fn ($q) => $q->whereNull('o.public_contact_phone')->orWhere('o.public_contact_phone', ''))->count(), $this->link('service-feedback.organization-qr.index')],
-            ['submissions_without_category', self::WARN, (int) $context->scope->apply(DB::table('employee_service_feedback as f'), 'f.organization_id')
-                ->whereIn('f.type', ['suggestion', 'complaint'])->where('f.status', '!=', 'hidden')->whereNull('f.category_id')->count(), $submissions],
             ['assignments_effective_to_before_from', self::FAIL, (int) $assignments()->whereNotNull('ea.effective_to')->whereColumn('ea.effective_to', '<', 'ea.effective_from')->count(), $employees],
             ['positions_effective_to_before_from', self::FAIL, (int) $this->workforce->activePositions($context)->whereNotNull('p.effective_to')->whereColumn('p.effective_to', '<', 'p.effective_from')->count(), $positions],
             ['establishments_effective_to_before_from', self::FAIL, (int) $context->scope->apply(DB::table('position_establishments as pe')->whereNull('pe.deleted_at'), 'pe.organization_id')
@@ -222,7 +219,7 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
         ], $rows, span: 3);
     }
 
-    /** Installation-wide transport master-data checks (TransportDataQualityService): counts and where each is fixed. */
+    /** Installation-wide transport master-data checks (Transport's TransportDataQuality contract): counts and where each is fixed. */
     private function transport(): SituationPanel
     {
         $rows = array_map(fn (array $c): array => [
@@ -232,7 +229,7 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
             'state' => $c['count'] === 0 ? SituationLabel::key('situationRoom.quality.state_ok') : SituationLabel::key('situationRoom.quality.state_review'),
             'impact' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.impact"),
             'remediation' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.remediation"),
-        ], app(TransportDataQualityService::class)->summary());
+        ], app(TransportDataQuality::class)->summary());
 
         return SituationPanel::table('quality_transport', $this->title('quality_transport'), $this->hint('quality_transport'), $this->source('data_quality'), [
             $this->column('check', 'label'),
@@ -247,7 +244,7 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
     /** Installation-wide public-feedback integrity: the FAIL and WARN findings, counts only (never the sample ids). */
     private function publicFeedback(): SituationPanel
     {
-        $findings = array_filter(app(PublicFeedbackDataQuality::class)->run(), fn (array $f): bool => in_array($f['severity'], [PublicFeedbackDataQuality::SEVERITY_FAIL, PublicFeedbackDataQuality::SEVERITY_WARN], true));
+        $findings = array_filter(app(FeedbackDataQuality::class)->run(), fn (array $f): bool => in_array($f['severity'], [FeedbackDataQuality::SEVERITY_FAIL, FeedbackDataQuality::SEVERITY_WARN], true));
         $rows = array_map(fn (array $f): array => [
             'check' => $f['label'],
             'severity' => $this->value('severity_code', $f['severity']),

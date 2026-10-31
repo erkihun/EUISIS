@@ -17,6 +17,7 @@ use App\Services\SituationRoom\Analytics\MovementAnalytics;
 use App\Services\SituationRoom\Analytics\OverviewAnalytics;
 use App\Services\SituationRoom\Analytics\PerformanceAnalytics;
 use App\Services\SituationRoom\Analytics\ServiceDeliveryAnalytics;
+use App\Services\SituationRoom\Analytics\ServiceMonitoringAnalytics;
 use App\Services\SituationRoom\Analytics\SituationAnalytics;
 use App\Services\SituationRoom\Analytics\StructureAnalytics;
 use App\Services\SituationRoom\Analytics\TipOffAnalytics;
@@ -51,6 +52,7 @@ final class SituationRoomService
         'performance' => PerformanceAnalytics::class,
         'movement' => MovementAnalytics::class,
         'field_work' => FieldWorkAnalytics::class,
+        'service_monitoring' => ServiceMonitoringAnalytics::class,
         'cafeteria' => CafeteriaAnalytics::class,
         'transport' => TransportAnalytics::class,
         'cases' => CaseSummaryAnalytics::class,

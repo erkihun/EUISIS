@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Intelligence\Business;
 
-use App\Enums\ServiceFeedbackType;
 use App\Services\Intelligence\Analysis\Baseline;
 use App\Services\Intelligence\Contracts\TechnicalSignalSource;
 use App\Services\Intelligence\Insight;
 use App\Services\Intelligence\IntelligenceAnalysis;
 use App\Services\Intelligence\IntelligenceSettings;
 use App\Services\Intelligence\System\RouteGroups;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\Analytics\DailyOperationsAnalytics;
 use App\Services\SituationRoom\Analytics\WorkforceQueries;
 use App\Services\SituationRoom\OrganizationRollup;
@@ -20,6 +18,8 @@ use App\Services\SituationRoom\SituationPanel;
 use App\Services\SituationRoom\SituationPeriod;
 use App\Services\SituationRoom\SituationSettings;
 use Illuminate\Database\Query\Builder;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\FeedbackVisibility;
 use Throwable;
 
 /**
@@ -48,7 +48,7 @@ final class ExecutiveAnalysis extends IntelligenceAnalysis
         private readonly PublicVoiceAnalysis $publicVoice,
         private readonly PerformanceAnalysis $performance,
         private readonly DataQualityAnalysis $dataQuality,
-        private readonly PublicFeedbackVisibility $visibility,
+        private readonly FeedbackVisibility $visibility,
         private readonly TechnicalSignalSource $technical,
     ) {
         parent::__construct($rollup, $settings);

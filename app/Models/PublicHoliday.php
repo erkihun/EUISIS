@@ -31,7 +31,7 @@ class PublicHoliday extends Model
     ];
 
     protected $casts = [
-        'holiday_date' => 'date',
+        'holiday_date' => 'date:Y-m-d',
         'is_recurring' => 'boolean',
         'is_active' => 'boolean',
     ];

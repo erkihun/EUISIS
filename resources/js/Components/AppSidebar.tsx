@@ -51,6 +51,7 @@ import {
     FileSpreadsheetIcon,
     FileTextIcon,
     FileUserIcon,
+    FlagIcon,
     FolderCheckIcon,
     FolderFilesIcon,
     FolderOpenIcon,
@@ -281,6 +282,8 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: InboxOutIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: GrievanceIcon, permission: 'grievances.view_own', listedInAdmin: true },
+                    // court-ms Flow 4: the employee's tribunal cases; the court portal opens signed in.
+                    { routeName: 'employee.court-cases', labelKey: 'courtCases.portal.nav', icon: GavelIcon, employeeOnly: true },
                     { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: BellIcon },
                 ],
@@ -351,6 +354,33 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        /*
+         * Service Delivery Monitoring & Support (docs/service-monitoring.md): the
+         * quarterly service-delivery report, its review and consolidation, and
+         * the support around it. Each entry is gated by the permission its page
+         * checks; the page re-checks permission and organization scope.
+         */
+        key: 'serviceMonitoring',
+        labelKey: 'serviceMonitoring.nav.group',
+        icon: ClipboardCheckIcon,
+        items: [
+            { routeName: 'service-monitoring.dashboard', labelKey: 'serviceMonitoring.nav.dashboard', icon: LayoutDashboard, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.submissions.index', labelKey: 'serviceMonitoring.nav.submissions', icon: ClipboardListIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.review.queue', labelKey: 'serviceMonitoring.nav.review', icon: ClipboardCheckIcon, permission: 'service_monitoring.review' },
+            { routeName: 'service-monitoring.consolidation.sub-city', labelKey: 'serviceMonitoring.nav.subCity', icon: FileSpreadsheetIcon, permission: 'service_monitoring.consolidate' },
+            { routeName: 'service-monitoring.consolidation.city', labelKey: 'serviceMonitoring.nav.city', icon: FileChartIcon, permission: 'service_monitoring.consolidate', citywideOnly: true },
+            { routeName: 'service-monitoring.verification.index', labelKey: 'serviceMonitoring.nav.verification', icon: BadgeCheckIcon, permission: 'service_monitoring.technology.verify' },
+            { routeName: 'service-monitoring.periods.index', labelKey: 'serviceMonitoring.nav.periods', icon: CalendarDateIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.participants.index', labelKey: 'serviceMonitoring.nav.participants', icon: CityIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.clarifications.index', labelKey: 'serviceMonitoring.nav.clarifications', icon: MessageSquareIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.visits.index', labelKey: 'serviceMonitoring.nav.visits', icon: MapIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.action-items.index', labelKey: 'serviceMonitoring.nav.actionItems', icon: AlarmIcon, permission: 'service_monitoring.view' },
+            { routeName: 'service-monitoring.reports.index', labelKey: 'serviceMonitoring.nav.reports', icon: PieChartIcon, permission: 'service_monitoring.reports.view' },
+            { routeName: 'service-monitoring.forms.index', labelKey: 'serviceMonitoring.nav.forms', icon: FilePenIcon, permission: 'service_monitoring.forms.manage', citywideOnly: true },
+            { routeName: 'service-monitoring.settings.edit', labelKey: 'serviceMonitoring.nav.settings', icon: SettingsIcon, permission: 'service_monitoring.settings.manage', citywideOnly: true },
+        ],
+    },
+    {
         key: 'organization',
         labelKey: 'nav.groupOrganization',
         icon: CityIcon,
@@ -408,6 +438,9 @@ const navGroups: NavGroup[] = [
             // Line managers (agreements) use the dashboard for their teams, as the page allows.
             { routeName: 'performance.dashboard', labelKey: 'nav.performanceDashboard', icon: LayoutDashboard, anyPermission: ['performance_reports.view', 'employee_performance_agreements.manage'] },
             { routeName: 'performance.cycles.index', labelKey: 'nav.performanceCycles', icon: CalendarIcon, permission: 'performance_cycles.view' },
+            { routeName: 'performance.strategy.index', labelKey: 'nav.strategicOverview', icon: PieChartIcon, permission: 'strategic_goals.view' },
+            { routeName: 'performance.strategy.main.index', labelKey: 'nav.mainStrategies', icon: Layers, permission: 'strategic_goals.view' },
+            { routeName: 'performance.strategy.goals.index', labelKey: 'nav.strategicGoalEntry', icon: FlagIcon, permission: 'strategic_goals.view' },
             { routeName: 'performance.strategic-goals.index', labelKey: 'nav.strategicGoals', icon: TargetIcon, permission: 'strategic_goals.view' },
             { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: ClipboardListIcon, permission: 'performance_plans.view' },
             { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: SpeedometerIcon, permission: 'kpis.view' },
@@ -599,6 +632,8 @@ const navGroups: NavGroup[] = [
         icon: ScaleIcon,
         items: [
             { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: FolderOpenIcon, permission: 'grievances.tribunal' },
+            // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
+            { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
         ],
     },
@@ -613,6 +648,22 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
             { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: HandStarsIcon,    permission: 'entitlements.view' },
             { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', icon: ListCheckMiniIcon,   permission: 'entitlement-rules.viewAny' },
+        ],
+    },
+    {
+        key: 'reception',
+        labelKey: 'nav.groupReception',
+        icon: UserHandsIcon,
+        items: [
+            { routeName: 'reception.dashboard', labelKey: 'nav.receptionDashboard', icon: LayoutDashboard, permission: 'reception.view' },
+            { routeName: 'reception.register', labelKey: 'nav.receptionRegister', icon: UserPlusIcon, permission: 'reception.operate' },
+            { routeName: 'reception.today', labelKey: 'nav.receptionToday', icon: Users, permission: 'reception.view' },
+            { routeName: 'reception.queue', labelKey: 'nav.receptionQueue', icon: TicketIcon, permission: 'reception.operate' },
+            { routeName: 'reception.appointments', labelKey: 'nav.receptionAppointments', icon: CalendarIcon, permission: 'reception.view' },
+            { routeName: 'reception.directory', labelKey: 'nav.receptionDirectory', icon: BookIcon, permission: 'reception.view' },
+            { routeName: 'reception.referrals', labelKey: 'nav.receptionReferrals', icon: SignpostIcon, permission: 'reception.view' },
+            { routeName: 'reception.desks', labelKey: 'nav.receptionConfiguration', icon: ShopIcon, permission: 'reception.configure' },
+            { routeName: 'reception.reports', labelKey: 'nav.receptionReports', icon: FileChartIcon, permission: 'reception.reports.view' },
         ],
     },
     {
@@ -632,7 +683,6 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: StarIcon, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: LightbulbIcon, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: ComplaintIcon, permission: 'service_feedback.complaints.view' },
-            { routeName: 'service-feedback.categories.index', labelKey: 'nav.serviceFeedbackCategories', icon: TagsIcon, permission: 'service_feedback.manage_categories' },
             { routeName: 'service-feedback.questionnaire.index', labelKey: 'nav.serviceFeedbackQuestionnaire', icon: QuestionnaireIcon, permission: 'service_feedback.manage_questions' },
             { routeName: 'service-feedback.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
             { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
@@ -790,7 +840,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];
@@ -867,6 +917,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
         || (!features.court_cases && routeName.startsWith('court-cases.'))
+        || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
+        || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
     // Keep the existing permission contract, including independently permitted child links.
     const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)

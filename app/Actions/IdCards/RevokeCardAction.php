@@ -28,7 +28,8 @@ readonly class RevokeCardAction
         // The card row lock orders a revocation strictly against a service
         // transaction in flight (RecordServiceTransactionAction locks the same
         // row and re-reads it), and two concurrent revokes cannot both pass.
-        [$card, $oldValues] = DB::transaction(function () use ($card, $revokableStatuses, $reason): array {
+        // The audit row is written in the same transaction as the change and its event.
+        return DB::transaction(function () use ($card, $actor, $revokableStatuses, $reason): IdCard {
             $card = IdCard::query()->whereKey($card->getKey())->lockForUpdate()->firstOrFail();
 
             if (! in_array($card->status, $revokableStatuses, true)) {
@@ -44,19 +45,19 @@ readonly class RevokeCardAction
                 'is_current' => false,
             ]);
 
-            return [$card, $oldValues];
+            $fresh = $card->fresh();
+
+            $this->writeAuditLogAction->execute(
+                AuditEventType::CardRevoked,
+                $actor,
+                $fresh,
+                $fresh->employee?->currentAssignment?->organization_id,
+                oldValues: $oldValues,
+                newValues: ['status' => CardStatus::Revoked->value, 'revoke_reason' => $reason],
+                reason: $reason,
+            );
+
+            return $fresh;
         });
-
-        $this->writeAuditLogAction->execute(
-            AuditEventType::CardRevoked,
-            $actor,
-            $card->fresh(),
-            $card->employee?->currentAssignment?->organization_id,
-            oldValues: $oldValues,
-            newValues: ['status' => CardStatus::Revoked->value, 'revoke_reason' => $reason],
-            reason: $reason,
-        );
-
-        return $card->fresh();
     }
 }

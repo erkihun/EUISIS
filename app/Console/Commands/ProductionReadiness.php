@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\MasterDataWriteMode;
 use App\Models\Employee;
 use App\Models\Integration\IntegrationEvent;
 use App\Models\Integration\WebhookDelivery;
@@ -13,8 +14,6 @@ use App\Services\Branding\BrandingService;
 use App\Services\Core\BackboneIntegrityChecks;
 use App\Services\IdCards\IdCardPngExporter;
 use App\Services\OrganizationScope\ScopeGapReport;
-use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
-use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Support\Retention\RetentionMatrix;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Console\Command;
@@ -22,6 +21,8 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Modules\Feedback\Contracts\FeedbackDataQuality;
+use Modules\Feedback\Contracts\FeedbackSettings;
 use Symfony\Component\Process\Process;
 use Throwable;
 
@@ -155,7 +156,7 @@ class ProductionReadiness extends Command
                     $production,
                     'Complaint reference numbers cannot be issued; restore the public_service_complaint rule under Code rules.',
                 );
-                $settings = app(PublicFeedbackSettings::class);
+                $settings = app(FeedbackSettings::class);
                 $types = array_map(fn ($type): string => $type instanceof \BackedEnum ? (string) $type->value : (string) $type, $settings->enabledTypes());
                 $this->info_('Public feedback enabled / types', ($settings->enabled() ? 'yes' : 'no').' / '.($types === [] ? 'none' : implode(', ', $types)));
                 $this->info_('Submitter identity policy', 'feedback & complaint named, tip-off optional (evidence '.($settings->allowAttachments() ? 'allowed' : 'off').')');
@@ -173,10 +174,10 @@ class ProductionReadiness extends Command
                 $failedExports = (int) DB::table('public_feedback_report_exports')->where('status', 'failed')->count();
                 $this->check('No failed public feedback exports', $failedExports === 0, false, $failedExports.' export(s) failed; check the queue worker and storage, then run the export again from Reports.');
 
-                $findings = app(PublicFeedbackDataQuality::class)->run();
+                $findings = app(FeedbackDataQuality::class)->run();
                 $describe = fn (array $list): string => implode('; ', array_map(fn (array $f): string => $f['label'].' ('.$f['count'].')', $list));
-                $failing = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === PublicFeedbackDataQuality::SEVERITY_FAIL);
-                $review = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === PublicFeedbackDataQuality::SEVERITY_REVIEW);
+                $failing = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === FeedbackDataQuality::SEVERITY_FAIL);
+                $review = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === FeedbackDataQuality::SEVERITY_REVIEW);
                 $this->check('Public feedback data integrity', $failing === [], $production, 'feedback:data-quality reports: '.$describe($failing));
                 $this->check('No public feedback rows awaiting data review', $review === [], false, 'feedback:data-quality lists rows a person must classify (never repaired automatically): '.$describe($review));
             }
@@ -188,7 +189,9 @@ class ProductionReadiness extends Command
         try {
             $findings = array_filter(app(BackboneIntegrityChecks::class)->counts());
             $this->check('Golden Path integrity', $findings === [], $production, 'backbone:audit-integrity reports: '.implode('; ', array_map(fn (string $key, int $count): string => BackboneIntegrityChecks::LABELS[$key].' ('.$count.')', array_keys($findings), $findings)));
-            $this->check('Master-data writes are open', config('core.master_data_writes') !== 'frozen', $production, 'CORE_MASTER_DATA_WRITES=frozen refuses every organization, position, employee and card change; open it once the cutover or restore is done.');
+            $writeSetting = (string) config('core.master_data_writes', 'core');
+            $this->check('Master-data write mode is a known value', MasterDataWriteMode::isKnownSetting($writeSetting), $production, 'CORE_MASTER_DATA_WRITES="'.$writeSetting.'" is not core, legacy, cutover or rollback; master data stays read-only until it is.');
+            $this->check('Master-data writes are open (mode: '.MasterDataWriteMode::current()->value.')', MasterDataWriteMode::current()->allowsWrites(), $production, 'CORE_MASTER_DATA_WRITES='.$writeSetting.' refuses every organization, position, employee and card change; set it to core once the cutover, rollback or restore is done.');
             if (Schema::hasTable('integration_events')) {
                 $stuck = IntegrationEvent::query()->where('status', IntegrationEvent::STATUS_PENDING)->where('created_at', '<', now()->subMinutes(15))->count();
                 $this->check('Integration outbox is draining', $stuck === 0, false, $stuck.' event(s) waiting longer than 15 minutes: check the scheduler runs integrations:publish.');

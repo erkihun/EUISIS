@@ -7,18 +7,22 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\IdCards\ActivateCardAction;
 use App\Actions\IdCards\IssueCardAction;
+use App\Actions\IdCards\ReinstateCardAction;
 use App\Actions\IdCards\ReplaceCardAction;
 use App\Actions\IdCards\ReportLostOrDamagedCardAction;
 use App\Actions\IdCards\RevokeCardAction;
+use App\Actions\IdCards\SuspendCardAction;
 use App\Enums\AuditEventType;
 use App\Enums\CardStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\IdCards\ActivateCardRequest;
 use App\Http\Requests\IdCards\IssueCardRequest;
+use App\Http\Requests\IdCards\ReinstateCardRequest;
 use App\Http\Requests\IdCards\ReplaceCardRequest;
 use App\Http\Requests\IdCards\ReportDamagedCardRequest;
 use App\Http\Requests\IdCards\ReportLostCardRequest;
 use App\Http\Requests\IdCards\RevokeCardRequest;
+use App\Http\Requests\IdCards\SuspendCardRequest;
 use App\Http\Resources\IdCardResource;
 use App\Models\IdCard;
 use App\Models\Organization;
@@ -62,6 +66,7 @@ class IdCardController extends Controller
             'expired' => (clone $baseQuery)->where('status', CardStatus::Expired)->count(),
             'revoked' => (clone $baseQuery)->where('status', CardStatus::Revoked)->count(),
             'lost' => (clone $baseQuery)->where('status', CardStatus::Lost)->count(),
+            'suspended' => (clone $baseQuery)->where('status', CardStatus::Suspended)->count(),
         ];
 
         $filters = $request->validate([
@@ -155,6 +160,8 @@ class IdCardController extends Controller
                 'reportDamaged' => in_array($card->status, [CardStatus::Active, CardStatus::Issued], true) && $user?->can('reportDamaged', $card),
                 'replace' => in_array($card->status, [CardStatus::Lost, CardStatus::Damaged, CardStatus::Expired, CardStatus::Active], true) && $user?->can('replace', $card),
                 'revoke' => ! in_array($card->status, [CardStatus::Revoked, CardStatus::Replaced, CardStatus::Expired], true) && $user?->can('revoke', $card),
+                'suspend' => in_array($card->status, SuspendCardAction::SUSPENDABLE, true) && $user?->can('suspend', $card),
+                'reinstate' => $card->status === CardStatus::Suspended && $user?->can('reinstate', $card),
                 'exportPng' => $user?->can('exportPng', $card),
                 'previewSvg' => $user?->can('previewSvg', $card),
             ],
@@ -229,6 +236,20 @@ class IdCardController extends Controller
         $revokeCardAction->execute($card, $request->user(), $request->input('reason'));
 
         return back()->with('success', __('id-cards.revoked_successfully'));
+    }
+
+    public function suspend(SuspendCardRequest $request, IdCard $card, SuspendCardAction $suspendCardAction): RedirectResponse
+    {
+        $suspendCardAction->execute($card, $request->user(), $request->input('reason'));
+
+        return back()->with('success', __('id-cards.suspended_successfully'));
+    }
+
+    public function reinstate(ReinstateCardRequest $request, IdCard $card, ReinstateCardAction $reinstateCardAction): RedirectResponse
+    {
+        $reinstateCardAction->execute($card, $request->user(), $request->input('reason'));
+
+        return back()->with('success', __('id-cards.reinstated_successfully'));
     }
 
     public function exportAudit(Request $request, IdCard $card, WriteAuditLogAction $writeAuditLogAction): JsonResponse

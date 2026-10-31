@@ -3,6 +3,7 @@
 return [
     'confirm_each_card' => 'ይህን የሕትመት ስብስብ ከማጠናቀቅዎ በፊት እያንዳንዱን መታወቂያ ከፍተው ያዘጋጁና መታተሙን ያረጋግጡ።',
     'complete_master_edit' => 'ለሕጋዊ ስም ወይም ብሔራዊ መታወቂያ ማስተካከያ መጀመሪያ ዋናውን የሰው ሀብት መዝገብ ያስተካክሉ፤ ከዚያ ጥያቄውን ያጽድቁ።',
+    'employee_number_stable' => 'የተሰጠ የሠራተኛ ቁጥር አይቀየርም። ይህን ጥያቄ ውድቅ ያድርጉ።',
     'title' => 'የሠራተኛ የግል አገልግሎት', 'profile' => 'የግል መረጃዬ', 'employment' => 'የቅጥር መረጃ', 'organization' => 'ተቋም', 'position' => 'የሥራ መደብ', 'id-card' => 'መታወቂያዬ', 'daily-activity' => 'ዕለታዊ የሥራ እንቅስቃሴ', 'service-tasks' => 'የአገልግሎት ሥራዎች', 'services' => 'ጥቅማጥቅሞች', 'documents' => 'ሰነዶቼ', 'requests' => 'ጥያቄዎቼ', 'notifications' => 'ማሳወቂያዎች', 'security' => 'ደህንነት', 'overview' => 'አጠቃላይ እይታ',
     'personal' => 'የግል መረጃ', 'official' => 'መደበኛ የቅጥር መረጃ', 'identity' => 'የማንነት መረጃ', 'editable' => 'ማስተካከል ይቻላል', 'read_only' => 'ለማየት ብቻ — ለማስተካከያ የሰው ሀብት ክፍልን ያነጋግሩ', 'save' => 'ለውጦችን ያስቀምጡ', 'saved' => 'መረጃዎ ተቀምጧል።',
     'reprint_required' => 'እንደገና ማተም ያስፈልጋል', 'employee_notice' => 'መታወቂያዎ ከታተመ በኋላ የግል መረጃዎ ተቀይሯል። የሠራተኛ መታወቂያዎን እንደገና ማተም ያስፈልጋል።', 'officer_notice' => 'መታወቂያ ከተሰጠ በኋላ የሠራተኛ መረጃ ተቀይሯል። እንደገና ለማተም ግምገማ ያስፈልጋል።',
@@ -78,5 +79,11 @@ return [
     ],
     'fields' => [
         'full_name' => 'ሕጋዊ ስም', 'name' => 'ሕጋዊ ስም', 'name_en' => 'የእንግሊዝኛ ስም', 'photo' => 'የግል ፎቶ', 'photo_path' => 'የግል ፎቶ', 'email' => 'የግል ኢሜይል', 'phone' => 'ስልክ ቁጥር', 'address' => 'የአሁን አድራሻ', 'emergency_contact_name' => 'የአደጋ ጊዜ ተጠሪ ስም', 'emergency_contact_phone' => 'የአደጋ ጊዜ ተጠሪ ስልክ', 'emergency_contact_relationship' => 'ዝምድና', 'preferred_language' => 'የቋንቋ ምርጫ', 'notification_preferences' => 'የኢሜይል ማሳወቂያዎች', 'employee_number' => 'የሠራተኛ ቁጥር', 'employment_type' => 'የቅጥር ዓይነት', 'organization' => 'ተቋም', 'organization_unit' => 'የሥራ ክፍል', 'position' => 'የሥራ መደብ', 'job_grade' => 'ደረጃ', 'date_of_birth' => 'የትውልድ ቀን', 'gender' => 'ጾታ', 'nationality' => 'ዜግነት', 'national_id' => 'ብሔራዊ መታወቂያ', 'effective_from' => 'የምደባ መጀመሪያ ቀን',
+    ],
+    // በአስተዳደር ፍርድ ቤት ከሌሎች ጋር ክስ ማቅረብ (court-ms፣ ADR 0013 #13)።
+    'court' => [
+        'colleague_not_found' => 'ቁጥሩ :number የሆነ በሥራ ላይ ያለ ሠራተኛ የለም።',
+        'colleague_is_you' => 'ክሱን የሚያቀርቡት እርስዎ ነዎት፤ የሚጨምሩት ከእርስዎ ጋር የሚከሱ ሌሎች ሠራተኞችን ብቻ ነው።',
+        'lawyer_not_listed' => 'ከፍርድ ቤቱ የጠበቆች መዝገብ ጠበቃ ይምረጡ።',
     ],
 ];

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Support\Rbac;
 
-use App\Support\Communication\CommunicationRoles;
-use App\Support\DailyActivity\DailyActivityRoles;
-use App\Support\Discipline\DisciplineRoles;
-use App\Support\FieldWork\FieldWorkRoles;
-use App\Support\Grievances\GrievanceRoles;
 use App\Support\Intelligence\IntelligenceRoles;
-use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
+use Modules\Communication\Contracts\Data\CommunicationRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
+use Modules\Discipline\Contracts\Data\DisciplineRoles;
+use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Performance\Contracts\Data\PerformanceRoles;
+use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
 
 /**
  * Default system roles and their permissions (docs/default-role-permission-matrix.md).
@@ -123,7 +124,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, ServiceMonitoringRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -311,6 +312,7 @@ final class DefaultRoleMatrix
                 'service-types.viewAny', 'entitlement-rules.viewAny',
                 'hierarchy-versions.viewAny', 'hierarchy-versions.view', 'organization-edges.view',
                 'code-rules.viewAny', 'code-rules.view', 'code-rules.preview',
+                'reception.view', 'reception.reports.view', 'reception.audit',
                 ...GrievanceRoles::AUDITOR_PERMISSIONS,
             ], 'Read-only review of audit logs, history and approved records. Creates, changes and deletes nothing.',
                 'የኦዲት ምዝግቦችን፣ ታሪክን እና የጸደቁ መዝገቦችን በንባብ ብቻ ይገመግማል። ምንም አይፈጥርም፣ አይቀይርም፣ አይሰርዝም።'),
@@ -407,7 +409,41 @@ final class DefaultRoleMatrix
                 'Head of institution (or delegate): decides on submitted disciplinary recommendations in scope.',
                 'የተቋሙ የበላይ ኃላፊ (ወይም ወኪል)፡ በወሰኑ ውስጥ በቀረቡ የዲሲፕሊን የውሳኔ ሀሳቦች ላይ ይወስናል።'),
 
+            // ── Service Delivery Monitoring & Support (docs/service-monitoring.md) ─
+            // A role makes a user eligible; the participant's organization must be in
+            // scope, and city-level duties need city-wide reach (ServiceMonitoringAccess).
+            ServiceMonitoringRoles::REPORTER_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::REPORTER_PERMISSIONS,
+                'Prepares the institution\'s quarterly service-delivery report. Cannot attest or submit it.',
+                'የተቋሙን የሩብ ዓመት የአገልግሎት አሰጣጥ ሪፖርት ያዘጋጃል። ሪፖርቱን ማረጋገጥ ወይም ማቅረብ አይችልም።'),
+            ServiceMonitoringRoles::HEAD_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::HEAD_PERMISSIONS,
+                'Institution head or delegate: prepares, attests and submits the quarterly report and sees the names in Section I.',
+                'የተቋም ኃላፊ ወይም ወኪል፡ የሩብ ዓመት ሪፖርቱን ያዘጋጃል፣ ያረጋግጣል፣ ያቀርባል፤ በክፍል አንድ ያሉ ስሞችን ያያል።'),
+            ServiceMonitoringRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::REVIEWER_PERMISSIONS,
+                'Sub-city reviewer: returns or accepts the reports of the woredas in scope, consolidates and certifies the sub-city, exports its forms and answers clarifications.',
+                'የክ/ከተማ ገምጋሚ፡ በወሰኑ ውስጥ ያሉ ወረዳዎችን ሪፖርት ይመልሳል ወይም ይቀበላል፣ የክ/ከተማውን ማጠቃለያ ያረጋግጣል፣ ቅጾቹን ወደ ውጭ ይልካል፣ የማብራሪያ ጥያቄዎችን ይመልሳል።'),
+            ServiceMonitoringRoles::COORDINATOR_ROLE => self::role(self::SCOPE_GLOBAL, ServiceMonitoringRoles::COORDINATOR_PERMISSIONS,
+                'City coordinator: periods and deadlines, the registry of reporting institutions, extensions, review of sub-city and center reports, locking and reopening periods, exports and settings. Does not verify digital services.',
+                'የከተማ አስተባባሪ፡ ጊዜያትና የጊዜ ገደቦች፣ ሪፖርት የሚያቀርቡ ተቋማት መዝገብ፣ የጊዜ ማራዘሚያ፣ የክ/ከተማና የማዕከል ሪፖርቶች ግምገማ፣ ጊዜያትን መቆለፍና መክፈት፣ ቅጾችና ቅንብሮች። ዲጂታል አገልግሎቶችን አያረጋግጥም።'),
+            ServiceMonitoringRoles::VERIFIER_ROLE => self::role(self::SCOPE_GLOBAL, ServiceMonitoringRoles::VERIFIER_PERMISSIONS,
+                'Innovation & Technology Bureau: verifies or rejects the digital services the institutions report, city-wide.',
+                'የኢኖቬሽንና ቴክኖሎጂ ቢሮ፡ ተቋማት የሚያቀርቧቸውን ዲጂታል አገልግሎቶች በከተማ አቀፍ ደረጃ ያረጋግጣል ወይም ውድቅ ያደርጋል።'),
+            ServiceMonitoringRoles::SUPPORT_OFFICER_ROLE => self::role(self::SCOPE_SCOPED, ServiceMonitoringRoles::SUPPORT_OFFICER_PERMISSIONS,
+                'Support expert (ደጋፊ ባለሙያ): answers the clarifications of the institutions assigned to them and records monitoring visits, findings and action items.',
+                'ደጋፊ ባለሙያ፡ የተመደቡለትን ተቋማት የማብራሪያ ጥያቄዎች ይመልሳል፤ የክትትል ጉብኝቶችን፣ ግኝቶችንና የድርጊት ተግባሮችን ይመዘግባል።'),
+
             // ── Services and providers (admin side; provider portals use their own roles) ─
+            'Reception Administrator' => self::role(self::SCOPE_SCOPED, PermissionCatalog::matching('reception'),
+                'Configures and oversees reception desks, counters, officers, appointments, queues and scoped reports.',
+                'በተፈቀደው ወሰን የመቀበያ ጠረጴዛዎችን፣ መስኮቶችን፣ ሠራተኞችን፣ ቀጠሮዎችን፣ ወረፋዎችን እና ሪፖርቶችን ያስተዳድራል።'),
+            'Reception Supervisor' => self::role(self::SCOPE_SCOPED, ['reception.view', 'reception.operate', 'reception.supervise', 'reception.appointments.manage', 'reception.reports.view'],
+                'Supervises daily reception queues, counters, appointments and referrals within assigned scope.',
+                'በተመደበው ወሰን ዕለታዊ ወረፋዎችን፣ መስኮቶችን፣ ቀጠሮዎችን እና ሪፈራሎችን ይቆጣጠራል።'),
+            'Reception Officer' => self::role(self::SCOPE_SCOPED, ['reception.view', 'reception.operate'],
+                'Registers and serves visitors at assigned reception desks.',
+                'በተመደበበት መቀበያ ጠረጴዛ ጎብኚዎችን ይመዘግባል እና ያስተናግዳል።'),
+            'Information Officer' => self::role(self::SCOPE_SCOPED, ['reception.view'],
+                'Reads published service information and scoped reception records without changing operations.',
+                'የታተመ የአገልግሎት መረጃን እና በወሰን ውስጥ ያሉ መዝገቦችን ሳይቀይር ያነባል።'),
             'Cafeteria Admin' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view',
                 'cafeteria-provider-users.viewAny', 'cafeteria-provider-users.view', 'cafeteria-provider-users.create',

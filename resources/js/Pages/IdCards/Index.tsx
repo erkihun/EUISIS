@@ -54,7 +54,7 @@ type PageProps = {
         issued_from?: string;
         expires_to?: string;
     };
-    summary: { total: number; active: number; pending: number; expired: number; revoked: number; lost: number };
+    summary: { total: number; active: number; pending: number; expired: number; revoked: number; lost: number; suspended: number };
     organizations: Array<{ id: string; name_en: string; name_am?: string | null }>;
 };
 
@@ -124,7 +124,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
         >
             <Head title={t('idCards.title')} />
 
-            <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+            <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
                 {[
                     ['totalCards', summary.total, 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300'],
                     ['activeCards', summary.active, 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'],
@@ -132,6 +132,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                     ['expiredCards', summary.expired, 'bg-(--app-surface-muted) text-(--app-foreground)'],
                     ['revokedCards', summary.revoked, 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'],
                     ['lostCards', summary.lost, 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'],
+                    ['suspendedCards', summary.suspended ?? 0, 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'],
                 ].map(([key, value, color]) => (
                     <div key={String(key)} className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                         <span className={`inline-flex rounded-lg px-2 py-1 text-lg font-bold ${color}`}>{value}</span>

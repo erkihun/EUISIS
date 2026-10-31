@@ -14,8 +14,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 
 /**
  * An approved external system permitted to call the integration API.
@@ -82,11 +84,16 @@ class ExternalApplication extends Model implements AuthenticatableContract
         'status',
         'allowed_scopes',
         'rate_limit_per_minute',
+        'token_lifetime_days',
         'allowed_ips',
         'created_by',
         'last_used_at',
         'organization_access',
         'service_provider_id',
+        'expires_at',
+        'owner_organization_id',
+        // revoked_at, revoked_by and revocation_reason are set only by the
+        // revocation step (forceFill), never mass-assigned from a request.
     ];
 
     protected function casts(): array
@@ -95,16 +102,58 @@ class ExternalApplication extends Model implements AuthenticatableContract
             'allowed_scopes' => 'array',
             'allowed_ips' => 'array',
             'rate_limit_per_minute' => 'integer',
+            'token_lifetime_days' => 'integer',
             // Deliberately absent from $fillable: the legacy endpoint grace is
             // set by migration only and must never be settable from a request.
             'unrestricted_endpoints' => 'boolean',
             'last_used_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'revoked_at' => 'datetime',
         ];
     }
 
+    /**
+     * Active means approved, not revoked and not past its approval expiry. The
+     * gate, the NFC gate, signed photo links and webhook deliveries all ask this.
+     */
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status === 'active' && $this->revoked_at === null && ! $this->isExpired();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /**
+     * When a token issued now stops working (TD-16): after the application's
+     * token lifetime in days, or the default lifetime (8 hours) when it sets
+     * none, and never after the application's own approval expiry.
+     */
+    public function newTokenExpiry(): Carbon
+    {
+        $expiry = $this->token_lifetime_days !== null && $this->token_lifetime_days > 0
+            ? now()->addDays($this->token_lifetime_days)
+            : now()->addMinutes(max(1, (int) config('sanctum.default_token_lifetime_minutes', 480)));
+
+        return $this->expires_at !== null && $this->expires_at->lt($expiry) ? $this->expires_at->copy() : $expiry;
+    }
+
+    /** The reason a request from this application is refused, for the gate's error code. */
+    public function inactiveReason(): string
+    {
+        return match (true) {
+            $this->revoked_at !== null => 'application_revoked',
+            $this->status !== 'active' => 'application_'.$this->status,
+            $this->isExpired() => 'application_expired',
+            default => 'application_active',
+        };
+    }
+
+    public function ownerOrganization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'owner_organization_id');
     }
 
     /**
@@ -150,7 +199,7 @@ class ExternalApplication extends Model implements AuthenticatableContract
     /** The one service provider this application acts for on provider-service routes (F16). */
     public function serviceProvider(): BelongsTo
     {
-        return $this->belongsTo(ServiceProvider::class);
+        return $this->belongsTo(ServicePointRecord::class, 'service_provider_id');
     }
 
     /** @return MorphMany<PersonalAccessToken, $this> */

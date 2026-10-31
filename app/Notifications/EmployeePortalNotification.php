@@ -28,7 +28,7 @@ class EmployeePortalNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Title and message in the reader's language (see DailyActivityNotification::render).
+     * Title and message in the reader's language (as the daily-work notification renders them).
      *
      * @param  array<string, mixed>  $data
      * @return array{title: string, message: string}

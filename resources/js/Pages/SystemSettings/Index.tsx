@@ -233,14 +233,28 @@ export default function SystemSettingsIndex({ settingGroups, roles, can, emailIn
         }
         setDirty(false);
         setActive(id);
-        // Keep the section in the URL so a refresh or a shared link opens it; Inertia's history state is kept as is.
-        const url = new URL(window.location.href);
-        url.searchParams.set('tab', id);
-        window.history.replaceState(window.history.state, '', url);
         if (contentRef.current && contentRef.current.getBoundingClientRect().top < 0) {
             contentRef.current.scrollIntoView({ block: 'start' });
         }
     };
+
+    // The open section is always in the address, from the first render on: /system-settings
+    // opens as /system-settings?tab=general, so a refresh or a copied link lands on the same
+    // section. Inertia writes its own history entry when the page arrives (its `navigate`
+    // event, after this effect on a full load), so the address is set again then; its history
+    // state is kept as is.
+    useEffect(() => {
+        const keepSectionInAddress = () => {
+            const url = new URL(window.location.href);
+            if (url.searchParams.get('tab') === active) return;
+            url.searchParams.set('tab', active);
+            window.history.replaceState(window.history.state, '', url);
+        };
+        keepSectionInAddress();
+        return router.on('navigate', (event) => {
+            if (event.detail.page.component === 'SystemSettings/Index') keepSectionInAddress();
+        });
+    }, [active]);
 
     // Leaving the page with unsaved edits asks first. The page's own saves, tests and cache clears are not visits away.
     useEffect(() => {

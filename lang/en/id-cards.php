@@ -34,6 +34,8 @@ return [
     'reported_damaged' => 'Card reported as damaged.',
     'replacement_submitted' => 'Replacement request submitted.',
     'revoked_successfully' => 'Card revoked.',
+    'suspended_successfully' => 'Card suspended.',
+    'reinstated_successfully' => 'Card reinstated.',
     // Card request flash messages
     'request_submitted' => 'Card request submitted.',
     'request_verified' => 'Card request data verified.',
@@ -43,4 +45,17 @@ return [
     // Print batch flash messages
     'print_batch_created' => 'Print batch created.',
     'batch_marked_printed' => 'Batch marked as printed. Cards are now ready for issuance.',
+    // Card production (Core, ADR 0010)
+    'print_batch_printed' => 'Batch marked as printed. Each card now needs its quality check.',
+    'print_batch_cancelled' => 'Print batch cancelled; its cards can go into another batch.',
+    'quality_passed' => 'The card passed the quality check and can be issued.',
+    'quality_failed' => 'The card failed the quality check. Approve a reprint or revoke it.',
+    'reprint_approved' => 'Reprint approved: the card can go into a print batch.',
+    'credential_issued' => 'A credential was issued for the card.',
+    'credential_rotated' => 'The credential was replaced. The printed QR no longer verifies: reprint or replace the card.',
+    'credential_revoked' => 'The card\'s credential was revoked.',
+    'template_saved' => 'The card template was saved.',
+    'template_activated' => 'The template version is now the one new cards are printed with.',
+    'template_retired' => 'The template version was retired.',
+    'request_not_verifiable' => 'Only a submitted card request can be verified; this one is already past that step.',
 ];

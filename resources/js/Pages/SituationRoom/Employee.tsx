@@ -79,7 +79,6 @@ export default function SituationRoomEmployee({ scope, filters, employee, submis
                                     <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                                         <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.submittedColumn')}</dt><dd>{date(row.submitted_at)}</dd></div>
                                         <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.recordedAtColumn')}</dt><dd>{local(row.organization_en, row.organization_am)}</dd></div>
-                                        <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.categoryLabel')}</dt><dd>{row.category_en || row.category_am ? local(row.category_en, row.category_am) : t('situationRoom.uncategorized')}</dd></div>
                                         <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.serviceColumn')}</dt><dd>{row.service ?? '—'}</dd></div>
                                         {row.rating !== null && <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.ratingColumn')}</dt><dd>{fmt(t('situationRoom.starsLabel'), { stars: row.rating })}</dd></div>}
                                         {row.resolved_at && <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.resolvedColumn')}</dt><dd>{date(row.resolved_at)}</dd></div>}

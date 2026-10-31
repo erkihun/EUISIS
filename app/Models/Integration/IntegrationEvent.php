@@ -57,7 +57,7 @@ class IntegrationEvent extends Model
             'occurred_at' => 'datetime',
             'available_at' => 'datetime',
             'published_at' => 'datetime',
-            'effective_at' => 'date',
+            'effective_at' => 'date:Y-m-d',
         ];
     }
 

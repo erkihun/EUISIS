@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
 
 class ServiceTerminal extends Model
 {
@@ -22,13 +23,10 @@ class ServiceTerminal extends Model
 
     public function provider(): BelongsTo
     {
-        return $this->belongsTo(ServiceProvider::class, 'provider_id');
+        return $this->belongsTo(ServicePointRecord::class, 'provider_id');
     }
 
-    public function cafeteriaProvider(): BelongsTo
-    {
-        return $this->belongsTo(CafeteriaProvider::class, 'cafeteria_provider_id');
-    }
+    // cafeteriaProvider() is attached by the Cafeteria module.
 
     public function organization(): BelongsTo
     {

@@ -94,7 +94,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 {/* Header badges */}
                 <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm text-(--app-muted-foreground)">{unit.code}</span>
-                    <OrganizationUnitTypeBadge unitType={unit.unit_type} />
+                    <OrganizationUnitTypeBadge unitType={unit.unit_type} catalog={unit.unitType} />
                     <OrganizationUnitStatusBadge status={unit.status} />
                 </div>
 
@@ -217,7 +217,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                         <span className="ml-2 font-mono text-xs text-(--app-muted-foreground)">{child.code}</span>
                                     </div>
                                     <div className="flex gap-2">
-                                        <OrganizationUnitTypeBadge unitType={child.unit_type} />
+                                        <OrganizationUnitTypeBadge unitType={child.unit_type} catalog={child.unitType} />
                                         <OrganizationUnitStatusBadge status={child.status} />
                                     </div>
                                 </li>

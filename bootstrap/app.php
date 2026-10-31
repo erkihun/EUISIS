@@ -1,21 +1,12 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
-use App\Http\Middleware\AuthenticateTransportDevice;
 use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
 use App\Http\Middleware\EnsureApiScope;
-use App\Http\Middleware\EnsureCafeteriaPortalUser;
-use App\Http\Middleware\EnsureCafeteriaProviderAssigned;
 use App\Http\Middleware\EnsureMfaNotRequired;
-use App\Http\Middleware\EnsureProviderHasActiveAssignment;
-use App\Http\Middleware\EnsureProviderPortalUser;
-use App\Http\Middleware\EnsureProviderServiceEnabled;
-use App\Http\Middleware\EnsureProviderServicePermission;
-use App\Http\Middleware\EnsureProviderServiceScope;
-use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\EnterCoreWorkspace;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
@@ -26,12 +17,8 @@ use App\Http\Middleware\RecordRequestTelemetry;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
-use App\Http\Middleware\SetCafeteriaPortalContext;
 use App\Http\Middleware\SetClientLocale;
-use App\Http\Middleware\SetProviderPortalContext;
-use App\Models\ProviderUser;
 use App\Services\ErrorLoggingService;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Services\Security\SessionActivityService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -45,6 +32,9 @@ use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Http\Middleware\RedirectCafeteriaToPlatform;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -52,6 +42,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
+    // Modules under Modules/ register their own commands, middleware aliases and
+    // bindings in Modules/<Name>/Providers (ADR 0017), listed in bootstrap/providers.php.
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -87,6 +79,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             // Modules outside the current production scope (config/features.php) answer 404.
             BlockDisabledModules::class,
+            // The cafeteria module on its own platform (config/cafeteria_platform.php, ADR 0014): its pages live there.
+            // Registered here, not in Modules/Cafeteria/Providers, because its place in the web group matters.
+            RedirectCafeteriaToPlatform::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,
@@ -100,21 +95,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.scope' => EnsureApiScope::class,
             'api.external' => ExternalApplicationGate::class,
             'api.idempotency' => EnforceIdempotencyKey::class,
-            'provider.scope' => EnsureProviderServiceScope::class,
-            'transport.device' => AuthenticateTransportDevice::class,
-            'provider.portal' => EnsureProviderPortalUser::class,
-            'provider.service' => EnsureProviderServiceEnabled::class,
-            'provider.permission' => EnsureProviderServicePermission::class,
-            'provider.portal.context' => SetProviderPortalContext::class,
-            'provider.assigned' => EnsureProviderHasActiveAssignment::class,
-            'cafeteria.portal' => EnsureCafeteriaPortalUser::class,
-            'cafeteria.provider.assigned' => EnsureCafeteriaProviderAssigned::class,
-            'cafeteria.portal.context' => SetCafeteriaPortalContext::class,
             'admin.access' => EnsureAdminAccess::class,
             'mfa' => RequireMfa::class,
             'force.password' => ForcePasswordChange::class,
             'mfa.setup' => EnsureMfaNotRequired::class,
-            'public.site' => EnsurePublicSiteEnabled::class,
             'qr.private' => PrivateQrPageHeaders::class,
             'core.workspace' => EnterCoreWorkspace::class,
         ]);

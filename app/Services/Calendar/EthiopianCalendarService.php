@@ -102,39 +102,32 @@ class EthiopianCalendarService
     // ─── Ethiopian ↔ JDN ────────────────────────────────────────────────────
 
     /** @return array{year: int, month: int, day: int} */
+    /**
+     * Standard Amete Mihret arithmetic: a 1461-day cycle whose fourth year
+     * (Y mod 4 = 3) ends with Pagume 6, so the next year starts on 12 September.
+     * (The earlier version put the leap day on Y mod 4 = 0, a day off for one
+     * year in four, e.g. 12 Sept 2023 is Meskerem 1, 2016.)
+     *
+     * @return array{year: int, month: int, day: int}
+     */
     public function jdnToEthiopian(int $jdn): array
     {
-        $diff = $jdn - self::ETHIOPIAN_EPOCH;
-
-        // Handle pre-epoch dates
-        if ($diff < 0) {
-            // Shift into positive range using a multiple of 1461
-            $cycles = (int) ceil(-$diff / 1461);
-            $diff += $cycles * 1461;
-            $baseYear = -4 * $cycles;
-        } else {
-            $baseYear = 0;
-        }
-
-        $cycle = intdiv($diff, 1461);
-        $r = $diff % 1461;                             // 0 … 1460
-
-        // year-in-cycle: 0..3  (year 4 is the leap year at r=1095..1460)
-        $yearInCycle = intdiv($r, 365) - intdiv($r, 1460);
-        $dayOfYear = $r - $yearInCycle * 365;            // 0 … 364 (or 365 on leap day)
+        $days = $jdn - (self::ETHIOPIAN_EPOCH - 365);
+        $r = (($days % 1461) + 1461) % 1461;
+        $n = ($r % 365) + 365 * intdiv($r, 1460);
 
         return [
-            'year' => 4 * $cycle + $yearInCycle + 1 + $baseYear,
-            'month' => intdiv($dayOfYear, 30) + 1,
-            'day' => ($dayOfYear % 30) + 1,
+            'year' => 4 * (int) floor($days / 1461) + intdiv($r, 365) - intdiv($r, 1460),
+            'month' => intdiv($n, 30) + 1,
+            'day' => ($n % 30) + 1,
         ];
     }
 
     public function ethiopianToJdn(int $year, int $month, int $day): int
     {
         return self::ETHIOPIAN_EPOCH
-            + 1461 * intdiv($year - 1, 4)
-            + 365 * (($year - 1) % 4)
+            + 365 * ($year - 1)
+            + (int) floor($year / 4)
             + 30 * ($month - 1)
             + ($day - 1);
     }

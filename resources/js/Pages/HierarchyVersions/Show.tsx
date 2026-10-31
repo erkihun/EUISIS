@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import HierarchyTreePreview from '@/Components/organizations/HierarchyTreePreview';
+import HierarchyGovernancePanel, { type HierarchyGovernance } from '@/Components/hierarchy/HierarchyGovernancePanel';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -42,11 +43,14 @@ export default function HierarchyVersionShow({
     edges,
     tree,
     can,
+    governance = null,
 }: {
     version: Version;
     edges: Edge[];
     tree: TreeNode[];
     can: { edit: boolean; archive: boolean; publish: boolean; manageTree: boolean };
+    /** The governed review and publication steps, where the server offers them. */
+    governance?: HierarchyGovernance | null;
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
@@ -127,6 +131,8 @@ export default function HierarchyVersionShow({
             }
         >
             <Head title={version.version_name} />
+
+            {governance && <HierarchyGovernancePanel governance={governance} />}
 
             <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">

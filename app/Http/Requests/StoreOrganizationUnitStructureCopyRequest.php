@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Position;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -20,8 +21,10 @@ class StoreOrganizationUnitStructureCopyRequest extends FormRequest
             return false;
         }
 
-        // User must be able to create organization units (manage target org)
-        return $user->can('organization-units.create');
+        // User must be able to create organization units (manage target org), and
+        // copying positions creates positions, so it also needs that permission.
+        return $user->can('organization-units.create')
+            && (! $this->boolean('copy_positions') || $user->can('create', Position::class));
     }
 
     public function rules(): array

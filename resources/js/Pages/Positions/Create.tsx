@@ -5,6 +5,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { localizedName } from '@/utils/localizedName';
+import JobMasterSelects, { type JobMasterGroup } from '@/Components/positions/JobMasterSelects';
 
 import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
@@ -28,9 +29,11 @@ interface Props {
     gradeLevels: string[];
     selectedOrganizationId: string | null;
     selectedOrganizationUnitId: string | null;
+    /** Core only (ADR 0010): the other job masters. */
+    jobMasters?: JobMasterGroup[];
 }
 
-export default function PositionsCreate({ organizations, organizationUnits, occupations, gradeLevels, selectedOrganizationId, selectedOrganizationUnitId }: Props) {
+export default function PositionsCreate({ organizations, organizationUnits, occupations, gradeLevels, selectedOrganizationId, selectedOrganizationUnitId, jobMasters }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({
         job_position_code: '',
@@ -42,7 +45,12 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
         organization_unit_id: selectedOrganizationUnitId ?? '',
         occupation_id: '',
         grade_level: '',
+        job_level_id: '',
+        profession_id: '',
+        employment_type_id: '',
+        position_category_id: '',
         is_active: true,
+        is_unit_head: false,
     });
 
     const inputCls = cx(inputClassName, 'w-full');
@@ -149,7 +157,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Organization Unit (required) */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="organization_unit_id">{t('positions.organizationUnit')}</FormLabel>
+                        <FormLabel htmlFor="organization_unit_id" required>{t('positions.organizationUnit')}</FormLabel>
                         {selectedOrganizationUnitId ? (
                             <>
                                 <input type="hidden" name="organization_unit_id" value={form.data.organization_unit_id} />
@@ -209,7 +217,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Occupation (required) */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="occupation_id">{t('positions.occupation')}</FormLabel>
+                        <FormLabel htmlFor="occupation_id" required>{t('positions.occupation')}</FormLabel>
                         <select
                             id="occupation_id"
                             className={inputCls}
@@ -232,7 +240,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* English Title */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="title_en">{t('positions.englishTitle')}</FormLabel>
+                        <FormLabel htmlFor="title_en" required>{t('positions.englishTitle')}</FormLabel>
                         <input
                             id="title_en"
                             className={inputCls}
@@ -245,7 +253,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Amharic Title */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="title_am">{t('positions.amharicTitle')}</FormLabel>
+                        <FormLabel htmlFor="title_am" required>{t('positions.amharicTitle')}</FormLabel>
                         <input
                             id="title_am"
                             className={inputCls}
@@ -277,6 +285,10 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         </select>
                         {form.errors.grade_level && <p className={errorCls}>{form.errors.grade_level}</p>}
                     </div>
+
+                    {jobMasters && <JobMasterSelects groups={jobMasters} errors={form.errors}
+                        values={{ job_level_id: form.data.job_level_id, profession_id: form.data.profession_id, employment_type_id: form.data.employment_type_id, position_category_id: form.data.position_category_id }}
+                        onChange={(field, value) => form.setData(field, value)} />}
                 </div>
 
                 {/* Active */}
@@ -288,6 +300,20 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                     />
                     {t('positions.activePosition')}
                 </label>
+
+                {/* Head of unit */}
+                <div>
+                    <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                        <input
+                            type="checkbox"
+                            checked={form.data.is_unit_head}
+                            onChange={(e) => form.setData('is_unit_head', e.target.checked)}
+                        />
+                        {t('positions.unitHead')}
+                    </label>
+                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('positions.unitHeadHelp')}</p>
+                    {form.errors.is_unit_head && <p className={errorCls}>{form.errors.is_unit_head}</p>}
+                </div>
 
                 <div className="flex gap-3">
                     <button

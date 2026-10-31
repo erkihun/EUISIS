@@ -12,7 +12,7 @@ import { useState, type FormEvent } from 'react';
 import type { TipOffBreakdown, TipTypeBucket } from '@/types/publicSubmissions';
 
 type NamePair = { id: string | null; name_en: string | null; name_am: string | null; total: number };
-type Filters = Partial<Record<'organization_id' | 'submission_type' | 'tip_type' | 'target_type' | 'category_id' | 'status' | 'date_from' | 'date_to' | 'handler_type' | 'handler_id', string>>;
+type Filters = Partial<Record<'organization_id' | 'submission_type' | 'tip_type' | 'target_type' | 'status' | 'date_from' | 'date_to' | 'handler_type' | 'handler_id', string>>;
 type Summary = { total: number; by_type: Record<'feedback' | 'suggestion' | 'complaint', number>; by_target: Record<'employee' | 'organization', number>; by_status: Record<string, number> };
 type ExportRow = { id: string; format: string; status: 'queued' | 'ready' | 'failed'; filename: string | null; row_count: number | null; error: string | null; created_at: string | null; completed_at: string | null };
 
@@ -20,7 +20,6 @@ type Props = {
     filters: Filters;
     summary: Summary;
     byOrganization: (NamePair & { open: number; closed: number })[];
-    byCategory: NamePair[];
     byHandler: (NamePair & { handler_type: string; handler_id: string })[];
     /** Relevant work units the public named, under the name at submission; `general` is the "General / Not sure" bucket. */
     byUnit: (NamePair & { general: boolean })[];
@@ -29,7 +28,6 @@ type Props = {
     employeeTargetedTipOffs: ({ employee_id: string; full_name: string | null; employee_number: string | null } & TipOffBreakdown)[];
     filterOptions: {
         organizations: { id: string; name_en: string; name_am: string | null }[];
-        categories: { id: string; name_en: string; name_am: string | null }[];
         statuses: string[];
         types: string[];
         tipTypes: TipTypeBucket[];
@@ -51,7 +49,7 @@ const TIP_BUCKETS: TipTypeBucket[] = ['CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLAS
 
 /**
  * The public submissions report (brief §83–87): one slice across the three
- * types with breakdowns by institution, category and handler, and queued
+ * types with breakdowns by institution, handler and unit, and queued
  * private exports. No per-employee ranking (§82).
  *
  * Tip-offs get their own section: counts by type that always add up, counts
@@ -60,7 +58,7 @@ const TIP_BUCKETS: TipTypeBucket[] = ['CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLAS
  * reviewers. These are reports received, not findings; nothing here is sorted
  * by count, scored or labelled as conduct.
  */
-export default function SubmissionReports({ filters, summary, byOrganization, byCategory, byHandler, byUnit, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can }: Props) {
+export default function SubmissionReports({ filters, summary, byOrganization, byHandler, byUnit, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can }: Props) {
     const { t, locale } = useLocale();
     const [draft, setDraft] = useState<Filters>({ ...filters });
     const exportForm = useForm({ format: 'csv' as 'csv' | 'xlsx' });
@@ -116,12 +114,6 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                             {filterOptions.targets.map((target) => <option key={target} value={target}>{t(target === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}</option>)}
                         </Select>
                     </FilterField>
-                    <FilterField label={t('serviceFeedback.issueCategory')} htmlFor="rf-category">
-                        <Select id="rf-category" value={draft.category_id ?? ''} onChange={(e) => set('category_id')(e.target.value)}>
-                            <option value="">{t('common.all')}</option>
-                            {filterOptions.categories.map((c) => <option key={c.id} value={c.id}>{locale === 'am' && c.name_am ? c.name_am : c.name_en}</option>)}
-                        </Select>
-                    </FilterField>
                     <FilterField label={t('serviceFeedback.filterStatus')} htmlFor="rf-status">
                         <Select id="rf-status" value={draft.status ?? ''} onChange={(e) => set('status')(e.target.value)}>
                             <option value="">{t('common.all')}</option>
@@ -156,7 +148,6 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
 
                 <div className="grid gap-5 lg:grid-cols-3">
                     <Breakdown title={t('serviceFeedback.byOrganization')} rows={byOrganization} name={name} extra={(row) => `${t('serviceFeedback.openCount')}: ${row.open} · ${t('serviceFeedback.statusClosed')}: ${row.closed}`} empty={t('serviceFeedback.noSubmissions')} />
-                    <Breakdown title={t('serviceFeedback.byCategory')} rows={byCategory} name={name} empty={t('serviceFeedback.noCategorisedSubmissions')} />
                     <Breakdown title={t('serviceFeedback.byHandler')} rows={byHandler} name={name} empty={t('serviceFeedback.noHandler')} />
                     <Breakdown title={t('serviceFeedback.byUnit')} rows={byUnit} name={(row) => (row.general ? t('serviceFeedback.generalNotSure') : name(row))} empty={t('serviceFeedback.noUnitSubmissions')} />
                 </div>

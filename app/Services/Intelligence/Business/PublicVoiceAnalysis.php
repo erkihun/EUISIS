@@ -4,11 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Intelligence\Business;
 
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\ServiceFeedbackStatus;
-use App\Enums\ServiceFeedbackType;
 use App\Models\PositionService;
-use App\Models\PublicFeedbackCategory;
 use App\Models\Service;
 use App\Services\Intelligence\Analysis\Baseline;
 use App\Services\Intelligence\Contracts\TechnicalSignalSource;
@@ -16,7 +12,6 @@ use App\Services\Intelligence\Insight;
 use App\Services\Intelligence\IntelligenceAnalysis;
 use App\Services\Intelligence\IntelligenceSettings;
 use App\Services\Intelligence\System\RouteGroups;
-use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\Analytics\PublicVoiceAnalytics;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationContext;
@@ -27,6 +22,10 @@ use App\Support\Database\SqlDateBucket;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\FeedbackVisibility;
 
 /**
  * Public Voice Intelligence: what the public said — Feedback, Tip-offs
@@ -37,7 +36,7 @@ use Illuminate\Support\Facades\DB;
  *
  * Grants: the area grant opens the aggregates; which TARGETS are counted
  * follows the same per-target grants as the public-feedback inboxes
- * (PublicFeedbackVisibility::applyTargetScope), so an aggregate never carries
+ * (FeedbackVisibility::applyTargetScope), so an aggregate never carries
  * a target type the viewer could not list. Rows written before the unified
  * model carry no target type and are employee submissions.
  */
@@ -46,10 +45,6 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
     use BusinessQueries;
 
     public const SPIKE_MINIMUM = 5;
-
-    public const REPEATED_CATEGORY_SHARE = 40.0;
-
-    public const REPEATED_CATEGORY_MINIMUM = 10;
 
     public const BACKLOG_GROWTH_PERCENT = 25.0;
 
@@ -69,7 +64,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
         OrganizationRollup $rollup,
         SituationSettings $settings,
         private readonly IntelligenceSettings $intelligence,
-        private readonly PublicFeedbackVisibility $visibility,
+        private readonly FeedbackVisibility $visibility,
         private readonly TechnicalSignalSource $technical,
     ) {
         parent::__construct($rollup, $settings);
@@ -87,7 +82,6 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
             'voice_targets' => fn (): SituationPanel => $this->targets($context),
             'voice_by_organization' => fn (): SituationPanel => $this->byOrganization($context),
             'voice_status' => fn (): SituationPanel => $this->status($context),
-            'complaints_by_category' => fn (): SituationPanel => $this->categories($context),
             'complaints_by_service' => fn (): SituationPanel => $this->services($context),
             'complaints_backlog' => fn (): SituationPanel => $this->backlog($context),
         ];
@@ -134,26 +128,6 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
             $insights[] = $this->complaintDrop($weekly, (float) $stats['median']);
         }
 
-        // One category dominating the period's complaints.
-        $byCategory = $this->countBy($this->inPeriod($this->submissions($context, ServiceFeedbackType::Complaint), 'f.submitted_at', $period)->whereNotNull('f.category_id'), 'f.category_id');
-        $complaints = (clone $this->inPeriod($this->submissions($context, ServiceFeedbackType::Complaint), 'f.submitted_at', $period))->count();
-        if ($byCategory !== [] && $complaints > 0) {
-            arsort($byCategory);
-            $topId = (string) array_key_first($byCategory);
-            $top = $byCategory[$topId];
-            $share = $this->percent($top, $complaints);
-            if ($top >= self::REPEATED_CATEGORY_MINIMUM && $share !== null && $share >= self::REPEATED_CATEGORY_SHARE) {
-                $category = PublicFeedbackCategory::query()->whereKey($topId)->first(['name_en', 'name_am']);
-                $insights[] = $this->insight('repeated_complaint_category', 'medium', [
-                    'name' => (string) ($category?->name_en ?? '?'), 'count' => $top, 'percent' => $share, 'current' => $complaints,
-                ], [
-                    ['label' => SituationLabel::names($category?->name_en, $category?->name_am), 'value' => $top, 'href' => null],
-                    $this->evidence('complaints_in_period', $complaints),
-                    $this->evidence('share', $share.' %'),
-                ], href: $this->link('service-submissions.index'), source: $this->source('public_submissions'), metric: 'complaints_received');
-            }
-        }
-
         // Backlog growing across the period.
         $b = $this->backlogCounts($context);
         $growth = Baseline::changePercent($b['open_end'], $b['open_start']);
@@ -196,7 +170,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
         $this->applyTargetScope($query, $context);
 
         $filters = $context->filters;
-        foreach (['status' => 'f.status', 'category_id' => 'f.category_id', 'position_service_id' => 'f.position_service_id', 'organization_unit_id' => 'f.organization_unit_id'] as $key => $column) {
+        foreach (['status' => 'f.status', 'position_service_id' => 'f.position_service_id', 'organization_unit_id' => 'f.organization_unit_id'] as $key => $column) {
             if (($value = $filters->get($key)) !== null) {
                 $query->where($column, $value);
             }
@@ -210,7 +184,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
         return $query;
     }
 
-    /** The same rule as PublicFeedbackVisibility::applyTargetScope, on a query builder. */
+    /** The same rule as FeedbackVisibility::applyTargetScope, on a query builder. */
     private function applyTargetScope(Builder $query, SituationContext $context): void
     {
         $types = $this->visibility->visibleTargetTypes($context->user);
@@ -323,22 +297,6 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
         }
 
         return $this->chart('voice_status', 'stacked', $this->source('public_submissions'), array_map(fn (string $t): array => $this->value('submission_type', $t), self::TYPES), $series);
-    }
-
-    private function categories(SituationContext $context): SituationPanel
-    {
-        $counts = $this->countBy($this->inPeriod($this->submissions($context, ServiceFeedbackType::Complaint), 'f.submitted_at', $context->period()), 'COALESCE('.$this->idText('f.category_id').", '__none')");
-        $top = $this->topWithOther($counts);
-        $names = PublicFeedbackCategory::query()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($c): string => (string) $c->id);
-        $categories = array_map(fn ($key): array => match ((string) $key) {
-            '__none' => SituationLabel::key('situationRoom.values.common.not_categorised'),
-            '__other' => SituationLabel::key('situationRoom.values.common.other'),
-            default => SituationLabel::names($names[$key]->name_en ?? null, $names[$key]->name_am ?? null),
-        }, array_keys($top));
-
-        return $this->chart('complaints_by_category', 'hbar', $this->source('public_submissions'), $categories, [
-            ['key' => 'complaint', 'label' => $this->value('submission_type', 'complaint'), 'values' => array_values($top)],
-        ]);
     }
 
     /** By the catalogue service the submission names; a service only described in words is not a link. */

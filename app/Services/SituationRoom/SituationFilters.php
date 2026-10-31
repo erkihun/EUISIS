@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom;
 
-use App\Enums\PublicFeedbackTargetType;
-use App\Enums\PublicTipType;
-use App\Enums\ServiceFeedbackStatus;
 use Illuminate\Http\Request;
+use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
+use Modules\Feedback\Contracts\Data\PublicTipType;
+use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 
 /**
  * The filters a Situation Room view accepts, cleaned. Unknown keys are
@@ -35,7 +35,7 @@ final readonly class SituationFilters
         );
 
         $values = [];
-        foreach (['organization_id', 'organization_unit_id', 'category_id', 'position_service_id'] as $key) {
+        foreach (['organization_id', 'organization_unit_id', 'position_service_id'] as $key) {
             $value = self::string($request->query($key));
             if ($value !== null && preg_match('/^[0-9a-fA-F-]{36}$/', $value) === 1) {
                 $values[$key] = strtolower($value);

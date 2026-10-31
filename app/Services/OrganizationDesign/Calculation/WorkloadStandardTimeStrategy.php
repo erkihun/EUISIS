@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign\Calculation;
 
-use App\Services\Performance\Calculation\Dec;
+use App\Support\Math\Dec;
 use Brick\Math\BigDecimal;
 
 /**

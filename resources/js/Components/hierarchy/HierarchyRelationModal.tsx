@@ -9,6 +9,13 @@ import type { HierarchyEdge, OrganizationOption } from '@/Components/hierarchy/t
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
 import { buttonClassName, cx, selectClassName } from '@/Components/ui';
+const RELATIONSHIP_TYPE_KEYS: Record<string, string> = {
+    reports_to: 'reportsTo',
+    geographically_under: 'geographicallyUnder',
+    service_scope: 'serviceScope',
+    oversight: 'oversight',
+};
+
 type RelationFormData = {
     parent_organization_id: string;
     child_organization_id: string;
@@ -60,6 +67,17 @@ export default function HierarchyRelationModal({
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [show, relation?.id, initialParentId, relationshipTypes]);
+
+    // An existing edge of a type no longer offered keeps it, shown under its own name.
+    const typeOptions = relation && !relationshipTypes.includes(relation.relationship_type)
+        ? [...relationshipTypes, relation.relationship_type]
+        : relationshipTypes;
+
+    function relationshipTypeLabel(type: string): string {
+        const key = RELATIONSHIP_TYPE_KEYS[type];
+
+        return key ? t(`hierarchyVersions.relationshipTypes.${key}`) : type.replace(/_/g, ' ');
+    }
 
     function closeModal(): void {
         form.reset();
@@ -138,12 +156,13 @@ export default function HierarchyRelationModal({
                             onChange={(event) => form.setData('relationship_type', event.target.value)}
                             className={cx(selectClassName, 'w-full')}
                         >
-                            {relationshipTypes.map((type) => (
+                            {typeOptions.map((type) => (
                                 <option key={type} value={type}>
-                                    {t(`hierarchyVersions.relationshipTypes.${type === 'reports_to' ? 'reportsTo' : type === 'geographically_under' ? 'geographicallyUnder' : type === 'service_scope' ? 'serviceScope' : 'oversight'}`)}
+                                    {relationshipTypeLabel(type)}
                                 </option>
                             ))}
                         </select>
+                        <p className="mt-1.5 text-xs text-(--app-muted-foreground)">{t('hierarchyVersions.relationshipTypeHelp')}</p>
                         {form.errors.relationship_type && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{form.errors.relationship_type}</p>}
                     </div>
 

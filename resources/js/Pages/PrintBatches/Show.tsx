@@ -11,6 +11,9 @@ type BatchItem = {
     status: string;
     spoiled: boolean;
     reprint_reason?: string | null;
+    /** Core (ADR 0010): first print or reprint, and the card's quality check. */
+    kind?: string;
+    qc_status?: string;
     card?: {
         id: string;
         card_number: string;
@@ -37,6 +40,9 @@ type BatchData = {
 type PageProps = {
     batch: BatchData;
     can: { markPrinted?: boolean };
+    /** Core only (ADR 0010): the print sheet from the one card renderer, and cancelling a draft. */
+    sheetUrl?: string | null;
+    cancelUrl?: string | null;
 };
 
 type BatchStatus = 'draft' | 'printing' | 'completed' | 'cancelled';
@@ -76,9 +82,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     );
 }
 
-export default function PrintBatchShow({ batch, can }: PageProps) {
+export default function PrintBatchShow({ batch, can, sheetUrl, cancelUrl }: PageProps) {
     const { t } = useLocale();
     const markForm = useForm({ printer_notes: '' });
+    const cancelForm = useForm({ reason: '' });
 
     const printProgress = batch.total_cards > 0
         ? Math.round((batch.printed_count / batch.total_cards) * 100)
@@ -196,6 +203,14 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     {t('idCards.markAsPrinted')}
                                 </button>
                                 <p role="alert" className="text-sm text-red-700">{markForm.errors.printer_notes}</p>
+                                {sheetUrl && <a href={sheetUrl} target="_blank" rel="noopener" className={buttonClassName({ variant: 'outline' })}>{t('core.cardProduction.openSheet')}</a>}
+                                {cancelUrl && (
+                                    <div className="flex flex-col gap-2 border-t border-(--app-border) pt-3">
+                                        <input className={inputCls} placeholder={t('core.cardProduction.cancelReason')} value={cancelForm.data.reason} onChange={(e) => cancelForm.setData('reason', e.target.value)} />
+                                        <button type="button" disabled={cancelForm.processing} onClick={() => cancelForm.post(cancelUrl)} className={buttonClassName({ variant: 'outline' })}>{t('core.cardProduction.cancelBatch')}</button>
+                                        <p role="alert" className="text-sm text-red-700">{cancelForm.errors.reason}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -246,6 +261,8 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                         )}
                                     </div>
                                     <div className="flex items-center gap-3 shrink-0">
+                                        {item.kind === 'reprint' && <span className={badgeClassName('warning')}>{t('core.cardProduction.reprintItem')}</span>}
+                                        {item.qc_status && item.status === 'printed' && <span className="text-xs text-(--app-muted-foreground)">{t(`core.cardProduction.qcStatuses.${item.qc_status}`)}</span>}
                                         {item.card && <CardStatusBadge status={item.card.status} />}
                                         {item.spoiled ? (
                                             <span className={badgeClassName('danger')}>

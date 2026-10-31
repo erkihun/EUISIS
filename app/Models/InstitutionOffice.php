@@ -51,8 +51,8 @@ class InstitutionOffice extends Model
             'office_level' => InstitutionOfficeLevel::class,
             'status' => InstitutionOfficeStatus::class,
             'is_head_office' => 'bool',
-            'opened_on' => 'date',
-            'closed_on' => 'date',
+            'opened_on' => 'date:Y-m-d',
+            'closed_on' => 'date:Y-m-d',
             'metadata' => 'array',
         ];
     }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\PublicServiceStatus;
-use App\Models\PublicNavigationItem;
-use App\Models\PublicPageSection;
-use App\Models\PublicService;
-use App\Services\PublicSite\PublicSiteContent;
-use App\Services\PublicSite\PublicSiteSectionRegistry as Registry;
 use Illuminate\Database\Seeder;
+use Modules\PublicSite\Application\Services\PublicSiteContent;
+use Modules\PublicSite\Application\Services\PublicSiteSectionRegistry as Registry;
+use Modules\PublicSite\Domain\Enums\PublicServiceStatus;
+use Modules\PublicSite\Domain\Models\PublicNavigationItem;
+use Modules\PublicSite\Domain\Models\PublicPageSection;
+use Modules\PublicSite\Domain\Models\PublicService;
 
 /**
  * Moves the public site's CURRENT copy into Public Site Management, so the

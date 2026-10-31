@@ -15,10 +15,13 @@ function Field({
     error?: string;
     children: React.ReactNode;
 }) {
+    // The label wraps its control, so the control is named by it (screen readers, click to focus).
     return (
         <div>
-            <label className={labelCls}>{label}</label>
-            <div className="mt-1">{children}</div>
+            <label className="block">
+                <span className={labelCls}>{label}</span>
+                <div className="mt-1">{children}</div>
+            </label>
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
         </div>
     );

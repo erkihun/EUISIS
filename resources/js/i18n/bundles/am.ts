@@ -8,6 +8,7 @@ import amCafeteria from '@/i18n/am/cafeteria';
 import amCommon from '@/i18n/am/common';
 import amDailyActivities from '@/i18n/am/dailyActivities';
 import amFieldWork from '@/i18n/am/fieldWork';
+import amServiceMonitoring from '@/i18n/am/serviceMonitoring';
 import amPerformance from '@/i18n/am/performance';
 import amCommunication from '@/i18n/am/communication';
 import amRichText from '@/i18n/am/richText';
@@ -76,6 +77,7 @@ import amWorkStandards from '@/i18n/am/workStandards';
 import amAssessments from '@/i18n/am/assessments';
 import amAssessmentOversight from '@/i18n/am/assessmentOversight';
 import amAssessmentWorkspace from '@/i18n/am/assessmentWorkspace';
+import amReception from '@/i18n/am/reception';
 import type { TranslationTree } from '@/i18n/registry';
 
 const tree: TranslationTree = {
@@ -88,6 +90,7 @@ const tree: TranslationTree = {
     employees: { ...(((am as { employees?: TranslationTree }).employees) ?? {}), ...amEmployees },
     employeePortal: amEmployeePortal,
     fieldWork: amFieldWork,
+    serviceMonitoring: amServiceMonitoring,
     dailyActivities: amDailyActivities,
     performance: amPerformance,
     communication: amCommunication,
@@ -152,6 +155,7 @@ const tree: TranslationTree = {
     assessments: amAssessments,
     assessmentOversight: amAssessmentOversight,
     assessmentWorkspace: amAssessmentWorkspace,
+    reception: amReception,
     confirmations: amConfirmations,
     auth: amAuth,
     security: amSecurity,

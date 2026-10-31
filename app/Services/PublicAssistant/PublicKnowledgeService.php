@@ -6,11 +6,11 @@ namespace App\Services\PublicAssistant;
 
 use App\Models\IntelligenceKnowledgeChunk;
 use App\Models\IntelligenceKnowledgeDocument;
-use App\Models\PublicFaq;
-use App\Models\PublicService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\PublicSite\Contracts\ReadModels\PublicFaqRecord;
+use Modules\PublicSite\Contracts\ReadModels\PublicServiceRecord;
 
 /**
  * The public knowledge filter (P-3, §7–9): documents whose classification
@@ -91,7 +91,7 @@ final class PublicKnowledgeService
         $q = $locale === 'am' ? 'question_am' : 'question_en';
         $a = $locale === 'am' ? 'answer_am' : 'answer_en';
         $scored = [];
-        foreach (PublicFaq::query()->visible()->orderBy('sort_order')->get([$q, $a, 'question_en', 'answer_en']) as $faq) {
+        foreach (PublicFaqRecord::query()->visible()->orderBy('sort_order')->get([$q, $a, 'question_en', 'answer_en']) as $faq) {
             $questionText = (string) ($faq->{$q} ?: $faq->question_en);
             $answerText = (string) ($faq->{$a} ?: $faq->answer_en);
             $hay = mb_strtolower($questionText.' '.$answerText);
@@ -117,7 +117,7 @@ final class PublicKnowledgeService
             return [];
         }
         $terms = array_map('mb_strtolower', self::terms($question));
-        $query = PublicService::query()->visible()->orderByDesc('is_featured')->orderBy('sort_order');
+        $query = PublicServiceRecord::query()->visible()->orderByDesc('is_featured')->orderBy('sort_order');
         if ($terms !== []) {
             $query->where(function (Builder $w) use ($terms): void {
                 foreach ($terms as $term) {
@@ -132,7 +132,7 @@ final class PublicKnowledgeService
         $req = $locale === 'am' ? 'requirements_am' : 'requirements_en';
         $steps = $locale === 'am' ? 'steps_am' : 'steps_en';
 
-        return $query->limit(max(1, min(6, $limit)))->get()->map(fn (PublicService $s): array => [
+        return $query->limit(max(1, min(6, $limit)))->get()->map(fn (PublicServiceRecord $s): array => [
             'name' => (string) ($s->{$name} ?: $s->name_en),
             'summary' => $s->{$short} ?: $s->short_description_en,
             'requirements' => $s->{$req} !== null ? mb_substr(strip_tags((string) $s->{$req}), 0, 600) : null,

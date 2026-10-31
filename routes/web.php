@@ -5,106 +5,31 @@ declare(strict_types=1);
 use App\Http\Controllers\Core\CoreAssignmentController;
 use App\Http\Controllers\Core\CoreAuditCenterController;
 use App\Http\Controllers\Core\CoreDashboardController;
+use App\Http\Controllers\Core\CoreDataQualityController;
 use App\Http\Controllers\Core\CoreIntegrationCenterController;
 use App\Http\Controllers\Core\CoreSettingsController;
 use App\Http\Controllers\Core\CoreWorkspaceController;
-use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
+use App\Http\Controllers\Employee\EmployeeCourtCaseController;
+use App\Http\Controllers\Employee\EmployeeCourtCasesController;
+use App\Http\Controllers\Employee\EmployeeCourtFilingController;
+use App\Http\Controllers\Employee\EmployeeCourtPartiesController;
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfileDeviceController;
-use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
-use App\Http\Controllers\ProviderPortal\Auth\ProviderPasswordResetController;
-use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
-use App\Http\Controllers\ProviderPortal\ProviderFoodOrderController;
-use App\Http\Controllers\ProviderPortal\ProviderLedgerController;
-use App\Http\Controllers\ProviderPortal\ProviderMenuController;
-use App\Http\Controllers\ProviderPortal\ProviderProfileController;
-use App\Http\Controllers\ProviderPortal\ProviderReportController;
-use App\Http\Controllers\ProviderPortal\ProviderScanController;
-use App\Http\Controllers\ProviderPortal\ProviderTransactionController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportDashboardController as ProviderTransportDashboardController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportDeviceController as ProviderTransportDeviceController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportDriverController as ProviderTransportDriverController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportExceptionController as ProviderTransportExceptionController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportInvoiceController as ProviderTransportInvoiceController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportReportController as ProviderTransportReportController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportRouteController as ProviderTransportRouteController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportScanController as ProviderTransportScanController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportSettlementController as ProviderTransportSettlementController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportTransactionController as ProviderTransportTransactionController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportTripController as ProviderTransportTripController;
-use App\Http\Controllers\ProviderPortal\Transport\TransportVehicleController as ProviderTransportVehicleController;
-use App\Http\Controllers\Public\PublicAnnouncementController;
-use App\Http\Controllers\Public\PublicHomeController;
-use App\Http\Controllers\Public\PublicServicesController;
-use App\Http\Controllers\Public\PublicSupportController;
-use App\Http\Controllers\Public\PublicTransferAnnouncementController;
-use App\Http\Controllers\Public\PublicVerifyController;
-use App\Http\Controllers\Transfers\TransferAnnouncementController;
-use App\Http\Controllers\Transfers\TransferApplicationController;
-use App\Http\Controllers\Transfers\TransferDashboardController;
-use App\Http\Controllers\Transfers\TransferSettingController;
-use App\Http\Controllers\Transport\TransportContractController;
-use App\Http\Controllers\Transport\TransportDeviceController;
-use App\Http\Controllers\Transport\TransportDriverController;
-use App\Http\Controllers\Transport\TransportEligibilityController;
-use App\Http\Controllers\Transport\TransportExceptionController;
-use App\Http\Controllers\Transport\TransportInvoiceController;
-use App\Http\Controllers\Transport\TransportManualLookupController;
-use App\Http\Controllers\Transport\TransportOrganizationLookupController;
-use App\Http\Controllers\Transport\TransportOverviewController;
-use App\Http\Controllers\Transport\TransportPassController;
-use App\Http\Controllers\Transport\TransportProviderController;
-use App\Http\Controllers\Transport\TransportReportController;
-use App\Http\Controllers\Transport\TransportRouteController;
-use App\Http\Controllers\Transport\TransportRouteStopController;
-use App\Http\Controllers\Transport\TransportScanController;
-use App\Http\Controllers\Transport\TransportScheduleController;
-use App\Http\Controllers\Transport\TransportSettingsController;
-use App\Http\Controllers\Transport\TransportSettlementController;
-use App\Http\Controllers\Transport\TransportTransactionController;
-use App\Http\Controllers\Transport\TransportTripController;
-use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BackupRecoveryController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaAccessController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaAnalyticsController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaNetworkController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaPayeeController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaServiceAssignmentController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaServicePolicyController;
-use App\Http\Controllers\Web\Cafeteria\CafeteriaSettlementController;
-use App\Http\Controllers\Web\CafeteriaDashboardController;
-use App\Http\Controllers\Web\CafeteriaDayRuleController;
-use App\Http\Controllers\Web\CafeteriaProviderBranchController;
-use App\Http\Controllers\Web\CafeteriaProviderController;
-use App\Http\Controllers\Web\CafeteriaProviderDashboardController;
-use App\Http\Controllers\Web\CafeteriaProviderUserController;
-use App\Http\Controllers\Web\CafeteriaReportController;
-use App\Http\Controllers\Web\CafeteriaSettingController;
-use App\Http\Controllers\Web\CafeteriaSpecialDayController;
-use App\Http\Controllers\Web\CafeteriaSubsidyLedgerController;
-use App\Http\Controllers\Web\CafeteriaSubsidyRuleController;
-use App\Http\Controllers\Web\CafeteriaTransactionController;
 use App\Http\Controllers\Web\CardPrintBatchController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
 use App\Http\Controllers\Web\CommunityVoiceRoomController;
-use App\Http\Controllers\Web\DailyActivityAttachmentController;
-use App\Http\Controllers\Web\DailyActivityController;
-use App\Http\Controllers\Web\DailyActivityReviewerController;
-use App\Http\Controllers\Web\DailyActivitySettingController;
 use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
-use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
-use App\Http\Controllers\Web\EntitlementRuleController;
 use App\Http\Controllers\Web\GradeLevelController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCardController;
@@ -120,7 +45,6 @@ use App\Http\Controllers\Web\OccupationController;
 use App\Http\Controllers\Web\OrganizationalChangeRequestController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationEdgeController;
-use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationStructureImportController;
 use App\Http\Controllers\Web\OrganizationTypeController;
 use App\Http\Controllers\Web\OrganizationUnitController;
@@ -130,29 +54,12 @@ use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
-use App\Http\Controllers\Web\ProviderUserController;
-use App\Http\Controllers\Web\PublicFeedbackCategoryController;
-use App\Http\Controllers\Web\PublicFeedbackEmployeePhotoController;
-use App\Http\Controllers\Web\PublicFeedbackOrganizationLogoController;
-use App\Http\Controllers\Web\PublicFeedbackQuestionnaireController;
-use App\Http\Controllers\Web\PublicFeedbackReferralController;
-use App\Http\Controllers\Web\PublicFeedbackReportController;
-use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
-use App\Http\Controllers\Web\PublicFeedbackSettingsController;
-use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
-use App\Http\Controllers\Web\PublicServiceFeedbackController;
-use App\Http\Controllers\Web\PublicSiteManagementController;
-use App\Http\Controllers\Web\PublicSubmissionListController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ScanPhotoController;
-use App\Http\Controllers\Web\ServiceFeedbackController;
-use App\Http\Controllers\Web\ServiceProviderController;
-use App\Http\Controllers\Web\ServiceSubmissionController;
-use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SituationRoom\SituationReportController;
 use App\Http\Controllers\Web\SituationRoom\SituationRoomController;
 use App\Http\Controllers\Web\SituationRoomActionController;
@@ -160,14 +67,113 @@ use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\UserOrganizationScopeController;
-use App\Http\Controllers\Web\VacancyAnnouncementController;
-use App\Http\Controllers\Web\VacancyApplicationController;
 use App\Http\Controllers\Web\WorkStructureController;
 use App\Models\IdCard;
 use App\Services\SituationRoom\SituationCategory;
 use Illuminate\Http\Request;
+use Illuminate\Routing\RedirectController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Modules\Cafeteria\Http\Controllers\CafeteriaAccessController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaAnalyticsController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaDashboardController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaDayRuleController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaNetworkController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaPayeeController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaProviderBranchController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaProviderController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaProviderDashboardController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaProviderUserController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaReportController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaServiceAssignmentController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaServicePolicyController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaSettingController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaSettlementController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaSpecialDayController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaSubsidyLedgerController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaSubsidyRuleController;
+use Modules\Cafeteria\Http\Controllers\CafeteriaTransactionController;
+use Modules\Cafeteria\Http\Controllers\EmployeeCafeteriaExclusionController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderDashboardController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderFoodOrderController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderLedgerController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderMenuController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderProfileController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderReportController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderScanController;
+use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderTransactionController;
+use Modules\DailyWork\Http\Controllers\DailyActivityAttachmentController;
+use Modules\DailyWork\Http\Controllers\DailyActivityController;
+use Modules\DailyWork\Http\Controllers\DailyActivityReviewerController;
+use Modules\DailyWork\Http\Controllers\DailyActivitySettingController;
+use Modules\DailyWork\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
+use Modules\Entitlements\Http\Controllers\Web\EntitlementRuleController;
+use Modules\Entitlements\Http\Controllers\Web\ServiceProviderController;
+use Modules\Entitlements\Http\Controllers\Web\ServiceTypeController;
+use Modules\Feedback\Http\Controllers\EmployeeFeedbackQrController;
+use Modules\Feedback\Http\Controllers\OrganizationFeedbackQrController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackEmployeePhotoController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackOrganizationLogoController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackQuestionnaireController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackReferralController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackReportController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackRoutingRuleController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackSettingsController;
+use Modules\Feedback\Http\Controllers\PublicFeedbackSubjectController;
+use Modules\Feedback\Http\Controllers\PublicServiceFeedbackController;
+use Modules\Feedback\Http\Controllers\PublicSubmissionListController;
+use Modules\Feedback\Http\Controllers\ServiceFeedbackController;
+use Modules\Feedback\Http\Controllers\ServiceSubmissionController;
+use Modules\Providers\Http\Controllers\Portal\ProviderLoginController;
+use Modules\Providers\Http\Controllers\Portal\ProviderPasswordResetController;
+use Modules\Providers\Http\Controllers\ProviderUserController;
+use Modules\PublicSite\Http\Controllers\PublicAnnouncementController;
+use Modules\PublicSite\Http\Controllers\PublicHomeController;
+use Modules\PublicSite\Http\Controllers\PublicServicesController;
+use Modules\PublicSite\Http\Controllers\PublicSiteManagementController;
+use Modules\PublicSite\Http\Controllers\PublicSupportController;
+use Modules\PublicSite\Http\Controllers\PublicVerifyController;
+use Modules\Recruitment\Http\Controllers\VacancyAnnouncementController;
+use Modules\Recruitment\Http\Controllers\VacancyApplicationController;
+use Modules\Transfer\Http\Controllers\EmployeeTransferPortalController;
+use Modules\Transfer\Http\Controllers\PublicTransferAnnouncementController;
+use Modules\Transfer\Http\Controllers\TransferAnnouncementController;
+use Modules\Transfer\Http\Controllers\TransferApplicationController;
+use Modules\Transfer\Http\Controllers\TransferDashboardController;
+use Modules\Transfer\Http\Controllers\TransferSettingController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportDashboardController as ProviderTransportDashboardController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportDeviceController as ProviderTransportDeviceController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportDriverController as ProviderTransportDriverController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportExceptionController as ProviderTransportExceptionController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportInvoiceController as ProviderTransportInvoiceController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportReportController as ProviderTransportReportController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportRouteController as ProviderTransportRouteController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportScanController as ProviderTransportScanController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportSettlementController as ProviderTransportSettlementController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportTransactionController as ProviderTransportTransactionController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportTripController as ProviderTransportTripController;
+use Modules\Transport\Http\Controllers\ProviderPortal\TransportVehicleController as ProviderTransportVehicleController;
+use Modules\Transport\Http\Controllers\TransportContractController;
+use Modules\Transport\Http\Controllers\TransportDeviceController;
+use Modules\Transport\Http\Controllers\TransportDriverController;
+use Modules\Transport\Http\Controllers\TransportEligibilityController;
+use Modules\Transport\Http\Controllers\TransportExceptionController;
+use Modules\Transport\Http\Controllers\TransportInvoiceController;
+use Modules\Transport\Http\Controllers\TransportManualLookupController;
+use Modules\Transport\Http\Controllers\TransportOrganizationLookupController;
+use Modules\Transport\Http\Controllers\TransportOverviewController;
+use Modules\Transport\Http\Controllers\TransportPassController;
+use Modules\Transport\Http\Controllers\TransportProviderController;
+use Modules\Transport\Http\Controllers\TransportReportController;
+use Modules\Transport\Http\Controllers\TransportRouteController;
+use Modules\Transport\Http\Controllers\TransportRouteStopController;
+use Modules\Transport\Http\Controllers\TransportScanController;
+use Modules\Transport\Http\Controllers\TransportScheduleController;
+use Modules\Transport\Http\Controllers\TransportSettingsController;
+use Modules\Transport\Http\Controllers\TransportSettlementController;
+use Modules\Transport\Http\Controllers\TransportTransactionController;
+use Modules\Transport\Http\Controllers\TransportTripController;
+use Modules\Transport\Http\Controllers\TransportVehicleController;
 
 // Public home — content from Public Site Management. `public.site` shows the
 // maintenance notice instead when an administrator switches the site off.
@@ -406,6 +412,36 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
         Route::get('/my-portal/'.$section, [EmployeeSelfServiceController::class, 'page'])->defaults('section', $section)->name('employee.'.$section);
     }
     Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
+    // My court cases (court-ms Flow 4): the employee's tribunal cases and court notices.
+    Route::get('/my-portal/court-cases', [EmployeeCourtCasesController::class, 'index'])->name('employee.court-cases');
+    Route::post('/my-portal/court-cases/notices/read', [EmployeeCourtCasesController::class, 'readNotices'])->middleware('throttle:60,1')->name('employee.court-cases.notices.read');
+    // File a case (court-ms Flow 5): employees file here, against an institution registered in EUISIS.
+    Route::get('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'create'])->name('employee.court-cases.file');
+    Route::post('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'store'])->middleware('throttle:10,1')->name('employee.court-cases.file.store');
+    Route::post('/my-portal/court-cases/colleague', [EmployeeCourtFilingController::class, 'colleague'])->middleware('throttle:30,1')->name('employee.court-cases.colleague');
+    // Several parties (court-ms, ADR 0013 #13): invitations to join a case, and applications to intervene.
+    Route::post('/my-portal/court-cases/invitations/{party}/respond', [EmployeeCourtPartiesController::class, 'respond'])->whereNumber('party')->middleware('throttle:20,1')->name('employee.court-cases.invitations.respond');
+    Route::get('/my-portal/court-cases/intervene', [EmployeeCourtPartiesController::class, 'intervene'])->name('employee.court-cases.intervene');
+    Route::post('/my-portal/court-cases/intervene', [EmployeeCourtPartiesController::class, 'storeIntervention'])->middleware('throttle:10,1')->name('employee.court-cases.intervene.store');
+    // A case, worked on here (court-ms Flow 6): court-ms's applicant portal is closed.
+    Route::prefix('/my-portal/court-cases/{case}')->whereNumber(['case', 'file', 'evidence', 'witness', 'response', 'reply', 'id'])
+        ->controller(EmployeeCourtCaseController::class)->name('employee.court-cases.')->group(function (): void {
+            Route::get('/', 'show')->name('show');
+            Route::get('/correct', 'edit')->name('correct');
+            Route::post('/correct', 'correct')->middleware('throttle:10,1')->name('correct.store');
+            Route::post('/messages', 'message')->middleware('throttle:30,1')->name('messages.store');
+            // An appeal to the appellate court (ADR 0013 #14): asked here, released by the court's registry.
+            Route::post('/appeal', 'appeal')->middleware('throttle:10,1')->name('appeal.store');
+            Route::post('/files', 'upload')->middleware('throttle:20,1')->name('files.store');
+            Route::post('/files/{file}/delete', 'deleteFile')->middleware('throttle:20,1')->name('files.destroy');
+            Route::post('/evidences/{evidence}/delete', 'deleteEvidence')->middleware('throttle:20,1')->name('evidences.destroy');
+            Route::post('/witnesses/{witness}/delete', 'deleteWitness')->middleware('throttle:20,1')->name('witnesses.destroy');
+            Route::get('/download/{kind}/{id?}', 'download')->middleware('throttle:60,1')->name('download');
+            Route::get('/responses/{response}', 'response')->name('responses.show');
+            Route::post('/responses/{response}/replies', 'storeReply')->middleware('throttle:10,1')->name('replies.store');
+            Route::post('/responses/{response}/replies/{reply}/update', 'updateReply')->middleware('throttle:10,1')->name('replies.update');
+            Route::post('/responses/{response}/replies/{reply}/delete', 'destroyReply')->middleware('throttle:10,1')->name('replies.destroy');
+        });
     Route::get('/my-portal/profile/photo', [EmployeeSelfServiceController::class, 'photo'])->name('employee.photo');
     Route::post('/my-portal/profile', [EmployeeSelfServiceController::class, 'update'])->middleware('throttle:30,1')->name('employee.profile.update');
     Route::post('/my-portal/profile/contact', [EmployeeSelfServiceController::class, 'requestContact'])->middleware('throttle:3,10')->name('employee.contact.request');
@@ -418,11 +454,11 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::get('/my-portal/entitlements', fn () => redirect()->route('employee.services'))
         ->name('employee.entitlements');
 
-    Route::get('/my-portal/transfer-applications', [EmployeePortalController::class, 'myTransferApplications'])
+    Route::get('/my-portal/transfer-applications', [EmployeeTransferPortalController::class, 'myTransferApplications'])
         ->name('employee.transfer-applications');
-    Route::post('/my-portal/transfer-applications/{application}/withdraw', [EmployeePortalController::class, 'withdrawTransferApplication'])
+    Route::post('/my-portal/transfer-applications/{application}/withdraw', [EmployeeTransferPortalController::class, 'withdrawTransferApplication'])
         ->whereUuid('application')->name('employee.transfer-applications.withdraw');
-    Route::get('/my-portal/transfer-application-documents/{document}', [EmployeePortalController::class, 'downloadTransferApplicationDocument'])
+    Route::get('/my-portal/transfer-application-documents/{document}', [EmployeeTransferPortalController::class, 'downloadTransferApplicationDocument'])
         ->whereUuid('document')->name('employee.transfer-application-documents.download');
 
     /*
@@ -436,16 +472,16 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
      * site read the same way. The literal `transfers` and `transfer` segments
      * are distinct, so neither can shadow the other.
      */
-    Route::get('/my-portal/announcements/transfers', [EmployeePortalController::class, 'announcements'])
+    Route::get('/my-portal/announcements/transfers', [EmployeeTransferPortalController::class, 'announcements'])
         ->name('employee.announcements');
 
-    Route::get('/my-portal/announcements/transfer/{announcement}', [EmployeePortalController::class, 'announcementShow'])
+    Route::get('/my-portal/announcements/transfer/{announcement}', [EmployeeTransferPortalController::class, 'announcementShow'])
         ->name('employee.announcements.show');
 
-    Route::get('/my-portal/announcements/transfer/{announcement}/apply', [EmployeePortalController::class, 'announcementApply'])
+    Route::get('/my-portal/announcements/transfer/{announcement}/apply', [EmployeeTransferPortalController::class, 'announcementApply'])
         ->name('employee.announcements.apply');
 
-    Route::post('/my-portal/announcements/transfer/{announcement}/apply', [EmployeePortalController::class, 'announcementApplyStore'])
+    Route::post('/my-portal/announcements/transfer/{announcement}/apply', [EmployeeTransferPortalController::class, 'announcementApplyStore'])
         ->name('employee.announcements.apply.store');
 
     Route::get('/announcements/transfer/{announcement}/apply', [PublicTransferAnnouncementController::class, 'apply'])
@@ -621,7 +657,25 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/assignments', CoreAssignmentController::class)->middleware('can:employees.view')->name('assignments');
         Route::get('/integration', CoreIntegrationCenterController::class)->name('integration');
         Route::get('/audit', CoreAuditCenterController::class)->name('audit');
+        Route::get('/data-quality', CoreDataQualityController::class)->middleware('can:audit.view')->name('data-quality');
         Route::get('/settings', CoreSettingsController::class)->middleware('can:system-settings.view')->name('settings');
+
+        // Core addresses for the master-data workspaces (Core Stage 2). The pages stay
+        // where they are (DUAL AVAILABLE); entering through /core sets the workspace flag,
+        // and each page still checks its own permission and organization scope.
+        foreach ([
+            'organizations' => '/organizations',
+            'units' => '/organization-units',
+            'hierarchy' => '/hierarchy-versions',
+            'positions' => '/positions',
+            'employees' => '/employees',
+            'id-cards' => '/id-cards',
+        ] as $section => $destination) {
+            Route::get('/'.$section, RedirectController::class)
+                ->defaults('destination', $destination)
+                ->defaults('status', 302)
+                ->name($section);
+        }
     });
 
     Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {
@@ -932,6 +986,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/id-cards/{card}/report-damaged', [IdCardController::class, 'reportDamaged'])->name('id-cards.report-damaged');
     Route::post('/id-cards/{card}/replace', [IdCardController::class, 'replace'])->name('id-cards.replace');
     Route::post('/id-cards/{card}/revoke', [IdCardController::class, 'revoke'])->name('id-cards.revoke');
+    Route::post('/id-cards/{card}/suspend', [IdCardController::class, 'suspend'])->name('id-cards.suspend');
+    Route::post('/id-cards/{card}/reinstate', [IdCardController::class, 'reinstate'])->name('id-cards.reinstate');
     Route::post('/id-cards/{card}/export/audit', [IdCardController::class, 'exportAudit'])->name('id-cards.export.audit');
 
     // Server-side SVG preview + PNG export (no status change, all actions audited)
@@ -1525,13 +1581,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
     });
 
-    // Public feedback categories: before the {serviceFeedback} wildcard below.
-    Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
-    Route::get('/feedback-admin/categories/create', [PublicFeedbackCategoryController::class, 'create'])->name('service-feedback.categories.create');
-    Route::get('/feedback-admin/categories/{category}/edit', [PublicFeedbackCategoryController::class, 'edit'])->whereUuid('category')->name('service-feedback.categories.edit');
-    Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
-    Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
-    Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
     Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
     Route::get('/feedback-admin/submission-reports', [PublicFeedbackReportController::class, 'index'])->name('service-feedback.submission-reports.index');
     Route::post('/feedback-admin/submission-reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-feedback.submission-reports.export');
@@ -1639,6 +1688,9 @@ require __DIR__.'/discipline.php';
 
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';
+
+// Service Delivery Monitoring & Support (docs/service-monitoring.md).
+require __DIR__.'/service-monitoring.php';
 
 // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
 require __DIR__.'/organization-design.php';

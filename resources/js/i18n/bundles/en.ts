@@ -7,6 +7,7 @@ import enCafeteria from '@/i18n/en/cafeteria';
 import enCommon from '@/i18n/en/common';
 import enDailyActivities from '@/i18n/en/dailyActivities';
 import enFieldWork from '@/i18n/en/fieldWork';
+import enServiceMonitoring from '@/i18n/en/serviceMonitoring';
 import enPerformance from '@/i18n/en/performance';
 import enCommunication from '@/i18n/en/communication';
 import enRichText from '@/i18n/en/richText';
@@ -76,6 +77,7 @@ import enWorkStandards from '@/i18n/en/workStandards';
 import enAssessments from '@/i18n/en/assessments';
 import enAssessmentOversight from '@/i18n/en/assessmentOversight';
 import enAssessmentWorkspace from '@/i18n/en/assessmentWorkspace';
+import enReception from '@/i18n/en/reception';
 import type { TranslationTree } from '@/i18n/registry';
 
 const tree: TranslationTree = {
@@ -88,6 +90,7 @@ const tree: TranslationTree = {
     employees: { ...((en.employees as TranslationTree | undefined) ?? {}), ...enEmployees },
     employeePortal: enEmployeePortal,
     fieldWork: enFieldWork,
+    serviceMonitoring: enServiceMonitoring,
     dailyActivities: enDailyActivities,
     performance: enPerformance,
     communication: enCommunication,
@@ -152,6 +155,7 @@ const tree: TranslationTree = {
     assessments: enAssessments,
     assessmentOversight: enAssessmentOversight,
     assessmentWorkspace: enAssessmentWorkspace,
+    reception: enReception,
     confirmations: enConfirmations,
     auth: enAuth,
     security: enSecurity,

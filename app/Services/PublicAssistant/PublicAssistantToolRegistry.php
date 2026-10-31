@@ -6,9 +6,9 @@ namespace App\Services\PublicAssistant;
 
 use App\Models\IntelligenceIncident;
 use App\Services\Intelligence\System\ComponentHealth;
-use App\Services\ServiceFeedback\PublicOrganizationServiceContext;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
+use Modules\Feedback\Contracts\PublicOrganizationServices;
 use Throwable;
 
 /**
@@ -37,7 +37,7 @@ final class PublicAssistantToolRegistry
 
     public function __construct(
         private readonly PublicKnowledgeService $knowledge,
-        private readonly PublicOrganizationServiceContext $organizationServices,
+        private readonly PublicOrganizationServices $organizationServices,
         private readonly SystemSettingsService $settings,
     ) {}
 

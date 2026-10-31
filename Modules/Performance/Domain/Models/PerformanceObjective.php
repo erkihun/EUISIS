@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Performance\Domain\Models;
+
+use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\PositionService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Performance\Domain\Enums\CascadeMode;
+use Modules\Performance\Domain\Enums\ObjectiveType;
+
+/**
+ * An objective inside one plan version. Lineage: parent_objective_id (cascade), source_objective_id (previous version).
+ */
+class PerformanceObjective extends Model
+{
+    use HasUuidPrimaryKey;
+
+    protected $table = 'performance_objectives';
+
+    protected $attributes = ['status' => 'ACTIVE', 'weight' => '0', 'is_mandatory' => false];
+
+    protected $fillable = [
+        'performance_plan_id',
+        'strategic_goal_id',
+        'strategic_goal_allocation_id',
+        'position_service_id',
+        'parent_objective_id',
+        'source_objective_id',
+        'code',
+        'title_en',
+        'title_am',
+        'description_en',
+        'description_am',
+        'objective_type',
+        'cascade_mode',
+        'is_mandatory',
+        'weight',
+        'absolute_weight_percent',
+        'local_weight_percent',
+        'priority',
+        'owner_type',
+        'owner_id',
+        'start_date',
+        'end_date',
+        'rejection_reason',
+        'sort_order',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'objective_type' => ObjectiveType::class,
+            'cascade_mode' => CascadeMode::class,
+            'is_mandatory' => 'boolean',
+            'weight' => 'decimal:4',
+            'absolute_weight_percent' => 'decimal:4',
+            'local_weight_percent' => 'decimal:4',
+            'start_date' => 'date:Y-m-d',
+            'end_date' => 'date:Y-m-d',
+        ];
+    }
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(PerformancePlan::class, 'performance_plan_id');
+    }
+
+    public function strategicGoal(): BelongsTo
+    {
+        return $this->belongsTo(StrategicGoal::class, 'strategic_goal_id');
+    }
+
+    public function parentObjective(): BelongsTo
+    {
+        return $this->belongsTo(PerformanceObjective::class, 'parent_objective_id');
+    }
+
+    public function allocation(): BelongsTo
+    {
+        return $this->belongsTo(StrategicGoalAllocation::class, 'strategic_goal_allocation_id');
+    }
+
+    public function positionService(): BelongsTo
+    {
+        return $this->belongsTo(PositionService::class)->withTrashed();
+    }
+
+    public function childObjectives(): HasMany
+    {
+        return $this->hasMany(PerformanceObjective::class, 'parent_objective_id');
+    }
+
+    public function targets(): HasMany
+    {
+        return $this->hasMany(KpiTarget::class, 'objective_id')->where('is_current', true);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(ObjectiveActivity::class, 'objective_id')->orderBy('sort_order');
+    }
+}

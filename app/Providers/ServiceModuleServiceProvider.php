@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Backbone\Contracts\EmployeeFeedbackLinks;
-use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Enums\CodeRuleEntityType;
-use App\Models\DisciplinaryCase;
-use App\Models\EmployeeServiceFeedback;
-use App\Models\Grievance;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceLetter;
-use App\Models\ServiceProvider as ServiceProviderModel;
-use App\Models\TransferApplication;
+use App\Models\CardPrintBatch;
+use App\Models\DesignImportBatch;
+use App\Models\LegacyBaseline;
+use App\Models\ManpowerPlan;
+use App\Models\OrganizationalChangeRequest;
+use App\Models\OrganizationDesignStudy;
+use App\Models\PositionEstablishment;
+use App\Models\SupportTicket;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
-use App\Services\ServiceFeedback\EmployeeFeedbackLinkAdapter;
-use App\Services\ServiceProviders\ServiceProviderCodeLookup;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -27,17 +24,11 @@ use Illuminate\Support\ServiceProvider;
  * The backbone defines registries and contracts; the modules that own the
  * data fill them here. That keeps every dependency pointing from the modules
  * to the backbone, never the other way: code-rule targets and collision
- * checks, the tables that block deleting an organization, and the adapters
- * behind EmployeeFeedbackLinks and ProviderCodeLookup.
+ * checks and the tables that block deleting an organization. Modules under
+ * Modules/ fill them from their own providers.
  */
 class ServiceModuleServiceProvider extends ServiceProvider
 {
-    /** @var array<class-string, class-string> */
-    public array $singletons = [
-        EmployeeFeedbackLinks::class => EmployeeFeedbackLinkAdapter::class,
-        ProviderCodeLookup::class => ServiceProviderCodeLookup::class,
-    ];
-
     /**
      * Tables that reference organizations, by owning module.
      *
@@ -45,16 +36,9 @@ class ServiceModuleServiceProvider extends ServiceProvider
      */
     private const ORGANIZATION_DEPENDENTS = [
         // Service delivery and providers
-        'service_providers' => ['organization_id'],
         'providers' => ['assigned_organization_id'],
-        // Transfers and vacancies
+        // Core transfer records (Transfer and Recruitment register their own tables)
         'employee_transfers' => ['from_organization_id', 'to_organization_id'],
-        'vacancy_announcements' => ['organization_id'],
-        'vacancy_announcement_positions' => ['organization_id'],
-        'vacancy_applications' => ['current_organization_id'],
-        'transfer_announcements' => ['organization_id'],
-        'transfer_announcement_positions' => ['organization_id'],
-        'transfer_applications' => ['releasing_organization_id', 'receiving_organization_id'],
         // Cafeteria
         'cafeteria_providers' => ['organization_id'],
         'cafeteria_subsidy_rules' => ['organization_id'],
@@ -78,33 +62,17 @@ class ServiceModuleServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Numbers its records take from code rules; a number already in use is skipped.
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::CardPrintBatch, CardPrintBatch::class, 'batch_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PositionEstablishment, PositionEstablishment::class, 'establishment_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::SupportTicket, SupportTicket::class, 'reference');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::OrganizationalChangeRequest, OrganizationalChangeRequest::class, 'request_no', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ManpowerPlan, ManpowerPlan::class, 'reference_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::LegacyBaseline, LegacyBaseline::class, 'reference_number', withTrashed: true);
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::DesignImportBatch, DesignImportBatch::class, 'reference_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::OrganizationDesignStudy, OrganizationDesignStudy::class, 'reference_number', withTrashed: true);
         foreach (self::ORGANIZATION_DEPENDENTS as $table => $columns) {
             OrganizationDeletionGuard::registerDependent($table, ...$columns);
         }
-
-        CodeRuleTargetRegistry::registerTarget(CodeRuleEntityType::ServiceProvider, [
-            'model' => ServiceProviderModel::class,
-            'table' => 'service_providers',
-            'code_column' => 'code',
-            'label' => 'Service Provider Code',
-            'immutable_after_create' => false,
-        ]);
-        CodeRuleTargetRegistry::registerTarget(CodeRuleEntityType::TransferApplication, [
-            'model' => TransferApplication::class,
-            'table' => 'transfer_applications',
-            'code_column' => 'application_number',
-            'label' => 'Transfer Application Number',
-            'immutable_after_create' => true,
-        ]);
-
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::ServiceProvider, ServiceProviderModel::class, 'code');
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransferApplication, TransferApplication::class, 'application_number', withTrashed: true);
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceComplaint, EmployeeServiceFeedback::class, 'reference_number');
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicTipOff, EmployeeServiceFeedback::class, 'reference_number');
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::DisciplinaryCase, DisciplinaryCase::class, 'case_number');
-        // Grievance numbers carry unique indexes that include archived rows, so archived rows count as taken.
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::GrievanceCase, Grievance::class, 'reference_number', withTrashed: true);
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::GrievanceDecision, GrievanceDecision::class, 'decision_no', withTrashed: true);
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::GrievanceLetter, GrievanceLetter::class, 'reference_number', withTrashed: true);
     }
 }

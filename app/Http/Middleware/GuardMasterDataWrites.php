@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\MasterDataWriteMode;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Refuses Golden Path master-data changes while `core.master_data_writes` is
- * 'frozen' (a cutover or restore window). Reads and everything that is not
- * master data pass untouched. A browser gets the previous page back with an
- * explanation; an API or JSON caller gets 423 Locked.
+ * Refuses Golden Path master-data changes unless the write mode lets this
+ * application write (MasterDataWriteMode: core or legacy; cutover, rollback and
+ * the old 'frozen' spelling are read-only windows). Reads and everything that
+ * is not master data pass untouched. A browser gets the previous page back with
+ * an explanation; an API or JSON caller gets 423 Locked.
  */
 class GuardMasterDataWrites
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (config('core.master_data_writes', 'open') !== 'frozen' || $request->isMethodSafe()) {
+        if (MasterDataWriteMode::current()->allowsWrites() || $request->isMethodSafe()) {
             return $next($request);
         }
 

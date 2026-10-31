@@ -6,6 +6,8 @@ import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useCan } from '@/hooks/useCan';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
+import EmployeeWorkflowCard, { type EmployeeWorkflow } from '@/Components/employees/EmployeeWorkflowCard';
+import EmployeeEvidencePanel, { type EmployeeEvidence } from '@/Components/employees/EmployeeEvidencePanel';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
@@ -29,6 +31,13 @@ type EmployeeDetail = {
     address?: string | null;
     nationality?: string | null;
     employment_type_label?: string | null;
+    marital_status?: string | null;
+    education_level?: { id: string; name_en: string; name_am: string | null } | null;
+    field_of_study?: string | null;
+    service_start_date?: string | null;
+    can_view_sensitive?: boolean;
+    has_disability?: boolean | null;
+    disability_type?: string | null;
     emergency_contact_name?: string | null;
     emergency_contact_phone?: string | null;
     photo_url?: string | null;
@@ -69,7 +78,7 @@ type EmployeeDetail = {
     }>;
 };
 
-function Field({ label, value }: { label: string; value?: string | number | null }) {
+function Field({ label, value }: { label: string; value?: React.ReactNode }) {
     return (
         <div>
             <dt className="text-xs font-medium text-(--app-muted-foreground)">
@@ -87,12 +96,22 @@ function formatNationalId(raw?: string | null): string {
     return raw.replace(/(.{4})/g, '$1 ').trim();
 }
 
+type RecentActivity = Array<{ event_type: string; created_at: string; actor: string | null }>;
+
 export default function EmployeesShow({
     employee,
     qrCodes,
+    recentActivity = null,
+    workflow = null,
+    evidence = null,
 }: {
     employee: EmployeeDetail;
     qrCodes?: QrCodesProp;
+    recentActivity?: RecentActivity | null;
+    /** The verified-employee stage, when the server runs one (the Core does). */
+    workflow?: EmployeeWorkflow | null;
+    /** Documents, photo and signature with their versions and verification, when the server manages them (the Core does). */
+    evidence?: EmployeeEvidence | null;
 }) {
     const { t, locale } = useLocale();
     const { can } = useCan();
@@ -151,6 +170,8 @@ export default function EmployeesShow({
             <Head title={employee.full_name} />
 
             <div className="space-y-5">
+
+                {workflow && <EmployeeWorkflowCard workflow={workflow} />}
 
                 {/* ── Profile card ─────────────────────────────────────── */}
                 <div className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
@@ -241,9 +262,32 @@ export default function EmployeesShow({
                             <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
                                 <Field label={t('employees.address')} value={employee.address} />
                                 <Field label={t('employees.nationality')} value={employee.nationality} />
-                                <Field label={t('employees.employeeStatus')} value={employee.employment_type_label} />
+                                <Field label={t('employees.employmentType')} value={employee.employment_type_label} />
                                 <Field label={t('employees.emergencyContactName')} value={employee.emergency_contact_name} />
                                 <Field label={t('employees.emergencyContactPhone')} value={employee.emergency_contact_phone} />
+                            </dl>
+                        </div>
+
+                        {/* Statistical information; the disability fields only for those who may see health data. */}
+                        <div className="mt-6 border-t border-(--app-border) pt-6">
+                            <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">
+                                {t('employees.sectionStatistics')}
+                            </h3>
+                            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+                                <Field label={t('employees.maritalStatus')} value={employee.marital_status ? t(`employees.maritalStatus_${employee.marital_status}`) : null} />
+                                <Field label={t('employees.educationLevel')} value={employee.education_level ? localizedName(employee.education_level.name_en, employee.education_level.name_am, locale) : null} />
+                                <Field label={t('employees.fieldOfStudy')} value={employee.field_of_study} />
+                                <Field label={t('employees.serviceStartDate')} value={employee.service_start_date ? <LocalizedDateDisplay value={employee.service_start_date} /> : null} />
+                                {employee.can_view_sensitive && (
+                                    <Field
+                                        label={t('employees.hasDisability')}
+                                        value={employee.has_disability === null || employee.has_disability === undefined
+                                            ? null
+                                            : employee.has_disability
+                                                ? `${t('common.yes')}${employee.disability_type ? ` · ${t(`employees.disabilityType_${employee.disability_type}`)}` : ''}`
+                                                : t('common.no')}
+                                    />
+                                )}
                             </dl>
                         </div>
                     </div>
@@ -356,6 +400,8 @@ export default function EmployeesShow({
                     </div>
                 </div>
 
+                {evidence && (evidence.documents || evidence.photo || evidence.signature) && <EmployeeEvidencePanel evidence={evidence} />}
+
                 <div className="grid items-start gap-5 lg:grid-cols-2">
                     {/* ── Duplicate warnings ───────────────────────────── */}
                     {(employee.duplicate_flags?.length ?? 0) > 0 && (
@@ -387,7 +433,7 @@ export default function EmployeesShow({
                     )}
 
                     {/* ── Documents ────────────────────────────────────── */}
-                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    {!evidence && <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                         <h3 className="text-sm font-semibold text-(--app-foreground) mb-4">
                             {t('employees.documentMetadata')}
                         </h3>
@@ -410,7 +456,32 @@ export default function EmployeesShow({
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div>}
+
+                    {/* ── Audit (audit.view holders only) ─────────────── */}
+                    {recentActivity !== null && (
+                        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                            <h3 className="text-sm font-semibold text-(--app-foreground) mb-4">
+                                {t('employees.recentActivity')}
+                            </h3>
+                            {recentActivity.length === 0 ? (
+                                <p className="text-sm text-(--app-muted-foreground)">{t('employees.noRecentActivity')}</p>
+                            ) : (
+                                <ul className="divide-y divide-(--app-border) text-sm">
+                                    {recentActivity.map((entry, index) => (
+                                        <li key={`${entry.created_at}-${index}`} className="flex items-center justify-between gap-3 py-2">
+                                            <span className="font-medium text-(--app-foreground)">
+                                                {t(`auditLogs.events.${entry.event_type}`) !== `auditLogs.events.${entry.event_type}` ? t(`auditLogs.events.${entry.event_type}`) : entry.event_type}
+                                            </span>
+                                            <span className="text-xs text-(--app-muted-foreground)">
+                                                {entry.actor ?? t('employees.systemActor')} · <LocalizedDateDisplay value={entry.created_at} withTime />
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -1473,6 +1473,9 @@ return [
     // Court Cases — planned standalone module; entry permission only (docs/court-cases.md).
     ...require database_path('seeders/data/court-case-permissions.php'),
 
+    // Service Delivery Monitoring & Support (docs/service-monitoring-security.md).
+    ...require database_path('seeders/data/service-monitoring-permissions.php'),
+
     // Employee Discipline — Regulation 201/2018 (docs/employee-discipline.md).
     ...require database_path('seeders/data/discipline-permissions.php'),
 
@@ -1566,10 +1569,6 @@ return [
         'label_en' => 'Rotate or Revoke Organization Feedback QR', 'label_am' => 'የተቋም የአስተያየት QR ይቀይሩ ወይም ይሽሩ',
         'description_en' => 'Allows permanently revoking an organization feedback QR, with or without issuing a new code. Requires a reason and is audited.',
         'description_am' => 'አዲስ ኮድ ይሰጥም አይሰጥም የተቋም የአስተያየት QR እስከመጨረሻው ለመሰረዝ ይፈቅዳል። ምክንያት ይጠይቃል እና ይመዘገባል።'],
-    ['name' => 'service_feedback.manage_categories', 'group' => 'service_feedback', 'sort_order' => 105, 'is_system' => true,
-        'label_en' => 'Manage Public Feedback Categories', 'label_am' => 'የሕዝብ አስተያየት ምድቦችን ያስተዳድሩ',
-        'description_en' => 'Allows creating, editing and retiring public feedback categories; city-wide categories need a city-level account.',
-        'description_am' => 'የሕዝብ አስተያየት ምድቦችን ለመፍጠር፣ ለማርትዕ እና ለማሰናበት ይፈቅዳል፤ ከተማ አቀፍ ምድቦች የከተማ ደረጃ መለያ ይጠይቃሉ።'],
     ['name' => 'service_feedback.manage_questions', 'group' => 'service_feedback', 'sort_order' => 105, 'is_system' => true,
         'label_en' => 'Manage the Public Feedback Questionnaire', 'label_am' => 'የሕዝብ አስተያየት መጠይቁን ያስተዳድሩ',
         'description_en' => 'Allows drafting, publishing and retiring versions of the organization feedback questionnaire. The questionnaire is city-wide, so a city-level account is required.',
@@ -2048,4 +2047,5 @@ return [
         'label_en' => 'Manage Communication Settings', 'label_am' => 'የኮሙኒኬሽን ቅንብሮችን ያስተዳድሩ',
         'description_en' => 'Allows changing the system-wide communication policy (attachments, edit windows, scope, retention).',
         'description_am' => 'የስርዓቱን የኮሙኒኬሽን ፖሊሲ ለመቀየር ይፈቅዳል (ፋይሎች፣ የማስተካከያ ጊዜ፣ ወሰን፣ የማቆያ ጊዜ)።'],
+    ...require __DIR__.'/reception-permissions.php',
 ];

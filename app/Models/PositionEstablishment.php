@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Recruitment\Contracts\ReadModels\VacancyAnnouncementPositionRecord;
 
 class PositionEstablishment extends Model
 {
@@ -36,8 +37,8 @@ class PositionEstablishment extends Model
     {
         return [
             'status' => EstablishmentStatus::class,
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'approved_at' => 'datetime',
             'approved_slots' => 'integer',
         ];
@@ -75,7 +76,7 @@ class PositionEstablishment extends Model
 
     public function vacancyAnnouncements(): HasMany
     {
-        return $this->hasMany(VacancyAnnouncementPosition::class);
+        return $this->hasMany(VacancyAnnouncementPositionRecord::class);
     }
 
     public function activeOccupanciesCount(): int
