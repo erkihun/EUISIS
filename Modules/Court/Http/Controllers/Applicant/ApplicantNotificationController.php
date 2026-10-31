@@ -104,7 +104,7 @@ class ApplicantNotificationController extends Controller
         $at = fn (mixed $value): ?string => $value ? Carbon::parse($value)->toIso8601String() : null;
         $legacyApplicantUpdate = 'Applicant updated the case details. Please review the submission.';
         $statusLabel = function (?string $status): string {
-            $key = "app.status.{$status}";
+            $key = "court::app.status.{$status}";
 
             return trans()->has($key) ? (string) __($key) : Str::headline($status ?? '-');
         };

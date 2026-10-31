@@ -54,8 +54,6 @@ final class CourtNavigation
                 [
                     'key' => 'courtReports', 'label_key' => 'cm.app.Reports', 'icon' => 'ClipboardTextIcon',
                     'items' => [
-                        ['route' => 'court.reports.index', 'label_key' => 'cm.app.Reports', 'icon' => 'ClipboardTextIcon', 'permission' => 'reports.view'],
-                        ['route' => 'court.performance-evaluations.index', 'label_key' => 'cm.app.performance_evaluations', 'icon' => 'RankingIcon', 'permission' => 'performance-evaluations.view'],
                     ],
                 ],
             ],
@@ -102,11 +100,9 @@ final class CourtNavigation
                     'key' => 'courtSetup', 'label_key' => 'cm.app.Settings', 'icon' => 'SettingsIcon',
                     'items' => [
                         ['route' => 'court.settings.system.edit', 'label_key' => 'cm.app.System_Settings', 'icon' => 'SettingsIcon', 'permission' => 'settings.manage'],
-                        ['route' => 'court.settings.performance-evaluation.index', 'label_key' => 'cm.performance.settings.title', 'icon' => 'RankingIcon', 'permission' => 'settings.manage'],
                         ['route' => 'court.terms.index', 'label_key' => 'cm.app.Terms', 'icon' => 'ClipboardTextIcon', 'permission' => 'settings.manage'],
                         ['route' => 'court.about.index', 'label_key' => 'cm.app.About', 'icon' => 'CityIcon', 'permission' => 'about.manage'],
                         ['route' => 'court.admin.landing.index', 'label_key' => 'court.nav.landing', 'icon' => 'PaletteIcon', 'permission' => 'settings.manage'],
-                        ['route' => 'court.admin.audit', 'label_key' => 'cm.app.System_Audit', 'icon' => 'EyeScanIcon', 'permission' => 'audit.view'],
                     ],
                 ],
             ],

@@ -205,7 +205,7 @@ test('the appeal record merges the documents as annexes and lists the ones it ca
     expect(appealPages($bundle->build(CourtCase::query()->findOrFail($caseId))))->toBe($without + 2);
 });
 
-test('the appellate outcome is recorded and scores the judges of the panel in their evaluation', function (): void {
+test('the appellate outcome is recorded and counts in the record of the judges of the panel', function (): void {
     $token = appealToken();
     $employee = appealEmployee();
     [$caseId, $judges] = appealCase($this, $token, $employee);
@@ -231,20 +231,6 @@ test('the appellate outcome is recorded and scores the judges of the panel in th
     $period = ['start' => now()->startOfMonth()->toDateString(), 'end' => now()->endOfMonth()->toDateString()];
     expect(AppealRecords::judgeRecord($judges[0]->id, $period['start'], $period['end']))->toBe(['total' => 1, 'confirmed' => 0, 'modified' => 0, 'reversed' => 1, 'score' => 0])
         ->and(AppealRecords::judgeRecord(User::factory()->create()->id, $period['start'], $period['end'])['score'])->toBeNull();
-
-    // The criterion is worked out on save; whatever the form sends for it is ignored.
-    $criterion = DB::table('court_performance_evaluation_criteria')->where('source', 'appeal_outcomes')->sole();
-    $other = DB::table('court_performance_evaluation_criteria')->whereNull('source')->where('active', true)->first();
-    $evaluator = appealStaff(['performance-evaluations.view', 'performance-evaluations.create']);
-    $this->actingAs($evaluator)->getJson(route('court.performance-evaluations.appeal-record', ['user' => $judges[1]->id, ...$period]))
-        ->assertOk()->assertJsonPath('data.reversed', 1)->assertJsonPath('data.score', 0);
-    $this->actingAs($evaluator)->post(route('court.performance-evaluations.store'), [
-        'evaluated_user_id' => $judges[1]->id, 'period_type' => 'monthly', 'period_start' => $period['start'], 'period_end' => $period['end'], 'action' => 'submitted',
-        'scores' => [['criterion_id' => $other->id, 'score' => 10], ['criterion_id' => $criterion->id, 'score' => 10]],
-    ])->assertRedirect()->assertSessionHasNoErrors();
-    $evaluation = DB::table('court_performance_evaluations')->where('evaluated_user_id', $judges[1]->id)->sole();
-    expect((int) DB::table('court_performance_evaluation_scores')->where('evaluation_id', $evaluation->id)->where('criterion_id', $criterion->id)->value('score'))->toBe(0)
-        ->and((float) $evaluation->overall_score)->toBe(round(100 * $other->weight / ($other->weight + $criterion->weight), 2));
 });
 
 test('institutions read the cases filed against them, follow one, ask to appeal and download the released record', function (): void {

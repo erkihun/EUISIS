@@ -103,8 +103,7 @@ function CaseStatistics({ dashboard }: { dashboard: CourtDashboard }) {
                         <SimpleLineChart data={dashboard.trend.map((point) => ({ label: trendLabel(point.key), value: point.value }))} emptyTitle={t('cm.dashboard.no_cases_yet')} />
                     </ChartCard>
                 </div>
-                <ChartCard title={t('cm.dashboard.cases_by_type')} description={t('cm.dashboard.case_type_distribution')}
-                    action={can('court.reports.view') ? <Link href={route('court.reports.index')} className={actionLinkClassName({})}>{t('cm.dashboard.view_report')}</Link> : undefined}>
+                <ChartCard title={t('cm.dashboard.cases_by_type')} description={t('cm.dashboard.case_type_distribution')}>
                     <SimpleBarChart data={dashboard.caseTypes} labelFor={caseTypeLabel} emptyTitle={t('cm.dashboard.no_cases_yet')} />
                 </ChartCard>
             </div>

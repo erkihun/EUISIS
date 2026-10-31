@@ -108,21 +108,21 @@ test('notification count polling is not audited', function (): void {
     expect(DB::table('court_system_audits')->where('route', 'court.admin.notifications.count')->exists())->toBeFalse();
 });
 
-test('model mutations outside controllers are audited with sensitive values redacted', function (): void {
+test('court record changes go on the EUISIS audit log', function (): void {
     $user = User::factory()->create();
     $user->forceFill([
         'name' => 'Updated Audit Name',
     ])->save();
 
-    $audit = DB::table('court_system_audits')
-        ->where('action', 'model.updated')
-        ->where('module', 'court_staff_member')
-        ->latest('id')
+    $audit = \App\Models\AuditLog::query()
+        ->where('event_type', \App\Enums\AuditEventType::CourtRecordUpdated)
+        ->where('auditable_type', User::class)
+        ->where('auditable_id', (string) $user->id)
+        ->latest('created_at')
         ->first();
-    $context = json_decode($audit->context, true, flags: JSON_THROW_ON_ERROR);
 
-    expect($context['model_id'])->toBe($user->id)
-        ->and($context['new_values']['name'])->toBe('Updated Audit Name');
+    expect($audit)->not->toBeNull()
+        ->and($audit->new_values['name'])->toBe('Updated Audit Name');
 });
 
 test('successful api login is attributed to the verified actor and redacts credentials', function (): void {

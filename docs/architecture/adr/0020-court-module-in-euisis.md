@@ -48,7 +48,20 @@
   `court_audits` trait.
 - **UI**: the court's pages are listed in the EUISIS sidebar's Tribunal Court group, each under its
   `court.*` permission, in the normal EUISIS layout. Only the applicant and respondent portals keep a
-  court menu of their own.
+  court menu of their own. The group is clustered the way a tribunal registry works: Registry,
+  Hearings & inspection, Judgments & appeals, Parties & counsel, Correspondence, Court
+  administration, Court public site.
+- **What EUISIS owns (2026-11-01)**: users, roles, permissions and system settings, as before, and
+  now also reports, performance evaluations (with their settings) and the audit trail. The court's
+  own Reports, Performance Evaluations, Performance Evaluation Setting and System Audit screens,
+  their routes, models and seven `court.*` permissions are removed
+  (`2026_11_01_000200_remove_court_reports_performance_audit_permissions`). Every court record change
+  is written to the EUISIS audit log as `court_record.created|updated|deleted|restored` through
+  `WriteAuditLogAction`, actor = the platform account (applicants and respondents are named in the
+  reason). The `court_performance_*` tables keep their imported rows, unused; `court_system_audits`
+  still receives the court's request and sign-in trail, with no screen. Case history
+  (`court_case_audits`) stays on the case page. The court's text follows the language EUISIS chose for
+  the request; the Amharic court-ms left in English is filled in.
 
 ## Still to do
 

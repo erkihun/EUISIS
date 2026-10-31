@@ -25,7 +25,7 @@ class SetLocale
         $locale = (in_array($client, ['en', 'am'], true) ? $client : null)
             ?? session('app_locale')
             ?? $request->cookie('app_locale')
-            ?? $this->defaultLocale();
+            ?? app()->getLocale();
 
         $allowed = config('court.locales', ['en', 'am']);
         if (! in_array($locale, $allowed, true) && ! str_starts_with((string) $locale, 'am')) {

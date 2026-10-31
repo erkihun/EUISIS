@@ -22,7 +22,7 @@ return array (
   'modal_close' => 'ዝጋ',
   'status_draft' => 'ረቂቅ',
   'status_published' => 'ታተመ',
-  'table_actions' => 'Table actions',
+  'table_actions' => 'የሰንጠረዥ ተግባራት',
   'table_published' => 'የታተመበት ሁኔታ',
   'table_title' => 'ርዕስ',
   'table_updated' => 'የተሻሻለበት ቀን',

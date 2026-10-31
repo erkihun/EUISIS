@@ -212,9 +212,12 @@ final class PortalNotificationFeed
 
     private function statusLabel(?string $status): string
     {
-        $key = "app.status.{$status}";
+        if (blank($status)) {
+            return '—';
+        }
+        $key = "court::app.status.{$status}";
 
-        return trans()->has($key) ? (string) __($key) : Str::headline($status ?? '-');
+        return trans()->has($key) ? (string) __($key) : Str::headline($status);
     }
 
     private function readsTable(): string

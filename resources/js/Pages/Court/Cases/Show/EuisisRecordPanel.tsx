@@ -13,10 +13,10 @@ interface Props {
  * there. Its PDFs are among the case's documents.
  */
 export default function EuisisRecordPanel({ record }: Props) {
-    const { t } = useCaseText();
+    const { t, tx } = useCaseText();
     const dash = (value: string | null | undefined) => (value && value.trim() !== '' ? value : '—');
-    // EUISIS sends the grievance status as its code (decision_issued); shown as words.
-    const statusText = (status: string) => status.replace(/_/g, ' ').replace(/^./, (first) => first.toUpperCase());
+    // EUISIS sends the grievance status as its code (decision_issued); shown in EUISIS's own words for it.
+    const statusText = (status: string) => tx(`grievances.enums.status.${status}`, status.replace(/_/g, ' ').replace(/^./, (first) => first.toUpperCase()));
 
     return (
         <section id="euisis-record" className="space-y-4 rounded-control border border-teal-200 bg-teal-50/40 p-4 dark:border-teal-900 dark:bg-teal-950/20">

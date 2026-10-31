@@ -7,7 +7,6 @@ import access from './access';
 import decisionForms from './decisions';
 import letterForms from './letters';
 import inspectionPages from './inspections';
-import performancePages from './performance';
 import applicantCases from './applicantCases';
 import respondentPages from './respondent';
 import applicantPages from './applicant';
@@ -48,6 +47,17 @@ export default {
         exit: 'Leave the court workspace',
         nav: {
             landing: 'Landing Page',
+            // The Tribunal Court menu, grouped the way a tribunal registry works (ADR 0020).
+            dashboard: 'Court dashboard',
+            notices: 'Court notices',
+            referredCases: 'Referred grievances',
+            clusterRegistry: 'Registry',
+            clusterHearings: 'Hearings & inspection',
+            clusterJudgments: 'Judgments & appeals',
+            clusterParties: 'Parties & counsel',
+            clusterCorrespondence: 'Correspondence',
+            clusterAdministration: 'Court administration',
+            clusterPublicSite: 'Court public site',
         },
         decisions: {
             deleteConfirm: 'Delete this decision? This cannot be undone.',
@@ -78,7 +88,6 @@ export default {
         decisionForms: decisionForms.en,
         letterForms: letterForms.en,
         inspectionPages: inspectionPages.en,
-        performancePages: performancePages.en,
         applicantCases: applicantCases.en,
         publicPages: publicPages.en,
         signIn: signIn.en,

@@ -1,3 +1,5 @@
+> **Superseded (2026-11-01).** The court is the module `Modules/Court` ([ADR 0020](architecture/adr/0020-court-module-in-euisis.md)), brought in from court-ms. The placeholder page, its route, feature flag and `court_cases.view` permission described below were removed.
+
 # Court Cases (planned module)
 
 Amharic: የፍርድ ቤት ጉዳዮች

@@ -7,7 +7,6 @@ import access from './access';
 import decisionForms from './decisions';
 import letterForms from './letters';
 import inspectionPages from './inspections';
-import performancePages from './performance';
 import applicantCases from './applicantCases';
 import respondentPages from './respondent';
 import applicantPages from './applicant';
@@ -48,6 +47,16 @@ export default {
         exit: 'ከፍርድ ቤት የሥራ ቦታ ውጣ',
         nav: {
             landing: 'የመግቢያ ገጽ',
+            dashboard: 'የፍርድ ቤት ዳሽቦርድ',
+            notices: 'የፍርድ ቤት ማሳወቂያዎች',
+            referredCases: 'የተላለፉ ቅሬታዎች',
+            clusterRegistry: 'መዝገብ ቤት',
+            clusterHearings: 'ችሎትና ምርመራ',
+            clusterJudgments: 'ውሳኔዎችና ይግባኝ',
+            clusterParties: 'ተከራካሪዎችና ጠበቆች',
+            clusterCorrespondence: 'ደብዳቤና መልዕክት',
+            clusterAdministration: 'የፍርድ ቤት አስተዳደር',
+            clusterPublicSite: 'የፍርድ ቤቱ ድረ-ገጽ',
         },
         decisions: {
             deleteConfirm: 'ይህ ውሳኔ ይሰረዝ? ይህ ሊቀለበስ አይችልም።',
@@ -78,7 +87,6 @@ export default {
         decisionForms: decisionForms.am,
         letterForms: letterForms.am,
         inspectionPages: inspectionPages.am,
-        performancePages: performancePages.am,
         applicantCases: applicantCases.am,
         publicPages: publicPages.am,
         signIn: signIn.am,

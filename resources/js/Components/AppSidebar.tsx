@@ -622,46 +622,48 @@ const navGroups: NavGroup[] = [
     },
     {
         /*
-         * Tribunal Court: external adjudication of administrative cases. Holds
-         * the Administrative Tribunal cases (grievance appeals routed to it) and
-         * the planned Court Cases module (docs/court-cases.md). Neither is part
-         * of Grievance Management's internal review workflow.
+         * Tribunal Court: the court (Modules/Court, ADR 0020) and the grievances
+         * referred to it. Its pages are clustered as a tribunal registry works
+         * (GROUP_CLUSTERS.tribunalCourt): registry, hearings, judgments and
+         * appeals, parties, correspondence, administration and the public site.
+         * Each page is under the EUISIS permission its roles give.
          */
         key: 'tribunalCourt',
         labelKey: 'nav.groupTribunalCourt',
         icon: ScaleIcon,
         items: [
-            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: FolderOpenIcon, permission: 'grievances.tribunal' },
-            // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
-            { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
-            { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
-            // The court (Modules/Court, ADR 0020): its pages, under the EUISIS permissions its roles give.
-            { routeName: 'court.admin.dashboard', labelKey: 'court.workspaceName', icon: ScaleIcon, permission: 'court.cases.view' },
+            { routeName: 'court.admin.dashboard', labelKey: 'court.nav.dashboard', icon: SpeedometerIcon, permission: 'court.cases.view' },
+            { routeName: 'court.admin.notifications.index', labelKey: 'court.nav.notices', icon: BellIcon, permission: 'court.cases.view' },
+            // Registry
             { routeName: 'court.cases.index', labelKey: 'cm.app.Cases', icon: ClipboardListIcon, permission: 'court.cases.view' },
-            { routeName: 'court.admin.hearings.index', labelKey: 'cm.app.Hearings', icon: ClipboardClockIcon, permission: 'court.cases.view' },
+            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: FolderOpenIcon, permission: 'grievances.tribunal' },
+            // Cases filed at the tribunal against the institution, for its court case officer (Flow 7, ADR 0013 #14).
+            { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
             { routeName: 'court.recordes.index', labelKey: 'cm.app.Records', icon: PrinterIcon, permission: 'court.cases.view' },
-            { routeName: 'court.appeals.index', labelKey: 'cm.app.Appeals', icon: RestartIcon, permission: 'court.appeals.view' },
-            { routeName: 'court.decisions.index', labelKey: 'cm.app.Decisions', icon: FileCheckIcon, permission: 'court.decision.view' },
-            { routeName: 'court.decision-templates.index', labelKey: 'cm.decision_templates.title', icon: DiplomaIcon, permission: 'court.decision.templet.create' },
+            { routeName: 'court.case-types.index', labelKey: 'cm.app.case_types', icon: TagsIcon, permission: 'court.cases.types' },
+            // Hearings and inspection
+            { routeName: 'court.admin.hearings.index', labelKey: 'cm.app.Hearings', icon: ClipboardClockIcon, permission: 'court.cases.view' },
             { routeName: 'court.case-inspection-requests.index', labelKey: 'cm.case_inspections.requests.index_title', icon: EyeScanIcon, permission: 'court.inspection-requests.manage' },
             { routeName: 'court.case-inspection-findings.index', labelKey: 'cm.case_inspections.findings.index_title', icon: FileSearchIcon, permission: 'court.inspection-findings.manage' },
-            { routeName: 'court.letters.index', labelKey: 'cm.app.Letters', icon: FilePenIcon, permission: 'court.cases.edit' },
-            { routeName: 'court.letters.compose', labelKey: 'cm.app.compose_letter', icon: PenIcon, permission: 'court.cases.edit' },
-            { routeName: 'court.letter-templates.index', labelKey: 'cm.app.letter_templates', icon: DiplomaIcon, permission: 'court.templates.manage' },
-            { routeName: 'court.letter-categories.index', labelKey: 'cm.app.letter_categories', icon: TagsIcon, permission: 'court.templates.manage' },
+            // Judgments and appeals
+            { routeName: 'court.decisions.index', labelKey: 'cm.app.Decisions', icon: FileCheckIcon, permission: 'court.decision.view' },
+            { routeName: 'court.decision-templates.index', labelKey: 'cm.decision_templates.title', icon: DiplomaIcon, permission: 'court.decision.templet.create' },
+            { routeName: 'court.appeals.index', labelKey: 'cm.app.Appeals', icon: RestartIcon, permission: 'court.appeals.view' },
+            // Parties and counsel
             { routeName: 'court.applicants.index', labelKey: 'cm.app.Applicant', icon: Users, permission: 'court.applicants.view' },
             { routeName: 'court.lawyers.index', labelKey: 'cm.lawyer.register.nav', icon: Briefcase, permission: 'court.applicants.view' },
-            { routeName: 'court.case-types.index', labelKey: 'cm.app.case_types', icon: TagsIcon, permission: 'court.cases.types' },
+            // Correspondence
+            { routeName: 'court.letters.index', labelKey: 'cm.app.Letters', icon: FilePenIcon, permission: 'court.cases.edit' },
+            { routeName: 'court.letters.compose', labelKey: 'cm.app.compose_letter', icon: PenIcon, permission: 'court.cases.edit' },
+            { routeName: 'court.letter-templates.index', labelKey: 'cm.app.letter_templates', icon: DocumentsIcon, permission: 'court.templates.manage' },
+            { routeName: 'court.letter-categories.index', labelKey: 'cm.app.letter_categories', icon: FolderFilesIcon, permission: 'court.templates.manage' },
+            // Court administration
             { routeName: 'court.teams.index', labelKey: 'cm.app.Teams', icon: UsersTwoIcon, permission: 'court.teams.manage' },
-            { routeName: 'court.reports.index', labelKey: 'cm.app.Reports', icon: ClipboardTextIcon, permission: 'court.reports.view' },
-            { routeName: 'court.performance-evaluations.index', labelKey: 'cm.app.performance_evaluations', icon: RankingIcon, permission: 'court.performance-evaluations.view' },
-            { routeName: 'court.admin.notifications.index', labelKey: 'cm.app.Notifications', icon: BellIcon, permission: 'court.cases.view' },
+            // The court's public site
             { routeName: 'court.announcements.index', labelKey: 'cm.app.Announcements', icon: MegaphoneIcon, permission: 'court.announcements.manage' },
-            { routeName: 'court.settings.performance-evaluation.index', labelKey: 'cm.performance.settings.title', icon: TuningIcon, permission: 'court.settings.manage' },
-            { routeName: 'court.terms.index', labelKey: 'cm.app.Terms', icon: ClipboardTextIcon, permission: 'court.settings.manage' },
-            { routeName: 'court.about.index', labelKey: 'cm.app.About', icon: CityIcon, permission: 'court.about.manage' },
             { routeName: 'court.admin.landing.index', labelKey: 'court.nav.landing', icon: PaletteIcon, permission: 'court.settings.manage' },
-            { routeName: 'court.admin.audit', labelKey: 'cm.app.System_Audit', icon: EyeScanIcon, permission: 'court.audit.view' },
+            { routeName: 'court.about.index', labelKey: 'cm.app.About', icon: CityIcon, permission: 'court.about.manage' },
+            { routeName: 'court.terms.index', labelKey: 'cm.app.Terms', icon: ChecklistIcon, permission: 'court.settings.manage' },
         ],
     },
     {
@@ -830,6 +832,16 @@ const GROUP_CLUSTERS: Record<string, { labelKey: string; routes: string[] }[]> =
         { labelKey: 'nav.designClusterWorkforce', routes: ['organization-design.methodologies.index', 'organization-design.manpower-plans.index', 'organization-design.position-design.index'] },
         { labelKey: 'nav.designClusterQuality', routes: ['organization-design.reports.index', 'organization-design.mapping.index'] },
     ],
+    // The court as a tribunal registry works (ADR 0020); the dashboard and the notices lead, unlabeled.
+    tribunalCourt: [
+        { labelKey: 'court.nav.clusterRegistry', routes: ['court.cases.index', 'tribunal-cases.index', 'tribunal-cases.institution-cases.index', 'court.recordes.index', 'court.case-types.index'] },
+        { labelKey: 'court.nav.clusterHearings', routes: ['court.admin.hearings.index', 'court.case-inspection-requests.index', 'court.case-inspection-findings.index'] },
+        { labelKey: 'court.nav.clusterJudgments', routes: ['court.decisions.index', 'court.decision-templates.index', 'court.appeals.index'] },
+        { labelKey: 'court.nav.clusterParties', routes: ['court.applicants.index', 'court.lawyers.index'] },
+        { labelKey: 'court.nav.clusterCorrespondence', routes: ['court.letters.index', 'court.letters.compose', 'court.letter-templates.index', 'court.letter-categories.index'] },
+        { labelKey: 'court.nav.clusterAdministration', routes: ['court.teams.index'] },
+        { labelKey: 'court.nav.clusterPublicSite', routes: ['court.announcements.index', 'court.admin.landing.index', 'court.about.index', 'court.terms.index'] },
+    ],
 };
 
 const adminGroups: { labelKey: string; items: NavItem[] }[] = [
@@ -943,7 +955,6 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const features = (pageProps as { features?: Record<string, boolean> }).features ?? {};
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
-        || (!features.court_cases && routeName.startsWith('court-cases.'))
         || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
         || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );

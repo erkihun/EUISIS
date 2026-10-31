@@ -331,7 +331,7 @@ return array (
     'inspection_request' => 'ለኢንስፔክሽን ላክ',
     'review_actions' => 'የግምገማ እርምጃዎች',
     'accept' => 'ተቀብለናል',
-    'return' => 'ማስካከያ ያስፈልገዋል',
+    'return' => 'ማስተካከያ ያስፈልገዋል',
     'give_correction' => 'ለማስተካከያ መልስ',
     'reject' => 'ውድቅ የተደረገ',
     'bench_note' => 'የችሎት ውሎ',
@@ -351,7 +351,8 @@ return array (
     'view_lawyer_document' => 'የጥብቅና ማረጋገጫ ተመልከት',
     'lawyer_document' => 'የጠበቃ/አቃቢ ህግ ሰነድ',
     'open_new_tab' => 'በአዲስ ትር ክፈት',
-    'letters_table' => array (
+    'letters_table' => 
+    array (
       'reference' => 'ማመሳከሪያ',
       'subject' => 'ርዕሰ ጉዳይ',
       'template' => 'ቅጽ',
@@ -484,11 +485,13 @@ return array (
     'empty' => 'ምንም የመዝገብ አይነት አልተገኘም።',
     'adjust_search_hint' => 'የፍለጋዎን መስፈርት በማስተካከል ይሞክሩ።',
   ),
-  'messages_flash' => array (
+  'messages_flash' => 
+  array (
     'evidence_removed' => 'ማስረጃው ተወግዷል።',
     'witness_removed' => 'ምስክሩ ተወግዷል።',
   ),
-  'errors' => array (
+  'errors' => 
+  array (
     'no_case_access' => 'ይህን መዝገብ የማየት ወይም የመቀየር ፈቃድ የለዎትም።',
   ),
   'file_in_euisis' => 'አዲስ ክስ የሚቀርበው ከEUISIS የሠራተኛ ፖርታልዎ ነው (የእኔ ፖርታል > የፍርድ ቤት ጉዳዮቼ)። በEUISIS የተመዘገቡ ሠራተኞችና ተቋማት ብቻ መክሰስና መከሰስ ይችላሉ።',

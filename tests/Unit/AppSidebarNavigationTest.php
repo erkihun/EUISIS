@@ -130,7 +130,7 @@ it('groups Administrative Tribunal and Court Cases under Tribunal Court, out of 
         ->and($grievanceGroup)->not->toContain("routeName: 'tribunal-cases.index'")
         ->and($tribunalGroup)->toContain("labelKey: 'nav.groupTribunalCourt'")
         ->toContain("routeName: 'tribunal-cases.index'")
-        ->toContain("routeName: 'court-cases.index'")
+        ->toContain("routeName: 'court.cases.index'")
         ->and(substr_count($sidebar, "routeName: 'tribunal-cases.index'"))->toBe(1)
         // The label was renamed to Tribunal Court; the old group label is gone.
         ->and($english)->toContain("groupTribunalCourt: 'Tribunal Court'")

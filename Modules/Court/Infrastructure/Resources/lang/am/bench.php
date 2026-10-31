@@ -85,7 +85,7 @@ return array (
     'index' => 'የችሎት ውሎ ማስታወሻዎች',
     'create' => 'አዲስ የችሎት ውሎ ማስታወሻ',
     'edit' => 'የችሎት ውሎ አርትዕ',
-    'show' => 'Show',
+    'show' => 'አሳይ',
   ),
   'placeholders' => 
   array (

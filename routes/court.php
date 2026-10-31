@@ -19,7 +19,6 @@ use Modules\Court\Http\Controllers\Admin\AnnouncementController;
 use Modules\Court\Http\Controllers\Admin\AppealController;
 // Applicant-facing controllers
 use Modules\Court\Http\Controllers\Admin\ApplicantController;
-use Modules\Court\Http\Controllers\Admin\AuditController;
 use Modules\Court\Http\Controllers\Admin\BenchNoteController;
 use Modules\Court\Http\Controllers\Admin\EuisisCaseLinkController;
 use Modules\Court\Http\Controllers\Admin\CaseController;
@@ -41,11 +40,8 @@ use Modules\Court\Http\Controllers\Admin\LetterComposerController;
 use Modules\Court\Http\Controllers\Admin\LetterController;
 // Admin-facing controllers
 use Modules\Court\Http\Controllers\Admin\LetterTemplateController;
-use Modules\Court\Http\Controllers\Admin\PerformanceEvaluationController;
-use Modules\Court\Http\Controllers\Admin\PerformanceEvaluationSettingController;
 use Modules\Court\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use Modules\Court\Http\Controllers\Admin\RecordController;
-use Modules\Court\Http\Controllers\Admin\ReportController;
 use Modules\Court\Http\Controllers\Admin\TeamController;
 use Modules\Court\Http\Controllers\Admin\TermsAndConditionsController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantAuthController;
@@ -94,7 +90,7 @@ $numericRouteParameters = [
     'id', 'caseId', 'case', 'fileId', 'evidenceId', 'hearingId', 'witnessId',
     'about', 'announcement', 'appeal', 'applicant', 'benchNote', 'criterion',
     'decision', 'decisionTemplate', 'doc', 'faq', 'file', 'finding', 'hearing',
-    'letter', 'letterCategory', 'letter_template', 'performanceEvaluation',
+    'letter', 'letterCategory', 'letter_template',
     'permission', 'reply', 'requestRecord', 'resource', 'response', 'review',
     'role', 'service', 'slide', 'step', 'team', 'term', 'user', 'witness',
 ];
@@ -393,35 +389,9 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
             Route::get('/dashboard', [DashboardController::class, 'index'])
                 ->name('admin.dashboard');
 
-            Route::get('/reports', [ReportController::class, 'index'])
-                ->middleware('court.perm:reports.view')
-                ->name('reports.index');
-
             // Dashboard stats (AJAX)
             Route::get('/dashboard/stats', [DashboardController::class, 'stats'])
                 ->name('admin.dashboard.stats');
-
-            Route::get('/settings/performance-evaluation', [PerformanceEvaluationSettingController::class, 'index'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.index');
-            Route::get('/settings/performance-evaluation/criteria/create', [PerformanceEvaluationSettingController::class, 'createCriterion'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.criteria.create');
-            Route::post('/settings/performance-evaluation/criteria', [PerformanceEvaluationSettingController::class, 'store'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.criteria.store');
-            Route::get('/settings/performance-evaluation/categories/create', [PerformanceEvaluationSettingController::class, 'createCategory'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.categories.create');
-            Route::post('/settings/performance-evaluation/categories', [PerformanceEvaluationSettingController::class, 'storeCategory'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.categories.store');
-            Route::patch('/settings/performance-evaluation/criteria/{criterion}', [PerformanceEvaluationSettingController::class, 'update'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.criteria.update');
-            Route::delete('/settings/performance-evaluation/criteria/{criterion}', [PerformanceEvaluationSettingController::class, 'destroy'])
-                ->middleware('court.perm:settings.manage')
-                ->name('settings.performance-evaluation.criteria.destroy');
 
             // Landing page manager: the public home page is part of the system settings.
             Route::middleware('court.perm:settings.manage')->group(function () {
@@ -461,11 +431,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
                 Route::patch('/landing/members/{member}/toggle', [LandingPageController::class, 'toggleMember'])->name('admin.landing.members.toggle');
                 Route::post('/landing/members/reorder', [LandingPageController::class, 'reorderMembers'])->name('admin.landing.members.reorder');
             });
-
-            // System audit (read-only view)
-            Route::get('/audit', [AuditController::class, 'index'])
-                ->middleware('court.perm:audit.view')
-                ->name('admin.audit');
 
             /*
              * Cases (admin)
@@ -669,26 +634,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
                 ->middleware('court.perm:appeals.view')
                 ->name('appeals.docs.download');
             Route::delete('/appeals/{appeal}/documents/{doc}', [AppealController::class, 'deleteDoc'])->middleware('court.perm:appeals.edit')->name('appeals.docs.delete');
-
-            // Performance Evaluations
-            Route::get('/performance-evaluations', [PerformanceEvaluationController::class, 'index'])
-                ->middleware('court.perm:performance-evaluations.view')->name('performance-evaluations.index');
-            Route::get('/performance-evaluations/create', [PerformanceEvaluationController::class, 'create'])
-                ->middleware('court.perm:performance-evaluations.create')->name('performance-evaluations.create');
-            Route::get('/performance-evaluations/appeal-record', [PerformanceEvaluationController::class, 'appealRecord'])
-                ->middleware('court.perm:performance-evaluations.create')->name('performance-evaluations.appeal-record');
-            Route::post('/performance-evaluations', [PerformanceEvaluationController::class, 'store'])
-                ->middleware('court.perm:performance-evaluations.create')->name('performance-evaluations.store');
-            Route::get('/performance-evaluations/{performanceEvaluation}', [PerformanceEvaluationController::class, 'show'])
-                ->middleware('court.perm:performance-evaluations.view')->name('performance-evaluations.show');
-            Route::get('/performance-evaluations/{performanceEvaluation}/edit', [PerformanceEvaluationController::class, 'edit'])
-                ->middleware('court.perm:performance-evaluations.update')->name('performance-evaluations.edit');
-            Route::patch('/performance-evaluations/{performanceEvaluation}', [PerformanceEvaluationController::class, 'update'])
-                ->middleware('court.perm:performance-evaluations.update')->name('performance-evaluations.update');
-            Route::delete('/performance-evaluations/{performanceEvaluation}', [PerformanceEvaluationController::class, 'destroy'])
-                ->middleware('court.perm:performance-evaluations.delete')->name('performance-evaluations.destroy');
-            Route::post('/performance-evaluations/{performanceEvaluation}/review', [PerformanceEvaluationController::class, 'review'])
-                ->middleware('court.perm:performance-evaluations.review')->name('performance-evaluations.review');
 
             // Admin notifications (matches admin layout links)
             Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('admin.notifications.index');

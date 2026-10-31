@@ -37,7 +37,7 @@ test('an EUISIS role with court permissions opens the court, and its court recor
 test('a permission the EUISIS role lacks keeps its page closed', function (): void {
     $account = courtRoleAccount(['court.cases.view']);
 
-    $this->actingAs($account)->get(route('court.reports.index'))->assertRedirect(route('court.dashboard'));
+    $this->actingAs($account)->get(route('court.decisions.index'))->assertRedirect(route('court.dashboard'));
 });
 
 test('an account without court permissions does not get in', function (): void {

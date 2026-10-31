@@ -10,27 +10,25 @@ use Spatie\Permission\Models\Permission;
 use function Pest\Laravel\actingAs;
 
 /*
- * Transport Management is live by default and Court Cases is a placeholder
- * that stays off. A module whose flag is off is unreachable and unlisted, even
- * for an account that still holds its permissions; FEATURE_TRANSPORT=false
- * switches Transport off that way without touching its data.
+ * Transport Management is live by default. A module whose flag is off is
+ * unreachable and unlisted, even for an account that still holds its
+ * permissions; FEATURE_TRANSPORT=false switches Transport off that way without
+ * touching its data. (The Court Cases placeholder that stayed off is gone: the
+ * court is a module, ADR 0020.)
  */
 
 beforeEach(function (): void {
     Permission::findOrCreate('transport-providers.viewAny', 'web');
-    Permission::findOrCreate('court_cases.view', 'web');
     $this->admin = User::factory()->create();
-    $this->admin->givePermissionTo(['transport-providers.viewAny', 'court_cases.view']);
+    $this->admin->givePermissionTo(['transport-providers.viewAny']);
 });
 
-it('defaults Transport to enabled and Court Cases to disabled', function (): void {
-    expect(Features::enabled('transport'))->toBeTrue()
-        ->and(Features::enabled('court_cases'))->toBeFalse();
+it('defaults Transport to enabled', function (): void {
+    expect(Features::enabled('transport'))->toBeTrue();
 });
 
-it('serves transport and answers 404 for court cases by default', function (): void {
+it('serves transport by default', function (): void {
     actingAs($this->admin)->get(route('transport.providers.index'))->assertOk();
-    actingAs($this->admin)->get(route('court-cases.index'))->assertNotFound();
 });
 
 it('answers 404 for transport once its flag is switched off', function (): void {
@@ -47,7 +45,7 @@ it('shares the flags with the frontend', function (): void {
     actingAs($this->admin)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('features.transport', true)
-            ->where('features.court_cases', false));
+            ->missing('features.court_cases'));
 });
 
 it('treats transport as an available provider service while enabled', function (): void {

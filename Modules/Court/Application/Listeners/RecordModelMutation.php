@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Listeners;
 
+use App\Actions\Audit\WriteAuditLogAction;
+use App\Enums\AuditEventType;
+use App\Models\User as PlatformAccount;
 use Modules\Court\Domain\Models\Applicant;
 use Modules\Court\Domain\Models\Respondent;
 use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -48,37 +50,32 @@ final readonly class RecordModelMutation
             $newValues[$field] = $this->safeValue($field, $value);
         }
 
-        $context = [
-            'origin' => app()->runningInConsole() ? 'console_or_job' : 'http',
-            'model' => $model::class,
-            'table' => $model->getTable(),
-            'model_id' => $model->getKey(),
-            'old_values' => $oldValues,
-            'new_values' => $newValues,
-        ];
-
-        $record = [
-            'request_id' => $request?->attributes->get('request_id'),
-            'user_id' => $actorId,
-            'actor_type' => $actorType,
-            'action' => "model.{$event}",
-            'outcome' => 'success',
-            'module' => Str::snake(class_basename($model)),
-            'route' => $request?->route()?->getName(),
-            'method' => $request?->method(),
-            'response_status' => null,
-            'ip' => $request?->ip(),
-            'user_agent' => $request ? Str::limit((string) $request->userAgent(), 2000, '') : null,
-            'context' => json_encode($context, JSON_INVALID_UTF8_SUBSTITUTE | JSON_UNESCAPED_UNICODE) ?: '{}',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
+        // The court's record changes go on the EUISIS audit log (Audit Logs page), as every module's do.
+        $eventType = match ($event) {
+            'created' => AuditEventType::CourtRecordCreated,
+            'deleted' => AuditEventType::CourtRecordDeleted,
+            'restored' => AuditEventType::CourtRecordRestored,
+            default => AuditEventType::CourtRecordUpdated,
+        };
+        $actor = $actorType === 'user' && $actorId !== null ? PlatformAccount::query()->find($actorId) : null;
+        $reason = $actor === null && $actorId !== null ? "{$actorType} #{$actorId}" : null;
 
         try {
-            DB::table('court_system_audits')->insert($record);
+            app(WriteAuditLogAction::class)->execute(
+                $eventType,
+                $actor,
+                $model,
+                null,
+                $event === 'created' ? null : $oldValues,
+                $event === 'deleted' ? null : $newValues,
+                $reason,
+                $request,
+            );
         } catch (Throwable $auditFailure) {
             Log::channel('court.audit')->critical('model_mutation_audit_database_write_failed', [
-                'court.audit' => $record,
+                'model' => $model::class,
+                'model_id' => $model->getKey(),
+                'event' => $event,
                 'failure' => $auditFailure::class,
             ]);
         }

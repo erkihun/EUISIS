@@ -974,4 +974,13 @@ enum AuditEventType: string
     case ReceptionAppointmentChanged = 'reception.appointment_changed';
     case ReceptionReferralChanged = 'reception.referral_changed';
     case ReceptionReportExported = 'reception.report_exported';
+
+    /*
+     * Tribunal Court (Modules/Court, ADR 0020): every court record change, with
+     * personal fields redacted, so the court's activity is on the EUISIS audit log.
+     */
+    case CourtRecordCreated = 'court_record.created';
+    case CourtRecordUpdated = 'court_record.updated';
+    case CourtRecordDeleted = 'court_record.deleted';
+    case CourtRecordRestored = 'court_record.restored';
 }
