@@ -26,10 +26,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class CourtPortalInEuisis
 {
-    private const PATHS = ['applicant', 'applicant/*', 'respondent', 'respondent/*', 'apply', 'apply/*'];
+    private const PATHS = ['court/applicant', 'court/applicant/*', 'court/respondent', 'court/respondent/*', 'court/apply', 'court/apply/*'];
 
     /** The portal's own sign-in, registration and password pages: gone for everyone. */
-    private const GUEST_PATHS = ['applicant/login', 'applicant/register', 'applicant/forgot-password', 'applicant/password-otp*', 'applicant/new-password', 'respondent/*', 'apply/*'];
+    private const GUEST_PATHS = ['court/applicant/login', 'court/applicant/register', 'court/applicant/forgot-password', 'court/applicant/password-otp*', 'court/applicant/new-password', 'court/respondent/*', 'court/apply/*'];
 
     public function handle(Request $request, Closure $next): Response
     {

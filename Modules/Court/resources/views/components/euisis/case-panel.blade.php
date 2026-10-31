@@ -1,6 +1,6 @@
 {{-- EUISIS panel on the admin case page (Modules\Court\Http\View\Components\Euisis\CasePanel, docs/euisis-integration.md) --}}
 @php
-    $canLink = function_exists('userHasPermission')
+    $canLink = true
         ? \Modules\Court\Application\Support\CourtPermissions::check('cases.edit')
         : (auth()->user()?->hasPermission('cases.edit') ?? false);
     $notice = session('euisis_status');

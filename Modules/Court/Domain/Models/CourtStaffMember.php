@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens;
 use Modules\Court\Domain\Models\Concerns\AuditableContract as AuditableContract;
 use Modules\Court\Domain\Models\Concerns\Auditable;
 
@@ -24,7 +25,8 @@ use Modules\Court\Domain\Models\Concerns\Auditable;
  */
 class CourtStaffMember extends Authenticatable implements AuditableContract, ActsThroughPlatformAccount
 {
-    use HasFactory, Notifiable, Auditable;
+    // API tokens of the court's mobile API (court-ms issued them to staff too).
+    use HasApiTokens, HasFactory, Notifiable, Auditable;
 
     public const string ACTIVE_ROLE_SESSION_KEY = 'active_admin_role_id';
 

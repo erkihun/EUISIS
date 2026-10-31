@@ -4039,6 +4039,9 @@ const lang: Record<string, unknown> = {
         "show_breadcrumbs": "Show Breadcrumbs",
         "sticky_table_headers": "Sticky Table Headers"
     },
+    "staff": {
+        "not_court_staff": "Your account does not work in the court. Ask the court administrator to add you to the court staff."
+    },
     "teams": {
         "title": "Teams",
         "page_header": {

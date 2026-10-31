@@ -76,9 +76,11 @@ use Modules\Court\Http\Controllers\SecureFileController;
 use Modules\Court\Http\Controllers\TermsDisplayController;
 // Localization middleware
 use Modules\Court\Http\Controllers\UserManualController;
+use Modules\Court\Http\Middleware\SetLocale;
 use Modules\Court\Http\Middleware\UseGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Modules\Court\Http\Middleware\CourtPortalInEuisis;
 use Modules\Court\Http\Middleware\ResolveCourtStaff;
 use Modules\Court\Http\Middleware\ShareCourtProps;
 
@@ -102,7 +104,7 @@ $numericRouteParameters = [
     'role', 'service', 'slide', 'step', 'team', 'term', 'user', 'witness',
 ];
 
-Route::middleware(ShareCourtProps::class)->prefix('court')->name('court.')->where(array_fill_keys($numericRouteParameters, '[0-9]+'))->group(function () {
+Route::middleware([CourtPortalInEuisis::class, SetLocale::class, ShareCourtProps::class, 'court.audit'])->prefix('court')->name('court.')->where(array_fill_keys($numericRouteParameters, '[0-9]+'))->group(function () {
 
     /*
     |--------------------------------------------------------------------------

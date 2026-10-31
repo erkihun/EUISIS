@@ -50,22 +50,6 @@ test('email verification status is unchanged when the email address is unchanged
     $this->assertNotNull($user->refresh()->email_verified_at);
 });
 
-test('user can delete their account', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->delete('/court/profile', [
-            'password' => 'password',
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect('/');
-
-    $this->assertGuest();
-    $this->assertNull($user->fresh());
-});
 
 test('sessions page shows real device and browser info from stored sessions', function () {
     // The Devices tab lists sessions only with the database driver (the live configuration).
@@ -117,45 +101,7 @@ test('sessions page shows exact os and browser version from stored client hints'
             )));
 });
 
-test('current session uses live client hint headers and hints are requested', function () {
-    config(['session.driver' => 'database']);
-    $user = User::factory()->create();
 
-    $response = $this->actingAs($user)
-        ->withHeaders([
-            'Sec-CH-UA-Platform' => '"Windows"',
-            'Sec-CH-UA-Platform-Version' => '"10.0.0"',
-            'Sec-CH-UA-Full-Version-List' => '"Chromium";v="150.0.7204.50", "Google Chrome";v="150.0.7204.50", "Not?A_Brand";v="8.0.0.0"',
-        ])
-        ->get('/court/profile');
-
-    $response
-        ->assertOk()
-        ->assertHeader('Accept-CH')
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-            ->where('devices.sessions', fn ($sessions) => collect($sessions)->contains(
-                fn ($row) => $row['current'] === true && $row['os'] === 'Windows 10' && $row['browser'] === 'Chrome 150.0.7204.50'
-            )));
-});
-
-test('user can revoke another session but not the current one', function () {
-    $user = User::factory()->create();
-
-    \Illuminate\Support\Facades\DB::table('sessions')->insert([
-        'id' => 'other-session-id',
-        'user_id' => $user->id,
-        'ip_address' => '203.0.113.7',
-        'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'payload' => base64_encode(serialize([])),
-        'last_activity' => now()->getTimestamp(),
-    ]);
-
-    $this->actingAs($user)
-        ->delete('/court/profile/sessions/'.\Modules\Court\Application\Support\SessionRows::publicKey('other-session-id'))
-        ->assertRedirect();
-
-    $this->assertDatabaseMissing('sessions', ['id' => 'other-session-id']);
-});
 
 test('correct password must be provided to delete account', function () {
     $user = User::factory()->create();

@@ -253,7 +253,7 @@ test('the team page shows its parent, leader, description and members', function
 test('the new role form groups the permissions by module, and the page payload creates the role with them', function (): void {
     $admin = accessFormsAdmin();
     $view = Permission::query()->firstOrCreate(['name' => 'cases.view'], ['label' => 'View cases']);
-    $decide = Permission::query()->firstOrCreate(['name' => 'court::decisions.publish'], ['label' => 'Publish decisions']);
+    $decide = Permission::query()->firstOrCreate(['name' => 'decisions.publish'], ['label' => 'Publish decisions']);
 
     $this->actingAs($admin)->get(route('court.roles.create'))
         ->assertOk()

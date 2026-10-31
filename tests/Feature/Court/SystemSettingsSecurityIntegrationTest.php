@@ -38,7 +38,7 @@ test('a poisoned system_settings cache key self-heals instead of crashing', func
     SystemSetting::query()->create(['app_name' => 'Court MS', 'maintenance_mode' => false]);
 
     // Simulate the old bug: a scalar cached under the shared settings key.
-    Cache::put('system_settings', false, 3600);
+    Cache::put('court.system_settings', false, 3600);
 
     $user = User::factory()->create(['must_change_password' => false]);
 

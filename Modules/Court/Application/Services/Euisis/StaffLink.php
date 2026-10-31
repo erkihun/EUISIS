@@ -251,10 +251,7 @@ final class StaffLink
                 'status' => 'inactive',
                 'euisis_suspended_at' => now(),
                 'euisis_suspension_reason' => $reason,
-                // Ends "remember me" sign-ins; open sessions end at their next request (EndSuspendedStaffSessions).
-                'remember_token' => Str::random(60),
             ])->save();
-            $user->tokens()->delete();
             EuisisStaffNotice::query()->create(['user_id' => $user->id, 'event' => EuisisStaffNotice::SUSPENDED, 'reason' => $reason]);
         });
     }

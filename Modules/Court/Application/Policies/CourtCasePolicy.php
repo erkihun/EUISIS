@@ -42,7 +42,7 @@ final class CourtCasePolicy
             } catch (\Throwable $e) {
             }
         }
-        if (function_exists('userHasPermission')) {
+        if (true) {
             try {
                 return (bool) \Modules\Court\Application\Support\CourtPermissions::check($perm);
             } catch (\Throwable $e) {

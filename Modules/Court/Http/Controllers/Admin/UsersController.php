@@ -174,7 +174,7 @@ class UsersController extends Controller
             'phone' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
             'roles' => ['nullable', 'array'],
-            'court.roles.*' => ['integer', 'exists:court_roles,id'],
+            'roles.*' => ['integer', 'exists:court_roles,id'],
 
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'signature' => ['nullable', 'image', 'mimes:png,webp,jpg,jpeg', 'max:2048'],
@@ -217,10 +217,11 @@ class UsersController extends Controller
             $data['last_name'] ?? null,
         ])));
 
-        $user = User::create([
+        $account = app(\Modules\Court\Application\Services\CourtStaffAccounts::class)->accountFor($data['email'], $fullName, $rawPassword, $request->user());
+        $user = (new User)->forceFill(['id' => $account->getKey()]);
+        $user->fill([
             'name' => $fullName,
             'email' => $data['email'],
-            'password' => Hash::make($rawPassword),
             'must_change_password' => true,
             'status' => $data['status'],
             'gender' => $data['gender'] ?? null,
@@ -232,7 +233,7 @@ class UsersController extends Controller
             'avatar_path' => $avatarPath,
             'signature_path' => $signaturePath,
             'stamp_path' => $stampPath,
-        ]);
+        ])->save();
 
         if (! empty($data['roles'])) {
             $user->roles()->sync($data['roles']);
@@ -405,7 +406,7 @@ class UsersController extends Controller
                 'status' => ['required', Rule::in(['active', 'inactive'])],
                 'password' => ['nullable', 'confirmed', PasswordRule::defaults()],
                 'roles' => ['nullable', 'array'],
-                'court.roles.*' => ['integer', 'exists:court_roles,id'],
+                'roles.*' => ['integer', 'exists:court_roles,id'],
                 'signature' => ['nullable', 'image', 'mimes:png,webp,jpg,jpeg', 'max:2048'],
                 'stamp' => ['nullable', 'image', 'mimes:png,webp,jpg,jpeg', 'max:2048'],
                 'remove_signature' => ['nullable', 'boolean'],

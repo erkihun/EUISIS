@@ -16,9 +16,13 @@ class UseGuard
      */
     public function handle(Request $request, Closure $next, string $guard): Response
     {
+        $previous = Auth::getDefaultDriver();
         Auth::shouldUse($guard);
         $request->session()->put('_auth_guard', $guard);
-
-        return $next($request);
+        try {
+            return $next($request);
+        } finally {
+            Auth::shouldUse($previous);
+        }
     }
 }

@@ -63,6 +63,7 @@ abstract class TestCase extends BaseTestCase
         // A module's record backed by a platform account (court staff): sign in as the account.
         if ($user instanceof ActsThroughPlatformAccount && ($guard === null || $guard === 'web')) {
             $user = $user->platformAccount();
+            $guard = 'web';
         }
 
         $session = $this->app['session.store'];

@@ -24,7 +24,7 @@ final class ResolveCourtStaff
         $member = $accountId === null ? null : CourtStaffMember::query()->whereKey($accountId)->first();
 
         if (! $member instanceof CourtStaffMember || ($member->status ?? 'active') !== 'active') {
-            abort(403, __('court::app.not_court_staff'));
+            abort(403, __('court::staff.not_court_staff'));
         }
 
         $previous = Auth::getDefaultDriver();

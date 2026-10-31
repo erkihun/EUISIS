@@ -45,7 +45,7 @@ class LandingPageController extends Controller
 
     private function flushCache(): void
     {
-        foreach (['home_slides','home_faqs','home_settings','home_metrics','home_services','home_timeline','home_resources','home_footer','home_user_manual','home_about','home_members'] as $key) {
+        foreach (['court.home_slides','court.home_faqs','court.home_settings','court.home_metrics','court.home_services','court.home_timeline','court.home_resources','court.home_footer','court.home_user_manual','court.home_about','court.home_members'] as $key) {
             Cache::forget($key);
         }
     }

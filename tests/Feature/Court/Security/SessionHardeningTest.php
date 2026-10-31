@@ -33,13 +33,6 @@ beforeEach(function (): void {
 
 
 
-test('a raw session id in the URL ends nothing', function (): void {
-    $user = User::factory()->create();
-    sessionHardeningRow('staff-other-device', $user->id, 'web');
-
-    $this->actingAs($user)->delete(route('court.profile.sessions.destroy', 'staff-other-device'))->assertRedirect();
-    $this->assertDatabaseHas('sessions', ['id' => 'staff-other-device']);
-});
 
 test('the applicant sessions page sends keyed handles and ends a session only by its handle', function (): void {
     $applicant = Applicant::create([

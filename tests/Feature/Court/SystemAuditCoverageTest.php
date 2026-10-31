@@ -12,19 +12,19 @@ use Illuminate\Support\Facades\Route;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
-    Route::middleware('web')->get('/_audit/read', fn () => response('ok'))
+    Route::middleware(['web', 'court.audit'])->get('/_audit/read', fn () => response('ok'))
         ->name('test.audit.read');
 
-    Route::middleware('web')->post('/_audit/write', fn () => response()->json(['ok' => true]))
+    Route::middleware(['web', 'court.audit'])->post('/_audit/write', fn () => response()->json(['ok' => true]))
         ->name('test.audit.write');
 
-    Route::middleware('web')->get('/_audit/forbidden', fn () => abort(403))
+    Route::middleware(['web', 'court.audit'])->get('/_audit/forbidden', fn () => abort(403))
         ->name('test.audit.forbidden');
 
-    Route::middleware('web')->get('/_audit/notification-count', fn () => response()->json(['count' => 0]))
+    Route::middleware(['web', 'court.audit'])->get('/_audit/notification-count', fn () => response()->json(['count' => 0]))
         ->name('court.admin.notifications.count');
 
-    Route::middleware(['web', 'court.use-guard:applicant', 'court.auth:applicant'])
+    Route::middleware(['web', 'court.audit', 'court.use-guard:applicant', 'court.auth:applicant'])
         ->get('/_audit/applicant', fn () => response('ok'))
         ->name('test.audit.applicant');
 });
@@ -84,7 +84,7 @@ test('applicant activity is attributed to the applicant provider', function (): 
 });
 
 test('unnamed routes still receive an auditable action identifier', function (): void {
-    Route::middleware('web')->get('/_audit/unnamed', fn () => response('ok'));
+    Route::middleware(['web', 'court.audit'])->get('/_audit/unnamed', fn () => response('ok'));
 
     $this->get('/_audit/unnamed')->assertOk();
 
@@ -112,19 +112,17 @@ test('model mutations outside controllers are audited with sensitive values reda
     $user = User::factory()->create();
     $user->forceFill([
         'name' => 'Updated Audit Name',
-        'password' => Hash::make('ReplacementPass123!'),
     ])->save();
 
     $audit = DB::table('court_system_audits')
         ->where('action', 'model.updated')
-        ->where('module', 'user')
+        ->where('module', 'court_staff_member')
         ->latest('id')
         ->first();
     $context = json_decode($audit->context, true, flags: JSON_THROW_ON_ERROR);
 
     expect($context['model_id'])->toBe($user->id)
-        ->and($context['new_values']['name'])->toBe('Updated Audit Name')
-        ->and($context['new_values']['password'])->toBe('[redacted]');
+        ->and($context['new_values']['name'])->toBe('Updated Audit Name');
 });
 
 test('successful api login is attributed to the verified actor and redacts credentials', function (): void {

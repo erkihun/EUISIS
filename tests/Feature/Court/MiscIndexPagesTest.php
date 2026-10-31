@@ -66,5 +66,5 @@ test('the notifications page lists what awaits the person and marks an item seen
 
     $this->actingAs($admin)->post(route('court.admin.notifications.markOne'), ['type' => 'case', 'sourceId' => $case->id])->assertRedirect();
     $this->actingAs($admin)->get(route('court.admin.notifications.index'))
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('court::cases.total', 0));
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('cases.total', 0));
 });

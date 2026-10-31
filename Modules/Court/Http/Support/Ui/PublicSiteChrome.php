@@ -31,10 +31,10 @@ final class PublicSiteChrome
     /** @return array{footer: array<string, string|null>|null, userManualEnabled: bool, userManualTitle: string|null, portalUrl: string|null} */
     public static function props(): array
     {
-        $footer = Cache::remember('home_footer', 3600,
+        $footer = Cache::remember('court.home_footer', 3600,
             fn () => Schema::hasTable('court_home_settings') ? HomeSetting::getJson('footer.settings') : null
         );
-        $manual = Cache::remember('home_user_manual', 3600,
+        $manual = Cache::remember('court.home_user_manual', 3600,
             fn () => Schema::hasTable('court_home_settings') ? HomeSetting::getJson('user_manual.settings') : []
         );
         $manual = is_array($manual) ? $manual : [];

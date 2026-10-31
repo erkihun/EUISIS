@@ -78,7 +78,7 @@ class RolesController extends Controller
             'name'         => ['required', 'string', 'max:255', 'unique:court_roles,name'],
             'description'  => ['nullable', 'string', 'max:255'],
             'permissions'  => ['array'],
-            'court.permissions.*' => ['integer', 'exists:court_permissions,id'],
+            'permissions.*' => ['integer', 'exists:court_permissions,id'],
         ]);
 
         $role = Role::create([
@@ -139,7 +139,7 @@ class RolesController extends Controller
             'name'         => ['required', 'string', 'max:255', Rule::unique('court_roles', 'name')->ignore($role->id)],
             'description'  => ['nullable', 'string', 'max:255'],
             'permissions'  => ['array'],
-            'court.permissions.*' => ['integer', 'exists:court_permissions,id'],
+            'permissions.*' => ['integer', 'exists:court_permissions,id'],
         ]);
 
         $role->update([

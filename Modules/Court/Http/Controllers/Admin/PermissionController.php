@@ -22,7 +22,7 @@ class PermissionController extends Controller
         $permissions = Permission::query()
             ->with(['roles:id,name'])   // to render role chips
             ->withCount('roles')        // ->roles_count
-            ->select('court.permissions.*')
+            ->select('court_permissions.*')
             // users_count = distinct users tied to any role that has this permission
             ->selectSub(function ($sub) {
                 $sub->from('court_role_user')

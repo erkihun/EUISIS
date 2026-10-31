@@ -212,9 +212,9 @@ test('the admin role and roles still held by staff cannot be deleted, and the li
 
     $this->actingAs($manager)->from(route('court.roles.index'))->delete(route('court.roles.destroy', $admin))
         ->assertRedirect(route('court.roles.index'))
-        ->assertSessionHas('error', ['key' => 'court::roles.index.cannot_delete_admin', 'replace' => []]);
+        ->assertSessionHas('error', ['key' => 'roles.index.cannot_delete_admin', 'replace' => []]);
     $this->actingAs($manager)->from(route('court.roles.index'))->delete(route('court.roles.destroy', $held))
-        ->assertSessionHas('error', ['key' => 'court::roles.index.cannot_delete_assigned', 'replace' => ['count' => 1]]);
+        ->assertSessionHas('error', ['key' => 'roles.index.cannot_delete_assigned', 'replace' => ['count' => 1]]);
     $this->actingAs($manager)->from(route('court.roles.index'))->delete(route('court.roles.destroy', $unused))
         ->assertSessionHas('ok');
 

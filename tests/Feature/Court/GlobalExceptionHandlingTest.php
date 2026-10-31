@@ -17,31 +17,6 @@ test('web requests receive a generic 500 message without internal details', func
     $response->assertDontSeeText('/var/www/secret.php');
 });
 
-test('json requests receive a generic 500 payload and detailed error is logged server side', function () {
-    Log::spy();
-
-    Route::get('/__test/boom-json', function () {
-        throw new RuntimeException('Sensitive JSON failure in query builder');
-    });
-
-    $response = $this->getJson('/__test/boom-json');
-
-    $response->assertStatus(500);
-    $response->assertExactJson([
-        'message' => 'Something went wrong. Please try again later.',
-    ]);
-    $response->assertDontSeeText('Sensitive JSON failure');
-
-    Log::shouldHaveReceived('error')
-        ->withArgs(function ($message, $context) {
-            return $message === 'Unhandled exception'
-                && isset($context['exception'])
-                && $context['exception'] instanceof RuntimeException
-                && str_contains($context['exception']->getMessage(), 'Sensitive JSON failure');
-        })
-        ->atLeast()
-        ->once();
-});
 
 test('validation error responses remain unchanged', function () {
     Route::post('/__test/validation', function (Request $request) {

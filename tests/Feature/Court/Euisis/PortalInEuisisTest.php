@@ -45,7 +45,7 @@ test('a court account still signed in is signed out, and the home page is the pu
     $this->actingAs($applicant, 'applicant')->get('/court/applicant/dashboard')->assertNotFound();
     $this->assertGuest('applicant');
 
-    $this->get('/')->assertRedirect(route('court.landing.home'));
+    $this->get('/court')->assertRedirect(route('court.landing.home'));
     $this->get(route('court.landing.home'))->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->where('courtPortal.closed', true));
 });
 
@@ -61,5 +61,5 @@ test('with the setting off the portal works as before', function (): void {
     config(['court.euisis.portal_in_euisis' => false]);
 
     $this->get('/court/applicant/login')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->component('Court/Applicant/Login'));
-    $this->get('/')->assertRedirect(route('court.applicant.login'));
+    $this->get('/court')->assertRedirect(route('court.applicant.login'));
 });

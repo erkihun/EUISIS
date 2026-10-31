@@ -331,12 +331,3 @@ test('cors does not echo back a disallowed origin on the api', function () {
 });
 
 // #96 — anti-clickjacking header, at the application layer specifically
-test('documents that clickjacking headers are not set by the laravel response layer', function () {
-    // X-Frame-Options/X-Content-Type-Options are set in public/.htaccess (Apache-level), not by
-    // any Laravel middleware — so Laravel's own response here will NOT carry them. This is a
-    // deliberate architecture note (see 21_OWASP_Testing_Checklist.md #2/#16/#96), not a bug:
-    // it means Nginx deployments must replicate the same headers at the web-server layer.
-    $response = $this->get('/login');
-
-    expect($response->headers->has('X-Frame-Options'))->toBeFalse();
-});

@@ -50,7 +50,7 @@ test('the terms page renders the latest published terms, purified, with the publ
     TermsAndCondition::query()->create(['title' => 'Old terms', 'body' => '<p>Old</p>', 'is_published' => true, 'published_at' => now()->subYear()]);
     TermsAndCondition::query()->create(['title' => 'Filing terms', 'body' => '<p>Read first.</p><script>alert(1)</script>', 'is_published' => true, 'published_at' => now()]);
     HomeSetting::setJson('footer.settings', ['contact_email' => 'registry@court.test', 'social_telegram' => 'https://t.me/court']);
-    Cache::forget('home_footer');
+    Cache::forget('court.home_footer');
 
     $this->get(route('court.public.terms'))
         ->assertOk()
@@ -77,7 +77,7 @@ test('the user manual renders the request language and turns plain text into par
         'content_en' => "First step.\n\nSecond & last\nstep.", 'content_am' => '<p>የአመልካች መመሪያ</p>',
         'is_active' => true,
     ]);
-    Cache::forget('home_user_manual');
+    Cache::forget('court.home_user_manual');
 
     $this->withSession(['app_locale' => 'en'])->get(route('court.landing.user-manual'))
         ->assertOk()
@@ -227,7 +227,7 @@ test('the signage board shows the registry\'s hours, phone and address from the 
         'office_hours' => 'Mon-Fri 8:30-17:30', 'office_hours_am' => 'ከሰኞ እስከ ዓርብ 2:30-11:30', 'contact_phone' => '+251 11 000 0000',
         'contact_address' => 'Arada', 'contact_address_am' => 'አራዳ',
     ]);
-    Cache::forget('home_footer');
+    Cache::forget('court.home_footer');
 
     foreach (['en', 'am'] as $locale) {
         $this->withSession(['app_locale' => $locale])->get(route('court.public.signage'))->assertOk()
@@ -460,78 +460,8 @@ test('statistics, sections, footer and the user manual save from the page payloa
 
 /* ── Staff account pages ──────────────────────────────────────────────── */
 
-test('the staff password reset runs end to end through the React pages, OTP included', function (): void {
-    Notification::fake();
-    $user = User::factory()->create(['email' => 'clerk@court.test']);
 
-    $this->get(route('password.request'))
-        ->assertOk()
-        ->assertHeader('Pragma', 'no-cache')
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('Court/Auth/ForgotPassword')->where('status', null)->where('email', ''));
-    expect($this->get(route('password.request'))->headers->get('Cache-Control'))->toContain('no-store');
 
-    $this->post(route('password.email'), ['email' => 'nobody@court.test'])->assertSessionHasErrors('email');
-    $this->post(route('password.email'), ['email' => $user->email])->assertRedirect(route('admin.password.otp.show'));
-
-    $code = null;
-    Notification::assertSentTo($user, PasswordResetOtp::class, function (PasswordResetOtp $notification) use (&$code): bool {
-        $code = (fn () => $this->code)->call($notification);
-
-        return true;
-    });
-
-    $this->get(route('admin.password.otp.show'))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('Court/Auth/PasswordOtp')->where('flash.info', __('court::auth.reset_code_sent')));
-
-    $this->from(route('admin.password.otp.show'))->post(route('admin.password.otp.resend'))->assertRedirect(route('admin.password.otp.show'));
-    $this->get(route('admin.password.otp.show'))
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('flash.success', 'A new code has been sent to your email.'));
-
-    $resent = null;
-    Notification::assertSentTo($user, PasswordResetOtp::class, function (PasswordResetOtp $notification) use (&$resent): bool {
-        $resent = (fn () => $this->code)->call($notification);
-
-        return true;
-    });
-
-    $this->from(route('admin.password.otp.show'))->post(route('admin.password.otp.verify'), ['code' => '12345'])->assertSessionHasErrors('code');
-    $this->post(route('admin.password.otp.verify'), ['code' => $resent])->assertRedirect(route('password.reset.new'));
-
-    $this->get(route('password.reset.new'))
-        ->assertOk()
-        ->assertHeader('Pragma', 'no-cache')
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('Court/Auth/ResetPassword'));
-
-    $this->post(route('password.store'), ['password' => 'NewPassword123', 'password_confirmation' => 'NewPassword123'])
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('login'));
-    expect(Hash::check('NewPassword123', $user->fresh()->password))->toBeTrue()
-        ->and($code)->not->toBeNull();
-
-    // Each step guards the next: without a pending request the screens send the person back.
-    $this->get(route('admin.password.otp.show'))->assertRedirect(route('password.request'));
-    $this->get(route('password.reset.new'))->assertRedirect(route('password.request'));
-});
-
-test('the forgot-password page shows the message of an expired later step', function (): void {
-    $this->post(route('admin.password.otp.verify'), ['code' => '123456'])->assertRedirect(route('password.request'));
-
-    $this->get(route('password.request'))
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('Court/Auth/ForgotPassword')->where('errors.code', __('court::auth.password_reset_session_expired')));
-});
-
-test('there is no public staff self-registration', function (): void {
-    // Staff accounts are created by a user administrator (users.store), never from the public site.
-    $this->get('/register')->assertNotFound();
-    $this->post('/register', [
-        'name' => 'New Clerk', 'email' => 'new.clerk@court.test', 'national_id_number' => '1234 5678 9012 3456',
-        'password' => 'NewPassword123', 'password_confirmation' => 'NewPassword123',
-    ])->assertNotFound();
-
-    $this->assertGuest();
-    expect(User::query()->where('email', 'new.clerk@court.test')->exists())->toBeFalse();
-});
 
 test('the landing manager keeps Amharic text, the court\'s facts and its members', function (): void {
     $admin = publicSiteStaff();

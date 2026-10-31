@@ -137,7 +137,7 @@ test('the case list shows only the applicant\'s own cases with their review stat
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Court/Applicant/Cases/Index')
             ->has('cases.data', 2)
-            ->where('court::cases.total', 2)
+            ->where('cases.total', 2)
             ->where('cases.data.0.id', $pending)
             ->where('cases.data.0.review_status', 'returned')
             ->where('cases.data.0.review_note', 'Attach the dismissal letter.')

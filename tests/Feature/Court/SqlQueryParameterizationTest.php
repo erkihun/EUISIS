@@ -11,9 +11,8 @@ class SqlQueryParameterizationTest extends TestCase
     public function test_raw_sql_calls_do_not_interpolate_variables(): void
     {
         $roots = [
-            app_path(),
-            database_path('migrations'),
-            base_path('routes'),
+            base_path('Modules/Court'),
+            base_path('database/seeders/Court'),
         ];
 
         $patterns = [

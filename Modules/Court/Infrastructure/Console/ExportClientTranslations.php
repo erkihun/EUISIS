@@ -57,7 +57,7 @@ final class ExportClientTranslations extends Command
 
         // A key the language lacks falls back to the fallback locale's text, as
         // Laravel's `__()` does on the server, so a React page never shows a raw key.
-        $fallback = (string) config('app.fallback_locale', 'en');
+        $fallback = 'en';
         if ($locale !== $fallback) {
             $tree = array_replace_recursive($this->tree($fallback), $tree);
         }

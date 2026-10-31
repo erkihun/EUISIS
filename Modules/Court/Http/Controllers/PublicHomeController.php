@@ -76,13 +76,13 @@ class PublicHomeController extends Controller
         $locale = app()->getLocale() === 'am' ? 'am' : 'en';
         $isAmharic = $locale === 'am';
 
-        $dbSlides = $this->cached('home_slides', 'home_slides', fn () => HomeSlide::active()->get());
-        $dbFaqs = $this->cached('home_faqs', 'home_faqs', fn () => HomeFaq::active()->get());
-        $dbServices = $this->cached('home_services', 'home_services', fn () => HomeService::active()->get());
-        $dbTimeline = $this->cached('home_timeline', 'home_timeline_steps', fn () => HomeTimelineStep::active()->get());
-        $dbMembers = $this->cached('home_members', 'court_members', fn () => CourtMember::active()->get());
+        $dbSlides = $this->cached('court.home_slides', 'court_home_slides', fn () => HomeSlide::active()->get());
+        $dbFaqs = $this->cached('court.home_faqs', 'court_home_faqs', fn () => HomeFaq::active()->get());
+        $dbServices = $this->cached('court.home_services', 'court_home_services', fn () => HomeService::active()->get());
+        $dbTimeline = $this->cached('court.home_timeline', 'court_home_timeline_steps', fn () => HomeTimelineStep::active()->get());
+        $dbMembers = $this->cached('court.home_members', 'court_members', fn () => CourtMember::active()->get());
         $dbResources = $this->activeResources();
-        $dbSections = Cache::remember('home_settings', 3600, function () {
+        $dbSections = Cache::remember('court.home_settings', 3600, function () {
             if (! Schema::hasTable('court_home_settings')) {
                 return [];
             }
@@ -93,11 +93,11 @@ class PublicHomeController extends Controller
 
             return $out;
         });
-        $dbMetrics = Cache::remember('home_metrics', 3600,
+        $dbMetrics = Cache::remember('court.home_metrics', 3600,
             fn () => Schema::hasTable('court_home_settings') ? HomeSetting::getJson('metrics.content') : []
         );
         $dbMetrics = is_array($dbMetrics) ? $dbMetrics : [];
-        $about = Cache::remember('home_about', 3600,
+        $about = Cache::remember('court.home_about', 3600,
             fn () => Schema::hasTable('court_home_settings') ? HomeSetting::getJson('about.settings') : []
         );
         $about = is_array($about) ? $about : [];
@@ -213,7 +213,7 @@ class PublicHomeController extends Controller
     /** Active, already published resources, shared by both pages under one cache key. */
     private function activeResources(): Collection
     {
-        return $this->cached('home_resources', 'home_resources', fn () => HomeResource::active()->get());
+        return $this->cached('court.home_resources', 'court_home_resources', fn () => HomeResource::active()->get());
     }
 
     private function cached(string $key, string $table, \Closure $load): Collection

@@ -66,7 +66,7 @@ test('a reviewer sees the review state and the exporter the export action', func
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('isReviewer', true)
             ->where('canExport', true)
-            ->where('court::cases.total', 1)
+            ->where('cases.total', 1)
             ->where('cases.data.0.review_status', 'awaiting_review')
             ->where('cases.data.0.filing_date', now()->toDateString()));
 });

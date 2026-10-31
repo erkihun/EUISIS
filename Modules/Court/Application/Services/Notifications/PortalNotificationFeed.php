@@ -219,7 +219,7 @@ final class PortalNotificationFeed
 
     private function readsTable(): string
     {
-        return $this->portal === 'applicant' ? 'notification_reads' : 'respondent_notification_reads';
+        return $this->portal === 'applicant' ? 'court_notification_reads' : 'court_respondent_notification_reads';
     }
 
     private function ownerColumn(): string

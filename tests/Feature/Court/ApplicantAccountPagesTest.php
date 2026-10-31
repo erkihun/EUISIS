@@ -76,7 +76,7 @@ test('the sign-in page is the React applicant login, uncached, with the About pa
             ->where('loginAs', 'applicant')
             ->where('email', '')
             ->where('bannerUrl', null)
-            ->where('court::about.title', 'About the court')
+            ->where('about.title', 'About the court')
             ->where('about.body', fn ($body) => str_contains((string) $body, '<strong>daily</strong>') && ! str_contains((string) $body, '<script>'))
             ->where('auth.user', null)
             ->where('portal.name', 'applicant')

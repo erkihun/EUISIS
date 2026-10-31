@@ -42,7 +42,7 @@ class LetterController extends Controller
         $letters = $baseQuery
             ->leftJoin('court_cases as c', 'c.case_number', '=', 'court_letters.case_number')
             ->leftJoin('court_applicants as a', 'a.id', '=', 'c.applicant_id')
-            ->select('court.letters.*')
+            ->select('court_letters.*')
             ->selectRaw("NULLIF(TRIM(c.title), '') as applicant_name")
             ->selectRaw("NULLIF(TRIM(CONCAT_WS(' ', NULLIF(a.first_name, ''), NULLIF(a.middle_name, ''), NULLIF(a.last_name, ''))), '') as applicant_lawyer_name")
             ->selectRaw('COALESCE(a.is_lawyer, 0) as applicant_is_lawyer')

@@ -297,7 +297,7 @@ class SecureFileController extends Controller
             return true;
         }
 
-        if (function_exists('userHasPermission') && \Modules\Court\Application\Support\CourtPermissions::check($perm)) {
+        if (\Modules\Court\Application\Support\CourtPermissions::check($perm)) {
             return true;
         }
 

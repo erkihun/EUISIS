@@ -414,7 +414,7 @@ test('the case records register renders with its rows, filters and choices', fun
             ->where('isReviewer', false)
             ->has('types', 2)
             ->where('users', fn ($users) => collect($users)->contains(fn ($row) => $row['id'] === $assignee->id && $row['name'] === 'Kebede Alemu'))
-            ->where('court::cases.total', 1)
+            ->where('cases.total', 1)
             ->has('cases.data', 1, fn (AssertableInertia $row) => $row
                 ->where('id', $case->id)
                 ->where('case_number', $case->case_number)
@@ -430,7 +430,7 @@ test('the case records register renders with its rows, filters and choices', fun
     // A case awaiting review is hidden from a non-reviewer.
     $this->actingAs($viewer)->get(route('court.recordes.index'))
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('court::cases.total', 1)
+            ->where('cases.total', 1)
             ->where('cases.data.0.id', $case->id)
             ->etc());
     expect($hidden->review_status)->toBe('awaiting_review');

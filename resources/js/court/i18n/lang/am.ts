@@ -4044,6 +4044,9 @@ const lang: Record<string, unknown> = {
         "show_breadcrumbs": "የመንገድ አሻራዎች ይታዩ",
         "sticky_table_headers": "የሚቆዩ የሰንጠረዥ ራሶች"
     },
+    "staff": {
+        "not_court_staff": "መለያዎ በፍርድ ቤቱ ውስጥ አይሰራም። የፍርድ ቤቱ አስተዳዳሪ ወደ ፍርድ ቤቱ ሠራተኞች እንዲያክልዎ ይጠይቁ።"
+    },
     "teams": {
         "title": "ቡድኖች",
         "page_header": {

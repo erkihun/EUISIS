@@ -61,7 +61,7 @@ class DashboardController extends Controller
     /** @return array<string, mixed> */
     private function allTime(): array
     {
-        return Cache::remember('dashboard_index_v4', self::CACHE_TTL, function () {
+        return Cache::remember('court.dashboard_index_v4', self::CACHE_TTL, function () {
             $totalCases    = DB::table('court_cases')->count();
             $pendingCases  = DB::table('court_cases')->where('status', 'pending')->count();
             $resolvedCases = DB::table('court_decisions')
@@ -351,7 +351,7 @@ class DashboardController extends Controller
      */
     private function dataStorage(): array
     {
-        return Cache::remember('dashboard_storage_v1', self::CACHE_TTL, fn (): array => $this->measureStorage());
+        return Cache::remember('court.dashboard_storage_v1', self::CACHE_TTL, fn (): array => $this->measureStorage());
     }
 
     /** @return array<string, int|string|null> */

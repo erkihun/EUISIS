@@ -177,7 +177,7 @@ class CaseTypeController extends Controller
      */
     private function authorizeTypes(): void
     {
-        if (!function_exists('userHasPermission') || !\Modules\Court\Application\Support\CourtPermissions::check('cases.types')) {
+        if (!\Modules\Court\Application\Support\CourtPermissions::check('cases.types')) {
             abort(403, 'You do not have permission: cases.types');
         }
     }

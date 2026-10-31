@@ -40,7 +40,7 @@ class RecordController extends Controller
         $appeal = in_array($request->string('appeal')->toString(), ['appealed', 'requested', 'none'], true) ? $request->string('appeal')->toString() : '';
 
         $isReviewer = false;
-        if (function_exists('userHasPermission')) {
+        if (true) {
             $isReviewer = (bool) \Modules\Court\Application\Support\CourtPermissions::check('cases.review');
         } elseif (Auth::user()) {
             $isReviewer = (bool) Auth::user()->can('cases.review');

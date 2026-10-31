@@ -3,6 +3,7 @@
 namespace Modules\Court\Http\Controllers\Admin;
 
 use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Middleware\SetLocale;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -26,14 +27,14 @@ class LanguageController extends Controller
         session(['app_locale' => $locale]);
         Cookie::queue('app_locale', $locale, 60 * 24 * 365);
         // The React screens keep the language in this cookie (unencrypted, as the client writes it).
-        Cookie::queue(Cookie::make(\App\Http\Middleware\SetClientLocale::COOKIE, $locale, 60 * 24 * 365, '/', null, null, false, false, 'lax'));
+        Cookie::queue(Cookie::make(SetLocale::CLIENT_COOKIE, $locale, 60 * 24 * 365, '/', null, null, false, false, 'lax'));
 
         App::setLocale($locale);
 
         // Both candidates are user-controlled (query string, Referer header),
         // so only same-site destinations are honoured.
         $return = $this->sameSiteUrl($request, $request->query('return'))
-            ?? $this->sameSiteUrl($request, url()->previous())
+            ?? $this->sameSiteUrl($request, url()->previous(route('court.root')))
             ?? route('court.root');
 
         return redirect()->to($return);

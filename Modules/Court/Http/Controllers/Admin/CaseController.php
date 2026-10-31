@@ -44,7 +44,7 @@ class CaseController extends Controller
         $to         = $request->date('to');   // yyyy-mm-dd
 
         $isReviewer = false;
-        if (function_exists('userHasPermission')) {
+        if (true) {
             $isReviewer = (bool) \Modules\Court\Application\Support\CourtPermissions::check('cases.review');
         } elseif (Auth::user()) {
             $isReviewer = (bool) Auth::user()->can('cases.review');

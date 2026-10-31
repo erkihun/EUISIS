@@ -292,7 +292,7 @@ class PublicSignageController extends Controller
     {
         $url = (EuisisParties::portalClosed() ? EuisisParties::portalUrl() : null) ?? route('court.applicant.login');
 
-        $qr = Cache::remember('signage_portal_qr:'.sha1($url), 86400, function () use ($url): ?string {
+        $qr = Cache::remember('court.signage_portal_qr:'.sha1($url), 86400, function () use ($url): ?string {
             try {
                 $svg = (new Writer(new ImageRenderer(new RendererStyle(320, 1), new SvgImageBackEnd)))->writeString($url);
 

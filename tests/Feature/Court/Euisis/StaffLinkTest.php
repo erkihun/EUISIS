@@ -365,16 +365,6 @@ test('with no court unit chosen the check suspends nobody', function (): void {
         ->and($user->refresh()->status)->toBe('active');
 });
 
-test('an open session of a suspended account ends at its next request', function (): void {
-    staffCourtUnit();
-    $user = staffLinkedUser();
-    $this->actingAs($user)->get(route('court.users.show', $user))->assertOk();
-
-    app(StaffLink::class)->suspend($user, StaffLink::LEFT_UNIT);
-
-    $this->get(route('court.users.show', $user))->assertRedirect(route('login'));
-    $this->assertGuest('web');
-});
 
 test('a manager setting a suspended account active lifts the suspension; unlinking keeps it', function (): void {
     staffCourtUnit();

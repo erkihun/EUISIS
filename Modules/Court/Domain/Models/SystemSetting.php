@@ -91,7 +91,7 @@ class SystemSetting extends Model implements AuditableContract
     ];
 
     /**
-     * The settings row from the shared 'system_settings' cache key.
+     * The settings row from the shared 'court.system_settings' cache key.
      *
      * Every consumer of that key MUST go through this accessor: the key holds
      * the model instance, and caching anything else under it breaks all other
@@ -99,11 +99,11 @@ class SystemSetting extends Model implements AuditableContract
      */
     public static function cached(): ?self
     {
-        $cached = Cache::remember('system_settings', 3600, fn () => static::query()->first());
+        $cached = Cache::remember('court.system_settings', 3600, fn () => static::query()->first());
 
         if ($cached !== null && ! $cached instanceof self) {
-            Cache::forget('system_settings');
-            $cached = Cache::remember('system_settings', 3600, fn () => static::query()->first());
+            Cache::forget('court.system_settings');
+            $cached = Cache::remember('court.system_settings', 3600, fn () => static::query()->first());
         }
 
         return $cached instanceof self ? $cached : null;

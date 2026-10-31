@@ -77,7 +77,7 @@ class SystemSettingController extends Controller
         $settings->save();
 
         // Every page reads the cached settings: drop them so the change shows at once.
-        Cache::forget('system_settings');
+        Cache::forget('court.system_settings');
 
         return redirect()
             ->route('court.settings.system.edit', ['tab' => $section])
@@ -112,7 +112,7 @@ class SystemSettingController extends Controller
 
     public function clearCache(Request $request): RedirectResponse
     {
-        Cache::forget('system_settings');
+        Cache::forget('court.system_settings');
         try {
             Artisan::call('cache:clear');
         } catch (Throwable) {

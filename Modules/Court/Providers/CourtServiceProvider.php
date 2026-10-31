@@ -163,6 +163,8 @@ final class CourtServiceProvider extends ServiceProvider
         ] as $alias => $class) {
             $router->aliasMiddleware($alias, $class);
         }
+        // Flow 6: with the portal in EUISIS a guest gets not found, not a sign-in redirect (before the portals' own auth).
+        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)->prependToMiddlewarePriority(\Modules\Court\Http\Middleware\CourtPortalInEuisis::class);
 
         Gate::policy(Models\CourtStaffMember::class, UserPolicy::class);
         Gate::policy(Models\CourtCase::class, CourtCasePolicy::class);
@@ -170,9 +172,15 @@ final class CourtServiceProvider extends ServiceProvider
         RateLimiter::for('court-api-ip-hourly', static fn (Request $request) => Limit::perHour(100)->by($request->ip() ?: 'unknown-ip'));
 
         // The mobile and integration API under /court/api (court-ms served it under /api).
-        Route::middleware('api')->prefix('court/api')->name('court.')->group(base_path('routes/court-api.php'));
+        Route::middleware(['api', 'court.audit'])->prefix('court/api')->name('court.')->group(base_path('routes/court-api.php'));
 
         $this->registerAuditTrail();
+
+        // The court's settings secrets never come back to a form after a validation error (court-ms bootstrap/app.php).
+        $handler = $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+        if (method_exists($handler, 'dontFlash')) {
+            $handler->dontFlash(['mail_password', 'telegram_bot_token', 'sms_api_key', 'sms_api_secret']);
+        }
 
         if ($this->app->runningInConsole()) {
             $this->commands([
