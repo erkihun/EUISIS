@@ -132,9 +132,69 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
     }
 
     /**
-     * Permission / Role helpers
+     * Whether a platform account works in the court: EUISIS manages that (ADR 0020).
+     * Super Admin, or any `court.*` permission from the account's EUISIS roles.
+     */
+    public static function platformAccess(PlatformUser $account): bool
+    {
+        return $account->hasRole('Super Admin')
+            || $account->getAllPermissions()->contains(fn ($permission): bool => str_starts_with((string) $permission->name, 'court.'));
+    }
+
+    /** The court record of a platform account that works in the court, made the first time. */
+    public static function provision(PlatformUser $account): self
+    {
+        $member = self::query()->find($account->getKey()) ?? (new self)->forceFill(['id' => $account->getKey(), 'status' => 'active']);
+        $member->fill(['name' => (string) $account->name, 'email' => (string) $account->email]);
+        if ($member->isDirty()) {
+            $member->save();
+        }
+
+        return $member;
+    }
+
+    /**
+     * Permission / Role helpers.
+     *
+     * A court permission is the EUISIS permission `court.<name>` of the account's
+     * EUISIS roles (managed on the EUISIS Roles page; Super Admin holds them all).
+     * Court roles that court-ms gave (court_roles, no screen in EUISIS) still count
+     * until the cut-over import turns them into EUISIS roles.
      */
     public function hasPermission(string $perm): bool
+    {
+        $account = $this->account;
+        if ($account !== null && ($account->hasRole('Super Admin') || $this->platformCan($account, 'court.'.$perm))) {
+            return true;
+        }
+
+        return $this->hasCourtMsPermission($perm);
+    }
+
+    public function hasRole(string $role): bool
+    {
+        $account = $this->account;
+        if ($account !== null && match (mb_strtolower($role)) {
+            'admin' => $account->hasRole('Super Admin'),
+            'judge' => $account->hasRole('Super Admin') ? false : $this->platformCan($account, 'court.judge'),
+            default => false,
+        }) {
+            return true;
+        }
+
+        return $this->hasCourtMsRole($role);
+    }
+
+    private function platformCan(PlatformUser $account, string $permission): bool
+    {
+        try {
+            return $account->hasPermissionTo($permission, 'web');
+        } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist) {
+            return false;
+        }
+    }
+
+    private function hasCourtMsPermission(string $perm): bool
     {
         $activeRole = $this->activeRole();
 
@@ -149,7 +209,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
         }
 
         // Global bypass: Admin role has full permission access.
-        if ($this->hasRole('admin')) {
+        if ($this->hasCourtMsRole('admin')) {
             return true;
         }
 
@@ -158,7 +218,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
             ->exists();
     }
 
-    public function hasRole(string $role): bool
+    private function hasCourtMsRole(string $role): bool
     {
         $activeRole = $this->activeRole();
 

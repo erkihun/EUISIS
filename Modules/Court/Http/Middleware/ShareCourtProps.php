@@ -6,70 +6,36 @@ namespace Modules\Court\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Modules\Court\Application\Support\EuisisParties;
-use Modules\Court\Domain\Models\CourtStaffMember;
-use Modules\Court\Http\Support\Ui\CourtNavigation;
 use Modules\Court\Http\Support\Ui\PortalNavigation;
-use Modules\Court\Http\Support\Ui\SharedSettings;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * The court's own page props on its routes (court-ms HandleInertiaRequests):
- * the sidebar workspace (staff menu or a portal's), the header's portal links
- * and active-role switch, court flashes, and the applicant portal's state.
- * Everything is a closure, read when the page renders (after the guard middleware).
+ * a portal's sidebar and header links, court flashes, the court's language and
+ * the applicant portal's state. Staff pages keep EUISIS's own menu, account,
+ * settings and branding. Everything is a closure, read when the page renders.
  */
 final class ShareCourtProps
 {
     public function handle(Request $request, Closure $next): Response
     {
         $portal = static fn (): ?string => PortalNavigation::portalFor($request);
-        $staff = static function () use ($portal): ?CourtStaffMember {
-            $user = $portal() === null ? Auth::guard('court')->user() : null;
-
-            return $user instanceof CourtStaffMember ? $user : null;
-        };
         $baseAuth = Inertia::getShared('auth');
         $baseFlash = Inertia::getShared('flash');
 
         Inertia::share([
-            'auth' => function () use ($portal, $staff, $baseAuth): array {
-                if ($portal() !== null) {
-                    return $this->portalAuth();
-                }
-                $base = (array) value($baseAuth);
-                $user = $staff();
-                if ($user === null) {
-                    return $base;
-                }
-                $roles = $user->roles()->orderBy('court_roles.name')->get();
-
-                return [
-                    ...$base,
-                    'activeRoleId' => $user->activeRole()?->id,
-                    'roleOptions' => $roles->count() > 1
-                        ? $roles->map(fn ($role): array => ['id' => (int) $role->id, 'label' => Str::headline((string) $role->name)])->values()->all()
-                        : [],
-                ];
-            },
+            // Staff pages keep EUISIS's own account, menu, settings and branding (EUISIS manages them);
+            // only the applicant and respondent portals have the court's own.
+            'auth' => fn (): array => $portal() !== null ? $this->portalAuth() : (array) value($baseAuth),
             'portal' => fn (): ?array => ($name = $portal()) !== null ? PortalNavigation::routes($name) : null,
-            'workspace' => function () use ($portal, $staff): ?array {
-                if (($name = $portal()) !== null) {
-                    return PortalNavigation::user() ? ['name' => 'court', 'home' => PortalNavigation::routes($name)['home'], 'nav' => PortalNavigation::sections($name)] : null;
+            'workspace' => function () use ($portal): ?array {
+                if (($name = $portal()) === null) {
+                    return null;
                 }
-                $user = $staff();
 
-                return $user ? [
-                    'name' => 'court',
-                    'home' => 'court.admin.dashboard',
-                    'exit' => 'dashboard',
-                    'nav' => app(CourtNavigation::class)->for($user),
-                    // The header bell reads the court's own feed.
-                    'bell' => ['feed' => 'court.notifications.feed', 'read' => 'court.notifications.read', 'readAll' => 'court.notifications.read-all', 'viewAll' => 'court.admin.notifications.index'],
-                ] : null;
+                return PortalNavigation::user() ? ['name' => 'court', 'home' => PortalNavigation::routes($name)['home'], 'nav' => PortalNavigation::sections($name)] : null;
             },
             'flash' => fn (): array => [
                 ...(array) value($baseFlash),
@@ -79,9 +45,6 @@ final class ShareCourtProps
                 'warning' => $this->flashText(session('warning')),
                 'info' => $this->flashText(session('info')),
             ],
-            // The court's own name, logo and appearance (its System Settings), on its pages.
-            'settings' => fn (): array => app(SharedSettings::class)->all(),
-            'branding' => fn (): array => app(SharedSettings::class)->branding(),
             // The court's language (SetLocale, route middleware) is known only when the page renders.
             'locale' => fn (): string => app()->getLocale() === 'am' ? 'am' : 'en',
             'textLocale' => fn (): string => app()->getLocale(),

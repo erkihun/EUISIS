@@ -15,7 +15,6 @@ use Modules\Court\Http\Controllers\Admin\AdminNotificationController;
 use Modules\Court\Http\Controllers\Admin\NotificationFeedController;
 use Modules\Court\Http\Controllers\PortalNotificationFeedController;
 use Modules\Court\Http\Controllers\Applicant\EuisisSignInController;
-use Modules\Court\Http\Controllers\Admin\AdminRoleSwitchController;
 use Modules\Court\Http\Controllers\Admin\AnnouncementController;
 use Modules\Court\Http\Controllers\Admin\AppealController;
 // Applicant-facing controllers
@@ -23,7 +22,6 @@ use Modules\Court\Http\Controllers\Admin\ApplicantController;
 use Modules\Court\Http\Controllers\Admin\AuditController;
 use Modules\Court\Http\Controllers\Admin\BenchNoteController;
 use Modules\Court\Http\Controllers\Admin\EuisisCaseLinkController;
-use Modules\Court\Http\Controllers\Admin\EuisisStaffController;
 use Modules\Court\Http\Controllers\Admin\CaseController;
 use Modules\Court\Http\Controllers\Admin\LawyerController;
 use Modules\Court\Http\Controllers\Lawyer\LawyerAuthController;
@@ -45,15 +43,11 @@ use Modules\Court\Http\Controllers\Admin\LetterController;
 use Modules\Court\Http\Controllers\Admin\LetterTemplateController;
 use Modules\Court\Http\Controllers\Admin\PerformanceEvaluationController;
 use Modules\Court\Http\Controllers\Admin\PerformanceEvaluationSettingController;
-use Modules\Court\Http\Controllers\Admin\PermissionController;
 use Modules\Court\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use Modules\Court\Http\Controllers\Admin\RecordController;
 use Modules\Court\Http\Controllers\Admin\ReportController;
-use Modules\Court\Http\Controllers\Admin\RolesController;
-use Modules\Court\Http\Controllers\Admin\SystemSettingController;
 use Modules\Court\Http\Controllers\Admin\TeamController;
 use Modules\Court\Http\Controllers\Admin\TermsAndConditionsController;
-use Modules\Court\Http\Controllers\Admin\UsersController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantAuthController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantCaseController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantDashboardController;
@@ -381,12 +375,10 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
     | Admin area (auth:web)
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['auth', ResolveCourtStaff::class, 'court.active-role'])->group(function () {
+    Route::middleware(['auth', ResolveCourtStaff::class])->group(function () {
         // Admin dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        Route::post('/admin/role/switch', AdminRoleSwitchController::class)
-            ->name('admin.roles.switch');
 
         // Admin self profile
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
@@ -408,22 +400,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
             // Dashboard stats (AJAX)
             Route::get('/dashboard/stats', [DashboardController::class, 'stats'])
                 ->name('admin.dashboard.stats');
-
-            // System settings: the EUISIS settings page (SystemSettings/Index); each section saves on its own,
-            // under the route names that page uses (system-settings.*).
-            Route::middleware('court.perm:settings.manage')->group(function () {
-                Route::get('/settings/system', [SystemSettingController::class, 'edit'])->name('settings.system.edit');
-                foreach (['general', 'localization', 'appearance', 'notifications', 'email', 'sms', 'telegram', 'security'] as $section) {
-                    Route::patch('/settings/system/'.$section, [SystemSettingController::class, 'updateSection'])
-                        ->defaults('section', $section)
-                        ->name('system-settings.'.$section.'.update');
-                }
-                Route::post('/settings/system/clear-cache', [SystemSettingController::class, 'clearCache'])->name('system-settings.clear-cache');
-                Route::post('/settings/system/test-email', [SystemSettingController::class, 'testEmail'])->middleware('throttle:6,1')->name('system-settings.test-email');
-                Route::post('/settings/system/test-telegram', [SystemSettingController::class, 'testTelegram'])->middleware('throttle:6,1')->name('system-settings.test-telegram');
-                Route::get('/settings/system/maintenance', [SystemSettingController::class, 'maintenance'])->name('settings.maintenance');
-                Route::post('/settings/system/database-backup', [SystemSettingController::class, 'downloadDatabaseBackup'])->name('settings.system.databaseBackup');
-            });
 
             Route::get('/settings/performance-evaluation', [PerformanceEvaluationSettingController::class, 'index'])
                 ->middleware('court.perm:settings.manage')
@@ -611,13 +587,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
                 ->middleware('court.perm:teams.manage')
                 ->name('teams.destroy');
 
-            /*
-             * Permissions (admin)
-             * (kept inside /admin; names remain 'permissions.*' which matches the sidebar)
-             */
-            Route::resource('permissions', PermissionController::class)
-                ->except(['show'])
-                ->middleware('court.perm:permissions.manage');
 
             /*
              * Appeals (admin)
@@ -913,32 +882,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
 
         });
 
-        /*
-         * Users & Roles (top-level, still under auth:)
-         * Keep names as 'users.*' and 'roles.*' to satisfy admin layout.
-         */
-        Route::middleware('court.perm:users.manage')->group(function () {
-            Route::get('users', [UsersController::class, 'index'])->name('users.index');
-            Route::get('users/create', [UsersController::class, 'create'])->name('users.create');
-            Route::post('users', [UsersController::class, 'store'])->name('users.store');
-
-            // Staff accounts and their EUISIS employees (docs/euisis-integration.md, "Staff accounts").
-            Route::get('users/euisis-staff', [EuisisStaffController::class, 'index'])->name('users.euisis.index');
-            Route::put('users/euisis-staff/units', [EuisisStaffController::class, 'units'])->middleware('throttle:20,1')->name('users.euisis.units');
-            Route::post('users/{user}/euisis', [EuisisStaffController::class, 'link'])->middleware('throttle:20,1')->whereNumber('user')->name('users.euisis.link');
-            Route::delete('users/{user}/euisis', [EuisisStaffController::class, 'unlink'])->whereNumber('user')->name('users.euisis.unlink');
-        });
-
-        Route::get('users/{user}', [UsersController::class, 'show'])->middleware('can:view,user')->name('users.show');
-        Route::get('users/{user}/edit', [UsersController::class, 'edit'])->middleware('can:update,user')->name('users.edit');
-        Route::patch('users/{user}', [UsersController::class, 'update'])->middleware('can:update,user')->name('users.update');
-        Route::delete('users/{user}', [UsersController::class, 'destroy'])->middleware('can:delete,user')->name('users.destroy');
-
-        // Roles (resource with explicit names 'roles.*' as used in sidebar)
-        Route::resource('roles', RolesController::class)
-            ->except(['show'])
-            ->middleware('court.perm:roles.manage')
-            ->names('roles');
     });
 
 });

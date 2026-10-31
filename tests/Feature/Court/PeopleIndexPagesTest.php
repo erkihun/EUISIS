@@ -35,19 +35,3 @@ test('the applicants list shows each applicant, filters by state and lets a mana
     expect($inactive->fresh()->is_active)->toBeTrue();
 });
 
-test('the users list shows each account with its roles and what the viewer may do', function (): void {
-    $admin = peopleAdmin();
-    $clerk = User::factory()->create(['status' => 'inactive', 'name' => 'Clerk Person']);
-    $clerk->roles()->sync([Role::query()->firstOrCreate(['name' => 'clerk'])->id]);
-
-    $this->actingAs($admin)->get(route('court.users.index', ['q' => 'Clerk']))
-        ->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Court/Users/Index')
-            ->where('filters.q', 'Clerk')
-            ->where('users.total', 1)
-            ->where('users.data.0.name', 'Clerk Person')
-            ->where('users.data.0.status', 'inactive')
-            ->where('users.data.0.roles', ['clerk'])
-            ->where('users.data.0.can.delete', true));
-});

@@ -167,8 +167,6 @@ type NavSubItem = {
     employeeOnly?: boolean;
     /** City-level page: the server refuses organization-scoped users even when they hold the permission. */
     citywideOnly?: boolean;
-    /** The court module (ADR 0020): shown to accounts with a court staff record. */
-    courtStaffOnly?: boolean;
     /** Unread count shown as a badge (Communication). */
     badge?: number | null;
 };
@@ -637,8 +635,33 @@ const navGroups: NavGroup[] = [
             // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
             { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
-            // The court itself (Modules/Court, ADR 0020): its own workspace and menu.
-            { routeName: 'court.admin.dashboard', labelKey: 'court.workspaceName', icon: ScaleIcon, courtStaffOnly: true },
+            // The court (Modules/Court, ADR 0020): its pages, under the EUISIS permissions its roles give.
+            { routeName: 'court.admin.dashboard', labelKey: 'court.workspaceName', icon: ScaleIcon, permission: 'court.cases.view' },
+            { routeName: 'court.cases.index', labelKey: 'cm.app.Cases', icon: ClipboardListIcon, permission: 'court.cases.view' },
+            { routeName: 'court.admin.hearings.index', labelKey: 'cm.app.Hearings', icon: ClipboardClockIcon, permission: 'court.cases.view' },
+            { routeName: 'court.recordes.index', labelKey: 'cm.app.Records', icon: PrinterIcon, permission: 'court.cases.view' },
+            { routeName: 'court.appeals.index', labelKey: 'cm.app.Appeals', icon: RestartIcon, permission: 'court.appeals.view' },
+            { routeName: 'court.decisions.index', labelKey: 'cm.app.Decisions', icon: FileCheckIcon, permission: 'court.decision.view' },
+            { routeName: 'court.decision-templates.index', labelKey: 'cm.decision_templates.title', icon: DiplomaIcon, permission: 'court.decision.templet.create' },
+            { routeName: 'court.case-inspection-requests.index', labelKey: 'cm.case_inspections.requests.index_title', icon: EyeScanIcon, permission: 'court.inspection-requests.manage' },
+            { routeName: 'court.case-inspection-findings.index', labelKey: 'cm.case_inspections.findings.index_title', icon: FileSearchIcon, permission: 'court.inspection-findings.manage' },
+            { routeName: 'court.letters.index', labelKey: 'cm.app.Letters', icon: FilePenIcon, permission: 'court.cases.edit' },
+            { routeName: 'court.letters.compose', labelKey: 'cm.app.compose_letter', icon: PenIcon, permission: 'court.cases.edit' },
+            { routeName: 'court.letter-templates.index', labelKey: 'cm.app.letter_templates', icon: DiplomaIcon, permission: 'court.templates.manage' },
+            { routeName: 'court.letter-categories.index', labelKey: 'cm.app.letter_categories', icon: TagsIcon, permission: 'court.templates.manage' },
+            { routeName: 'court.applicants.index', labelKey: 'cm.app.Applicant', icon: Users, permission: 'court.applicants.view' },
+            { routeName: 'court.lawyers.index', labelKey: 'cm.lawyer.register.nav', icon: Briefcase, permission: 'court.applicants.view' },
+            { routeName: 'court.case-types.index', labelKey: 'cm.app.case_types', icon: TagsIcon, permission: 'court.cases.types' },
+            { routeName: 'court.teams.index', labelKey: 'cm.app.Teams', icon: UsersTwoIcon, permission: 'court.teams.manage' },
+            { routeName: 'court.reports.index', labelKey: 'cm.app.Reports', icon: ClipboardTextIcon, permission: 'court.reports.view' },
+            { routeName: 'court.performance-evaluations.index', labelKey: 'cm.app.performance_evaluations', icon: RankingIcon, permission: 'court.performance-evaluations.view' },
+            { routeName: 'court.admin.notifications.index', labelKey: 'cm.app.Notifications', icon: BellIcon, permission: 'court.cases.view' },
+            { routeName: 'court.announcements.index', labelKey: 'cm.app.Announcements', icon: MegaphoneIcon, permission: 'court.announcements.manage' },
+            { routeName: 'court.settings.performance-evaluation.index', labelKey: 'cm.performance.settings.title', icon: TuningIcon, permission: 'court.settings.manage' },
+            { routeName: 'court.terms.index', labelKey: 'cm.app.Terms', icon: ClipboardTextIcon, permission: 'court.settings.manage' },
+            { routeName: 'court.about.index', labelKey: 'cm.app.About', icon: CityIcon, permission: 'court.about.manage' },
+            { routeName: 'court.admin.landing.index', labelKey: 'court.nav.landing', icon: PaletteIcon, permission: 'court.settings.manage' },
+            { routeName: 'court.admin.audit', labelKey: 'cm.app.System_Audit', icon: EyeScanIcon, permission: 'court.audit.view' },
         ],
     },
     {
@@ -898,7 +921,6 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const { props: pageProps, url: pageUrl } = usePage();
     const isEmployeeUser = pageProps.is_employee_user === true;
     const hasEmployeeRecord = pageProps.has_employee_record === true;
-    const courtStaff = (pageProps as { court_staff?: boolean }).court_staff === true;
     const authFlags = (pageProps as { auth?: { canViewDashboard?: boolean; unrestrictedScope?: boolean; isSuperAdmin?: boolean } }).auth ?? {};
     // Roles without dashboard access sign in to My Portal, so that is their home link too.
     const canViewDashboard = authFlags.canViewDashboard !== false;
@@ -929,7 +951,6 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)
         && (!item.employeeOnly || hasEmployeeRecord)
         && (!item.citywideOnly || citywide)
-        && (!item.courtStaffOnly || courtStaff)
         && (!item.permission || can(item.permission))
         && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
     const allowedItems = (items: NavItem[]): NavSubItem[] => items

@@ -108,7 +108,7 @@ final class AdminNotificationFeed
                 'notice' => fn (object $row): array => $this->notice('staff_account', (int) $row->id,
                     __('court::euisis_staff.notice.'.$row->event, ['name' => $row->name]),
                     $row->event === 'suspended' ? (string) __('court::euisis_staff.reasons.'.$row->reason) : (string) __('court::euisis_staff.notice.restored_detail'),
-                    route('court.users.show', (int) $row->user_id), $row->created_at),
+                    route('users.show', (int) $row->user_id), $row->created_at),
             ];
         }
 

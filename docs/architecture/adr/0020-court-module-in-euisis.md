@@ -26,11 +26,16 @@
 | `resources/js/Pages/Court`, `resources/js/court` | same paths in EUISIS |
 | tests | `tests/Feature/Court` (court-ms's own, rewritten) |
 
-- **Staff** sign in to EUISIS. `ResolveCourtStaff` turns the platform account into its `court_staff`
-  row on the `court` guard for the request (403 without an active row), so the court's roles,
-  permissions, policies and audit work unchanged. Password, MFA, sessions, security headers and mail
-  transport are the platform's; their court-ms screens and tests were left out. The court's Users page
-  links an existing EUISIS account by email or creates one through `CreateUserAction`.
+- **EUISIS manages accounts, roles, permissions and system settings** (owner, 2026-11-01). The court
+  has no Users, Roles, Permissions, System Settings or role-switch screens. Its permissions are EUISIS
+  permissions `court.<name>` (`database/seeders/data/court-permissions.php`, 70, in the Court Cases
+  category, Amharic labels written for them; `court.judge` replaces the judge role), given by roles
+  on the EUISIS Roles page; Super Admin holds them all. An account with any `court.*` permission works
+  in the court: `ResolveCourtStaff` makes its `court_staff` row (signature, stamp, teams) the first
+  time and puts it on the `court` guard for the request, so the court's policies and audit work
+  unchanged. Court roles that court-ms gave (`court_roles`, no screen) still count until the cut-over
+  import turns them into EUISIS roles. Password, MFA, sessions, security headers and mail transport
+  are the platform's.
 - **Applicants and respondents** keep their own sign-in on the `applicant` and `respondent` guards;
   with `COURT_PORTAL_IN_EUISIS` on (Flow 6) the portal is closed as before.
 - **Files** live on the `court_private` and `court_public` disks (`storage/app/{private,public}/court`),
@@ -41,8 +46,9 @@
 - **Packages**: setasign/fpdi and fpdf (appeal bundles). mews/purifier, simple-qrcode and
   owen-it/laravel-auditing are replaced by small adapters on HTML Purifier, bacon-qr-code and a
   `court_audits` trait.
-- **UI**: the sidebar shows the court's server-sent menu as a `court` workspace (like Core), with its
-  own home, bell feed and a way back to EUISIS.
+- **UI**: the court's pages are listed in the EUISIS sidebar's Tribunal Court group, each under its
+  `court.*` permission, in the normal EUISIS layout. Only the applicant and respondent portals keep a
+  court menu of their own.
 
 ## Still to do
 

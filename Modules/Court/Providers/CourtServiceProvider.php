@@ -34,10 +34,8 @@ use Modules\Court\Http\Middleware\AuthenticateIntegrationClient;
 use Modules\Court\Http\Middleware\RedirectIfAuthenticated;
 use Modules\Court\Http\Middleware\RequirePermission;
 use Modules\Court\Http\Middleware\RequireRole;
-use Modules\Court\Http\Middleware\ResolveAdminRole;
 use Modules\Court\Http\Middleware\SystemAuditMiddleware;
 use Modules\Court\Http\Middleware\UseGuard;
-use Modules\Court\Infrastructure\Console\AccessUpgradeReport;
 use Modules\Court\Infrastructure\Console\CheckSrsCompliance;
 use Modules\Court\Infrastructure\Console\EuisisIntegrationTokenCommand;
 use Modules\Court\Infrastructure\Console\EuisisSyncCommand;
@@ -118,8 +116,7 @@ final class CourtServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        // The court's public contracts: what EUISIS asks of it, and who works in it.
-        $this->app->bind(\Modules\Court\Contracts\CourtStaffAccess::class, \Modules\Court\Application\Queries\CourtStaffAccessQuery::class);
+        // The court's public contract: what EUISIS asks of it, answered in this process.
         $this->app->bind(\Modules\Court\Contracts\CourtIntegration::class, \Modules\Court\Application\Queries\CourtIntegrationGateway::class);
         $this->app->bind(Models\Concerns\ApplicantMessages::class, \Modules\Court\Application\Notifications\ApplicantAccountMessages::class);
 
@@ -155,7 +152,6 @@ final class CourtServiceProvider extends ServiceProvider
         foreach ([
             'court.perm' => RequirePermission::class,
             'court.role' => RequireRole::class,
-            'court.active-role' => ResolveAdminRole::class,
             'court.act-respondent' => ActAsRespondent::class,
             'court.use-guard' => UseGuard::class,
             'court.admin-only' => AdminOnly::class,
@@ -187,8 +183,8 @@ final class CourtServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
-                AccessUpgradeReport::class, CheckSrsCompliance::class, EuisisIntegrationTokenCommand::class,
-                EuisisSyncCommand::class, ExportClientTranslations::class, \Modules\Court\Infrastructure\Console\CourtStaffCommand::class,
+                CheckSrsCompliance::class, EuisisIntegrationTokenCommand::class,
+                EuisisSyncCommand::class, ExportClientTranslations::class,
             ]);
         }
 

@@ -2048,4 +2048,6 @@ return [
         'description_en' => 'Allows changing the system-wide communication policy (attachments, edit windows, scope, retention).',
         'description_am' => 'የስርዓቱን የኮሙኒኬሽን ፖሊሲ ለመቀየር ይፈቅዳል (ፋይሎች፣ የማስተካከያ ጊዜ፣ ወሰን፣ የማቆያ ጊዜ)።'],
     ...require __DIR__.'/reception-permissions.php',
+    // The court module (Modules/Court, ADR 0020).
+    ...require __DIR__.'/court-permissions.php',
 ];

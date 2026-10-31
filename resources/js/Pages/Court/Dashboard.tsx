@@ -91,7 +91,7 @@ function CaseStatistics({ dashboard }: { dashboard: CourtDashboard }) {
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <KpiCard title={t('cm.dashboard.total_cases')} value={formatNumber(kpis.total)} icon="queue" tone="primary" featured
                     comparisonLabel={dashboard.range === 'all' ? t('cm.dashboard.all_time') : t(`court.dashboard.ranges.${dashboard.range}`)}
-                    href={can('cases.view') ? route('court.cases.index') : null} />
+                    href={can('court.cases.view') ? route('court.cases.index') : null} />
                 <KpiCard title={t('cm.dashboard.pending_cases_label')} value={formatNumber(kpis.pending)} icon="alert" tone="warning" comparisonLabel={share(kpis.pending)} />
                 <KpiCard title={t('cm.dashboard.active_cases_label')} value={formatNumber(kpis.active)} icon="activity" tone="primary" comparisonLabel={share(kpis.active)} />
                 <KpiCard title={t('cm.dashboard.resolved_cases_label')} value={formatNumber(kpis.resolved)} icon="shield" tone="success" comparisonLabel={share(kpis.resolved)} />
@@ -104,7 +104,7 @@ function CaseStatistics({ dashboard }: { dashboard: CourtDashboard }) {
                     </ChartCard>
                 </div>
                 <ChartCard title={t('cm.dashboard.cases_by_type')} description={t('cm.dashboard.case_type_distribution')}
-                    action={can('reports.view') ? <Link href={route('court.reports.index')} className={actionLinkClassName({})}>{t('cm.dashboard.view_report')}</Link> : undefined}>
+                    action={can('court.reports.view') ? <Link href={route('court.reports.index')} className={actionLinkClassName({})}>{t('cm.dashboard.view_report')}</Link> : undefined}>
                     <SimpleBarChart data={dashboard.caseTypes} labelFor={caseTypeLabel} emptyTitle={t('cm.dashboard.no_cases_yet')} />
                 </ChartCard>
             </div>
@@ -141,7 +141,7 @@ function CaseStatistics({ dashboard }: { dashboard: CourtDashboard }) {
             <div className="grid gap-4 xl:grid-cols-3">
                 <div className="xl:col-span-2">
                     <TableCard title={t('cm.dashboard.recent_cases')}
-                        actions={can('cases.view') ? <Link href={route('court.cases.index')} className={actionLinkClassName({})}>{t('cm.dashboard.view_all')}</Link> : undefined}>
+                        actions={can('court.cases.view') ? <Link href={route('court.cases.index')} className={actionLinkClassName({})}>{t('cm.dashboard.view_all')}</Link> : undefined}>
                         {dashboard.recent.length === 0
                             ? <p className="px-4 py-8 text-center text-sm text-(--app-muted-foreground)">{t('cm.dashboard.no_recent_cases')}</p>
                             : (
