@@ -7,7 +7,6 @@ use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
 use App\Http\Middleware\EnsureApiScope;
 use App\Http\Middleware\EnsureMfaNotRequired;
-use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\EnterCoreWorkspace;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
@@ -100,7 +99,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'mfa' => RequireMfa::class,
             'force.password' => ForcePasswordChange::class,
             'mfa.setup' => EnsureMfaNotRequired::class,
-            'public.site' => EnsurePublicSiteEnabled::class,
             'qr.private' => PrivateQrPageHeaders::class,
             'core.workspace' => EnterCoreWorkspace::class,
         ]);

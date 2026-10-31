@@ -6,12 +6,11 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\PublicIdCheckerService;
-use App\Services\PublicSite\PublicSiteContent;
-use App\Services\PublicSite\PublicSiteSectionRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\PublicSite\Contracts\PublicSitePages;
 
 /**
  * Public Global ID Checker — no authentication.
@@ -28,7 +27,7 @@ class PublicIdCheckerController extends Controller
 {
     public function __construct(
         private readonly PublicIdCheckerService $checker,
-        private readonly PublicSiteContent $content,
+        private readonly PublicSitePages $content,
     ) {}
 
     /**
@@ -38,7 +37,7 @@ class PublicIdCheckerController extends Controller
      */
     private function guidance(): array
     {
-        return $this->content->sections(PublicSiteSectionRegistry::PAGE_VERIFY);
+        return $this->content->sections(PublicSitePages::PAGE_VERIFY);
     }
 
     /** Landing page: manual token entry or QR scan. */

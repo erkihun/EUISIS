@@ -131,6 +131,11 @@ const MODULE_TABLE_READERS = [
         // The attention wall counts institutions without an active feedback QR.
         'app/Services/SituationRoom/AttentionCenter.php' => 'reporting',
     ],
+    'PublicSite' => [
+        // The public assistant checks the public FAQ and service tables exist before reading them
+        // through the read models (published rows only).
+        'app/Services/PublicAssistant/PublicKnowledgeService.php' => 'reporting',
+    ],
 ];
 
 /* Uses of a module's internals frozen when it moved; may only shrink (see the file). */

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\PublicPageSection;
 use App\Services\Branding\BrandingService;
-use App\Services\PublicSite\PublicSiteContent;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Modules\PublicSite\Contracts\PublicSitePages;
+use Modules\PublicSite\Contracts\PublicSiteRebranding;
+use Modules\PublicSite\Contracts\ReadModels\PublicPageSectionRecord;
 
 /**
  * Moves stored *defaults* of a former product identity (EUISIS, then Addis
@@ -51,7 +52,7 @@ class BrandingMigrate extends Command
         'title_am' => [['የተቀናጀ የሠራተኛ መታወቂያ እና አገልግሎት ስርዓት', 'የሠራተኛ ተዋሃደ መታወቂያ እና አገልግሎት ስርዓት'], 'branding.official_name_am'],
     ];
 
-    public function handle(BrandingService $branding, SystemSettingsService $settings): int
+    public function handle(BrandingService $branding, SystemSettingsService $settings, PublicSitePages $pages, PublicSiteRebranding $rebranding): int
     {
         $dryRun = (bool) $this->option('dry-run');
         $moved = 0;
@@ -91,7 +92,7 @@ class BrandingMigrate extends Command
         }
 
         $sectionsMoved = 0;
-        $intro = PublicPageSection::query()->where('page', 'home')->where('section_key', 'intro')->first();
+        $intro = PublicPageSectionRecord::query()->where('page', 'home')->where('section_key', 'intro')->first();
         if ($intro !== null) {
             $changes = [];
             foreach (self::INTRO_TITLES as $column => [$legacyValues, $configKey]) {
@@ -101,13 +102,13 @@ class BrandingMigrate extends Command
             }
             if ($changes !== []) {
                 if (! $dryRun) {
-                    $intro->forceFill($changes)->save();
+                    $rebranding->setHomeIntroTitles($changes);
                 }
                 $sectionsMoved++;
                 $this->components->twoColumnDetail('public site home intro title: '.implode(', ', array_keys($changes)), $dryRun ? '<fg=yellow>DRY RUN</>' : '<fg=green>MOVED</>');
             }
         }
-        foreach (PublicPageSection::query()->get() as $section) {
+        foreach (PublicPageSectionRecord::query()->get() as $section) {
             foreach (['title_en', 'title_am', 'subtitle_en', 'subtitle_am', 'body_en', 'body_am'] as $column) {
                 if ($this->mentionsLegacy((string) $section->{$column}, $branding) && ! ($section->section_key === 'intro' && in_array($column, ['title_en', 'title_am'], true) && $this->matches((string) $section->{$column}, [...self::INTRO_TITLES['title_en'][0], ...self::INTRO_TITLES['title_am'][0]]))) {
                     $review[] = "public site section {$section->page}/{$section->section_key}.{$column} mentions a former product name";
@@ -117,7 +118,7 @@ class BrandingMigrate extends Command
 
         if (! $dryRun) {
             $settings->clearCache();
-            PublicSiteContent::flush();
+            $pages->forgetCache();
         }
 
         $this->newLine();

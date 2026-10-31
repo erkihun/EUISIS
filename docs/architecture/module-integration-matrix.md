@@ -33,6 +33,7 @@ is allowed).
 | Daily work | 12 | DIRECT_CORE_ACCESS | none | none | none |
 | Field work | 8 | DIRECT_CORE_ACCESS | none | none | none |
 | Public / service feedback (`Modules/Feedback`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | see the ratchet | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core from its provider | implements `EmployeeFeedbackLinks` | none | none |
+| Public site (`Modules/PublicSite`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | none | no Core reads (content only) | system settings (public site switch) | none | none |
 | Reception / information desk (`Modules/Reception`) | 5 | DIRECT_CORE_ACCESS (scoped identity and organization/service directory reads) | organization-scope, audit, code-rule and work-calendar platform services | none | none |
 | Grievance | 15 | DIRECT_CORE_ACCESS | none | none | none |
 | Discipline / appeal | 3 | DIRECT_CORE_ACCESS | none | none | none |
@@ -71,7 +72,8 @@ imports does **not** complete Cafeteria's physical separation.
 | Assessment | cycles, forms, responses, results |
 | Daily work | daily logs, items, evidence, reviews |
 | Field work | requests, approvals, participants, locations |
-| Public feedback | feedback, suggestions, complaints, routing, responses |
+| Public feedback | feedback, suggestions, complaints, tip-offs, routing, referrals, employee and institution feedback QR codes |
+| Public site | public pages, sections, navigation, footer links, services, FAQs, announcements |
 | Reception / information desk | desks, counters, visitor check-ins, queue tickets, appointments, referrals |
 | Grievance | cases, stages, hearings, decisions, letters |
 | Discipline / appeal | cases, charges, decisions, appeals |

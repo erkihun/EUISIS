@@ -18,7 +18,6 @@ use App\Services\Dashboard\DashboardDataService;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\PublicAssistant\PublicAssistantSettings;
-use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Features;
@@ -26,6 +25,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 use Modules\Communication\Contracts\CommunicationTopBar;
+use Modules\PublicSite\Contracts\PublicSitePages;
 use Throwable;
 
 class HandleInertiaRequests extends Middleware
@@ -144,12 +144,12 @@ class HandleInertiaRequests extends Middleware
             'announcement_count' => $this->publishedAnnouncementCount(),
             /*
              * Public website chrome from Public Site Management. Published,
-             * allow-listed links only, cached by PublicSiteContent; both
+             * allow-listed links only, cached by the Public Site module (PublicSitePages); both
              * languages are sent and the browser picks one.
              */
             'publicSite' => fn (): array => [
-                'navigation' => app(PublicSiteContent::class)->navigation(),
-                'footerLinks' => app(PublicSiteContent::class)->footerLinks(),
+                'navigation' => app(PublicSitePages::class)->navigation(),
+                'footerLinks' => app(PublicSitePages::class)->footerLinks(),
             ],
             'is_employee_user' => $user !== null && $this->resolveIsEmployeeUser($user),
             // Whether the account is linked to an employee record at all

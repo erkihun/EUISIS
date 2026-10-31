@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Http\Requests\PublicSite\UpdatePublicSiteSettingsRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
@@ -19,6 +18,7 @@ use App\Services\SystemSettings\SystemSettingsRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\DailyWork\Http\Requests\UpdateDailyActivitySettingsRequest;
 use Modules\Performance\Http\Requests\UpdatePerformanceSettingsRequest;
+use Modules\PublicSite\Http\Requests\UpdatePublicSiteSettingsRequest;
 use Spatie\Permission\Models\Permission;
 
 /**

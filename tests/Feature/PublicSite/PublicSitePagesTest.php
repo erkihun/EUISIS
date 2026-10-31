@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicAnnouncementStatus;
-use App\Enums\PublicServiceStatus;
-use App\Models\PublicAnnouncement;
-use App\Models\PublicPageSection;
-use App\Models\PublicService;
 use App\Models\SystemSetting;
-use App\Services\PublicSite\PublicSiteContent;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\PublicSite\Application\Services\PublicSiteContent;
+use Modules\PublicSite\Domain\Enums\PublicAnnouncementStatus;
+use Modules\PublicSite\Domain\Enums\PublicServiceStatus;
+use Modules\PublicSite\Domain\Models\PublicAnnouncement;
+use Modules\PublicSite\Domain\Models\PublicPageSection;
+use Modules\PublicSite\Domain\Models\PublicService;
 
 /*
  * The five public pages, rendered from Public Site Management content.

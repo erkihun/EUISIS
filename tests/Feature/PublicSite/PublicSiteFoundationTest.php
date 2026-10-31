@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\PublicAnnouncementStatus;
-use App\Enums\PublicServiceStatus;
-use App\Models\PublicAnnouncement;
-use App\Models\PublicNavigationItem;
-use App\Models\PublicService;
-use App\Services\PublicSite\PublicSiteContent;
-use App\Services\PublicSite\PublicUrlPolicy;
-use App\Services\PublicSite\SafeContentRenderer;
+use Modules\PublicSite\Application\Services\PublicSiteContent;
+use Modules\PublicSite\Application\Services\PublicUrlPolicy;
+use Modules\PublicSite\Application\Services\SafeContentRenderer;
+use Modules\PublicSite\Domain\Enums\PublicAnnouncementStatus;
+use Modules\PublicSite\Domain\Enums\PublicServiceStatus;
+use Modules\PublicSite\Domain\Models\PublicAnnouncement;
+use Modules\PublicSite\Domain\Models\PublicNavigationItem;
+use Modules\PublicSite\Domain\Models\PublicService;
 
 /*
  * Foundation of Public Site Management: the link allow-list, the content

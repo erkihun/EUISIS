@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\PublicAnnouncement;
-use App\Models\PublicFaq;
-use App\Models\PublicPageSection;
-use App\Models\PublicService;
 use App\Models\User;
-use App\Services\PublicSite\PublicSiteContent;
-use App\Services\PublicSite\PublicSiteSectionRegistry;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\PublicSite\Application\Services\PublicSiteContent;
+use Modules\PublicSite\Application\Services\PublicSiteSectionRegistry;
+use Modules\PublicSite\Domain\Models\PublicAnnouncement;
+use Modules\PublicSite\Domain\Models\PublicFaq;
+use Modules\PublicSite\Domain\Models\PublicPageSection;
+use Modules\PublicSite\Domain\Models\PublicService;
 use Spatie\Permission\Models\Permission;
 
 function publicEditorUser(array $permissions = []): User

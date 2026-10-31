@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\Permission;
-use App\Models\PublicPageSection;
 use App\Models\Role;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -12,6 +11,7 @@ use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\PublicSite\Domain\Models\PublicPageSection;
 
 /*
  * Rebrand brief §30–§31, §49, §58–§60: stored legacy defaults move to the new

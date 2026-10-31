@@ -452,16 +452,17 @@ return [
         ],
     ],
     'PublicSite' => [
-        'home' => 'app',
+        'home' => 'Modules/PublicSite',
+        // The public website: pages, sections, navigation, footer links, services, FAQs, announcements.
         'models' => [
-            'App\Models\PublicAnnouncement',
-            'App\Models\PublicAnnouncementAttachment',
-            'App\Models\PublicFaq',
-            'App\Models\PublicFooterLink',
-            'App\Models\PublicNavigationItem',
-            'App\Models\PublicPageMeta',
-            'App\Models\PublicPageSection',
-            'App\Models\PublicService',
+            'Modules\PublicSite\Domain\Models\PublicAnnouncement',
+            'Modules\PublicSite\Domain\Models\PublicAnnouncementAttachment',
+            'Modules\PublicSite\Domain\Models\PublicFaq',
+            'Modules\PublicSite\Domain\Models\PublicFooterLink',
+            'Modules\PublicSite\Domain\Models\PublicNavigationItem',
+            'Modules\PublicSite\Domain\Models\PublicPageMeta',
+            'Modules\PublicSite\Domain\Models\PublicPageSection',
+            'Modules\PublicSite\Domain\Models\PublicService',
         ],
     ],
     'OrganizationDesign' => [

@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Models\Employee;
-use App\Models\PublicPageMeta;
-use App\Services\PublicSite\PublicSiteContent;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\PublicSite\Application\Services\PublicSiteContent;
+use Modules\PublicSite\Domain\Models\PublicPageMeta;
 
 /*
  * The public home page explains what Addis One is. Its copy lives in
