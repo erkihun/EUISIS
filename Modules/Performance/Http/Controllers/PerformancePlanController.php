@@ -95,7 +95,7 @@ class PerformancePlanController extends PerformanceController
         abort_unless($this->access->canPlan($user, 'performance_plans.view', $plan->organization_id, $plan->organization_unit_id), 403);
         $plan->load(['organization', 'organizationUnit', 'position', 'cycle', 'parentPlan']);
 
-        $objectives = $plan->objectives()->with(['targets.kpi', 'targets.periodTargets', 'parentObjective.plan', 'positionService'])->get();
+        $objectives = $plan->objectives()->with(['targets.kpi', 'targets.periodTargets', 'parentObjective.plan', 'positionService'])->orderBy('sort_order')->orderBy('code')->get();
         $cascadedParentIds = $objectives->pluck('parent_objective_id')->filter()->all();
         $score = PerformancePlanScore::query()->where('performance_plan_id', $plan->getKey())->latest('as_of')->first();
 

@@ -10,11 +10,13 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Performance\Application\Services\EpmsAccess;
 use Modules\Performance\Application\Services\PerformanceCascadeService;
 use Modules\Performance\Application\Services\StrategicPlanningService;
+use Modules\Performance\Application\Services\StrategyHierarchyService;
 use Modules\Performance\Domain\Enums\GoalAllocationType;
 use Modules\Performance\Domain\Enums\StrategicGoalStatus;
 use Modules\Performance\Domain\Models\KpiTarget;
@@ -89,7 +91,7 @@ class StrategicGoalController extends PerformanceController
 
         return Inertia::render('Performance/StrategicGoals/Index', [
             'goals' => $goals->through(fn (StrategicGoal $goal) => [
-                ...$goal->only(['id', 'cycle_id', 'organization_id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'weight_percent', 'is_shared', 'sort_order', 'return_reason', 'version_no', 'supersedes_goal_id', 'change_reason']),
+                ...$goal->only(['id', 'cycle_id', 'organization_id', 'strategy_id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'weight_percent', 'is_shared', 'sort_order', 'return_reason', 'version_no', 'supersedes_goal_id', 'change_reason']),
                 'can_view_plans' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id),
                 'cascade' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id) ? $this->cascade->goalCascade($goal, $user) : [],
                 'effective_from' => $goal->effective_from?->toDateString(),
@@ -145,13 +147,24 @@ class StrategicGoalController extends PerformanceController
 
     public function update(SaveStrategicGoalRequest $request, StrategicGoal $strategicGoal): RedirectResponse
     {
-        $this->planning->updateGoal($strategicGoal, $request->validated(), $request->user());
+        $data = $request->validated();
+        // ADR 0019: a goal registered for a strategy takes its name and weight from it; edit it on the strategy form.
+        if ($strategicGoal->strategy_id !== null && array_intersect_key($data, array_flip(['code', 'name_en', 'name_am', 'description_am', 'weight_percent'])) !== []) {
+            throw ValidationException::withMessages(['goal' => __('performance.hierarchy.managed_by_strategy')]);
+        }
+        $this->planning->updateGoal($strategicGoal, $data, $request->user());
 
         return $this->saved();
     }
 
     public function destroy(Request $request, StrategicGoal $strategicGoal): RedirectResponse
     {
+        if ($strategicGoal->strategy_id !== null) {
+            // Its objectives and activities go with it (ADR 0019).
+            app(StrategyHierarchyService::class)->deleteGoal($strategicGoal, $request->user());
+
+            return $this->saved();
+        }
         $this->planning->deleteGoal($strategicGoal, $request->user());
 
         return $this->saved();

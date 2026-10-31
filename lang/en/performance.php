@@ -29,6 +29,7 @@ return [
         'mandatory_cannot_be_removed' => 'A mandatory objective cannot be removed.',
         'mandatory_cannot_be_declined' => 'A mandatory parent objective cannot be declined.',
         'kpi_other_organization' => 'This KPI belongs to another organization.',
+        'kpi_already_targeted' => 'This objective already has a target for this KPI. Edit that target instead.',
         'period_outside_cycle' => 'The target period must be inside the cycle.',
         'parent_target_invalid' => 'The parent target must be the same KPI in the parent plan.',
         'plan_locked' => 'Only a draft plan can be edited. Create a new version to change a published plan.',
@@ -177,6 +178,7 @@ return [
         'goal_locked' => 'The goal of this strategy is under review or published, so its title and weight cannot change.',
         'strategy_taken' => 'A strategic goal is already registered for this strategy. Open it to edit.',
         'unknown_row' => 'This row does not belong to the record being edited.',
+        'managed_by_strategy' => 'This goal was registered for a strategy: change its name and weight on the Strategic Goal form.',
         'attributes' => [
             'main_strategy' => 'main strategy',
             'strategy' => 'strategy',

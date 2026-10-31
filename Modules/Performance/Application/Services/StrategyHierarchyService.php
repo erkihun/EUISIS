@@ -279,7 +279,8 @@ final class StrategyHierarchyService
                 throw ValidationException::withMessages(["objectives.$index.id" => __('performance.hierarchy.unknown_row')]);
             }
             $weight = Dec::str(Dec::of($row['weight_percent']));
-            $fields = ['title_am' => $row['title'], 'title_en' => $row['title'], 'weight' => $weight, 'absolute_weight_percent' => $weight, 'sort_order' => $index + 1];
+            // Plan-wide order: the goal's place in the strategy numbering, then the objective's (SG-1-2 objective 3 → 1023).
+            $fields = ['title_am' => $row['title'], 'title_en' => $row['title'], 'weight' => $weight, 'absolute_weight_percent' => $weight, 'sort_order' => $goal->sort_order * 10 + $index + 1];
             if ($id !== null) {
                 $objective = $this->plans->updateObjective($existing->get($id), $fields, $actor);
             } else {

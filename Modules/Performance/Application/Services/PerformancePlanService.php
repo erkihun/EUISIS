@@ -257,6 +257,10 @@ final class PerformancePlanService
         if ($kpi->organization_id !== null && $kpi->organization_id !== $plan->organization_id) {
             throw ValidationException::withMessages(['kpi_id' => __('performance.errors.kpi_other_organization')]);
         }
+        // One current target per KPI and objective: a second one would count the KPI twice.
+        if ($objective->targets()->where('kpi_id', $kpi->getKey())->exists()) {
+            throw ValidationException::withMessages(['kpi_id' => __('performance.errors.kpi_already_targeted')]);
+        }
 
         [$start, $end] = $this->periodWithinCycle($plan, $data['period_start'] ?? null, $data['period_end'] ?? null);
         $this->assertParentTarget($plan, $kpi->getKey(), $data['parent_target_id'] ?? null, $objective);

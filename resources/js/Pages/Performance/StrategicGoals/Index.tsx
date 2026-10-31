@@ -23,6 +23,7 @@ type Goal = {
     weight_percent: string; is_shared: boolean; sort_order: number; status: string; return_reason?: string | null; effective_from: string | null; effective_to: string | null;
     objectives_count: number; objectives: LinkedObjective[]; allocations: Allocation[];
     version_no: number; supersedes_goal_id: string | null; change_reason: string | null; can_view_plans: boolean; cascade: CascadeObjective[];
+    strategy_id: string | null;
     readiness: { allocation_total: string; objective_total: string; remaining: string; ready: boolean; problems: string[] };
     contribution: { contribution: string | null; complete: boolean } | null;
 };
@@ -196,7 +197,8 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
 
     async function removeGoal(goal: Goal) {
         const { confirmed } = await confirm({ title: t('performance.actions.remove'), description: goalName(goal), confirmLabel: t('performance.actions.remove'), cancelLabel: t('performance.actions.cancel'), variant: 'danger' });
-        if (confirmed) router.delete(route('performance.strategic-goals.destroy', goal.id), { preserveScroll: true });
+        // A goal entered on the strategy form takes its objectives and activities with it.
+        if (confirmed) router.delete(route(goal.strategy_id ? 'performance.strategy.goals.destroy' : 'performance.strategic-goals.destroy', goal.id), { preserveScroll: true });
     }
 
     async function removeAllocation(goal: Goal, row: Allocation) {
@@ -212,7 +214,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('performance.strategicGoals.title')}
-            actions={can.create && contextSelected ? <button type="button" className={primaryBtn} onClick={() => (editing === 'new' ? setEditing(null) : start('new'))}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategicGoals.create')}</button> : undefined} />}>
+            actions={can.create && contextSelected ? <Link href={route('performance.strategy.goals.create', filters)} className={primaryBtn}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategicGoals.create')}</Link> : undefined} />}>
             <Head title={t('performance.strategicGoals.title')} />
             <div className="min-w-0 space-y-6">
                 <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) shadow-xs" aria-label={t('performance.strategicGoals.selectContext')}>
@@ -327,7 +329,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                 {contextSelected && goals.data.length === 0 && <div className="rounded-panel border border-dashed border-(--app-border-strong) p-10 text-center text-sm text-(--app-muted-foreground)">{t('performance.strategicGoals.empty')}</div>}
 
                 {contextSelected && goals.data.length > 0 && <div className="flex items-center gap-3">
-                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('performance.strategicGoals.title')}</h2>
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('performance.strategicGoals.listTitle')}</h2>
                     <span className="rounded-full bg-(--app-surface-muted) px-2.5 py-0.5 text-xs font-medium tabular-nums text-(--app-muted-foreground)">{goals.total}</span>
                     <div className="h-px flex-1 bg-(--app-surface-muted)" />
                 </div>}
@@ -356,7 +358,10 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         </p>
                                     </div>
                                     <div className="flex shrink-0 flex-wrap items-center gap-2 lg:max-w-xs lg:justify-end">
-                                        {draft && can.update && <button type="button" className={secondaryBtn} onClick={() => start(goal)}>{t('performance.actions.edit')}</button>}
+                                        {draft && can.update && (goal.strategy_id
+                                            // A goal entered on the strategy form is edited there: its strategy fixes its name and weight.
+                                            ? <Link href={route('performance.strategy.goals.edit', goal.id)} className={secondaryBtn}>{t('performance.actions.edit')}</Link>
+                                            : <button type="button" className={secondaryBtn} onClick={() => start(goal)}>{t('performance.actions.edit')}</button>)}
                                         {draft && can.update && <button type="button" className={primaryBtn} onClick={() => transition(goal, 'UNDER_REVIEW')}>{t('performance.actions.submit')}</button>}
                                         {['UNDER_REVIEW', 'APPROVED'].includes(goal.status) && can.approve && <button type="button" className={secondaryBtn} onClick={() => returnGoal(goal)}>{t('performance.actions.return')}</button>}
                                         {goal.status === 'UNDER_REVIEW' && can.approve && <button type="button" className={primaryBtn} onClick={() => transition(goal, 'APPROVED')}>{t('performance.actions.approve')}</button>}

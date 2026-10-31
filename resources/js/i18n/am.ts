@@ -3,7 +3,7 @@ const am = {
         groupPerformance: 'የአፈጻጸም አስተዳደር',
         performanceDashboard: 'የአፈጻጸም ዳሽቦርድ',
         performanceCycles: 'የአፈጻጸም ዑደቶች',
-        strategicGoals: 'ስትራቴጂያዊ ግቦች',
+        strategicGoals: 'የግቦች ድልድልና ማጽደቅ',
         strategicOverview: 'ስትራቴጂክ አጠቃላይ እይታ',
         mainStrategies: 'ዋና ስትራቴጂዎች',
         strategicGoalEntry: 'ስትራቴጂክ ግብ',

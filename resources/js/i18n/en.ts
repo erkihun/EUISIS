@@ -3,7 +3,7 @@ const en = {
         groupPerformance: 'Performance Management',
         performanceDashboard: 'Performance Dashboard',
         performanceCycles: 'Performance Cycles',
-        strategicGoals: 'Strategic Goals',
+        strategicGoals: 'Goal Allocation & Approval',
         strategicOverview: 'Strategic Overview',
         mainStrategies: 'Main Strategies',
         strategicGoalEntry: 'Strategic Goal',

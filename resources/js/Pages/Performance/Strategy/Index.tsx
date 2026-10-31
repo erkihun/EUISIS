@@ -95,8 +95,8 @@ export default function StrategyIndex({ mains, summary, filters, cycles, organiz
                             actions={<>
                                 <span className="text-sm font-semibold tabular-nums">{formatScore(main.weight_percent)}%</span>
                                 <Link href={route('performance.strategy.main.show', main.id)} className={linkBtn}>{t('performance.strategy.common.view')}</Link>
-                                {can.update && <Link href={route('performance.strategy.main.edit', main.id)} className={linkBtn}>{t('performance.actions.edit')}</Link>}
-                                {can.delete && <button type="button" className={dangerLinkBtn} onClick={() => remove(main)}>{t('performance.actions.remove')}</button>}
+                                {can.update && <Link href={route('performance.strategy.main.edit', main.id)} className={linkBtn}>{t('performance.strategy.common.edit')}</Link>}
+                                {can.delete && <button type="button" className={dangerLinkBtn} onClick={() => remove(main)}>{t('performance.strategy.common.delete')}</button>}
                             </>}>
                             <Table head={<>
                                 <th className={thCls}>{t('performance.strategy.serialNo')}</th>

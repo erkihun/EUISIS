@@ -55,9 +55,15 @@ Decisions taken where the request left room:
    can be edited or deleted, and deleting one also removes its objectives from the draft plan; a
    strategy that already has a goal is left out of the goal form's list, as in WLMS.
 
+9. One way in (2026-10-31 walkthrough): goals are registered only on the strategy forms. The old
+   Strategic goals page became "Goal allocation & approval" (የግቦች ድልድልና ማጽደቅ): its add button
+   opens the Strategic Goal form, a strategy goal's edit and delete go through the strategy form and
+   service, and the server refuses a name, code or weight change there. The dashboard's setup steps
+   follow the same order: cycle → strategy and goals → allocation and approval → plans → agreements.
+
 ## Consequences
 
-- Goals entered on the old Strategic goals page (no strategy) still work and are not shown on the
-  overview; the two entry paths coexist.
+- Goals entered on the old Strategic goals page before this change (no strategy) still work and are
+  not shown on the overview.
 - When every strategy has a goal and the main strategies total 100, the goals total 100 as the
   existing organization readiness check requires.

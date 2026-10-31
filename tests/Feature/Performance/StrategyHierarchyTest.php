@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Performance\Application\Services\StrategicPlanningService;
 use Modules\Performance\Application\Services\StrategyHierarchyService;
+use Modules\Performance\Domain\Models\Kpi;
 use Modules\Performance\Domain\Models\MainStrategy;
 use Modules\Performance\Domain\Models\ObjectiveActivity;
 use Modules\Performance\Domain\Models\PerformanceCycle;
@@ -264,4 +265,45 @@ it('deletes a draft goal with its objectives and activities', function (): void 
     // The strategy is free for a new goal again.
     $this->service->saveGoal(null, ['strategy_id' => $strategy->id, 'objectives' => hierarchyObjectives()], $this->planner);
     expect(StrategicGoal::query()->count())->toBe(1);
+});
+
+it('keeps a strategy goal out of the old goal form and deletes it with its objectives from the allocation page', function (): void {
+    $strategy = hierarchyMain($this)->strategies()->first();
+    $goal = $this->service->saveGoal(null, ['strategy_id' => $strategy->id, 'objectives' => hierarchyObjectives()], $this->planner);
+
+    $this->actingAs($this->planner)->put(route('performance.strategic-goals.update', $goal), ['weight_percent' => '30'])->assertSessionHasErrors('goal');
+    $this->actingAs($this->planner)->put(route('performance.strategic-goals.update', $goal), ['is_shared' => true])->assertSessionHasNoErrors();
+    expect($goal->fresh()->weight_percent)->toBe('40.0000')->and($goal->fresh()->is_shared)->toBeTrue();
+
+    $this->actingAs($this->planner)->delete(route('performance.strategic-goals.destroy', $goal))->assertSessionHasNoErrors();
+    expect(StrategicGoal::query()->count())->toBe(0)->and(PerformanceObjective::query()->count())->toBe(0);
+});
+
+it('orders the organization plan by strategy numbering and refuses a second target for the same KPI', function (): void {
+    [$first, $second] = hierarchyMain($this)->strategies()->get()->all();
+    $this->service->saveGoal(null, ['strategy_id' => $second->id, 'objectives' => [[
+        'title' => 'Train staff', 'weight_percent' => '20', 'activities' => [['title' => 'Plan', 'weight_percent' => '50'], ['title' => 'Train', 'weight_percent' => '50']],
+    ]]], $this->planner);
+    $this->service->saveGoal(null, ['strategy_id' => $first->id, 'objectives' => hierarchyObjectives()], $this->planner);
+    $plan = PerformancePlan::query()->sole();
+
+    $this->actingAs($this->planner)->get(route('performance.plans.show', $plan))
+        ->assertInertia(fn (Assert $page) => $page->where('objectives.0.code', 'SG-1-1-O1')->where('objectives.1.code', 'SG-1-1-O2')->where('objectives.2.code', 'SG-1-2-O1'));
+
+    $kpi = Kpi::query()->create(['code' => 'SH-KPI', 'name_en' => 'Count', 'organization_id' => $this->org->id, 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'QUARTERLY', 'is_active' => true]);
+    $objective = PerformanceObjective::query()->where('code', 'SG-1-1-O1')->sole();
+    $this->actingAs($this->planner)->post(route('performance.objectives.targets.store', $objective), ['kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100])->assertSessionHasNoErrors();
+    $this->actingAs($this->planner)->post(route('performance.objectives.targets.store', $objective), ['kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100])->assertSessionHasErrors('kpi_id');
+    expect($objective->targets()->count())->toBe(1);
+});
+
+it('sends date-only fields as the calendar date in Addis Ababa time', function (): void {
+    $zone = date_default_timezone_get();
+    date_default_timezone_set('Africa/Addis_Ababa');
+    try {
+        $cycle = PerformanceCycle::query()->create(['code' => 'SH-TZ', 'name_en' => 'TZ', 'organization_id' => $this->org->id, 'start_date' => '2026-07-08', 'end_date' => '2027-07-07']);
+        expect($cycle->fresh()->toArray())->toMatchArray(['start_date' => '2026-07-08', 'end_date' => '2027-07-07']);
+    } finally {
+        date_default_timezone_set($zone);
+    }
 });
