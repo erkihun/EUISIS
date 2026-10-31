@@ -1,18 +1,17 @@
 import PageHeader from '@/Components/PageHeader';
-import { Plus } from '@/Components/Icons';
-import { Field, FieldError, Pill, Problems, Section, Table, dangerLinkBtn, fill, formatScore, inputCls, nameOf, primaryBtn, secondaryBtn, smallBtn, tdCls, textareaCls, thCls } from '@/Components/performance/ui';
+import { FieldError, Problems, dangerLinkBtn, fill, inputCls, labelCls, primaryBtn, secondaryBtn, smallBtn, textareaCls } from '@/Components/performance/ui';
+import { boxCls, contextLine, off, ok, pct, units, wTable, wTd, wTh, type Context } from '@/Components/performance/strategy';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
-type Named = { id: string; name_en: string; name_am?: string | null };
 type ActivityInput = { key: string; id: string | null; title: string; weight_percent: string; time_minutes: string };
 type ObjectiveInput = { key: string; id: string | null; title: string; weight_percent: string; activities: ActivityInput[] };
-type Group = { id: string; number: number; title: string; weight_percent: string; strategies: { id: string; number: string; title: string; weight_percent: string; taken: boolean }[] };
+type Group = { id: string; number: number; title: string; weight_percent: string; strategies: { id: string; title: string; weight_percent: string; order_no: number }[] };
 type Props = {
     goal: {
-        id: string; code: string; strategy_id: string; weight_percent: string; description: string | null; status: string;
+        id: string; code: string; strategy_id: string; weight_percent: string; description: string | null; is_active: boolean; status: string;
         objectives: { id: string; title: string; weight_percent: string; activities: { id: string; title: string; weight_percent: string; time_minutes: number | null }[] }[];
     } | null;
     strategyId: string | null;
@@ -20,47 +19,80 @@ type Props = {
     plan: { id: string; title: string; status: string } | null;
     editable: boolean;
     canPlan: boolean;
-    context: { organization_id: string; cycle_id: string; organization: Named | null; cycle: (Named & { code: string }) | null };
+    context: Context;
 };
 
 let counter = 0;
 const newKey = () => `row-${++counter}`;
-/** Weights summed in ten-thousandths, the stored scale, so 33.33 + 66.67 is exactly 100. */
-const units = (value: string | number) => Math.round((parseFloat(String(value)) || 0) * 10000);
-const ok = 'text-emerald-700 dark:text-emerald-400';
-const off = 'text-red-700 dark:text-red-400';
 const asText = (value: string | number) => String(Number(value));
-const RENDERED = /^(strategy_id|description|objectives|objectives\.\d+\.(title|weight_percent|activities|activities\.\d+\.(title|weight_percent|time_minutes)))$/;
+const RENDERED = /^(strategy_id|description|is_active|objectives|objectives\.\d+\.(title|weight_percent|activities|activities\.\d+\.(title|weight_percent|time_minutes)))$/;
 
+/**
+ * WLMS "Strategic Goal Creation Template": pick a strategy (its weight is the
+ * goal's), then objectives (#M.S.O) with their activities (M.S.O.A).
+ */
 export default function GoalForm({ goal, strategyId, groups, plan, editable, canPlan, context }: Props) {
     const { t, locale } = useLocale();
-    const blankActivity = (): ActivityInput => ({ key: newKey(), id: null, title: '', weight_percent: '', time_minutes: '' });
-    const blankObjective = (): ObjectiveInput => ({ key: newKey(), id: null, title: '', weight_percent: '', activities: [blankActivity(), blankActivity()] });
+    const g = (key: string) => t(`performance.strategy.goals.${key}`);
+    const c = (key: string) => t(`performance.strategy.common.${key}`);
+    const activity = (weight = ''): ActivityInput => ({ key: newKey(), id: null, title: '', weight_percent: weight, time_minutes: '' });
+    const objective = (weight = '', first = false): ObjectiveInput => ({
+        key: newKey(), id: null, title: '', weight_percent: weight,
+        activities: first ? [activity('50'), activity('50')] : [activity(), activity()],
+    });
+    const strategies = groups.flatMap((group) => group.strategies.map((s) => ({ ...s, main: group })));
+    const initial = strategies.find((s) => s.id === (goal?.strategy_id ?? strategyId)) ?? null;
     const form = useForm({
-        strategy_id: goal?.strategy_id ?? strategyId ?? '',
+        strategy_id: initial?.id ?? '',
         description: goal?.description ?? '',
+        is_active: goal?.is_active ?? true,
         objectives: goal && goal.objectives.length > 0
             ? goal.objectives.map((o) => ({
                 key: newKey(), id: o.id, title: o.title, weight_percent: asText(o.weight_percent),
                 activities: o.activities.map((a) => ({ key: newKey(), id: a.id, title: a.title, weight_percent: asText(a.weight_percent), time_minutes: a.time_minutes === null ? '' : String(a.time_minutes) })),
             }))
-            : [blankObjective()],
+            // A new goal starts with one objective holding the whole strategy weight and two activities at 50%.
+            : [objective(initial ? asText(initial.weight_percent) : '', true)],
     });
     const errors = form.errors as Record<string, string | undefined>;
-    const strategy = groups.flatMap((g) => g.strategies).find((s) => s.id === form.data.strategy_id) ?? null;
-    const goalWeight = strategy?.weight_percent ?? goal?.weight_percent ?? '0';
-    const objectivesTotal = form.data.objectives.reduce((sum, o) => sum + units(o.weight_percent), 0);
-    const overview = route('performance.strategy.index', { cycle_id: context.cycle_id, organization_id: context.organization_id });
-    // Server checks that belong to no field on this form (plan locked, goal not a draft, code taken …).
+    const selected = strategies.find((s) => s.id === form.data.strategy_id) ?? null;
+    const goalWeight = selected ? Number(selected.weight_percent) : 0;
+    const prefix = selected ? `${selected.main.number}.${selected.order_no}` : '0.0';
+    const objectivesTotal = form.data.objectives.reduce((sum, o) => sum + units(o.weight_percent), 0) / 10000;
+    const normalizedTotal = goalWeight > 0 ? (objectivesTotal / goalWeight) * 100 : 0;
+    const list = route('performance.strategy.goals.index', { cycle_id: context.cycle_id, organization_id: context.organization_id });
     const otherErrors = Object.entries(errors).filter(([key, message]) => message && !RENDERED.test(key)).map(([, message]) => message as string);
+    const objectives = form.data.objectives;
 
-    function setObjective(index: number, patch: Partial<ObjectiveInput>) {
-        form.setData('objectives', form.data.objectives.map((o, i) => (i === index ? { ...o, ...patch } : o)));
+    function chooseStrategy(id: string) {
+        const next = strategies.find((s) => s.id === id);
+        const only = objectives.length === 1 ? objectives[0] : null;
+        // The single starting objective follows the strategy's weight until it is edited.
+        if (next && only && (only.weight_percent === '' || (selected && units(only.weight_percent) === units(selected.weight_percent)))) {
+            form.setData({ ...form.data, strategy_id: id, objectives: [{ ...only, weight_percent: asText(next.weight_percent) }] });
+        } else {
+            form.setData('strategy_id', id);
+        }
     }
 
-    function setActivity(objective: number, index: number, field: 'title' | 'weight_percent' | 'time_minutes', value: string) {
-        const activities = form.data.objectives[objective].activities.map((a, i) => (i === index ? { ...a, [field]: value } : a));
-        setObjective(objective, { activities });
+    function setObjective(index: number, patch: Partial<ObjectiveInput>) {
+        form.setData('objectives', objectives.map((o, i) => (i === index ? { ...o, ...patch } : o)));
+    }
+
+    function setActivity(oIndex: number, aIndex: number, field: 'title' | 'weight_percent' | 'time_minutes', value: string) {
+        setObjective(oIndex, { activities: objectives[oIndex].activities.map((a, i) => (i === aIndex ? { ...a, [field]: value } : a)) });
+    }
+
+    function removeActivity(oIndex: number, aIndex: number) {
+        const rest = objectives[oIndex].activities.filter((_, i) => i !== aIndex);
+        // An objective always keeps at least two activity rows.
+        while (rest.length < 2) rest.push(activity());
+        setObjective(oIndex, { activities: rest });
+    }
+
+    function removeObjective(index: number) {
+        const rest = objectives.filter((_, i) => i !== index);
+        form.setData('objectives', rest.length > 0 ? rest : [objective()]);
     }
 
     function submit(e: FormEvent) {
@@ -68,6 +100,7 @@ export default function GoalForm({ goal, strategyId, groups, plan, editable, can
         form.transform((data) => ({
             ...(goal ? {} : { strategy_id: data.strategy_id }),
             description: data.description || null,
+            is_active: data.is_active,
             objectives: data.objectives.map((o) => ({
                 id: o.id, title: o.title, weight_percent: o.weight_percent,
                 activities: o.activities.map((a) => ({ id: a.id, title: a.title, weight_percent: a.weight_percent, time_minutes: a.time_minutes === '' ? null : Number(a.time_minutes) })),
@@ -77,128 +110,159 @@ export default function GoalForm({ goal, strategyId, groups, plan, editable, can
         else form.post(route('performance.strategy.goals.store'));
     }
 
-    const heading = goal ? `${t('performance.strategy.editGoal')}: ${goal.code}` : t('performance.strategy.registerGoal');
+    const heading = goal ? `${g('editTitle')}: ${prefix} ${selected?.title ?? goal.code}` : g('createTitle');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={heading} description={`${nameOf(context.organization, locale)} · ${context.cycle?.code ?? ''} ${nameOf(context.cycle, locale)}`} backHref={overview} />}>
+        <AuthenticatedLayout header={<PageHeader title={heading} description={`${g('createSubtitle')} · ${contextLine(context, locale)}`}
+            actions={<Link href={list} className={secondaryBtn}>{g('backToList')}</Link>} />}>
             <Head title={heading} />
-            <form onSubmit={submit} className="min-w-0 space-y-6">
+            <form onSubmit={submit} className="min-w-0 space-y-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 {!editable && (
-                    <div role="status" className="rounded-panel border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+                    <div role="status" className="rounded-panel border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
                         {canPlan ? t('performance.strategy.locked') : t('performance.strategy.noPlanRight')}
                     </div>
                 )}
 
-                <Section title={t('performance.strategy.goal')} description={plan ? fill(t('performance.strategy.planNote'), { plan: plan.title }) : t('performance.strategy.planNew')}
-                    actions={goal ? <Pill group="goal" value={goal.status} /> : undefined}>
-                    <fieldset disabled={!editable} className="grid gap-4 sm:grid-cols-3">
-                        <Field label={t('performance.strategy.goal')} htmlFor="sg-strategy" error={errors.strategy_id} className="sm:col-span-2">
-                            <select id="sg-strategy" className={inputCls} value={form.data.strategy_id} disabled={goal !== null} onChange={(e) => form.setData('strategy_id', e.target.value)} required>
-                                <option value="">{t('performance.strategy.selectStrategy')}</option>
-                                {groups.map((group) => (
-                                    <optgroup key={group.id} label={`${group.number}. ${group.title} (${formatScore(group.weight_percent)}%)`}>
-                                        {group.strategies.map((s) => (
-                                            <option key={s.id} value={s.id} disabled={s.taken}>
-                                                {s.number} {group.title} - {s.title} ({formatScore(s.weight_percent)}%){s.taken ? ` · ${t('performance.strategy.taken')}` : ''}
-                                            </option>
-                                        ))}
+                <fieldset disabled={!editable} className={`${boxCls} space-y-4`}>
+                    <h2 className="text-sm font-semibold">{g('formTemplateTitle')}</h2>
+                    <div className="grid gap-3 md:grid-cols-[1fr_16rem]">
+                        <div>
+                            <label htmlFor="sg-strategy" className={labelCls}>{g('titleLabel')}</label>
+                            <select id="sg-strategy" className={inputCls} value={form.data.strategy_id} disabled={goal !== null} onChange={(e) => chooseStrategy(e.target.value)} required>
+                                <option value="">{c('select')}</option>
+                                {groups.filter((group) => group.strategies.length > 0).map((group) => (
+                                    <optgroup key={group.id} label={group.title}>
+                                        {group.strategies.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
                                     </optgroup>
                                 ))}
                             </select>
-                        </Field>
-                        <Field label={t('performance.strategy.goalWeight')} htmlFor="sg-weight">
-                            <input id="sg-weight" className={inputCls} value={`${formatScore(goalWeight)}%`} readOnly tabIndex={-1} />
-                        </Field>
-                        <Field label={t('performance.strategy.descriptionField')} htmlFor="sg-description" error={errors.description} className="sm:col-span-3">
-                            <textarea id="sg-description" rows={2} className={textareaCls} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
-                        </Field>
-                    </fieldset>
-                </Section>
-
-                {form.data.objectives.map((objective, oIndex) => {
-                    const activitiesTotal = objective.activities.reduce((sum, a) => sum + units(a.weight_percent), 0);
-                    const minutes = objective.activities.reduce((sum, a) => sum + (parseInt(a.time_minutes, 10) || 0), 0);
-                    return (
-                        <Section key={objective.key} flush title={`${t('performance.strategy.objective')} ${oIndex + 1}`}
-                            actions={editable && form.data.objectives.length > 1
-                                ? <button type="button" className={dangerLinkBtn} onClick={() => form.setData('objectives', form.data.objectives.filter((_, i) => i !== oIndex))}>{t('performance.strategy.removeObjective')}</button>
-                                : undefined}>
-                            <fieldset disabled={!editable}>
-                                <div className="grid gap-4 px-5 pb-4 sm:grid-cols-4">
-                                    <Field label={t('performance.strategy.objective')} htmlFor={`ob-${objective.key}`} error={errors[`objectives.${oIndex}.title`]} className="sm:col-span-3">
-                                        <textarea id={`ob-${objective.key}`} rows={2} className={textareaCls} value={objective.title} maxLength={500} onChange={(e) => setObjective(oIndex, { title: e.target.value })} required />
-                                    </Field>
-                                    <Field label={t('performance.strategy.weight')} htmlFor={`ow-${objective.key}`} error={errors[`objectives.${oIndex}.weight_percent`]}>
-                                        <input id={`ow-${objective.key}`} type="number" step="0.01" min="0.01" max="100" className={inputCls} value={objective.weight_percent} onChange={(e) => setObjective(oIndex, { weight_percent: e.target.value })} required />
-                                    </Field>
-                                </div>
-                                <Table head={<>
-                                    <th className={`${thCls} w-16`}>{t('performance.strategy.serialNo')}</th>
-                                    <th className={thCls}>{t('performance.strategy.activities')}</th>
-                                    <th className={`${thCls} w-36`}>{t('performance.strategy.timeMinutes')}</th>
-                                    <th className={`${thCls} w-36`}>{t('performance.strategy.weight')}</th>
-                                    <th className={`${thCls} w-24`}><span className="sr-only">{t('performance.strategy.removeRow')}</span></th>
-                                </>}>
-                                    {objective.activities.map((activity, aIndex) => (
-                                        <tr key={activity.key}>
-                                            <td className={`${tdCls} tabular-nums`}>{oIndex + 1}.{aIndex + 1}</td>
-                                            <td className={tdCls}>
-                                                <input aria-label={`${t('performance.strategy.activity')} ${oIndex + 1}.${aIndex + 1}`} className={inputCls} value={activity.title} maxLength={500} onChange={(e) => setActivity(oIndex, aIndex, 'title', e.target.value)} required />
-                                                <FieldError message={errors[`objectives.${oIndex}.activities.${aIndex}.title`]} />
-                                            </td>
-                                            <td className={tdCls}>
-                                                <input aria-label={`${t('performance.strategy.timeMinutes')} ${oIndex + 1}.${aIndex + 1}`} type="number" step="1" min="0" className={inputCls} value={activity.time_minutes} onChange={(e) => setActivity(oIndex, aIndex, 'time_minutes', e.target.value)} />
-                                                <FieldError message={errors[`objectives.${oIndex}.activities.${aIndex}.time_minutes`]} />
-                                            </td>
-                                            <td className={tdCls}>
-                                                <input aria-label={`${t('performance.strategy.weight')} ${oIndex + 1}.${aIndex + 1}`} type="number" step="0.01" min="0.01" max="100" className={inputCls} value={activity.weight_percent} onChange={(e) => setActivity(oIndex, aIndex, 'weight_percent', e.target.value)} required />
-                                                <FieldError message={errors[`objectives.${oIndex}.activities.${aIndex}.weight_percent`]} />
-                                            </td>
-                                            <td className={`${tdCls} text-right`}>
-                                                {editable && objective.activities.length > 2 && (
-                                                    <button type="button" className={dangerLinkBtn} onClick={() => setObjective(oIndex, { activities: objective.activities.filter((_, i) => i !== aIndex) })}>{t('performance.strategy.removeRow')}</button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    <tr>
-                                        <td className={`${tdCls} font-semibold`} colSpan={2}>{t('performance.strategy.activitiesTotal')}</td>
-                                        <td className={`${tdCls} tabular-nums text-(--app-muted-foreground)`}>{minutes}</td>
-                                        <td className={`${tdCls} font-semibold tabular-nums ${activitiesTotal === 1000000 ? ok : off}`} colSpan={2}>{formatScore(activitiesTotal / 10000)}% / 100%</td>
-                                    </tr>
-                                </Table>
-                                <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-4">
-                                    <div>
-                                        <FieldError message={errors[`objectives.${oIndex}.activities`]} />
-                                        <p className="text-xs text-(--app-muted-foreground)">{t('performance.strategy.minActivities')}</p>
-                                    </div>
-                                    {editable && <button type="button" className={smallBtn} onClick={() => setObjective(oIndex, { activities: [...objective.activities, blankActivity()] })}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategy.addRow')}</button>}
-                                </div>
-                            </fieldset>
-                        </Section>
-                    );
-                })}
-
-                <section className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
-                    <div>
-                        <p className="text-sm font-semibold">
-                            {t('performance.strategy.objectivesTotal')}:{' '}
-                            <span className={`tabular-nums ${objectivesTotal === units(goalWeight) && objectivesTotal > 0 ? ok : off}`}>{formatScore(objectivesTotal / 10000)}% / {formatScore(goalWeight)}%</span>
-                        </p>
-                        <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('performance.strategy.goalHint')}</p>
-                        <FieldError message={errors.objectives} />
+                            {selected && <p className="mt-1 text-xs text-(--app-muted-foreground)">{g('selectedStrategyWeightLabel')}: {pct(selected.weight_percent)}%</p>}
+                            <FieldError message={errors.strategy_id} />
+                        </div>
+                        <div>
+                            <label htmlFor="sg-weight" className={labelCls}>{g('goalWeight')}</label>
+                            <input id="sg-weight" className={`${inputCls} bg-(--app-surface-muted)`} value={`${pct(goalWeight)}%`} readOnly tabIndex={-1} />
+                        </div>
                     </div>
-                    {editable && <button type="button" className={smallBtn} onClick={() => form.setData('objectives', [...form.data.objectives, blankObjective()])}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategy.addObjective')}</button>}
-                </section>
+
+                    {objectives.map((o, oIndex) => {
+                        const total = o.activities.reduce((sum, a) => sum + units(a.weight_percent), 0);
+                        const normalized = goalWeight > 0 ? ((units(o.weight_percent) / 10000) / goalWeight) * 100 : null;
+                        return (
+                            <section key={o.key} className="space-y-3 rounded-panel border border-(--app-border) bg-(--app-surface) p-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <h3 className="text-sm font-semibold">{g('objective')} #{prefix}.{oIndex + 1}</h3>
+                                    <button type="button" className={dangerLinkBtn} onClick={() => removeObjective(oIndex)}>{g('removeObjective')}</button>
+                                </div>
+                                <div className="grid gap-3 md:grid-cols-[1fr_16rem]">
+                                    <div>
+                                        <label htmlFor={`ob-${o.key}`} className={labelCls}>{g('objective')}</label>
+                                        <textarea id={`ob-${o.key}`} rows={3} className={textareaCls} value={o.title} maxLength={500} onChange={(e) => setObjective(oIndex, { title: e.target.value })} required />
+                                        <FieldError message={errors[`objectives.${oIndex}.title`]} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor={`ow-${o.key}`} className={labelCls}>{g('objectiveWeight')}</label>
+                                        <div className="flex items-center gap-2">
+                                            <input id={`ow-${o.key}`} type="number" step="0.01" min="0.01" max="100" className={inputCls} value={o.weight_percent} onChange={(e) => setObjective(oIndex, { weight_percent: e.target.value })} required />
+                                            <span>%</span>
+                                            {normalized !== null && <span className="whitespace-nowrap text-xs text-(--app-muted-foreground) tabular-nums">({pct(normalized)}%)</span>}
+                                        </div>
+                                        <FieldError message={errors[`objectives.${oIndex}.weight_percent`]} />
+                                    </div>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className={`${wTable} min-w-[820px]`}>
+                                        <thead>
+                                            <tr>
+                                                <th className={`${wTh} w-24`}>{g('serialNo')}</th>
+                                                <th className={wTh}>{g('activitiesLabel')}</th>
+                                                <th className={`${wTh} w-36`}>{g('timeMinutes')}</th>
+                                                <th className={`${wTh} w-40`}>{g('weightColumn')}</th>
+                                                <th className={`${wTh} w-[60px]`}><span className="sr-only">{c('delete')}</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {o.activities.map((a, aIndex) => {
+                                                const serial = `${prefix}.${oIndex + 1}.${aIndex + 1}`;
+                                                return (
+                                                    <tr key={a.key}>
+                                                        <td className={`${wTd} text-center tabular-nums`}>{serial}</td>
+                                                        <td className={wTd}>
+                                                            <input aria-label={`${g('activitiesLabel')} ${serial}`} className={inputCls} value={a.title} maxLength={500} onChange={(e) => setActivity(oIndex, aIndex, 'title', e.target.value)} required />
+                                                            <FieldError message={errors[`objectives.${oIndex}.activities.${aIndex}.title`]} />
+                                                        </td>
+                                                        <td className={wTd}>
+                                                            <input aria-label={`${g('timeMinutes')} ${serial}`} type="number" step="1" min="0" className={inputCls} value={a.time_minutes} onChange={(e) => setActivity(oIndex, aIndex, 'time_minutes', e.target.value)} />
+                                                            <FieldError message={errors[`objectives.${oIndex}.activities.${aIndex}.time_minutes`]} />
+                                                        </td>
+                                                        <td className={wTd}>
+                                                            <div className="flex items-center gap-2">
+                                                                <input aria-label={`${g('weightColumn')} ${serial}`} type="number" step="0.01" min="0.01" max="100" className={inputCls} value={a.weight_percent} onChange={(e) => setActivity(oIndex, aIndex, 'weight_percent', e.target.value)} required />
+                                                                <span>%</span>
+                                                            </div>
+                                                            <FieldError message={errors[`objectives.${oIndex}.activities.${aIndex}.weight_percent`]} />
+                                                        </td>
+                                                        <td className={`${wTd} text-center`}>
+                                                            <button type="button" className={dangerLinkBtn} onClick={() => removeActivity(oIndex, aIndex)}>{c('delete')}</button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td className={wTd} />
+                                                <td className={`${wTd} font-semibold`}>{g('objectiveTotalWeight')}</td>
+                                                <td className={wTd} />
+                                                <td className={`${wTd} text-center font-semibold tabular-nums ${total === 1000000 ? ok : off}`}>{pct(total / 10000)}%</td>
+                                                <td className={wTd} />
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                <FieldError message={errors[`objectives.${oIndex}.activities`]} />
+                                <div className="flex gap-2">
+                                    <button type="button" className={smallBtn} onClick={() => setObjective(oIndex, { activities: [...o.activities, activity()] })}>{g('addItem')}</button>
+                                    <button type="button" className={smallBtn} disabled={o.activities.length <= 2} onClick={() => setObjective(oIndex, { activities: o.activities.slice(0, -1) })}>{g('removeItem')}</button>
+                                </div>
+                            </section>
+                        );
+                    })}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button type="button" className={smallBtn} onClick={() => form.setData('objectives', [...objectives, objective()])}>{g('addObjective')}</button>
+                        <button type="button" className={smallBtn} disabled={objectives.length <= 1} onClick={() => form.setData('objectives', objectives.slice(0, -1))}>{g('removeObjective')}</button>
+                        <span className="text-xs text-(--app-muted-foreground)">{g('totalWeightHint')}</span>
+                    </div>
+                    <div className="text-sm">
+                        <span className="font-medium">{g('objectivesTotalWeight')}:</span>
+                        <span className={`ml-2 font-semibold tabular-nums ${goalWeight > 0 && Math.abs(normalizedTotal - 100) < 0.005 ? ok : off}`}>{pct(normalizedTotal)}%</span>
+                        <span className="ml-2 text-(--app-muted-foreground)">/ {g('goalWeight')}: <span className="tabular-nums">{pct(goalWeight)}%</span></span>
+                    </div>
+                    <FieldError message={errors.objectives} />
+                </fieldset>
+
+                <fieldset disabled={!editable} className="space-y-4">
+                    <div>
+                        <label htmlFor="sg-description" className={labelCls}>{g('description')}</label>
+                        <textarea id="sg-description" rows={4} className={textareaCls} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
+                        <FieldError message={errors.description} />
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-sm">
+                        <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
+                        <span>{g('isActive')}</span>
+                    </label>
+                </fieldset>
 
                 <Problems title={t('performance.strategicGoals.readiness')} problems={otherErrors} />
 
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs text-(--app-muted-foreground)">{t('performance.strategy.allocateNext')}</p>
-                    <div className="flex flex-wrap gap-2">
-                        <Link href={overview} className={secondaryBtn}>{editable ? t('performance.actions.cancel') : t('performance.strategy.back')}</Link>
-                        {editable && <button type="submit" className={primaryBtn} disabled={form.processing}>{goal ? t('performance.actions.save') : t('performance.actions.create')}</button>}
-                    </div>
+                <p className="text-xs text-(--app-muted-foreground)">
+                    {plan ? fill(t('performance.strategy.planNote'), { plan: plan.title }) : t('performance.strategy.planNew')} {t('performance.strategy.allocateNext')}
+                </p>
+
+                <div className="flex items-center justify-end gap-2">
+                    <Link href={list} className={secondaryBtn}>{c('cancel')}</Link>
+                    {editable && <button type="submit" className={primaryBtn} disabled={form.processing}>{goal ? c('update') : c('create')}</button>}
                 </div>
             </form>
         </AuthenticatedLayout>

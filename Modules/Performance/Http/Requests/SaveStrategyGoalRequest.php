@@ -21,6 +21,7 @@ class SaveStrategyGoalRequest extends FormRequest
         return [
             'strategy_id' => [$this->isMethod('post') ? 'required' : 'prohibited', 'uuid', 'exists:performance_strategies,id'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'is_active' => ['sometimes', 'boolean'],
             'objectives' => ['required', 'array', 'min:1', 'max:50'],
             'objectives.*.id' => ['nullable', 'uuid'],
             'objectives.*.title' => ['required', 'string', 'max:500'],

@@ -16,11 +16,11 @@ class StrategicGoal extends Model
 {
     use HasUuidPrimaryKey;
 
-    protected $fillable = ['cycle_id', 'organization_id', 'strategy_id', 'code', 'name_am', 'name_en', 'description_am', 'description_en', 'weight_percent', 'is_shared', 'sort_order', 'effective_from', 'effective_to'];
+    protected $fillable = ['cycle_id', 'organization_id', 'strategy_id', 'code', 'name_am', 'name_en', 'description_am', 'description_en', 'weight_percent', 'is_shared', 'is_active', 'sort_order', 'effective_from', 'effective_to'];
 
     protected function casts(): array
     {
-        return ['status' => StrategicGoalStatus::class, 'weight_percent' => 'decimal:4', 'is_shared' => 'boolean', 'effective_from' => DateOnly::class, 'effective_to' => DateOnly::class, 'published_at' => 'datetime'];
+        return ['status' => StrategicGoalStatus::class, 'weight_percent' => 'decimal:4', 'is_shared' => 'boolean', 'is_active' => 'boolean', 'effective_from' => DateOnly::class, 'effective_to' => DateOnly::class, 'published_at' => 'datetime'];
     }
 
     public function cycle(): BelongsTo

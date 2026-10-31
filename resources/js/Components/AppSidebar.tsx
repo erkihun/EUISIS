@@ -51,6 +51,7 @@ import {
     FileSpreadsheetIcon,
     FileTextIcon,
     FileUserIcon,
+    FlagIcon,
     FolderCheckIcon,
     FolderFilesIcon,
     FolderOpenIcon,
@@ -437,7 +438,9 @@ const navGroups: NavGroup[] = [
             // Line managers (agreements) use the dashboard for their teams, as the page allows.
             { routeName: 'performance.dashboard', labelKey: 'nav.performanceDashboard', icon: LayoutDashboard, anyPermission: ['performance_reports.view', 'employee_performance_agreements.manage'] },
             { routeName: 'performance.cycles.index', labelKey: 'nav.performanceCycles', icon: CalendarIcon, permission: 'performance_cycles.view' },
-            { routeName: 'performance.strategy.index', labelKey: 'nav.strategicOverview', icon: Layers, permission: 'strategic_goals.view' },
+            { routeName: 'performance.strategy.index', labelKey: 'nav.strategicOverview', icon: PieChartIcon, permission: 'strategic_goals.view' },
+            { routeName: 'performance.strategy.main.index', labelKey: 'nav.mainStrategies', icon: Layers, permission: 'strategic_goals.view' },
+            { routeName: 'performance.strategy.goals.index', labelKey: 'nav.strategicGoalEntry', icon: FlagIcon, permission: 'strategic_goals.view' },
             { routeName: 'performance.strategic-goals.index', labelKey: 'nav.strategicGoals', icon: TargetIcon, permission: 'strategic_goals.view' },
             { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: ClipboardListIcon, permission: 'performance_plans.view' },
             { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: SpeedometerIcon, permission: 'kpis.view' },

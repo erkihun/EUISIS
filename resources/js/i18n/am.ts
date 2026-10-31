@@ -5,6 +5,8 @@ const am = {
         performanceCycles: 'የአፈጻጸም ዑደቶች',
         strategicGoals: 'ስትራቴጂያዊ ግቦች',
         strategicOverview: 'ስትራቴጂክ አጠቃላይ እይታ',
+        mainStrategies: 'ዋና ስትራቴጂዎች',
+        strategicGoalEntry: 'ስትራቴጂክ ግብ',
         performancePlans: 'ዕቅዶችና የዕቅድ ማውረድ',
         kpiLibrary: 'የKPI ማውጫ',
         performanceAgreements: 'የአፈጻጸም ስምምነቶች',

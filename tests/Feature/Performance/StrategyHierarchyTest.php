@@ -215,3 +215,53 @@ it('shows the goal form read-only to a goal author without organization plan ove
     expect(fn () => $this->service->saveGoal(null, ['strategy_id' => $strategy->id, 'objectives' => hierarchyObjectives()], $officer))->toThrow(AuthorizationException::class);
     expect(StrategicGoal::query()->count())->toBe(0);
 });
+
+it('lists main strategies and goals the WLMS way and returns to the list after saving', function (): void {
+    $context = ['cycle_id' => $this->cycle->id, 'organization_id' => $this->org->id];
+    $this->actingAs($this->planner)->from('/performance/strategy/main-strategies')->post(route('performance.strategy.main.store'), [
+        ...$context, 'title' => 'Service delivery', 'weight_percent' => '60',
+        'strategies' => [['title' => 'Digital services', 'weight_percent' => '40'], ['title' => 'Staff skills', 'weight_percent' => '20']],
+    ])->assertRedirect(route('performance.strategy.main.index', $context));
+    $main = MainStrategy::query()->sole();
+    $strategy = $main->strategies()->first();
+
+    $this->actingAs($this->planner)->get(route('performance.strategy.main.index', $context))
+        ->assertInertia(fn (Assert $page) => $page->component('Performance/Strategy/MainStrategies')
+            ->where('summary.main_count', 1)->where('summary.strategy_count', 2)->where('summary.main_total', '60.00')
+            ->where('mains.0.strategies.0.normalized', '66.67')->where('mains.0.normalized_total', '100.00')->where('mains.0.balanced', true));
+    $this->actingAs($this->planner)->get(route('performance.strategy.main.show', $main))
+        ->assertInertia(fn (Assert $page) => $page->component('Performance/Strategy/MainStrategyShow')->where('main.number', 1)->has('main.strategies', 2));
+
+    $this->actingAs($this->planner)->post(route('performance.strategy.goals.store'), ['strategy_id' => $strategy->id, 'is_active' => false, 'objectives' => hierarchyObjectives()])
+        ->assertRedirect(route('performance.strategy.goals.index', $context));
+    $goal = StrategicGoal::query()->sole();
+    expect($goal->is_active)->toBeFalse();
+
+    $this->actingAs($this->planner)->get(route('performance.strategy.goals.index', $context))
+        ->assertInertia(fn (Assert $page) => $page->component('Performance/Strategy/Goals')
+            ->where('summary.goal_count', 1)->where('summary.inactive_count', 1)->where('summary.objective_count', 2)->where('summary.activity_count', 4)
+            ->where('groups.0.number', 1)->where('groups.0.goals.0.serial', '1.1')
+            ->where('groups.0.goals.0.objectives.0.serial', '1.1.1')->where('groups.0.goals.0.objectives.0.normalized', '62.50')
+            ->where('groups.0.goals.0.objectives.1.activities.1.serial', '1.1.2.2')
+            ->where('groups.0.goals.0.normalized_total', '100.00')->where('groups.0.goals.0.balanced', true));
+    $this->actingAs($this->planner)->get(route('performance.strategy.goals.show', $goal))
+        ->assertInertia(fn (Assert $page) => $page->component('Performance/Strategy/GoalShow')->where('goal.main_title', 'Service delivery')->has('goal.objectives', 2));
+
+    // A goal already registered is not offered again on a new goal form.
+    $this->actingAs($this->planner)->get(route('performance.strategy.goals.create', $context))
+        ->assertInertia(fn (Assert $page) => $page->has('groups.0.strategies', 1)->where('groups.0.strategies.0.title', 'Staff skills'));
+});
+
+it('deletes a draft goal with its objectives and activities', function (): void {
+    $strategy = hierarchyMain($this)->strategies()->first();
+    $goal = $this->service->saveGoal(null, ['strategy_id' => $strategy->id, 'objectives' => hierarchyObjectives()], $this->planner);
+
+    $this->actingAs($this->planner)->delete(route('performance.strategy.goals.destroy', $goal))->assertSessionHasNoErrors();
+
+    expect(StrategicGoal::query()->count())->toBe(0)
+        ->and(PerformanceObjective::query()->count())->toBe(0)
+        ->and(ObjectiveActivity::query()->count())->toBe(0);
+    // The strategy is free for a new goal again.
+    $this->service->saveGoal(null, ['strategy_id' => $strategy->id, 'objectives' => hierarchyObjectives()], $this->planner);
+    expect(StrategicGoal::query()->count())->toBe(1);
+});

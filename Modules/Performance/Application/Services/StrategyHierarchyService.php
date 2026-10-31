@@ -184,6 +184,7 @@ final class StrategyHierarchyService
                     'name_en' => $strategy->title,
                     'description_am' => $data['description'] ?? null,
                     'weight_percent' => Dec::str($weight),
+                    'is_active' => (bool) ($data['is_active'] ?? true),
                     'sort_order' => $main->sort_order * 100 + $strategy->sort_order,
                 ], $actor);
             } else {
@@ -192,6 +193,7 @@ final class StrategyHierarchyService
                     'name_en' => $strategy->title,
                     'description_am' => $data['description'] ?? null,
                     'weight_percent' => Dec::str($weight),
+                    'is_active' => (bool) ($data['is_active'] ?? $goal->is_active),
                 ], $actor);
             }
 
@@ -199,6 +201,23 @@ final class StrategyHierarchyService
             $this->syncObjectives($goal, $plan, $objectives, $actor);
 
             return $goal;
+        });
+    }
+
+    /**
+     * Delete a draft goal with its objectives and activities, as the WLMS list
+     * allowed. The plan's own checks still apply (it must be an editable draft).
+     */
+    public function deleteGoal(StrategicGoal $goal, User $actor): void
+    {
+        DB::transaction(function () use ($goal, $actor): void {
+            $plan = $this->livePlan($goal->cycle_id, $goal->organization_id);
+            if ($plan !== null) {
+                foreach ($plan->objectives()->where('strategic_goal_id', $goal->getKey())->get() as $objective) {
+                    $this->plans->removeObjective($objective, $actor);
+                }
+            }
+            $this->planning->deleteGoal($goal, $actor);
         });
     }
 

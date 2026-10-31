@@ -25,6 +25,14 @@ second planning system:
   comes from it; objectives with their activity tables (activity, time in minutes, weight) and live totals.
 - **Strategic overview:** counts, the main-strategy total against 100, each strategy's share of its
   main strategy (strategy ÷ main × 100) and the state of its goal.
+- **The WLMS entry flow (2026-10-31, owner's follow-up):** a "Main Strategies" list and a "Strategic
+  Goal" list, each with view, edit and delete, a detail page and a form that returns to its list.
+  Layout, field order, wording (`performance.strategy.main.*` / `goals.*`, taken from WLMS
+  `lang/{am,en}/app.php`), numbering (objective #M.S.O, activity M.S.O.A) and the weight display
+  "Given: x% | y%" (the entered weight, then its share of the level above) follow WLMS, as do the
+  defaults (two strategies at 50%, two activities at 50%), the add/remove-last buttons, the
+  balanced / needs-fix badge, the collapsible main-strategy groups and the "active strategic goal"
+  flag (`strategic_goals.is_active`, a label only).
 
 Decisions taken where the request left room:
 
@@ -42,6 +50,10 @@ Decisions taken where the request left room:
 6. Existing permissions are reused: `strategic_goals.view/create/update/delete_draft` for the
    hierarchy, the plan permissions for the objectives, all inside the organization scope (ADR 0003).
 7. Allocation to units and the review → approve → publish workflow stay on the Strategic goals page.
+8. Where WLMS and EPMS differ, EPMS rules win and the WLMS screen shows them: a new goal's single
+   objective starts at the strategy weight (WLMS put 100, which can never balance); only draft goals
+   can be edited or deleted, and deleting one also removes its objectives from the draft plan; a
+   strategy that already has a goal is left out of the goal form's list, as in WLMS.
 
 ## Consequences
 

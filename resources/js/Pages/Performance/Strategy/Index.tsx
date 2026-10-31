@@ -73,7 +73,7 @@ export default function StrategyIndex({ mains, summary, filters, cycles, organiz
                     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 2xl:grid-cols-7">
                         <Stat label={t('performance.strategy.mainStrategies')} value={summary.main_count} />
                         <Stat label={t('performance.strategy.strategies')} value={summary.strategy_count} />
-                        <Stat label={t('performance.strategy.goals')} value={summary.goal_count} />
+                        <Stat label={t('performance.strategy.goalsCount')} value={summary.goal_count} />
                         <Stat label={t('performance.strategy.objectives')} value={summary.objective_count} />
                         <Stat label={t('performance.strategy.activities')} value={summary.activity_count} />
                         <Stat label={t('performance.strategy.mainTotal')} value={summary.main_total} suffix="%"
@@ -94,6 +94,7 @@ export default function StrategyIndex({ mains, summary, filters, cycles, organiz
                         <Section key={main.id} flush title={`${main.number}. ${main.title}`} description={main.description ?? undefined}
                             actions={<>
                                 <span className="text-sm font-semibold tabular-nums">{formatScore(main.weight_percent)}%</span>
+                                <Link href={route('performance.strategy.main.show', main.id)} className={linkBtn}>{t('performance.strategy.common.view')}</Link>
                                 {can.update && <Link href={route('performance.strategy.main.edit', main.id)} className={linkBtn}>{t('performance.actions.edit')}</Link>}
                                 {can.delete && <button type="button" className={dangerLinkBtn} onClick={() => remove(main)}>{t('performance.actions.remove')}</button>}
                             </>}>
@@ -128,7 +129,7 @@ export default function StrategyIndex({ mains, summary, filters, cycles, organiz
                                         <td className={`${tdCls} tabular-nums`}>{strategy.goal ? strategy.goal.activities_count : '—'}</td>
                                         <td className={`${tdCls} text-right`}>
                                             {strategy.goal
-                                                ? <Link href={route('performance.strategy.goals.edit', strategy.goal.id)} className={linkBtn}>{strategy.goal.status === 'DRAFT' && can.update && can.plan ? t('performance.strategy.editGoal') : t('performance.strategy.viewGoal')}</Link>
+                                                ? <Link href={route(strategy.goal.status === 'DRAFT' && can.update && can.plan ? 'performance.strategy.goals.edit' : 'performance.strategy.goals.show', strategy.goal.id)} className={linkBtn}>{strategy.goal.status === 'DRAFT' && can.update && can.plan ? t('performance.strategy.editGoal') : t('performance.strategy.viewGoal')}</Link>
                                                 : can.create && can.plan && <Link href={route('performance.strategy.goals.create', { ...filters, strategy_id: strategy.id })} className={linkBtn}>{t('performance.strategy.registerGoal')}</Link>}
                                         </td>
                                     </tr>
