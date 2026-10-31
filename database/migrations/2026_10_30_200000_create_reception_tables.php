@@ -12,7 +12,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('reception_desks', function (Blueprint $table): void {
+        // A first MySQL run stopped on an over-long index name after creating
+        // reception_queue_tickets without all of its keys. Nothing can have
+        // written to it, so rebuild it rather than patch the missing keys.
+        if (Schema::hasTable('reception_queue_tickets')
+            && ! Schema::hasIndex('reception_queue_tickets', 'reception_queue_tickets_reception_counter_id_status_index')) {
+            Schema::drop('reception_queue_tickets');
+        }
+
+        $this->createOnce('reception_desks', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('organization_unit_id')->nullable()->constrained('organization_units')->nullOnDelete();
@@ -28,7 +36,7 @@ return new class extends Migration
             $table->index(['organization_id', 'is_active']);
         });
 
-        Schema::create('reception_counters', function (Blueprint $table): void {
+        $this->createOnce('reception_counters', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('reception_desk_id')->constrained('reception_desks')->cascadeOnDelete();
             $table->string('code', 40);
@@ -41,7 +49,7 @@ return new class extends Migration
             $table->index(['reception_desk_id', 'status']);
         });
 
-        Schema::create('reception_desk_staff', function (Blueprint $table): void {
+        $this->createOnce('reception_desk_staff', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('reception_desk_id')->constrained('reception_desks')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
@@ -51,7 +59,7 @@ return new class extends Migration
             $table->unique(['reception_desk_id', 'user_id']);
         });
 
-        Schema::create('reception_desk_service', function (Blueprint $table): void {
+        $this->createOnce('reception_desk_service', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('reception_desk_id')->constrained('reception_desks')->cascadeOnDelete();
             $table->foreignUuid('service_id')->constrained('services')->cascadeOnDelete();
@@ -59,7 +67,7 @@ return new class extends Migration
             $table->unique(['reception_desk_id', 'service_id']);
         });
 
-        Schema::create('reception_visitors', function (Blueprint $table): void {
+        $this->createOnce('reception_visitors', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('name')->nullable();
             $table->text('phone')->nullable();
@@ -70,7 +78,7 @@ return new class extends Migration
             $table->index(['name', 'created_at']);
         });
 
-        Schema::create('reception_appointments', function (Blueprint $table): void {
+        $this->createOnce('reception_appointments', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('reference')->unique();
             $table->foreignUuid('visitor_id')->constrained('reception_visitors')->restrictOnDelete();
@@ -84,11 +92,11 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
             $table->timestamps();
-            $table->index(['organization_id', 'scheduled_at', 'status']);
+            $table->index(['organization_id', 'scheduled_at', 'status'], 'reception_appointments_org_time_status_index');
             $table->unique(['reception_desk_id', 'scheduled_at'], 'reception_appointments_desk_time_unique');
         });
 
-        Schema::create('reception_visits', function (Blueprint $table): void {
+        $this->createOnce('reception_visits', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('reference')->unique();
             $table->foreignUuid('visitor_id')->constrained('reception_visitors')->restrictOnDelete();
@@ -110,7 +118,7 @@ return new class extends Migration
             $table->index(['reception_desk_id', 'checked_in_at']);
         });
 
-        Schema::create('reception_queue_sequences', function (Blueprint $table): void {
+        $this->createOnce('reception_queue_sequences', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('reception_desk_id')->constrained('reception_desks')->cascadeOnDelete();
             $table->date('queue_date');
@@ -119,7 +127,7 @@ return new class extends Migration
             $table->unique(['reception_desk_id', 'queue_date']);
         });
 
-        Schema::create('reception_queue_tickets', function (Blueprint $table): void {
+        $this->createOnce('reception_queue_tickets', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('visit_id')->unique()->constrained('reception_visits')->cascadeOnDelete();
             $table->foreignUuid('reception_desk_id')->constrained('reception_desks')->cascadeOnDelete();
@@ -136,11 +144,11 @@ return new class extends Migration
             $table->unsignedSmallInteger('recall_count')->default(0);
             $table->timestamps();
             $table->unique(['reception_desk_id', 'queue_date', 'queue_number'], 'reception_queue_daily_number_unique');
-            $table->index(['reception_desk_id', 'queue_date', 'status']);
+            $table->index(['reception_desk_id', 'queue_date', 'status'], 'reception_queue_tickets_desk_date_status_index');
             $table->index(['reception_counter_id', 'status']);
         });
 
-        Schema::create('reception_referrals', function (Blueprint $table): void {
+        $this->createOnce('reception_referrals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('visit_id')->constrained('reception_visits')->cascadeOnDelete();
             $table->foreignUuid('from_organization_id')->constrained('organizations')->restrictOnDelete();
@@ -160,6 +168,16 @@ return new class extends Migration
         });
 
         CodeRuleSeeder::ensureFor(CodeRuleEntityType::ReceptionDesk);
+    }
+
+    /**
+     * MySQL DDL is not transactional: skip tables a failed earlier run already created.
+     */
+    private function createOnce(string $table, Closure $definition): void
+    {
+        if (! Schema::hasTable($table)) {
+            Schema::create($table, $definition);
+        }
     }
 
     public function down(): void
