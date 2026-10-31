@@ -945,9 +945,10 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             groups: section.groups.map((group) => ({ ...group, items: allowedItems(group.items) })).filter((group) => group.items.length > 0),
         }))
         .filter((section) => section.groups.length > 0);
-    // In the Core workspace the server sends the navigation, already filtered by permission.
+    // In the Core and court workspaces the server sends the navigation, already filtered by permission.
     const workspace = (pageProps as { workspace?: CoreWorkspaceShared }).workspace ?? null;
-    const coreSections = workspace?.name === 'core'
+    const workspaceName = workspace?.name === 'court' ? 'court.workspaceName' : 'core.workspaceName';
+    const coreSections = workspace?.name === 'core' || workspace?.name === 'court'
         ? workspace.nav.map((section) => ({
             labelKey: section.label_key,
             groups: section.groups.map((group): NavGroup => ({
@@ -964,7 +965,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         : isEmployeeUser
             ? visiblePortalSections.flatMap((section) => section.groups)
             : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
-    const homeNav = coreSections ? coreHomeNav : isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
+    const homeNav = coreSections
+        ? (workspace?.home ? { ...coreHomeNav, routeName: workspace.home, labelKey: 'nav.dashboard' } : coreHomeNav)
+        : isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
     // My Portal and Core are short enough to show every group open until the person collapses one.
     const groupsOpenByDefault = isEmployeeUser || coreSections !== null;
     const currentRoute = String(route().current() ?? '');
@@ -1213,7 +1216,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         </span>
                         {!collapsed && <div className="min-w-0">
                             <p className="whitespace-normal wrap-break-word text-[15px] font-medium leading-snug">{appName}</p>
-                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{coreSections ? t('core.workspaceName') : shortName}</p>
+                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{coreSections ? t(workspaceName) : shortName}</p>
                             <p className="mt-1 whitespace-normal wrap-break-word text-xs leading-relaxed text-(--sidebar-muted)">{orgName}</p>
                         </div>}
                     </Link>
@@ -1270,7 +1273,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
 
             <div className="shrink-0 border-t border-(--sidebar-border) p-2">
                 {/* Leaving Core returns to the full navigation; it needs no permission, so it always works. */}
-                {coreSections && (
+                {/* The court's staff area leaves to the EUISIS dashboard; its party portals have no way out. */}
+                {workspace?.name === 'court' && workspace.exit && (
+                    <Link href={route(workspace.exit)} onClick={onClose}
+                        aria-label={collapsed ? t('court.exit') : undefined} title={collapsed ? t('court.exit') : undefined}
+                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm font-medium text-(--sidebar-fg)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
+                        <ArrowLeftRightIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        {!collapsed && <span>{t('court.exit')}</span>}
+                    </Link>
+                )}
+                {workspace?.name === 'core' && (
                     <Link href={route('core.exit')} method="post" as="button" onClick={onClose}
                         aria-label={collapsed ? t('core.exit') : undefined} title={collapsed ? t('core.exit') : undefined}
                         className={['flex min-h-10 items-center gap-3 rounded-md text-sm font-medium text-(--sidebar-fg)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
@@ -1284,7 +1296,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>
-                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(coreSections ? 'core.workspaceName' : isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
+                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(coreSections ? workspaceName : isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
                 {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
                 {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
                     ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />

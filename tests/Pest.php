@@ -21,6 +21,14 @@ pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
+// The court module's tests (ported from court-ms, ADR 0020) render pages without a Vite build.
+pest()->beforeEach(function () {
+    $this->withoutVite();
+    if (env('COURT_TEST_DEBUG')) {
+        $this->withoutExceptionHandling();
+    }
+})->in('Feature/Court');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

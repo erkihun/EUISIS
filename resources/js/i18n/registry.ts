@@ -11,9 +11,21 @@
 export type Locale = 'en' | 'am';
 export type TranslationTree = Record<string, unknown>;
 
+/**
+ * The court module's dictionary (ADR 0020) joins as two namespaces of its own:
+ * `court.*` (its screens' text) and `cm.*` (its lang files, exported by
+ * `php artisan court:client-lang`). It is a chunk of its own, loaded beside the
+ * language bundle; nothing else of it reaches EUISIS keys.
+ */
+function withCourt(base: Promise<{ default: TranslationTree }>, court: Promise<{ default: TranslationTree }>): Promise<{ default: TranslationTree }> {
+    return Promise.all([base, court]).then(([{ default: tree }, { default: courtTree }]) => ({
+        default: { ...tree, court: courtTree.court, cm: courtTree.cm },
+    }));
+}
+
 const loaders: Record<Locale, () => Promise<{ default: TranslationTree }>> = {
-    en: () => import('./bundles/en'),
-    am: () => import('./bundles/am'),
+    en: () => withCourt(import('./bundles/en'), import('@/court/i18n/en')),
+    am: () => withCourt(import('./bundles/am'), import('@/court/i18n/am')),
 };
 
 const loaded: Partial<Record<Locale, TranslationTree>> = {};

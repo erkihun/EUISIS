@@ -3,6 +3,7 @@
 namespace Tests;
 
 use App\Services\Security\SessionActivityService;
+use App\Support\Auth\ActsThroughPlatformAccount;
 use Carbon\AbstractTranslator;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -59,6 +60,11 @@ abstract class TestCase extends BaseTestCase
      */
     public function actingAs(Authenticatable $user, $guard = null)
     {
+        // A module's record backed by a platform account (court staff): sign in as the account.
+        if ($user instanceof ActsThroughPlatformAccount && ($guard === null || $guard === 'web')) {
+            $user = $user->platformAccount();
+        }
+
         $session = $this->app['session.store'];
 
         foreach (SessionActivityService::GUARDS as $name) {

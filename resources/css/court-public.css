@@ -1,0 +1,1554 @@
+/*
+ * ── The court's public site (court-ms) ─────────────────────────────
+ *
+ * The institutional face of the administrative court over the shared
+ * public-site layout (public-site.css, a copy of the EUISIS file): the
+ * court's ink, navy and brass on parchment, the hero with its colonnade,
+ * and the section rhythm of a court's site (eyebrow, title, brass rule).
+ * The same colours as the staff sign-in (court/components/auth/CourtAuthLayout).
+ *
+ * Motion follows the `appearance.enable_ui_animations` setting (data-motion
+ * on the layout root) and the visitor's reduced-motion preference.
+ */
+
+.court-site {
+    --court-ink: #0c1a31;
+    --court-ink-soft: #12233f;
+    --court-navy: #16305a;
+    --court-navy-hover: #1d3c70;
+    --court-brass: #c8a14a;
+    --court-brass-strong: #8f6d22;
+    --court-brass-soft: #e8d6a2;
+    --court-parchment: #f6f1e6;
+    --court-paper: #ffffff;
+    --court-line: #e4dac6;
+    --court-text: #1b2333;
+    --court-muted: #5a6476;
+}
+
+.dark .court-site {
+    --court-brass-strong: #d9b664;
+    --court-parchment: #0f1b31;
+    --court-paper: #0b1528;
+    --court-line: #24344f;
+    --court-text: #e7eaf0;
+    --court-muted: #9ba6b8;
+}
+
+.court-site {
+    color: var(--court-text);
+    background: var(--court-paper);
+}
+
+/* The hero: ink to navy, a brass glow, the colonnade and a brass line at the foot. */
+.court-site .court-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: #ffffff;
+    background:
+        radial-gradient(ellipse at 82% -10%, rgb(200 161 74 / 0.22), transparent 55%),
+        linear-gradient(135deg, var(--court-ink) 0%, #10264a 55%, var(--court-navy) 100%);
+}
+.court-site .court-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--court-brass), var(--court-brass-soft), var(--court-brass), transparent);
+    pointer-events: none;
+}
+.court-site .court-hero-image {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-position: center;
+    background-size: cover;
+    opacity: 0.2;
+}
+.court-site .court-hero-columns {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: -1;
+    height: 70%;
+    color: #ffffff;
+    opacity: 0.06;
+    pointer-events: none;
+}
+
+/* Inner pages: the same band, shorter. */
+.court-site .court-band {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: #ffffff;
+    background:
+        radial-gradient(ellipse at 90% -20%, rgb(200 161 74 / 0.18), transparent 50%),
+        linear-gradient(135deg, var(--court-ink) 0%, var(--court-navy) 100%);
+}
+.court-site .court-band::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--court-brass), transparent);
+}
+
+/* Section heading: the eyebrow carries a short brass rule. */
+.court-site .court-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--court-brass-strong);
+}
+.court-site .court-eyebrow::before {
+    content: '';
+    width: 1.75rem;
+    height: 2px;
+    background: var(--court-brass);
+}
+.court-site .court-eyebrow-light {
+    color: var(--court-brass-soft);
+}
+
+/* Cards, tables and prose in the court's colours. */
+.court-site .court-card {
+    border: 1px solid var(--court-line);
+    border-radius: 0.75rem;
+    background: var(--court-paper);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.court-site a.court-card:hover,
+.court-site .court-card-hover:hover {
+    border-color: color-mix(in srgb, var(--court-brass) 55%, var(--court-line));
+    box-shadow: 0 18px 40px -28px rgb(12 26 49 / 0.55);
+    transform: translateY(-2px);
+}
+.court-site .court-prose p + p {
+    margin-top: 1rem;
+}
+.court-site .court-focus:focus-visible,
+.court-site a:focus-visible,
+.court-site button:focus-visible,
+.court-site summary:focus-visible {
+    outline: 2px solid var(--court-brass);
+    outline-offset: 2px;
+}
+
+/* Entrance motion, once, when the setting and the visitor allow it. */
+@keyframes court-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+.court-site[data-motion='on'] .court-rise {
+    animation: court-rise 0.55s ease both;
+}
+.court-site[data-motion='on'] .court-pub-delay-2 { animation-delay: 0.18s; }
+.court-site[data-motion='on'] .court-pub-delay-3 { animation-delay: 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+    .court-site .court-rise {
+        animation: none !important;
+    }
+    .court-site .court-card,
+    .court-site .court-header,
+    .court-site .court-nav-rule,
+    .court-site .court-arrow,
+    .court-site .court-service-icon {
+        transition: none !important;
+    }
+}
+
+/*
+ * ── Motion ─────────────────────────────────────────────────────────
+ *
+ * The court's motion on the public site (court/public/motion.tsx), in the
+ * language of the staff sign-in: calm, deliberate, in brass light.
+ *
+ *  - The hall (the home hero and the inner pages' band): a band of window
+ *    light crosses now and then, brass motes rise through it, the colonnade
+ *    rises at the foot, and the court's seal draws itself while its scales
+ *    swing, settle level and then sway a little (the beam turns on its
+ *    pivot, the pans counter-turn so they hang straight).
+ *  - The statement: the eyebrow's rule draws, then the words rise in turn;
+ *    the current slide's line fills over its nine seconds.
+ *  - As the page scrolls: section headings and items rise into place in a
+ *    short stagger, figures count up, the procedure's path draws across with
+ *    a light travelling it while each step lights as it passes, a brass line
+ *    along the header's foot shows how far the page has been read.
+ *  - Today: a live brass dot beside today's sittings.
+ *
+ * Only transform and opacity move (the steps' brief brass flash aside).
+ * Everything here waits for the "UI animations" setting (data-motion="on")
+ * and the visitor's `prefers-reduced-motion: no-preference`; otherwise the
+ * still picture shows at once: the seal drawn and level, every item in place,
+ * the lines full, the motes and light hidden.
+ */
+
+/* The still picture (and the parts that never move). */
+.court-site .court-hero-sweep {
+    position: absolute;
+    inset: -30% -50%;
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 42%, rgb(232 214 162 / 0.07) 47%, rgb(255 255 255 / 0.07) 50%, rgb(232 214 162 / 0.07) 53%, transparent 58%);
+}
+.court-site .court-motes {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    display: none;
+    overflow: hidden;
+}
+.court-site .court-motes span {
+    position: absolute;
+    bottom: -12px;
+    left: var(--x);
+    width: var(--s);
+    height: var(--s);
+    border-radius: 9999px;
+    background: var(--court-brass-soft);
+    box-shadow: 0 0 8px rgb(232 214 162 / 0.65);
+    opacity: 0;
+}
+.court-site .court-seal {
+    position: absolute;
+    z-index: -1;
+    display: none;
+    color: var(--court-brass);
+}
+.court-site .court-seal > * {
+    position: absolute;
+}
+.court-site .court-seal-ring {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.court-site .court-seal-scales {
+    inset: 20%;
+    width: 60%;
+    height: 60%;
+}
+.court-site .court-seal-glow {
+    inset: 18%;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgb(200 161 74 / 0.35), transparent 65%);
+}
+.court-site .court-seal-beam { transform-box: view-box; transform-origin: 32px 21px; }
+.court-site .court-seal-pan { transform-box: view-box; transform-origin: 19px 21px; --court-dir: -1; }
+.court-site .court-seal-pan-right { transform-origin: 45px 21px; }
+.court-site .court-hero-seal {
+    right: -7rem;
+    top: 50%;
+    width: 36rem;
+    height: 36rem;
+    translate: 0 -50%;
+    opacity: 0.17;
+}
+.court-site .court-band-seal {
+    right: -4rem;
+    top: 50%;
+    width: 19rem;
+    height: 19rem;
+    translate: 0 -50%;
+    opacity: 0.16;
+}
+@media (min-width: 1024px) {
+    .court-site .court-hero-seal { display: block; }
+}
+@media (min-width: 768px) {
+    .court-site .court-band-seal { display: block; }
+}
+
+.court-site .court-live {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--court-brass);
+}
+.court-site .court-live::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--court-brass);
+    opacity: 0;
+}
+
+.court-site .court-slide-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--court-brass);
+    transform-origin: left center;
+}
+
+.court-site .court-arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+}
+.court-site .group:hover .court-arrow,
+.court-site .group:focus-visible .court-arrow {
+    transform: translateX(4px);
+}
+
+/* The header: a shadow once the page scrolls, and the reading-progress line along its foot. */
+.court-site .court-header {
+    transition: box-shadow 0.3s ease;
+}
+.court-site .court-header[data-scrolled] {
+    box-shadow: 0 12px 32px -22px rgb(12 26 49 / 0.55);
+}
+.court-site .court-progress {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    height: 2px;
+    pointer-events: none;
+    background: linear-gradient(90deg, var(--court-brass), var(--court-brass-soft));
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left center;
+}
+.court-site .court-nav-rule {
+    opacity: 0;
+    transform: scaleX(0);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.court-site .court-nav-rule.is-active {
+    opacity: 1;
+    transform: none;
+}
+.court-site .group:hover .court-nav-rule:not(.is-active) {
+    opacity: 0.55;
+    transform: scaleX(0.6);
+}
+
+/* Services: the icon tile turns to the court's ink on hover. */
+.court-site .court-service-icon {
+    transition: transform 0.35s ease, background-color 0.35s ease, color 0.35s ease;
+}
+.court-site .court-service:hover .court-service-icon {
+    color: var(--court-brass);
+    background-color: var(--court-ink);
+    transform: translateY(-2px) rotate(-6deg);
+}
+
+/* The registry card's slow brass light. */
+.court-site .court-ink-card::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: -30%;
+    top: -80%;
+    width: 160%;
+    aspect-ratio: 1;
+    background: conic-gradient(from 0deg, transparent 0deg, rgb(200 161 74 / 0.16) 50deg, transparent 110deg);
+    pointer-events: none;
+}
+
+.court-site .court-metric {
+    transition: background-color 0.3s ease;
+}
+.court-site .court-metric:hover {
+    background-color: var(--court-ink-soft);
+}
+
+@keyframes cp-word {
+    from { opacity: 0; transform: translateY(0.5em); filter: blur(6px); }
+    to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes cp-rule {
+    from { transform: scaleX(0); }
+    to { transform: none; }
+}
+@keyframes cp-fade {
+    from { opacity: 0; }
+}
+@keyframes cp-image-in {
+    from { opacity: 0; }
+    to { opacity: 0.2; }
+}
+@keyframes cp-kenburns {
+    from { transform: scale(1.02); }
+    to { transform: scale(1.1) translate3d(-1.5%, -1%, 0); }
+}
+@keyframes cp-sweep {
+    0% { opacity: 0; transform: translateX(-55%); }
+    6% { opacity: 1; }
+    26% { opacity: 0; transform: translateX(55%); }
+    100% { opacity: 0; transform: translateX(55%); }
+}
+@keyframes cp-mote {
+    0% { opacity: 0; transform: translate3d(0, 0, 0); }
+    12% { opacity: 0.6; }
+    75% { opacity: 0.35; }
+    100% { opacity: 0; transform: translate3d(28px, -620px, 0); }
+}
+@keyframes cp-column {
+    from { opacity: 0; transform: scaleY(0.2); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes cp-draw {
+    from { stroke-dashoffset: 100; }
+    to { stroke-dashoffset: 0; }
+}
+@keyframes cp-turn {
+    to { transform: rotate(360deg); }
+}
+@keyframes cp-glow {
+    0%, 100% { opacity: 0.55; transform: scale(0.94); }
+    50% { opacity: 1; transform: scale(1.04); }
+}
+@keyframes cp-weigh {
+    0% { transform: rotate(calc(var(--court-dir, 1) * -10deg)); }
+    22% { transform: rotate(calc(var(--court-dir, 1) * 6.5deg)); }
+    42% { transform: rotate(calc(var(--court-dir, 1) * -3.6deg)); }
+    60% { transform: rotate(calc(var(--court-dir, 1) * 1.9deg)); }
+    76% { transform: rotate(calc(var(--court-dir, 1) * -0.8deg)); }
+    90% { transform: rotate(calc(var(--court-dir, 1) * 0.3deg)); }
+    100% { transform: rotate(0deg); }
+}
+@keyframes cp-sway {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(calc(var(--court-dir, 1) * 1.4deg)); }
+    75% { transform: rotate(calc(var(--court-dir, 1) * -1.4deg)); }
+}
+@keyframes cp-fill {
+    from { transform: scaleX(0); }
+    to { transform: none; }
+}
+@keyframes cp-ping {
+    0% { opacity: 0.6; transform: scale(1); }
+    80%, 100% { opacity: 0; transform: scale(2.8); }
+}
+@keyframes cp-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(3px); }
+}
+@keyframes cp-travel {
+    0% { left: 0; opacity: 0; }
+    8% { opacity: 1; }
+    92% { opacity: 1; }
+    100% { left: calc(100% - 60px); opacity: 0; }
+}
+@keyframes cp-step-light {
+    0% { box-shadow: 0 0 0 0 rgb(200 161 74 / 0.55); }
+    35% { color: var(--court-ink); background-color: var(--court-brass); box-shadow: 0 0 0 10px rgb(200 161 74 / 0); }
+    100% { box-shadow: 0 0 0 0 rgb(200 161 74 / 0); }
+}
+@keyframes cp-spin-slow {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    :root:has(.court-site[data-motion='on']) {
+        scroll-behavior: smooth;
+    }
+
+    /* The hall. */
+    .court-site[data-motion='on'] .court-hero-sweep {
+        animation: cp-sweep 15s ease-in-out 1.8s infinite;
+    }
+    .court-site[data-motion='on'] .court-motes {
+        display: block;
+    }
+    .court-site[data-motion='on'] .court-motes span {
+        animation: cp-mote var(--d) linear var(--t) infinite;
+    }
+    .court-site[data-motion='on'] .court-hero-image {
+        animation: cp-image-in 1.2s ease both, cp-kenburns 26s ease-in-out 1.2s infinite alternate;
+    }
+    .court-site[data-motion='on'] .court-hall-column {
+        transform-box: fill-box;
+        transform-origin: 50% 100%;
+        animation: cp-column 1.1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        animation-delay: calc(0.15s + var(--i, 0) * 70ms);
+    }
+    .court-site[data-motion='on'] .court-hall-roof {
+        animation: cp-fade 1s ease 0.85s both;
+    }
+    @supports (animation-timeline: scroll()) {
+        /* The colonnade falls behind a little as the page scrolls past the hall. */
+        .court-site[data-motion='on'] .court-hero-columns {
+            animation: cp-parallax linear both;
+            animation-timeline: scroll(root);
+            animation-range: 0 700px;
+        }
+        @keyframes cp-parallax {
+            to { transform: translateY(70px); }
+        }
+    }
+
+    /* The seal. */
+    .court-site[data-motion='on'] .court-seal-ring {
+        animation: cp-turn 110s linear infinite;
+    }
+    .court-site[data-motion='on'] .court-seal-ring-reverse {
+        animation-duration: 150s;
+        animation-direction: reverse;
+    }
+    .court-site[data-motion='on'] .court-seal-glow {
+        animation: cp-glow 7s ease-in-out infinite;
+    }
+    .court-site[data-motion='on'] .court-seal-draw {
+        stroke-dasharray: 100;
+        animation: cp-draw 1.6s cubic-bezier(0.6, 0, 0.3, 1) 0.3s both;
+    }
+    .court-site[data-motion='on'] .court-seal-fade {
+        animation: cp-fade 0.8s ease 1.2s both;
+    }
+    .court-site[data-motion='on'] .court-seal-d1 { animation-delay: 0.7s; }
+    .court-site[data-motion='on'] .court-seal-d2 { animation-delay: 1s; }
+    .court-site[data-motion='on'] .court-seal-d3 { animation-delay: 1.5s; }
+    .court-site[data-motion='on'] .court-seal-beam,
+    .court-site[data-motion='on'] .court-seal-pan {
+        animation: cp-weigh 3.2s cubic-bezier(0.37, 0, 0.3, 1) 1.4s both, cp-sway 9s ease-in-out 4.6s infinite;
+    }
+
+    /* The statement. */
+    .court-site[data-motion='on'] .court-word {
+        display: inline-block;
+        animation: cp-word 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+        animation-delay: calc(0.12s + var(--w, 0) * 65ms);
+    }
+    .court-site[data-motion='on'] .court-eyebrow-draw::before {
+        transform-origin: left center;
+        animation: cp-rule 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both;
+    }
+    .court-site[data-motion='on'] .court-slide-fill {
+        animation: cp-fill var(--slide, 9s) linear both;
+    }
+    .court-site[data-motion='on'] .court-slide-fill.is-paused {
+        animation-play-state: paused;
+    }
+    .court-site[data-motion='on'] .court-live::after {
+        animation: cp-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    .court-site[data-motion='on'] .court-nudge-down {
+        display: inline-block;
+        animation: cp-bob 2.4s ease-in-out infinite;
+    }
+    .court-site[data-motion='on'] .court-ink-card::before {
+        animation: cp-spin-slow 22s linear infinite;
+    }
+
+    /* Rising into view. The root has data-reveal-ready only once the observer runs. */
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal] {
+        transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+        transition-delay: calc(var(--i, 0) * 85ms);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal]:not([data-revealed]) {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='row']:not([data-revealed]) {
+        transform: translateX(-12px);
+    }
+    /* The heading's eyebrow rule draws as it arrives. */
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='heading'] .court-eyebrow::before {
+        transform-origin: left center;
+        transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s;
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='heading']:not([data-revealed]) .court-eyebrow::before {
+        transform: scaleX(0);
+    }
+    /* A service's icon draws its line when the card arrives. */
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal] .court-service-icon path {
+        stroke-dasharray: 100;
+        transition: stroke-dashoffset 1.3s cubic-bezier(0.6, 0, 0.3, 1);
+        transition-delay: calc(0.25s + var(--i, 0) * 85ms);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal]:not([data-revealed]) .court-service-icon path {
+        stroke-dashoffset: 100;
+    }
+    /* A figure's brass rule grows under it. */
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal] .court-metric-rule {
+        transform-origin: left center;
+        transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
+        transition-delay: calc(0.35s + var(--i, 0) * 85ms);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal]:not([data-revealed]) .court-metric-rule {
+        transform: scaleX(0);
+    }
+
+    /* The procedure's path: the line draws across, then the steps light in order and a light travels on. */
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path'] {
+        transition: none;
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path']:not([data-revealed]) {
+        opacity: 1;
+        transform: none;
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path'] .court-path-line {
+        transform-origin: left center;
+        transition: transform 1.5s cubic-bezier(0.6, 0, 0.3, 1) 0.15s;
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path']:not([data-revealed]) .court-path-line {
+        transform: scaleX(0);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path'] .court-proc-step {
+        transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+        transition-delay: calc(0.25s + var(--i, 0) * 0.24s);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path']:not([data-revealed]) .court-proc-step {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path'][data-revealed] .court-proc-number {
+        animation: cp-step-light 1s ease both;
+        animation-delay: calc(0.45s + var(--i, 0) * 0.24s);
+    }
+    .court-site[data-motion='on'] .court-path-light {
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 60px;
+        height: 5px;
+        border-radius: 9999px;
+        background: radial-gradient(ellipse at center, var(--court-brass-soft), transparent 70%);
+        opacity: 0;
+    }
+    .court-site[data-motion='on'][data-reveal-ready] [data-reveal='path'][data-revealed] .court-path-light {
+        animation: cp-travel 6.5s ease-in-out 1.8s infinite;
+    }
+
+    /* A question opens smoothly where the browser can size to its content. */
+    @supports (interpolate-size: allow-keywords) {
+        .court-site[data-motion='on'] {
+            interpolate-size: allow-keywords;
+        }
+        .court-site[data-motion='on'] .court-faq::details-content {
+            height: 0;
+            overflow: clip;
+            transition: height 0.35s ease, content-visibility 0.35s ease allow-discrete;
+        }
+        .court-site[data-motion='on'] .court-faq[open]::details-content {
+            height: auto;
+        }
+    }
+}
+
+/* ── The public display (Pages/Court/Public/Signage) ────────────────
+   The court's door screen: a fixed portrait stage (1080x1920; a landscape
+   1920x1080 one on request) scaled to the display by --scale, turned by
+   --rotate for a panel on its side, and nudged a few pixels by --sx/--sy
+   against burn-in. Amharic throughout. Light by default (the court's paper,
+   ink and brass: a lobby by day is bright), dark with ?theme=dark; every
+   colour below comes from the --sg-* tokens, and each bench keeps its own
+   colour (--bench). */
+.court-site.court-signage {
+    --sg-pad: 64px;
+    /* Light: paper, ink and brass. Brass text darkens to stay readable on paper. */
+    --sg-page: radial-gradient(ellipse at 50% 50%, #ece6d8, #d5cdbb 75%);
+    --sg-surface:
+        radial-gradient(ellipse 70% 40% at 50% -8%, rgb(200 161 74 / 0.16), transparent 70%),
+        radial-gradient(ellipse 80% 60% at 50% 115%, rgb(22 48 90 / 0.07), transparent 70%),
+        linear-gradient(180deg, #fcfaf4 0%, #f7f2e7 55%, #f3ecdd 100%);
+    --sg-frame: 0 0 0 1px rgb(143 109 34 / 0.28), 0 30px 90px rgb(12 26 49 / 0.25);
+    --sg-grain: 0.05;
+    --sg-text: #0c1a31;
+    --sg-text-2: #24324a;
+    --sg-text-3: #3b485d;
+    --sg-muted: #5c6878;
+    --sg-faint: #7a8393;
+    --sg-line: rgb(12 26 49 / 0.11);
+    --sg-row-line: rgb(12 26 49 / 0.07);
+    --sg-brass-line: rgb(143 109 34 / 0.34);
+    --sg-accent: #8f6d22;
+    --sg-accent-soft: #7a5c1c;
+    --sg-fill: #c8a14a;
+    --sg-on-fill: #0c1a31;
+    --sg-card: #ffffff;
+    --sg-card-glow: radial-gradient(ellipse 60% 120% at 0% 50%, rgb(200 161 74 / 0.16), transparent 70%);
+    --sg-card-top: linear-gradient(180deg, #ffffff, #fffdf8);
+    --sg-table: #ffffff;
+    --sg-head-row: #f6f1e6;
+    --sg-row-alt: rgb(12 26 49 / 0.025);
+    --sg-highlight: rgb(200 161 74 / 0.18);
+    --sg-chip: rgb(200 161 74 / 0.12);
+    --sg-shadow: 0 18px 40px -24px rgb(12 26 49 / 0.3);
+    --sg-inset: inset 0 1px 0 rgb(255 255 255 / 0.9);
+    --sg-time-from: #b38b2d;
+    --sg-time-to: #75561a;
+    --sg-logo-shadow: drop-shadow(0 8px 20px rgb(12 26 49 / 0.18));
+    --sg-colonnade: rgb(143 109 34 / 0.07);
+    --sg-sheen: rgb(200 161 74 / 0.12);
+    --sg-bench-pure: 58%;
+    --sg-bench-soft: 14%;
+    --sg-stale: #b45309;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    color: var(--sg-text);
+    background: var(--sg-page);
+    color-scheme: light;
+}
+/* Dark: the court's ink face, for a dim hall. */
+.court-site.court-signage[data-theme='dark'] {
+    --sg-page: radial-gradient(ellipse at 50% 50%, #0a1428, #04080f 75%);
+    --sg-surface:
+        radial-gradient(ellipse 70% 40% at 50% -8%, rgb(200 161 74 / 0.18), transparent 70%),
+        radial-gradient(ellipse 80% 60% at 50% 115%, rgb(22 48 90 / 0.95), transparent 70%),
+        linear-gradient(180deg, #0b1830 0%, #091427 55%, #0a1a33 100%);
+    --sg-frame: 0 0 0 1px rgb(200 161 74 / 0.22), 0 40px 120px rgb(0 0 0 / 0.75);
+    --sg-grain: 0.07;
+    --sg-text: #ffffff;
+    --sg-text-2: rgb(226 232 240);
+    --sg-text-3: rgb(203 213 225);
+    --sg-muted: rgb(148 163 184);
+    --sg-faint: rgb(100 116 139);
+    --sg-line: rgb(255 255 255 / 0.08);
+    --sg-row-line: rgb(255 255 255 / 0.05);
+    --sg-brass-line: rgb(200 161 74 / 0.32);
+    --sg-accent: #c8a14a;
+    --sg-accent-soft: #e8d6a2;
+    --sg-card: rgb(255 255 255 / 0.03);
+    --sg-card-glow: radial-gradient(ellipse 60% 120% at 0% 50%, rgb(200 161 74 / 0.16), transparent 70%);
+    --sg-card-top: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.015));
+    --sg-table: rgb(3 8 20 / 0.35);
+    --sg-head-row: rgb(255 255 255 / 0.03);
+    --sg-row-alt: rgb(255 255 255 / 0.018);
+    --sg-highlight: rgb(200 161 74 / 0.12);
+    --sg-chip: rgb(200 161 74 / 0.08);
+    --sg-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.7);
+    --sg-inset: inset 0 1px 0 rgb(255 255 255 / 0.06);
+    --sg-time-from: #f6e7bb;
+    --sg-time-to: #c8a14a;
+    --sg-logo-shadow: drop-shadow(0 10px 28px rgb(0 0 0 / 0.45));
+    --sg-colonnade: rgb(200 161 74 / 0.07);
+    --sg-sheen: rgb(232 214 162 / 0.13);
+    --sg-bench-pure: 100%;
+    --sg-bench-soft: 16%;
+    --sg-stale: #fcd34d;
+    color-scheme: dark;
+}
+.court-site.court-signage[data-idle] { cursor: none; }
+.court-site.court-signage[data-orientation='landscape'] { --sg-pad: 56px; }
+/* Ethiopic has no capitals: tracking only spreads it. */
+.court-site.court-signage :is(h1, h2, p, span, dt, dd, li) { letter-spacing: 0; }
+
+.court-site .court-signage-stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1;
+    isolation: isolate;
+    display: grid;
+    overflow: hidden;
+    padding: 0 var(--sg-pad);
+    transform: translate(calc(-50% + var(--sx, 0px)), calc(-50% + var(--sy, 0px))) rotate(var(--rotate, 0deg)) scale(var(--scale, 1));
+    transform-origin: center;
+    transition: transform 2.5s ease;
+    background: var(--sg-surface);
+    /* Seen on a screen of another shape, the board stands framed; on its own screen the frame falls outside. */
+    box-shadow: var(--sg-frame);
+}
+/* A fine grain, as on printed stock, over the board's surface. */
+.court-site .court-signage-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: var(--sg-grain);
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+/* Portrait, top to bottom: the court and the hour, the next sitting, the cause list, the registry's
+   notices (when there are any), the court in figures beside this week's sitting days, the decisions
+   released (when there are any), following a case and the registry, and how fresh the board is. */
+.court-site.court-signage[data-orientation='portrait'] .court-signage-stage {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 224px 362px minmax(0, 1fr) auto 326px auto 212px 44px;
+    grid-template-areas: 'crest' 'next' 'list' 'notices' 'overview' 'decisions' 'info' 'foot';
+}
+.court-site.court-signage[data-orientation='landscape'] .court-signage-stage {
+    grid-template-columns: 760px minmax(0, 1fr);
+    grid-template-rows: 262px minmax(0, 1fr) auto auto 236px 44px;
+    grid-template-areas: 'crest list' 'next list' 'notices overview' 'decisions overview' 'info overview' 'foot foot';
+    column-gap: 56px;
+}
+.court-site .sg-crest { grid-area: crest; }
+.court-site .sg-next { grid-area: next; }
+.court-site .sg-list { grid-area: list; }
+.court-site .sg-notices { grid-area: notices; }
+.court-site .sg-overview { grid-area: overview; }
+.court-site .sg-decisions { grid-area: decisions; }
+.court-site .sg-info { grid-area: info; }
+.court-site .sg-foot { grid-area: foot; }
+
+/* ── The court and the hour ── */
+.court-site .sg-crest {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-inline: calc(var(--sg-pad) * -1);
+    padding: 18px var(--sg-pad) 26px;
+}
+.court-site.court-signage[data-orientation='landscape'] .sg-crest {
+    padding-block: 12px 18px;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 16px;
+    margin-inline-end: 0;
+}
+/* The double brass rule under the letterhead. */
+.court-site .sg-crest::after {
+    content: '';
+    position: absolute;
+    left: var(--sg-pad);
+    right: var(--sg-pad);
+    bottom: 0;
+    height: 6px;
+    background:
+        linear-gradient(90deg, transparent, var(--court-brass), transparent) top / 100% 1px no-repeat,
+        linear-gradient(90deg, transparent, var(--court-brass-soft) 30%, var(--court-brass) 50%, var(--court-brass-soft) 70%, transparent) bottom / 100% 2px no-repeat;
+}
+.court-site .sg-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(105deg, transparent 38%, var(--sg-sheen) 50%, transparent 62%);
+    opacity: 0;
+}
+/* The logo as it is drawn: no plate, no ring. */
+.court-site .sg-medallion { display: flex; flex-shrink: 0; align-items: center; justify-content: center; color: var(--sg-accent); }
+.court-site .sg-medallion-logo {
+    display: block;
+    width: auto;
+    height: 128px;
+    max-width: 200px;
+    object-fit: contain;
+    filter: var(--sg-logo-shadow);
+}
+.court-site .sg-medallion-mark { width: 112px; height: 112px; }
+.court-site .sg-crest-text { flex: 1; min-width: 0; }
+/* The letterhead: the parent office in brass, then the court's own name large, read as one name. */
+.court-site .sg-eyebrow { display: block; font-size: 21px; font-weight: 600; line-height: 1.45; color: var(--sg-accent); }
+.court-site .sg-court {
+    display: block;
+    margin-top: 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--font-document-am);
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--sg-text);
+}
+/* The Ethiopian hour, and today's Ethiopian date under it, ruled off from the name. */
+.court-site .sg-crest-time {
+    flex-shrink: 0;
+    padding-left: 28px;
+    border-left: 1px solid var(--sg-brass-line);
+    text-align: right;
+}
+.court-site.court-signage[data-orientation='landscape'] .sg-crest-time {
+    display: flex;
+    flex-basis: 100%;
+    align-items: baseline;
+    gap: 20px;
+    padding: 14px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--sg-brass-line);
+    text-align: left;
+}
+.court-site .sg-eth-time {
+    font-size: 66px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--sg-text);
+}
+.court-site .sg-eth-part { margin-right: 12px; font-size: 26px; font-weight: 600; color: var(--sg-accent); }
+.court-site .sg-colon { position: relative; top: -0.06em; margin-inline: 0.02em; }
+.court-site .sg-seconds { margin-left: 10px; font-size: 22px; color: var(--sg-accent); }
+.court-site .sg-eth-weekday { margin-top: 12px; font-size: 26px; font-weight: 600; color: var(--sg-accent-soft); }
+.court-site .sg-eth-date { margin-top: 4px; font-size: 22px; white-space: nowrap; color: var(--sg-text-3); }
+.court-site.court-signage[data-orientation='landscape'] .sg-eth-weekday,
+.court-site.court-signage[data-orientation='landscape'] .sg-eth-date { margin-top: 0; }
+
+/* ── The next sitting ── */
+.court-site .sg-next {
+    position: relative;
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    /* From the top: should the content ever outgrow the card, its foot gives way, never its heading. */
+    justify-content: flex-start;
+    height: calc(100% - 26px);
+    min-height: 0;
+    padding: 18px 32px;
+    border: 1px solid var(--sg-brass-line);
+    border-radius: 22px;
+    background: var(--sg-card-glow), var(--sg-card-top);
+    box-shadow: var(--sg-inset), var(--sg-shadow);
+}
+.court-site .sg-next[data-state='none'] { border-color: var(--sg-line); background: var(--sg-card-top); }
+.court-site .sg-next-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.court-site .sg-kicker { font-size: 22px; font-weight: 700; color: var(--sg-accent); }
+.court-site .sg-kicker-line { display: inline-flex; align-items: center; gap: 12px; }
+.court-site .sg-kicker-sub { display: block; margin-top: 4px; font-size: 19px; font-weight: 500; color: var(--sg-accent-soft); }
+.court-site .sg-countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: 10px 20px 10px 16px;
+    border: 1px solid var(--sg-brass-line);
+    border-radius: 9999px;
+    background: var(--sg-chip);
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--sg-text);
+}
+.court-site .sg-pulse,
+.court-site .sg-marker {
+    position: relative;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+}
+.court-site .sg-pulse { background: var(--sg-fill); }
+.court-site .sg-pulse::after,
+.court-site .sg-row[data-state='next'] .sg-marker::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--sg-fill);
+    opacity: 0;
+}
+.court-site .sg-next-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 32px;
+    margin-top: 14px;
+}
+.court-site.court-signage[data-orientation='landscape'] .sg-next-body { grid-template-columns: auto minmax(0, 1fr); row-gap: 14px; }
+.court-site.court-signage[data-orientation='landscape'] .sg-next-body .sg-where { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 16px; text-align: left; }
+.court-site .sg-next-time {
+    font-size: 68px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, var(--sg-time-from) 0%, var(--sg-time-to) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.court-site .sg-next-time .sg-eth-part { display: block; margin: 0 0 6px; font-size: 24px; }
+.court-site .sg-next-case {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 42px;
+    font-weight: 600;
+    color: var(--sg-text);
+}
+.court-site .sg-next-matter {
+    margin-top: 6px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 22px;
+    line-height: 1.35;
+    color: var(--sg-text-2);
+}
+/* The parties, plaintiff over defendant, each labelled. */
+.court-site .sg-parties { display: grid; gap: 4px; margin-top: 8px; }
+.court-site .sg-parties > div { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: baseline; gap: 12px; }
+.court-site .sg-parties dt { font-size: 18px; font-weight: 700; color: var(--sg-accent); }
+.court-site .sg-parties dd { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 24px; font-weight: 600; line-height: 1.3; color: var(--sg-text); }
+.court-site .sg-parties dd span { margin-left: 10px; font-size: 18px; font-weight: 500; color: var(--sg-muted); }
+.court-site.court-signage[data-orientation='landscape'] .sg-parties + .sg-next-matter { display: none; }
+.court-site .sg-parties + .sg-next-matter { margin-top: 8px; font-size: 19px; -webkit-line-clamp: 1; color: var(--sg-muted); }
+.court-site .sg-next-more { margin-top: 4px; font-size: 18px; color: var(--sg-accent-soft); }
+.court-site .sg-next-empty { display: grid; flex: 1; place-items: center; text-align: center; font-size: 32px; color: var(--sg-text-3); }
+
+/* The bench, in its own colour, and the room under it. */
+.court-site .sg-where { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.court-site .sg-where-large { align-items: flex-end; max-width: 300px; text-align: right; }
+.court-site .sg-bench {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 4px 14px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border: 1px solid color-mix(in srgb, var(--bench) 60%, transparent);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--bench) var(--sg-bench-soft), transparent);
+    font-size: 19px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--bench) var(--sg-bench-pure), var(--sg-text));
+}
+.court-site .sg-bench-none { --bench: #94a3b8; font-size: 15px; font-weight: 500; }
+.court-site .sg-room { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 18px; color: var(--sg-text-3); }
+.court-site .sg-where-large .sg-bench { padding: 8px 20px; font-size: 26px; }
+.court-site .sg-where-large .sg-room { font-size: 24px; color: var(--sg-text); }
+
+/* ── The cause list ── */
+.court-site .sg-list { display: flex; flex-direction: column; min-height: 0; padding: 22px 0 16px; }
+.court-site.court-signage[data-orientation='landscape'] .sg-list { padding: 36px 0 24px; }
+.court-site .sg-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-bottom: 14px; }
+.court-site .sg-section-head h2 { display: flex; align-items: baseline; gap: 16px; font-size: 27px; font-weight: 600; color: var(--sg-accent-soft); }
+.court-site .sg-section-head h2::before {
+    content: '';
+    flex-shrink: 0;
+    align-self: center;
+    width: 30px;
+    height: 3px;
+    border-radius: 9999px;
+    background: var(--sg-fill);
+}
+.court-site .sg-count { font-size: 18px; font-weight: 500; color: var(--sg-muted); }
+.court-site .sg-pages { display: inline-flex; align-items: center; gap: 16px; font-size: 20px; font-variant-numeric: tabular-nums; color: var(--sg-text-3); }
+.court-site .sg-progress { display: inline-flex; gap: 6px; }
+.court-site .sg-progress > span { position: relative; overflow: hidden; width: 36px; height: 6px; border-radius: 9999px; background: var(--sg-line); }
+.court-site .sg-progress > span[data-done] { background: var(--sg-brass-line); }
+.court-site .sg-progress-fill { position: absolute; inset: 0; border-radius: inherit; background: var(--sg-fill); transform-origin: left center; }
+.court-site .sg-table {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid var(--sg-line);
+    border-radius: 18px;
+    background: var(--sg-table);
+    box-shadow: var(--sg-shadow);
+}
+.court-site .sg-row {
+    display: grid;
+    grid-template-columns: 14px 112px 226px minmax(0, 1fr) 240px;
+    align-items: center;
+    gap: 18px;
+    padding: 0 22px;
+    border-bottom: 1px solid var(--sg-row-line);
+}
+.court-site.court-signage[data-orientation='landscape'] .sg-row { grid-template-columns: 14px 124px 260px minmax(0, 1fr) 300px; gap: 22px; padding: 0 28px; }
+.court-site .sg-row-head {
+    padding-block: 14px 12px;
+    border-bottom: 1px solid var(--sg-brass-line);
+    background: var(--sg-head-row);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--sg-muted);
+}
+.court-site .sg-rows { flex: 1; min-height: 0; overflow: hidden; }
+.court-site .sg-rows .sg-row { height: var(--row-h, 84px); }
+.court-site .sg-rows .sg-row:nth-child(even) { background: var(--sg-row-alt); }
+.court-site .sg-marker { box-shadow: inset 0 0 0 2px var(--sg-fill); }
+.court-site .sg-row[data-state='past'] .sg-marker { box-shadow: inset 0 0 0 2px var(--sg-faint); }
+.court-site .sg-row[data-state='next'] .sg-marker { background: var(--sg-fill); box-shadow: none; }
+.court-site .sg-row[data-state='next'] {
+    background: linear-gradient(90deg, var(--sg-highlight), transparent 70%) !important;
+    box-shadow: inset 4px 0 0 var(--sg-fill);
+}
+/* Its cells, not the row: the row's entrance animation ends at full opacity. */
+.court-site .sg-row[data-state='past'] > * { opacity: 0.42; }
+.court-site .sg-cell-time { font-size: 36px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: var(--sg-text); }
+.court-site .sg-cell-time small { display: block; margin-bottom: 4px; font-size: 15px; font-weight: 600; line-height: 1.1; color: var(--sg-muted); }
+.court-site .sg-row[data-state='next'] .sg-cell-time { color: var(--sg-accent-soft); }
+.court-site .sg-row[data-state='next'] .sg-cell-time small { color: var(--sg-accent); }
+.court-site .sg-cell-case {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 27px;
+    font-weight: 600;
+    color: var(--sg-text);
+}
+.court-site .sg-cell-matter { display: flex; flex-direction: column; min-width: 0; }
+.court-site .sg-cell-matter > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.court-site .sg-cell-matter > span:first-child { font-size: 23px; color: var(--sg-text-2); }
+.court-site .sg-cell-matter > span + span { font-size: 17px; color: var(--sg-muted); }
+.court-site .sg-cell-where { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.court-site .sg-tag {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    background: var(--sg-fill);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sg-on-fill);
+}
+.court-site .sg-note { padding: 12px 22px 14px; border-top: 1px solid var(--sg-row-line); font-size: 17px; color: var(--sg-faint); }
+.court-site .sg-list-empty {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    border: 1px dashed var(--sg-line);
+    border-radius: 18px;
+    text-align: center;
+    font-size: 32px;
+    color: var(--sg-text-3);
+}
+.court-site .sg-list-empty svg { color: var(--sg-brass-line); }
+
+/* ── Decisions released ── */
+.court-site .sg-decisions { padding: 6px 0 18px; }
+.court-site .sg-decision-list { display: flex; flex-wrap: wrap; gap: 10px; max-height: 106px; overflow: hidden; }
+.court-site .sg-decision-list li {
+    padding: 6px 14px;
+    border: 1px solid var(--sg-brass-line);
+    border-radius: 10px;
+    background: var(--sg-chip);
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--sg-text);
+}
+
+/* ── Following a case, and the registry ── */
+.court-site .sg-info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding: 6px 0 16px;
+}
+.court-site .sg-follow,
+.court-site .sg-registry {
+    min-width: 0;
+    padding: 20px 24px;
+    border: 1px solid var(--sg-line);
+    border-radius: 18px;
+    background: var(--sg-card);
+    box-shadow: var(--sg-shadow);
+}
+.court-site .sg-follow { display: flex; align-items: center; gap: 22px; }
+.court-site .sg-info[data-registry] { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+.court-site .sg-follow .sg-ask { margin-top: 10px; font-weight: 600; color: var(--sg-accent-soft); }
+.court-site .sg-info h2 { font-size: 25px; font-weight: 700; color: var(--sg-accent-soft); }
+.court-site .sg-follow p,
+.court-site .sg-registry > p { margin-top: 8px; font-size: 19px; line-height: 1.5; color: var(--sg-text-3); }
+/* A code reads best dark on light, with a quiet margin round it. */
+.court-site .sg-qr {
+    display: block;
+    flex-shrink: 0;
+    width: 150px;
+    height: 150px;
+    padding: 9px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 0 0 3px var(--sg-brass-line);
+}
+.court-site.court-signage[data-orientation='landscape'] .sg-qr { width: 140px; height: 140px; }
+.court-site .sg-qr svg { display: block; width: 100%; height: 100%; }
+.court-site .sg-registry dl { display: grid; gap: 8px; margin-top: 10px; }
+.court-site .sg-registry dt { font-size: 15px; font-weight: 600; color: var(--sg-muted); }
+.court-site .sg-registry dd { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 20px; color: var(--sg-text); }
+
+/* ── The notices, under the cause list: a brass-ruled card, one notice at a time ── */
+.court-site .sg-notices { padding: 4px 0 18px; }
+.court-site .sg-notice {
+    position: relative;
+    height: 120px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+.court-site .sg-notice-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 29px; font-weight: 700; color: var(--sg-text); }
+.court-site .sg-notice-summary {
+    margin-top: 8px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--sg-text-2);
+}
+.court-site .sg-notice-date { position: absolute; right: 0; bottom: 0; font-size: 16px; color: var(--sg-accent-soft); }
+.court-site.court-signage[data-orientation='landscape'] .sg-notice { height: 96px; }
+.court-site.court-signage[data-orientation='landscape'] .sg-notice-summary { -webkit-line-clamp: 1; }
+
+/* ── How fresh the board is ── */
+.court-site .sg-foot { display: flex; align-items: center; justify-content: flex-start; border-top: 1px solid var(--sg-line); }
+.court-site .sg-fresh { font-size: 16px; color: var(--sg-faint); }
+.court-site .sg-fresh.is-stale { font-weight: 700; color: var(--sg-stale); }
+
+.court-site .sg-tool {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 20;
+    padding: 8px 16px;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 8px;
+    background: rgb(12 26 49 / 0.92);
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.6);
+}
+.court-site .sg-tool:hover { background: var(--court-navy); }
+.court-site .sg-tool:focus-visible { outline: 2px solid var(--court-brass); outline-offset: 2px; }
+.court-site .court-signage-tools { transition: opacity 0.3s ease; }
+.court-site.court-signage[data-idle] .court-signage-tools { opacity: 0; pointer-events: none; }
+
+@keyframes cp-board-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes cp-tick {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+@keyframes cp-sheen {
+    0% { opacity: 0; transform: translateX(-70%); }
+    8% { opacity: 1; }
+    30% { opacity: 0; transform: translateX(70%); }
+    100% { opacity: 0; transform: translateX(70%); }
+}
+@keyframes cp-breathe {
+    0%, 100% { box-shadow: var(--sg-inset), var(--sg-shadow), 0 0 0 0 rgb(200 161 74 / 0); }
+    50% { box-shadow: var(--sg-inset), var(--sg-shadow), 0 0 46px -6px rgb(200 161 74 / 0.32); }
+}
+
+/* ── The court in figures, beside this week's sitting days ── */
+.court-site .sg-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+    gap: 22px;
+    min-height: 0;
+    padding: 2px 0 16px;
+}
+.court-site.court-signage[data-orientation='landscape'] .sg-overview { grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); padding: 0 0 24px; }
+.court-site .sg-stats-card,
+.court-site .sg-week-card {
+    min-width: 0;
+    min-height: 0;
+    padding: 18px 22px;
+    overflow: hidden;
+    border: 1px solid var(--sg-line);
+    border-radius: 18px;
+    background: var(--sg-card);
+    box-shadow: var(--sg-shadow);
+}
+.court-site .sg-stats-card h2,
+.court-site .sg-week-card h2 { font-size: 22px; font-weight: 700; color: var(--sg-accent-soft); }
+.court-site .sg-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 12px; }
+.court-site .sg-figures > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    min-width: 0;
+    padding: 0 14px;
+    border-left: 1px solid var(--sg-brass-line);
+}
+.court-site .sg-figures > div:first-child { padding-left: 0; border-left: 0; }
+.court-site .sg-figures dd { font-size: 46px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: var(--sg-text); }
+.court-site .sg-figures dt { margin-top: 8px; font-size: 15px; line-height: 1.35; color: var(--sg-muted); }
+.court-site .sg-caseload { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--sg-line); }
+.court-site .sg-caseload-head { display: flex; align-items: baseline; gap: 12px; font-size: 17px; color: var(--sg-text-3); }
+.court-site .sg-caseload-head b { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--sg-text); }
+.court-site .sg-bar { display: flex; gap: 3px; height: 10px; margin: 10px 0 10px; overflow: hidden; border-radius: 9999px; }
+.court-site .sg-bar > span { flex-basis: 0; border-radius: 2px; }
+.court-site .sg-legend { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+.court-site .sg-legend li { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; color: var(--sg-text-2); }
+.court-site .sg-legend li > span { width: 11px; height: 11px; border-radius: 3px; }
+.court-site .sg-legend b { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--sg-text); }
+.court-site .sg-week { display: grid; margin-top: 10px; }
+.court-site .sg-week li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--sg-row-line);
+    border-radius: 8px;
+}
+.court-site .sg-week li[data-today] { background: var(--sg-highlight); }
+.court-site .sg-week-day { font-size: 18px; font-weight: 600; color: var(--sg-text); }
+.court-site .sg-week-date { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 16px; color: var(--sg-muted); }
+.court-site .sg-week-mark { padding: 1px 10px; border-radius: 9999px; background: var(--sg-fill); font-size: 13px; font-weight: 700; color: var(--sg-on-fill); }
+.court-site .sg-week b { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--sg-accent-soft); }
+.court-site .sg-week-none { margin-top: 12px; font-size: 18px; color: var(--sg-muted); }
+
+.court-site.court-signage[data-orientation='landscape'] .sg-next { padding-block: 10px; }
+.court-site.court-signage[data-orientation='landscape'] .sg-parties dd { font-size: 22px; }
+
+/* ── Cards, all alike: the notices join the figures, the week and following a case ── */
+.court-site .sg-notice-card {
+    min-width: 0;
+    padding: 18px 22px;
+    overflow: hidden;
+    border: 1px solid var(--sg-line);
+    border-radius: 18px;
+    background: var(--sg-card);
+    box-shadow: var(--sg-shadow);
+}
+.court-site .sg-card-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.court-site .sg-card-head h2 { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; color: var(--sg-accent-soft); }
+.court-site .sg-notice-title { font-size: 27px; }
+.court-site .sg-notice-summary { font-size: 21px; }
+
+/* ── The court's marks: a brass line icon on every heading ── */
+.court-site .sg-icon { flex-shrink: 0; width: 28px; height: 28px; color: var(--sg-accent); }
+.court-site .sg-section-head h2 { align-items: center; }
+.court-site .sg-section-head h2::before { content: none; }
+.court-site .sg-section-head .sg-icon { width: 32px; height: 32px; }
+.court-site .sg-stats-card h2,
+.court-site .sg-week-card h2,
+.court-site .sg-info h2 { display: flex; align-items: center; gap: 10px; }
+
+/* ── The gavel: it strikes the block now and then; a brass ring spreads where it lands ── */
+.court-site .sg-gavel { flex-shrink: 0; width: 56px; height: 56px; margin: -14px 0 -10px; overflow: visible; }
+.court-site .sg-gavel-block { fill: var(--sg-accent); }
+.court-site .sg-gavel-handle { fill: none; stroke: var(--sg-accent); stroke-width: 5; stroke-linecap: round; }
+.court-site .sg-gavel-head { fill: var(--sg-fill); }
+.court-site .sg-gavel-band { fill: var(--sg-accent); }
+.court-site .sg-gavel-arm { transform-box: view-box; transform-origin: 58px 35px; }
+.court-site .sg-gavel-ring {
+    fill: none;
+    stroke: var(--sg-fill);
+    stroke-width: 2;
+    opacity: 0;
+    transform-box: view-box;
+    transform-origin: 17px 53px;
+}
+
+/* ── The scales of justice, faint at the next sitting's end ── */
+.court-site .sg-next { isolation: isolate; overflow: hidden; }
+.court-site .sg-next-seal {
+    display: block;
+    right: -70px;
+    top: 50%;
+    width: 330px;
+    height: 330px;
+    translate: 0 -50%;
+    opacity: 0.11;
+}
+.court-site.court-signage[data-theme='dark'] .sg-next-seal { opacity: 0.14; }
+
+@keyframes sg-gavel-strike {
+    0%, 70% { transform: rotate(0deg); }
+    78% { transform: rotate(30deg); }
+    84% { transform: rotate(-5deg); }
+    88% { transform: rotate(1.5deg); }
+    92%, 100% { transform: rotate(0deg); }
+}
+@keyframes sg-gavel-ring {
+    0%, 83% { opacity: 0; transform: scale(0.4); }
+    85% { opacity: 0.9; transform: scale(0.55); }
+    100% { opacity: 0; transform: scale(1.7); }
+}
+
+/* ════ The board's motion ════════════════════════════════════════════
+   The door screen moves on its own switch: the court's animations
+   setting, or ?motion=off for one screen (data-motion on the root). It
+   does not follow the screen computer's reduce-motion preference: nobody
+   sits at that computer, and the lobby is not the one who set it. Slow,
+   steady movement also keeps the panel from burning in. */
+
+/* ── The courthouse behind the letterhead ── */
+.court-site .sg-courthouse {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    z-index: -1;
+    width: 620px;
+    height: auto;
+    translate: -50% 0;
+    color: var(--sg-accent);
+    opacity: 0.1;
+    pointer-events: none;
+}
+.court-site.court-signage[data-theme='dark'] .sg-courthouse { opacity: 0.14; }
+.court-site .sg-courthouse-pediment { fill: currentColor; fill-opacity: 0.55; stroke: currentColor; stroke-width: 3; stroke-linejoin: round; }
+.court-site .sg-courthouse-beam,
+.court-site .sg-courthouse-column,
+.court-site .sg-courthouse-step { fill: currentColor; }
+.court-site .sg-courthouse-column { transform-box: fill-box; transform-origin: 50% 100%; }
+
+/* ── Brass specks over the board ── */
+.court-site .court-signage-stage .court-motes { display: block; }
+.court-site.court-signage .court-motes span {
+    background: var(--sg-fill);
+    box-shadow: 0 0 10px rgb(200 161 74 / 0.75);
+}
+
+/* ── The light that runs round the next sitting's card ── */
+@property --sg-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+.court-site .sg-next-trail {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    padding: 2.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: conic-gradient(from var(--sg-angle), transparent 0deg 230deg, rgb(200 161 74 / 0.15) 260deg, var(--sg-fill) 320deg, #fff1c2 345deg, transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+/* ── The next row's passing light ── */
+.court-site .sg-rows .sg-row[data-state='next'] { position: relative; overflow: hidden; }
+.court-site .sg-rows .sg-row[data-state='next']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(100deg, transparent 25%, rgb(255 246 214 / 0.75) 48%, rgb(255 255 255 / 0.55) 52%, transparent 75%);
+    opacity: 0;
+    transform: translateX(-100%);
+}
+.court-site.court-signage[data-theme='dark'] .sg-rows .sg-row[data-state='next']::after {
+    background: linear-gradient(100deg, transparent 25%, rgb(232 214 162 / 0.28) 48%, rgb(255 255 255 / 0.16) 52%, transparent 75%);
+}
+
+/* ── The seconds turning over ── */
+.court-site .sg-seconds { display: inline-block; overflow: hidden; vertical-align: baseline; }
+.court-site .sg-tick { display: inline-block; }
+
+/* ── The code, still: a phone reads it best when nothing moves over it ── */
+.court-site .sg-qr-frame { position: relative; display: block; flex-shrink: 0; overflow: hidden; border-radius: 14px; }
+
+/* ── The caseload bar: segments grow in, a light passes ── */
+.court-site .sg-bar { position: relative; }
+.court-site .sg-bar > span { transform-origin: left center; }
+.court-site .sg-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 30%, rgb(255 255 255 / 0.7) 50%, transparent 70%);
+    opacity: 0;
+    transform: translateX(-100%);
+    pointer-events: none;
+}
+
+/* ── Keyframes ── */
+@keyframes sg-orbit { to { --sg-angle: 360deg; } }
+@keyframes sg-row-light {
+    0%, 55% { opacity: 0; transform: translateX(-100%); }
+    60% { opacity: 1; }
+    95% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(100%); }
+}
+@keyframes sg-tick-in {
+    from { opacity: 0; transform: translateY(-60%); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes sg-grow { from { transform: scaleX(0); } }
+@keyframes sg-bar-light {
+    0%, 70% { opacity: 0; transform: translateX(-100%); }
+    75% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(100%); }
+}
+@keyframes sg-rise-column { from { opacity: 0; transform: scaleY(0.05); } }
+@keyframes sg-fade-in { from { opacity: 0; } }
+@keyframes sg-mote-rise {
+    0% { opacity: 0; transform: translate3d(0, 0, 0); }
+    10% { opacity: 0.9; }
+    80% { opacity: 0.55; }
+    100% { opacity: 0; transform: translate3d(36px, -1900px, 0); }
+}
+@keyframes sg-today {
+    0%, 100% { box-shadow: inset 0 0 0 1px rgb(200 161 74 / 0.2); }
+    50% { box-shadow: inset 0 0 0 1px rgb(200 161 74 / 0.75), 0 0 18px -4px rgb(200 161 74 / 0.6); }
+}
+@keyframes sg-gavel-strike {
+    0%, 66% { transform: rotate(0deg); }
+    76% { transform: rotate(26deg); }
+    82% { transform: rotate(-6deg); }
+    86% { transform: rotate(2deg); }
+    90%, 100% { transform: rotate(0deg); }
+}
+@keyframes sg-gavel-ring {
+    0%, 81% { opacity: 0; transform: scale(0.4); }
+    83% { opacity: 1; transform: scale(0.55); }
+    100% { opacity: 0; transform: scale(2); }
+}
+@keyframes sg-gavel-block {
+    0%, 81%, 88%, 100% { transform: none; }
+    83% { transform: translateY(1.5px); }
+}
+
+/* ── All of it, on the board's own switch ── */
+.court-site.court-signage[data-motion='on'] .court-signage-in {
+    animation: cp-board-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+.court-site.court-signage[data-motion='on'] .sg-colon { animation: cp-tick 2s steps(1) infinite; }
+.court-site.court-signage[data-motion='on'] .sg-tick { animation: sg-tick-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.court-site.court-signage[data-motion='on'] .sg-progress-fill { animation: cp-fill var(--page, 12s) linear both; }
+.court-site.court-signage[data-motion='on'] .sg-sheen { animation: cp-sheen 11s ease-in-out 1.5s infinite; }
+.court-site.court-signage[data-motion='on'] .sg-next[data-state='next'] { animation: cp-breathe 5s ease-in-out infinite; }
+.court-site.court-signage[data-motion='on'] .sg-next-trail { opacity: 1; animation: sg-orbit 6s linear infinite; }
+.court-site.court-signage[data-motion='on'] .sg-pulse::after,
+.court-site.court-signage[data-motion='on'] .sg-row[data-state='next'] .sg-marker::after { animation: cp-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.court-site.court-signage[data-motion='on'] .sg-rows .sg-row[data-state='next']::after { animation: sg-row-light 4.5s ease-in-out 1s infinite; }
+.court-site.court-signage[data-motion='on'] .sg-bar > span { animation: sg-grow 1.4s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i, 0) * 140ms + 0.4s); }
+.court-site.court-signage[data-motion='on'] .sg-bar::after { animation: sg-bar-light 6s ease-in-out 2.5s infinite; }
+.court-site.court-signage[data-motion='on'] .sg-week li[data-today] { animation: sg-today 2.8s ease-in-out infinite; }
+.court-site.court-signage[data-motion='on'] .sg-icon path { stroke-dasharray: 100; animation: cp-draw 1.8s cubic-bezier(0.6, 0, 0.3, 1) 0.3s both; }
+.court-site.court-signage[data-motion='on'] .sg-courthouse-column { animation: sg-rise-column 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 110ms + 0.2s); }
+.court-site.court-signage[data-motion='on'] .sg-courthouse-pediment,
+.court-site.court-signage[data-motion='on'] .sg-courthouse-beam { animation: sg-fade-in 1.2s ease 1.2s both; }
+.court-site.court-signage[data-motion='on'] .court-motes span { animation: sg-mote-rise calc(var(--d) * 2.4) linear var(--t) infinite; }
+.court-site.court-signage[data-motion='on'] .sg-gavel-arm { animation: sg-gavel-strike 6s cubic-bezier(0.3, 0, 0.2, 1) infinite; }
+.court-site.court-signage[data-motion='on'] .sg-gavel-ring { animation: sg-gavel-ring 6s ease-out infinite; }
+.court-site.court-signage[data-motion='on'] .sg-gavel-block { animation: sg-gavel-block 6s linear infinite; transform-box: fill-box; }
+/* The scales: rings turning, the glow breathing, the beam weighing then swaying. */
+.court-site.court-signage[data-motion='on'] .court-seal-ring { animation: cp-turn 60s linear infinite; }
+.court-site.court-signage[data-motion='on'] .court-seal-ring-reverse { animation-duration: 80s; animation-direction: reverse; }
+.court-site.court-signage[data-motion='on'] .court-seal-glow { animation: cp-glow 6s ease-in-out infinite; }
+.court-site.court-signage[data-motion='on'] .court-seal-draw { stroke-dasharray: 100; animation: cp-draw 1.6s cubic-bezier(0.6, 0, 0.3, 1) 0.3s both; }
+.court-site.court-signage[data-motion='on'] .court-seal-fade { animation: cp-fade 0.8s ease 1.2s both; }
+.court-site.court-signage[data-motion='on'] .court-seal-d1 { animation-delay: 0.7s; }
+.court-site.court-signage[data-motion='on'] .court-seal-d2 { animation-delay: 1s; }
+.court-site.court-signage[data-motion='on'] .court-seal-d3 { animation-delay: 1.5s; }
+.court-site.court-signage[data-motion='on'] .court-seal-beam,
+.court-site.court-signage[data-motion='on'] .court-seal-pan { animation: cp-weigh 3.2s cubic-bezier(0.37, 0, 0.3, 1) 1.4s both, cp-sway 7s ease-in-out 4.6s infinite; }
+
+/* The scales show more plainly than a watermark, and the gavel reads from across the hall. */
+.court-site .sg-next-seal { opacity: 0.16; width: 360px; height: 360px; right: -60px; }
+.court-site.court-signage[data-theme='dark'] .sg-next-seal { opacity: 0.2; }
+/* The gavel sits wholly inside the card: lifted, its head must stay clear of the card's edge. */
+.court-site .sg-gavel { width: 60px; height: 60px; margin: 4px 0 -22px; }
+
+/* ── The board starting itself again after a failure ── */
+.court-site .sg-recover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 48px;
+    text-align: center;
+    background: var(--sg-surface);
+}
+.court-site .sg-recover .sg-court { white-space: normal; }
+.court-site .sg-recover-note { margin-top: 18px; font-size: 22px; color: var(--sg-muted); }
+.court-site.court-signage[data-orientation='landscape'] .sg-parties dd { -webkit-line-clamp: 1; }

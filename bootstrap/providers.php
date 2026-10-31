@@ -7,6 +7,7 @@ use App\Providers\ServiceModuleServiceProvider;
 use Modules\Assessment\Providers\AssessmentServiceProvider;
 use Modules\Cafeteria\Providers\CafeteriaServiceProvider;
 use Modules\Communication\Providers\CommunicationServiceProvider;
+use Modules\Court\Providers\CourtServiceProvider;
 use Modules\DailyWork\Providers\DailyWorkServiceProvider;
 use Modules\Discipline\Providers\DisciplineServiceProvider;
 use Modules\Entitlements\Providers\EntitlementsServiceProvider;
@@ -46,4 +47,5 @@ return [
     PublicSiteServiceProvider::class,
     RecruitmentServiceProvider::class,
     TransferServiceProvider::class,
+    CourtServiceProvider::class,
 ];
