@@ -53,6 +53,12 @@ it('renders the coordinator pages', function (): void {
         ->assertInertia(fn (Assert $page) => $page->where('report.range', 'annual')->has('forms', 2)->has('forms.0.sections.section_1'));
 });
 
+it('keeps the shared system settings on the settings page, so the layout keeps its theme', function (): void {
+    $this->actingAs($this->s->coordinator())->get(route('service-monitoring.settings.edit'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('ServiceMonitoring/Settings')
+            ->has('moduleSettings.driver_occupation_ids')->missing('settings.require_stamped_copy')->missing('settings.driver_occupation_ids'));
+});
+
 it('ignores empty or malformed id filters instead of failing on a uuid column', function (): void {
     $coordinator = $this->s->coordinator();
     foreach (['', 'not-a-uuid'] as $bad) {

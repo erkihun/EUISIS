@@ -128,6 +128,17 @@ it('rejects a malformed template, and one organization type gets one published t
     $this->post(route('service-monitoring.forms.publish', $other))->assertSessionHasErrors('organization_type_ids');
 });
 
+it('creates the technical template code automatically for the digital builder', function (): void {
+    $this->actingAs($this->s->coordinator())->post(route('service-monitoring.forms.store'), [
+        'name_am' => 'የዲጂታል ሪፖርት',
+        'organization_type_ids' => [],
+        'content' => tplContent(),
+    ])->assertSessionHasNoErrors();
+
+    $template = FormTemplate::query()->sole();
+    expect($template->code)->toStartWith('SMF-');
+});
+
 it('keeps the form builder to city-wide holders of forms.manage', function (): void {
     $this->actingAs($this->s->head('wA1'))->get(route('service-monitoring.forms.index'))->assertForbidden();
     $this->actingAs($this->s->reviewer('subA'))->get(route('service-monitoring.forms.index'))->assertForbidden();

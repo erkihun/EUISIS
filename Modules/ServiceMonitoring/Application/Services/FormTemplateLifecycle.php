@@ -7,6 +7,7 @@ namespace Modules\ServiceMonitoring\Application\Services;
 use App\Enums\AuditEventType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\ServiceMonitoring\Domain\Enums\FormTemplateStatus;
 use Modules\ServiceMonitoring\Domain\Models\FormTemplate;
@@ -22,12 +23,12 @@ final readonly class FormTemplateLifecycle
 {
     public function __construct(private ServiceMonitoringAudit $audit) {}
 
-    /** @param array{code: string, name_am: string, name_en?: ?string, description?: ?string, content: array<string, mixed>, organization_type_ids: list<string>} $attributes */
+    /** @param array{code?: ?string, name_am: string, name_en?: ?string, description?: ?string, content: array<string, mixed>, organization_type_ids: list<string>} $attributes */
     public function create(User $actor, array $attributes): FormTemplate
     {
         return DB::transaction(function () use ($actor, $attributes): FormTemplate {
             $template = FormTemplate::query()->create([
-                'code' => $attributes['code'],
+                'code' => ($attributes['code'] ?? null) ?: 'SMF-'.Str::upper((string) Str::ulid()),
                 'version' => 1,
                 'name_am' => $attributes['name_am'],
                 'name_en' => $attributes['name_en'] ?? null,

@@ -63,6 +63,7 @@ final class DashboardController extends Controller
             'clarifications' => Inertia::defer(fn (): array => $this->clarifications($user), 'figures'),
             'can' => [
                 'manage_periods' => $this->access->canManagePeriods($user),
+                'manage_forms' => $this->access->canManageForms($user),
                 'review' => $user->can('service_monitoring.review'),
                 'verify' => $this->access->canVerifyTechnology($user),
                 'reports' => $this->access->canViewReports($user),
