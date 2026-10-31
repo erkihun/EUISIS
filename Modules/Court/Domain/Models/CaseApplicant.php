@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * A party on the applicant's side of a case: the lead applicant, a co-applicant
  * (invited until they confirm), or an intervener (requested until the judge
- * decides). See Modules\Court\Application\Services\CaseParties.
+ * decides). The CaseParties service applies the rules.
  */
 class CaseApplicant extends Model
 {

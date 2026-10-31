@@ -68,12 +68,12 @@ class Applicant extends Authenticatable implements MustVerifyEmailContract
     /** Send custom verification email. */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new \Modules\Court\Application\Notifications\ApplicantVerifyEmail);
+        $this->notify(app(\Modules\Court\Domain\Models\Concerns\ApplicantMessages::class)->verifyEmail());
     }
 
     /** Send custom password reset email. */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(new \Modules\Court\Application\Notifications\ApplicantResetPassword($token));
+        $this->notify(app(\Modules\Court\Domain\Models\Concerns\ApplicantMessages::class)->resetPassword((string) $token));
     }
 }

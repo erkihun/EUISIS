@@ -118,7 +118,7 @@ final class CourtServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/court.php', 'court');
+        $this->app->bind(Models\Concerns\ApplicantMessages::class, \Modules\Court\Application\Notifications\ApplicantAccountMessages::class);
 
         $this->app['config']->set([
             'auth.guards.court' => ['driver' => 'court-staff'],
@@ -141,12 +141,12 @@ final class CourtServiceProvider extends ServiceProvider
 
         Relation::morphMap(self::MORPH_MAP);
 
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'court');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'court');
+        $this->loadViewsFrom(__DIR__.'/../Infrastructure/Resources/views', 'court');
+        $this->loadTranslationsFrom(__DIR__.'/../Infrastructure/Resources/lang', 'court');
         // Only the sentences EUISIS does not translate itself (the port left the rest out).
-        $this->loadJsonTranslationsFrom(__DIR__.'/../resources/lang');
+        $this->loadJsonTranslationsFrom(__DIR__.'/../Infrastructure/Resources/lang');
         Blade::componentNamespace('Modules\\Court\\Http\\View\\Components', 'court');
-        Blade::anonymousComponentPath(__DIR__.'/../resources/views/components', 'court');
+        Blade::anonymousComponentPath(__DIR__.'/../Infrastructure/Resources/views/components', 'court');
 
         $router = $this->app->make(Router::class);
         foreach ([

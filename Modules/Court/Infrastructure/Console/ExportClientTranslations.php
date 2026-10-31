@@ -69,10 +69,10 @@ final class ExportClientTranslations extends Command
             ."export default lang;\n";
     }
 
-    /** The court module's own lang folder (Modules/Court/resources/lang). */
+    /** The court module's own lang folder (Modules/Court/Infrastructure/Resources/lang). */
     private static function langPath(string $path): string
     {
-        return dirname(__DIR__, 2).'/resources/lang/'.$path;
+        return dirname(__DIR__).'/Resources/lang/'.$path;
     }
 
     /** @return array<string, mixed> */

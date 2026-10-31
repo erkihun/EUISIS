@@ -54,8 +54,9 @@
    (`COURT_MS_*`). Replace both with contracts: the court reads `App\Backbone` contracts and Grievance /
    Discipline contracts, and publishes `Modules\Court\Contracts` for My Portal's court cases and the
    tribunal referral, then retire the mirror tables and the integration API.
-3. Two ported tests fail: the signage board's day window (EUISIS's app timezone is Addis Ababa,
-   court-ms's was UTC) and one case-merge query.
+3. Five of the 439 ported court tests fail: the signage board's day window (two tests; EUISIS's app
+   timezone is Addis Ababa, court-ms's was UTC), one case-merge query, the API sign-in audit row, and
+   the court API tokens of a staff member suspended by the EUISIS staff sync.
 
 ## Consequences
 

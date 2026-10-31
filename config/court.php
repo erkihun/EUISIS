@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * The court module (ADR 0020). Merged under `court` by CourtServiceProvider.
+ * The court module (ADR 0020).
  * Sections come from court-ms: `compliance` (its config/compliance.php),
  * `purifier` (its mews/purifier profiles, read by Application\Support\Purifier)
  * and `euisis` (its services.euisis link, now the COURT_EUISIS_* variables).
