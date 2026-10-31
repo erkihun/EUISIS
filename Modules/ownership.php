@@ -316,6 +316,8 @@ return [
             'Modules\Performance\Domain\Models\KpiContribution',
             'Modules\Performance\Domain\Models\KpiPeriodTarget',
             'Modules\Performance\Domain\Models\KpiTarget',
+            'Modules\Performance\Domain\Models\MainStrategy',
+            'Modules\Performance\Domain\Models\ObjectiveActivity',
             'Modules\Performance\Domain\Models\PerformanceAppeal',
             'Modules\Performance\Domain\Models\PerformanceCalibrationItem',
             'Modules\Performance\Domain\Models\PerformanceCalibrationSession',
@@ -335,6 +337,7 @@ return [
             'Modules\Performance\Domain\Models\PerformanceTargetAmendment',
             'Modules\Performance\Domain\Models\StrategicGoal',
             'Modules\Performance\Domain\Models\StrategicGoalAllocation',
+            'Modules\Performance\Domain\Models\Strategy',
         ],
     ],
     'Assessment' => [

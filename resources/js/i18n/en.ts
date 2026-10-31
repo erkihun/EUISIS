@@ -4,6 +4,7 @@ const en = {
         performanceDashboard: 'Performance Dashboard',
         performanceCycles: 'Performance Cycles',
         strategicGoals: 'Strategic Goals',
+        strategicOverview: 'Strategic Overview',
         performancePlans: 'Plans & Cascading',
         kpiLibrary: 'KPI Library',
         performanceAgreements: 'Employee Agreements',

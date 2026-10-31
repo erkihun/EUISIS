@@ -98,4 +98,9 @@ class PerformanceObjective extends Model
     {
         return $this->hasMany(KpiTarget::class, 'objective_id')->where('is_current', true);
     }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(ObjectiveActivity::class, 'objective_id')->orderBy('sort_order');
+    }
 }

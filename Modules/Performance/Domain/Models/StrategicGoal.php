@@ -16,7 +16,7 @@ class StrategicGoal extends Model
 {
     use HasUuidPrimaryKey;
 
-    protected $fillable = ['cycle_id', 'organization_id', 'code', 'name_am', 'name_en', 'description_am', 'description_en', 'weight_percent', 'is_shared', 'sort_order', 'effective_from', 'effective_to'];
+    protected $fillable = ['cycle_id', 'organization_id', 'strategy_id', 'code', 'name_am', 'name_en', 'description_am', 'description_en', 'weight_percent', 'is_shared', 'sort_order', 'effective_from', 'effective_to'];
 
     protected function casts(): array
     {
@@ -31,6 +31,11 @@ class StrategicGoal extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function strategy(): BelongsTo
+    {
+        return $this->belongsTo(Strategy::class);
     }
 
     public function allocations(): HasMany

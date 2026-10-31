@@ -4,6 +4,7 @@ const am = {
         performanceDashboard: 'የአፈጻጸም ዳሽቦርድ',
         performanceCycles: 'የአፈጻጸም ዑደቶች',
         strategicGoals: 'ስትራቴጂያዊ ግቦች',
+        strategicOverview: 'ስትራቴጂክ አጠቃላይ እይታ',
         performancePlans: 'ዕቅዶችና የዕቅድ ማውረድ',
         kpiLibrary: 'የKPI ማውጫ',
         performanceAgreements: 'የአፈጻጸም ስምምነቶች',

@@ -15,6 +15,7 @@ use Modules\Performance\Http\Controllers\PerformancePlanController;
 use Modules\Performance\Http\Controllers\PerformanceReportController;
 use Modules\Performance\Http\Controllers\PerformanceSettingController;
 use Modules\Performance\Http\Controllers\StrategicGoalController;
+use Modules\Performance\Http\Controllers\StrategyHierarchyController;
 use Modules\Performance\Http\Middleware\EnsurePerformanceEnabled;
 
 /*
@@ -46,6 +47,18 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', 
         Route::post('/strategic-goals/{strategicGoal}/transition', [StrategicGoalController::class, 'transition'])->whereUuid('strategicGoal')->name('strategic-goals.transition');
         Route::post('/strategic-goals/{strategicGoal}/return', [StrategicGoalController::class, 'returnToDraft'])->whereUuid('strategicGoal')->name('strategic-goals.return');
         Route::post('/strategic-goals/{strategicGoal}/versions', [StrategicGoalController::class, 'newVersion'])->whereUuid('strategicGoal')->name('strategic-goals.versions.store');
+
+        // Strategic overview: main strategy → strategy → goal → objective → activity (ADR 0019).
+        Route::get('/strategy', [StrategyHierarchyController::class, 'index'])->name('strategy.index');
+        Route::get('/strategy/main-strategies/create', [StrategyHierarchyController::class, 'createMain'])->name('strategy.main.create');
+        Route::post('/strategy/main-strategies', [StrategyHierarchyController::class, 'storeMain'])->name('strategy.main.store');
+        Route::get('/strategy/main-strategies/{mainStrategy}/edit', [StrategyHierarchyController::class, 'editMain'])->whereUuid('mainStrategy')->name('strategy.main.edit');
+        Route::put('/strategy/main-strategies/{mainStrategy}', [StrategyHierarchyController::class, 'updateMain'])->whereUuid('mainStrategy')->name('strategy.main.update');
+        Route::delete('/strategy/main-strategies/{mainStrategy}', [StrategyHierarchyController::class, 'destroyMain'])->whereUuid('mainStrategy')->name('strategy.main.destroy');
+        Route::get('/strategy/goals/create', [StrategyHierarchyController::class, 'createGoal'])->name('strategy.goals.create');
+        Route::post('/strategy/goals', [StrategyHierarchyController::class, 'storeGoal'])->name('strategy.goals.store');
+        Route::get('/strategy/goals/{strategicGoal}/edit', [StrategyHierarchyController::class, 'editGoal'])->whereUuid('strategicGoal')->name('strategy.goals.edit');
+        Route::put('/strategy/goals/{strategicGoal}', [StrategyHierarchyController::class, 'updateGoal'])->whereUuid('strategicGoal')->name('strategy.goals.update');
 
         Route::get('/kpis', [KpiController::class, 'index'])->name('kpis.index');
         Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');
