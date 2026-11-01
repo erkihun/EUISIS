@@ -39,7 +39,7 @@ test('a plain team member only opens the records of the cases assigned to them',
     $this->actingAs($member)->get(route('court.recordes.appeal-pdf', $other->id))->assertForbidden();
 
     $this->actingAs($member)->get(route('court.recordes.show', $mine->id))->assertOk();
-    $this->actingAs($member)->get(route('court.recordes.pdf', $mine->id))->assertOk()->assertSee($mine->case_number);
+    $this->actingAs($member)->get(route('court.recordes.pdf', $mine->id))->assertOk()->assertHeader('Content-Type', 'application/pdf');
 });
 
 test('a plain team member cannot open a submitted document of a case outside their scope', function (): void {

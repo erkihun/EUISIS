@@ -9,7 +9,9 @@ use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Application\Services\AppealRecordBundle;
 use Modules\Court\Application\Services\AppealRecords;
 use Modules\Court\Application\Services\CaseParties;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -195,14 +197,45 @@ class RecordController extends Controller
         ]);
     }
 
-    public function pdf(CourtCase $case)
+    /**
+     * The case record as a PDF drawn on the server (dompdf), shown in the browser's
+     * own viewer: the record page's sections in the same order, as searchable text,
+     * with a running header and "page x of y" on every page.
+     */
+    public function pdf(CourtCase $case, AppealRecords $appeals): HttpResponse
     {
         $this->authorizeRecordAccess($case);
-        $data = $this->recordData($case);
-        $safeCase = Str::of($case->case_number ?? $case->id)->replace(['/', '\\'], '-')->slug('-');
-        $data['pdfFilename'] = 'case-record-' . ($safeCase ?: $case->id) . '.pdf';
+        $data = $this->recordData($case, withEvidenceEmbed: false);
+        $decision = $data['decision'];
 
-        return view('court::admin.recordes.record-pdf', $data);
+        $pdf = Pdf::loadView('court::pdf.case-record', [
+            ...$this->recordPageProps($case, $data),
+            ...$this->proceedingProps($case),
+            'appeal' => $this->appealProps($case, $appeals),
+            'closedAt' => $data['closedAt'],
+            'assignedName' => $data['assignedUser']->name ?? null,
+            'teamNames' => collect($data['assignedTeams'])->values()->all(),
+            'panelJudges' => collect($decision ? (json_decode((string) ($decision->panel_judges ?? ''), true) ?: []) : [])
+                ->map(fn ($judge): string => trim((string) (is_array($judge) ? ($judge['admin_user_name'] ?? $judge['name'] ?? '') : $judge)))
+                ->filter()->take(3)->values()->all(),
+            'decisionDate' => $decision ? ($decision->decision_date ?? $decision->created_at) : null,
+        ])->setPaper('a4')->setOption('isRemoteEnabled', false);
+
+        // Drawn once, then "page x of y" stamped on every page in the document's own font.
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->render();
+        $canvas = $dompdf->getCanvas();
+        $font = $dompdf->getFontMetrics()->getFont('Abyssinica SIL') ?? $dompdf->getFontMetrics()->getFont('DejaVu Sans');
+        $pageText = __('court::recordes.pdf.page', ['page' => '{PAGE_NUM}', 'pages' => '{PAGE_COUNT}']);
+        $width = $dompdf->getFontMetrics()->getTextWidth(strtr($pageText, ['{PAGE_NUM}' => '00', '{PAGE_COUNT}' => '00']), $font, 8);
+        $canvas->page_text($canvas->get_width() - 45 - $width, $canvas->get_height() - 41, $pageText, $font, 8, [0.39, 0.45, 0.55]);
+
+        $safeCase = Str::of($case->case_number ?? $case->id)->replace(['/', '\\'], '-')->slug('-');
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="case-record-'.($safeCase ?: $case->id).'.pdf"',
+        ]);
     }
 
     /**

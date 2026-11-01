@@ -110,4 +110,29 @@ return array (
     'record' => 'የጉዳይ መዝገብ',
     'pdf' => 'የጉዳይ መዝገብ (PDF)',
   ),
+  'pdf' =>
+  array (
+    'eyebrow' => 'የጉዳይ መዝገብ',
+    'contents' => 'ማውጫ',
+    'assigned_to' => 'የተመደበለት',
+    'first_hearing' => 'የመጀመሪያ ችሎት',
+    'type_location' => 'ዓይነትና ቦታ',
+    'notes' => 'ማስታወሻ',
+    'email' => 'ኢሜይል',
+    'refused' => 'ውድቅ የተደረገ',
+    'appealed_since' => 'ከ:date ጀምሮ በይግባኝ ሰሚ ፍርድ ቤት',
+    'documents_note' => 'ሰነዶቹ በጉዳዩ ፋይል ውስጥ ይገኛሉ፤ የይግባኝ መዝገቡ በአባሪነት ያያይዛቸዋል።',
+    'closing' => 'ከጉዳዩ ፋይል :date የተዘጋጀ። ለፍርድ ቤቱ የውስጥ አገልግሎት ብቻ።',
+    'page' => 'ገጽ :page ከ:pages',
+  ),
+  'index' =>
+  array (
+    'case' => 'ጉዳይ',
+    'assigned' => 'የተመደበለት',
+    'state' => 'ሁኔታ',
+    'record' => 'መዝገብ',
+    'open_record' => 'መዝገቡን ክፈት',
+    'pdf_hint' => 'የጉዳይ መዝገብ በPDF',
+    'appeal_hint' => 'የይግባኝ መዝገብ ከአባሪዎች ጋር',
+  ),
 );

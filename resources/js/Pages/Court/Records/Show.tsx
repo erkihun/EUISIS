@@ -3,6 +3,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import RichTextViewer from '@/Components/forms/RichTextViewer';
+import { PrinterIcon, ScaleIcon } from '@/Components/Icons';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Alert, Button, Card, FormField, Input, Select, Textarea, badgeClassName, buttonClassName, cx, type Tone } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -56,17 +57,24 @@ export default function RecordShow(props: RecordShowProps) {
             <PageHeader title={title} description={[kase.case_number, kase.title ?? t('cm.recordes.messages.untitled_case')].filter(Boolean).join(' — ')} backHref={route('court.recordes.index')} actions={(
                 <div className="flex flex-wrap items-center gap-2">
                     <Link href={route('court.cases.show', kase.id)} className={buttonClassName({ variant: 'outline' })}>{tx('cm.recordes.buttons.open_case', 'Open case')}</Link>
-                    <a href={route('court.recordes.pdf', kase.id)} target="_blank" rel="noopener" className={buttonClassName({ variant: 'outline' })}>{t('cm.recordes.buttons.pdf')}</a>
-                    <a href={route('court.recordes.appeal-pdf', kase.id)} className={buttonClassName({})}>{t('cm.appeal_records.panel.download')}</a>
+                    <a href={route('court.recordes.pdf', kase.id)} target="_blank" rel="noopener" className={buttonClassName({ variant: 'outline' })}>
+                        <PrinterIcon className="h-4 w-4" aria-hidden="true" />{t('cm.recordes.index.pdf_hint')}
+                    </a>
+                    {props.hasAppealRecord && (
+                        <a href={route('court.recordes.appeal-pdf', kase.id)} className={buttonClassName({})}>
+                            <ScaleIcon className="h-4 w-4" aria-hidden="true" />{t('cm.appeal_records.panel.download')}
+                        </a>
+                    )}
                 </div>
             )} />
         )}>
             <Head title={`${title} ${kase.case_number ?? ''}`.trim()} />
 
             <div className="space-y-6">
-                <Card className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <Card className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
                     <Fact label={b('case_number')}><span className="font-mono">{kase.case_number ?? na}</span></Fact>
-                    <Fact label={t('cm.recordes.labels.status_label')}>{statusLabel}</Fact>
+                    <Fact label={t('cm.recordes.labels.status')}>{statusLabel}</Fact>
+                    <Fact label={b('case_type')}>{kase.case_type ?? na}</Fact>
                     <Fact label={b('filed')}><LocalizedDateDisplay value={kase.filing_date} /></Fact>
                     <Fact label={b('respondent')}>{kase.respondent_name ?? na}</Fact>
                     <Fact label={b('appeal')}>

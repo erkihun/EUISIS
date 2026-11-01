@@ -473,8 +473,10 @@ test('the case record page renders every section of the file', function (): void
             ->where('filesCount', 0)
             ->where('hasAppealRecord', false));
 
-    // The printable record is still the Blade document.
-    $this->actingAs($viewer)->get(route('court.recordes.pdf', $case->id))
+    // The printable record is a PDF drawn on the server, shown in the browser's viewer.
+    $pdf = $this->actingAs($viewer)->get(route('court.recordes.pdf', $case->id))
         ->assertOk()
-        ->assertSee($case->case_number);
+        ->assertHeader('Content-Type', 'application/pdf');
+    expect($pdf->headers->get('Content-Disposition'))->toStartWith('inline; filename="case-record-')
+        ->and($pdf->getContent())->toStartWith('%PDF-');
 });

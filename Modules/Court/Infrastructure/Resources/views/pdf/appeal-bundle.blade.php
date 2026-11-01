@@ -24,18 +24,10 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ $t('title') }} — {{ $case->case_number }}</title>
+    {{-- The platform's embedded document fonts (Abyssinica SIL for every style, so Ethiopic never falls back to DejaVu). --}}
+    @include('pdf.partials.typography', ['variant' => 'formal'])
     <style>
         @page { margin: 26mm 16mm 20mm 16mm; }
-        {{-- One face for every style: the font has no italic or bold of its own, and a missing style would
-             fall back to DejaVu, which has no Ethiopic letters (they printed as boxes). --}}
-        @foreach ([['normal', 'normal'], ['italic', 'normal'], ['normal', 'bold'], ['italic', 'bold']] as [$style, $weight])
-        @font-face {
-            font-family: 'Abyssinica';
-            src: url('{{ public_path('fonts/AbyssinicaSIL-Regular.ttf') }}') format('truetype');
-            font-style: {{ $style }}; font-weight: {{ $weight }};
-        }
-        @endforeach
-        * { font-family: 'Abyssinica', 'DejaVu Serif', serif; }
         body { color: #0f172a; font-size: 10.5pt; line-height: 1.5; }
         .page-header { position: fixed; top: -18mm; left: 0; right: 0; height: 12mm; border-bottom: 1px solid #cbd5e1; font-size: 8.5pt; color: #475569; }
         .page-header .l { float: left; } .page-header .r { float: right; }

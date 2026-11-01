@@ -104,10 +104,35 @@ return array (
     'untitled_case' => 'Untitled case',
     'not_available' => 'N/A',
   ),
-  'titles' => 
+  'titles' =>
   array (
     'index' => 'Case Records',
     'record' => 'Case Record',
     'pdf' => 'Case Record PDF',
+  ),
+  'pdf' =>
+  array (
+    'eyebrow' => 'Case record',
+    'contents' => 'Contents',
+    'assigned_to' => 'Assigned to',
+    'first_hearing' => 'First hearing',
+    'type_location' => 'Type and place',
+    'notes' => 'Notes',
+    'email' => 'Email',
+    'refused' => 'Refused',
+    'appealed_since' => 'At the appellate court since :date',
+    'documents_note' => 'The documents are kept in the case file; the appeal record attaches them as annexes.',
+    'closing' => 'Drawn from the case file on :date. For the court\'s internal use.',
+    'page' => 'Page :page of :pages',
+  ),
+  'index' =>
+  array (
+    'case' => 'Case',
+    'assigned' => 'Assigned',
+    'state' => 'Status',
+    'record' => 'Record',
+    'open_record' => 'Open record',
+    'pdf_hint' => 'Case record as PDF',
+    'appeal_hint' => 'Appeal record with annexes',
   ),
 );

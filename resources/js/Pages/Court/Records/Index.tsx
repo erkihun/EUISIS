@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import StatusBadge from '@/Components/StatusBadge';
+import { PrinterIcon, ScaleIcon } from '@/Components/Icons';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import {
@@ -99,31 +100,42 @@ export default function RecordsIndex({ cases, filters, statuses, types, users }:
                         <table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
+                                    <th className={cx(tableHeaderCellClassName, 'w-10 text-left')}>{t('cm.cases.table.number')}</th>
                                     {[
-                                        t('cm.cases.table.number'), t('cm.cases.table.case_number'), t('cm.cases.applicant_name'), t('cm.cases.table.type'), t('cm.cases.table.team'),
-                                        t('cm.cases.table.team_member'), t('cm.cases.table.status'), t('cm.cases.table.filing_date'), t('cm.cases.show.review_actions'), t('cm.appeal_records.register.column'), t('cm.recordes.labels.title'),
+                                        t('cm.recordes.index.case'), t('cm.cases.applicant_name'), t('cm.recordes.index.assigned'), t('cm.recordes.index.state'),
+                                        t('cm.cases.table.filing_date'), t('cm.appeal_records.register.column'),
                                     ].map((heading) => <th key={heading} className={cx(tableHeaderCellClassName, 'whitespace-nowrap text-left')}>{heading}</th>)}
-                                    <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cm.cases.table.actions')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cm.recordes.index.record')}</th>
                                 </tr>
                             </thead>
                             <tbody className={tableBodyClassName}>
                                 {cases.data.map((row, index) => (
                                     <tr key={row.id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>{(cases.from ?? 1) + index}</td>
-                                        <td className={tableCellClassName}>
+                                        <td className={cx(tableCellClassName, 'align-top tabular-nums text-(--app-muted-foreground)')}>{(cases.from ?? 1) + index}</td>
+                                        <td className={cx(tableCellClassName, 'align-top')}>
                                             <Link href={route('court.recordes.show', row.id)} className="font-mono font-semibold text-primary hover:underline">{row.case_number}</Link>
+                                            <div className="mt-0.5 max-w-72 truncate text-xs text-(--app-muted-foreground)" title={row.title ?? undefined}>{shorten(row.title, 60)}</div>
                                         </td>
-                                        <td className={tableCellClassName}>{row.applicant_name ?? '-'}</td>
-                                        <td className={tableCellClassName}>{row.case_type ?? '-'}</td>
-                                        <td className={tableCellClassName}>{row.team_name ?? '-'}</td>
-                                        <td className={tableCellClassName}>{row.assignee_name ?? '-'}</td>
-                                        <td className={tableCellClassName}><StatusBadge status={row.status} label={tx(`cm.cases.status.${row.status}`, row.status)} /></td>
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap')}><LocalizedDateDisplay value={row.filing_date} /></td>
-                                        <td className={tableCellClassName}>
-                                            <span className={badgeClassName(REVIEW_TONES[row.review_status] ?? 'neutral')}>{tx(`cm.cases.review_status.${row.review_status}`, row.review_status)}</span>
+                                        <td className={cx(tableCellClassName, 'align-top')}>
+                                            <div className="font-medium text-(--app-foreground)">{row.applicant_name ?? '-'}</div>
+                                            {row.case_type && <div className="mt-0.5 text-xs text-(--app-muted-foreground)">{row.case_type}</div>}
+                                        </td>
+                                        <td className={cx(tableCellClassName, 'align-top')}>
+                                            <div>{row.assignee_name ?? <span className="text-(--app-muted-foreground)">{t('cm.recordes.labels.unassigned')}</span>}</div>
+                                            {row.team_name && <div className="mt-0.5 text-xs text-(--app-muted-foreground)">{row.team_name}</div>}
+                                        </td>
+                                        <td className={cx(tableCellClassName, 'align-top')}>
+                                            <div className="flex flex-wrap items-center gap-1">
+                                                <StatusBadge status={row.status} label={tx(`cm.cases.status.${row.status}`, row.status)} />
+                                                {/* The review state only matters until the case is accepted. */}
+                                                {row.review_status !== 'accepted' && (
+                                                    <span className={badgeClassName(REVIEW_TONES[row.review_status] ?? 'neutral')}>{tx(`cm.cases.review_status.${row.review_status}`, row.review_status)}</span>
+                                                )}
+                                            </div>
                                             {row.reviewer_name && <div className="mt-1 text-xs text-(--app-muted-foreground)">{fill(t('cm.cases.reviewed_by'), { name: row.reviewer_name })}</div>}
                                         </td>
-                                        <td className={tableCellClassName}>
+                                        <td className={cx(tableCellClassName, 'align-top whitespace-nowrap')}><LocalizedDateDisplay value={row.filing_date} /></td>
+                                        <td className={cx(tableCellClassName, 'align-top')}>
                                             {row.appealed_at ? (
                                                 <div className="flex flex-wrap gap-1">
                                                     <span className={badgeClassName('warning')}>{t('cm.appeal_records.register.appealed')}</span>
@@ -133,13 +145,16 @@ export default function RecordsIndex({ cases, filters, statuses, types, users }:
                                                 ? <span className={badgeClassName('info')}>{t('cm.appeal_records.register.requested')}</span>
                                                 : <span className="text-(--app-muted-foreground)">-</span>}
                                         </td>
-                                        <td className={tableCellClassName}>{shorten(row.title, 48)}</td>
-                                        <td className={cx(tableCellClassName, 'text-right whitespace-nowrap')}>
-                                            <div className="inline-flex flex-wrap items-center justify-end gap-1.5">
-                                                <Link href={route('court.recordes.show', row.id)} className={buttonClassName({ variant: 'outline', size: 'xs' })}>{t('cm.recordes.buttons.view')}</Link>
-                                                <a href={route('court.recordes.pdf', row.id)} target="_blank" rel="noopener" className={buttonClassName({ variant: 'outline', size: 'xs' })}>{t('cm.recordes.buttons.pdf')}</a>
+                                        <td className={cx(tableCellClassName, 'align-top text-right whitespace-nowrap')}>
+                                            <div className="inline-flex items-center justify-end gap-1.5">
+                                                <Link href={route('court.recordes.show', row.id)} className={buttonClassName({ variant: 'outline', size: 'xs' })}>{t('cm.recordes.index.open_record')}</Link>
+                                                <a href={route('court.recordes.pdf', row.id)} target="_blank" rel="noopener" title={t('cm.recordes.index.pdf_hint')} aria-label={`${t('cm.recordes.index.pdf_hint')} ${row.case_number}`} className={buttonClassName({ variant: 'outline', size: 'xs' })}>
+                                                    <PrinterIcon className="h-3.5 w-3.5" aria-hidden="true" />{t('cm.recordes.buttons.pdf')}
+                                                </a>
                                                 {row.has_appeal_record && (
-                                                    <a href={route('court.recordes.appeal-pdf', row.id)} className={buttonClassName({ size: 'xs' })}>{t('cm.recordes.buttons.appeal_pdf')}</a>
+                                                    <a href={route('court.recordes.appeal-pdf', row.id)} title={t('cm.recordes.index.appeal_hint')} aria-label={`${t('cm.recordes.index.appeal_hint')} ${row.case_number}`} className={buttonClassName({ variant: 'outline', size: 'xs' })}>
+                                                        <ScaleIcon className="h-3.5 w-3.5" aria-hidden="true" />{t('cm.recordes.buttons.appeal_pdf')}
+                                                    </a>
                                                 )}
                                             </div>
                                         </td>
