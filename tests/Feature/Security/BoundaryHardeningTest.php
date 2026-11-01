@@ -294,12 +294,21 @@ test('the production gate passes a hardened configuration', function (): void {
         'session.driver' => 'database',
         'security.registration_enabled' => false,
         'cors.allowed_origins' => ['https://portal.example.test'],
-        'logging.channels.'.config('logging.default').'.level' => 'warning',
+        // A stack has no level of its own: the gate reads the channels it writes to.
+        'logging.default' => 'stack',
+        'logging.channels.stack.channels' => ['daily'],
+        'logging.channels.daily.level' => 'warning',
         'security.external_usage.sms.daily_cap' => 500,
         'security.external_usage.sms.monthly_cap' => 10000,
     ]);
 
     $this->artisan('security:production-check', ['--strict' => true])->assertSuccessful();
+
+    // One channel of the stack at debug fails the gate.
+    config(['logging.channels.stack.channels' => ['daily', 'single'], 'logging.channels.single.level' => 'debug']);
+    $this->artisan('security:production-check', ['--strict' => true])
+        ->expectsOutputToContain('Log level is not debug')
+        ->assertFailed();
 });
 
 /*
