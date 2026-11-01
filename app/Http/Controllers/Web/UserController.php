@@ -140,7 +140,7 @@ class UserController extends Controller
                     fn ($query) => $query->whereIn('id', $this->organizationScopeService->allowedOrganizationIds($actor)),
                 )
                 ->orderBy('name_en')
-                ->get(['id', 'name_en', 'name_am']),
+                ->get(['id', 'code', 'name_en', 'name_am']),
         ]);
     }
 

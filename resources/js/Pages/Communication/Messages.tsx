@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { communicationApi } from '@/lib/communication/api';
 import { channels, connectRealtime, listen } from '@/lib/communication/realtime';
-import ConversationList from '@/Components/Communication/ConversationList';
+import ConversationList, { type ListFilter } from '@/Components/Communication/ConversationList';
 import NewConversationPanel from '@/Components/Communication/NewConversationPanel';
 import NewGroupPanel from '@/Components/Communication/NewGroupPanel';
 import ChatView from '@/Components/Communication/ChatView';
@@ -30,7 +30,7 @@ const urlFor = (id: string | null) => (id ? route('communication.messages.show',
 /**
  * Fills the space below the app header, whatever the header and banners
  * measure, so the page never scrolls: only the conversation list and the
- * messages do. The bottom gap matches the focus-mode padding of the layout.
+ * messages do. The workspace runs edge to edge (the layout is flush).
  *
  * Measured against the visual viewport: on a phone the on-screen keyboard
  * shrinks it (the layout viewport does not change on iOS), and the composer
@@ -45,9 +45,8 @@ function useFillHeight(): [React.RefObject<HTMLDivElement | null>, number | null
         const measure = () => {
             const top = ref.current?.getBoundingClientRect().top ?? 0;
             const visibleBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
-            const gap = window.innerWidth >= 1024 ? 16 : window.innerWidth >= 640 ? 12 : 0;
             const floor = window.innerWidth >= 640 ? 420 : 240;
-            setHeight(Math.max(floor, Math.round(visibleBottom - top - gap)));
+            setHeight(Math.max(floor, Math.round(visibleBottom - top)));
         };
         measure();
         window.addEventListener('resize', measure);
@@ -70,6 +69,7 @@ export default function Messages(props: Props): JSX.Element {
     const [items, setItems] = useState<ConversationSummary[]>(initialConversations.data);
     const [cursor, setCursor] = useState<string | null>(initialConversations.next_cursor);
     const [filter, setFilter] = useState<ConversationType | null>(props.filter);
+    const [unreadOnly, setUnreadOnly] = useState(false);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(props.activeConversationId);
@@ -192,32 +192,39 @@ export default function Messages(props: Props): JSX.Element {
     };
 
     const activeTitle = items.find((c) => c.id === activeId)?.title;
+    const unreadCount = items.filter((c) => c.unread_count > 0).length;
+    // "Unread" narrows what is loaded; the type filters go to the server.
+    const shown = unreadOnly ? items.filter((c) => c.unread_count > 0 || c.id === activeId) : items;
+    const onFilter = (value: ListFilter) => {
+        setUnreadOnly(value === 'unread');
+        setFilter(value === 'unread' ? null : value);
+    };
 
     return (
-        <AuthenticatedLayout mode="communication">
+        <AuthenticatedLayout mode="communication" flush>
             <Head title={activeTitle ? `${activeTitle} · ${t('communication.messagesTitle')}` : t('communication.messagesTitle')} />
             <div
                 ref={box}
                 style={height ? { height } : undefined}
-                className="flex min-h-60 overflow-hidden border-b border-(--app-border) bg-(--app-surface) sm:min-h-[420px] sm:rounded-panel sm:border"
+                className="relative flex min-h-60 overflow-hidden bg-(--app-surface) sm:min-h-[420px]"
             >
-                <div className={`w-full shrink-0 border-e border-(--app-border) bg-(--app-surface) lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
+                <div className={`w-full shrink-0 border-e border-(--app-border) bg-(--app-surface) lg:block min-[1024px]:w-[296px] min-[1100px]:w-[340px] ${activeId ? 'hidden' : 'block'}`}>
                     {composing === 'group' && can.createGroup ? (
                         <NewGroupPanel onBack={() => setComposing(null)} onCreated={started} />
                     ) : composing ? (
                         <NewConversationPanel onBack={() => setComposing(null)} onStarted={started} />
                     ) : (
                         <ConversationList
-                            items={items}
+                            items={shown}
                             activeId={activeId}
-                            filter={filter}
+                            filter={unreadOnly ? 'unread' : filter}
+                            unreadCount={unreadCount}
                             search={search}
                             loading={loading}
                             hasMore={cursor !== null}
                             canStart={can.message}
                             canGroup={can.createGroup}
-                            canBrowseChannels={can.browseChannels}
-                            onFilter={setFilter}
+                            onFilter={onFilter}
                             onSearch={setSearch}
                             onSelect={select}
                             onLoadMore={() => void loadMore()}

@@ -16,10 +16,8 @@ return [
     | transport   — Transport Management: live (docs/transport-provider-module.md).
     |               FEATURE_TRANSPORT=false switches it off again without
     |               touching its data.
-    | court_cases — Court Cases: planned module, placeholder page only.
     */
     'transport' => (bool) env('FEATURE_TRANSPORT', true),
-    'court_cases' => (bool) env('FEATURE_COURT_CASES', false),
     // service_monitoring — Service Delivery Monitoring & Support (docs/service-monitoring.md).
     'service_monitoring' => (bool) env('FEATURE_SERVICE_MONITORING', true),
 
@@ -48,7 +46,6 @@ return [
             'provider.portal.transport.invoices.', 'provider.portal.transport.settlements.',
         ],
         'transport_gps' => ['api.transport.positions.'],
-        'court_cases' => ['court-cases.'],
         'service_monitoring' => ['service-monitoring.'],
     ],
 

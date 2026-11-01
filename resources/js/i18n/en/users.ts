@@ -153,6 +153,30 @@ const users = {
         addScopeAfterCreate: 'You can assign organization scopes after creating the user.',
         unavailableForUnrestrictedRole: 'Organization scopes do not apply to this unrestricted administrative role.',
     },
+    // The create-user form: role and organization pickers and the summary beside the form.
+    createForm: {
+        photoHelp: 'JPG, PNG or WebP.',
+        passwordHelp: 'Leave both password fields blank and a secure one-time password is generated for the user.',
+        showPassword: 'Show password',
+        hidePassword: 'Hide password',
+        searchRoles: 'Search roles…',
+        selectedOnly: 'Selected only',
+        clearSelection: 'Clear selection',
+        selectedCount: ':count selected',
+        noRolesMatch: 'No roles match your search.',
+        required: 'Required',
+        optional: 'Optional',
+        scopeSelf: 'Only the selected organizations.',
+        scopeSubtree: 'The selected organizations and every unit under them.',
+        summaryTitle: 'New user',
+        summaryUnnamed: 'Name not entered yet',
+        summaryRoles: 'Roles',
+        summaryNoRoles: 'No role selected yet.',
+        summaryScope: 'Organization scope',
+        summaryNoScope: 'No organization selected.',
+        summaryScopeNeeded: 'A selected role needs an organization scope.',
+        remove: 'Remove :name',
+    },
 } as const;
 
 export default users;

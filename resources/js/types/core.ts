@@ -6,8 +6,18 @@ export type CoreNavGroup = { key: string; label_key: string; icon: string; items
 
 export type CoreNavSection = { label_key: string; groups: CoreNavGroup[] };
 
-/** Shared as `workspace` while the person works in Core; null everywhere else. */
-export type CoreWorkspaceShared = { name: 'core'; nav: CoreNavSection[] } | null;
+/**
+ * Shared as `workspace` while the person works in Core, or in the court module
+ * (ADR 0020: its staff area or a party portal, with its own home, way out and
+ * notification feed); null everywhere else.
+ */
+export type CoreWorkspaceShared = {
+    name: 'core' | 'court';
+    nav: CoreNavSection[];
+    home?: string;
+    exit?: string;
+    bell?: { feed: string; read: string; readAll: string; viewAll: string };
+} | null;
 
 export type CoreMetric = { key: string; value: number | string | null };
 

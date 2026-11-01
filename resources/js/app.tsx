@@ -1,4 +1,6 @@
 import '../css/app.css';
+// The court module's own styles (its case-page sheet and sign-in motion; ADR 0020).
+import '../css/court.css';
 import './bootstrap';
 
 import { axiosAdapter } from '@inertiajs/core';

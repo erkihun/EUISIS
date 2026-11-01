@@ -10,7 +10,8 @@ import type { MessageItem } from '@/types/communication';
  */
 const TOKEN = /(<@\d{1,19}>|<!channel>|<!everyone>|https?:\/\/[^\s<>"']+)/g;
 
-export default function MessageText({ body, mentions, currentUserId }: { body: string; mentions: MessageItem['mentions']; currentUserId: number }): JSX.Element {
+/** `inverse` is for text on the brand colour (one's own bubble): chips turn translucent white. */
+export default function MessageText({ body, mentions, currentUserId, inverse = false }: { body: string; mentions: MessageItem['mentions']; currentUserId: number; inverse?: boolean }): JSX.Element {
     const { t } = useLocale();
     const names = new Map(mentions.map((m) => [m.user_id, m.name]));
     const parts = body.split(TOKEN);
@@ -24,13 +25,13 @@ export default function MessageText({ body, mentions, currentUserId }: { body: s
                     const id = Number(user[1]);
                     const own = id === currentUserId;
                     return (
-                        <span key={key} className={`rounded-sm px-1 font-medium ${own ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100' : 'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-(--app-foreground)'}`}>
+                        <span key={key} className={`rounded-sm px-[3px] font-semibold ${inverse ? 'bg-white/20 text-white' : own ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100' : 'bg-[color-mix(in_srgb,var(--color-primary)_18%,var(--app-surface))] text-(--app-foreground)'}`}>
                             @{names.get(id) ?? t('communication.list.you')}
                         </span>
                     );
                 }
                 if (part === '<!channel>' || part === '<!everyone>') {
-                    return <span key={key} className="rounded-sm bg-amber-100 px-1 font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">@{t('communication.composer.everyone')}</span>;
+                    return <span key={key} className={`rounded-sm px-[3px] font-semibold ${inverse ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100'}`}>@{t('communication.composer.everyone')}</span>;
                 }
                 if (/^https?:\/\//.test(part)) {
                     return <a key={key} href={part} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-2">{part}</a>;

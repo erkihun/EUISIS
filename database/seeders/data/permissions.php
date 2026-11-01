@@ -1470,8 +1470,6 @@ return [
     // Grievance Management — docs/grievance-management.md §7.
     ...require database_path('seeders/data/grievance-permissions.php'),
 
-    // Court Cases — planned standalone module; entry permission only (docs/court-cases.md).
-    ...require database_path('seeders/data/court-case-permissions.php'),
 
     // Service Delivery Monitoring & Support (docs/service-monitoring-security.md).
     ...require database_path('seeders/data/service-monitoring-permissions.php'),
@@ -2048,4 +2046,6 @@ return [
         'description_en' => 'Allows changing the system-wide communication policy (attachments, edit windows, scope, retention).',
         'description_am' => 'የስርዓቱን የኮሙኒኬሽን ፖሊሲ ለመቀየር ይፈቅዳል (ፋይሎች፣ የማስተካከያ ጊዜ፣ ወሰን፣ የማቆያ ጊዜ)።'],
     ...require __DIR__.'/reception-permissions.php',
+    // The court module (Modules/Court, ADR 0020).
+    ...require __DIR__.'/court-permissions.php',
 ];

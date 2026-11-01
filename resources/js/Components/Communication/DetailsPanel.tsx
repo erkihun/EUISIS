@@ -9,9 +9,9 @@ import { fileSize, listTime, tr } from '@/lib/communication/format';
 import { formatRelative } from '@/lib/relativeTime';
 import Avatar from '@/Components/Communication/Avatar';
 import PeoplePicker from '@/Components/Communication/PeoplePicker';
-import { ActionMenu, MenuItem } from '@/Components/Communication/MessageBubble';
+import { ActionMenu, MenuItem, fileTone } from '@/Components/Communication/MessageBubble';
 import { bodyForEditing } from '@/Components/Communication/MessageText';
-import { BellOffIcon, BellIcon, DownloadIcon, MenuDotsIcon, PaperclipIcon, SearchIcon, UserPlusIcon, XMarkIcon } from '@/Components/NavIcons';
+import { BellOffIcon, BellIcon, Briefcase, Building2, DownloadIcon, FileTextIcon, FlagIcon, IdCardIcon, LogOut, MenuDotsIcon, PinIcon, SearchIcon, UserBlockIcon, UserPlusIcon, UsersTwoIcon, XMarkIcon } from '@/Components/NavIcons';
 import type { Attachment, ConversationDetail, ConversationMemberRow, MemberRole, MessageItem, Person, PostingPolicy } from '@/types/communication';
 
 export type DetailsTab = 'members' | 'search' | 'files' | 'pinned' | 'settings';
@@ -60,12 +60,12 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
     }, [tab, files, detail.id]);
 
     useEffect(() => {
-        if (tab === 'pinned') communicationApi.pins(detail.id).then(setPins).catch(() => setPins([]));
-    }, [tab, detail.id, pinsVersion]);
+        communicationApi.pins(detail.id).then(setPins).catch(() => setPins([]));
+    }, [detail.id, pinsVersion]);
 
     const other = direct ? detail.members.find((m) => m.id === detail.other_user?.id) : null;
-    const tabs: Tab[] = direct ? ['search', 'files', 'pinned'] : ['members', 'search', 'files', 'pinned', ...(detail.can.update ? ['settings' as const] : [])];
-    const tabLabel = (value: Tab) => (value === 'settings' ? t('communication.manage.settings') : t(`communication.details.${value}`));
+    const tabs: Tab[] = direct ? ['files', 'pinned', 'search'] : ['members', 'files', 'pinned', 'search', ...(detail.can.update ? ['settings' as const] : [])];
+    const tabLabel = (value: Tab) => (value === 'settings' ? t('communication.manage.settings') : t(`communication.details.tabs.${value}`));
 
     const leave = async () => {
         const answer = await confirm({
@@ -122,70 +122,83 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
         }
     };
 
-    const subtitle = other
+    const presence = other ? (other.online ? t('communication.list.online') : other.last_seen_at ? tr(t('communication.list.lastSeen'), { time: formatRelative(other.last_seen_at, locale) ?? '' }) : null) : null;
+    const headline = other
         ? [other.position, other.unit ?? other.organization].filter(Boolean).join(' · ')
         : `${detail.channel_info ? t(`communication.channels.types.${detail.channel_info.type}`) : t(`communication.types.${detail.type}`)} · ${tr(t('communication.details.memberCount'), { n: detail.member_count })}`;
+    const channel = detail.channel_info;
+    const scope = channel && (channel.organization || channel.auto_membership)
+        ? `${[channel.unit, channel.organization].filter(Boolean).join(' · ') || t('communication.channels.cityWide')}${channel.type === 'SYSTEM_MANAGED' ? ` — ${t('communication.manage.mandatory')}` : channel.auto_membership ? ` — ${t('communication.manage.automatic')}` : ''}`
+        : null;
+    const about: { icon: JSX.Element; label: string; value: string | null | undefined }[] = (other
+        ? [
+            { icon: <Briefcase className="h-[17px] w-[17px]" />, label: t('communication.details.position'), value: other.position },
+            { icon: <UsersTwoIcon className="h-[17px] w-[17px]" />, label: t('communication.details.unit'), value: other.unit },
+            { icon: <Building2 className="h-[17px] w-[17px]" />, label: t('communication.details.organization'), value: other.organization },
+        ]
+        : [
+            { icon: <FileTextIcon className="h-[17px] w-[17px]" />, label: t('communication.details.description'), value: detail.description },
+            detail.type === 'GROUP'
+                ? { icon: <IdCardIcon className="h-[17px] w-[17px]" />, label: t('communication.details.yourRole'), value: t(`communication.details.roles.${detail.role}`) }
+                : { icon: <Building2 className="h-[17px] w-[17px]" />, label: t('communication.details.scope'), value: scope },
+        ]).filter((row) => !!row.value);
+    const counts: Partial<Record<Tab, number>> = { members: detail.member_count, files: files?.length, pinned: pins?.length };
+    const tile = 'flex h-[60px] flex-col items-center justify-center gap-1 rounded-[10px] bg-(--app-background) text-xs font-medium text-(--app-foreground) hover:bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary';
+    const danger = 'flex h-[38px] w-full items-center gap-2.5 rounded-lg px-2 text-start text-[13px] font-medium text-[#b91c1c] hover:bg-[#fbe4e1] dark:text-red-400 dark:hover:bg-red-950/40';
+    const kindNoun = detail.type === 'CHANNEL' ? 'Channel' : 'Group';
 
     return (
         <aside aria-label={t('communication.chat.details')} className="flex h-full min-h-0 flex-col bg-(--app-surface)">
-            <div className="flex items-center justify-between gap-2 border-b border-(--app-border) px-4 py-3">
-                <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.chat.details')}</h2>
+            <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-(--app-border) pe-3 ps-5">
+                <h2 className="text-[15px] font-semibold text-(--app-foreground)">{t('communication.details.title')}</h2>
                 <button
                     type="button"
                     onClick={onClose}
                     aria-label={t('communication.chat.hideDetails')}
-                    className="flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
+                    title={t('communication.chat.hideDetails')}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                 >
-                    <XMarkIcon className="h-4 w-4" />
+                    <XMarkIcon className="h-[18px] w-[18px]" />
                 </button>
             </div>
 
-            <div className="comm-scroll min-h-0 flex-1 overflow-y-auto">
-                <section className="flex flex-col items-center gap-2 px-4 pb-4 pt-5 text-center">
-                    <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="lg" />
-                    <div>
-                        <p className="text-sm font-semibold text-(--app-foreground)">{detail.title}</p>
-                        <p className="text-xs text-(--app-muted-foreground)">{subtitle}</p>
-                        {other && other.online === false && other.last_seen_at && (
-                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tr(t('communication.list.lastSeen'), { time: formatRelative(other.last_seen_at, locale) ?? '' })}</p>
-                        )}
-                    </div>
-                    {detail.description && <p className="max-w-prose text-xs leading-relaxed text-(--app-muted-foreground)">{detail.description}</p>}
-                    {detail.channel_info && (detail.channel_info.organization || detail.channel_info.auto_membership) && (
-                        <p className="max-w-prose text-[11px] leading-relaxed text-(--app-muted-foreground)">
-                            {[detail.channel_info.unit, detail.channel_info.organization].filter(Boolean).join(' · ') || t('communication.channels.cityWide')}
-                            {detail.channel_info.type === 'SYSTEM_MANAGED' ? ` — ${t('communication.manage.mandatory')}` : detail.channel_info.auto_membership ? ` — ${t('communication.manage.automatic')}` : ''}
-                        </p>
-                    )}
-                    <div className="mt-1 flex flex-wrap justify-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => onMute(!detail.muted)}
-                            aria-pressed={detail.muted}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
-                        >
-                            {detail.muted ? <BellIcon className="h-4 w-4" aria-hidden="true" /> : <BellOffIcon className="h-4 w-4" aria-hidden="true" />}
+            <div className="comm-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+                <section className="flex flex-col items-center px-5 pb-4 pt-6 text-center">
+                    <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="xl" />
+                    <p className="mt-3 text-base font-semibold text-(--app-foreground)">{detail.title}</p>
+                    {headline && <p className="mt-0.5 text-[13px] text-(--app-muted-foreground)">{headline}</p>}
+                    {presence && <p className={`mt-0.5 text-[12.5px] ${other?.online ? 'text-[#0f6b45] dark:text-emerald-400' : 'text-(--app-muted-foreground)'}`}>{presence}</p>}
+                    <div className="mt-4 grid w-full grid-cols-3 gap-2">
+                        <button type="button" onClick={() => onMute(!detail.muted)} aria-pressed={detail.muted} className={tile}>
+                            {detail.muted ? <BellIcon className="h-5 w-5 text-primary" aria-hidden="true" /> : <BellOffIcon className="h-5 w-5 text-primary" aria-hidden="true" />}
                             {detail.muted ? t('communication.actions.unmute') : t('communication.actions.mute')}
                         </button>
-                        {direct && other && (
-                            <button type="button" onClick={() => void toggleBlock()} className="inline-flex h-8 items-center rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
-                                {detail.blocked_by_me ? t('communication.block.unblock') : t('communication.block.block')}
-                            </button>
-                        )}
-                        {!direct && (
-                            <button type="button" onClick={onReport} className="inline-flex h-8 items-center rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
-                                {t('communication.actions.report')}
-                            </button>
-                        )}
-                        {detail.can.leave && !detail.archived && (
-                            <button type="button" onClick={() => void leave()} className="inline-flex h-8 items-center rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
-                                {t('communication.manage.leave')}
-                            </button>
-                        )}
+                        <button type="button" onClick={() => setTab('search')} className={tile}>
+                            <SearchIcon className="h-5 w-5 text-primary" aria-hidden="true" />
+                            {t('communication.details.tabs.search')}
+                        </button>
+                        <button type="button" onClick={() => setTab('pinned')} className={tile}>
+                            <PinIcon className="h-5 w-5 text-primary" aria-hidden="true" />
+                            {t('communication.details.tabs.pinned')}
+                        </button>
                     </div>
                 </section>
 
-                <div role="tablist" aria-label={t('communication.chat.details')} className="sticky top-0 z-10 flex border-b border-(--app-border) bg-(--app-surface) px-2">
+                {about.length > 0 && (
+                    <dl className="mx-5 flex flex-col gap-3 border-t border-(--app-border) py-3">
+                        {about.map((row) => (
+                            <div key={row.label} className="flex items-start gap-3">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-(--app-background) text-(--app-muted-foreground)" aria-hidden="true">{row.icon}</span>
+                                <div className="min-w-0">
+                                    <dt className="text-[11.5px] text-(--app-muted-foreground)">{row.label}</dt>
+                                    <dd className="text-[13px] font-medium leading-snug text-(--app-foreground)">{row.value}</dd>
+                                </div>
+                            </div>
+                        ))}
+                    </dl>
+                )}
+
+                <div role="tablist" aria-label={t('communication.chat.details')} className="comm-tabs sticky top-0 z-10 flex gap-1 overflow-x-auto border-y border-(--app-border) bg-(--app-surface) px-4">
                     {tabs.map((value) => (
                         <button
                             key={value}
@@ -193,39 +206,40 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                             role="tab"
                             aria-selected={tab === value}
                             onClick={() => setTab(value)}
-                            className={`-mb-px flex-1 border-b-2 px-1.5 py-2 text-xs font-medium transition-colors ${tab === value ? 'border-primary text-(--app-foreground)' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)'}`}
+                            className={`-mb-px flex h-[42px] flex-auto shrink-0 items-center justify-center gap-[5px] whitespace-nowrap border-b-2 px-1.5 text-[12.5px] font-semibold transition-colors ${tab === value ? 'border-primary text-(--app-foreground)' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)'}`}
                         >
                             {tabLabel(value)}
+                            {!!counts[value] && <span className="text-[11px] font-semibold tabular-nums text-(--app-muted-foreground)">{counts[value]}</span>}
                         </button>
                     ))}
                 </div>
 
-                <div role="tabpanel" className="px-2 py-2">
+                <div role="tabpanel" className="px-3 pb-3 pt-2">
                     {tab === 'members' && <MembersTab detail={detail} currentUserId={currentUserId} onChanged={onChanged} />}
 
                     {tab === 'files' && (
                         files === null ? <PanelSkeleton /> : files.length === 0 ? (
-                            <p className="px-2 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.details.noFiles')}</p>
+                            <p className="px-2 py-5 text-center text-[12.5px] text-(--app-muted-foreground)">{t('communication.details.noFiles')}</p>
                         ) : (
                             <>
-                                <ul>
+                                <ul className="flex flex-col gap-0.5">
                                     {files.map((file) => (
                                         <li key={file.id}>
                                             <a
                                                 href={file.downloadable ? communicationApi.downloadUrl(file.id) : undefined}
                                                 aria-disabled={!file.downloadable}
-                                                className="flex items-center gap-2.5 rounded-control px-2 py-1.5 hover:bg-(--app-surface-muted)"
+                                                className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-(--app-background)"
                                             >
-                                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--app-surface-muted) text-(--app-muted-foreground)">
-                                                    <PaperclipIcon className="h-4 w-4" aria-hidden="true" />
+                                                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[10px] font-bold ${fileTone(file.extension)} bg-(--comm-tone-bg) text-(--comm-tone-fg)`}>
+                                                    {file.extension.toUpperCase().slice(0, 4)}
                                                 </span>
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block truncate text-sm text-(--app-foreground)">{file.name}</span>
-                                                    <span className="block truncate text-[11px] text-(--app-muted-foreground)">
+                                                    <span className="block truncate text-[13px] font-medium text-(--app-foreground)">{file.name}</span>
+                                                    <span className="block truncate text-[11.5px] text-(--app-muted-foreground)">
                                                         {[fileSize(file.size), file.uploaded_by, listTime(file.created_at, locale, system)].filter(Boolean).join(' · ')}
                                                     </span>
                                                 </span>
-                                                {file.downloadable && <DownloadIcon className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />}
+                                                {file.downloadable && <DownloadIcon className="h-[17px] w-[17px] shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />}
                                             </a>
                                         </li>
                                     ))}
@@ -234,7 +248,7 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                                     <button
                                         type="button"
                                         onClick={() => communicationApi.files(detail.id, filesNext).then((page) => { setFiles((current) => [...(current ?? []), ...page.data]); setFilesNext(page.next_before); })}
-                                        className="mt-1 h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted)"
+                                        className="mt-1 h-8 w-full rounded-lg text-xs font-medium text-primary hover:bg-(--app-surface-muted)"
                                     >
                                         {t('communication.list.loadMore')}
                                     </button>
@@ -245,17 +259,22 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
 
                     {tab === 'pinned' && (
                         pins === null ? <PanelSkeleton /> : pins.length === 0 ? (
-                            <p className="px-2 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.details.noPins')}</p>
+                            <p className="px-2 py-5 text-center text-[12.5px] text-(--app-muted-foreground)">{t('communication.details.noPins')}</p>
                         ) : (
-                            <ul className="space-y-1">
+                            <ul className="flex flex-col gap-1.5 pt-1">
                                 {pins.map((pin) => (
                                     <li key={pin.message.id}>
-                                        <button type="button" onClick={() => onJump(pin.message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-(--app-surface-muted)">
-                                            <span className="block text-xs font-semibold text-(--app-foreground)">{pin.message.sender?.name}</span>
-                                            <span className="line-clamp-3 text-sm text-(--app-foreground)">
+                                        <button type="button" onClick={() => onJump(pin.message.id)} className="block w-full rounded-[10px] bg-(--app-background) px-3 py-2.5 text-start hover:bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))]">
+                                            {pin.message.sender?.name && <span className="block text-xs font-semibold text-(--app-foreground)">{pin.message.sender.name}</span>}
+                                            <span className="line-clamp-3 text-[13px] leading-[1.45] text-(--app-foreground)">
                                                 {pin.message.deleted ? t('communication.chat.deleted') : (pin.message.body ? bodyForEditing(pin.message).text : t('communication.list.attachment'))}
                                             </span>
-                                            {pin.pinned_by && <span className="mt-0.5 block text-[11px] text-(--app-muted-foreground)">{tr(t('communication.details.pinnedBy'), { name: pin.pinned_by })}</span>}
+                                            {pin.pinned_by && (
+                                                <span className="mt-1.5 flex items-center gap-1 text-[11.5px] text-(--app-muted-foreground)">
+                                                    <PinIcon className="h-3 w-3" aria-hidden="true" />
+                                                    {[tr(t('communication.details.pinnedBy'), { name: pin.pinned_by }), listTime(pin.pinned_at, locale, system)].filter(Boolean).join(' · ')}
+                                                </span>
+                                            )}
                                         </button>
                                     </li>
                                 ))}
@@ -267,6 +286,29 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
 
                     {tab === 'settings' && <SettingsTab detail={detail} onChanged={onChanged} onArchive={() => void archive()} />}
                 </div>
+
+                {(direct ? !!other : true) && (
+                    <div className="mx-5 flex flex-col gap-0.5 border-t border-(--app-border) pb-5 pt-3">
+                        {direct && other && (
+                            <button type="button" onClick={() => void toggleBlock()} className={danger}>
+                                <UserBlockIcon className="h-[17px] w-[17px]" aria-hidden="true" />
+                                {detail.blocked_by_me ? t('communication.block.unblock') : tr(t('communication.details.blockName'), { name: other.name.split(' ')[0] })}
+                            </button>
+                        )}
+                        {!direct && (
+                            <button type="button" onClick={onReport} className={danger}>
+                                <FlagIcon className="h-[17px] w-[17px]" aria-hidden="true" />
+                                {t(`communication.details.report${kindNoun}`)}
+                            </button>
+                        )}
+                        {detail.can.leave && !detail.archived && (
+                            <button type="button" onClick={() => void leave()} className={danger}>
+                                <LogOut className="h-[17px] w-[17px]" aria-hidden="true" />
+                                {direct ? t('communication.manage.leave') : t(`communication.details.leave${kindNoun}`)}
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
         </aside>
     );
@@ -356,8 +398,8 @@ function MembersTab({ detail, currentUserId, onChanged }: { detail: Conversation
                         </div>
                     </div>
                 ) : (
-                    <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2.5 rounded-control px-2 py-2 text-sm font-medium text-primary hover:bg-(--app-surface-muted)">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-(--app-border-strong)"><UserPlusIcon className="h-4 w-4" aria-hidden="true" /></span>
+                    <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2.5 rounded-lg p-2 text-[13px] font-semibold text-primary hover:bg-(--app-background)">
+                        <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))]"><UserPlusIcon className="h-[18px] w-[18px]" aria-hidden="true" /></span>
                         {t('communication.members.add')}
                     </button>
                 )

@@ -29,6 +29,8 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "maatwebsite/excel": "^4.0.6",
         "pragmarx/google2fa-qrcode": "^4.0",
+        "setasign/fpdf": "~1.9.0",
+        "setasign/fpdi": "~2.6.9",
         "spatie/laravel-permission": "^8.3.2",
         "tightenco/ziggy": "^2.6.5"
     },

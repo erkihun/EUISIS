@@ -14,7 +14,7 @@ import DetailsPanel, { type DetailsTab } from '@/Components/Communication/Detail
 import ForwardDialog from '@/Components/Communication/ForwardDialog';
 import TaskDialog from '@/Components/Communication/TaskDialog';
 import ReportDialog, { type ReportTarget } from '@/Components/Communication/ReportDialog';
-import MessageText from '@/Components/Communication/MessageText';
+import MessageText, { bodyForEditing } from '@/Components/Communication/MessageText';
 import { ArrowLeftIcon, ChatIcon, DangerCircleIcon, OfflineIcon, PaperclipIcon, PinIcon, RefreshIcon, SearchIcon, SidebarIcon } from '@/Components/NavIcons';
 import type {
     ConversationDetail, ConversationSummary, MessageItem, MessagesAbilities, MessagesLimits, PendingMessage, Reaction,
@@ -84,6 +84,7 @@ export default function ChatView(props: Props): JSX.Element {
     const [reporting, setReporting] = useState<ReportTarget | null>(null);
     const [requestedTab, setRequestedTab] = useState<{ tab: DetailsTab; nonce: number } | null>(null);
     const [pinned, setPinned] = useState<Set<string>>(new Set());
+    const [pinList, setPinList] = useState<MessageItem[]>([]);
     const [pinsVersion, setPinsVersion] = useState(0);
     const [typing, setTyping] = useState<Map<number, { name: string; until: number }>>(new Map());
     const [highlight, setHighlight] = useState<string | null>(null);
@@ -126,6 +127,7 @@ export default function ChatView(props: Props): JSX.Element {
                 setMessages([...page.data].reverse());
                 setNextBefore(page.next_before);
                 setPinned(new Set(pins.map((pin) => pin.message.id)));
+                setPinList(pins.map((pin) => pin.message));
             })
             .catch((reason) => {
                 if (!cancelled) setLoadError(statusOf(reason) === 404 || statusOf(reason) === 403 ? 'notFound' : 'failed');
@@ -397,10 +399,11 @@ export default function ChatView(props: Props): JSX.Element {
             await communicationApi.pin(message.id, add);
             setPinned((current) => { const next = new Set(current); if (add) next.add(message.id); else next.delete(message.id); return next; });
             setPinsVersion((v) => v + 1);
+            communicationApi.pins(conversationId).then((pins) => setPinList(pins.map((row) => row.message))).catch(() => undefined);
         } catch (reason) {
             toast.error(firstError(reason) ?? t('communication.errors.generic'));
         }
-    }, [t]);
+    }, [conversationId, t]);
 
     const jump = useCallback(async (messageId: string) => {
         let guard = 0;
@@ -504,7 +507,9 @@ export default function ChatView(props: Props): JSX.Element {
         if (tab) setRequestedTab({ tab, nonce: Date.now() });
         props.onToggleDetails(tab ? true : !detailsOpen);
     };
-    const headerButton = 'flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary';
+    const headerButton = 'flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary';
+    const lively = !!typingText || (detail?.type === 'DIRECT' && !!detail.other_user?.online);
+    const firstPin = pinList[0] ?? null;
 
     let previous: MessageItem | null = null;
     const newDividerAt = unreadFrom.current ? messages.find((m) => m.id > unreadFrom.current! && m.sender?.id !== currentUserId)?.id ?? null : null;
@@ -512,26 +517,33 @@ export default function ChatView(props: Props): JSX.Element {
     return (
         <div className="flex h-full min-h-0">
             <section aria-label={detail?.title ?? t('communication.chat.scrollRegion')} className="relative flex min-w-0 flex-1 flex-col bg-(--app-background)">
-                <header className="flex h-14 shrink-0 items-center gap-2 border-b border-(--app-border) bg-(--app-surface) px-2 sm:px-4">
+                <header className="flex h-16 shrink-0 items-center gap-3 border-b border-(--app-border) bg-(--app-surface) ps-2 pe-2 sm:ps-5 sm:pe-4">
                     <button
                         type="button"
                         onClick={props.onBack}
                         aria-label={t('communication.chat.back')}
-                        className="flex h-9 w-9 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) lg:hidden"
+                        className="-me-1 flex h-9 w-9 items-center justify-center rounded-lg text-(--app-muted-foreground) hover:bg-(--app-surface-muted) lg:hidden"
                     >
                         <ArrowLeftIcon className="h-5 w-5" />
                     </button>
                     {detail ? (
                         <>
-                            <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="sm" />
+                            <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="md" />
                             <div className="min-w-0 flex-1">
-                                <h2 className="truncate text-sm font-semibold text-(--app-foreground)">{detail.title}</h2>
-                                <p className="truncate text-xs text-(--app-muted-foreground)" aria-live="polite">{typingText ?? subtitle}</p>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="truncate text-[15px] font-semibold text-(--app-foreground)">{detail.title}</h2>
+                                    {detail.type !== 'DIRECT' && (
+                                        <span className="inline-flex h-5 shrink-0 items-center rounded-full bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] px-2 text-[11px] font-semibold text-primary">
+                                            {t(`communication.types.${detail.type}`)}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className={`mt-0.5 truncate text-[12.5px] ${lively ? 'text-[#0f6b45] dark:text-emerald-400' : 'text-(--app-muted-foreground)'}`} aria-live="polite">{typingText ?? subtitle}</p>
                             </div>
                         </>
                     ) : (
-                        <div className="flex flex-1 animate-pulse items-center gap-2" aria-hidden="true">
-                            <span className="h-8 w-8 rounded-full bg-(--app-surface-muted)" />
+                        <div className="flex flex-1 animate-pulse items-center gap-3" aria-hidden="true">
+                            <span className="h-10 w-10 rounded-full bg-(--app-surface-muted)" />
                             <span className="h-3 w-40 rounded-sm bg-(--app-surface-muted)" />
                         </div>
                     )}
@@ -542,18 +554,41 @@ export default function ChatView(props: Props): JSX.Element {
                         <button type="button" onClick={() => openDetails('pinned')} aria-label={t('communication.chat.pinnedMessages')} title={t('communication.chat.pinnedMessages')} className={`${headerButton} hidden text-(--app-muted-foreground) sm:flex`}>
                             <PinIcon className="h-5 w-5" aria-hidden="true" />
                         </button>
+                        <button type="button" onClick={() => openDetails('files')} aria-label={t('communication.details.files')} title={t('communication.details.files')} className={`${headerButton} hidden text-(--app-muted-foreground) sm:flex`}>
+                            <PaperclipIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                        <span aria-hidden="true" className="mx-1.5 hidden h-[22px] w-px bg-(--app-border) sm:block" />
                         <button
                             type="button"
                             onClick={() => openDetails()}
                             aria-label={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
                             aria-expanded={detailsOpen}
                             title={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
-                            className={`${headerButton} ${detailsOpen ? 'bg-(--app-surface-muted) text-primary' : 'text-(--app-muted-foreground)'}`}
+                            className={`${headerButton} ${detailsOpen ? 'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-primary' : 'text-(--app-muted-foreground)'}`}
                         >
                             <SidebarIcon className="h-5 w-5 -scale-x-100" aria-hidden="true" />
                         </button>
                     </div>
                 </header>
+
+                {firstPin && (
+                    <button
+                        type="button"
+                        onClick={() => openDetails('pinned')}
+                        className="flex shrink-0 items-center gap-3 border-b border-(--app-border) bg-[color-mix(in_srgb,var(--app-background)_40%,var(--app-surface))] px-5 py-[9px] text-start hover:bg-(--app-background)"
+                    >
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-primary">
+                            <PinIcon className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <span className="flex min-w-0 flex-1 flex-col">
+                            <span className="text-[11.5px] font-semibold text-primary">{t('communication.chat.pinnedMessage')}</span>
+                            <span className="truncate text-[13px] text-(--app-foreground)">
+                                {firstPin.deleted ? t('communication.chat.deleted') : (firstPin.body ? bodyForEditing(firstPin).text : t('communication.list.attachment'))}
+                            </span>
+                        </span>
+                        {pinList.length > 1 && <span className="shrink-0 text-xs font-medium text-(--app-muted-foreground)">{tr(t('communication.chat.pinPosition'), { n: pinList.length })}</span>}
+                    </button>
+                )}
 
                 {(!online || (realtimeEnabled && everConnected && rt !== 'connected' && !loading)) && (
                     <div role="status" className="flex shrink-0 items-center gap-2 border-b border-(--tone-warning-border,#fedf89) bg-(--tone-warning-bg,#fffaeb) px-4 py-1.5 text-xs text-(--app-foreground)">
@@ -569,10 +604,10 @@ export default function ChatView(props: Props): JSX.Element {
                     aria-label={t('communication.chat.scrollRegion')}
                     aria-busy={loading}
                     tabIndex={0}
-                    className="comm-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain py-3 focus:outline-hidden"
+                    className="comm-scroll min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain focus:outline-hidden"
                 >
                     {loading ? <MessagesSkeleton /> : (
-                        <>
+                        <div className="mx-auto max-w-[860px] px-3 pb-5 pt-2 min-[640px]:px-4 min-[1100px]:px-7">
                             <div className="flex justify-center py-2">
                                 {nextBefore ? (
                                     <button type="button" onClick={() => void loadOlder()} disabled={loadingOlder} className="h-7 rounded-full px-3 text-xs font-medium text-primary hover:bg-(--app-surface-muted) disabled:opacity-60">
@@ -585,7 +620,7 @@ export default function ChatView(props: Props): JSX.Element {
 
                             {messages.length === 0 && outgoing.length === 0 && detail && (
                                 <div className="mx-auto mt-10 flex max-w-xs flex-col items-center gap-3 px-6 text-center">
-                                    <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} size="lg" />
+                                    <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} size="xl" />
                                     <p className="text-sm font-medium text-(--app-foreground)">{detail.title}</p>
                                     <p className="text-xs text-(--app-muted-foreground)">{t('communication.chat.beginning')}</p>
                                 </div>
@@ -604,17 +639,17 @@ export default function ChatView(props: Props): JSX.Element {
                                     return (
                                         <Fragment key={message.id}>
                                             {newDay && (
-                                                <li className="sticky top-0 z-5 flex justify-center py-2" role="separator">
-                                                    <span className="rounded-full border border-(--app-border) bg-(--app-surface) px-3 py-0.5 text-[11px] font-medium text-(--app-muted-foreground) shadow-xs">
+                                                <li className="sticky top-0 z-5 flex justify-center pb-1.5 pt-[18px]" role="separator">
+                                                    <span className="rounded-full border border-(--app-border) bg-(--app-surface) px-3 py-[3px] text-[11.5px] font-semibold text-(--app-muted-foreground)">
                                                         {dayLabel(message.created_at, locale, system, t('communication.chat.today'), t('communication.chat.yesterday'))}
                                                     </span>
                                                 </li>
                                             )}
                                             {message.id === newDividerAt && (
-                                                <li className="my-2 flex items-center gap-3 px-5" role="separator" aria-label={t('communication.chat.newMessages')}>
-                                                    <span className="h-px flex-1 bg-(--color-danger,#b42318)/40" />
-                                                    <span className="text-[11px] font-semibold uppercase tracking-wide text-(--color-danger,#b42318)">{t('communication.chat.newMessages')}</span>
-                                                    <span className="h-px flex-1 bg-(--color-danger,#b42318)/40" />
+                                                <li className="flex items-center gap-3 pb-1 pt-[18px]" role="separator" aria-label={t('communication.chat.newMessages')}>
+                                                    <span className="h-px flex-1 bg-[rgba(185,28,28,0.35)]" />
+                                                    <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#b91c1c] dark:text-red-400">{t('communication.chat.newMessages')}</span>
+                                                    <span className="h-px flex-1 bg-[rgba(185,28,28,0.35)]" />
                                                 </li>
                                             )}
                                             <MessageBubble
@@ -622,6 +657,7 @@ export default function ChatView(props: Props): JSX.Element {
                                                 own={own}
                                                 continued={continued}
                                                 showSender={detail?.type !== 'DIRECT' && !continued}
+                                                avatarColumn={detail?.type !== 'DIRECT'}
                                                 currentUserId={currentUserId}
                                                 pinned={pinned.has(message.id)}
                                                 reactions={props.reactions}
@@ -642,10 +678,10 @@ export default function ChatView(props: Props): JSX.Element {
                                     );
                                 })}
                                 {outgoing.map((item) => (
-                                    <li key={item.clientId} className="mt-2 flex justify-end px-3 sm:px-5">
-                                        <div className="flex max-w-[min(36rem,85%)] flex-col items-end">
-                                            <div className={`rounded-panel rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-(--app-foreground) ${item.status === 'failed' ? 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2)' : 'border-dashed border-[color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
-                                                {item.body && <MessageText body={item.body} mentions={[]} currentUserId={currentUserId} />}
+                                    <li key={item.clientId} className="flex justify-end ps-[14%] pt-3.5">
+                                        <div className="flex max-w-[580px] flex-col items-end">
+                                            <div className={`rounded-[14px_4px_14px_14px] border px-3 pb-1.5 pt-2 text-sm leading-normal ${item.status === 'failed' ? 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2) text-(--app-foreground)' : 'border-transparent bg-(--color-primary-strong) text-white opacity-70'}`}>
+                                                {item.body && <MessageText body={item.body} mentions={[]} currentUserId={currentUserId} inverse={item.status !== 'failed'} />}
                                                 {item.attachments.map((file) => (
                                                     <span key={file.id} className="mt-1 flex items-center gap-1.5 text-xs"><PaperclipIcon className="h-3.5 w-3.5" aria-hidden="true" />{file.name}</span>
                                                 ))}
@@ -663,7 +699,16 @@ export default function ChatView(props: Props): JSX.Element {
                                     </li>
                                 ))}
                             </ol>
-                        </>
+
+                            {typingText && (
+                                <div className="flex items-center gap-2.5 pt-3.5" aria-hidden="true">
+                                    <span className="inline-flex h-[38px] items-center gap-1 rounded-[4px_14px_14px_14px] border border-(--app-border) bg-(--app-surface) px-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+                                        {[0, 1, 2].map((i) => <span key={i} className="comm-typing-dot h-1.5 w-1.5 rounded-full bg-(--app-muted-foreground)" style={{ animationDelay: `${i * 0.15}s` }} />)}
+                                    </span>
+                                    <span className="text-xs text-(--app-muted-foreground)">{typingText}</span>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 

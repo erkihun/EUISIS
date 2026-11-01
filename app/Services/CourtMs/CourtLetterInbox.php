@@ -27,7 +27,7 @@ final class CourtLetterInbox
     public const DISK = 'local';
 
     /** Who reads court letters: the institution's tribunal officers, and anyone with the Court Cases module. */
-    public const PERMISSIONS = ['grievances.tribunal', 'court_cases.view'];
+    public const PERMISSIONS = ['grievances.tribunal', 'court.letters.view'];
 
     public function __construct(
         private readonly CourtMsClient $client,

@@ -622,19 +622,48 @@ const navGroups: NavGroup[] = [
     },
     {
         /*
-         * Tribunal Court: external adjudication of administrative cases. Holds
-         * the Administrative Tribunal cases (grievance appeals routed to it) and
-         * the planned Court Cases module (docs/court-cases.md). Neither is part
-         * of Grievance Management's internal review workflow.
+         * Tribunal Court: the court (Modules/Court, ADR 0020) and the grievances
+         * referred to it. Its pages are clustered as a tribunal registry works
+         * (GROUP_CLUSTERS.tribunalCourt): registry, hearings, judgments and
+         * appeals, parties, correspondence, administration and the public site.
+         * Each page is under the EUISIS permission its roles give.
          */
         key: 'tribunalCourt',
         labelKey: 'nav.groupTribunalCourt',
         icon: ScaleIcon,
         items: [
+            { routeName: 'court.admin.dashboard', labelKey: 'court.nav.dashboard', icon: SpeedometerIcon, permission: 'court.cases.view' },
+            { routeName: 'court.admin.notifications.index', labelKey: 'court.nav.notices', icon: BellIcon, permission: 'court.cases.view' },
+            // Registry
+            { routeName: 'court.cases.index', labelKey: 'cm.app.Cases', icon: ClipboardListIcon, permission: 'court.cases.view' },
             { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: FolderOpenIcon, permission: 'grievances.tribunal' },
-            // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
+            // Cases filed at the tribunal against the institution, for its court case officer (Flow 7, ADR 0013 #14).
             { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
-            { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
+            { routeName: 'court.recordes.index', labelKey: 'cm.app.Records', icon: PrinterIcon, permission: 'court.cases.view' },
+            { routeName: 'court.case-types.index', labelKey: 'cm.app.case_types', icon: TagsIcon, permission: 'court.cases.types' },
+            // Hearings and inspection
+            { routeName: 'court.admin.hearings.index', labelKey: 'cm.app.Hearings', icon: ClipboardClockIcon, permission: 'court.cases.view' },
+            { routeName: 'court.case-inspection-requests.index', labelKey: 'cm.case_inspections.requests.index_title', icon: EyeScanIcon, permission: 'court.inspection-requests.manage' },
+            { routeName: 'court.case-inspection-findings.index', labelKey: 'cm.case_inspections.findings.index_title', icon: FileSearchIcon, permission: 'court.inspection-findings.manage' },
+            // Judgments and appeals
+            { routeName: 'court.decisions.index', labelKey: 'cm.app.Decisions', icon: FileCheckIcon, permission: 'court.decision.view' },
+            { routeName: 'court.decision-templates.index', labelKey: 'cm.decision_templates.title', icon: DiplomaIcon, permission: 'court.decision.templet.create' },
+            { routeName: 'court.appeals.index', labelKey: 'cm.app.Appeals', icon: RestartIcon, permission: 'court.appeals.view' },
+            // Parties and counsel
+            { routeName: 'court.applicants.index', labelKey: 'cm.app.Applicant', icon: Users, permission: 'court.applicants.view' },
+            { routeName: 'court.lawyers.index', labelKey: 'cm.lawyer.register.nav', icon: Briefcase, permission: 'court.applicants.view' },
+            // Correspondence
+            { routeName: 'court.letters.index', labelKey: 'cm.app.Letters', icon: FilePenIcon, permission: 'court.cases.edit' },
+            { routeName: 'court.letters.compose', labelKey: 'cm.app.compose_letter', icon: PenIcon, permission: 'court.cases.edit' },
+            { routeName: 'court.letter-templates.index', labelKey: 'cm.app.letter_templates', icon: DocumentsIcon, permission: 'court.templates.manage' },
+            { routeName: 'court.letter-categories.index', labelKey: 'cm.app.letter_categories', icon: FolderFilesIcon, permission: 'court.templates.manage' },
+            // Court administration
+            { routeName: 'court.teams.index', labelKey: 'cm.app.Teams', icon: UsersTwoIcon, permission: 'court.teams.manage' },
+            // The court's public site
+            { routeName: 'court.announcements.index', labelKey: 'cm.app.Announcements', icon: MegaphoneIcon, permission: 'court.announcements.manage' },
+            { routeName: 'court.admin.landing.index', labelKey: 'court.nav.landing', icon: PaletteIcon, permission: 'court.settings.manage' },
+            { routeName: 'court.about.index', labelKey: 'cm.app.About', icon: CityIcon, permission: 'court.about.manage' },
+            { routeName: 'court.terms.index', labelKey: 'cm.app.Terms', icon: ChecklistIcon, permission: 'court.settings.manage' },
         ],
     },
     {
@@ -803,6 +832,16 @@ const GROUP_CLUSTERS: Record<string, { labelKey: string; routes: string[] }[]> =
         { labelKey: 'nav.designClusterWorkforce', routes: ['organization-design.methodologies.index', 'organization-design.manpower-plans.index', 'organization-design.position-design.index'] },
         { labelKey: 'nav.designClusterQuality', routes: ['organization-design.reports.index', 'organization-design.mapping.index'] },
     ],
+    // The court as a tribunal registry works (ADR 0020); the dashboard and the notices lead, unlabeled.
+    tribunalCourt: [
+        { labelKey: 'court.nav.clusterRegistry', routes: ['court.cases.index', 'tribunal-cases.index', 'tribunal-cases.institution-cases.index', 'court.recordes.index', 'court.case-types.index'] },
+        { labelKey: 'court.nav.clusterHearings', routes: ['court.admin.hearings.index', 'court.case-inspection-requests.index', 'court.case-inspection-findings.index'] },
+        { labelKey: 'court.nav.clusterJudgments', routes: ['court.decisions.index', 'court.decision-templates.index', 'court.appeals.index'] },
+        { labelKey: 'court.nav.clusterParties', routes: ['court.applicants.index', 'court.lawyers.index'] },
+        { labelKey: 'court.nav.clusterCorrespondence', routes: ['court.letters.index', 'court.letters.compose', 'court.letter-templates.index', 'court.letter-categories.index'] },
+        { labelKey: 'court.nav.clusterAdministration', routes: ['court.teams.index'] },
+        { labelKey: 'court.nav.clusterPublicSite', routes: ['court.announcements.index', 'court.admin.landing.index', 'court.about.index', 'court.terms.index'] },
+    ],
 };
 
 const adminGroups: { labelKey: string; items: NavItem[] }[] = [
@@ -916,7 +955,6 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const features = (pageProps as { features?: Record<string, boolean> }).features ?? {};
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
-        || (!features.court_cases && routeName.startsWith('court-cases.'))
         || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
         || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
@@ -945,9 +983,10 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             groups: section.groups.map((group) => ({ ...group, items: allowedItems(group.items) })).filter((group) => group.items.length > 0),
         }))
         .filter((section) => section.groups.length > 0);
-    // In the Core workspace the server sends the navigation, already filtered by permission.
+    // In the Core and court workspaces the server sends the navigation, already filtered by permission.
     const workspace = (pageProps as { workspace?: CoreWorkspaceShared }).workspace ?? null;
-    const coreSections = workspace?.name === 'core'
+    const workspaceName = workspace?.name === 'court' ? 'court.workspaceName' : 'core.workspaceName';
+    const coreSections = workspace?.name === 'core' || workspace?.name === 'court'
         ? workspace.nav.map((section) => ({
             labelKey: section.label_key,
             groups: section.groups.map((group): NavGroup => ({
@@ -964,7 +1003,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         : isEmployeeUser
             ? visiblePortalSections.flatMap((section) => section.groups)
             : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
-    const homeNav = coreSections ? coreHomeNav : isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
+    const homeNav = coreSections
+        ? (workspace?.home ? { ...coreHomeNav, routeName: workspace.home, labelKey: 'nav.dashboard' } : coreHomeNav)
+        : isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
     // My Portal and Core are short enough to show every group open until the person collapses one.
     const groupsOpenByDefault = isEmployeeUser || coreSections !== null;
     const currentRoute = String(route().current() ?? '');
@@ -1213,7 +1254,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         </span>
                         {!collapsed && <div className="min-w-0">
                             <p className="whitespace-normal wrap-break-word text-[15px] font-medium leading-snug">{appName}</p>
-                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{coreSections ? t('core.workspaceName') : shortName}</p>
+                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{coreSections ? t(workspaceName) : shortName}</p>
                             <p className="mt-1 whitespace-normal wrap-break-word text-xs leading-relaxed text-(--sidebar-muted)">{orgName}</p>
                         </div>}
                     </Link>
@@ -1270,7 +1311,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
 
             <div className="shrink-0 border-t border-(--sidebar-border) p-2">
                 {/* Leaving Core returns to the full navigation; it needs no permission, so it always works. */}
-                {coreSections && (
+                {/* The court's staff area leaves to the EUISIS dashboard; its party portals have no way out. */}
+                {workspace?.name === 'court' && workspace.exit && (
+                    <Link href={route(workspace.exit)} onClick={onClose}
+                        aria-label={collapsed ? t('court.exit') : undefined} title={collapsed ? t('court.exit') : undefined}
+                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm font-medium text-(--sidebar-fg)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
+                        <ArrowLeftRightIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        {!collapsed && <span>{t('court.exit')}</span>}
+                    </Link>
+                )}
+                {workspace?.name === 'core' && (
                     <Link href={route('core.exit')} method="post" as="button" onClick={onClose}
                         aria-label={collapsed ? t('core.exit') : undefined} title={collapsed ? t('core.exit') : undefined}
                         className={['flex min-h-10 items-center gap-3 rounded-md text-sm font-medium text-(--sidebar-fg)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
@@ -1284,7 +1334,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>
-                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(coreSections ? 'core.workspaceName' : isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
+                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(coreSections ? workspaceName : isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
                 {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
                 {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
                     ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />

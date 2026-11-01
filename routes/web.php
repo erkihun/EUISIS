@@ -1695,12 +1695,13 @@ require __DIR__.'/service-monitoring.php';
 // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
 require __DIR__.'/organization-design.php';
 
-// Court Cases — planned standalone module, separate from Grievance Management.
-require __DIR__.'/court-cases.php';
 require __DIR__.'/intelligence.php';
 require __DIR__.'/assistant.php';
 require __DIR__.'/support.php';
 require __DIR__.'/public-assistant.php';
+
+// The court (administrative tribunal) module, brought in from court-ms (ADR 0020).
+require __DIR__.'/court.php';
 
 // Cross-cutting platform endpoints (scoped lookups).
 require __DIR__.'/platform.php';
