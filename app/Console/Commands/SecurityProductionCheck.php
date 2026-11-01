@@ -45,7 +45,7 @@ class SecurityProductionCheck extends Command
             ['Public self-registration is off', config('security.registration_enabled') === false, 'Registration is OTP-protected, but each attempt sends paid codes; enable it only deliberately.'],
             ['SMS spend caps are set', (int) config('security.external_usage.sms.daily_cap') > 0 && (int) config('security.external_usage.sms.monthly_cap') > 0, 'Without a cap, distributed OTP requests can run up an unbounded SMS bill.'],
             ['CORS does not allow every origin', ! in_array('*', (array) config('cors.allowed_origins'), true), 'A wildcard origin with credentials exposes the API to any site.'],
-            ['Log level is not debug', config('logging.channels.'.config('logging.default').'.level', 'debug') !== 'debug', 'Debug logging records far more request detail than production needs.'],
+            ['Log level is not debug', ! $this->logsDebug(), 'Debug logging records far more request detail than production needs.'],
         ];
 
         $failed = 0;
@@ -75,5 +75,26 @@ class SecurityProductionCheck extends Command
         $this->components->info('No unsafe production settings detected.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Whether the default log channel writes debug entries. A "stack" channel has
+     * no level of its own (reading one gave a false FAIL with LOG_LEVEL=warning):
+     * its channels are checked instead.
+     */
+    private function logsDebug(): bool
+    {
+        $default = (string) config('logging.default');
+        $channels = config("logging.channels.{$default}.driver") === 'stack'
+            ? (array) config("logging.channels.{$default}.channels", [])
+            : [$default];
+
+        foreach ($channels as $channel) {
+            if (config("logging.channels.{$channel}.level", 'debug') === 'debug') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
