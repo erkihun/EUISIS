@@ -8,10 +8,48 @@ import amEmployees from '@/i18n/am/employees';
 const DASH = '-';
 
 /**
- * Fields whose two language labels print on one line, above a single value.
+ * Fields whose two language labels print on one line, above a single value:
+ * the value reads the same in either language, so a second row would only
+ * repeat it.
  * Mirrored in IdCardSvgRenderer::JOINED_LABEL_FIELDS.
  */
-const JOINED_LABEL_FIELDS = ['idNumber', 'phone'];
+const JOINED_LABEL_FIELDS = ['idNumber', 'phone', 'email', 'address'];
+
+/**
+ * Fields whose value shrinks to fit its line rather than wrapping or being
+ * cut, down to FIT_MIN_SCALE of its size: a broken email address is useless.
+ * Mirrored in IdCardSvgRenderer::FIT_VALUE_FIELDS.
+ */
+const FIT_VALUE_FIELDS = ['email', 'address'];
+const FIT_MIN_SCALE = 0.7;
+
+/**
+ * An email or address as at most two lines of `budget` characters: an email
+ * breaks just before its "@", an address between words; only what still does
+ * not fit is cut. Mirrors IdCardSvgRenderer::fitLines.
+ */
+export function fitLines(value: string, budget: number, email: boolean): string[] {
+    const text = value.trim();
+    if (Array.from(text).length <= budget) return [text];
+    const at = text.lastIndexOf('@');
+    let lines: string[];
+    if (email && at > 0) {
+        lines = [text.slice(0, at), text.slice(at)];
+    } else {
+        lines = [''];
+        for (const word of text.split(/\s+/u)) {
+            const last = lines.length - 1;
+            const candidate = lines[last] === '' ? word : `${lines[last]} ${word}`;
+            if (Array.from(candidate).length <= budget || lines[last] === '') lines[last] = candidate;
+            else lines.push(word);
+        }
+    }
+    const cut = (line: string) => {
+        const chars = Array.from(line);
+        return chars.length > budget ? `${chars.slice(0, Math.max(1, budget - 1)).join('')}…` : line;
+    };
+    return [cut(lines[0]), cut(lines.slice(1).join(' '))];
+}
 
 /**
  * Fields that always print their value on the line below the label, however
@@ -31,7 +69,18 @@ type Props = {
     labelStyle: CSSProperties;
     /** Template typography for the value; the name field passes its own style. */
     valueStyle: CSSProperties;
+    /**
+     * The field's own layout box: its width in percent of the card and the
+     * template's label/value sizes in px. Given this, the field takes the
+     * printed card's shape (IdCardSvgRenderer::bilingualField), so a box sized
+     * on screen holds the same number of lines in print.
+     */
+    fit?: { widthPct: number; labelPx: number; valuePx: number; canvasWidth?: number };
 };
+
+/** The SVG canvas width and font scale the printed card is drawn at. */
+const CANVAS_WIDTH = 856;
+const CANVAS_SCALE = 2;
 
 /**
  * One front-face field as two stacked rows — the Amharic label and value, then
@@ -46,6 +95,7 @@ export default function IdCardBilingualField({
     fieldKey,
     labelStyle,
     valueStyle,
+    fit,
 }: Props) {
     // The ID and phone labels are abbreviations of a value that reads the same
     // in either language, so they share one line rather than printing an
@@ -71,13 +121,48 @@ export default function IdCardBilingualField({
     // The ID number stacks unconditionally, so the emphasised band reads as a
     // label with the number beneath it.
     const longest = Math.max(...rows.map(([label]) => label.length));
-    const stacked =
-        longest > 12 || (fieldKey !== undefined && STACKED_VALUE_FIELDS.includes(fieldKey));
+    const alwaysStacked = fieldKey !== undefined && STACKED_VALUE_FIELDS.includes(fieldKey);
+    let stacked = longest > 12 || alwaysStacked;
+    const fits = fieldKey !== undefined && FIT_VALUE_FIELDS.includes(fieldKey);
+    let fittedValueStyle = valueStyle;
+    let valueLines: string[] | null = null;
+    if (fit) {
+        // The printed card's rule, in its own canvas units: a label sits beside
+        // its value when it takes at most 55% of the box (a joined label, when
+        // the value still fits after it).
+        const width = (fit.widthPct / 100) * (fit.canvasWidth ?? CANVAS_WIDTH);
+        const labelSize = fit.labelPx * CANVAS_SCALE;
+        const valueSize = fit.valuePx * CANVAS_SCALE;
+        const labelWidth = longest * labelSize * 0.55 + 6;
+        stacked = alwaysStacked || (joins
+            ? labelWidth + (valueAm ?? '').length * valueSize * 0.55 > width
+            : labelWidth > width * 0.55);
+        // A long email or address shrinks to its line, as it prints.
+        const room = stacked ? width : Math.max(24, width - labelWidth);
+        const needed = (valueAm ?? '').length * valueSize * 0.55;
+        let fitSize = valueSize;
+        if (fits && needed > room) {
+            const scale = Math.max(FIT_MIN_SCALE, room / needed);
+            fitSize = valueSize * scale;
+            fittedValueStyle = {
+                ...valueStyle,
+                fontSize: valueStyle.fontSize ? `calc(${valueStyle.fontSize} * ${scale.toFixed(3)})` : `${scale.toFixed(3)}em`,
+            };
+        }
+        if (fits && valueAm) {
+            // The printed card's character budget (IdCardSvgRenderer::charBudget).
+            const budget = Math.max(12, Math.floor(room / Math.max(1, fitSize * 0.55)));
+            valueLines = fitLines(valueAm, budget, fieldKey === 'email');
+        }
+    }
     const rowClass = stacked
         ? 'leading-tight'
         : 'grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-baseline gap-x-1 leading-tight';
     const labelClass = 'block min-w-0 wrap-break-word';
-    const valueClass = 'block min-w-0 wrap-break-word font-semibold';
+    // One line, as the printed card draws it: never broken mid-address.
+    const valueClass = fits
+        ? 'block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-semibold'
+        : 'block min-w-0 wrap-break-word font-semibold';
 
     return (
         <div className="min-w-0">
@@ -86,8 +171,10 @@ export default function IdCardBilingualField({
                     <span className={labelClass} style={labelStyle}>
                         {label}
                     </span>
-                    <span className={valueClass} style={valueStyle}>
-                        {value || DASH}
+                    <span className={valueClass} style={fittedValueStyle} title={fits && value ? value : undefined}>
+                        {valueLines
+                            ? valueLines.map((line, index) => <span key={index} className="block">{line}</span>)
+                            : value || DASH}
                     </span>
                 </div>
             ))}

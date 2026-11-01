@@ -17,6 +17,7 @@ import amConfirmations from '@/i18n/am/confirmations';
 import amEntitlements from '@/i18n/am/entitlements';
 import amGradeLevels from '@/i18n/am/gradeLevels';
 import amIdCards from '@/i18n/am/idCards';
+import amCardPrinting from '@/i18n/am/cardPrinting';
 import amNfc from '@/i18n/am/nfc';
 import amIsicActivities from '@/i18n/am/isicActivities';
 import amOccupations from '@/i18n/am/occupations';
@@ -99,6 +100,7 @@ const tree: TranslationTree = {
     gradeLevels: amGradeLevels,
     idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },
     nfc: amNfc,
+    cardPrinting: amCardPrinting,
     isicActivities: amIsicActivities,
     occupations: amOccupations,
     organizationDesign: amOrganizationDesign,

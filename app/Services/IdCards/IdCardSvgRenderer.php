@@ -42,12 +42,24 @@ final class IdCardSvgRenderer
 
     /**
      * Fields whose two language labels print on one line, above a single value.
-     * These carry an abbreviated label ("መ.ቁ / ID.No") for a value that reads
-     * the same in either language, so a second row would only repeat it.
+     * Their value reads the same in either language — a number, an email
+     * address, the one address on record — so a second row would only repeat
+     * it.
      *
      * Mirrored in IdCardBilingualField.tsx.
      */
-    private const JOINED_LABEL_FIELDS = ['idNumber', 'phone'];
+    private const JOINED_LABEL_FIELDS = ['idNumber', 'phone', 'email', 'address'];
+
+    /**
+     * Fields whose value shrinks to fit its line rather than being cut: an
+     * email cut short with "…" is no longer an address anyone can use. The
+     * value keeps at least FIT_MIN_SCALE of its size before it is cut.
+     *
+     * Mirrored in IdCardBilingualField.tsx.
+     */
+    private const FIT_VALUE_FIELDS = ['email', 'address'];
+
+    private const FIT_MIN_SCALE = 0.7;
 
     /**
      * Fields that always print their value on the line below the label, however
@@ -288,74 +300,29 @@ final class IdCardSvgRenderer
             );
         }
 
-        // ── Text column ───────────────────────────────────────────────────
-        // Identity fields only — organization and position live on the back.
-        // Each field stacks an Amharic row above an English row; the name spans
-        // the full width and the remaining six fill two columns.
+        // ── Identity fields ───────────────────────────────────────────────
+        // Organization and position live on the back. Each field has its own
+        // box (`field_<key>`), so an admin moves one without disturbing the
+        // rest; each stacks an Amharic row above an English row. Keyed, not
+        // label-matched — the labels are translatable display text.
         $labelStyle = $data->textStyle('front', 'label');
         $valueStyle = $data->textStyle('front', 'value');
         $colW = (int) (($textW - 12) / 2);
-
-        // Name leads the body and phone sits with the other identity fields;
-        // only the ID number is emphasised on its own row near the footer.
-        // Keyed, not label-matched — the labels are translatable display text.
-        $emphasised = ['idNumber'];
-        $identity = [];
-        $bottom = [];
         foreach ($data->bilingualFields as $field) {
-            if (in_array($field[4] ?? '', $emphasised, true)) {
-                $bottom[$field[4]] = $field;
-            } else {
-                $identity[] = $field;
-            }
-        }
-
-        $rowY = ($fieldsBox?->yIn(self::H) ?? $photoY) + 16;
-        foreach (array_values($identity) as $index => $field) {
-            $x = $textX + ($index % 2) * ($colW + 12);
-            $y = $rowY + intdiv($index, 2) * 46;
-            $svg .= $this->bilingualField($x, $y, $field, $colW, $l, $labelStyle, $valueStyle);
-        }
-
-        // Lower band: the emphasised ID number.
-        $emphasisBox = $data->box('front', 'emphasis');
-        $bottomX = $emphasisBox?->xIn(self::W) ?? $padH;
-        $bottomW = $emphasisBox?->wIn(self::W) ?? (self::W - 2 * $padH);
-        $bottomY = $emphasisBox?->yIn(self::H) ?? 430;
-        // The ID number is the only field in this band, so it gets the whole
-        // width; halving it here truncated the value.
-        if ($idField = $bottom['idNumber'] ?? null) {
+            $box = $data->box('front', 'field_'.($field[4] ?? ''));
+            // SVG text hangs from its baseline, so the label's line sits one
+            // line below the box's top edge — where the preview draws it.
             $svg .= $this->bilingualField(
-                $bottomX, $bottomY, $idField, $bottomW, $l, $labelStyle, $valueStyle,
+                $box?->xIn(self::W) ?? $textX,
+                ($box?->yIn(self::H) ?? $photoY) + 16,
+                $field,
+                $box?->wIn(self::W) ?? $colW,
+                $l, $labelStyle, $valueStyle,
             );
         }
 
-        // Issue / expiry dates — their own movable block on the front, so a
-        // card's validity reads without turning it over.
-        $datesBox = $data->box('front', 'dates');
-        $datesX = $datesBox?->xIn(self::W) ?? $padH;
-        $datesY = $datesBox?->yIn(self::H) ?? 470;
-        $datesW = $datesBox?->wIn(self::W) ?? (self::W - 2 * $padH);
-        $dateStyle = $this->styleAttrs($data->textStyle('front', 'value'), 8, '600', $l->frontTextPrimary);
-        $dateLabelStyle = $this->styleAttrs($data->textStyle('front', 'label'), 7, '400', $l->frontTextSecondary);
-        foreach (array_values(array_filter([
-            $l->showIssueDate ? [$data->issueDateLabel, $data->issueDateFormattedAm, $data->issueDateFormatted] : null,
-            $l->showExpiryDate ? [$data->expiryDateLabel, $data->expiryDateFormattedAm, $data->expiryDateFormatted] : null,
-        ], fn (?array $row): bool => $row !== null && (filled($row[1]) || filled($row[2])))) as $index => [$caption, $amValue, $enValue]) {
-            $x = (int) ($datesX + $index * ($datesW / 2));
-            // Caption, then the Ethiopian date above the Gregorian one.
-            $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>',
-                $x, $datesY, $this->font, $dateLabelStyle, $this->e($caption),
-            );
-            foreach (array_values(array_filter([$amValue, $enValue], 'filled')) as $line => $value) {
-                $svg .= sprintf(
-                    '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-                    $x, $datesY + 13 + $line * 13, $this->font, $dateStyle,
-                    $this->e($this->trunc((string) $value, 24)),
-                );
-            }
-        }
+        // A digital ID prints no issue or expiry date: validity is checked
+        // live through the QR.
 
         // Right-edge decorative accent
         if ($data->frontBackgroundDataUri === null && $l->template === IdCardTemplate::Classic) {
@@ -610,31 +577,24 @@ final class IdCardSvgRenderer
             }
         }
 
-        // Emergency contact — who to call if the holder needs help.
-        $emergencyBox = $data->box('back', 'emergency');
-        if ($data->emergencyContactFields !== []) {
-            $emergencyX = $emergencyBox?->xIn(self::W) ?? $padH;
-            $emergencyY = $emergencyBox?->yIn(self::H) ?? (self::H - 60);
-            $emergencyW = $emergencyBox?->wIn(self::W) ?? 200;
-            $emergencyH = $emergencyBox?->hIn(self::H) ?? 97;
-            // Same stacked amharic-then-english rows as the front face. The
-            // fields share the box's height so the block cannot run off the
-            // card, however many contacts there are.
-            $rows = max(1, count($data->emergencyContactFields));
-            $step = (int) max(40, min(92, $emergencyH / $rows));
-            // SVG text hangs from its baseline, so the first row starts a line
-            // below the box's top edge; otherwise a block placed near the top
-            // of the card loses its first line off the edge.
-            $emergencyLabelSize = $data->textStyle('back', 'label')?->fontSizePx() !== null
-                ? $data->textStyle('back', 'label')->fontSizePx() * self::SCALE
-                : 9.0;
-            $emergencyTop = $emergencyY + (int) ceil($emergencyLabelSize);
-            foreach ($data->emergencyContactFields as $index => $field) {
-                $svg .= $this->bilingualField(
-                    $emergencyX, $emergencyTop + $index * $step, $field, $emergencyW, $l,
-                    $data->textStyle('back', 'label'), $data->textStyle('back', 'value'),
-                );
-            }
+        // Emergency contact — who to call if the holder needs help. Name and
+        // phone each have their own box, in the same stacked amharic-then-
+        // english shape as the front face.
+        // SVG text hangs from its baseline, so each starts a line below its
+        // box's top edge; otherwise a box near the top of the card loses its
+        // first line off the edge.
+        $emergencyLabelSize = $data->textStyle('back', 'label')?->fontSizePx() !== null
+            ? $data->textStyle('back', 'label')->fontSizePx() * self::SCALE
+            : 9.0;
+        foreach ($data->emergencyContactFields as $index => $field) {
+            $box = $data->box('back', 'field_'.($field[4] ?? ''));
+            $svg .= $this->bilingualField(
+                $box?->xIn(self::W) ?? $padH,
+                ($box?->yIn(self::H) ?? (self::H - 60 + $index * 40)) + (int) ceil($emergencyLabelSize),
+                $field,
+                $box?->wIn(self::W) ?? 200,
+                $l, $data->textStyle('back', 'label'), $data->textStyle('back', 'value'),
+            );
         }
 
         // Bottom thin accent
@@ -691,6 +651,13 @@ final class IdCardSvgRenderer
             $x, $y, $this->font, $size, $weight, $this->e($fill ?? $color), $this->e($this->trunc($value, 52)),
         );
 
+        // A template's field list decides what a portrait card prints, as on
+        // landscape: the name and ID number are its large name and ID elements,
+        // every other field its own box. With no list, the card stays the
+        // minimal badge it always was: name, position and ID number only.
+        $configured = $data->employeeFields;
+        $prints = static fn (string $key): bool => $configured === null || in_array($key, $configured, true);
+
         if ($front) {
             [$hx, $hy, $hw, $hh] = $box($data, 'front', 'header');
             $header = $data->header;
@@ -725,7 +692,7 @@ final class IdCardSvgRenderer
             }
             [$x, $y, $w] = $box($data, 'front', 'employee_name');
             $nameStyle = $data->textStyle('front', 'employee_name');
-            foreach (array_values(array_unique(array_filter([$data->fullNameAm, $data->fullNameEn]))) as $index => $line) {
+            foreach ($prints('name') ? array_values(array_unique(array_filter([$data->fullNameAm, $data->fullNameEn]))) : [] as $index => $line) {
                 $svg .= $centerText(
                     (string) $line, $x + intdiv($w, 2), $y + 22 + $index * 24,
                     (int) (($nameStyle?->fontSizePx() ?? 12) * self::SCALE),
@@ -742,8 +709,19 @@ final class IdCardSvgRenderer
                     $positionStyle?->color, $positionStyle?->fontWeight ?? '600',
                 );
             }
-            [$x, $y, $w] = $box($data, 'front', 'emphasis');
-            $svg .= $centerText($data->employeeNumber ?: $data->cardNumber, $x + intdiv($w, 2), $y + 24, 18);
+            if ($prints('idNumber')) {
+                [$x, $y, $w] = $box($data, 'front', 'emphasis');
+                $svg .= $centerText($data->employeeNumber ?: $data->cardNumber, $x + intdiv($w, 2), $y + 24, 18);
+            }
+            foreach ($configured === null ? [] : $data->bilingualFields as $field) {
+                if (in_array($field[4] ?? '', ['name', 'idNumber'], true)) {
+                    continue;
+                }
+                [$x, $y, $w] = $box($data, 'front', 'field_'.$field[4]);
+                $svg .= $this->bilingualField(
+                    $x, $y + 16, $field, $w, $l, $data->textStyle('front', 'label'), $data->textStyle('front', 'value'),
+                );
+            }
         } else {
             if ($l->showQr && $data->feedbackQrUrl) {
                 [$x, $y, $w, $h] = $box($data, 'back', 'qr');
@@ -756,6 +734,13 @@ final class IdCardSvgRenderer
             if ($data->sealDataUri) {
                 [$x, $y, $w, $h] = $box($data, 'back', 'seal');
                 $svg .= '<image id="officialSeal" x="'.$x.'" y="'.$y.'" width="'.$w.'" height="'.$h.'" href="'.$this->e($data->sealDataUri).'" preserveAspectRatio="xMidYMid meet"/>';
+            }
+            $labelSize = ($data->textStyle('back', 'label')?->fontSizePx() ?? 4.5) * self::SCALE;
+            foreach ($configured === null ? [] : $data->emergencyContactFields as $field) {
+                [$x, $y, $w] = $box($data, 'back', 'field_'.$field[4]);
+                $svg .= $this->bilingualField(
+                    $x, $y + (int) ceil($labelSize), $field, $w, $l, $data->textStyle('back', 'label'), $data->textStyle('back', 'value'),
+                );
             }
         }
         $watermark = self::WATERMARKS[strtolower($data->status)] ?? null;
@@ -824,14 +809,6 @@ final class IdCardSvgRenderer
                     $colX[$index % 2], $y + intdiv($index, 2) * 52, $field, $colW, $l, $labelStyle, $valueStyle,
                 );
             }
-            $y += 3 * 52 + 10;
-
-            foreach ([[$l->showIssueDate, $data->issueDateFormatted, 16], [$l->showExpiryDate, $data->expiryDateFormatted, 16]] as [$visible, $value, $size]) {
-                if ($visible && filled($value)) {
-                    $svg .= $text($value, $y, $size);
-                    $y += 30;
-                }
-            }
         } else {
             if ($l->showMagneticStripe) {
                 $svg .= '<rect y="24" width="540" height="48" fill="rgba(0,0,0,0.5)"/>';
@@ -851,8 +828,7 @@ final class IdCardSvgRenderer
             if ($l->showCardNumber) {
                 $svg .= $text($data->cardNumber, 696);
             }
-            // Issue and expiry print on the front, so the back does not repeat
-            // the issue date — matching the landscape face.
+            // A digital ID prints no issue or expiry date on either face.
             if ($l->showEmergencyContact && $l->supportContact !== '') {
                 $svg .= $text($l->supportContact, 756, 14);
             }
@@ -1134,7 +1110,21 @@ final class IdCardSvgRenderer
         $lineGap = (int) max($labelSize + 2, 12);
         $rowGap = $inline ? (int) max($valueSize + 4, 18) : (int) max($valueSize + $lineGap + 4, 30);
 
-        $valueBudget = $this->charBudget($inline ? max(24, $width - $labelW) : $width, $valueSize);
+        $valueRoom = $inline ? max(24, $width - $labelW) : $width;
+        $valueBudget = $this->charBudget($valueRoom, $valueSize);
+        // An email or address shrinks to its line; if it still does not fit at
+        // the smallest legible size it takes a second line (see fitLines).
+        $fitLines = null;
+        $fitSize = $valueSize;
+        if (in_array($field[4] ?? '', self::FIT_VALUE_FIELDS, true) && filled($valueAm)) {
+            $needed = mb_strlen((string) $valueAm) * $valueSize * 0.55;
+            if ($needed > $valueRoom) {
+                $fitSize = max($valueSize * self::FIT_MIN_SCALE, $valueSize * $valueRoom / $needed);
+                $valueAttrs = (string) preg_replace('/font-size="[^"]*"/', 'font-size="'.$this->num($fitSize).'"', $valueAttrs, 1);
+                $valueBudget = $this->charBudget($valueRoom, $fitSize);
+            }
+            $fitLines = self::fitLines((string) $valueAm, $valueBudget, ($field[4] ?? '') === 'email');
+        }
         $render = fn (?string $value): string => $this->e($this->trunc(filled($value) ? (string) $value : self::DASH, $valueBudget));
         $label = fn (string $text, int $rowY): string => sprintf(
             '<text x="%d" y="%d" font-family="%s" %s opacity="0.85">%s</text>',
@@ -1149,11 +1139,55 @@ final class IdCardSvgRenderer
         $rows = $joins ? [[$labelAm, $valueAm]] : [[$labelAm, $valueAm], [$labelEn, $valueEn]];
         foreach ($rows as $row => [$rowLabel, $rowValue]) {
             $rowYPos = $y + $row * $rowGap;
-            $svg .= $label($rowLabel, $rowYPos)
-                .$value($render($rowValue), $inline ? $rowYPos : $rowYPos + $lineGap);
+            $valueY = $inline ? $rowYPos : $rowYPos + $lineGap;
+            $svg .= $label($rowLabel, $rowYPos);
+            foreach ($fitLines ?? [null] as $line => $text) {
+                $svg .= $value($text === null ? $render($rowValue) : $this->e($text), $valueY + $line * (int) ceil($fitSize + 3));
+            }
         }
 
         return $svg;
+    }
+
+    /**
+     * An email or address as at most two lines of $budget characters: an email
+     * breaks just before its "@" (both halves still read as the address), an
+     * address between words. Only what still does not fit is cut.
+     *
+     * Mirrored in IdCardBilingualField.tsx (fitLines).
+     *
+     * @return array<int, string>
+     */
+    public static function fitLines(string $value, int $budget, bool $email): array
+    {
+        $value = trim($value);
+        if (mb_strlen($value) <= $budget) {
+            return [$value];
+        }
+        $at = mb_strrpos($value, '@');
+        $lines = $email && $at !== false && $at > 0
+            ? [mb_substr($value, 0, $at), mb_substr($value, $at)]
+            : self::wrapWords($value, $budget);
+        $cut = static fn (string $line): string => mb_strlen($line) > $budget ? mb_substr($line, 0, max(1, $budget - 1)).'…' : $line;
+
+        return array_map($cut, [$lines[0], implode(' ', array_slice($lines, 1))]);
+    }
+
+    /** @return array<int, string> words packed into lines of at most $budget characters */
+    private static function wrapWords(string $text, int $budget): array
+    {
+        $lines = [''];
+        foreach (preg_split('/\s+/u', $text) ?: [] as $word) {
+            $last = count($lines) - 1;
+            $candidate = $lines[$last] === '' ? $word : $lines[$last].' '.$word;
+            if (mb_strlen($candidate) <= $budget || $lines[$last] === '') {
+                $lines[$last] = $candidate;
+            } else {
+                $lines[] = $word;
+            }
+        }
+
+        return $lines;
     }
 
     /**

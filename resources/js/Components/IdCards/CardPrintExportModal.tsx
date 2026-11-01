@@ -6,7 +6,6 @@ import IdCardFront from '@/Components/IdCards/IdCardFront';
 import IdCardBack from '@/Components/IdCards/IdCardBack';
 import { useLocale } from '@/hooks/useLocale';
 import { useCardExport } from '@/hooks/useCardExport';
-import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 
 export type CardForExport = {
     id: string;
@@ -75,15 +74,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
 
     if (!isOpen) return null;
 
-    // Card dates are deliberately not locale-dependent: the English row is
-    // always Gregorian and the Amharic row below is Ethiopian.
-    const fmtDate = (v?: string | null) =>
-        v ? (formatDateDisplay(v.slice(0, 10), 'gregorian', 'en') || v.slice(0, 10)) : undefined;
-
-    // The card prints both calendars, so the Ethiopian date is built alongside.
-    const fmtEthiopian = (v?: string | null) =>
-        v ? (formatDateDisplay(v.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined;
-
     const qrValue = card.qr_verification_url ?? null;
 
     const canExport     = card.can.exportPng    === true;
@@ -111,10 +101,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
         positionTitleAm: card.employee?.current_assignment?.position?.title_am,
         positionCode: card.employee?.current_assignment?.position?.job_position_code,
         jobGrade: card.employee?.current_assignment?.position?.grade_level,
-        issueDate: fmtDate(card.issued_at),
-        expiryDate: fmtDate(card.expires_at),
-        issueDateAm: fmtEthiopian(card.issued_at),
-        expiryDateAm: fmtEthiopian(card.expires_at),
         status: card.status,
     };
 

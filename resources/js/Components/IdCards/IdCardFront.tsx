@@ -1,17 +1,14 @@
-import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle, layoutBox } from '@/Components/IdCards/IdCardTemplateContext';
+import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle, layoutBox, type AnyLayoutElement } from '@/Components/IdCards/IdCardTemplateContext';
 import type { CSSProperties } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
-import enDict from '@/i18n/en';
-import amDict from '@/i18n/am';
 import enEmployees from '@/i18n/en/employees';
 import amEmployees from '@/i18n/am/employees';
 
-// The card face is bilingual by design — captions come from both dictionaries.
-const dateCaption = (key: 'issueDate' | 'expLabel'): string =>
-    `${enDict.idCards[key]}/${amDict.idCards[key]}`;
+// A digital ID: validity is checked live through the QR, so the face prints
+// no issue or expiry date.
 
 type IdCardFrontProps = {
     cardNumber: string;
@@ -42,11 +39,6 @@ type IdCardFrontProps = {
     email?: string | null;
     address?: string | null;
     photoUrl?: string | null;
-    issueDate?: string | null;
-    expiryDate?: string | null;
-    /** Ethiopian-calendar variants, shown above the Gregorian dates. */
-    issueDateAm?: string | null;
-    expiryDateAm?: string | null;
     /** When supplied and not 'active', a diagonal watermark is shown */
     status?: string | null;
     /** Show the city/system logo in header */
@@ -80,10 +72,6 @@ export default function IdCardFront({
     email,
     address,
     photoUrl,
-    issueDate,
-    expiryDate,
-    issueDateAm,
-    expiryDateAm,
     status,
     cityLogoUrl,
     rootStyle,
@@ -104,9 +92,6 @@ export default function IdCardFront({
     const showLogo          = getBoolean('id_cards.show_organization_logo', true);
     const showPhoto         = getBoolean('id_cards.show_photo', true);
     const showEmployment    = getBoolean('id_cards.show_employment_status', true);
-    const showIssueDate     = getBoolean('id_cards.show_issue_date', true);
-    const showExpiryDate    = getBoolean('id_cards.show_expiry_date', true);
-    const padding           = getString('id_cards.card_padding', 'normal');
     // Fall back to the system identity logo when no cityLogoUrl is passed as a prop
     const systemLogoUrl     = getString('general.identity_system_logo_url', '');
     const resolvedCityLogo  = cityLogoUrl || (systemLogoUrl || null);
@@ -159,7 +144,6 @@ export default function IdCardFront({
 
     const nameSizeMap: Record<string, string> = { xs: 'text-xs', sm: 'text-sm', base: 'text-base', lg: 'text-lg' };
     const lblSizeMap: Record<string, string>  = { xs: 'text-[9px]', sm: 'text-xs' };
-    const padCls = padding === 'compact' ? 'px-3 pb-2' : padding === 'spacious' ? 'px-5 pb-5' : 'px-4 pb-3';
 
     const nameCls = nameSizeMap[nameFontSz] ?? 'text-sm';
     const lblCls  = lblSizeMap[lblFontSz]  ?? 'text-[9px]';
@@ -168,23 +152,22 @@ export default function IdCardFront({
     const headerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'header'), textPri);
     const labelStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'label'), textSec);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'value'), textPri);
+    // Sizes in the template's px, defaulting as IdCardTextStyle::ROLES does.
+    const labelPx = Number.parseFloat(roleStyle(cardTemplate, 'front', 'label')?.font_size ?? '') || 7;
+    const valuePx = Number.parseFloat(roleStyle(cardTemplate, 'front', 'value')?.font_size ?? '') || 10;
 
-    // Name, sex, date of birth, nationality and employment status fill the body;
-    // ID number and phone number are emphasised near the footer.
+    // Every identity field has its own layout box (`field_<key>`), so an admin
+    // can place each one independently. IdCardSvgRenderer draws the same boxes.
     const allFields = buildBilingualFields({
         fullName, fullNameAm, gender, dateOfBirth, dateOfBirthAm,
         nationality, nationalityAm,
         employmentStatus: showEmployment ? employmentStatus : null,
         phoneNumber, cardNumber, employeeNumber,
     });
-    // Phone sits with the other identity fields; only the ID number is
-    // emphasised in its own band near the footer.
     const configured = cardTemplate?.employee_fields;
     if (configured?.includes('email')) allFields.push({ key: 'email', labelAm: amEmployees.email, labelEn: enEmployees.email, valueAm: email, valueEn: email });
     if (configured?.includes('address')) allFields.push({ key: 'address', labelAm: amEmployees.address, labelEn: enEmployees.address, valueAm: address, valueEn: address });
-    const renderedFields = allFields.filter(field => !configured || configured.includes(field.key));
-    const identityFields = renderedFields.filter((field) => field.key !== 'idNumber');
-    const emphasisFields = renderedFields.filter((field) => field.key === 'idNumber');
+    const renderedFields = configured ? allFields.filter(field => configured.includes(field.key)) : allFields;
 
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
     const background = template === 'modern'
@@ -332,59 +315,23 @@ export default function IdCardFront({
                 </div>
             )}
 
-            <div className={`flex gap-3 ${padCls}`} style={layoutStyle(cardTemplate, 'fields')}>
-                {/* Identity fields in two columns; name leads the left column. */}
-                <div className="grid min-w-0 flex-1 grid-cols-2 self-start" style={{ columnGap: '0.035em', rowGap: '0.022em' }}>
-                    {identityFields.map(({ key, ...field }) => (
-                        <IdCardBilingualField
-                            key={key}
-                            {...field}
-                            fieldKey={key}
-                            labelStyle={labelStyle}
-                            valueStyle={contentStyle}
-                        />
-                    ))}
-                </div>
-            </div>
-
-            {/* Emphasised ID number and phone number above the footer. */}
-            <div className={`grid grid-cols-2 ${padCls}`} style={{ ...layoutStyle(cardTemplate, 'emphasis'), columnGap: '0.035em' }}>
-                {emphasisFields.map(({ key, ...field }) => (
+            {/* Each identity field in its own box; the box's top is the label's top. */}
+            {renderedFields.map(({ key, ...field }) => (
+                <div
+                    key={key}
+                    data-card-field={key}
+                    className="min-w-0"
+                    style={layoutStyle(cardTemplate, `field_${key}` as AnyLayoutElement)}
+                >
                     <IdCardBilingualField
-                        key={key}
                         {...field}
                         fieldKey={key}
                         labelStyle={labelStyle}
                         valueStyle={contentStyle}
+                        fit={{ widthPct: layoutBox(cardTemplate, `field_${key}` as AnyLayoutElement).w, labelPx, valuePx }}
                     />
-                ))}
-            </div>
-
-            {/* Issue / expiry dates — moved from the back so a card's validity
-                reads without turning it over. */}
-            {(showIssueDate || showExpiryDate) && (
-                <div className={`flex gap-3 ${padCls}`} style={layoutStyle(cardTemplate, 'dates')}>
-                    {([
-                        ['issueDate', issueDate, issueDateAm] as const,
-                        ['expLabel', expiryDate, expiryDateAm] as const,
-                    ]).filter(([key]) => (key === 'issueDate' ? showIssueDate : showExpiryDate))
-                        .map(([key, gregorian, ethiopian]) => (
-                            <div key={key} className="min-w-0 flex-1">
-                                <p className="truncate leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
-                                    {dateCaption(key)}
-                                </p>
-                                {ethiopian && (
-                                    <p className="truncate font-mono leading-tight" style={contentStyle}>
-                                        {ethiopian}
-                                    </p>
-                                )}
-                                <p className="truncate font-mono leading-tight" style={contentStyle}>
-                                    {gregorian ?? ' '}
-                                </p>
-                            </div>
-                        ))}
                 </div>
-            )}
+            ))}
 
             {/* Decorative diagonal accent (right edge) */}
             {!backgroundUrl && template === 'classic' && <>

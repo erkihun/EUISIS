@@ -13,7 +13,6 @@ import IdCardPortraitFront from '@/Components/IdCards/IdCardPortraitFront';
 import IdCardPortraitBack from '@/Components/IdCards/IdCardPortraitBack';
 import CardPrintExportModal from '@/Components/IdCards/CardPrintExportModal';
 import CardPortraitPrintExportModal from '@/Components/IdCards/CardPortraitPrintExportModal';
-import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -290,12 +289,6 @@ export default function IdCardShow({ card, can, nfc, portal_labels, production }
     const suspendForm  = useForm({ reason: '' });
     const reinstateForm = useForm({ reason: '' });
 
-    // The ID face is always bilingual: Ethiopian on the Amharic row and
-    // Gregorian on the English row. It must not follow the viewer's calendar
-    // preference, which otherwise makes both rows Ethiopian in Amharic mode.
-    const fmtDate = (v?: string | null) =>
-        v ? (formatDateDisplay(v.slice(0, 10), 'gregorian', 'en') || v.slice(0, 10)) : undefined;
-
     const hasAnyAction = can.issue || can.activate || can.reportLost || can.reportDamaged || can.replace || can.revoke || can.suspend || can.reinstate;
 
     return (
@@ -418,10 +411,6 @@ export default function IdCardShow({ card, can, nfc, portal_labels, production }
                                     positionTitleAm={card.employee?.current_assignment?.position?.title_am}
                                     positionCode={card.employee?.current_assignment?.position?.job_position_code}
                                     jobGrade={card.employee?.current_assignment?.position?.grade_level}
-                                    issueDate={fmtDate(card.issued_at)}
-                                    expiryDate={fmtDate(card.expires_at)}
-                                    issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined}
-                                    expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined}
                                     status={card.status}
                                 />
                                 <IdCardBack
@@ -446,8 +435,6 @@ export default function IdCardShow({ card, can, nfc, portal_labels, production }
                                         positionTitleAm={card.employee?.current_assignment?.position?.title_am}
                                         positionCode={card.employee?.current_assignment?.position?.job_position_code}
                                         jobGrade={card.employee?.current_assignment?.position?.grade_level}
-                                        issueDate={fmtDate(card.issued_at)}
-                                        expiryDate={fmtDate(card.expires_at)}
                                         status={card.status}
                                     />
                                     <IdCardPortraitBack

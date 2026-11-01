@@ -141,11 +141,57 @@ final class IdCardTemplateService
     {
         $default = IdCardLayoutElement::ELEMENTS[$side][$element]
             ?? ['x' => 0.0, 'y' => 0.0, 'w' => 100.0, 'h' => 100.0];
+        $stored = $template?->layout_config[$side][$element] ?? null;
+        if ($stored === null && str_starts_with($element, 'field_')) {
+            $default = $template?->orientation === 'portrait'
+                ? (IdCardLayoutElement::PORTRAIT_FIELDS[$side][$element] ?? $default)
+                : ($this->derivedFieldBox($template, $side, substr($element, 6)) ?? $default);
+        }
 
-        return IdCardLayoutElement::fromArray(
-            $template?->layout_config[$side][$element] ?? null,
-            $default,
-        );
+        return IdCardLayoutElement::fromArray($stored, $default);
+    }
+
+    /**
+     * Where a field sits when its template has not placed it: inside the
+     * container older templates positioned all fields with. Front fields flow
+     * two to a row through `fields` in the template's print order and the ID
+     * number fills `emphasis`; the emergency contacts split `emergency` in two.
+     * With no stored containers this reproduces the ELEMENTS defaults.
+     *
+     * @return array{x: float, y: float, w: float, h: float}|null
+     */
+    private function derivedFieldBox(?IdCardTemplate $template, string $side, string $field): ?array
+    {
+        if ($side === 'back' && in_array($field, IdCardLayoutElement::BACK_FIELDS, true)) {
+            $block = $this->box($template, 'back', 'emergency');
+            $half = $block->h / 2;
+            $index = array_search($field, IdCardLayoutElement::BACK_FIELDS, true);
+
+            return ['x' => $block->x, 'y' => $block->y + $index * $half, 'w' => $block->w, 'h' => $half];
+        }
+        if ($side !== 'front' || ! in_array($field, IdCardLayoutElement::FRONT_FIELDS, true)) {
+            return null;
+        }
+        if ($field === 'idNumber') {
+            return $this->box($template, 'front', 'emphasis')->toArray();
+        }
+
+        // Printed fields take the first slots in print order; unprinted ones
+        // follow, so ticking one later lands it in a free slot.
+        $flow = array_values(array_filter(
+            array_unique([...($template?->employee_fields ?? []), ...IdCardLayoutElement::FRONT_FIELDS]),
+            fn (string $key): bool => $key !== 'idNumber' && in_array($key, IdCardLayoutElement::FRONT_FIELDS, true),
+        ));
+        $index = (int) array_search($field, $flow, true);
+        $block = $this->box($template, 'front', 'fields');
+        $column = ($block->w - IdCardLayoutElement::FIELD_GAP) / 2;
+
+        return [
+            'x' => $block->x + ($index % 2) * ($column + IdCardLayoutElement::FIELD_GAP),
+            'y' => $block->y + intdiv($index, 2) * IdCardLayoutElement::FIELD_ROW,
+            'w' => $column,
+            'h' => IdCardLayoutElement::FIELD_ROW,
+        ];
     }
 
     /**

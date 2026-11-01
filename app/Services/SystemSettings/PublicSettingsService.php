@@ -128,8 +128,6 @@ class PublicSettingsService
             'id_cards.show_position' => $settings['id_cards']['show_position'] ?? true,
             'id_cards.show_job_grade' => $settings['id_cards']['show_job_grade'] ?? true,
             'id_cards.show_employment_status' => $settings['id_cards']['show_employment_status'] ?? true,
-            'id_cards.show_issue_date' => $settings['id_cards']['show_issue_date'] ?? true,
-            'id_cards.show_expiry_date' => $settings['id_cards']['show_expiry_date'] ?? true,
             'id_cards.show_signature' => $settings['id_cards']['show_signature'] ?? false,
             'id_cards.show_qr' => $settings['id_cards']['show_qr'] ?? true,
             'id_cards.show_return_notice' => $settings['id_cards']['show_return_notice'] ?? true,

@@ -92,7 +92,8 @@ class CardPrintBatchController extends Controller
         // CreatePrintBatchRequest already rejects out-of-scope card ids.
         $batch = $createPrintBatchAction->execute($request->input('card_ids'), $request->user());
 
-        return redirect()->route('print-batches.show', $batch)->with('success', __('id-cards.print_batch_created'));
+        // A new batch goes straight to the station, where it is printed.
+        return redirect()->route('print-batches.station', $batch)->with('success', __('id-cards.print_batch_created'));
     }
 
     public function show(CardPrintBatch $batch): Response
@@ -114,6 +115,7 @@ class CardPrintBatchController extends Controller
             'can' => [
                 'markPrinted' => $user?->can('markPrinted', $batch),
             ],
+            'stationUrl' => route('print-batches.station', $batch),
         ]);
     }
 

@@ -90,6 +90,11 @@ class IdCard extends Model
         return $this->hasMany(NfcCredential::class);
     }
 
+    public function printBatchItems(): HasMany
+    {
+        return $this->hasMany(CardPrintBatchItem::class, 'id_card_id');
+    }
+
     public function cardRequest(): BelongsTo
     {
         return $this->belongsTo(CardRequest::class);

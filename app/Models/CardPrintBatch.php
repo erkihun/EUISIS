@@ -23,6 +23,7 @@ class CardPrintBatch extends Model
         'total_cards',
         'printed_count',
         'spoiled_count',
+        'printer_profile_id',
     ];
 
     protected function casts(): array
@@ -43,6 +44,11 @@ class CardPrintBatch extends Model
     public function printer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'printed_by');
+    }
+
+    public function printerProfile(): BelongsTo
+    {
+        return $this->belongsTo(CardPrinterProfile::class, 'printer_profile_id');
     }
 
     public function items(): HasMany

@@ -95,10 +95,6 @@ final readonly class IdCardRenderDataFactory
             signatureLabel: $this->bilingualCaption('signature'),
             signatureLabelAm: (string) $this->line('am', 'signature', ''),
             signatureLabelEn: (string) $this->line('en', 'signature', 'Authorized Signature'),
-            issueDateLabel: $this->bilingualCaption('issue_date'),
-            expiryDateLabel: $this->bilingualCaption('expiry_date'),
-            issueDateFormattedAm: $this->formatCardDate($card->issued_at, 'am'),
-            expiryDateFormattedAm: $this->formatCardDate($card->expires_at, 'am'),
 
             organizationNameEn: $org?->name_en,
             organizationNameAm: $org?->name_am,
@@ -108,9 +104,6 @@ final readonly class IdCardRenderDataFactory
             positionTitleAm: $position?->title_am ?? null,
             positionCode: $position?->job_position_code ?? $position?->code,
             jobGrade: $position?->grade_level,
-
-            issueDateFormatted: $this->formatCardDate($card->issued_at, 'en'),
-            expiryDateFormatted: $this->formatCardDate($card->expires_at, 'en'),
 
             // Resolve files to base64 data URIs — never expose raw paths
             photoDataUri: $this->assetResolver->resolvePhotoPath($employee?->photo_path),
@@ -136,6 +129,7 @@ final readonly class IdCardRenderDataFactory
             textStyles: $this->templates->styleObjects($template, $layout),
             boxes: $this->templates->layoutBoxes($template),
             bilingualFields: $this->bilingualFields($card, $employee, $template?->employee_fields),
+            employeeFields: $template?->employee_fields,
             header: $header,
             backPhoto: $this->templates->backPhoto($template),
             organizationLogoDataUri: $organizationLogo,
@@ -179,10 +173,14 @@ final readonly class IdCardRenderDataFactory
         if ($configured !== null) {
             foreach (['email', 'address'] as $field) {
                 if (in_array($field, $configured, true)) {
-                    $rows[] = [__('employee-portal.fields.'.$field, [], 'am'), $employee?->{$field}, __('employee-portal.fields.'.$field, [], 'en'), $employee?->{$field}, $field];
+                    // Card captions, as the preview shows them (not the portal's "Personal email").
+                    $rows[] = [$am($field, $en($field, ucfirst($field))), $employee?->{$field}, $en($field, ucfirst($field)), $employee?->{$field}, $field];
                 }
             }
             $rows = array_values(array_filter($rows, fn ($row) => in_array($row[4], $configured, true)));
+            // The template's list is also the print order.
+            $order = array_flip(array_values($configured));
+            usort($rows, fn (array $a, array $b): int => $order[$a[4]] <=> $order[$b[4]]);
         }
 
         return $rows;

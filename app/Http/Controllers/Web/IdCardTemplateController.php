@@ -42,6 +42,14 @@ class IdCardTemplateController extends Controller
         return back()->with('success', __('id-card-templates.saved'));
     }
 
+    public function duplicate(Request $request, IdCardTemplate $template, SaveIdCardTemplateAction $action): RedirectResponse
+    {
+        $this->authorize('id_card_templates.create');
+        $action->duplicate($template, $request->user());
+
+        return back()->with('success', __('id-card-templates.duplicated'));
+    }
+
     public function destroy(Request $request, IdCardTemplate $template, SaveIdCardTemplateAction $action): RedirectResponse
     {
         $this->authorize('id_card_templates.delete');

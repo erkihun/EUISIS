@@ -45,8 +45,6 @@ class UpdateIdCardSettingsRequest extends FormRequest
             'show_position' => ['required', 'boolean'],
             'show_job_grade' => ['required', 'boolean'],
             'show_employment_status' => ['required', 'boolean'],
-            'show_issue_date' => ['required', 'boolean'],
-            'show_expiry_date' => ['required', 'boolean'],
             'show_signature' => ['required', 'boolean'],
             'show_qr' => ['required', 'boolean'],
             'show_return_notice' => ['required', 'boolean'],

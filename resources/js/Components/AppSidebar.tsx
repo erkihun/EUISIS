@@ -577,6 +577,7 @@ const navGroups: NavGroup[] = [
         items: [
             { routeName: 'id-cards.index', labelKey: 'nav.idCards', icon: CreditCard,         permission: 'cards.view' },
             { routeName: 'id-cards.reprint-required', labelKey: 'nav.reprintRequired', icon: RestartIcon, permission: 'cards.view' },
+            { routeName: 'print-batches.bulk', labelKey: 'nav.bulkPrint', icon: DocumentsIcon, anyPermission: ['id-cards.createPrintBatch', 'cards.manage'] },
             { routeName: 'print-batches.index', labelKey: 'nav.printBatches', icon: PrinterIcon, anyPermission: ['id-cards.createPrintBatch', 'cards.manage'] },
             { routeName: 'id-card-templates.index', labelKey: 'nav.idCardTemplates', icon: PaletteIcon, permission: 'id_card_templates.view' },
             { routeName: 'employee-corrections.index', labelKey: 'nav.employeeCorrections', icon: PenIcon, permission: 'employees.manage' },

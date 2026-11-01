@@ -21,8 +21,16 @@ export const CARD_SURFACE = {
     inkMuted: '#475569',
 } as const;
 
+/**
+ * The root font size of a portrait card. Template sizes are fractions of the
+ * 856-unit landscape canvas (textStyleCss); the printed portrait card is drawn
+ * on a 540-unit canvas at the same 10 units per millimetre, so the portrait
+ * preview scales by 856/540 to show text at its printed size.
+ */
+export const PORTRAIT_FONT_SIZE = 'calc(100cqw * 856 / 540)';
+
 /** Text roles that can be styled per card side. */
-// The front has no footer of its own; the dates close the card face.
+// The front has no footer of its own; the emphasised ID number closes the card face.
 export const FRONT_ROLES = ['header', 'label', 'value', 'employee_name', 'employee_position'] as const;
 // The back has no heading of its own; its notes lead the text column.
 export const BACK_ROLES = ['label', 'value', 'footer'] as const;
@@ -34,10 +42,30 @@ export type TextStyleConfig = {
     back?: Partial<Record<BackRole, TextStyle | null>> | null;
 };
 
-/** Elements an admin can move, in the order the designer lists them. */
-export const LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'fields', 'emphasis', 'dates'] as const;
-export const BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'signature_label', 'photo'] as const;
-export const LANDSCAPE_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'fields', 'emphasis', 'dates'] as const;
+/** Landscape front fields in the built-in print order; `field_` + key is the element. Mirrors IdCardLayoutElement::FRONT_FIELDS. */
+export const FRONT_FIELD_KEYS = ['name', 'sex', 'dob', 'nationality', 'employment', 'phone', 'idNumber', 'email', 'address'] as const;
+/** Back fields; `field_` + key is the element. Mirrors IdCardLayoutElement::BACK_FIELDS. */
+export const BACK_FIELD_KEYS = ['emergency_contact_name', 'emergency_contact_phone'] as const;
+export type FrontFieldKey = (typeof FRONT_FIELD_KEYS)[number];
+export type BackFieldKey = (typeof BACK_FIELD_KEYS)[number];
+
+/**
+ * Every element a layout stores. `fields`, `emphasis` and `emergency` are the
+ * containers from before each field had its own box; they still seed the
+ * field boxes of older templates and the portrait ID number.
+ */
+export const LAYOUT_ELEMENTS = [
+    'header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'fields', 'emphasis',
+    'field_name', 'field_sex', 'field_dob', 'field_nationality', 'field_employment', 'field_phone', 'field_idNumber',
+    'field_email', 'field_address',
+] as const;
+export const BACK_LAYOUT_ELEMENTS = [
+    'qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'signature_label', 'photo',
+    'field_emergency_contact_name', 'field_emergency_contact_phone',
+] as const;
+/** Landscape elements that are not fields; the designer adds one box per printed field. */
+export const LANDSCAPE_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo'] as const;
+export const LANDSCAPE_BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'card_number', 'signature', 'signature_label', 'photo'] as const;
 export const PORTRAIT_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'emphasis'] as const;
 export const PORTRAIT_BACK_LAYOUT_ELEMENTS = ['qr', 'seal', 'photo'] as const;
 export type LayoutElement = (typeof LAYOUT_ELEMENTS)[number];
@@ -66,9 +94,17 @@ export const LAYOUT_DEFAULTS: Record<LayoutElement, LayoutBox> = {
     employee_position: { x: 28, y: 32, w: 72, h: 8 },
     fields: { x: 28, y: 22, w: 72, h: 68 },
     emphasis: { x: 2.5, y: 74.5, w: 96, h: 12 },
-    // Issue and expiry sit on the front, between the emphasised ID number and
-    // the footer, so validity reads without turning the card.
-    dates: { x: 2.5, y: 86.5, w: 96, h: 6 },
+    // One box per field: the two-column flow inside the default `fields` box,
+    // and the ID number in the `emphasis` band.
+    field_name: { x: 28, y: 22, w: 35.25, h: 10 },
+    field_sex: { x: 64.75, y: 22, w: 35.25, h: 10 },
+    field_dob: { x: 28, y: 32, w: 35.25, h: 10 },
+    field_nationality: { x: 64.75, y: 32, w: 35.25, h: 10 },
+    field_employment: { x: 28, y: 42, w: 35.25, h: 10 },
+    field_phone: { x: 64.75, y: 42, w: 35.25, h: 10 },
+    field_email: { x: 28, y: 52, w: 35.25, h: 10 },
+    field_address: { x: 64.75, y: 52, w: 35.25, h: 10 },
+    field_idNumber: { x: 2.5, y: 74.5, w: 96, h: 12 },
 };
 
 export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {
@@ -83,6 +119,9 @@ export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {
     signature_label: { x: 55, y: 73.5, w: 34, h: 5 },
     // The employee photo as a watermark; off unless a template enables it.
     photo: { x: 60, y: 20, w: 25, h: 45 },
+    // Each contact in its own box: the two halves of `emergency`.
+    field_emergency_contact_name: { x: 41.5, y: 6, w: 58.5, h: 21.75 },
+    field_emergency_contact_phone: { x: 41.5, y: 27.75, w: 58.5, h: 21.75 },
 };
 
 /** Mirrors IdCardBackPhoto — the back photo is off until a template enables it. */
@@ -94,9 +133,55 @@ export const BACK_PHOTO_DEFAULTS: BackPhotoConfig = {
     background_color: null,
 };
 
-/** Defaults for either side, so callers stay side-agnostic. */
-export function layoutDefaults(side: LayoutSide): Record<string, LayoutBox> {
-    return side === 'back' ? BACK_LAYOUT_DEFAULTS : LAYOUT_DEFAULTS;
+/**
+ * Mirrors IdCardLayoutElement::PORTRAIT_FIELDS — a portrait card's detail
+ * fields until the template places them: one full-width row each, since its
+ * name and ID number are the large `employee_name` and `emphasis` elements.
+ */
+export const PORTRAIT_FIELD_DEFAULTS: { front: Record<string, LayoutBox>; back: Record<string, LayoutBox> } = {
+    front: {
+        field_sex: { x: 4, y: 24, w: 92, h: 7 },
+        field_dob: { x: 4, y: 31, w: 92, h: 7 },
+        field_nationality: { x: 4, y: 38, w: 92, h: 7 },
+        field_employment: { x: 4, y: 45, w: 92, h: 7 },
+        field_phone: { x: 4, y: 52, w: 92, h: 7 },
+        field_email: { x: 4, y: 59, w: 92, h: 7 },
+        field_address: { x: 4, y: 66, w: 92, h: 7 },
+    },
+    back: {
+        field_emergency_contact_name: { x: 4, y: 70, w: 92, h: 12 },
+        field_emergency_contact_phone: { x: 4, y: 83, w: 92, h: 12 },
+    },
+};
+
+/** Defaults for either side, so callers stay side-agnostic; portrait fields have their own. */
+export function layoutDefaults(side: LayoutSide, orientation: 'landscape' | 'portrait' = 'landscape'): Record<string, LayoutBox> {
+    const base = side === 'back' ? BACK_LAYOUT_DEFAULTS : LAYOUT_DEFAULTS;
+    return orientation === 'portrait' ? { ...base, ...PORTRAIT_FIELD_DEFAULTS[side] } : base;
+}
+
+/**
+ * The printed-field list of a template on one face: which fields show, and
+ * which element each is. On portrait the name and ID number are the large
+ * name and ID elements; everything else is its own `field_<key>` box. With no
+ * list, landscape shows every field and portrait only its name and ID number.
+ */
+export function printedFieldElements(
+    configured: readonly string[] | null | undefined,
+    side: LayoutSide,
+    orientation: 'landscape' | 'portrait',
+): Array<{ key: string; element: string }> {
+    const keys: readonly string[] = side === 'back' ? BACK_FIELD_KEYS : FRONT_FIELD_KEYS;
+    const portrait = orientation === 'portrait';
+    const shown = keys.filter((key) => {
+        if (configured) return configured.includes(key);
+        if (!portrait) return side === 'back' || (key !== 'email' && key !== 'address');
+        return key === 'name' || key === 'idNumber';
+    });
+    return shown.map((key) => ({
+        key,
+        element: portrait && key === 'name' ? 'employee_name' : portrait && key === 'idNumber' ? 'emphasis' : `field_${key}`,
+    }));
 }
 
 /** Where one element sits, falling back to the built-in arrangement. */

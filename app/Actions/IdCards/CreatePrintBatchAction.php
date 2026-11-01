@@ -11,6 +11,7 @@ use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
 use App\Enums\CodeRuleEntityType;
 use App\Models\CardPrintBatch;
+use App\Models\CardPrintBatchItem;
 use App\Models\CardRequest;
 use App\Models\IdCard;
 use App\Models\User;
@@ -20,10 +21,16 @@ use Illuminate\Support\Facades\DB;
 
 readonly class CreatePrintBatchAction
 {
+    /** Card statuses a batch may print or reprint. */
+    public const PRINTABLE = [CardStatus::PendingPrint, CardStatus::Printed, CardStatus::Issued, CardStatus::Active];
+
+    /** The most cards one batch holds; a card printer's hopper is far smaller. */
+    public const MAX_CARDS = 500;
+
     public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
 
     /**
-     * @param  Collection<int, IdCard>|array<string>  $cardIds  IDs of pending_print cards
+     * @param  Collection<int, IdCard>|array<string>  $cardIds  IDs of printable cards
      */
     public function execute(array|Collection|CardRequest $cardIds, User $actor): CardPrintBatch|IdCard
     {
@@ -44,6 +51,9 @@ readonly class CreatePrintBatchAction
         if (empty($cardIds)) {
             throw new DomainException('At least one card must be selected for a print batch.');
         }
+        if (count($cardIds) > self::MAX_CARDS) {
+            throw new DomainException(__('id-cards.print_batch_too_large', ['max' => self::MAX_CARDS]));
+        }
 
         $cards = IdCard::query()
             ->with('employee.currentAssignment')
@@ -54,9 +64,26 @@ readonly class CreatePrintBatchAction
             throw new DomainException('One or more selected cards were not found.');
         }
 
-        $notPendingPrint = $cards->filter(fn (IdCard $c) => $c->status !== CardStatus::PendingPrint);
-        if ($notPendingPrint->isNotEmpty()) {
-            throw new DomainException('All cards must have status pending_print to be added to a batch. Invalid cards: '.$notPendingPrint->pluck('card_number')->implode(', '));
+        // A batch prints first issues and reprints alike, so it takes every
+        // card the single-card print flow takes (IdCardPrintSnapshotService::
+        // assertPrintable). Building a batch is not printing it: the print or
+        // reprint permission is checked per card when the batch is prepared.
+        $notPrintable = $cards->filter(fn (IdCard $c): bool => $c->is_current === false
+            || ! in_array($c->status, self::PRINTABLE, true));
+        if ($notPrintable->isNotEmpty()) {
+            throw new DomainException(__('id-cards.print_batch_not_printable', ['cards' => $notPrintable->pluck('card_number')->implode(', ')]));
+        }
+
+        // One card, one open batch: two batches printing the same card would
+        // produce two plastics and a confused audit trail.
+        $alreadyQueued = CardPrintBatchItem::query()
+            ->whereIn('id_card_id', $cards->pluck('id'))
+            ->where('status', 'pending')
+            ->whereHas('batch', fn ($batch) => $batch->whereIn('status', ['draft', 'printing']))
+            ->with('card:id,card_number')
+            ->get();
+        if ($alreadyQueued->isNotEmpty()) {
+            throw new DomainException(__('id-cards.print_batch_already_queued', ['cards' => $alreadyQueued->pluck('card.card_number')->implode(', ')]));
         }
 
         return DB::transaction(function () use ($cards, $actor): CardPrintBatch {

@@ -40,6 +40,8 @@ return [
     'sample_organization' => 'ምሳሌ ተቋም',
     'saved' => 'የመታወቂያ ካርድ አብነቱ ተቀምጧል።',
     'deleted' => 'የመታወቂያ ካርድ አብነቱ ተሰርዟል።',
+    'duplicated' => 'አብነቱ ተቀድቷል። ቅጂው እስኪያትሙት ድረስ ንቁ አይሆንም።',
+    'copy_name' => ':name (ቅጂ)',
     'default_active' => 'ነባሪው አብነት ንቁ መሆን አለበት።',
     'dimensions_orientation' => 'ስፋት እና ቁመት ከተመረጠው አቀማመጥ ጋር መዛመድ አለባቸው።',
     'upload_failed' => 'ዳራውን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።',

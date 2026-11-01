@@ -40,6 +40,8 @@ return [
     'sample_organization' => 'Sample Organization',
     'saved' => 'ID card template saved.',
     'deleted' => 'ID card template deleted.',
+    'duplicated' => 'Template copied. The copy is inactive until you publish it.',
+    'copy_name' => ':name (copy)',
     'default_active' => 'The default template must be active.',
     'dimensions_orientation' => 'Width and height must match the selected orientation.',
     'upload_failed' => 'The background could not be uploaded. Please try again.',

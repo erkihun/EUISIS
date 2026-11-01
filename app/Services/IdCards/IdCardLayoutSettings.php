@@ -51,8 +51,6 @@ final readonly class IdCardLayoutSettings
         public bool $showPosition,
         public bool $showJobGrade,
         public bool $showEmploymentStatus,
-        public bool $showIssueDate,
-        public bool $showExpiryDate,
         public bool $showSignature,
         public bool $showQr,
         public bool $showReturnNotice,

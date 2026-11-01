@@ -44,7 +44,8 @@ class SaveIdCardTemplateRequest extends FormRequest
             'height_mm' => ['nullable', 'numeric', 'between:30,200'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'is_default' => ['required', 'boolean'],
-            'employee_fields' => ['sometimes', 'nullable', 'array'],
+            // A card face with no identity rows is never what an admin meant.
+            'employee_fields' => ['sometimes', 'nullable', 'array', 'min:1'],
             'employee_fields.*' => ['string', 'distinct', Rule::in(array_keys(IdCardFieldImpactService::ROW_FIELDS))],
             'front_background' => $png,
             'back_background' => $png,
