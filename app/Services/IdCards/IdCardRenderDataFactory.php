@@ -129,6 +129,7 @@ final readonly class IdCardRenderDataFactory
             textStyles: $this->templates->styleObjects($template, $layout),
             boxes: $this->templates->layoutBoxes($template),
             bilingualFields: $this->bilingualFields($card, $employee, $template?->employee_fields),
+            employeeFields: $template?->employee_fields,
             header: $header,
             backPhoto: $this->templates->backPhoto($template),
             organizationLogoDataUri: $organizationLogo,
@@ -172,10 +173,14 @@ final readonly class IdCardRenderDataFactory
         if ($configured !== null) {
             foreach (['email', 'address'] as $field) {
                 if (in_array($field, $configured, true)) {
-                    $rows[] = [__('employee-portal.fields.'.$field, [], 'am'), $employee?->{$field}, __('employee-portal.fields.'.$field, [], 'en'), $employee?->{$field}, $field];
+                    // Card captions, as the preview shows them (not the portal's "Personal email").
+                    $rows[] = [$am($field, $en($field, ucfirst($field))), $employee?->{$field}, $en($field, ucfirst($field)), $employee?->{$field}, $field];
                 }
             }
             $rows = array_values(array_filter($rows, fn ($row) => in_array($row[4], $configured, true)));
+            // The template's list is also the print order.
+            $order = array_flip(array_values($configured));
+            usort($rows, fn (array $a, array $b): int => $order[$a[4]] <=> $order[$b[4]]);
         }
 
         return $rows;

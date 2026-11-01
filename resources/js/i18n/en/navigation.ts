@@ -270,6 +270,7 @@ const navigation = {
     assessmentReviews: 'Assessments Pending Review',
     vacancyApplications: 'Vacancy Applications',
     printBatches: 'Print Batches',
+    bulkPrint: 'Bulk Card Printing',
     idCardTemplates: 'ID Card Templates',
     nfcCredentials: 'NFC Credentials',
     cafeteriaSpecialDays: 'Special Days',

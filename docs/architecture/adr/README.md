@@ -37,6 +37,7 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0018](0018-service-delivery-monitoring-module.md) | Service Delivery Monitoring & Support as `Modules/ServiceMonitoring`: quarterly reports, derived ranges, snapshots, one public contract | accepted 2026-10-30 |
 | [0019](0019-strategy-hierarchy-wlms-entry.md) | Strategy hierarchy entered the WLMS way: main strategy → strategy → goal → objective → activity, weight rules, two forms | accepted 2026-10-31 |
 | [0020](0020-court-module-in-euisis.md) | The court (court-ms) as `Modules/Court`: staff on platform accounts, own portals, `court_` tables, `/court` routes; data import and in-process link to follow | accepted 2026-10-31 |
+| [0021](0021-bulk-card-printing-and-print-station.md) | Bulk ID card printing by organization or unit, and a print station that prints frozen snapshots through printer profiles and records each card's result | accepted 2026-11-01 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),

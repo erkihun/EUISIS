@@ -76,6 +76,14 @@ final readonly class IdCardRenderData
          */
         public array $bilingualFields = [],
 
+        /**
+         * The template's printed-field list, or null when no template chose
+         * one. A portrait card prints detail fields only when chosen.
+         *
+         * @var array<int, string>|null
+         */
+        public ?array $employeeFields = null,
+
         // Emergency contact, printed on the back face
         public ?string $emergencyContactName = null,
         public ?string $emergencyContactPhone = null,

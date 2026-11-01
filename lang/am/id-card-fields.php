@@ -9,6 +9,8 @@ return [
     'nationality' => 'ዜግነት',
     'employment_status' => 'የቅጥር ሁኔታ',
     'phone_number' => 'ስ.ቁ',
+    'email' => 'ኢሜይል',
+    'address' => 'አድራሻ',
     'card_no' => 'የካርድ ቁጥር',
     'signature' => 'የባለስልጣኑ ፊርማ',
     'emergency_contact_name' => 'የአስቸኳይ ጊዜ ተጠሪ ስም',

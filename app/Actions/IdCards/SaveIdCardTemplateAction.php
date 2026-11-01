@@ -108,6 +108,68 @@ final readonly class SaveIdCardTemplateAction
         });
     }
 
+    /**
+     * Copy a template as a starting point for a variant. The copy is inactive
+     * and never the default, so duplicating cannot change what prints, and it
+     * owns its own artwork files: editing or deleting either template leaves
+     * the other's images in place.
+     */
+    public function duplicate(IdCardTemplate $template, User $actor): IdCardTemplate
+    {
+        return Cache::lock('id-card-templates:write', 60)->block(10, function () use ($template, $actor): IdCardTemplate {
+            $newPaths = [];
+            try {
+                return DB::transaction(function () use ($template, $actor, &$newPaths): IdCardTemplate {
+                    $source = IdCardTemplate::query()->lockForUpdate()->findOrFail($template->id);
+                    $copy = $source->replicate(['is_default', 'status', 'created_by', 'updated_by']);
+                    $copy->name = Str::limit(__('id-card-templates.copy_name', ['name' => $source->name]), 255, '');
+                    $copy->code = $this->uniqueCopyCode($source->code);
+                    $copy->status = 'inactive';
+                    $copy->is_default = false;
+                    $copy->created_by = $actor->id;
+                    $copy->updated_by = $actor->id;
+                    foreach (self::ASSET_COLUMNS as $column) {
+                        $path = $source->{$column};
+                        $copy->{$column} = null;
+                        if ($this->templates->safePath($path) && Storage::disk('local')->exists($path)) {
+                            $target = 'id-card-templates/'.Str::uuid7().'.png';
+                            if (! Storage::disk('local')->copy($path, $target)) {
+                                throw ValidationException::withMessages(['template' => __('id-card-templates.upload_failed')]);
+                            }
+                            $newPaths[] = $target;
+                            $copy->{$column} = $target;
+                        }
+                    }
+                    $copy->save();
+
+                    return $copy;
+                });
+            } catch (Throwable $exception) {
+                Storage::disk('local')->delete($newPaths);
+                throw $exception;
+            }
+        });
+    }
+
+    /** Every artwork column on a template. */
+    private const ASSET_COLUMNS = [
+        'front_background_path', 'back_background_path',
+        'logo_primary_path', 'logo_secondary_path',
+        'seal_path', 'signature_path',
+    ];
+
+    /** `code-copy`, then `code-copy-2` and so on, kept within the 80-character limit. */
+    private function uniqueCopyCode(string $code): string
+    {
+        $base = Str::limit($code, 70, '').'-copy';
+        $candidate = $base;
+        for ($suffix = 2; IdCardTemplate::withTrashed()->where('code', $candidate)->exists(); $suffix++) {
+            $candidate = $base.'-'.$suffix;
+        }
+
+        return $candidate;
+    }
+
     public function delete(IdCardTemplate $template, User $actor): void
     {
         Cache::lock('id-card-templates:write', 60)->block(10, function () use ($template, $actor): void {

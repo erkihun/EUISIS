@@ -11,17 +11,23 @@ import IdCardPortraitBack from '@/Components/IdCards/IdCardPortraitBack';
 import TemplateLayoutDesigner from '@/Components/IdCards/TemplateLayoutDesigner';
 import {
     IdCardTemplateContext,
+    CARD_SURFACE,
     FRONT_ROLES,
     BACK_ROLES,
+    BACK_FIELD_KEYS,
     BACK_LAYOUT_DEFAULTS,
     BACK_LAYOUT_ELEMENTS,
+    FRONT_FIELD_KEYS,
+    LANDSCAPE_BACK_LAYOUT_ELEMENTS,
     LANDSCAPE_FRONT_LAYOUT_ELEMENTS,
     LAYOUT_DEFAULTS,
     LAYOUT_ELEMENTS,
     PORTRAIT_BACK_LAYOUT_ELEMENTS,
+    PORTRAIT_FIELD_DEFAULTS,
     PORTRAIT_FRONT_LAYOUT_ELEMENTS,
+    layoutDefaults,
+    printedFieldElements,
     type LayoutBox,
-    type LayoutElement,
     type TemplatePresentation,
     type TextStyle,
     type TextStyleConfig,
@@ -35,7 +41,74 @@ import TemplateWizardSteps from '@/Components/IdCards/TemplateWizardSteps';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import StatusBadge from '@/Components/StatusBadge';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import {
+    CARD_SIZE_PRESETS,
+    SAFE_MARGIN_MM,
+    matchCardSizePreset,
+    presetSize,
+    readinessChecks,
+    safeInset,
+    type CardSizePresetKey,
+} from '@/lib/idCardReadiness';
+
+/** Front-face rows an admin can print, keyed as the server stores them, with their employee label key. */
+const PRINTED_FIELDS = {
+    name: 'fullName',
+    sex: 'gender',
+    dob: 'dateOfBirth',
+    nationality: 'nationality',
+    employment: 'employmentType',
+    phone: 'phone',
+    idNumber: 'employeeNumber',
+    email: 'email',
+    address: 'address',
+    emergency_contact_name: 'emergencyContactName',
+    emergency_contact_phone: 'emergencyContactPhone',
+} as const;
+type PrintedField = keyof typeof PRINTED_FIELDS;
+
+type Orientation = 'landscape' | 'portrait';
+
+/** The element a printed field is on the card: a portrait name and ID number are its large name and ID elements. */
+const fieldElement = (key: string, orientation: Orientation) =>
+    printedFieldElements([key], (FRONT_FIELD_KEYS as readonly string[]).includes(key) ? 'front' : 'back', orientation)[0]?.element ?? `field_${key}`;
+
+/** Every element on one face: the fixed ones, then one per printed field. */
+function faceElements(side: 'front' | 'back', fields: readonly string[], orientation: Orientation): string[] {
+    const fixed: readonly string[] = orientation === 'portrait'
+        ? (side === 'front'
+            ? PORTRAIT_FRONT_LAYOUT_ELEMENTS.filter((element) => element !== 'employee_name' && element !== 'emphasis')
+            : PORTRAIT_BACK_LAYOUT_ELEMENTS)
+        : (side === 'front' ? LANDSCAPE_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_BACK_LAYOUT_ELEMENTS);
+    return [...fixed, ...printedFieldElements(fields, side, orientation).map(({ element }) => element)];
+}
+
+/** Field boxes moved to an orientation's defaults, when a template switches orientation. */
+function fieldBoxesFor(orientation: Orientation, side: 'front' | 'back'): Record<string, LayoutBox> {
+    const source = orientation === 'portrait' ? PORTRAIT_FIELD_DEFAULTS[side] : layoutDefaults(side);
+    return Object.fromEntries(Object.entries(source).filter(([element]) => element.startsWith('field_')));
+}
+
+const overlaps = (a: LayoutBox, b: LayoutBox) =>
+    a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/**
+ * `box` where it is, if nothing else is there; otherwise the first spot of the
+ * same size, top to bottom then left to right below the header, that touches
+ * nothing. With no room anywhere the box stays put for the admin to move.
+ */
+function freeSpot(box: LayoutBox, others: LayoutBox[]): LayoutBox {
+    if (!others.some((other) => overlaps(box, other))) return box;
+    for (let y = 18; y + box.h <= 99; y += 1) {
+        for (let x = 2; x + box.w <= 99; x += 1) {
+            const candidate = { ...box, x, y };
+            if (!others.some((other) => overlaps(candidate, other))) return candidate;
+        }
+    }
+    return box;
+}
+
 type Template = TemplatePresentation & {
     id: string;
     name: string;
@@ -78,21 +151,23 @@ const SAMPLE_PHOTO =
 const FONT_SIZES = ['7px', '8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '18px', '20px'] as const;
 const FONT_WEIGHTS = ['400', '500', '600', '700', '800'] as const;
 
-/** Mirrors IdCardTextStyle::ROLES so a new template previews as it will save. */
+/**
+ * Mirrors IdCardTextStyle::ROLES so a new template previews as it will save:
+ * dark ink on the neutral card surface. The old white-on-blue values dated
+ * from the gradient card and printed white text on a white card.
+ */
 const ROLE_DEFAULTS: Record<'front' | 'back', Record<string, TextStyle>> = {
     front: {
-        header: { color: '#FFFFFF', font_size: '9px', font_weight: '700' },
-        label: { color: '#BFDBFE', font_size: '7px', font_weight: '400' },
-        value: { color: '#FFFFFF', font_size: '10px', font_weight: '600' },
-        employee_name: { color: '#FFFFFF', font_size: '12px', font_weight: '700' },
-        employee_position: { color: '#BFDBFE', font_size: '9px', font_weight: '600' },
-        footer: { color: '#BFDBFE', font_size: '7px', font_weight: '400' },
+        header: { color: CARD_SURFACE.ink, font_size: '9px', font_weight: '700' },
+        label: { color: CARD_SURFACE.inkMuted, font_size: '7px', font_weight: '400' },
+        value: { color: CARD_SURFACE.ink, font_size: '10px', font_weight: '600' },
+        employee_name: { color: CARD_SURFACE.ink, font_size: '12px', font_weight: '700' },
+        employee_position: { color: CARD_SURFACE.inkMuted, font_size: '9px', font_weight: '600' },
     },
     back: {
-        header: { color: '#94A3B8', font_size: '9px', font_weight: '700' },
-        label: { color: '#94A3B8', font_size: '7px', font_weight: '400' },
-        value: { color: '#94A3B8', font_size: '8px', font_weight: '600' },
-        footer: { color: '#94A3B8', font_size: '7px', font_weight: '400' },
+        label: { color: CARD_SURFACE.inkMuted, font_size: '7px', font_weight: '400' },
+        value: { color: CARD_SURFACE.inkMuted, font_size: '8px', font_weight: '600' },
+        footer: { color: CARD_SURFACE.inkMuted, font_size: '7px', font_weight: '400' },
     },
 };
 
@@ -145,7 +220,7 @@ function TemplateForm({
     onStateChange: (state: { dirty: boolean; processing: boolean }) => void;
 }) {
     const { t } = useLocale();
-    const { getString } = useSystemSettings();
+    const { getString, getBoolean } = useSystemSettings();
     const label = (key: string) => t(`settings.templateManager.${key}`);
     const editable = template ? can.update : can.create;
     const form = useForm({
@@ -213,6 +288,35 @@ function TemplateForm({
     const goTo = (next: number) => {
         setStep(next);
         setFurthest((seen) => Math.max(seen, next));
+    };
+    const printedFields = form.data.employee_fields.filter((key): key is PrintedField => key in PRINTED_FIELDS);
+    const [showGuides, setShowGuides] = useState(true);
+    const [largePreview, setLargePreview] = useState(false);
+    // One selection across both faces, so picking a field in the list
+    // highlights its box on the card and the reverse.
+    const [selectedBox, setSelectedBox] = useState<{ side: 'front' | 'back'; element: string } | null>(null);
+    const fieldLabel = (key: PrintedField) => t(`employees.${PRINTED_FIELDS[key]}`);
+    const toggleField = (key: PrintedField, on: boolean) => {
+        form.setData((data) => {
+            const fields = on ? [...printedFields, key] : printedFields.filter((item) => item !== key);
+            if (!on) return { ...data, employee_fields: fields };
+            // A field ticked on lands in the first free spot on its face, so
+            // it never appears on top of a field the template already placed.
+            // (A portrait name or ID number is a fixed element: it stays put.)
+            const side = (FRONT_FIELD_KEYS as readonly string[]).includes(key) ? 'front' : 'back';
+            const element = fieldElement(key, data.orientation);
+            if (!element.startsWith('field_')) return { ...data, employee_fields: fields };
+            const boxes = data.layout_config[side];
+            const others = faceElements(side, fields.filter((field) => field !== key), data.orientation)
+                .map((name) => boxes[name]).filter((box): box is LayoutBox => Boolean(box));
+            const free = freeSpot(boxes[element] ?? layoutDefaults(side, data.orientation)[element], others);
+            return {
+                ...data,
+                employee_fields: fields,
+                layout_config: { ...data.layout_config, [side]: { ...boxes, [element]: free } },
+            };
+        });
+        if (!on && selectedBox?.element === fieldElement(key, form.data.orientation)) setSelectedBox(null);
     };
 
     const frontUrl = useBackgroundPreview(
@@ -287,8 +391,12 @@ function TemplateForm({
         dateOfBirthAm: amSettings.templateManager.sample_dob,
         nationality: enSettings.templateManager.sample_nationality,
         nationalityAm: amSettings.templateManager.sample_nationality,
-        employmentStatus: enSettings.templateManager.sample_employment_type,
+        // A code, not a label: the card translates it into both languages.
+        employmentStatus: 'permanent',
         phoneNumber: '+251 911 000 000',
+        // Long on purpose, so the shrink-to-fit rule for emails shows while designing.
+        email: 'sample.employee@addisababa.gov.et',
+        address: enSettings.templateManager.sample_address,
         emergencyContactName: enSettings.templateManager.sample_emergency_name,
         status: 'active',
         // A neutral silhouette, inlined so the preview makes no request and
@@ -304,8 +412,52 @@ function TemplateForm({
     const activeStyleGroups = portrait
         ? STYLE_GROUPS
         : STYLE_GROUPS.filter(({ role }) => role !== 'employee_name' && role !== 'employee_position');
+    const guideInset = showGuides ? safeInset(presentation.width_mm, presentation.height_mm) : null;
+    const checks = readinessChecks({
+        orientation: form.data.orientation,
+        widthMm: presentation.width_mm,
+        heightMm: presentation.height_mm,
+        printedFields: printedFields.filter((key) => (FRONT_FIELD_KEYS as readonly string[]).includes(key)),
+        hasFrontArtwork: Boolean(frontUrl),
+        hasBackArtwork: Boolean(backUrl),
+        hasSeal: Boolean(sealUrl),
+        hasSignature: Boolean(signatureUrl),
+        printsSignature: getBoolean('id_cards.show_signature', false),
+        status: form.data.status,
+        isDefault: form.data.is_default,
+        headerLines: [presentation.header_config?.city_name_am ?? '', presentation.header_config?.city_name_en ?? ''],
+        textColors: Object.fromEntries(activeStyleGroups.map(({ side, role }) => [
+            `${side}.${role}`,
+            (form.data.text_style_config[side][role as keyof object] as TextStyle).color,
+        ])),
+        surface: CARD_SURFACE.from,
+    });
+    const blocking = checks.filter((check) => check.level === 'error').length;
+    const warnings = checks.filter((check) => check.level === 'warning').length;
+    const checkMessage = (check: (typeof checks)[number]) =>
+        Object.entries(check.params ?? {}).reduce(
+            (text, [name, value]) => text.replace(
+                `:${name}`,
+                // A role reads as its style group's name, e.g. "Front values".
+                name === 'role' ? label(`${value.replace('.', '_')}_text`) : value,
+            ),
+            label(`readiness_${check.key}`),
+        );
     const Front = portrait ? IdCardPortraitFront : IdCardFront;
     const Back = portrait ? IdCardPortraitBack : IdCardBack;
+    // Each face lists its fixed elements plus one per printed field, in both
+    // orientations, so the designer shows exactly what the list ticks.
+    const frontElements = faceElements('front', printedFields, form.data.orientation);
+    const backElements = faceElements('back', printedFields, form.data.orientation);
+    // Named as in the printed-fields list, including a portrait card's large
+    // name and ID number elements.
+    const elementLabel = (element: string) => {
+        const field = (Object.keys(PRINTED_FIELDS) as PrintedField[]).find((key) => fieldElement(key, form.data.orientation) === element);
+        return field ? fieldLabel(field) : label(`layout_${element}`);
+    };
+    // A larger card makes small fields easier to grab and place.
+    const cardWidth = portrait ? (largePreview ? 400 : 260) : (largePreview ? 640 : 400);
+    const cardRootStyle = { maxWidth: cardWidth };
     const inputClass =
         'mt-1 w-full rounded-lg border-(--app-border-strong) bg-(--app-surface) text-sm';
     const error = (field: keyof typeof form.data) =>
@@ -415,7 +567,13 @@ function TemplateForm({
     }
 
     return (
-        <form onSubmit={submit} className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+        <form
+            onSubmit={submit}
+            className={cx(
+                'grid items-start gap-5',
+                largePreview ? 'xl:grid-cols-[minmax(0,1fr)_minmax(320px,680px)]' : 'xl:grid-cols-[minmax(0,1fr)_minmax(320px,440px)]',
+            )}
+        >
             {/*
              * One editor panel: step bar, the current step's fields, and the
              * Back / Next footer. These used to be three separate bordered
@@ -440,7 +598,58 @@ function TemplateForm({
 
                 {/* Identity — the fields an admin always fills in. */}
                 {step === 0 && <TemplateEditorSection title={label(template ? 'edit' : 'create')}>
-                {form.data.orientation === 'landscape' && <fieldset className="rounded-lg border p-3"><legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend><p className="mb-3 text-xs text-(--app-muted-foreground)">{label('printedFieldsHelp')}</p><div className="grid grid-cols-2 gap-2">{Object.entries({ name: 'fullName', sex: 'gender', dob: 'dateOfBirth', nationality: 'nationality', employment: 'employmentType', phone: 'phone', idNumber: 'employeeNumber', email: 'email', address: 'address', emergency_contact_name: 'emergencyContactName', emergency_contact_phone: 'emergencyContactPhone' }).map(([key, textKey]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.employee_fields.includes(key)} onChange={e => form.setData('employee_fields', e.target.checked ? [...form.data.employee_fields, key] : form.data.employee_fields.filter(item => item !== key))} />{t(`employees.${textKey}`)}</label>)}</div></fieldset>}
+                <fieldset className="rounded-lg border border-(--app-border) p-3">
+                        <legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend>
+                        <p className="mb-3 text-xs text-(--app-muted-foreground)">
+                            {label('printedFieldsHelp')} {label('printedFieldsPlaceHelp')}
+                        </p>
+                        {/* Grouped by the face each field prints on, so the list
+                            reads the same as the two cards in the preview. */}
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {([['front', FRONT_FIELD_KEYS], ['back', BACK_FIELD_KEYS]] as const).map(([side, keys]) => (
+                                <div key={side}>
+                                    <p className="mb-1 px-2 text-xs font-semibold text-(--app-muted-foreground)">{label(`printedFields_${side}`)}</p>
+                                    <ul className="space-y-0.5">
+                                        {keys.map((key) => {
+                                            const on = printedFields.includes(key);
+                                            const element = fieldElement(key, form.data.orientation);
+                                            const picked = selectedBox?.element === element;
+                                            return (
+                                                <li
+                                                    key={key}
+                                                    className={cx(
+                                                        'flex items-center gap-2 rounded-md px-2 py-1 text-sm',
+                                                        picked ? 'bg-blue-500/10 ring-1 ring-primary' : 'hover:bg-(--app-surface-muted)',
+                                                    )}
+                                                >
+                                                    <label className="flex min-w-0 flex-1 items-center gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={on}
+                                                            onChange={(e) => toggleField(key, e.target.checked)}
+                                                        />
+                                                        <span className="truncate">{fieldLabel(key)}</span>
+                                                    </label>
+                                                    {on && (
+                                                        <button
+                                                            type="button"
+                                                            aria-pressed={picked}
+                                                            aria-label={`${fieldLabel(key)} — ${label('fieldLocate')}`}
+                                                            onClick={() => setSelectedBox(picked ? null : { side, element })}
+                                                            className={buttonClassName({ variant: picked ? 'primary' : 'ghost', size: 'xs' })}
+                                                        >
+                                                            {label(picked ? 'fieldSelected' : 'fieldLocate')}
+                                                        </button>
+                                                    )}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                        {error('employee_fields')}
+                    </fieldset>
                 {(['name', 'code', 'description'] as const).map((field) => (
                     <label key={field} className="block text-sm font-medium">
                         {label(field)}
@@ -473,6 +682,12 @@ function TemplateForm({
                                 orientation,
                                 width_mm: orientation === 'portrait' ? short : long,
                                 height_mm: orientation === 'portrait' ? long : short,
+                                // Field boxes are placed for one card shape; the
+                                // other shape starts from its own arrangement.
+                                layout_config: {
+                                    front: { ...data.layout_config.front, ...fieldBoxesFor(orientation, 'front') },
+                                    back: { ...data.layout_config.back, ...fieldBoxesFor(orientation, 'back') },
+                                },
                             }));
                         }}
                     >
@@ -480,6 +695,26 @@ function TemplateForm({
                         <option value="portrait">{label('portrait')}</option>
                     </select>
                     {error('orientation')}
+                </label>
+                <label className="block text-sm font-medium">
+                    {label('sizePreset')}
+                    <select
+                        className={inputClass}
+                        value={matchCardSizePreset(form.data.width_mm, form.data.height_mm) ?? 'custom'}
+                        onChange={(e) => {
+                            if (e.target.value === 'custom') return;
+                            const size = presetSize(e.target.value as CardSizePresetKey, form.data.orientation);
+                            form.setData((data) => ({ ...data, width_mm: size.width, height_mm: size.height }));
+                        }}
+                    >
+                        {CARD_SIZE_PRESETS.map((preset) => (
+                            <option key={preset.key} value={preset.key}>
+                                {label(`sizePreset_${preset.key}`)} — {preset.width} × {preset.height} mm
+                            </option>
+                        ))}
+                        <option value="custom">{label('sizePreset_custom')}</option>
+                    </select>
+                    <span className="mt-1 block text-xs font-normal text-(--app-muted-foreground)">{label('sizePresetHelp')}</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                     {(['width_mm', 'height_mm'] as const).map((field) => (
@@ -761,6 +996,37 @@ function TemplateForm({
                 </TemplateEditorSection></>}
 
                 {step === 5 && <TemplateEditorSection title={label('publishingSection')} description={label('publishingSectionHelp')}>
+                <section aria-labelledby="template-readiness" className="rounded-lg border border-(--app-border) p-3">
+                    <h3 id="template-readiness" className="text-sm font-semibold text-(--app-foreground)">{label('readinessTitle')}</h3>
+                    <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
+                        {blocking > 0
+                            ? label('readinessBlocking').replace(':count', String(blocking))
+                            : warnings > 0
+                                ? label('readinessWarnings').replace(':count', String(warnings))
+                                : label('readinessReady')}
+                    </p>
+                    <ul className="mt-2 space-y-1.5">
+                        {checks.map((check, index) => (
+                            <li key={`${check.key}-${index}`} data-readiness={check.level} className="flex gap-2 text-sm">
+                                <span
+                                    aria-hidden
+                                    className={cx(
+                                        'mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white',
+                                        check.level === 'ok' && 'bg-emerald-600',
+                                        check.level === 'warning' && 'bg-amber-500',
+                                        check.level === 'error' && 'bg-red-600',
+                                    )}
+                                >
+                                    {check.level === 'ok' ? '✓' : check.level === 'warning' ? '!' : '×'}
+                                </span>
+                                <span>
+                                    <span className="sr-only">{label(`readinessLevel_${check.level}`)}: </span>
+                                    {checkMessage(check)}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
                 <label className="block text-sm font-medium">
                     {label('status')}
                     <select
@@ -831,65 +1097,81 @@ function TemplateForm({
                 <div className="border-b border-(--app-border) px-4 py-2.5">
                     <h2 className="text-sm font-semibold text-(--app-foreground)">{label('live_preview')}</h2>
                     <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{label('preview_help')}</p>
+                    <label className="mt-2 flex items-center gap-2 text-xs text-(--app-foreground)">
+                        <input
+                            type="checkbox"
+                            className="rounded-sm border-(--app-border-strong)"
+                            checked={showGuides}
+                            onChange={(e) => setShowGuides(e.target.checked)}
+                        />
+                        <span>
+                            {label('safeZoneToggle')}
+                            <span className="text-(--app-muted-foreground)"> — {label('safeZoneHelp').replace(':mm', String(SAFE_MARGIN_MM))}</span>
+                        </span>
+                    </label>
+                    <label className="mt-1.5 flex items-center gap-2 text-xs text-(--app-foreground)">
+                        <input
+                            type="checkbox"
+                            className="rounded-sm border-(--app-border-strong)"
+                            checked={largePreview}
+                            onChange={(e) => setLargePreview(e.target.checked)}
+                        />
+                        {label('largePreview')}
+                    </label>
                 </div>
-                <div className="bg-(--app-surface-muted) p-4">
+                <div className="overflow-x-auto bg-(--app-surface-muted) p-4">
                 <IdCardTemplateContext.Provider value={presentation}>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {/* The designer overlays the real preview, so the box an
-                            admin drags is the region that prints. */}
-                        <div style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
-                            <TemplateLayoutDesigner
-                                side="front"
-                                elements={portrait ? PORTRAIT_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_FRONT_LAYOUT_ELEMENTS}
-                                value={form.data.layout_config.front}
-                                onChange={(front) =>
-                                    form.setData('layout_config', { ...form.data.layout_config, front })
-                                }
-                                disabled={!editable || form.processing}
-                                labels={
-                                    Object.fromEntries(
-                                        (portrait ? PORTRAIT_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_FRONT_LAYOUT_ELEMENTS)
-                                            .map((element) => [element, label(`layout_${element}`)]),
-                                    ) as Record<LayoutElement, string>
-                                }
-                                text={{
-                                    reset: label('layout_reset'),
-                                    resetAll: label('layout_reset_all'),
-                                    hint: label('layout_hint'),
-                                }}
-                            >
-                                <Front {...sampleCard} />
-                            </TemplateLayoutDesigner>
-                        </div>
-                        <div style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
-                            <TemplateLayoutDesigner
-                                side="back"
-                                elements={portrait ? PORTRAIT_BACK_LAYOUT_ELEMENTS : BACK_LAYOUT_ELEMENTS}
-                                value={form.data.layout_config.back}
-                                onChange={(back) =>
-                                    form.setData('layout_config', { ...form.data.layout_config, back })
-                                }
-                                disabled={!editable || form.processing}
-                                labels={Object.fromEntries(
-                                    (portrait ? PORTRAIT_BACK_LAYOUT_ELEMENTS : BACK_LAYOUT_ELEMENTS)
-                                        .map((element) => [element, label(`layout_${element}`)]),
-                                )}
-                                text={{
-                                    reset: label('layout_reset'),
-                                    resetAll: label('layout_reset_all'),
-                                    /* Already stated under the front card. */
-                                    hint: '',
-                                }}
-                            >
-                                <Back
-                                    cardNumber={sampleCard.cardNumber}
-                                    qrValue="https://example.invalid/id-card-preview"
-                                    emergencyContactName={sampleCard.emergencyContactName}
-                                    emergencyContactPhone={sampleCard.phoneNumber}
-                                    photoUrl={sampleCard.photoUrl}
-                                />
-                            </TemplateLayoutDesigner>
-                        </div>
+                            admin drags is the region that prints. Every printed
+                            field is its own box, named as in the fields list. */}
+                        {([
+                            { side: 'front' as const, elements: frontElements, card: <Front {...sampleCard} rootStyle={cardRootStyle} /> },
+                            {
+                                side: 'back' as const,
+                                elements: backElements,
+                                card: (
+                                    <Back
+                                        cardNumber={sampleCard.cardNumber}
+                                        qrValue="https://example.invalid/id-card-preview"
+                                        emergencyContactName={sampleCard.emergencyContactName}
+                                        emergencyContactPhone={sampleCard.phoneNumber}
+                                        photoUrl={sampleCard.photoUrl}
+                                        rootStyle={cardRootStyle}
+                                    />
+                                ),
+                            },
+                        ]).map(({ side, elements, card }) => (
+                            <div key={side} style={{ width: '100%', maxWidth: cardWidth }}>
+                                <p className="mb-1.5 text-xs font-semibold text-(--app-muted-foreground)">{label(`printedFields_${side}`)}</p>
+                                <TemplateLayoutDesigner
+                                    side={side}
+                                    orientation={form.data.orientation}
+                                    guideInset={guideInset}
+                                    elements={elements}
+                                    value={form.data.layout_config[side]}
+                                    onChange={(boxes) => form.setData('layout_config', { ...form.data.layout_config, [side]: boxes })}
+                                    disabled={!editable || form.processing}
+                                    labels={Object.fromEntries(elements.map((element) => [element, elementLabel(element)]))}
+                                    selected={selectedBox?.side === side ? selectedBox.element : null}
+                                    onSelect={(element) => setSelectedBox(element ? { side, element } : null)}
+                                    text={{
+                                        reset: label('layout_reset'),
+                                        resetAll: label('layout_reset_all'),
+                                        // Stated once, under the front card.
+                                        hint: side === 'front' ? label('layout_hint') : '',
+                                        elements: label('layoutElements'),
+                                        x: label('layoutX'),
+                                        y: label('layoutY'),
+                                        w: label('layoutW'),
+                                        h: label('layoutH'),
+                                        overflow: label('layoutOverflow'),
+                                    }}
+                                >
+                                    {card}
+                                </TemplateLayoutDesigner>
+                            </div>
+                        ))}
                     </div>
                 </IdCardTemplateContext.Provider>
                 </div>
@@ -951,6 +1233,24 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                                 <AppActionMenu
                                     label={template.name}
                                     items={[
+                                        {
+                                            label: label('duplicate'),
+                                            show: can.create,
+                                            onClick: async () => {
+                                                if (!await mayLeaveEditor()) return;
+                                                const known = new Set(templates.map((item) => item.id));
+                                                router.post(route('id-card-templates.duplicate', template.id), {}, {
+                                                    preserveScroll: true,
+                                                    onSuccess: (page) => {
+                                                        // Open the copy so the admin edits the variant, not the original.
+                                                        const copy = (page.props.templates as Template[] | undefined)
+                                                            ?.find((item) => !known.has(item.id));
+                                                        setSelected(copy?.id ?? template.id);
+                                                        setRevision((value) => value + 1);
+                                                    },
+                                                });
+                                            },
+                                        },
                                         {
                                             label: label('set_default'),
                                             show:

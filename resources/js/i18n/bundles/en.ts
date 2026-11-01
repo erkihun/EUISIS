@@ -16,6 +16,7 @@ import enConfirmations from '@/i18n/en/confirmations';
 import enEntitlements from '@/i18n/en/entitlements';
 import enGradeLevels from '@/i18n/en/gradeLevels';
 import enIdCards from '@/i18n/en/idCards';
+import enCardPrinting from '@/i18n/en/cardPrinting';
 import enNfc from '@/i18n/en/nfc';
 import enIsicActivities from '@/i18n/en/isicActivities';
 import enOccupations from '@/i18n/en/occupations';
@@ -99,6 +100,7 @@ const tree: TranslationTree = {
     gradeLevels: enGradeLevels,
     idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },
     nfc: enNfc,
+    cardPrinting: enCardPrinting,
     isicActivities: enIsicActivities,
     occupations: enOccupations,
     organizationDesign: enOrganizationDesign,

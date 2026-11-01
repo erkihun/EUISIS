@@ -13,6 +13,8 @@ return [
     'nationality' => 'Nationality',
     'employment_status' => 'Employment Status',
     'phone_number' => 'Phone No.',
+    'email' => 'Email',
+    'address' => 'Address',
     'card_no' => 'Card No',
     'signature' => 'Authorized Signature',
     'emergency_contact_name' => 'Emergency Contact Name',

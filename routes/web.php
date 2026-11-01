@@ -22,6 +22,9 @@ use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BackupRecoveryController;
 use App\Http\Controllers\Web\CardPrintBatchController;
+use App\Http\Controllers\Web\CardPrinterProfileController;
+use App\Http\Controllers\Web\CardPrintStationController;
+use App\Http\Controllers\Web\IdCardBulkPrintController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
 use App\Http\Controllers\Web\CommunityVoiceRoomController;
@@ -1029,8 +1032,22 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/print-batches', [CardPrintBatchController::class, 'index'])->name('print-batches.index');
     Route::get('/print-batches/create', [CardPrintBatchController::class, 'create'])->name('print-batches.create');
     Route::post('/print-batches', [CardPrintBatchController::class, 'store'])->name('print-batches.store');
+    // Bulk printing by organization or unit; before {batch} so it is not read as one.
+    Route::get('/print-batches/bulk', [IdCardBulkPrintController::class, 'index'])->name('print-batches.bulk');
+    Route::post('/print-batches/bulk', [IdCardBulkPrintController::class, 'store'])->name('print-batches.bulk.store');
     Route::get('/print-batches/{batch}', [CardPrintBatchController::class, 'show'])->name('print-batches.show');
     Route::post('/print-batches/{batch}/mark-printed', [CardPrintBatchController::class, 'markPrinted'])->name('print-batches.mark-printed');
+    // Print station: freeze, print or download, then record each card's result.
+    Route::get('/print-batches/{batch}/station', [CardPrintStationController::class, 'show'])->name('print-batches.station');
+    Route::post('/print-batches/{batch}/station/prepare', [CardPrintStationController::class, 'prepare'])->name('print-batches.prepare');
+    Route::post('/print-batches/{batch}/station/profile', [CardPrintStationController::class, 'useProfile'])->name('print-batches.use-profile');
+    Route::get('/print-batches/{batch}/station/sheet', [CardPrintStationController::class, 'sheet'])->name('print-batches.sheet');
+    Route::get('/print-batches/{batch}/station/download', [CardPrintStationController::class, 'download'])->name('print-batches.download');
+    Route::post('/print-batches/{batch}/station/results', [CardPrintStationController::class, 'results'])->name('print-batches.results');
+    Route::post('/print-batches/{batch}/station/requeue', [CardPrintStationController::class, 'requeue'])->name('print-batches.requeue');
+    Route::post('/printer-profiles', [CardPrinterProfileController::class, 'store'])->name('printer-profiles.store');
+    Route::patch('/printer-profiles/{profile}', [CardPrinterProfileController::class, 'update'])->name('printer-profiles.update');
+    Route::delete('/printer-profiles/{profile}', [CardPrinterProfileController::class, 'destroy'])->name('printer-profiles.destroy');
 
     // Legacy ID Card routes (kept for backward compat with existing frontend)
     Route::post('/id-cards/requests', [CardRequestController::class, 'store'])->name('id-cards.requests.store');
@@ -1163,6 +1180,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'update'])->name('id-card-templates.update');
     Route::delete('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'destroy'])->name('id-card-templates.destroy');
     Route::post('/system-settings/id-card-templates/{template}/default', [IdCardTemplateController::class, 'setDefault'])->name('id-card-templates.set-default');
+    Route::post('/system-settings/id-card-templates/{template}/duplicate', [IdCardTemplateController::class, 'duplicate'])->name('id-card-templates.duplicate');
     Route::get('/system-settings/id-card-templates/{template}/background/{side}', [IdCardTemplateController::class, 'background'])->whereIn('side', ['front', 'back', 'logo-primary', 'logo-secondary', 'seal', 'signature'])->name('id-card-templates.background');
     Route::get('/system-settings', [SystemSettingController::class, 'index'])->name('system-settings.index');
     Route::patch('/system-settings/general', [SystemSettingController::class, 'updateGeneral'])->name('system-settings.general.update');

@@ -269,6 +269,7 @@ const navigation = {
     assessmentReviews: 'ግምገማ የሚጠብቁ ምዘናዎች',
     vacancyApplications: 'የክፍት የሥራ መደብ ማመልከቻዎች',
     printBatches: 'የሕትመት ዙሮች',
+    bulkPrint: 'የካርዶች የጅምላ ሕትመት',
     idCardTemplates: 'የመታወቂያ ካርድ አብነቶች',
     nfcCredentials: 'የNFC ማረጋገጫዎች',
     cafeteriaSpecialDays: 'ልዩ ቀናት',

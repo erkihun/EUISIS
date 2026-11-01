@@ -43,6 +43,8 @@ type PageProps = {
     /** Core only (ADR 0010): the print sheet from the one card renderer, and cancelling a draft. */
     sheetUrl?: string | null;
     cancelUrl?: string | null;
+    /** EUISIS only: the print station that prepares, prints and records this batch. */
+    stationUrl?: string | null;
 };
 
 type BatchStatus = 'draft' | 'printing' | 'completed' | 'cancelled';
@@ -82,7 +84,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     );
 }
 
-export default function PrintBatchShow({ batch, can, sheetUrl, cancelUrl }: PageProps) {
+export default function PrintBatchShow({ batch, can, sheetUrl, cancelUrl, stationUrl }: PageProps) {
     const { t } = useLocale();
     const markForm = useForm({ printer_notes: '' });
     const cancelForm = useForm({ reason: '' });
@@ -100,6 +102,11 @@ export default function PrintBatchShow({ batch, can, sheetUrl, cancelUrl }: Page
                     backHref={route('print-batches.index')}
                     title={batch.batch_number}
                     description={`${batch.total_cards} ${t('idCards.cardsInBatch').toLowerCase()}`}
+                    actions={stationUrl ? (
+                        <Link href={stationUrl} className={buttonClassName({ variant: 'primary' })}>
+                            {t('cardPrinting.station.title')}
+                        </Link>
+                    ) : undefined}
                 />
             }
         >
