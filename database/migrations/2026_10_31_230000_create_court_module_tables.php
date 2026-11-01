@@ -16,7 +16,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::disableForeignKeyConstraints();
-        Schema::create('court_staff', function (Blueprint $table) {
+        $this->create('court_staff', function (Blueprint $table) {
             $table->foreignId('id')->primary()->constrained('users')->cascadeOnDelete();
             $table->string('name', 255)->nullable()->default('');
             $table->string('email', 255)->nullable();
@@ -51,7 +51,7 @@ return new class extends Migration
             $table->index(['is_admin'], 'court_staff_is_admin_index');
         });
 
-        Schema::create('court_about_pages', function (Blueprint $table) {
+        $this->create('court_about_pages', function (Blueprint $table) {
             $table->id();
             $table->string('title', 200)->nullable()->default('');
             $table->string('slug', 200)->nullable();
@@ -69,7 +69,7 @@ return new class extends Migration
             $table->foreign(['updated_by_user_id'], 'court_about_pages_updated_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_admin_notification_reads', function (Blueprint $table) {
+        $this->create('court_admin_notification_reads', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->enum('type', ['message', 'case', 'hearing', 'respondent_view', 'staff_account'])->nullable();
@@ -83,7 +83,7 @@ return new class extends Migration
             $table->foreign(['user_id'], 'court_admin_notification_reads_user_id_foreign')->references(['id'])->on('court_staff')->cascadeOnDelete();
         });
 
-        Schema::create('court_announcements', function (Blueprint $table) {
+        $this->create('court_announcements', function (Blueprint $table) {
             $table->id();
             $table->string('title', 255)->nullable()->default('');
             $table->text('content')->nullable();
@@ -92,7 +92,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
         });
 
-        Schema::create('court_applicants', function (Blueprint $table) {
+        $this->create('court_applicants', function (Blueprint $table) {
             $table->id();
             $table->string('first_name', 255)->nullable()->default('');
             $table->string('middle_name', 255)->nullable()->default('');
@@ -128,7 +128,7 @@ return new class extends Migration
             $table->index(['is_active'], 'court_applicants_is_active_index');
         });
 
-        Schema::create('court_teams', function (Blueprint $table) {
+        $this->create('court_teams', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255)->nullable()->default('');
             $table->unsignedBigInteger('parent_id')->nullable();
@@ -142,7 +142,7 @@ return new class extends Migration
             $table->foreign(['team_leader_id'], 'court_teams_team_leader_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_types', function (Blueprint $table) {
+        $this->create('court_case_types', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255)->nullable()->default('');
             $table->string('prefix', 16)->nullable();
@@ -151,7 +151,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
         });
 
-        Schema::create('court_cases', function (Blueprint $table) {
+        $this->create('court_cases', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('applicant_id')->nullable();
             $table->string('case_number', 255)->nullable();
@@ -214,7 +214,7 @@ return new class extends Migration
             $table->foreign(['reviewed_by_user_id'], 'court_cases_reviewed_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_appeals', function (Blueprint $table) {
+        $this->create('court_appeals', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->unsignedBigInteger('applicant_id')->nullable();
@@ -262,7 +262,7 @@ return new class extends Migration
             $table->foreign(['submitted_by_user_id'], 'court_appeals_submitted_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_appeal_documents', function (Blueprint $table) {
+        $this->create('court_appeal_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('appeal_id');
             $table->string('label', 255)->nullable();
@@ -275,7 +275,7 @@ return new class extends Migration
             $table->foreign(['appeal_id'], 'court_appeal_documents_appeal_id_foreign')->references(['id'])->on('court_appeals')->cascadeOnDelete();
         });
 
-        Schema::create('court_applicant_notification_prefs', function (Blueprint $table) {
+        $this->create('court_applicant_notification_prefs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('applicant_id');
             $table->boolean('email_status')->nullable()->default(true);
@@ -288,7 +288,7 @@ return new class extends Migration
             $table->foreign(['applicant_id'], 'court_applicant_notification_prefs_applicant_id_foreign')->references(['id'])->on('court_applicants')->cascadeOnDelete();
         });
 
-        Schema::create('court_respondents', function (Blueprint $table) {
+        $this->create('court_respondents', function (Blueprint $table) {
             $table->id();
             $table->string('first_name', 100)->nullable()->default('');
             $table->string('middle_name', 100)->nullable()->default('');
@@ -314,7 +314,7 @@ return new class extends Migration
             $table->unique(['phone'], 'court_respondents_phone_unique');
         });
 
-        Schema::create('court_respondent_responses', function (Blueprint $table) {
+        $this->create('court_respondent_responses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('respondent_id');
             $table->string('case_number', 255)->nullable();
@@ -337,7 +337,7 @@ return new class extends Migration
             $table->foreign(['reviewed_by_user_id'], 'court_respondent_responses_reviewed_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_applicant_response_replies', function (Blueprint $table) {
+        $this->create('court_applicant_response_replies', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->unsignedBigInteger('applicant_id');
@@ -360,7 +360,7 @@ return new class extends Migration
             $table->foreign(['reviewed_by_user_id'], 'court_applicant_response_replies_reviewed_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_integration_clients', function (Blueprint $table) {
+        $this->create('court_integration_clients', function (Blueprint $table) {
             $table->id();
             $table->string('name', 80)->nullable();
             $table->char('token_hash', 64)->nullable();
@@ -375,7 +375,7 @@ return new class extends Migration
             $table->unique(['token_hash'], 'court_integration_clients_token_hash_unique');
         });
 
-        Schema::create('court_applicant_sign_in_tickets', function (Blueprint $table) {
+        $this->create('court_applicant_sign_in_tickets', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('applicant_id');
             $table->unsignedBigInteger('integration_client_id')->nullable();
@@ -393,7 +393,7 @@ return new class extends Migration
             $table->foreign(['integration_client_id'], 'court_applicant_sign_in_tickets_72bfbf9a73_foreign')->references(['id'])->on('court_integration_clients')->nullOnDelete();
         });
 
-        Schema::create('court_terms_and_conditions', function (Blueprint $table) {
+        $this->create('court_terms_and_conditions', function (Blueprint $table) {
             $table->id();
             $table->string('title', 255)->nullable()->default('');
             $table->string('slug', 255)->nullable();
@@ -405,7 +405,7 @@ return new class extends Migration
             $table->unique(['slug'], 'court_terms_and_conditions_slug_unique');
         });
 
-        Schema::create('court_applicant_term_acceptances', function (Blueprint $table) {
+        $this->create('court_applicant_term_acceptances', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('applicant_id');
             $table->unsignedBigInteger('terms_and_condition_id');
@@ -418,7 +418,7 @@ return new class extends Migration
             $table->foreign(['terms_and_condition_id'], 'court_applicant_term_acceptances_84afd4deb7_foreign')->references(['id'])->on('court_terms_and_conditions')->cascadeOnDelete();
         });
 
-        Schema::create('court_audits', function (Blueprint $table) {
+        $this->create('court_audits', function (Blueprint $table) {
             $table->id();
             $table->string('user_type', 255)->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
@@ -437,7 +437,7 @@ return new class extends Migration
             $table->index(['user_id', 'user_type'], 'court_audits_user_id_user_type_index');
         });
 
-        Schema::create('court_case_hearings', function (Blueprint $table) {
+        $this->create('court_case_hearings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->dateTime('hearing_at')->nullable();
@@ -451,7 +451,7 @@ return new class extends Migration
             $table->foreign(['case_id'], 'court_case_hearings_case_id_foreign')->references(['id'])->on('court_cases')->cascadeOnDelete();
         });
 
-        Schema::create('court_bench_notes', function (Blueprint $table) {
+        $this->create('court_bench_notes', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->unsignedBigInteger('hearing_id')->nullable();
@@ -478,7 +478,7 @@ return new class extends Migration
             $table->foreign(['user_id'], 'court_bench_notes_user_id_foreign')->references(['id'])->on('court_staff')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_applicants', function (Blueprint $table) {
+        $this->create('court_case_applicants', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->unsignedBigInteger('applicant_id')->nullable();
@@ -505,7 +505,7 @@ return new class extends Migration
             $table->foreign(['case_id'], 'court_case_applicants_case_id_foreign')->references(['id'])->on('court_cases')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_audits', function (Blueprint $table) {
+        $this->create('court_case_audits', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->string('action', 100)->nullable()->default('');
@@ -517,7 +517,7 @@ return new class extends Migration
             $table->foreign(['case_id'], 'court_case_audits_case_id_foreign')->references(['id'])->on('court_cases')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_euisis_grievances', function (Blueprint $table) {
+        $this->create('court_case_euisis_grievances', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->string('kind', 20)->nullable()->default('grievance');
@@ -537,7 +537,7 @@ return new class extends Migration
             $table->foreign(['court_case_id'], 'court_case_euisis_grievances_court_case_id_foreign')->references(['id'])->on('court_cases')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_evidences', function (Blueprint $table) {
+        $this->create('court_case_evidences', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->enum('type', ['document', 'human'])->nullable()->default('document');
@@ -553,7 +553,7 @@ return new class extends Migration
             $table->foreign(['case_id'], 'court_case_evidences_case_id_foreign')->references(['id'])->on('court_cases')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_files', function (Blueprint $table) {
+        $this->create('court_case_files', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->unsignedBigInteger('uploaded_by_applicant_id')->nullable();
@@ -572,7 +572,7 @@ return new class extends Migration
             $table->foreign(['uploaded_by_user_id'], 'court_case_files_uploaded_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_inspections', function (Blueprint $table) {
+        $this->create('court_case_inspections', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->date('inspection_date')->nullable();
@@ -593,7 +593,7 @@ return new class extends Migration
             $table->foreign(['updated_by_user_id'], 'court_case_inspections_updated_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_inspection_requests', function (Blueprint $table) {
+        $this->create('court_case_inspection_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->date('request_date')->nullable();
@@ -619,7 +619,7 @@ return new class extends Migration
             $table->foreign(['updated_by_user_id'], 'court_case_inspection_requests_updated_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_inspection_findings', function (Blueprint $table) {
+        $this->create('court_case_inspection_findings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_inspection_request_id');
             $table->date('finding_date')->nullable();
@@ -648,7 +648,7 @@ return new class extends Migration
             $table->foreign(['updated_by_user_id'], 'court_case_inspection_findings_updated_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_messages', function (Blueprint $table) {
+        $this->create('court_case_messages', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->unsignedBigInteger('sender_applicant_id')->nullable();
@@ -664,7 +664,7 @@ return new class extends Migration
             $table->foreign(['sender_user_id'], 'court_case_messages_sender_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_parties', function (Blueprint $table) {
+        $this->create('court_case_parties', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->unsignedBigInteger('user_id');
@@ -678,7 +678,7 @@ return new class extends Migration
             $table->foreign(['user_id'], 'court_case_parties_user_id_foreign')->references(['id'])->on('court_staff')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_representatives', function (Blueprint $table) {
+        $this->create('court_case_representatives', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->unsignedBigInteger('case_applicant_id');
@@ -699,7 +699,7 @@ return new class extends Migration
             $table->foreign(['lawyer_applicant_id'], 'court_case_representatives_lawyer_applicant_id_foreign')->references(['id'])->on('court_applicants')->cascadeOnDelete();
         });
 
-        Schema::create('court_case_status_logs', function (Blueprint $table) {
+        $this->create('court_case_status_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->string('from_status', 255)->nullable();
@@ -714,7 +714,7 @@ return new class extends Migration
             $table->foreign(['changed_by_user_id'], 'court_case_status_logs_changed_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_case_witnesses', function (Blueprint $table) {
+        $this->create('court_case_witnesses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('case_id');
             $table->string('full_name', 255)->nullable()->default('');
@@ -734,7 +734,7 @@ return new class extends Migration
             $table->foreign(['updated_by_user_id'], 'court_case_witnesses_updated_by_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_courts', function (Blueprint $table) {
+        $this->create('court_courts', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255)->nullable()->default('');
             $table->string('type', 255)->nullable()->default('');
@@ -746,7 +746,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
         });
 
-        Schema::create('court_members', function (Blueprint $table) {
+        $this->create('court_members', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('sort_order')->nullable()->default(0);
             $table->boolean('is_active')->nullable()->default(true);
@@ -760,7 +760,7 @@ return new class extends Migration
             $table->index(['is_active', 'sort_order'], 'court_members_is_active_sort_order_index');
         });
 
-        Schema::create('court_decisions', function (Blueprint $table) {
+        $this->create('court_decisions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->string('case_number', 255)->nullable()->default('');
@@ -791,7 +791,7 @@ return new class extends Migration
             $table->foreign(['reviewing_admin_user_id'], 'court_decisions_reviewing_admin_user_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_decision_reviews', function (Blueprint $table) {
+        $this->create('court_decision_reviews', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('decision_id');
             $table->string('case_number', 255)->nullable();
@@ -806,7 +806,7 @@ return new class extends Migration
             $table->foreign(['reviewer_id'], 'court_decision_reviews_reviewer_id_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_decision_templates', function (Blueprint $table) {
+        $this->create('court_decision_templates', function (Blueprint $table) {
             $table->id();
             $table->string('title', 255)->nullable()->default('');
             $table->string('category', 255)->nullable();
@@ -819,7 +819,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
         });
 
-        Schema::create('court_documents', function (Blueprint $table) {
+        $this->create('court_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->string('title', 255)->nullable()->default('');
@@ -836,7 +836,7 @@ return new class extends Migration
             $table->foreign(['uploaded_by'], 'court_documents_uploaded_by_foreign')->references(['id'])->on('court_staff')->restrictOnDelete();
         });
 
-        Schema::create('court_euisis_referrals', function (Blueprint $table) {
+        $this->create('court_euisis_referrals', function (Blueprint $table) {
             $table->id();
             $table->char('referral_uuid', 36)->nullable();
             $table->unsignedBigInteger('court_case_id');
@@ -860,7 +860,7 @@ return new class extends Migration
             $table->foreign(['integration_client_id'], 'court_euisis_referrals_integration_client_id_foreign')->references(['id'])->on('court_integration_clients')->nullOnDelete();
         });
 
-        Schema::create('court_euisis_case_updates', function (Blueprint $table) {
+        $this->create('court_euisis_case_updates', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('euisis_referral_id');
             $table->unsignedBigInteger('court_case_id');
@@ -879,8 +879,8 @@ return new class extends Migration
             $table->foreign(['euisis_referral_id'], 'court_euisis_case_updates_euisis_referral_id_foreign')->references(['id'])->on('court_euisis_referrals')->cascadeOnDelete();
         });
 
-        Schema::create('court_euisis_employees', function (Blueprint $table) {
-            $table->char('uuid', 36)->nullable()->default('');
+        $this->create('court_euisis_employees', function (Blueprint $table) {
+            $table->char('uuid', 36);
             $table->string('employee_number', 60)->nullable();
             $table->string('full_name', 255)->nullable();
             $table->string('full_name_en', 255)->nullable();
@@ -897,7 +897,7 @@ return new class extends Migration
             $table->index(['employee_number'], 'court_euisis_employees_employee_number_index');
         });
 
-        Schema::create('court_letter_templates', function (Blueprint $table) {
+        $this->create('court_letter_templates', function (Blueprint $table) {
             $table->id();
             $table->string('title', 255)->nullable()->default('');
             $table->string('category', 255)->nullable();
@@ -911,7 +911,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
         });
 
-        Schema::create('court_letters', function (Blueprint $table) {
+        $this->create('court_letters', function (Blueprint $table) {
             $table->id();
             $table->string('reference_number', 50)->nullable();
             $table->string('case_number', 60)->nullable();
@@ -939,7 +939,7 @@ return new class extends Migration
             $table->foreign(['user_id'], 'court_letters_user_id_foreign')->references(['id'])->on('court_staff')->cascadeOnDelete();
         });
 
-        Schema::create('court_euisis_letter_deliveries', function (Blueprint $table) {
+        $this->create('court_euisis_letter_deliveries', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('letter_id');
             $table->unsignedBigInteger('court_case_id')->nullable();
@@ -953,8 +953,8 @@ return new class extends Migration
             $table->foreign(['letter_id'], 'court_euisis_letter_deliveries_letter_id_foreign')->references(['id'])->on('court_letters')->cascadeOnDelete();
         });
 
-        Schema::create('court_euisis_organizations', function (Blueprint $table) {
-            $table->char('uuid', 36)->nullable()->default('');
+        $this->create('court_euisis_organizations', function (Blueprint $table) {
+            $table->char('uuid', 36);
             $table->string('code', 60)->nullable();
             $table->string('name_en', 255)->nullable()->default('');
             $table->string('name_am', 255)->nullable();
@@ -967,8 +967,8 @@ return new class extends Migration
             $table->index(['status'], 'court_euisis_organizations_status_index');
         });
 
-        Schema::create('court_euisis_organization_units', function (Blueprint $table) {
-            $table->char('uuid', 36)->nullable()->default('');
+        $this->create('court_euisis_organization_units', function (Blueprint $table) {
+            $table->char('uuid', 36);
             $table->char('organization_uuid', 36)->nullable()->default('');
             $table->char('parent_unit_uuid', 36)->nullable();
             $table->string('code', 60)->nullable();
@@ -983,8 +983,8 @@ return new class extends Migration
             $table->index(['organization_uuid'], 'court_euisis_organization_units_organization_uuid_index');
         });
 
-        Schema::create('court_euisis_positions', function (Blueprint $table) {
-            $table->char('uuid', 36)->nullable()->default('');
+        $this->create('court_euisis_positions', function (Blueprint $table) {
+            $table->char('uuid', 36);
             $table->char('organization_uuid', 36)->nullable()->default('');
             $table->char('unit_uuid', 36)->nullable();
             $table->string('code', 60)->nullable();
@@ -999,7 +999,7 @@ return new class extends Migration
             $table->index(['organization_uuid'], 'court_euisis_positions_organization_uuid_index');
         });
 
-        Schema::create('court_euisis_staff_notices', function (Blueprint $table) {
+        $this->create('court_euisis_staff_notices', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('event', 20)->nullable()->default('');
@@ -1011,8 +1011,8 @@ return new class extends Migration
             $table->foreign(['user_id'], 'court_euisis_staff_notices_user_id_foreign')->references(['id'])->on('court_staff')->cascadeOnDelete();
         });
 
-        Schema::create('court_euisis_staff_units', function (Blueprint $table) {
-            $table->char('unit_uuid', 36)->nullable()->default('');
+        $this->create('court_euisis_staff_units', function (Blueprint $table) {
+            $table->char('unit_uuid', 36);
             $table->char('organization_uuid', 36)->nullable()->default('');
             $table->boolean('include_sub_units')->nullable()->default(true);
             $table->timestamp('created_at')->nullable();
@@ -1021,15 +1021,15 @@ return new class extends Migration
             $table->index(['organization_uuid'], 'court_euisis_staff_units_organization_uuid_index');
         });
 
-        Schema::create('court_euisis_sync_state', function (Blueprint $table) {
-            $table->string('key', 60)->nullable()->default('');
+        $this->create('court_euisis_sync_state', function (Blueprint $table) {
+            $table->string('key', 60);
             $table->text('value')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->primary(['key'], 'court_euisis_sync_state_key_primary');
         });
 
-        Schema::create('court_file_security_records', function (Blueprint $table) {
+        $this->create('court_file_security_records', function (Blueprint $table) {
             $table->id();
             $table->char('public_id', 36)->nullable();
             $table->string('disk', 64)->nullable()->default('');
@@ -1057,7 +1057,7 @@ return new class extends Migration
             $table->index(['uploaded_by_user_id'], 'court_file_security_records_uploaded_by_user_id_index');
         });
 
-        Schema::create('court_hearings', function (Blueprint $table) {
+        $this->create('court_hearings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('court_case_id');
             $table->date('hearing_date')->nullable();
@@ -1072,7 +1072,7 @@ return new class extends Migration
             $table->foreign(['court_case_id'], 'court_hearings_court_case_id_foreign')->references(['id'])->on('court_cases')->cascadeOnDelete();
         });
 
-        Schema::create('court_home_faqs', function (Blueprint $table) {
+        $this->create('court_home_faqs', function (Blueprint $table) {
             $table->id();
             $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->boolean('is_active')->nullable()->default(true);
@@ -1083,7 +1083,7 @@ return new class extends Migration
             $table->json('translations')->nullable();
         });
 
-        Schema::create('court_home_resources', function (Blueprint $table) {
+        $this->create('court_home_resources', function (Blueprint $table) {
             $table->id();
             $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->boolean('is_active')->nullable()->default(true);
@@ -1100,7 +1100,7 @@ return new class extends Migration
             $table->json('translations')->nullable();
         });
 
-        Schema::create('court_home_services', function (Blueprint $table) {
+        $this->create('court_home_services', function (Blueprint $table) {
             $table->id();
             $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->boolean('is_active')->nullable()->default(true);
@@ -1116,15 +1116,15 @@ return new class extends Migration
             $table->json('translations')->nullable();
         });
 
-        Schema::create('court_home_settings', function (Blueprint $table) {
-            $table->string('key', 80)->nullable()->default('');
+        $this->create('court_home_settings', function (Blueprint $table) {
+            $table->string('key', 80);
             $table->longText('value')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->primary(['key'], 'court_home_settings_key_primary');
         });
 
-        Schema::create('court_home_slides', function (Blueprint $table) {
+        $this->create('court_home_slides', function (Blueprint $table) {
             $table->id();
             $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->boolean('is_active')->nullable()->default(true);
@@ -1142,7 +1142,7 @@ return new class extends Migration
             $table->json('translations')->nullable();
         });
 
-        Schema::create('court_home_timeline_steps', function (Blueprint $table) {
+        $this->create('court_home_timeline_steps', function (Blueprint $table) {
             $table->id();
             $table->unsignedSmallInteger('sort_order')->nullable()->default(0);
             $table->boolean('is_active')->nullable()->default(true);
@@ -1156,7 +1156,7 @@ return new class extends Migration
             $table->json('translations')->nullable();
         });
 
-        Schema::create('court_legal_holds', function (Blueprint $table) {
+        $this->create('court_legal_holds', function (Blueprint $table) {
             $table->id();
             $table->char('public_id', 36)->nullable();
             $table->string('holdable_type', 100)->nullable()->default('');
@@ -1175,7 +1175,7 @@ return new class extends Migration
             $table->index(['released_by_user_id'], 'court_legal_holds_released_by_user_id_index');
         });
 
-        Schema::create('court_letter_categories', function (Blueprint $table) {
+        $this->create('court_letter_categories', function (Blueprint $table) {
             $table->id();
             $table->string('name', 120)->nullable();
             $table->string('description', 255)->nullable();
@@ -1184,7 +1184,7 @@ return new class extends Migration
             $table->unique(['name'], 'court_letter_categories_name_unique');
         });
 
-        Schema::create('court_notification_reads', function (Blueprint $table) {
+        $this->create('court_notification_reads', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('applicant_id')->nullable();
             $table->string('type', 20)->nullable();
@@ -1197,14 +1197,14 @@ return new class extends Migration
             $table->unique(['applicant_id', 'type', 'source_id'], 'court_notification_reads_applicant_id_type_source_id_unique');
         });
 
-        Schema::create('court_password_reset_tokens', function (Blueprint $table) {
-            $table->string('email', 255)->nullable()->default('');
+        $this->create('court_password_reset_tokens', function (Blueprint $table) {
+            $table->string('email', 255);
             $table->string('token', 255)->nullable()->default('');
             $table->timestamp('created_at')->nullable();
             $table->primary(['email'], 'court_password_reset_tokens_email_primary');
         });
 
-        Schema::create('court_performance_evaluations', function (Blueprint $table) {
+        $this->create('court_performance_evaluations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('evaluated_user_id');
             $table->unsignedBigInteger('evaluator_id')->nullable();
@@ -1229,7 +1229,7 @@ return new class extends Migration
             $table->foreign(['reviewed_by'], 'court_performance_evaluations_reviewed_by_foreign')->references(['id'])->on('court_staff')->nullOnDelete();
         });
 
-        Schema::create('court_performance_evaluation_categories', function (Blueprint $table) {
+        $this->create('court_performance_evaluation_categories', function (Blueprint $table) {
             $table->id();
             $table->string('slug', 255)->nullable();
             $table->string('name', 255)->nullable()->default('');
@@ -1241,7 +1241,7 @@ return new class extends Migration
             $table->unique(['slug'], 'court_performance_evaluation_categories_slug_unique');
         });
 
-        Schema::create('court_performance_evaluation_criteria', function (Blueprint $table) {
+        $this->create('court_performance_evaluation_criteria', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255)->nullable()->default('');
             $table->string('name_am', 255)->nullable();
@@ -1255,7 +1255,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->nullable();
         });
 
-        Schema::create('court_performance_evaluation_scores', function (Blueprint $table) {
+        $this->create('court_performance_evaluation_scores', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('evaluation_id');
             $table->unsignedBigInteger('criterion_id');
@@ -1269,7 +1269,7 @@ return new class extends Migration
             $table->foreign(['evaluation_id'], 'court_performance_evaluation_scores_evaluation_id_foreign')->references(['id'])->on('court_performance_evaluations')->cascadeOnDelete();
         });
 
-        Schema::create('court_permissions', function (Blueprint $table) {
+        $this->create('court_permissions', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255)->nullable();
             $table->string('label', 255)->nullable();
@@ -1281,7 +1281,7 @@ return new class extends Migration
             $table->unique(['name'], 'court_permissions_name_unique');
         });
 
-        Schema::create('court_roles', function (Blueprint $table) {
+        $this->create('court_roles', function (Blueprint $table) {
             $table->id();
             $table->string('name', 255)->nullable();
             $table->string('description', 255)->nullable();
@@ -1291,7 +1291,7 @@ return new class extends Migration
             $table->unique(['name'], 'court_roles_name_unique');
         });
 
-        Schema::create('court_permission_role', function (Blueprint $table) {
+        $this->create('court_permission_role', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('permission_id');
             $table->unsignedBigInteger('role_id');
@@ -1303,7 +1303,7 @@ return new class extends Migration
             $table->foreign(['role_id'], 'court_permission_role_role_id_foreign')->references(['id'])->on('court_roles')->cascadeOnDelete();
         });
 
-        Schema::create('court_respondent_case_views', function (Blueprint $table) {
+        $this->create('court_respondent_case_views', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('respondent_id');
             $table->unsignedBigInteger('case_id');
@@ -1318,7 +1318,7 @@ return new class extends Migration
             $table->foreign(['respondent_id'], 'court_respondent_case_views_respondent_id_foreign')->references(['id'])->on('court_respondents')->cascadeOnDelete();
         });
 
-        Schema::create('court_respondent_notification_reads', function (Blueprint $table) {
+        $this->create('court_respondent_notification_reads', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('respondent_id')->nullable();
             $table->string('type', 32)->nullable();
@@ -1330,7 +1330,7 @@ return new class extends Migration
             $table->unique(['respondent_id', 'type', 'source_id'], 'court_respondent_notification_reads_cace316dd4_unique');
         });
 
-        Schema::create('court_role_user', function (Blueprint $table) {
+        $this->create('court_role_user', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('role_id');
@@ -1342,7 +1342,7 @@ return new class extends Migration
             $table->foreign(['user_id'], 'court_role_user_user_id_foreign')->references(['id'])->on('court_staff')->cascadeOnDelete();
         });
 
-        Schema::create('court_system_audits', function (Blueprint $table) {
+        $this->create('court_system_audits', function (Blueprint $table) {
             $table->id();
             $table->string('request_id', 128)->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
@@ -1363,7 +1363,7 @@ return new class extends Migration
             $table->index(['user_id'], 'court_system_audits_user_id_index');
         });
 
-        Schema::create('court_system_settings', function (Blueprint $table) {
+        $this->create('court_system_settings', function (Blueprint $table) {
             $table->id();
             $table->string('app_name', 255)->nullable()->default('Court Case Management System');
             $table->string('short_name', 255)->nullable();
@@ -1440,7 +1440,7 @@ return new class extends Migration
             $table->boolean('sticky_table_headers')->nullable();
         });
 
-        Schema::create('court_team_user', function (Blueprint $table) {
+        $this->create('court_team_user', function (Blueprint $table) {
             $table->unsignedBigInteger('team_id');
             $table->unsignedBigInteger('user_id');
             $table->timestamp('created_at')->nullable();
@@ -1454,6 +1454,14 @@ return new class extends Migration
         });
 
         Schema::enableForeignKeyConstraints();
+    }
+
+    /** MySQL keeps the tables a failed run made: a retry skips them and goes on. */
+    private function create(string $table, \Closure $definition): void
+    {
+        if (! Schema::hasTable($table)) {
+            Schema::create($table, $definition);
+        }
     }
 
     public function down(): void
