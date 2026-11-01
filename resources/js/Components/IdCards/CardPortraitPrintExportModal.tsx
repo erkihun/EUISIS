@@ -62,9 +62,6 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
 
     if (!isOpen) return null;
 
-    const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
-
     const qrValue = card.feedback_qr_url ?? null;
     const canExport = card.can.exportPng    === true;
 
@@ -108,8 +105,6 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
         positionTitleAm: card.employee?.current_assignment?.position?.title_am,
         positionCode: card.employee?.current_assignment?.position?.job_position_code,
         jobGrade: card.employee?.current_assignment?.position?.grade_level,
-        issueDate: fmtDate(card.issued_at),
-        expiryDate: fmtDate(card.expires_at),
         status: card.status,
     };
 

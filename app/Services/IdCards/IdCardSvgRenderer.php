@@ -330,32 +330,8 @@ final class IdCardSvgRenderer
             );
         }
 
-        // Issue / expiry dates — their own movable block on the front, so a
-        // card's validity reads without turning it over.
-        $datesBox = $data->box('front', 'dates');
-        $datesX = $datesBox?->xIn(self::W) ?? $padH;
-        $datesY = $datesBox?->yIn(self::H) ?? 470;
-        $datesW = $datesBox?->wIn(self::W) ?? (self::W - 2 * $padH);
-        $dateStyle = $this->styleAttrs($data->textStyle('front', 'value'), 8, '600', $l->frontTextPrimary);
-        $dateLabelStyle = $this->styleAttrs($data->textStyle('front', 'label'), 7, '400', $l->frontTextSecondary);
-        foreach (array_values(array_filter([
-            $l->showIssueDate ? [$data->issueDateLabel, $data->issueDateFormattedAm, $data->issueDateFormatted] : null,
-            $l->showExpiryDate ? [$data->expiryDateLabel, $data->expiryDateFormattedAm, $data->expiryDateFormatted] : null,
-        ], fn (?array $row): bool => $row !== null && (filled($row[1]) || filled($row[2])))) as $index => [$caption, $amValue, $enValue]) {
-            $x = (int) ($datesX + $index * ($datesW / 2));
-            // Caption, then the Ethiopian date above the Gregorian one.
-            $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>',
-                $x, $datesY, $this->font, $dateLabelStyle, $this->e($caption),
-            );
-            foreach (array_values(array_filter([$amValue, $enValue], 'filled')) as $line => $value) {
-                $svg .= sprintf(
-                    '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-                    $x, $datesY + 13 + $line * 13, $this->font, $dateStyle,
-                    $this->e($this->trunc((string) $value, 24)),
-                );
-            }
-        }
+        // A digital ID prints no issue or expiry date: validity is checked
+        // live through the QR.
 
         // Right-edge decorative accent
         if ($data->frontBackgroundDataUri === null && $l->template === IdCardTemplate::Classic) {
@@ -824,14 +800,6 @@ final class IdCardSvgRenderer
                     $colX[$index % 2], $y + intdiv($index, 2) * 52, $field, $colW, $l, $labelStyle, $valueStyle,
                 );
             }
-            $y += 3 * 52 + 10;
-
-            foreach ([[$l->showIssueDate, $data->issueDateFormatted, 16], [$l->showExpiryDate, $data->expiryDateFormatted, 16]] as [$visible, $value, $size]) {
-                if ($visible && filled($value)) {
-                    $svg .= $text($value, $y, $size);
-                    $y += 30;
-                }
-            }
         } else {
             if ($l->showMagneticStripe) {
                 $svg .= '<rect y="24" width="540" height="48" fill="rgba(0,0,0,0.5)"/>';
@@ -851,8 +819,7 @@ final class IdCardSvgRenderer
             if ($l->showCardNumber) {
                 $svg .= $text($data->cardNumber, 696);
             }
-            // Issue and expiry print on the front, so the back does not repeat
-            // the issue date — matching the landscape face.
+            // A digital ID prints no issue or expiry date on either face.
             if ($l->showEmergencyContact && $l->supportContact !== '') {
                 $svg .= $text($l->supportContact, 756, 14);
             }

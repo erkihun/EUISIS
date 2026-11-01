@@ -95,10 +95,6 @@ final readonly class IdCardRenderDataFactory
             signatureLabel: $this->bilingualCaption('signature'),
             signatureLabelAm: (string) $this->line('am', 'signature', ''),
             signatureLabelEn: (string) $this->line('en', 'signature', 'Authorized Signature'),
-            issueDateLabel: $this->bilingualCaption('issue_date'),
-            expiryDateLabel: $this->bilingualCaption('expiry_date'),
-            issueDateFormattedAm: $this->formatCardDate($card->issued_at, 'am'),
-            expiryDateFormattedAm: $this->formatCardDate($card->expires_at, 'am'),
 
             organizationNameEn: $org?->name_en,
             organizationNameAm: $org?->name_am,
@@ -108,9 +104,6 @@ final readonly class IdCardRenderDataFactory
             positionTitleAm: $position?->title_am ?? null,
             positionCode: $position?->job_position_code ?? $position?->code,
             jobGrade: $position?->grade_level,
-
-            issueDateFormatted: $this->formatCardDate($card->issued_at, 'en'),
-            expiryDateFormatted: $this->formatCardDate($card->expires_at, 'en'),
 
             // Resolve files to base64 data URIs — never expose raw paths
             photoDataUri: $this->assetResolver->resolvePhotoPath($employee?->photo_path),

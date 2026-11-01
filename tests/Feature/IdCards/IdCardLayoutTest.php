@@ -39,7 +39,7 @@ function movedLayout(array $overrides = []): array
 {
     return ['front' => array_replace([
         'photo' => ['x' => 70.0, 'y' => 20.0, 'w' => 20.0, 'h' => 40.0],
-        'dates' => ['x' => 0.0, 'y' => 80.0, 'w' => 100.0, 'h' => 6.0],
+        'emphasis' => ['x' => 0.0, 'y' => 80.0, 'w' => 100.0, 'h' => 6.0],
     ], $overrides)];
 }
 
@@ -120,7 +120,8 @@ it('resolves every element for the client, filling gaps from the defaults', func
 
     expect(array_keys($layout))->toBe(array_keys(IdCardLayoutElement::ELEMENTS['front']))
         ->and($layout['photo'])->toBe(['x' => 50.0, 'y' => 50.0, 'w' => 10.0, 'h' => 10.0])
-        ->and($layout['dates'])->toBe(IdCardLayoutElement::ELEMENTS['front']['dates']);
+        ->and($layout['emphasis'])->toBe(IdCardLayoutElement::ELEMENTS['front']['emphasis'])
+        ->and($layout)->not->toHaveKey('dates');
 });
 
 it('rejects positions that fall outside the card', function (array $box, string $key): void {
@@ -258,19 +259,16 @@ it('places the official seal where the template puts it', function (): void {
         ->and($box->yIn(540))->toBe(65);
 });
 
-it('positions the issue and expiry dates from the template', function (): void {
+it('prints no issue or expiry date on a digital ID', function (string $orientation): void {
     $card = frontCard();
-    IdCardTemplate::query()->create([
-        'name' => 'Dates moved', 'code' => 'dates-moved', 'orientation' => 'landscape',
-        'status' => 'active', 'is_default' => true,
-        'layout_config' => ['front' => ['dates' => ['x' => 50.0, 'y' => 40.0, 'w' => 40.0, 'h' => 10.0]]],
-    ]);
+    $data = app(IdCardRenderDataFactory::class)->make($card->fresh(), $orientation);
+    $svg = app(IdCardSvgRenderer::class)->renderFront($data).app(IdCardSvgRenderer::class)->renderBack($data);
 
-    $svg = app(IdCardSvgRenderer::class)->renderFront(app(IdCardRenderDataFactory::class)->make($card->fresh()));
-
-    // 50% of 856 is 428; 40% of 540 is 216.
-    expect($svg)->toContain('x="428" y="216"');
-});
+    expect($svg)->not->toContain($card->issued_at->format('d M Y'))
+        ->and($svg)->not->toContain($card->expires_at->format('d M Y'))
+        ->and($svg)->not->toContain('Issue Date')
+        ->and($svg)->not->toContain('የተሰጠበት ቀን');
+})->with(['landscape', 'portrait']);
 
 it('prints no scan instructions or QR disclaimer on the card', function (): void {
     $card = frontCard();
@@ -361,7 +359,7 @@ it('prints emergency contact as labelled stacked fields like the front', functio
     expect((int) $phone[1])->toBeGreaterThan((int) $name[1] + 60);
 });
 
-it('gives the card number and signature their own sections with dates in both calendars', function (): void {
+it('gives the card number and signature their own sections', function (): void {
     $card = frontCard();
     $svg = app(IdCardSvgRenderer::class)->renderBack(app(IdCardRenderDataFactory::class)->make($card->fresh()));
 
@@ -371,13 +369,6 @@ it('gives the card number and signature their own sections with dates in both ca
         ->and($svg)->toContain('የባለስልጣኑ ፊርማ<')
         ->and($svg)->toContain('Authorized Signature<')
         ->and($svg)->not->toContain('የባለስልጣኑ ፊርማ/Authorized Signature');
-
-    // Dates moved to the front, so the back no longer prints them.
-    $front = app(IdCardSvgRenderer::class)->renderFront(app(IdCardRenderDataFactory::class)->make($card->fresh()));
-    expect($front)->toContain('የተሰጠበት ቀን/Issue Date')
-        ->and($front)->toContain('ማብቂያ/Exp')
-        ->and($front)->not->toContain('ISSUE DATE')
-        ->and($svg)->not->toContain('የተሰጠበት ቀን/Issue Date');
 
     // The return address wraps rather than being cut off mid-word.
     expect($svg)->not->toContain('Public Service &amp; H<');

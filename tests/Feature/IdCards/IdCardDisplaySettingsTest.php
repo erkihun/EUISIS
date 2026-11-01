@@ -40,8 +40,6 @@ it('registers every configurable ID card visibility field', function (): void {
         'show_position',
         'show_job_grade',
         'show_employment_status',
-        'show_issue_date',
-        'show_expiry_date',
         'show_signature',
         'show_qr',
         'show_return_notice',

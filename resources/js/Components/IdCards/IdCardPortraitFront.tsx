@@ -17,8 +17,6 @@ type Props = {
     positionTitle?: string | null;
     positionTitleAm?: string | null;
     photoUrl?: string | null;
-    issueDate?: string | null;
-    expiryDate?: string | null;
     status?: string | null;
     rootStyle?: CSSProperties;
     organizationUnitName?: string | null;

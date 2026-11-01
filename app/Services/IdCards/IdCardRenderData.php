@@ -45,10 +45,6 @@ final readonly class IdCardRenderData
         public ?string $positionCode,
         public ?string $jobGrade,
 
-        // Dates (pre-formatted strings, e.g. "16 May 2026")
-        public ?string $issueDateFormatted,
-        public ?string $expiryDateFormatted,
-
         // Assets – base64 data URIs or null
         public ?string $photoDataUri,
         public ?string $logoDataUri,
@@ -96,12 +92,6 @@ final readonly class IdCardRenderData
         public string $signatureLabel = '',
         public string $signatureLabelAm = '',
         public string $signatureLabelEn = '',
-
-        // Issue / expiry shown in both calendars, like the front-face dates.
-        public string $issueDateLabel = '',
-        public string $expiryDateLabel = '',
-        public ?string $issueDateFormattedAm = null,
-        public ?string $expiryDateFormattedAm = null,
 
         /**
          * Element positions, keyed by side then element.

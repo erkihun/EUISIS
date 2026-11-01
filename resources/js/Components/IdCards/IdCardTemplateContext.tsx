@@ -22,7 +22,7 @@ export const CARD_SURFACE = {
 } as const;
 
 /** Text roles that can be styled per card side. */
-// The front has no footer of its own; the dates close the card face.
+// The front has no footer of its own; the emphasised ID number closes the card face.
 export const FRONT_ROLES = ['header', 'label', 'value', 'employee_name', 'employee_position'] as const;
 // The back has no heading of its own; its notes lead the text column.
 export const BACK_ROLES = ['label', 'value', 'footer'] as const;
@@ -35,9 +35,9 @@ export type TextStyleConfig = {
 };
 
 /** Elements an admin can move, in the order the designer lists them. */
-export const LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'fields', 'emphasis', 'dates'] as const;
+export const LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'fields', 'emphasis'] as const;
 export const BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'signature_label', 'photo'] as const;
-export const LANDSCAPE_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'fields', 'emphasis', 'dates'] as const;
+export const LANDSCAPE_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'fields', 'emphasis'] as const;
 export const PORTRAIT_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'emphasis'] as const;
 export const PORTRAIT_BACK_LAYOUT_ELEMENTS = ['qr', 'seal', 'photo'] as const;
 export type LayoutElement = (typeof LAYOUT_ELEMENTS)[number];
@@ -66,9 +66,6 @@ export const LAYOUT_DEFAULTS: Record<LayoutElement, LayoutBox> = {
     employee_position: { x: 28, y: 32, w: 72, h: 8 },
     fields: { x: 28, y: 22, w: 72, h: 68 },
     emphasis: { x: 2.5, y: 74.5, w: 96, h: 12 },
-    // Issue and expiry sit on the front, between the emphasised ID number and
-    // the footer, so validity reads without turning the card.
-    dates: { x: 2.5, y: 86.5, w: 96, h: 6 },
 };
 
 export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {

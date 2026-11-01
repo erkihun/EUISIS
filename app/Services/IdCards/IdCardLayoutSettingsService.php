@@ -67,8 +67,6 @@ final readonly class IdCardLayoutSettingsService
             showPosition: $this->bool('id_cards', 'show_position', true),
             showJobGrade: $this->bool('id_cards', 'show_job_grade', true),
             showEmploymentStatus: $this->bool('id_cards', 'show_employment_status', true),
-            showIssueDate: $this->bool('id_cards', 'show_issue_date', true),
-            showExpiryDate: $this->bool('id_cards', 'show_expiry_date', true),
             showSignature: $this->bool('id_cards', 'show_signature', false),
             showQr: $this->bool('id_cards', 'show_qr', true),
             showReturnNotice: $this->bool('id_cards', 'show_return_notice', true),

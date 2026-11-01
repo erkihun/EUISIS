@@ -4,14 +4,11 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
-import enDict from '@/i18n/en';
-import amDict from '@/i18n/am';
 import enEmployees from '@/i18n/en/employees';
 import amEmployees from '@/i18n/am/employees';
 
-// The card face is bilingual by design — captions come from both dictionaries.
-const dateCaption = (key: 'issueDate' | 'expLabel'): string =>
-    `${enDict.idCards[key]}/${amDict.idCards[key]}`;
+// A digital ID: validity is checked live through the QR, so the face prints
+// no issue or expiry date.
 
 type IdCardFrontProps = {
     cardNumber: string;
@@ -42,11 +39,6 @@ type IdCardFrontProps = {
     email?: string | null;
     address?: string | null;
     photoUrl?: string | null;
-    issueDate?: string | null;
-    expiryDate?: string | null;
-    /** Ethiopian-calendar variants, shown above the Gregorian dates. */
-    issueDateAm?: string | null;
-    expiryDateAm?: string | null;
     /** When supplied and not 'active', a diagonal watermark is shown */
     status?: string | null;
     /** Show the city/system logo in header */
@@ -80,10 +72,6 @@ export default function IdCardFront({
     email,
     address,
     photoUrl,
-    issueDate,
-    expiryDate,
-    issueDateAm,
-    expiryDateAm,
     status,
     cityLogoUrl,
     rootStyle,
@@ -104,8 +92,6 @@ export default function IdCardFront({
     const showLogo          = getBoolean('id_cards.show_organization_logo', true);
     const showPhoto         = getBoolean('id_cards.show_photo', true);
     const showEmployment    = getBoolean('id_cards.show_employment_status', true);
-    const showIssueDate     = getBoolean('id_cards.show_issue_date', true);
-    const showExpiryDate    = getBoolean('id_cards.show_expiry_date', true);
     const padding           = getString('id_cards.card_padding', 'normal');
     // Fall back to the system identity logo when no cityLogoUrl is passed as a prop
     const systemLogoUrl     = getString('general.identity_system_logo_url', '');
@@ -359,32 +345,6 @@ export default function IdCardFront({
                     />
                 ))}
             </div>
-
-            {/* Issue / expiry dates — moved from the back so a card's validity
-                reads without turning it over. */}
-            {(showIssueDate || showExpiryDate) && (
-                <div className={`flex gap-3 ${padCls}`} style={layoutStyle(cardTemplate, 'dates')}>
-                    {([
-                        ['issueDate', issueDate, issueDateAm] as const,
-                        ['expLabel', expiryDate, expiryDateAm] as const,
-                    ]).filter(([key]) => (key === 'issueDate' ? showIssueDate : showExpiryDate))
-                        .map(([key, gregorian, ethiopian]) => (
-                            <div key={key} className="min-w-0 flex-1">
-                                <p className="truncate leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
-                                    {dateCaption(key)}
-                                </p>
-                                {ethiopian && (
-                                    <p className="truncate font-mono leading-tight" style={contentStyle}>
-                                        {ethiopian}
-                                    </p>
-                                )}
-                                <p className="truncate font-mono leading-tight" style={contentStyle}>
-                                    {gregorian ?? ' '}
-                                </p>
-                            </div>
-                        ))}
-                </div>
-            )}
 
             {/* Decorative diagonal accent (right edge) */}
             {!backgroundUrl && template === 'classic' && <>

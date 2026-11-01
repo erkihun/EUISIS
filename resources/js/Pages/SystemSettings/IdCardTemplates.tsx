@@ -290,11 +290,6 @@ function TemplateForm({
         employmentStatus: enSettings.templateManager.sample_employment_type,
         phoneNumber: '+251 911 000 000',
         emergencyContactName: enSettings.templateManager.sample_emergency_name,
-        issueDate: enSettings.templateManager.sample_issue_date,
-        expiryDate: enSettings.templateManager.sample_expiry_date,
-        // The front prints both calendars, so the preview carries both.
-        issueDateAm: amSettings.templateManager.sample_issue_date,
-        expiryDateAm: amSettings.templateManager.sample_expiry_date,
         status: 'active',
         // A neutral silhouette, inlined so the preview makes no request and
         // shows no real person. Lets the back-photo controls be judged by eye.

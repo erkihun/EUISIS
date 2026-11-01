@@ -284,8 +284,7 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
                 </div>
             )}
 
-            {/* Issue / expiry dates now print on the front, so the card's
-                validity reads without turning it over. */}
+            {/* A digital ID prints no issue or expiry date; the QR checks validity live. */}
             </>
 
             {/* Bottom thin accent */}

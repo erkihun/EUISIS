@@ -266,7 +266,6 @@ it('takes structure from the reference without copying its artwork or sample dat
 
 it('omits the detail fields from the portrait front', function (): void {
     $card = frontCard();
-    $data = app(IdCardRenderDataFactory::class)->make($card, 'portrait');
     $svg = renderFrontSvg($card, 'portrait');
 
     expect($svg)->toContain('Front Employee')
@@ -276,8 +275,8 @@ it('omits the detail fields from the portrait front', function (): void {
         ->and($svg)->not->toContain('Date of Birth')
         ->and($svg)->not->toContain('Nationality')
         ->and($svg)->not->toContain('Employment Status')
-        ->and($svg)->not->toContain($data->issueDateFormatted)
-        ->and($svg)->not->toContain($data->expiryDateFormatted);
+        ->and($svg)->not->toContain($card->issued_at->format('d M Y'))
+        ->and($svg)->not->toContain($card->expires_at->format('d M Y'));
 });
 
 it('keeps the whole front face inside the card bounds', function (string $orientation): void {

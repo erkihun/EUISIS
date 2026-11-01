@@ -36,9 +36,6 @@ final readonly class IdCardLayoutElement
             'employee_position' => ['x' => 28.0, 'y' => 32.0, 'w' => 72.0, 'h' => 8.0],
             'fields' => ['x' => 28.0, 'y' => 22.0, 'w' => 72.0, 'h' => 68.0],
             'emphasis' => ['x' => 2.5, 'y' => 74.5, 'w' => 96.0, 'h' => 12.0],
-            // Issue and expiry sit on the front, between the emphasised ID
-            // number and the footer, so validity reads without turning the card.
-            'dates' => ['x' => 2.5, 'y' => 86.5, 'w' => 96.0, 'h' => 6.0],
         ],
         'back' => [
             'qr' => ['x' => 0.0, 'y' => 4.5, 'w' => 38.5, 'h' => 57.0],

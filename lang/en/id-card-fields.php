@@ -13,8 +13,6 @@ return [
     'nationality' => 'Nationality',
     'employment_status' => 'Employment Status',
     'phone_number' => 'Phone No.',
-    'issue_date' => 'Issue Date',
-    'expiry_date' => 'Exp',
     'card_no' => 'Card No',
     'signature' => 'Authorized Signature',
     'emergency_contact_name' => 'Emergency Contact Name',
