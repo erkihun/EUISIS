@@ -266,7 +266,7 @@ test('suspending ends portal access at the next request; activating restores it'
         ->suspension_reason->toBe('Left the company')
         ->suspended_by->toBe($admin->id);
 
-    $this->actingAs($account->fresh(), 'provider')->get(route('provider.portal.dashboard'))->assertRedirect(route('provider.portal.login'));
+    $this->actingAs($account->fresh(), 'provider')->get(route('provider.portal.dashboard'))->assertRedirect(route('provider.portal.cafeteria.login'));
 
     $this->app['auth']->forgetGuards();
     $this->post(route('provider.portal.login.store'), ['identifier' => 'suspend.me@example.test', 'password' => 'Provider start phrase 77'])

@@ -155,10 +155,10 @@ test('9 an idle provider portal session goes to the provider login', function ()
     $this->actingAs(stProviderUser(), 'provider')->get(route('provider.portal.dashboard'))->assertOk();
 
     $this->travel(31)->minutes();
-    $this->get(route('provider.portal.dashboard'))->assertRedirect(route('provider.portal.login'));
+    $this->get(route('provider.portal.dashboard'))->assertRedirect(route('provider.portal.cafeteria.login'));
     $this->assertGuest('provider');
 
-    $this->get(route('provider.portal.login'))
+    $this->get(route('provider.portal.cafeteria.login'))
         ->assertInertia(fn (AssertableInertia $page) => $page->where('sessionNotice', 'idle_timeout'));
 });
 

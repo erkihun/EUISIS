@@ -187,10 +187,8 @@ use Modules\Transport\Http\Controllers\TransportVehicleController;
 // maintenance notice instead when an administrator switches the site off.
 Route::get('/', PublicHomeController::class)->middleware('public.site')->name('home');
 
-// /cafe → cafeteria provider login shortcut
-Route::get('/cafe', function () {
-    return redirect()->route('provider.portal.login');
-})->name('cafe.login');
+// /cafe → the cafeteria's own provider sign-in
+Route::get('/cafe', fn () => redirect()->route('provider.portal.cafeteria.login'))->name('cafe.login');
 
 /*
  * /employee and /employee/login → employee sign-in shortcut.
@@ -211,12 +209,29 @@ $employeeLoginShortcut = static fn () => redirect()->route(
 Route::get('/employee', $employeeLoginShortcut)->name('employee.login.redirect');
 Route::get('/employee/login', $employeeLoginShortcut)->name('employee.login');
 
-// Cafeteria Provider Portal — login (guest only for cafeteria_provider guard)
+/*
+ * Provider Portal — sign-in (guest only, `provider` guard).
+ *
+ * Cafeteria and transport each have their own sign-in page and look; both
+ * sign in to the same guard, so a provider running both keeps one account.
+ * /provider/portal/login asks which portal, so existing links keep working,
+ * and its POST stays as the undivided sign-in for forms loaded before the split.
+ */
 Route::middleware('guest:provider')->prefix('provider/portal')->name('provider.portal.')->group(function (): void {
     Route::get('/login', [ProviderLoginController::class, 'create'])->name('login');
     Route::post('/login', [ProviderLoginController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('login.store');
+
+    Route::get('/cafeteria/login', [ProviderLoginController::class, 'createCafeteria'])->name('cafeteria.login');
+    Route::post('/cafeteria/login', [ProviderLoginController::class, 'storeCafeteria'])
+        ->middleware('throttle:5,1')
+        ->name('cafeteria.login.store');
+
+    Route::get('/transport/login', [ProviderLoginController::class, 'createTransport'])->name('transport.login');
+    Route::post('/transport/login', [ProviderLoginController::class, 'storeTransport'])
+        ->middleware('throttle:5,1')
+        ->name('transport.login.store');
 
     // Self-service reset: a code sent to the account's email or phone.
     Route::get('/forgot-password', [ProviderPasswordResetController::class, 'create'])->name('password.request');
@@ -360,12 +375,13 @@ Route::middleware(['auth:provider', 'provider.portal', 'provider.portal.context'
         Route::patch('/profile/password', [ProviderProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     });
 
-// Legacy cafeteria/portal aliases — all redirect to the general provider portal.
+// Legacy cafeteria/portal aliases — all redirect into the provider portal; the
+// sign-in goes to the cafeteria's own page.
 // Login routes are guest-only to prevent CSRF-forgery against authenticated sessions.
 Route::prefix('cafeteria/portal')->name('cafeteria.portal.')->group(function (): void {
     Route::middleware('guest:provider')->group(function (): void {
-        Route::get('/login', fn () => redirect()->route('provider.portal.login'))->name('login');
-        Route::post('/login', fn () => redirect()->route('provider.portal.login'))->name('login.store');
+        Route::get('/login', fn () => redirect()->route('provider.portal.cafeteria.login'))->name('login');
+        Route::post('/login', fn () => redirect()->route('provider.portal.cafeteria.login'))->name('login.store');
     });
     Route::post('/logout', fn () => redirect()->route('provider.portal.logout'))->name('logout');
     Route::get('/dashboard', fn () => redirect()->route('provider.portal.dashboard'))->name('dashboard');

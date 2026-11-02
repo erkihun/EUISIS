@@ -40,6 +40,7 @@ use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Feedback\Contracts\EmployeeFeedbackQr;
+use Modules\Feedback\Contracts\EmployeeFeedbackRatings;
 use Throwable;
 
 class EmployeeController extends Controller
@@ -598,6 +599,7 @@ class EmployeeController extends Controller
         OrganizationScopeService $organizationScopeService,
         EmployeeFeedbackQr $feedbackQr,
         IdCardQrCodeRenderer $qrRenderer,
+        EmployeeFeedbackRatings $feedbackRatings,
     ): Response {
         $this->authorize('view', $employee);
 
@@ -627,6 +629,8 @@ class EmployeeController extends Controller
             'qrCodes' => $this->qrCodes($request, $employee, $feedbackQr, $qrRenderer),
             'recentActivity' => $this->recentActivity($request, $employee),
             'reportingLine' => $reportingLine,
+            // Clients' star ratings, within the viewer's feedback grants and scope; null when they hold none.
+            'feedbackRating' => $feedbackRatings->summaryFor($employee, $request->user())?->toArray(),
         ]);
     }
 

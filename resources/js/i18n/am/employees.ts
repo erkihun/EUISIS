@@ -288,6 +288,11 @@ const employees = {
     noActiveCard: 'ንቁ የመታወቂያ ካርድ የለውም',
     recentActivity: 'የቅርብ ጊዜ ለውጦች',
     noRecentActivity: 'እስካሁን የተመዘገበ ለውጥ የለም።',
+    feedbackRatingTitle: 'የተገልጋይ አስተያየት ደረጃ',
+    feedbackRatingCount: 'በ:count የተገልጋይ ደረጃዎች ላይ የተመሠረተ',
+    feedbackRatingNone: 'እስካሁን ይህን ሠራተኛ የገመገመ ተገልጋይ የለም።',
+    feedbackRatingBreakdown: 'ደረጃዎች በኮከብ',
+    feedbackRatingOpen: 'አስተያየቶችን ይመልከቱ',
     systemActor: 'ሥርዓቱ',
     notAvailable: 'አይገኝም',
 

@@ -298,6 +298,11 @@ const employees = {
     noActiveCard: 'No active ID card',
     recentActivity: 'Recent changes',
     noRecentActivity: 'No recorded changes yet.',
+    feedbackRatingTitle: 'Client feedback rating',
+    feedbackRatingCount: 'Based on :count client ratings',
+    feedbackRatingNone: 'No client has rated this employee yet.',
+    feedbackRatingBreakdown: 'Ratings by star',
+    feedbackRatingOpen: 'View feedback',
     systemActor: 'System',
     notAvailable: 'Not available',
 

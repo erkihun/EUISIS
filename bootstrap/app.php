@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Modules\Cafeteria\Http\Middleware\RedirectCafeteriaToPlatform;
 use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -146,7 +147,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             if ($request->is('provider/portal*')) {
-                return redirect()->guest(route('provider.portal.login'));
+                return redirect()->guest(app(ProviderPortalSession::class)->loginUrl($request));
             }
 
             return redirect()->guest(route('login'));

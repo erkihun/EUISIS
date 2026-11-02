@@ -1,9 +1,15 @@
 import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { AuthField, CardHeading, ICONS, Notice, PasswordField, SubmitButton } from '@/Components/ProviderPortal/AuthFields';
+import type { ProviderPortal } from '@/Components/ProviderPortal/ProviderSignInForm';
 import { useLocale } from '@/hooks/useLocale';
+import CafeteriaAuthLayout from '@/Layouts/CafeteriaAuthLayout';
 import ProviderAuthLayout from '@/Layouts/ProviderAuthLayout';
+import TransportAuthLayout from '@/Layouts/TransportAuthLayout';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { FormEvent, useEffect, useState } from 'react';
+
+/** The reset wears the look of the portal it started from; with none, the general one. */
+const LAYOUTS = { cafeteria: CafeteriaAuthLayout, transport: TransportAuthLayout } as const;
 
 type Pending = {
     /** Exactly what the user typed; echoed back, never looked up from the account. */
@@ -17,15 +23,19 @@ export default function ForgotPassword({
     pending,
     smsAvailable,
     codeTtlMinutes,
+    portal = null,
 }: {
     pending: Pending | null;
     smsAvailable: boolean;
     codeTtlMinutes: number;
+    /** The portal the reset started from (cafeteria or transport). */
+    portal?: ProviderPortal | null;
 }) {
     const { t } = useLocale();
+    const Layout = portal ? LAYOUTS[portal] : ProviderAuthLayout;
 
     return (
-        <ProviderAuthLayout title={t('providerPortal.resetTitle')}>
+        <Layout title={t('providerPortal.resetTitle')}>
             <CardHeading
                 icon={ICONS.key}
                 title={t('providerPortal.resetTitle')}
@@ -38,7 +48,7 @@ export default function ForgotPassword({
 
             <div className="mt-6 border-t border-gray-200 pt-5 text-center dark:border-slate-800">
                 <Link
-                    href={route('provider.portal.login')}
+                    href={route(portal ? `provider.portal.${portal}.login` : 'provider.portal.login')}
                     className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
                 >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -47,7 +57,7 @@ export default function ForgotPassword({
                     {t('providerPortal.backToSignIn')}
                 </Link>
             </div>
-        </ProviderAuthLayout>
+        </Layout>
     );
 }
 

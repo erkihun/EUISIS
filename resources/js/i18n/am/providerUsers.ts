@@ -6,6 +6,8 @@ const providerUsers = {
     editTitle: 'የአቅራቢ ፖርታል መለያ ያሻሽሉ',
     backToList: 'ወደ መለያዎች ይመለሱ',
     portalAddress: 'የአቅራቢ ፖርታል መግቢያ አድራሻ',
+    portalAddress_cafeteria: 'ካፌቴሪያ',
+    portalAddress_transport: 'ትራንስፖርት',
 
     // Statistics
     statTotal: 'መለያዎች',

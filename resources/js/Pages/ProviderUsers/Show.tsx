@@ -32,8 +32,12 @@ function Detail({ term, children }: { term: string; children: ReactNode }) {
     );
 }
 
+/** The portals with their own sign-in page; a provider's active services decide which apply. */
+const PORTALS = ['cafeteria', 'transport'] as const;
+
 export default function ProviderUserShow({ account, history, can }: { account: Account; history: HistoryItem[]; can: AccountCan }) {
     const { t } = useLocale();
+    const portalLogins = PORTALS.filter((portal) => account.provider_services.some((service) => service.code === portal));
     const label = useLabel();
     const [pending, setPending] = useState<AccountAction | null>(null);
 
@@ -157,7 +161,18 @@ export default function ProviderUserShow({ account, history, can }: { account: A
                                 </div>
                                 <div>
                                     <p className="text-(--app-muted-foreground)">{t('providerUsers.portalAddress')}</p>
-                                    <code className="select-all break-all text-xs">{route('provider.portal.login')}</code>
+                                    {portalLogins.length === 0 ? (
+                                        <code className="select-all break-all text-xs">{route('provider.portal.login')}</code>
+                                    ) : (
+                                        <ul className="space-y-1">
+                                            {portalLogins.map((portal) => (
+                                                <li key={portal}>
+                                                    <span className="text-xs text-(--app-muted-foreground)">{t(`providerUsers.portalAddress_${portal}`)}: </span>
+                                                    <code className="select-all break-all text-xs">{route(`provider.portal.${portal}.login`)}</code>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             </div>
                         </Card>

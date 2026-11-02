@@ -63,22 +63,22 @@ function createPortalUserWithProvider(): array
     return [$providerUser, $provider];
 }
 
-test('provider login renders the general provider portal login page', function (): void {
+test('provider login renders the portal choice', function (): void {
     $this->get(route('provider.portal.login'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('ProviderPortal/Auth/Login')
+            ->component('ProviderPortal/Auth/ChoosePortal')
         );
 });
 
-test('provider dashboard requires provider authentication', function (): void {
+test('provider dashboard requires provider authentication, on the cafeteria sign-in', function (): void {
     $this->get(route('provider.portal.dashboard'))
-        ->assertRedirect(route('provider.portal.login'));
+        ->assertRedirect(route('provider.portal.cafeteria.login'));
 });
 
-test('legacy cafeteria portal login redirects to provider portal login', function (): void {
+test('legacy cafeteria portal login redirects to the cafeteria sign-in', function (): void {
     $this->get(route('cafeteria.portal.login'))
-        ->assertRedirect(route('provider.portal.login'));
+        ->assertRedirect(route('provider.portal.cafeteria.login'));
 });
 
 test('provider-only system user is redirected away from admin dashboard', function (): void {

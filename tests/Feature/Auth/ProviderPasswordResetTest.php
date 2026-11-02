@@ -309,3 +309,26 @@ test('a signed-in provider is sent to their portal instead of the reset page', f
         ->get(route('provider.portal.password.request'))
         ->assertRedirect(route('provider.portal.dashboard'));
 });
+
+test('a reset begun from a portal keeps its look and returns to that portal\'s sign-in', function (): void {
+    $user = providerResetAccount();
+
+    $this->get(route('provider.portal.password.request', ['portal' => 'transport']))
+        ->assertInertia(fn (Assert $page) => $page->where('portal', 'transport'));
+
+    $this->post(route('provider.portal.password.send'), ['identifier' => 'reset-operator@example.test'])->assertSessionHasNoErrors();
+
+    // The portal survives the redirects between the steps.
+    $this->get(route('provider.portal.password.request'))
+        ->assertInertia(fn (Assert $page) => $page->where('portal', 'transport'));
+
+    providerResetSubmit(providerResetEmailedCode($user))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('provider.portal.transport.login'))
+        ->assertSessionHas('status', __('provider-portal.reset_complete'));
+});
+
+test('an unknown portal on the reset link is ignored', function (): void {
+    $this->get(route('provider.portal.password.request', ['portal' => 'admin']))
+        ->assertInertia(fn (Assert $page) => $page->where('portal', null));
+});

@@ -22,6 +22,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Providers\Application\Notifications\ProviderPasswordResetCodeNotification;
+use Modules\Providers\Contracts\Data\ProviderPortalEntry;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Domain\Models\ProviderPasswordResetCode;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Throwable;
@@ -41,6 +43,9 @@ class ProviderPasswordResetController extends Controller
 {
     private const SESSION_KEY = 'provider_password_reset';
 
+    /** The portal (cafeteria or transport) the visitor started the reset from. */
+    private const PORTAL_KEY = 'provider_password_reset_portal';
+
     private const CHANNEL_EMAIL = 'email';
 
     private const CHANNEL_SMS = 'sms';
@@ -57,7 +62,14 @@ class ProviderPasswordResetController extends Controller
     {
         $pending = $request->session()->get(self::SESSION_KEY);
 
+        // Only the two known portals are kept; anything else in the query is ignored.
+        $fromQuery = ProviderPortalEntry::tryFrom((string) $request->query('portal'));
+        if ($fromQuery !== null) {
+            $request->session()->put(self::PORTAL_KEY, $fromQuery->value);
+        }
+
         return Inertia::render('ProviderPortal/Auth/ForgotPassword', [
+            'portal' => $this->portal($request)?->value,
             'pending' => is_array($pending) ? [
                 'identifier' => $pending['identifier'],
                 'channel' => $pending['channel'],
@@ -171,9 +183,21 @@ class ProviderPasswordResetController extends Controller
         }
 
         $request->session()->forget(self::SESSION_KEY);
+        $portal = $this->portal($request);
+        $request->session()->forget(self::PORTAL_KEY);
 
-        return redirect()->route('provider.portal.login')
+        // Back to the portal the reset started from, else the one this browser signs in to, else the choice.
+        $loginUrl = $portal !== null
+            ? route($portal->loginRouteName())
+            : app(ProviderPortalSession::class)->loginUrl($request);
+
+        return redirect()->to($loginUrl)
             ->with('status', __('provider-portal.reset_complete'));
+    }
+
+    private function portal(Request $request): ?ProviderPortalEntry
+    {
+        return ProviderPortalEntry::tryFrom((string) $request->session()->get(self::PORTAL_KEY));
     }
 
     public function cancel(Request $request): RedirectResponse

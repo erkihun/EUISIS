@@ -1,11 +1,7 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import LanguageSwitcher from '@/Components/LanguageSwitcher';
-import ThemeToggle from '@/Components/ThemeToggle';
+import { AuthTopBar, SystemLogo, usePortalBranding } from '@/Components/ProviderPortal/AuthChrome';
 import { useLocale } from '@/hooks/useLocale';
-import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Head } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
-import { useBranding } from '@/hooks/useBranding';
 
 const FEATURES = [
     { key: 'providerPortal.featureScan', icon: 'M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5ZM6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z' },
@@ -14,16 +10,14 @@ const FEATURES = [
     { key: 'providerPortal.featureReports', icon: 'M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z' },
 ];
 
-/** The provider portal's signed-out pages: branding panel on the left, the page's card on the right. */
+/**
+ * The provider portal's shared signed-out pages (choosing a portal, a
+ * password reset begun from neither): branding panel on the left, the page's
+ * card on the right. Each service's own sign-in has its own layout.
+ */
 export default function ProviderAuthLayout({ title, children }: PropsWithChildren<{ title: string }>) {
-    const { t, locale } = useLocale();
-    const { getString } = useSystemSettings();
-
-    const { brandName: systemName } = useBranding();
-    const systemLogoUrl = getString('general.identity_system_logo_url', '');
-    const orgName = locale === 'am'
-        ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
-        : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
+    const { t } = useLocale();
+    const { systemName, orgName } = usePortalBranding();
 
     return (
         <div className="flex min-h-screen">
@@ -41,11 +35,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                 <div className="relative z-10 flex h-full flex-col items-center justify-between px-10 py-10 text-center">
                     <div className="flex flex-col items-center gap-3">
-                        {systemLogoUrl ? (
-                            <img src={systemLogoUrl} alt={systemName} width={180} height={64} decoding="async" className="h-16 w-auto max-w-[180px] object-contain drop-shadow-lg" />
-                        ) : (
-                            <ApplicationLogo className="h-16 w-auto max-w-[180px] fill-white drop-shadow-lg" />
-                        )}
+                        <SystemLogo size="lg" onDark />
                         <p className="text-lg font-bold tracking-wide text-white">{systemName}</p>
                     </div>
 
@@ -82,20 +72,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
             {/* ── Right form panel ──────────────────────────────────────── */}
             <div className="flex flex-1 flex-col bg-(--app-surface-muted) dark:bg-[#0d0f14]">
-                <div className="flex items-center justify-between gap-3 px-6 py-5">
-                    <div className="flex items-center gap-2.5 lg:invisible">
-                        {systemLogoUrl ? (
-                            <img src={systemLogoUrl} alt={systemName} width={80} height={32} decoding="async" className="h-8 w-auto max-w-[80px] object-contain" />
-                        ) : (
-                            <ApplicationLogo className="h-8 w-auto max-w-[80px] fill-slate-800 dark:fill-white" />
-                        )}
-                        <span className="text-sm font-bold text-(--app-foreground)">{systemName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <LanguageSwitcher />
-                        <ThemeToggle />
-                    </div>
-                </div>
+                <AuthTopBar />
 
                 <div className="flex flex-1 items-center justify-center px-6 pb-10">
                     <div className="w-full max-w-[400px]">
