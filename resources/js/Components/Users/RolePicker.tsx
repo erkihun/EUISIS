@@ -7,21 +7,26 @@ export type PickableRole = { id: number; name: string; scope: 'organization' | '
 /** The groups roles are shown in, by name; the first match wins and "other" takes the rest. */
 const ROLE_CATEGORIES = [
     { key: 'administration', names: /^(Super Admin|System Admin|City Admin|Public Service Bureau Admin|Organizational Admin)$/ },
-    { key: 'hr', names: /^(HR Officer|Employee|Daily Activity .*)$/ },
-    { key: 'structure', names: /^Structure / },
+    { key: 'hr', names: /^(HR Officer|Employee|Supervisor|Functional Supervisor|Daily Activity .*|Field Work .*)$/ },
+    { key: 'transfers', names: /^(Transfer |Vacancy )/ },
+    { key: 'structure', names: /^(Structure |Organization Registrar$|Code Rule )/ },
     { key: 'identity', names: /^(ID Card |NFC )/ },
-    { key: 'security', names: /^(Security Settings Manager|System Settings Admin|API Manager|Public Site Manager)$/ },
+    { key: 'security', names: /^(Security Settings Manager|System Settings Admin|API Manager|Public Site Manager|Workflow Policy Administrator|Recycle Bin Manager)$/ },
+    { key: 'platform', names: /^(Platform Operations Engineer|Help Desk Agent|Backup Operator|Recovery |Intelligence Governance Officer)/ },
+    { key: 'executive', names: /^(Situation Room |Intelligence Analyst$)/ },
     { key: 'reporting', names: /^(Auditor|Report Viewer)$/ },
-    { key: 'performance', names: /^Performance / },
-    { key: 'grievances', names: /^(Grievance |Administrative Tribunal )/ },
-    { key: 'services', names: /^(Cafeteria |Transport |Service Provider |Settlement )/ },
+    { key: 'performance', names: /^(Performance |Assessment )/ },
+    { key: 'feedback', names: /^Public Feedback / },
+    { key: 'grievances', names: /^(Grievance |Administrative Tribunal |Discipline |Disciplinary )/ },
+    { key: 'court', names: /^Court / },
+    { key: 'services', names: /^(Cafeteria |Transport |Service Provider |Settlement |Service Entitlement |Reception |Information Officer$)/ },
     { key: 'other', names: /.*/ },
 ] as const;
 
 /**
  * The roles to give a user: a search box, a "selected only" switch and the
  * roles in collapsible groups, each group showing how many of its roles are
- * picked. With 80-odd roles, the groups start closed unless they hold a
+ * picked. With 100-odd roles, the groups start closed unless they hold a
  * selected role or match the search.
  */
 export default function RolePicker({ roles, selected, onToggle, onClear, error }: {

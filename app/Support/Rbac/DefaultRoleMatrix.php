@@ -15,7 +15,7 @@ use Modules\Performance\Contracts\Data\PerformanceRoles;
 use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
 
 /**
- * Default system roles and their permissions (docs/default-role-permission-matrix.md).
+ * Default system roles and their permissions (docs/rbac-architecture.md, ADR 0026).
  *
  * Roles say what someone may do; OrganizationScopeService says where. So
  * there is one Organizational Admin role, scoped per user, never "Bole HR
@@ -69,6 +69,94 @@ final class DefaultRoleMatrix
     private const PUBLIC_SITE_MODULES = [
         'public_site', 'public_home', 'public_announcements', 'public_services', 'public_support',
         'public_navigation', 'public_footer', 'public_branding', 'public_seo', 'public_site_settings',
+    ];
+
+    /**
+     * Granted by no default role but the administrators, on purpose (ADR 0026):
+     * irreversible deletion, impersonation, sensitive user fields, the city-wide
+     * publication of a hierarchy version, and `approve_own`, which nobody holds.
+     * Legacy aliases kept for old databases are listed in LEGACY_ALIASES instead.
+     *
+     * @var list<string>
+     */
+    public const ADMIN_ONLY = [
+        'users.delete', 'users.viewSensitive', 'recycle-bin.forceDelete', 'cafeteria-portal.impersonate',
+        'code-rules.delete', 'hierarchy-versions.publish', 'hierarchy-versions.archive',
+        'organizational-change-requests.approve_own',
+    ];
+
+    /**
+     * Legacy permission names that newer, finer permissions replaced. They stay
+     * in the catalog for databases that still carry them and are granted to no
+     * default role (the modules map them to the new sets themselves).
+     *
+     * @var list<string>
+     */
+    public const LEGACY_ALIASES = [
+        'organizations.manage', 'entitlements.manage',
+        'grievances.view', 'grievances.manage', 'grievances.committee', 'grievances.chairperson', 'grievances.manager',
+    ];
+
+    /** What the signed-in employee may do with their own transfer and vacancy applications. */
+    private const EMPLOYEE_SELF_SERVICE = [
+        'transfers.applications.create', 'vacancy-applications.submit', 'vacancy-applications.withdraw',
+    ];
+
+    /** Opening the Transfer module and reading what is in scope; every transfer role starts here. */
+    private const TRANSFER_READ = [
+        'transfers.view', 'transfers.viewAny', 'transfers.applications.view', 'transfers.announcements.view', 'transfers.reports.view',
+    ];
+
+    /** Reading public submissions in scope: Feedback and Tip-offs, Complaints, and both targets. */
+    private const FEEDBACK_READ = [
+        'service_feedback.view', 'service_feedback.complaints.view',
+        'service_feedback.view_organization_target', 'service_feedback.view_employee_target',
+    ];
+
+    /** The Situation Room categories (docs/situation-room-access-control.md). */
+    private const SITUATION_ROOM_DOMAINS = [
+        'situation_room.workforce.view', 'situation_room.public_voice.view', 'situation_room.operations.view',
+        'situation_room.performance.view', 'situation_room.cafeteria.view', 'situation_room.transport.view', 'situation_room.cases.view',
+    ];
+
+    /** Intelligence business areas (docs/intelligence-architecture.md D-3: business ≠ technical). */
+    private const INTELLIGENCE_BUSINESS = [
+        'intelligence.view', 'intelligence.executive.view', 'intelligence.workforce.view', 'intelligence.service.view',
+        'intelligence.public-voice.view', 'intelligence.performance.view', 'intelligence.forecasting.view',
+        'intelligence.data-quality.view', 'intelligence.knowledge.view',
+        'intelligence.recommendations.view', 'intelligence.recommendations.review',
+    ];
+
+    /** Intelligence technical areas: platform health, incidents, diagnostics and runbooks. */
+    private const INTELLIGENCE_TECHNICAL = [
+        'intelligence.view', 'intelligence.system-health.view', 'intelligence.incidents.view', 'intelligence.incidents.manage',
+        'intelligence.diagnostics.view', 'intelligence.application-health.view', 'intelligence.database-health.view',
+        'intelligence.queue-health.view', 'intelligence.integration-health.view', 'intelligence.deployment-analysis.view',
+        'intelligence.runbooks.view', 'intelligence.runbooks.execute', 'intelligence.data-quality.view',
+        'intelligence.recommendations.view', 'intelligence.recommendations.review',
+    ];
+
+    /** Backup health, history and alerts; recovery itself is a four-eyes workflow (docs/backup-recovery-architecture.md). */
+    private const BACKUP_READ = ['backups.view_status', 'backups.view_history', 'backups.view_logs'];
+
+    /** Reading a court file: cases, documents, hearings, letters, decisions, appeals, parties, inspections. */
+    private const COURT_READ = [
+        'court.cases.view', 'court.file.view', 'court.hearing.view', 'court.letters.view', 'court.letters.templet.view',
+        'court.decisions.view', 'court.decision.view', 'court.appeals.view', 'court.applicants.view', 'court.view.inspections',
+    ];
+
+    /** What a judge does on the bench: bench notes, hearings, draft decisions, messages to the parties. */
+    private const COURT_JUDGE = [
+        'dashboard.view', ...self::COURT_READ, 'court.judge',
+        'court.bench-notes.view', 'court.bench-notes.create', 'court.bench-notes.update', 'court.bench-notes.delete', 'court.bench-notes.manage',
+        'court.decision.create', 'court.decision.update', 'court.hearing.create', 'court.hearing.update',
+        'court.notes.manage', 'court.message.create',
+    ];
+
+    /** Handling public submissions assigned to the user: review, outcome, closure. */
+    private const FEEDBACK_HANDLER = [
+        'dashboard.view', ...self::FEEDBACK_READ,
+        'service_feedback.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close',
     ];
 
     /** @var array<string, array{description_en: string, description_am: string, scope: string, permissions: list<string>}>|null */
@@ -155,8 +243,10 @@ final class DefaultRoleMatrix
                 'vacancy-announcements.viewAny', 'vacancy-announcements.view',
                 'vacancy-applications.viewAny', 'vacancy-applications.view',
                 'users.viewAny', 'users.view', 'users.create', 'users.update', 'users.deactivate', 'users.archive', 'users.restore',
-                'users.assignRoles', 'users.assignOrganizationScopes',
-                'user-organization-scopes.viewAny', 'user-organization-scopes.create', 'user-organization-scopes.update', 'user-organization-scopes.delete',
+                'users.assignRoles', 'users.assignOrganizationScopes', 'users.updateProfilePhoto',
+                'user-organization-scopes.viewAny', 'user-organization-scopes.create', 'user-organization-scopes.update',
+                'user-organization-scopes.delete', 'user-organization-scopes.restore',
+                'structural-offices.view', 'structural-offices.manage', 'structural-offices.assignUsers', 'structural-offices.manageEmployees',
                 'service_feedback.view', 'service_feedback.review', 'service_feedback.hide', 'service_feedback.export', 'service_feedback.settings.manage',
                 'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
                 ...ReportingLineRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
@@ -181,7 +271,7 @@ final class DefaultRoleMatrix
                 'entitlements.view', 'entitlements.viewAny', 'service-types.viewAny', 'service-types.view',
                 'entitlement-rules.viewAny', 'entitlement-rules.view',
                 'transfers.viewAny', 'transfers.view', 'transfers.create', 'transfers.update', 'transfers.submit',
-                'transfers.applications.view',
+                'transfers.applications.view', 'structural-offices.view',
                 ...ReportingLineRoles::HR_PERMISSIONS,
                 ...DailyActivityRoles::HR_OVERSIGHT_PERMISSIONS,
                 ...FieldWorkRoles::HR_OVERSIGHT_PERMISSIONS,
@@ -192,6 +282,48 @@ final class DefaultRoleMatrix
                 ...CommunicationRoles::HR_PERMISSIONS,
             ], 'Keeps employee records, imports, card requests and transfer paperwork within scope. The only default role that sees employee personal identifiers (employees.viewPii).',
                 'በወሰኑ ውስጥ የሠራተኛ መዝገቦችን፣ ማስገባቶችን፣ የመታወቂያ ጥያቄዎችን እና የዝውውር ሰነዶችን ይይዛል። የሠራተኞችን የግል መለያ የሚያይ ብቸኛው ነባሪ ሚና።'),
+
+            // ── Employee transfers and vacancies (officer ≠ approver ≠ final approver ≠ implementer) ─
+            // Scope decides which side of a transfer the user acts for: release needs the
+            // releasing institution in scope, receiving the receiving one (EmployeeTransferPolicy).
+            'Transfer Vacancy Officer' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::TRANSFER_READ,
+                'transfers.announcements.create', 'transfers.announcements.update', 'transfers.announcements.publish', 'transfers.announcements.close',
+                'transfers.applications.screen', 'transfers.create', 'transfers.update', 'transfers.submit', 'transfers.cancel',
+                'employees.viewAny', 'employees.view', 'positions.viewAny', 'positions.view',
+            ], 'Runs transfer vacancies for the institutions in scope: announces, publishes and closes them, screens applications, and drafts, submits or cancels direct transfer requests. Approves nothing.',
+                'በወሰኑ ውስጥ ላሉ ተቋማት የዝውውር ክፍት የሥራ መደቦችን ያካሂዳል፡ ያውጃል፣ ያትማል፣ ይዘጋል፣ ማመልከቻዎችን ያጣራል፣ ቀጥተኛ የዝውውር ጥያቄዎችን ያረቅቃል፣ ያቀርባል ወይም ይሰርዛል። ምንም አያጸድቅም።'),
+            'Transfer Approver' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::TRANSFER_READ, 'employees.viewAny', 'employees.view',
+                'transfers.release.approve', 'transfers.receiving.approve',
+                'transfers.confirmCurrentOrganization', 'transfers.confirmReceivingOrganization',
+                'transfers.approve', 'transfers.reject',
+            ], 'Institution head or delegate: approves or rejects the release of an employee by the institution in scope and the acceptance of an employee into it. Never gives the final city-level approval.',
+                'የተቋም ኃላፊ ወይም ወኪል፡ በወሰኑ ውስጥ ያለው ተቋም ሠራተኛን መልቀቁን እና ሠራተኛን መቀበሉን ያጸድቃል ወይም ውድቅ ያደርጋል። የመጨረሻውን የከተማ ደረጃ ማጽደቅ በፍጹም አይሰጥም።'),
+            'Transfer Final Approver' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::TRANSFER_READ, 'employees.viewAny', 'employees.view',
+                'transfers.final.approve', 'transfers.override.approve',
+            ], 'City or bureau level: gives the final approval of transfers that both institutions have approved and decides exceptional policy overrides. Does not execute the transfer.',
+                'የከተማ ወይም የቢሮ ደረጃ፡ ሁለቱም ተቋማት ያጸደቋቸውን ዝውውሮች በመጨረሻ ያጸድቃል፤ ልዩ የፖሊሲ ማለፊያ ጥያቄዎችን ይወስናል። ዝውውሩን አይፈጽምም።'),
+            'Transfer Administrator' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::TRANSFER_READ, 'employees.viewAny', 'employees.view',
+                'transfers.complete', 'transfers.settings.manage', 'transfers.reports.export', 'transfers.export',
+            ], 'Executes finally approved transfers (closes the old assignment, opens the new one), keeps the transfer policy settings and exports transfer reports. Approves nothing.',
+                'በመጨረሻ የጸደቁ ዝውውሮችን ይፈጽማል (የቀድሞውን ምደባ ይዘጋል፣ አዲሱን ይከፍታል)፣ የዝውውር ፖሊሲ ቅንብሮችን ይይዛል፣ የዝውውር ሪፖርቶችን ወደ ውጭ ይልካል። ምንም አያጸድቅም።'),
+            'Vacancy Officer' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'positions.viewAny', 'positions.view',
+                'vacancy-announcements.viewAny', 'vacancy-announcements.view', 'vacancy-announcements.create',
+                'vacancy-announcements.update', 'vacancy-announcements.close', 'vacancy-announcements.delete',
+                'vacancy-applications.viewAny', 'vacancy-applications.view', 'vacancy-applications.screen',
+            ], 'Drafts, edits and closes vacancy announcements for the institutions in scope and screens the applications. Publication and selection belong to the Vacancy Selection Approver.',
+                'በወሰኑ ውስጥ ላሉ ተቋማት የክፍት የሥራ መደብ ማስታወቂያዎችን ያረቅቃል፣ ያስተካክላል፣ ይዘጋል፤ ማመልከቻዎችን ያጣራል። ማሳተም እና መምረጥ የክፍት የሥራ መደብ ምርጫ አጽዳቂው ነው።'),
+            'Vacancy Selection Approver' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'positions.viewAny', 'positions.view', 'transfers.view', 'transfers.viewAny',
+                'vacancy-announcements.viewAny', 'vacancy-announcements.view', 'vacancy-announcements.publish',
+                'vacancy-applications.viewAny', 'vacancy-applications.view', 'vacancy-applications.select',
+                'vacancy-applications.reject', 'vacancy-applications.initiateTransfer',
+            ], 'Publishes screened vacancy announcements, selects or rejects screened applicants and starts the transfer of a selected employee. Cannot draft announcements or screen.',
+                'የተጣሩ የክፍት የሥራ መደብ ማስታወቂያዎችን ያትማል፣ የተጣሩ አመልካቾችን ይመርጣል ወይም ውድቅ ያደርጋል፣ የተመረጠውን ሠራተኛ ዝውውር ይጀምራል። ማስታወቂያ ማርቀቅ ወይም ማጣራት አይችልም።'),
 
             // ── Organization Design & Workforce Planning (designer ≠ approver) ─
             // Records enforce maker ≠ checker themselves; the roles keep the two
@@ -240,38 +372,68 @@ final class DefaultRoleMatrix
             'Structure Change Reviewer' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'organizations.viewAny', 'organizations.view', 'organization-units.viewAny', 'organization-units.view',
                 'positions.viewAny', 'positions.view', 'hierarchy-versions.viewAny', 'hierarchy-versions.view',
+                'position-establishments.viewAny', 'position-establishments.view', 'position-establishments.approve',
                 'organizational-change-requests.view', 'organizational-change-requests.review',
                 'organizational-change-requests.request_correction', 'organizational-change-requests.approve',
                 'organizational-change-requests.reject',
-            ], 'Reviews, returns, approves or rejects structure change requests. Cannot implement changes or approve their own requests.',
-                'የመዋቅር ለውጥ ጥያቄዎችን ይገመግማል፣ ይመልሳል፣ ያጸድቃል ወይም ውድቅ ያደርጋል። ለውጦችን መተግበር ወይም የራሱን ጥያቄ ማጽደቅ አይችልም።'),
+            ], 'Reviews, returns, approves or rejects structure change requests and approves position establishment records. Cannot implement changes or approve their own requests.',
+                'የመዋቅር ለውጥ ጥያቄዎችን ይገመግማል፣ ይመልሳል፣ ያጸድቃል ወይም ውድቅ ያደርጋል፤ የሥራ መደብ ምሥረታ መዝገቦችን ያጸድቃል። ለውጦችን መተግበር ወይም የራሱን ጥያቄ ማጽደቅ አይችልም።'),
             'Structure Implementation Officer' => self::role(self::SCOPE_SCOPED, [
-                'dashboard.view', 'organizations.viewAny', 'organizations.view',
+                'dashboard.view', 'core.access', 'organizations.viewAny', 'organizations.view',
                 'organization-units.viewAny', 'organization-units.view', 'organization-units.create', 'organization-units.update',
                 'organization-units.archive', 'organization-units.restore', 'organization-units.manageHierarchy',
+                'organization-units.delete', 'organization-units.viewDeleted', 'organization-units.export',
                 'positions.viewAny', 'positions.view', 'positions.create', 'positions.update', 'positions.move',
-                'positions.archive', 'positions.restore',
-                'position-establishments.viewAny', 'position-establishments.view',
+                'positions.archive', 'positions.restore', 'positions.delete', 'positions.viewDeleted', 'positions.export',
+                'position-establishments.viewAny', 'position-establishments.view', 'position-establishments.create',
+                'position-establishments.update', 'position-establishments.archive', 'position-establishments.restore',
                 'hierarchy-versions.viewAny', 'hierarchy-versions.view', 'hierarchy-versions.create', 'hierarchy-versions.update',
                 'hierarchy-versions.manageTree', 'organization-edges.view', 'organization-edges.create', 'organization-edges.update',
+                'organization-edges.remove',
                 'organizational-change-requests.view', 'organizational-change-requests.view_approved',
                 'organizational-change-requests.assign_implementation', 'organizational-change-requests.implement',
                 'organizational-change-requests.complete',
-            ], 'The establishment/structure team: applies approved change requests to units, positions and draft hierarchy versions. Cannot approve requests or publish hierarchy versions.',
-                'የመዋቅር ቡድን፡ የጸደቁ የለውጥ ጥያቄዎችን በክፍሎች፣ በሥራ መደቦች እና በረቂቅ የተዋረድ ስሪቶች ላይ ይተገብራል። ጥያቄዎችን ማጽደቅ ወይም የተዋረድ ስሪቶችን ማሳተም አይችልም።'),
+            ], 'The establishment/structure team: applies approved change requests to units, positions, position establishments and draft hierarchy versions. Cannot approve requests or publish hierarchy versions.',
+                'የመዋቅር ቡድን፡ የጸደቁ የለውጥ ጥያቄዎችን በክፍሎች፣ በሥራ መደቦች፣ በሥራ መደብ ምሥረታዎች እና በረቂቅ የተዋረድ ስሪቶች ላይ ይተገብራል። ጥያቄዎችን ማጽደቅ ወይም የተዋረድ ስሪቶችን ማሳተም አይችልም።'),
+            'Organization Registrar' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'core.access', ...self::STRUCTURE_READ,
+                'organizations.create', 'organizations.update', 'organizations.delete', 'organizations.import',
+                'institution-offices.viewAny', 'institution-offices.view', 'institution-offices.create', 'institution-offices.update',
+                'institution-offices.delete', 'institution-offices.restore', 'institution-offices.move', 'institution-offices.viewTree',
+                'institution-offices.export',
+                'relationships.viewAny', 'relationships.view', 'relationships.create', 'relationships.update',
+                'relationships.delete', 'relationships.restore',
+                'structural-offices.view', 'hierarchy-versions.viewAny', 'hierarchy-versions.view', 'organization-edges.view',
+                'organization-units.export', 'positions.export',
+            ], 'Registers and maintains the institutions in scope, their offices and their structural and functional relationships, and imports organization lists. Units and positions follow the change-request workflow; hierarchy versions are published by City Admin.',
+                'በወሰኑ ውስጥ ያሉ ተቋማትን፣ ጽሕፈት ቤቶቻቸውን እና መዋቅራዊና ተግባራዊ ግንኙነቶቻቸውን ይመዘግባል፣ ይይዛል፤ የተቋማት ዝርዝር ያስገባል። የሥራ ክፍሎች እና የሥራ መደቦች በለውጥ ጥያቄ ሂደት ይሠራሉ፤ የተዋረድ ስሪቶች በከተማ አስተዳዳሪ ይታተማሉ።'),
+            'Structure Catalog Manager' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'core.access',
+                ...PermissionCatalog::matching('organization-types', 'organization-unit-types', 'grade-levels', 'occupations', 'isic-activities'),
+            ], 'City-wide classification master data of the structure: organization types, unit types, grade levels, the occupation catalog and ISIC activities. Nothing organization-specific.',
+                'የመዋቅሩ የከተማ አቀፍ የምደባ ዋና መረጃ፡ የተቋም ዓይነቶች፣ የሥራ ክፍል ዓይነቶች፣ የደረጃ መዓርጎች፣ የሙያ ካታሎግ እና የISIC ተግባራት። የተቋም-ተኮር ነገር የለም።'),
+            'Code Rule Administrator' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...array_values(array_diff(PermissionCatalog::matching('code-rules'), ['code-rules.delete'])),
+            ], 'Defines the code generation rules (employee, unit, position and card numbers), their sequences and manual overrides, previews and triggers generation. Rules are archived, never deleted.',
+                'የኮድ አመንጪ ደንቦችን (የሠራተኛ፣ የሥራ ክፍል፣ የሥራ መደብ እና የመታወቂያ ቁጥሮች)፣ ተከታታይ ቁጥሮቻቸውን እና በእጅ ማለፊያዎችን ይወስናል፤ ቅድመ-እይታ ያደርጋል፣ ማመንጨት ይጀምራል። ደንቦች ይቀመጣሉ እንጂ አይሰረዙም።'),
+            'Functional Supervisor' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...PermissionCatalog::matching('functional-reporting'),
+            ], 'Technical or professional supervision through configured functional reporting lines: sees, approves and exports only what those lines expose. Grants no structural authority.',
+                'በተዋቀሩ የተግባር ሪፖርት መስመሮች በኩል ቴክኒካዊ ወይም ሙያዊ ቁጥጥር፡ እነዚያ መስመሮች የሚያሳዩትን ብቻ ያያል፣ ያጸድቃል፣ ወደ ውጭ ይልካል። መዋቅራዊ ሥልጣን አይሰጥም።'),
 
             // ── ID cards and verification ───────────────────────────────────
             'ID Card Officer' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'cards.view', 'cards.manage', 'service-types.viewAny', 'service-types.view',
                 'id-cards.viewAny', 'id-cards.view', 'id-cards.create', 'id-cards.update', 'id-cards.submitRequest',
                 'id-cards.verifyRequest', 'id-cards.createPrintBatch', 'id-cards.print', 'id-cards.reportLost',
-                'id-cards.reportDamaged', 'id-cards.exportPng', 'id-cards.previewSvg', 'card-verifications.viewAny',
+                'id-cards.reportDamaged', 'id-cards.exportPng', 'id-cards.previewSvg', 'id-cards.export', 'id-cards.verify',
+                'card-verifications.viewAny',
             ], 'Prepares, verifies and prints ID cards and records loss or damage. Approval, issuing and revocation belong to the ID Card Approver.',
                 'መታወቂያዎችን ያዘጋጃል፣ ያረጋግጣል፣ ያትማል፤ መጥፋትን ወይም ጉዳትን ይመዘግባል። ማጽደቅ፣ መስጠት እና መሰረዝ የመታወቂያ አጽዳቂው ነው።'),
             'ID Card Approver' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'cards.view', 'id-cards.viewAny', 'id-cards.view', 'id-cards.previewSvg',
                 'id-cards.approveRequest', 'id-cards.rejectRequest', 'id-cards.issue', 'id-cards.activate',
-                'id-cards.replace', 'id-cards.revoke', 'card-verifications.viewAny',
+                'id-cards.replace', 'id-cards.revoke', 'id-cards.archive', 'id-cards.verify', 'card-verifications.viewAny',
             ], 'Approves or rejects card requests and issues, activates, replaces or revokes cards. Does not prepare or print them.',
                 'የመታወቂያ ጥያቄዎችን ያጸድቃል ወይም ውድቅ ያደርጋል፤ መታወቂያዎችን ይሰጣል፣ ያነቃል፣ ይተካል ወይም ይሰርዛል። አያዘጋጅም አያትምም።'),
             'NFC Provisioning Officer' => self::role(self::SCOPE_SCOPED, [
@@ -279,12 +441,17 @@ final class DefaultRoleMatrix
                 'nfc_credentials.suspend', 'nfc_credentials.revoke', 'nfc_credentials.replace', 'nfc_terminals.view', 'nfc_logs.view',
             ], 'Provisions NFC credentials and manages their lifecycle. Terminal verification itself uses API applications, not this role.',
                 'የNFC ምስክርነቶችን ያዘጋጃል እና የሕይወት ዑደታቸውን ያስተዳድራል። የተርሚናል ማረጋገጫ በAPI መተግበሪያዎች ይሠራል።'),
+            'NFC Terminal Administrator' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'nfc_terminals.view', 'nfc_terminals.manage', 'nfc_terminals.create', 'nfc_terminals.update',
+                'nfc_terminals.delete', 'nfc_logs.view',
+            ], 'Registers, updates and retires the NFC service terminals of the institutions in scope and reads their logs. Credentials are provisioned by the NFC Provisioning Officer, never by this role.',
+                'በወሰኑ ውስጥ ላሉ ተቋማት የNFC አገልግሎት ተርሚናሎችን ይመዘግባል፣ ያዘምናል፣ ያስወግዳል፤ ምዝግቦቻቸውን ያነባል። ምስክርነቶች በNFC አዘጋጅ ኃላፊ እንጂ በዚህ ሚና አይዘጋጁም።'),
 
             // ── Security, audit, settings, integrations ──────────────────────
             'Security Settings Manager' => self::role(self::SCOPE_GLOBAL, [
                 'dashboard.view', 'audit.view', 'audit-logs.viewAny',
                 'roles.viewAny', 'roles.view', 'roles.create', 'roles.update', 'roles.delete', 'roles.assignPermissions',
-                'permissions.viewAny', 'permissions.view',
+                'permissions.viewAny', 'permissions.view', 'permissions.create', 'permissions.update', 'permissions.delete',
                 'users.viewAny', 'users.view', 'users.assignRoles', 'users.resetPassword', 'users.deactivate',
                 'user-organization-scopes.viewAny',
                 'system-settings.view', 'system-settings.manageSecurity', 'system-settings.manageEmail',
@@ -295,6 +462,7 @@ final class DefaultRoleMatrix
                 'dashboard.view', 'system-settings.view', 'system-settings.update', 'system-settings.manageGeneral',
                 'system-settings.manageLocalization', 'system-settings.manageNotifications', 'system-settings.manageAppearance',
                 'system-settings.manageUi', 'system-settings.manageIdCards', 'system-settings.uploadAssets', 'system-settings.clearCache',
+                'system-settings.manageSituationRoom',
                 'id_card_templates.view', 'id_card_templates.create', 'id_card_templates.update', 'id_card_templates.delete',
                 'id_card_templates.set_default',
             ], 'Operational settings: general, localization, notifications, appearance, ID card settings and templates. No security settings, credentials, roles or API access.',
@@ -304,11 +472,12 @@ final class DefaultRoleMatrix
                 'api_management.delete', 'api_management.tokens.create', 'api_management.tokens.revoke',
                 'api_management.logs.view', 'api_management.docs.view', 'api_management.endpoints.view',
                 'api_management.endpoints.sync', 'api_management.endpoints.update',
-                'integrations.view', 'integrations.manage', 'integrations.deliveries.view',
+                'integrations.view', 'integrations.manage', 'integrations.deliveries.view', 'integrations.replay', 'integrations.payload.view',
             ], 'Manages external API applications, tokens, endpoints and logs. A token is shown once at issue and never again.',
                 'የውጭ API መተግበሪያዎችን፣ ቶከኖችን፣ መዳረሻዎችን እና ምዝግቦችን ያስተዳድራል። ቶከን አንድ ጊዜ ብቻ ይታያል።'),
             'Auditor' => self::role(self::SCOPE_SCOPED, [
-                'dashboard.view', 'audit.view', 'audit-logs.viewAny', 'reports.view',
+                'dashboard.view', 'dashboard.reports', 'audit.view', 'audit-logs.viewAny', 'reports.view',
+                'recycle-bin.view', 'recycle-bin.viewDetails',
                 'occupations.viewAny', 'occupations.view', 'positions.viewAny', 'positions.view',
                 'transfers.viewAny', 'transfers.view', 'card-verifications.viewAny',
                 'service-types.viewAny', 'entitlement-rules.viewAny',
@@ -320,19 +489,78 @@ final class DefaultRoleMatrix
             ], 'Read-only review of audit logs, history and approved records. Creates, changes and deletes nothing.',
                 'የኦዲት ምዝግቦችን፣ ታሪክን እና የጸደቁ መዝገቦችን በንባብ ብቻ ይገመግማል። ምንም አይፈጥርም፣ አይቀይርም፣ አይሰርዝም።'),
             'Report Viewer' => self::role(self::SCOPE_SCOPED, [
-                'dashboard.view', 'reports.view', 'daily_activities.view_reports', 'performance_reports.view',
+                'dashboard.view', 'dashboard.reports', 'reports.view', 'daily_activities.view_reports', 'performance_reports.view',
                 ...GrievanceRoles::REPORT_VIEWER_PERMISSIONS,
                 ...DisciplineRoles::REPORT_VIEWER_PERMISSIONS,
             ], 'Views non-sensitive reports within scope. No exports.',
                 'በወሰኑ ውስጥ ስሱ ያልሆኑ ሪፖርቶችን ይመለከታል። ወደ ውጭ መላክ የለም።'),
+
+            // ── Executive dashboards and intelligence (aggregates by default; drill-down is a separate role) ─
+            'Situation Room Viewer' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'situation_room.view', 'situation_room.wall_mode', ...self::SITUATION_ROOM_DOMAINS,
+            ], 'Institution head or planning officer: the Situation Room overview, trends, every category and the wall display for the institutions in scope. Aggregate figures only; no exports, no named employees, no submission text.',
+                'የተቋም ኃላፊ ወይም የዕቅድ ባለሙያ፡ በወሰኑ ውስጥ ላሉ ተቋማት የሁኔታ ክፍል አጠቃላይ እይታ፣ አዝማሚያዎች፣ ሁሉም ምድቦች እና የግድግዳ ማሳያ። አጠቃላይ አሃዞች ብቻ፤ ወደ ውጭ መላክ፣ የተሰየሙ ሠራተኞች ወይም የማመልከቻ ጽሑፍ የለም።'),
+            'Situation Room Executive' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'situation_room.view', 'situation_room.wall_mode', ...self::SITUATION_ROOM_DOMAINS,
+                'situation_room.export', 'situation_room.view_detail', 'situation_room.view_employee_targeted', 'situation_room.manage_actions',
+                'service_feedback.view', 'service_feedback.view_employee_target',
+            ], 'Executive with drill-down: everything the viewer sees plus executive report exports, audited employee-level tables and submission text inside one institution, and the Action Register.',
+                'ዝርዝር የሚያይ ሥራ አስፈጻሚ፡ ተመልካቹ የሚያየው ሁሉ፣ የሥራ አስፈጻሚ ሪፖርት ወደ ውጭ መላክ፣ በአንድ ተቋም ውስጥ የሚመዘገቡ የሠራተኛ ደረጃ ሰንጠረዦችና የማመልከቻ ጽሑፍ፣ እና የእርምጃ መዝገብ።'),
+            'Intelligence Analyst' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::INTELLIGENCE_BUSINESS,
+            ], 'Business intelligence within scope: executive risks, workforce, service, public voice and performance analytics, forecasts, data quality, knowledge questions, and the review of recommendations. No technical diagnostics.',
+                'በወሰኑ ውስጥ የንግድ ኢንተለጀንስ፡ የሥራ አስፈጻሚ ስጋቶች፣ የሰው ኃይል፣ አገልግሎት፣ የሕዝብ ድምፅ እና የአፈጻጸም ትንታኔዎች፣ ትንበያዎች፣ የመረጃ ጥራት፣ የዕውቀት ጥያቄዎች እና የምክረ ሀሳቦች ግምገማ። የቴክኒክ ምርመራ የለም።'),
             'Public Site Manager' => self::role(self::SCOPE_GLOBAL, PermissionCatalog::matching(...self::PUBLIC_SITE_MODULES),
                 'Edits the public website content. Cannot change ID verification, OTP, rate limits, employee data or authentication policy.',
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
+            'Workflow Policy Administrator' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'system-settings.view', 'system-settings.manageFieldWorkGps',
+                'daily_activity_settings.view', 'daily_activity_settings.update',
+                'performance_settings.view', 'performance_settings.update',
+                'communication.settings.manage', 'field_work.manage_types',
+            ], 'Keeps the city-wide policy settings of the workflow modules: daily activity deadlines, performance settings, communication policy, the field work type catalog and GPS policy. Grants no access to the records themselves.',
+                'የሥራ ሂደት ሞጁሎችን የከተማ አቀፍ የፖሊሲ ቅንብሮች ይይዛል፡ የዕለታዊ እንቅስቃሴ የጊዜ ገደቦች፣ የአፈጻጸም ቅንብሮች፣ የኮሙኒኬሽን ፖሊሲ፣ የመስክ ሥራ ዓይነት ካታሎግ እና የGPS ፖሊሲ። ለመዝገቦቹ ራሳቸው መዳረሻ አይሰጥም።'),
+            'Recycle Bin Manager' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'recycle-bin.view', 'recycle-bin.viewDetails', 'recycle-bin.restore',
+            ], 'Reviews soft-deleted records across modules and restores them. Permanent deletion stays with the administrators.',
+                'በሞጁሎች ውስጥ ለጊዜው የተሰረዙ መዝገቦችን ይገመግማል እና ይመልሳል። ዘላቂ መሰረዝ የአስተዳዳሪዎች ሆኖ ይቀራል።'),
+            'Help Desk Agent' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'support-tickets.view-all', 'support-tickets.manage',
+            ], 'Works the help desk: opens every support ticket with its safe diagnostic context, changes status, assigns it and adds notes. Every change is audited.',
+                'የእገዛ ዴስክን ይሠራል፡ እያንዳንዱን የድጋፍ ትኬት ከደህንነቱ የተጠበቀ የምርመራ አውድ ጋር ይከፍታል፣ ሁኔታ ይቀይራል፣ ይመድባል፣ ማስታወሻ ይጨምራል። እያንዳንዱ ለውጥ ይመዘገባል።'),
+            'Platform Operations Engineer' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::INTELLIGENCE_TECHNICAL, ...self::BACKUP_READ,
+                'integrations.view', 'integrations.deliveries.view',
+            ], 'Technical operations: platform health, incidents, diagnostics, deployment analysis, audited runbooks, backup health and integration deliveries. Sees no business analytics and no employee records.',
+                'የቴክኒክ ሥራዎች፡ የመድረክ ጤና፣ ክስተቶች፣ ምርመራዎች፣ የማሰማራት ትንተና፣ የሚመዘገቡ የሥራ መመሪያዎች፣ የምትኬ ጤና እና የውህደት አቅርቦቶች። የንግድ ትንታኔዎችንም የሠራተኛ መዝገቦችንም አያይም።'),
+            'Intelligence Governance Officer' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'intelligence.view', 'intelligence.governance.view', 'intelligence.governance.manage',
+                'intelligence.knowledge.view', 'intelligence.recommendations.view', 'intelligence.data-quality.view',
+                'system-settings.view', 'system-settings.manageIntelligence',
+            ], 'Governs the AI features: approves knowledge documents, records evaluations, retires prompt versions and sets feature switches, limits and thresholds. Provider secrets stay in the environment.',
+                'የAI ባህሪያትን ያስተዳድራል፡ የዕውቀት ሰነዶችን ያጸድቃል፣ ግምገማዎችን ይመዘግባል፣ የፕሮምፕት ስሪቶችን ያስወግዳል፣ የባህሪ ማብሪያዎችን፣ ገደቦችን እና መነሻዎችን ያዘጋጃል። የአቅራቢ ምስጢሮች በአካባቢው ይቀራሉ።'),
+            // ── Backup and recovery: the operator, the requester, the reviewer and the approver are four people ─
+            'Backup Operator' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::BACKUP_READ, 'backups.run', 'backups.verify',
+            ], 'Watches backup health, history and alerts, records operator recovery executions and oversees verification. Requests, reviews and approves no recovery.',
+                'የምትኬ ጤናን፣ ታሪክን እና ማንቂያዎችን ይከታተላል፣ የኦፕሬተር መልሶ ማግኛ አፈጻጸሞችን ይመዘግባል፣ ማረጋገጫን ይቆጣጠራል። መልሶ ማግኛ አይጠይቅም፣ አይገመግምም፣ አያጸድቅም።'),
+            'Recovery Requester' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::BACKUP_READ, 'backups.restore_request',
+            ], 'Requests a database recovery with its target and reason. Cannot review or approve a request.',
+                'የመረጃ ቋት መልሶ ማግኛን ከዒላማውና ከምክንያቱ ጋር ይጠይቃል። ጥያቄን መገምገም ወይም ማጽደቅ አይችልም።'),
+            'Recovery Reviewer' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::BACKUP_READ, 'backups.restore_review',
+            ], 'Reviews the evidence of a recovery request made by someone else. Cannot request or approve.',
+                'በሌላ ሰው የቀረበ የመልሶ ማግኛ ጥያቄ ማስረጃን ይገመግማል። መጠየቅ ወይም ማጽደቅ አይችልም።'),
+            'Recovery Approver' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::BACKUP_READ, 'backups.restore_approve', 'backups.manage_policy',
+            ], 'Approves reviewed recovery requests and owns the backup policy. Cannot request or review.',
+                'የተገመገሙ የመልሶ ማግኛ ጥያቄዎችን ያጸድቃል፣ የምትኬ ፖሊሲውን ይይዛል። መጠየቅ ወይም መገምገም አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, ...CommunicationRoles::EMPLOYEE_PERMISSIONS],
-                'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
-                'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, ...CommunicationRoles::EMPLOYEE_PERMISSIONS, ...self::EMPLOYEE_SELF_SERVICE],
+                'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals, own transfer and vacancy applications. My Portal pages are tied to the linked employee record, not to extra permissions.',
+                'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች፣ የራሱ የዝውውር እና የክፍት የሥራ መደብ ማመልከቻዎች።'),
             // ── Communication oversight: who asks for investigation access never approves it ─
             CommunicationRoles::MODERATOR_ROLE => self::role(self::SCOPE_SCOPED, CommunicationRoles::MODERATOR_PERMISSIONS,
                 'Reviews reported messages and conversations: sees only the reported content and its immediate context, and can remove it. Never browses private conversations.',
@@ -351,6 +579,10 @@ final class DefaultRoleMatrix
             DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS],
                 'Reviews the daily activity, and decides the field work requests, of the team named in the user\'s reviewer assignment.',
                 'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል፤ የመስክ ሥራ ጥያቄዎቻቸውን ይወስናል።'),
+            'Field Work Location Auditor' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...FieldWorkRoles::HR_OVERSIGHT_PERMISSIONS, 'field_work.location.view_precise',
+            ], 'Privileged: sees the exact coordinates, accuracy and distance of field work check-ins and check-outs in scope, for disputes and audits. Every precise-location view is audited.',
+                'ልዩ መብት፡ ለክርክሮች እና ኦዲቶች በወሰኑ ውስጥ የመስክ ሥራ መግቢያና መውጫ ትክክለኛ መጋጠሚያዎችን፣ ትክክለኛነትን እና ርቀትን ያያል። እያንዳንዱ ትክክለኛ ቦታ እይታ ይመዘገባል።'),
             PerformanceRoles::MANAGER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::MANAGER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
                 'Unit manager / supervisor for EPMS: agreements, actuals, check-ins and reviews of the covered team only.',
                 'የክፍል ኃላፊ፡ ለሚመራው ቡድን ብቻ ስምምነቶች፣ ክንውኖች፣ ውይይቶች እና ግምገማዎች።'),
@@ -372,6 +604,21 @@ final class DefaultRoleMatrix
             PerformanceRoles::APPEAL_COMMITTEE_ROLE => self::role(self::SCOPE_SCOPED, PerformanceRoles::APPEAL_COMMITTEE_PERMISSIONS,
                 'Performance appeal committee (chairperson, writer or member, set by committee membership): reviews and decides assigned appeals only.',
                 'የአፈጻጸም ይግባኝ ኮሚቴ (ሰብሳቢ፣ ጸሐፊ ወይም አባል በኮሚቴ አባልነት)፡ የተመደቡ ይግባኞችን ብቻ ይገመግማል፣ ይወስናል።'),
+            // Oversight verifies a submission (Assessment Oversight Officer); a different seat finalizes it.
+            'Assessment Administrator' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_unit',
+                'assessment_oversight.view_employee_status', 'assessment_oversight.view_results', 'assessment_oversight.view_data_quality',
+                'assessment_oversight.manage_cycles', 'assessment_oversight.manage_policies', 'assessment_submissions.finalize',
+                'assessment_reports.view', 'assessment_reports.export',
+            ], 'City assessment administration: opens and closes assessment cycles, sets participation, eligibility, result bands and unassessed reasons, and finalizes verified institutional submissions. Does not review, return or verify them.',
+                'የከተማ የምዘና አስተዳደር፡ የምዘና ዑደቶችን ይከፍታል፣ ይዘጋል፤ ተሳትፎን፣ ብቁነትን፣ የውጤት ደረጃዎችን እና ያልተመዘኑ ምክንያቶችን ያዘጋጃል፤ የተረጋገጡ የተቋም ማጠቃለያዎችን ያጠናቅቃል። አይገመግማቸውም፣ አይመልሳቸውም፣ አያረጋግጣቸውም።'),
+            'Assessment Data Auditor' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_unit',
+                'assessment_oversight.view_employee_status', 'assessment_oversight.view_results', 'assessment_oversight.view_responses',
+                'assessment_oversight.view_demographics', 'assessment_oversight.view_data_quality',
+                'assessment_results.view', 'assessment_results.view_detailed', 'assessment_reports.view', 'assessment_reports.export',
+            ], 'Read-only audit of assessment data down to criterion-level responses and evaluator identity, for disputes and quality checks. Changes nothing.',
+                'ለክርክሮች እና የጥራት ፍተሻዎች እስከ መስፈርት ደረጃ ምላሾች እና የገምጋሚ ማንነት ድረስ የምዘና መረጃን በንባብ ብቻ ይመረምራል። ምንም አይቀይርም።'),
 
             // ── Grievance Management and the Administrative Tribunal ─────────
             // Roles make a user eligible; case access still needs membership,
@@ -403,6 +650,49 @@ final class DefaultRoleMatrix
             GrievanceRoles::TRIBUNAL_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::TRIBUNAL_PERMISSIONS,
                 'Handles grievances routed to the Administrative Tribunal.',
                 'ወደ አስተዳደር ፍርድ ቤት የተላለፉ ቅሬታዎችን ያስተናግዳል።'),
+            'Grievance Records Custodian' => self::role(self::SCOPE_SCOPED, [
+                ...GrievanceRoles::OVERSIGHT_PERMISSIONS, 'grievances.reopen', 'grievances.archive',
+            ], 'Records management for closed grievances in scope: archives cases past retention, places and lifts legal holds, and reopens a closed case with a reason where policy allows. Fully audited; takes part in no decision.',
+                'በወሰኑ ውስጥ ለተዘጉ ቅሬታዎች የመዝገብ አስተዳደር፡ የማቆያ ጊዜ ያለፈባቸውን ጉዳዮች ያስቀምጣል፣ ሕጋዊ እገዳዎችን ያደርጋል እና ያነሳል፣ ፖሊሲ በሚፈቅድበት የተዘጋ ጉዳይን በምክንያት ይከፍታል። ሙሉ በሙሉ ይመዘገባል፤ በምንም ውሳኔ አይሳተፍም።'),
+
+            // ── Court cases (docs/court-cases.md): registry ≠ bench ≠ presidency ≠ inspection ≠ administration ─
+            // Court staff membership and case assignment still decide which file opens; the role only
+            // says what the member may do with it. Bench notes are the judges' own.
+            'Court Viewer' => self::role(self::SCOPE_SCOPED, ['dashboard.view', ...self::COURT_READ],
+                'Reads court files in scope: cases, documents, hearings, letters, decisions, appeals, parties and inspections. Writes nothing and never sees bench notes.',
+                'በወሰኑ ውስጥ የፍርድ ቤት መዝገቦችን ያነባል፡ ጉዳዮች፣ ሰነዶች፣ ችሎቶች፣ ደብዳቤዎች፣ ውሳኔዎች፣ ይግባኞች፣ ተከራካሪዎች እና ምርመራዎች። ምንም አይጽፍም፤ የዳኛ ማስታወሻዎችን በፍጹም አያይም።'),
+            'Court Registrar' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::COURT_READ,
+                'court.cases.create', 'court.cases.edit', 'court.cases.merge', 'court.cases.review',
+                'court.cases.assign.team', 'court.cases.assign.member', 'court.cases.response-replies.manage',
+                'court.applicants.manage', 'court.file.create', 'court.file.update',
+                'court.hearing.create', 'court.hearing.update', 'court.letters.create', 'court.letters.update',
+                'court.appeals.create', 'court.appeals.edit', 'court.inspection-requests.manage',
+                'court.message.create', 'court.notes.manage',
+            ], 'The registry: registers, reviews and merges cases, keeps parties, files, hearings, letters and appeal records, assigns cases to teams and members and writes to the parties. Decides nothing and approves no letter.',
+                'መዝገብ ቤት፡ ጉዳዮችን ይመዘግባል፣ ይገመግማል፣ ያዋህዳል፤ ተከራካሪዎችን፣ ሰነዶችን፣ ችሎቶችን፣ ደብዳቤዎችን እና የይግባኝ መዝገቦችን ይይዛል፤ ጉዳዮችን ለቡድኖችና ለአባላት ይመድባል፤ ለተከራካሪዎች ይጽፋል። ምንም አይወስንም፤ ደብዳቤ አያጸድቅም።'),
+            'Court Judge' => self::role(self::SCOPE_SCOPED, self::COURT_JUDGE,
+                'A judge on the cases, panels and bench notes they are given: schedules hearings, keeps bench notes, drafts and edits decisions and writes to the parties. Approval of a decision belongs to the Court President.',
+                'በተሰጣቸው ጉዳዮች፣ ችሎቶች እና የዳኛ ማስታወሻዎች ላይ ዳኛ፡ ችሎት ይቀጥራል፣ የዳኛ ማስታወሻ ይይዛል፣ ውሳኔዎችን ያረቅቃል፣ ያስተካክላል፣ ለተከራካሪዎች ይጽፋል። ውሳኔን ማጽደቅ የፍርድ ቤቱ ፕሬዚዳንት ነው።'),
+            'Court President' => self::role(self::SCOPE_SCOPED, [
+                ...self::COURT_JUDGE,
+                'court.decision.approve', 'court.decision.view.all', 'court.letters.approve', 'court.appeals.decide',
+                'court.cases.assign', 'court.cases.assign.team', 'court.cases.assign.member', 'court.assign.inspections', 'court.teams.manage',
+            ], 'Presides over the court: everything a judge does, plus assigning cases, teams and inspections, approving decisions and letters, deciding appeals and viewing every decision.',
+                'ፍርድ ቤቱን ይመራል፡ ዳኛ የሚሠራው ሁሉ፣ በተጨማሪም ጉዳዮችን፣ ቡድኖችን እና ምርመራዎችን መመደብ፣ ውሳኔዎችንና ደብዳቤዎችን ማጽደቅ፣ ይግባኞችን መወሰን እና እያንዳንዱን ውሳኔ ማየት።'),
+            'Court Inspector' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', 'court.cases.view', 'court.file.view', 'court.view.inspections', 'court.create.inspections',
+                'court.case-inspections.manage', 'court.inspection-findings.manage', 'court.inspection-requests.manage', 'court.notes.manage',
+            ], 'Carries out the case inspections assigned to them and records findings and requests. Reads only the case and its files; no hearings, decisions or letters.',
+                'የተመደቡላቸውን የጉዳይ ምርመራዎች ያካሂዳል፣ ግኝቶችንና ጥያቄዎችን ይመዘግባል። ጉዳዩንና ሰነዶቹን ብቻ ያነባል፤ ችሎት፣ ውሳኔ ወይም ደብዳቤ የለም።'),
+            'Court Administrator' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::COURT_READ, 'reports.export', 'court.reports.export',
+                'court.settings.manage', 'court.about.manage', 'court.announcements.manage', 'court.teams.manage', 'court.templates.manage',
+                'court.letters.templet.create', 'court.letters.templet.update', 'court.letters.templet.delete', 'court.decision.templet.create',
+                'court.cases.types', 'court.applicants.manage', 'court.assign.inspections',
+                'court.cases.delete', 'court.file.delete', 'court.hearing.delete', 'court.letters.delete', 'court.decision.delete', 'court.delete.inspections',
+            ], 'Administers the court: settings, terms, landing page, announcements, teams, case types, letter and decision templates, exports, and the removal of records entered in error. Sits on no bench and drafts no decision.',
+                'ፍርድ ቤቱን ያስተዳድራል፡ ቅንብሮች፣ ውሎች፣ የመግቢያ ገጽ፣ ማስታወቂያዎች፣ ቡድኖች፣ የጉዳይ ዓይነቶች፣ የደብዳቤና የውሳኔ አብነቶች፣ ወደ ውጭ መላክ እና በስህተት የገቡ መዝገቦችን ማስወገድ። በችሎት አይቀመጥም፤ ውሳኔ አያረቅቅም።'),
 
             // ── Employee Discipline (Regulation 201/2018) ─────────────────────
             // Roles make a user eligible; case work still needs a seat on the
@@ -439,7 +729,38 @@ final class DefaultRoleMatrix
                 'Support expert (ደጋፊ ባለሙያ): answers the clarifications of the institutions assigned to them and records monitoring visits, findings and action items.',
                 'ደጋፊ ባለሙያ፡ የተመደቡለትን ተቋማት የማብራሪያ ጥያቄዎች ይመልሳል፤ የክትትል ጉብኝቶችን፣ ግኝቶችንና የድርጊት ተግባሮችን ይመዘግባል።'),
 
+            // ── Public feedback, suggestions, tip-offs and complaints (docs/admin-public-feedback-access-control.md) ─
+            // Scope decides which institutions; the submitter's identity and evidence files are a
+            // separate, audited grant held only by the investigator.
+            'Public Feedback Coordinator' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::FEEDBACK_READ,
+                'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.manage_routing',
+                'service_feedback.organization_qr.view', 'service_feedback.organization_qr.create', 'service_feedback.organization_qr.export',
+                'service_feedback.organization_qr.disable', 'service_feedback.organization_qr.rotate',
+                'service_feedback.review', 'service_feedback.hide', 'service_feedback.export',
+            ], 'Intake and routing for the institutions in scope: assigns and reassigns handlers, keeps the routing rules, runs the institution feedback QR, moderates feedback and tip-offs and exports within scope. Does not resolve submissions and never sees who submitted.',
+                'በወሰኑ ውስጥ ላሉ ተቋማት መቀበያና መስመር፡ አስተናጋጆችን ይመድባል፣ ያዛውራል፣ የመስመር ደንቦችን ይይዛል፣ የተቋሙን የአስተያየት QR ያካሂዳል፣ አስተያየቶችንና ጥቆማዎችን ይቆጣጠራል፣ በወሰን ውስጥ ወደ ውጭ ይልካል። ማመልከቻዎችን አይፈታም፤ ማን እንዳቀረበ በፍጹም አያይም።'),
+            'Public Feedback Handler' => self::role(self::SCOPE_SCOPED, self::FEEDBACK_HANDLER,
+                'Handles the public feedback, suggestions, tip-offs and complaints assigned to them in scope: reviews, records the outcome and closes. Never a complaint against themselves; never the submitter\'s identity or evidence files.',
+                'በወሰኑ ውስጥ የተመደቡላቸውን የሕዝብ አስተያየቶች፣ ጥቆማዎችና ቅሬታዎች ያስተናግዳል፡ ይገመግማል፣ ውጤቱን ይመዘግባል፣ ይዘጋል። በራሱ ላይ የቀረበ ቅሬታ በፍጹም፤ የአቅራቢውን ማንነት ወይም የማስረጃ ፋይሎች በፍጹም አያይም።'),
+            'Public Feedback Investigator' => self::role(self::SCOPE_SCOPED, [
+                ...self::FEEDBACK_HANDLER,
+                'service_feedback.view_submitter_identity', 'service_feedback.view_sensitive_attachments', 'service_feedback.refer_discipline',
+            ], 'Handler with the audited privileges: sees the submitter\'s identity and the evidence files of complaints in scope and may request a controlled referral of a reviewed complaint to the discipline domain.',
+                'የሚመዘገቡ ልዩ መብቶች ያሉት አስተናጋጅ፡ በወሰኑ ውስጥ የቅሬታ አቅራቢውን ማንነት እና የማስረጃ ፋይሎች ያያል፤ የተገመገመ ቅሬታን ወደ ዲሲፕሊን ዘርፍ ቁጥጥር ያለው ማስተላለፍ ሊጠይቅ ይችላል።'),
+            'Public Feedback Administrator' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...self::FEEDBACK_READ, 'service_feedback.organization_qr.view',
+                'service_feedback.manage_questions', 'service_feedback.settings.manage', 'service_feedback.manage_routing',
+                'service_feedback.service_no.override', 'service_feedback.delete', 'service_feedback.export',
+            ], 'City-wide configuration of public feedback: the questionnaire versions, feedback settings, city-wide routing rules, service renumbering and the permanent deletion of feedback records. Handles no submission.',
+                'የሕዝብ አስተያየት የከተማ አቀፍ ውቅር፡ የመጠይቅ ስሪቶች፣ የአስተያየት ቅንብሮች፣ የከተማ አቀፍ የመስመር ደንቦች፣ የአገልግሎት ቁጥር ማስተካከያ እና የአስተያየት መዝገቦችን ዘላቂ መሰረዝ። ምንም ማመልከቻ አያስተናግድም።'),
+
             // ── Services and providers (admin side; provider portals use their own roles) ─
+            'Service Entitlement Manager' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', ...PermissionCatalog::matching('service-types', 'entitlement-rules'),
+                'entitlements.viewAny', 'entitlements.view',
+            ], 'City-wide catalog of card-based services and who is entitled to them: service types, their performance flag, and the entitlement rules and quotas. Records no transaction.',
+                'የመታወቂያ ላይ የተመሠረቱ አገልግሎቶች እና ማን እንደሚገባቸው የከተማ አቀፍ ካታሎግ፡ የአገልግሎት ዓይነቶች፣ የአፈጻጸም ምልክታቸው፣ እና የመብት ደንቦችና ኮታዎች። ምንም ግብይት አይመዘግብም።'),
             'Reception Administrator' => self::role(self::SCOPE_SCOPED, PermissionCatalog::matching('reception'),
                 'Configures and oversees reception desks, counters, officers, appointments, queues and scoped reports.',
                 'በተፈቀደው ወሰን የመቀበያ ጠረጴዛዎችን፣ መስኮቶችን፣ ሠራተኞችን፣ ቀጠሮዎችን፣ ወረፋዎችን እና ሪፖርቶችን ያስተዳድራል።'),
@@ -464,6 +785,7 @@ final class DefaultRoleMatrix
                 'cafeteria_special_days.view', 'cafeteria_special_days.create', 'cafeteria_special_days.update',
                 'cafeteria_special_days.archive', 'cafeteria_special_days.restore',
                 'public_holidays.viewAny', 'public_holidays.view', 'public_holidays.create', 'public_holidays.update', 'public_holidays.archive',
+                'cafeteria_holidays.create',
                 'cafeteria_transactions.view', 'cafeteria_transactions.reverse',
                 'cafeteria_reports.view', 'cafeteria_reports.generate', 'cafeteria_reports.export', 'cafeteria_ledger.view',
                 'cafeteria_employee_exclusions.view', 'cafeteria_employee_exclusions.create', 'cafeteria_employee_exclusions.update',
@@ -537,7 +859,7 @@ final class DefaultRoleMatrix
             ], 'Reviews provider transactions for settlement. Read-only.',
                 'ለክፍያ ማስተካከያ የአቅራቢ ግብይቶችን ይገመግማል። በንባብ ብቻ።'),
             'Cafeteria Provider' => self::role(self::SCOPE_SCOPED, [
-                'cafeteria-portal.login', 'cafeteria-portal.viewDashboard', 'cafeteria-portal.scan',
+                'cafeteria-portal.login', 'cafeteria-portal.view', 'cafeteria-portal.viewDashboard', 'cafeteria-portal.scan',
                 'cafeteria-portal.viewTransactions', 'cafeteria-portal.viewLedger', 'cafeteria-portal.manageMenus',
                 'cafeteria-portal.manageOrders', 'cafeteria-portal.viewReports', 'cafeteria-portal.updateProfile',
                 'cafeteria-portal.exportTransactions', 'provider-cafeteria-transactions.export', 'provider-cafeteria-payment-claims.export',
