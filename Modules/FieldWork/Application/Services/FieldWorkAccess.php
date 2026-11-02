@@ -6,9 +6,9 @@ namespace Modules\FieldWork\Application\Services;
 
 use App\Models\Employee;
 use App\Models\User;
-use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use Modules\FieldWork\Contracts\Data\FieldWorkStatus;
 use Modules\FieldWork\Domain\Models\FieldWorkParticipant;
 use Modules\FieldWork\Domain\Models\FieldWorkRequest;
@@ -85,6 +85,10 @@ class FieldWorkAccess
             return false;
         }
         if ($request->supervisor_user_id !== null && (int) $request->supervisor_user_id === (int) $user->getKey()) {
+            return true;
+        }
+        // A delegate of the supervisor of record sees what they may decide (ADR 0025).
+        if ($request->supervisor_user_id !== null && in_array((int) $request->supervisor_user_id, $this->supervisors->delegatorUserIds($user), true)) {
             return true;
         }
 
@@ -174,6 +178,10 @@ class FieldWorkAccess
         $coverage = $this->reviewers->coverage($user);
 
         $query->where('supervisor_user_id', $user->getKey());
+        $delegators = $this->supervisors->delegatorUserIds($user);
+        if ($delegators !== []) {
+            $query->orWhereIn('supervisor_user_id', $delegators);
+        }
         if (! $coverage->isEmpty()) {
             $query->orWhereHas('participants', fn (Builder $p) => $coverage->apply($p));
         }

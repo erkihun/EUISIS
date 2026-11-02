@@ -12,6 +12,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
+use Illuminate\Support\Facades\DB;
 
 readonly class CreatePositionAction
 {
@@ -61,11 +62,15 @@ readonly class CreatePositionAction
             'job_position_code',
         );
 
-        if (! empty($attributes['is_unit_head'])) {
-            $this->ensureSingleUnitHead->execute($organizationUnitId !== null ? (string) $organizationUnitId : null);
-        }
+        $unitId = $organizationUnitId !== null && $organizationUnitId !== '' ? (string) $organizationUnitId : null;
+        $position = DB::transaction(function () use ($attributes, $unitId, $organizationId): Position {
+            if (! empty($attributes['is_unit_head'])) {
+                // Under the unit (or organization) row lock, with the one-head index as the backstop.
+                $this->ensureSingleUnitHead->execute($unitId, null, $organizationId !== null ? (string) $organizationId : null);
+            }
 
-        $position = Position::query()->create($attributes);
+            return $this->ensureSingleUnitHead->guard(fn (): Position => Position::query()->create($attributes), $unitId);
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::PositionCreated,

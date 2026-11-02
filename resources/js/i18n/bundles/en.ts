@@ -27,6 +27,7 @@ import enPositionEstablishments from '@/i18n/en/positionEstablishments';
 import enProviders from '@/i18n/en/providers';
 import enRoles from '@/i18n/en/roles';
 import enSecurity from '@/i18n/en/security';
+import enReportingLines from '@/i18n/en/reportingLines';
 import enCodeRules from '@/i18n/en/codeRules';
 import enDashboard from '@/i18n/en/dashboard';
 import enEmployees from '@/i18n/en/employees';
@@ -161,6 +162,7 @@ const tree: TranslationTree = {
     confirmations: enConfirmations,
     auth: enAuth,
     security: enSecurity,
+    reportingLines: enReportingLines,
 };
 
 export default tree;

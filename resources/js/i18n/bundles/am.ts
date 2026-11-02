@@ -28,6 +28,7 @@ import amPositionEstablishments from '@/i18n/am/positionEstablishments';
 import amProviders from '@/i18n/am/providers';
 import amRoles from '@/i18n/am/roles';
 import amSecurity from '@/i18n/am/security';
+import amReportingLines from '@/i18n/am/reportingLines';
 import amCodeRules from '@/i18n/am/codeRules';
 import amDashboard from '@/i18n/am/dashboard';
 import amEmployees from '@/i18n/am/employees';
@@ -161,6 +162,7 @@ const tree: TranslationTree = {
     confirmations: amConfirmations,
     auth: amAuth,
     security: amSecurity,
+    reportingLines: amReportingLines,
 };
 
 export default tree;

@@ -261,10 +261,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 'public-feedback.organization.feedback.store',
                 'public-feedback.organization.entry.store',
             )) {
-                return back()->with('flash', ['message' => __('service-feedback.too_many_submissions'), 'type' => 'error']);
+                return back()
+                    ->withHeaders($e->getHeaders())
+                    ->with('flash', ['message' => __('service-feedback.too_many_submissions'), 'type' => 'error']);
             }
 
-            return $inertiaError($request, 429, 'too_many_requests');
+            // Retry-After and the X-RateLimit-* headers of the limiter travel with the error page.
+            return $inertiaError($request, 429, 'too_many_requests')->withHeaders($e->getHeaders());
         });
 
         // ── Generic HTTP Exceptions (abort(4xx/5xx)) ─────────────────────────

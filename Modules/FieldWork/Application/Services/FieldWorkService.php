@@ -13,6 +13,7 @@ use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\User;
 use App\Services\Employees\EmployeeWorkContextResolver;
+use App\Services\ReportingLines\AuthorityDecision;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -137,15 +138,19 @@ class FieldWorkService
             $this->assertCanMove($locked, FieldWorkStatus::PendingSupervisorApproval);
             $this->assertNoConflicts($locked);
 
-            $supervisor = $this->supervisors->resolveFor($locked);
+            $resolution = $this->supervisors->resolutionFor($locked);
+            $supervisor = $resolution->user;
             $locked->forceFill([
                 'status' => FieldWorkStatus::PendingSupervisorApproval,
                 'supervisor_user_id' => $supervisor?->getKey(),
                 'supervisor_resolution' => $supervisor !== null ? FieldWorkSupervisorResolution::Resolved : FieldWorkSupervisorResolution::NotResolved,
+                // Which rule named the supervisor (ADR 0025): unit head, published profile, acting appointment or reviewer assignment.
+                'supervisor_basis' => $supervisor !== null ? $resolution->basis : null,
                 'submitted_at' => now(),
                 'submission_count' => $locked->submission_count + 1,
                 'decided_at' => null,
                 'decided_by' => null,
+                'decided_for_user_id' => null,
                 'decision_reason' => null,
             ])->save();
 
@@ -153,6 +158,8 @@ class FieldWorkService
             $this->audit->execute(AuditEventType::FieldWorkSubmitted, $actor, $locked, $locked->organization_id, ['status' => $from->value], [
                 'status' => $locked->status->value,
                 'supervisor_resolution' => $locked->supervisor_resolution->value,
+                'supervisor_basis' => $locked->supervisor_basis,
+                'structural_outcome' => $resolution->structuralOutcome,
             ]);
 
             return $locked;
@@ -352,7 +359,8 @@ class FieldWorkService
             $from = $locked->status;
             $this->assertCanMove($locked, $to);
 
-            if (! $this->supervisors->isSupervisorOf($actor, $locked)) {
+            $authority = $this->supervisors->authorityOf($actor, $locked);
+            if (! $authority->granted) {
                 throw new AuthorizationException(__('field-work.errors.not_supervisor'));
             }
             if ($to === FieldWorkStatus::Approved) {
@@ -360,17 +368,30 @@ class FieldWorkService
                 $this->assertNoConflicts($locked);
             }
 
+            // A delegate decides in the supervisor's place: the supervisor of record stays the
+            // supervisor, the actor is the decider, and the represented authority is written down.
+            $delegated = $authority->basis === AuthorityDecision::DELEGATED;
+            $supervisorUserId = $delegated
+                ? ($locked->supervisor_user_id ?? User::query()->where('employee_id', $authority->onBehalfOfEmployeeId)->where('status', 'active')->value('id'))
+                : $actor->getKey();
             $locked->forceFill([
                 'status' => $to,
                 'decided_at' => now(),
                 'decided_by' => $actor->getKey(),
+                'decided_for_user_id' => $delegated ? $supervisorUserId : null,
                 'decision_reason' => $comment,
-                'supervisor_user_id' => $actor->getKey(),
+                'supervisor_user_id' => $supervisorUserId,
                 'supervisor_resolution' => FieldWorkSupervisorResolution::Resolved,
+                'supervisor_basis' => $delegated ? 'delegated' : ($locked->supervisor_basis ?? 'direct'),
             ])->save();
 
             $this->history($locked, $action, $actor, $from, $to, $comment);
-            $this->audit->execute($event, $actor, $locked, $locked->organization_id, ['status' => $from->value], ['status' => $to->value], $comment);
+            $this->audit->execute($event, $actor, $locked, $locked->organization_id, ['status' => $from->value], [
+                'status' => $to->value,
+                'authority_basis' => $authority->basis,
+                'decided_for_user_id' => $locked->decided_for_user_id,
+                'delegation_id' => $authority->delegationId,
+            ], $comment);
 
             return $locked;
         });

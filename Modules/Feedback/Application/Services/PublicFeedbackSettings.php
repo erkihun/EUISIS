@@ -31,6 +31,17 @@ final class PublicFeedbackSettings implements FeedbackSettings
 
     public const PERMISSION = 'service_feedback.settings.manage';
 
+    /**
+     * Brief §38 defaults, counted on stored submissions (ThrottlePublicSubmissions).
+     * Many citizens share one address: a service hall's connection, or a mobile
+     * carrier's shared address that whole districts sit behind. The per-address
+     * ceiling must hold a busy day of genuine submissions; the per-code ceiling
+     * still stops one device burying one officer in ratings.
+     */
+    public const DEFAULT_RATE_LIMIT_PER_SOURCE = 10;
+
+    public const DEFAULT_RATE_LIMIT_PER_IP = 30;
+
     public const KEYS = ['enabled', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip', ...self::SITUATION_ROOM_KEYS];
 
     /** Executive Situation Room community-voice rules; null = the rule is off (NEEDS_DECISION until set). */
@@ -62,13 +73,13 @@ final class PublicFeedbackSettings implements FeedbackSettings
     /** Brief §38: submissions one address may send through one QR code in ten minutes. */
     public function rateLimitPerSource(): int
     {
-        return max(1, (int) $this->settings->get(self::GROUP, 'rate_limit_per_source', 3));
+        return max(1, (int) $this->settings->get(self::GROUP, 'rate_limit_per_source', self::DEFAULT_RATE_LIMIT_PER_SOURCE));
     }
 
     /** Brief §38: submissions one address may send through any QR codes in ten minutes. */
     public function rateLimitPerIp(): int
     {
-        return max(1, (int) $this->settings->get(self::GROUP, 'rate_limit_per_ip', 8));
+        return max(1, (int) $this->settings->get(self::GROUP, 'rate_limit_per_ip', self::DEFAULT_RATE_LIMIT_PER_IP));
     }
 
     public function typeEnabled(ServiceFeedbackType $type): bool

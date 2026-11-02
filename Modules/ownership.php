@@ -20,6 +20,9 @@ return [
         'home' => 'app',
         // Golden Path core: people and their assignments (App\Backbone contracts are its public API).
         'models' => [
+            // Reporting lines (ADR 0025): who fills a position for a while, who acts for a supervisor.
+            'App\Models\ActingAppointment',
+            'App\Models\SupervisorDelegation',
             'App\Models\EducationLevel',
             'App\Models\Employee',
             'App\Models\EmployeeAssignment',

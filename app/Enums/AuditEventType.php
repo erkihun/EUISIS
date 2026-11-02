@@ -983,4 +983,14 @@ enum AuditEventType: string
     case CourtRecordUpdated = 'court_record.updated';
     case CourtRecordDeleted = 'court_record.deleted';
     case CourtRecordRestored = 'court_record.restored';
+
+    /*
+     * Reporting lines (ADR 0025): temporary authority is always written down —
+     * who appointed or delegated, to whom, for what, until when, and who ended it.
+     */
+    case ActingAppointmentCreated = 'reporting_lines.acting_appointment_created';
+    case ActingAppointmentRevoked = 'reporting_lines.acting_appointment_revoked';
+    case SupervisorDelegationCreated = 'reporting_lines.delegation_created';
+    case SupervisorDelegationRevoked = 'reporting_lines.delegation_revoked';
+    case UnitHeadApplied = 'reporting_lines.unit_head_applied';
 }

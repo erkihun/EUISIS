@@ -14,6 +14,7 @@ use App\Http\Controllers\Employee\EmployeeCourtCasesController;
 use App\Http\Controllers\Employee\EmployeeCourtFilingController;
 use App\Http\Controllers\Employee\EmployeeCourtPartiesController;
 use App\Http\Controllers\Employee\EmployeePortalController;
+use App\Http\Controllers\Employee\EmployeeReportingLineController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -24,7 +25,6 @@ use App\Http\Controllers\Web\BackupRecoveryController;
 use App\Http\Controllers\Web\CardPrintBatchController;
 use App\Http\Controllers\Web\CardPrinterProfileController;
 use App\Http\Controllers\Web\CardPrintStationController;
-use App\Http\Controllers\Web\IdCardBulkPrintController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
 use App\Http\Controllers\Web\CommunityVoiceRoomController;
@@ -35,6 +35,7 @@ use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\GradeLevelController;
 use App\Http\Controllers\Web\HierarchyVersionController;
+use App\Http\Controllers\Web\IdCardBulkPrintController;
 use App\Http\Controllers\Web\IdCardController;
 use App\Http\Controllers\Web\IdCardExportController;
 use App\Http\Controllers\Web\IdCardTemplateController;
@@ -61,6 +62,9 @@ use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
+use App\Http\Controllers\Web\ReportingLines\ActingAppointmentController;
+use App\Http\Controllers\Web\ReportingLines\ReportingHierarchyController;
+use App\Http\Controllers\Web\ReportingLines\SupervisorDelegationController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ScanPhotoController;
 use App\Http\Controllers\Web\SituationRoom\SituationReportController;
@@ -127,6 +131,7 @@ use Modules\Feedback\Http\Controllers\PublicServiceFeedbackController;
 use Modules\Feedback\Http\Controllers\PublicSubmissionListController;
 use Modules\Feedback\Http\Controllers\ServiceFeedbackController;
 use Modules\Feedback\Http\Controllers\ServiceSubmissionController;
+use Modules\Feedback\Http\Middleware\ThrottlePublicSubmissions;
 use Modules\Providers\Http\Controllers\Portal\ProviderLoginController;
 use Modules\Providers\Http\Controllers\Portal\ProviderPasswordResetController;
 use Modules\Providers\Http\Controllers\ProviderUserController;
@@ -415,6 +420,11 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
         Route::get('/my-portal/'.$section, [EmployeeSelfServiceController::class, 'page'])->defaults('section', $section)->name('employee.'.$section);
     }
     Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
+    // My supervisor and my team (ADR 0025): the signed-in employee's own line, never another's by id.
+    Route::get('/my-portal/reporting-line', [EmployeeReportingLineController::class, 'line'])->name('employee.reporting-line');
+    Route::get('/my-portal/my-team', [EmployeeReportingLineController::class, 'team'])->name('employee.my-team');
+    Route::post('/my-portal/my-team/delegations', [EmployeeReportingLineController::class, 'storeDelegation'])->middleware('throttle:30,1')->name('employee.my-team.delegations.store');
+    Route::post('/my-portal/my-team/delegations/{supervisorDelegation}/revoke', [EmployeeReportingLineController::class, 'revokeDelegation'])->whereUuid('supervisorDelegation')->middleware('throttle:30,1')->name('employee.my-team.delegations.revoke');
     // My court cases (court-ms Flow 4): the employee's tribunal cases and court notices.
     Route::get('/my-portal/court-cases', [EmployeeCourtCasesController::class, 'index'])->name('employee.court-cases');
     Route::post('/my-portal/court-cases/notices/read', [EmployeeCourtCasesController::class, 'readNotices'])->middleware('throttle:60,1')->name('employee.court-cases.notices.read');
@@ -570,7 +580,7 @@ Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class,
     ->name('service-feedback.show');
 
 Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('service-feedback.store');
 
 // The employee's photo, through the signed short-lived link the page carries.
@@ -591,12 +601,12 @@ Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController:
     ->name('service-feedback.form');
 
 Route::post('/service-feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeTypedFeedback'])
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('service-feedback.feedback.store');
 
 Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('service-feedback.entry.store');
 
 /*
@@ -624,12 +634,12 @@ Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 
     ->name('public-feedback.organization.form');
 
 Route::post('/feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeOrganizationFeedback'])
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('public-feedback.organization.feedback.store');
 
 Route::post('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeOrganizationEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('public-feedback.organization.entry.store');
 
 /*
@@ -891,6 +901,21 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/positions/{position}', [PositionController::class, 'update'])->name('positions.update');
     Route::delete('/positions/{position}', [PositionController::class, 'archive'])->name('positions.archive');
     Route::post('/positions/{position}/restore', [PositionController::class, 'restore'])->name('positions.restore');
+
+    // Reporting lines and supervisor resolution (ADR 0025, docs/reporting-lines.md). Each page re-checks
+    // its permission, the organization scope and — for one employee — the reporting relationship.
+    Route::prefix('reporting-lines')->name('reporting-lines.')->group(function (): void {
+        Route::get('/overview', [ReportingHierarchyController::class, 'index'])->name('overview');
+        Route::get('/employees/{employee}', [ReportingHierarchyController::class, 'employee'])->whereUuid('employee')->name('employees.show');
+        Route::get('/lookup/employees', [ReportingHierarchyController::class, 'lookupEmployees'])->middleware('throttle:60,1')->name('lookup.employees');
+        Route::get('/lookup/positions', [ReportingHierarchyController::class, 'lookupPositions'])->middleware('throttle:60,1')->name('lookup.positions');
+        Route::get('/acting', [ActingAppointmentController::class, 'index'])->name('acting.index');
+        Route::post('/acting', [ActingAppointmentController::class, 'store'])->middleware('throttle:30,1')->name('acting.store');
+        Route::post('/acting/{actingAppointment}/revoke', [ActingAppointmentController::class, 'revoke'])->whereUuid('actingAppointment')->middleware('throttle:30,1')->name('acting.revoke');
+        Route::get('/delegations', [SupervisorDelegationController::class, 'index'])->name('delegations.index');
+        Route::post('/delegations', [SupervisorDelegationController::class, 'store'])->middleware('throttle:30,1')->name('delegations.store');
+        Route::post('/delegations/{supervisorDelegation}/revoke', [SupervisorDelegationController::class, 'revoke'])->whereUuid('supervisorDelegation')->middleware('throttle:30,1')->name('delegations.revoke');
+    });
     Route::post('/positions/{position}/approve-establishment', [PositionController::class, 'approveEstablishment'])->name('positions.approve-establishment');
 
     // Grade Levels

@@ -17,6 +17,7 @@ use App\Models\PositionWorkLink;
 use App\Models\User;
 use App\Models\WorkCompetencyRequirement;
 use App\Models\WorkQualificationRequirement;
+use App\Services\ReportingLines\ReportingLineValidator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -31,7 +32,10 @@ class PositionProfileService
 {
     public const FIELDS = ['purpose_en', 'purpose_am', 'reports_to_position_id', 'working_conditions_en', 'working_conditions_am', 'authorities_en', 'authorities_am', 'relationships_en', 'relationships_am', 'effective_from', 'effective_to'];
 
-    public function __construct(private readonly OrganizationDesignAudit $audit) {}
+    public function __construct(
+        private readonly OrganizationDesignAudit $audit,
+        private readonly ReportingLineValidator $reportingLines,
+    ) {}
 
     // ── Profile versions ─────────────────────────────────────────────────
 
@@ -91,6 +95,8 @@ class PositionProfileService
         if ($profile->created_by !== null && (int) $profile->created_by === (int) $actor->getKey()) {
             throw ValidationException::withMessages(['status' => __('organization-design.profile_publish_same_person')]);
         }
+        // The structure may have changed since the draft was written: the line is checked again as it becomes effective (ADR 0025).
+        $this->assertReportsTo($profile->position, $profile->reports_to_position_id);
 
         return DB::transaction(function () use ($actor, $profile): PositionProfile {
             $inForce = PositionProfile::query()->where('lineage_key', $profile->lineage_key)->where('status', OrganizationDesignStatus::Published)->lockForUpdate()->first();
@@ -274,12 +280,8 @@ class PositionProfileService
 
     private function assertReportsTo(Position $position, ?string $reportsTo): void
     {
-        if ($reportsTo === null || $reportsTo === '') {
-            return;
-        }
-        if ($reportsTo === $position->getKey() || ! Position::query()->whereKey($reportsTo)->where('organization_id', $position->organization_id)->exists()) {
-            throw ValidationException::withMessages(['reports_to_position_id' => __('organization-design.profile_reports_to_invalid')]);
-        }
+        // Same organization, another position, alive, and no loop through the explicit or inferred lines (ADR 0025).
+        $this->reportingLines->assertReportsTo($position, $reportsTo === '' ? null : $reportsTo);
     }
 
     private function assertDraft(PositionProfile $profile): void

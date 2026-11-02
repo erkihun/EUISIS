@@ -30,6 +30,8 @@ use App\Services\Hierarchy\HierarchyVersionResolver;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
+use App\Services\ReportingLines\ReportingLinePresenter;
+use App\Services\ReportingLines\ReportingLineResolver;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -593,6 +595,11 @@ class EmployeeController extends Controller
             'activeIdCard',
         ]);
 
+        // The direct supervisor and why (ADR 0025), for readers of reporting lines; the full line has its own page.
+        $reportingLine = $request->user()->can('reportingLinesViewLine', $employee)
+            ? app(ReportingLinePresenter::class)->resolution(app(ReportingLineResolver::class)->directSupervisorOf($employee))
+            : null;
+
         return Inertia::render('Employees/Show', [
             'employee' => (new EmployeeDetailResource($employee))->resolve(),
             'organizations' => Organization::query()
@@ -601,6 +608,7 @@ class EmployeeController extends Controller
                 ->get(['id', 'name_en']),
             'qrCodes' => $this->qrCodes($request, $employee, $feedbackQr, $qrRenderer),
             'recentActivity' => $this->recentActivity($request, $employee),
+            'reportingLine' => $reportingLine,
         ]);
     }
 

@@ -6,6 +6,9 @@ namespace Modules\Feedback\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
+use Modules\Feedback\Application\Services\PublicFeedbackTargetResolver;
+use Modules\Feedback\Application\Services\PublicServiceFeedbackService;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
 use Modules\Feedback\Http\Requests\Concerns\ValidatesOrganizationFormContext;
 use Modules\Feedback\Http\Requests\Concerns\ValidatesPublicSubmitter;
@@ -40,7 +43,10 @@ class StoreServiceFeedbackRequest extends FormRequest
             'form_token' => ['nullable', 'string', 'size:32'],
             // A service belongs to an employee's position; an organization has none.
             'position_service_id' => $employeeTarget ? [
-                'required',
+                // Required only when the officer's position has services to choose
+                // from, which the controller knows once the token is resolved: a
+                // position with none configured must still be ratable.
+                'nullable',
                 'uuid',
                 // Existence only; whether this officer's POSITION delivers the
                 // service is checked in the controller, which knows the token.
@@ -51,6 +57,35 @@ class StoreServiceFeedbackRequest extends FormRequest
             ...$this->submitterRules($requirements),
             ...$this->evidenceRules($requirements),
             ...$this->organizationContextRules(ServiceFeedbackType::Feedback),
+        ];
+    }
+
+    /**
+     * The service is required once the token is resolved and the officer's post
+     * has services to choose from — checked here, with the other rules, so a
+     * visitor sees every problem in one answer. A post with none configured is
+     * still ratable: the form showed no list.
+     *
+     * @return list<callable>
+     */
+    public function after(): array
+    {
+        if (! $this->routeIs('service-feedback.*')) {
+            return [];
+        }
+
+        return [
+            function (Validator $validator): void {
+                if (filled($this->input('position_service_id'))) {
+                    return;
+                }
+
+                $context = app(PublicFeedbackTargetResolver::class)->resolveEmployeeToken((string) $this->route('token'));
+
+                if ($context !== null && app(PublicServiceFeedbackService::class)->serviceOptions($context->contextPositionId)->isNotEmpty()) {
+                    $validator->errors()->add('position_service_id', __('service-feedback.validation.service_required'));
+                }
+            },
         ];
     }
 

@@ -8,6 +8,8 @@ import { useCan } from '@/hooks/useCan';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
 import EmployeeWorkflowCard, { type EmployeeWorkflow } from '@/Components/employees/EmployeeWorkflowCard';
 import EmployeeEvidencePanel, { type EmployeeEvidence } from '@/Components/employees/EmployeeEvidencePanel';
+import SupervisorSummary from '@/Components/ReportingLines/SupervisorSummary';
+import type { SupervisorResolution } from '@/Components/ReportingLines/types';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
@@ -104,10 +106,13 @@ export default function EmployeesShow({
     recentActivity = null,
     workflow = null,
     evidence = null,
+    reportingLine = null,
 }: {
     employee: EmployeeDetail;
     qrCodes?: QrCodesProp;
     recentActivity?: RecentActivity | null;
+    /** The direct supervisor and why (ADR 0025), when the viewer may read reporting lines. */
+    reportingLine?: SupervisorResolution | null;
     /** The verified-employee stage, when the server runs one (the Core does). */
     workflow?: EmployeeWorkflow | null;
     /** Documents, photo and signature with their versions and verification, when the server manages them (the Core does). */
@@ -292,6 +297,17 @@ export default function EmployeesShow({
                         </div>
                     </div>
                 </div>
+
+                {/* ── Reporting line (ADR 0025): the direct supervisor and the rule behind it ── */}
+                {reportingLine && (
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="text-sm font-semibold text-(--app-foreground)">{t('reportingLines.reportingLineCard')}</h3>
+                            <Link href={route('reporting-lines.employees.show', employee.id)} className="text-sm text-primary hover:underline">{t('reportingLines.openReportingLine')}</Link>
+                        </div>
+                        <SupervisorSummary resolution={reportingLine} employeeHref={reportingLine.supervisor_employee_id && can('employees.view') ? route('employees.show', reportingLine.supervisor_employee_id) : null} />
+                    </div>
+                )}
 
                 {/* ── Current assignment ───────────────────────────────── */}
                 <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">

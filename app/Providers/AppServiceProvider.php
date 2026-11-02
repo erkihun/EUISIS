@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
+use App\Models\ActingAppointment;
 use App\Models\AuditLog;
 use App\Models\CardRequest;
 use App\Models\CodeRule;
@@ -32,8 +33,8 @@ use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
-use App\Models\Permission; // alias to avoid clash with Illuminate\Support\ServiceProvider
-use App\Models\Position;
+use App\Models\Permission;
+use App\Models\Position; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
 use App\Models\PositionService;
@@ -42,11 +43,13 @@ use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\ServiceClassification;
+use App\Models\SupervisorDelegation;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
+use App\Policies\ActingAppointmentPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
@@ -77,9 +80,11 @@ use App\Policies\PositionPolicy;
 use App\Policies\PositionServicePolicy;
 use App\Policies\ProcessPolicy;
 use App\Policies\PublicHolidayPolicy;
+use App\Policies\ReportingLinePolicy;
 use App\Policies\RolePolicy;
 use App\Policies\ServiceClassificationPolicy;
 use App\Policies\ServicePolicy;
+use App\Policies\SupervisorDelegationPolicy;
 use App\Policies\SystemSettingPolicy;
 use App\Policies\UserOrganizationScopePolicy;
 use App\Policies\UserPolicy;
@@ -215,6 +220,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);
+        // Reporting lines (ADR 0025): permission AND relationship, never the position alone.
+        Gate::policy(ActingAppointment::class, ActingAppointmentPolicy::class);
+        Gate::policy(SupervisorDelegation::class, SupervisorDelegationPolicy::class);
+        Gate::define('reportingLinesViewAny', [ReportingLinePolicy::class, 'viewAny']);
+        Gate::define('reportingLinesViewOrganization', [ReportingLinePolicy::class, 'viewOrganization']);
+        Gate::define('reportingLinesViewLine', [ReportingLinePolicy::class, 'viewLine']);
+        Gate::define('reportingLinesViewTeam', [ReportingLinePolicy::class, 'viewTeam']);
         Gate::policy(PositionService::class, PositionServicePolicy::class);
         Gate::policy(EmployeeTransfer::class, EmployeeTransferPolicy::class);
         Gate::policy(IdCard::class, IdCardPolicy::class);

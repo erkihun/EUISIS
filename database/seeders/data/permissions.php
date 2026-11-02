@@ -1470,7 +1470,6 @@ return [
     // Grievance Management — docs/grievance-management.md §7.
     ...require database_path('seeders/data/grievance-permissions.php'),
 
-
     // Service Delivery Monitoring & Support (docs/service-monitoring-security.md).
     ...require database_path('seeders/data/service-monitoring-permissions.php'),
 
@@ -2048,4 +2047,6 @@ return [
     ...require __DIR__.'/reception-permissions.php',
     // The court module (Modules/Court, ADR 0020).
     ...require __DIR__.'/court-permissions.php',
+    // Reporting hierarchy and supervisor resolution (ADR 0025).
+    ...require __DIR__.'/reporting-line-permissions.php',
 ];
