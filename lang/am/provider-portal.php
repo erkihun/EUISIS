@@ -9,6 +9,8 @@ return [
     'not_assigned' => 'ለዚህ መለያ ምንም የካፌቴሪያ አቅራቢ አልተያያዘም።',
     'period_too_long' => 'ቢበዛ :days ቀናት የሚሸፍን ጊዜ ይምረጡ።',
     'login_failed' => 'እነዚህ መረጃዎች ከንቁ የአቅራቢ መለያ ጋር አይዛመዱም።',
+    'wrong_portal_cafeteria' => 'ይህ መለያ የካፌቴሪያ አገልግሎት አይሰጥም። በትራንስፖርት ፖርታል ይግቡ።',
+    'wrong_portal_transport' => 'ይህ መለያ የትራንስፖርት አገልግሎት አይሰጥም። በካፌቴሪያ ፖርታል ይግቡ።',
     'identifier_label' => 'ኢሜይል ወይም የተጠቃሚ ስም',
     'invalid_credentials' => 'የተሳሳቱ መረጃዎች። እባክዎ እንደገና ይሞክሩ።',
     'reset_invalid_identifier' => 'ትክክለኛ የኢሜይል አድራሻ ወይም ስልክ ቁጥር ያስገቡ።',

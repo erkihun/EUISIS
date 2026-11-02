@@ -7,6 +7,7 @@ namespace Modules\Providers\Application\Services;
 use App\Support\Features;
 use Illuminate\Http\Request;
 use Modules\Providers\Contracts\Data\PortalActor;
+use Modules\Providers\Contracts\Data\ProviderPortalEntry;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Contracts\ProviderDirectory;
 use Modules\Providers\Contracts\ProviderPortalSession;
@@ -73,6 +74,45 @@ class ProviderPortalContext implements ProviderPortalSession
         }
 
         return route('provider.portal.dashboard');
+    }
+
+    public function loginUrl(Request $request): string
+    {
+        $entry = $this->entryForPath($request)
+            ?? ProviderPortalEntry::tryFrom((string) $request->cookie(ProviderPortalEntry::COOKIE));
+
+        return $entry === null ? route('provider.portal.login') : route($entry->loginRouteName());
+    }
+
+    /**
+     * The service a portal URL belongs to. The shared pages (sign-in, the
+     * password reset, the profile) belong to neither, and the unprefixed
+     * pages under /provider/portal are the cafeteria's, which predate the
+     * /cafeteria prefix.
+     */
+    private function entryForPath(Request $request): ?ProviderPortalEntry
+    {
+        if ($request->is('provider/portal/transport', 'provider/portal/transport/*')) {
+            return ProviderPortalEntry::Transport;
+        }
+
+        if ($request->is('provider/portal/cafeteria', 'provider/portal/cafeteria/*', 'cafeteria/portal', 'cafeteria/portal/*')) {
+            return ProviderPortalEntry::Cafeteria;
+        }
+
+        if ($request->is(
+            'provider/portal',
+            'provider/portal/login',
+            'provider/portal/logout',
+            'provider/portal/forgot-password',
+            'provider/portal/reset-password',
+            'provider/portal/profile',
+            'provider/portal/profile/*',
+        )) {
+            return null;
+        }
+
+        return $request->is('provider/portal/*') ? ProviderPortalEntry::Cafeteria : null;
     }
 
     /** @return array<string, mixed> */

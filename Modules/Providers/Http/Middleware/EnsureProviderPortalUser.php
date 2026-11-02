@@ -6,6 +6,7 @@ namespace Modules\Providers\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Modules\Providers\Contracts\ProviderPortalSession;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,14 +17,17 @@ class EnsureProviderPortalUser
         /** @var ProviderUser|null $user */
         $user = auth('provider')->user();
 
+        // The sign-in page of the portal this page belongs to.
+        $loginUrl = app(ProviderPortalSession::class)->loginUrl($request);
+
         if ($user === null) {
-            return redirect()->route('provider.portal.login');
+            return redirect()->to($loginUrl);
         }
 
         if (! $user->canLogin()) {
             auth('provider')->logout();
 
-            return redirect()->route('provider.portal.login')
+            return redirect()->to($loginUrl)
                 ->withErrors(['identifier' => __('provider-portal.access_denied')]);
         }
 

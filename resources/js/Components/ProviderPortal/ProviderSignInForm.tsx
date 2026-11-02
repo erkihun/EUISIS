@@ -1,33 +1,45 @@
-import { AuthField, CardHeading, ICONS, Notice, PasswordField, SubmitButton } from '@/Components/ProviderPortal/AuthFields';
+import { AuthField, ICONS, Notice, PasswordField, SubmitButton, useAccent } from '@/Components/ProviderPortal/AuthFields';
 import { useLocale } from '@/hooks/useLocale';
-import ProviderAuthLayout from '@/Layouts/ProviderAuthLayout';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { FormEvent } from 'react';
 
-export default function Login({
+export type ProviderPortal = 'cafeteria' | 'transport';
+
+export type SessionNotice = 'idle_timeout' | 'password_changed' | 'page_expired';
+
+const OTHER: Record<ProviderPortal, ProviderPortal> = { cafeteria: 'transport', transport: 'cafeteria' };
+
+/**
+ * The sign-in form both portals share. It posts to the portal's own sign-in,
+ * which admits only accounts whose provider runs that service; the server
+ * answers anyone else with a pointer to the other portal.
+ */
+export default function ProviderSignInForm({
+    portal,
     status,
     sessionNotice,
 }: {
+    portal: ProviderPortal;
     /** e.g. "Your password has been reset" after the forgot-password flow. */
     status?: string | null;
-    sessionNotice?: 'idle_timeout' | 'password_changed' | 'page_expired' | null;
+    sessionNotice?: SessionNotice | null;
 }) {
     const { t } = useLocale();
+    const accent = useAccent();
     const form = useForm({ identifier: '', password: '' });
 
     // A portal page that signs the user out (e.g. access revoked) redirects
     // here with its error; useForm only sees errors from its own submits.
     const pageErrors = usePage().props.errors;
+    const other = OTHER[portal];
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('provider.portal.login.store'), { onFinish: () => form.reset('password') });
+        form.post(route(`provider.portal.${portal}.login.store`), { onFinish: () => form.reset('password') });
     }
 
     return (
-        <ProviderAuthLayout title={t('providerPortal.login')}>
-            <CardHeading icon={ICONS.store} title={t('providerPortal.login')} subtitle={t('providerPortal.loginSubtitle')} />
-
+        <>
             {status && <Notice tone="success">{status}</Notice>}
             {sessionNotice && <Notice tone="warning">{t(`auth.session.${sessionNotice}`)}</Notice>}
 
@@ -52,10 +64,7 @@ export default function Login({
                     id="password"
                     label={t('providerPortal.password')}
                     labelAside={
-                        <Link
-                            href={route('provider.portal.password.request')}
-                            className="text-xs font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300"
-                        >
+                        <Link href={route('provider.portal.password.request', { portal })} className={`text-xs font-medium ${accent.link}`}>
                             {t('providerPortal.forgotPassword')}
                         </Link>
                     }
@@ -70,12 +79,20 @@ export default function Login({
                 <SubmitButton processing={form.processing} label={t('providerPortal.signIn')} processingLabel={t('auth.signingIn')} />
             </form>
 
-            <p className="mt-6 border-t border-gray-200 pt-5 text-center text-sm text-gray-500 dark:border-slate-800 dark:text-slate-400">
-                {t('providerPortal.staffLoginPrompt')}{' '}
-                <Link href={route('login')} className="font-medium text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
-                    {t('providerPortal.staffLogin')}
-                </Link>
-            </p>
-        </ProviderAuthLayout>
+            <div className="mt-6 space-y-2 border-t border-gray-200 pt-5 text-center text-sm text-gray-500 dark:border-slate-800 dark:text-slate-400">
+                <p>
+                    {t(`providerPortal.switchTo_${other}_prompt`)}{' '}
+                    <Link href={route(`provider.portal.${other}.login`)} className={`font-medium ${accent.link}`}>
+                        {t(`providerPortal.switchTo_${other}`)}
+                    </Link>
+                </p>
+                <p>
+                    {t('providerPortal.staffLoginPrompt')}{' '}
+                    <Link href={route('login')} className={`font-medium ${accent.link}`}>
+                        {t('providerPortal.staffLogin')}
+                    </Link>
+                </p>
+            </div>
+        </>
     );
 }

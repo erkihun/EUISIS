@@ -9,6 +9,8 @@ return [
     'not_assigned' => 'No cafeteria provider is linked to this account.',
     'period_too_long' => 'Choose a period of at most :days days.',
     'login_failed' => 'These credentials do not match an active provider account.',
+    'wrong_portal_cafeteria' => 'This account does not provide cafeteria services. Sign in on the transport portal instead.',
+    'wrong_portal_transport' => 'This account does not provide transport services. Sign in on the cafeteria portal instead.',
     'identifier_label' => 'Email or Username',
     'invalid_credentials' => 'Invalid credentials. Please try again.',
     'reset_invalid_identifier' => 'Enter a valid email address or phone number.',

@@ -76,10 +76,10 @@ function providerLoginAccount(array $services, array $overrides = []): ProviderU
     ]);
 }
 
-test('the login page renders for guests', function (): void {
+test('the general login address asks which portal to sign in to', function (): void {
     $this->get(route('provider.portal.login'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('ProviderPortal/Auth/Login'));
+        ->assertInertia(fn (Assert $page) => $page->component('ProviderPortal/Auth/ChoosePortal'));
 });
 
 test('a cafeteria provider signs in with email and lands on the cafeteria dashboard', function (): void {
@@ -166,9 +166,9 @@ test('a provider bounced from a portal page returns to it after signing in', fun
     providerLoginAccount(['transport']);
 
     $this->get(route('provider.portal.transport.trips.index'))
-        ->assertRedirect(route('provider.portal.login'));
+        ->assertRedirect(route('provider.portal.transport.login'));
 
-    $this->post(route('provider.portal.login.store'), [
+    $this->post(route('provider.portal.transport.login.store'), [
         'identifier' => 'login-operator',
         'password' => 'password',
     ])->assertRedirect(route('provider.portal.transport.trips.index'));

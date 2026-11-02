@@ -6,6 +6,8 @@ const providerUsers = {
     editTitle: 'Edit Provider Portal Account',
     backToList: 'Back to accounts',
     portalAddress: 'Provider portal sign-in address',
+    portalAddress_cafeteria: 'Cafeteria',
+    portalAddress_transport: 'Transport',
 
     // Statistics
     statTotal: 'Accounts',

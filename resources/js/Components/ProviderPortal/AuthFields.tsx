@@ -1,9 +1,54 @@
 import { useLocale } from '@/hooks/useLocale';
-import { InputHTMLAttributes, PropsWithChildren, ReactNode, useState } from 'react';
+import { createContext, InputHTMLAttributes, PropsWithChildren, ReactNode, useContext, useState } from 'react';
 
 /** Fields shared by the provider portal's sign-in and password-reset pages. */
 
+/**
+ * Each page's colour: the shared provider pages are orange, the cafeteria is
+ * the same orange with warm café fields, transport is transit blue.
+ */
+export type PortalAccent = 'orange' | 'cafeteria' | 'sky';
+
+type AccentClasses = { focus: string; focusBorder: string; field: string; focusVisible: string; button: string; badge: string; link: string };
+
+const ORANGE: AccentClasses = {
+    focus: 'focus:ring-orange-500/40',
+    focusBorder: 'focus:border-orange-500',
+    field: 'dark:border-slate-700 dark:bg-slate-800',
+    focusVisible: 'focus-visible:ring-orange-500/40',
+    button: 'bg-orange-600 shadow-orange-600/25 hover:bg-orange-700 focus:ring-orange-500',
+    badge: 'from-orange-400 to-orange-600 shadow-orange-600/30',
+    link: 'text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300',
+};
+
+const ACCENTS: Record<PortalAccent, AccentClasses> = {
+    orange: ORANGE,
+    // Warm espresso fields in the dark, so they sit inside the café card.
+    cafeteria: { ...ORANGE, field: 'dark:border-[#4a3626] dark:bg-[#251b14]' },
+    sky: {
+        focus: 'focus:ring-sky-500/40',
+        focusBorder: 'focus:border-sky-500',
+        field: 'dark:border-slate-700 dark:bg-slate-800',
+        focusVisible: 'focus-visible:ring-sky-500/40',
+        button: 'bg-sky-600 shadow-sky-600/25 hover:bg-sky-700 focus:ring-sky-500',
+        badge: 'from-sky-400 to-blue-600 shadow-sky-600/30',
+        link: 'text-sky-700 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300',
+    },
+};
+
+const AccentContext = createContext<PortalAccent>('orange');
+
+/** Wraps a portal's signed-out page so every field, link and button takes its colour. */
+export const PortalAccentProvider = AccentContext.Provider;
+
+/** The current portal's accent classes. */
+export function useAccent() {
+    return ACCENTS[useContext(AccentContext)];
+}
+
 export const ICONS = {
+    cup: 'M3.75 8.25h13.5v5.25a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-6-6V8.25Zm13.5 1.5h.75a2.25 2.25 0 0 1 0 4.5h-1.125M8.25 3.75s-.75.75 0 1.5.75 1.5 0 2.25M12 3.75s-.75.75 0 1.5.75 1.5 0 2.25M3 21h15.75',
+    bus: 'M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12',
     user: 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z',
     lock: 'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z',
     key: 'M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z',
@@ -59,6 +104,8 @@ type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'className'
 };
 
 export function AuthField({ id, label, icon, error, labelAside, trailing, ...input }: FieldProps) {
+    const accent = useAccent();
+
     return (
         <div>
             <div className="mb-1.5 flex items-center justify-between gap-3">
@@ -74,10 +121,10 @@ export function AuthField({ id, label, icon, error, labelAside, trailing, ...inp
                     name={id}
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? `${id}-error` : undefined}
-                    className={`w-full rounded-card border py-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 dark:text-slate-100 dark:placeholder:text-slate-500 ${trailing ? 'pr-11' : 'pr-4'} ${
+                    className={`w-full rounded-card border py-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-hidden focus:ring-2 ${accent.focus} dark:text-slate-100 dark:placeholder:text-slate-500 ${trailing ? 'pr-11' : 'pr-4'} ${
                         error
                             ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                            : 'border-gray-300 bg-white focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800'
+                            : `border-gray-300 bg-white ${accent.field} ${accent.focusBorder}`
                     }`}
                     {...input}
                 />
@@ -90,6 +137,7 @@ export function AuthField({ id, label, icon, error, labelAside, trailing, ...inp
 
 export function PasswordField(props: Omit<FieldProps, 'icon' | 'type' | 'trailing'>) {
     const { t } = useLocale();
+    const accent = useAccent();
     const [visible, setVisible] = useState(false);
 
     return (
@@ -104,7 +152,7 @@ export function PasswordField(props: Omit<FieldProps, 'icon' | 'type' | 'trailin
                     aria-label={visible ? t('auth.hidePassword') : t('auth.showPassword')}
                     aria-pressed={visible}
                     aria-controls={props.id}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-orange-500/40 dark:text-slate-500 dark:hover:text-slate-300"
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 ${accent.focusVisible} dark:text-slate-500 dark:hover:text-slate-300`}
                 >
                     {visible ? (
                         <Icon d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
@@ -118,11 +166,13 @@ export function PasswordField(props: Omit<FieldProps, 'icon' | 'type' | 'trailin
 }
 
 export function SubmitButton({ processing, label, processingLabel }: { processing: boolean; label: string; processingLabel: string }) {
+    const accent = useAccent();
+
     return (
         <button
             type="submit"
             disabled={processing}
-            className="flex w-full items-center justify-center gap-2 rounded-card bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-600/25 transition-all hover:bg-orange-700 focus:outline-hidden focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+            className={`flex w-full items-center justify-center gap-2 rounded-card px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all focus:outline-hidden focus:ring-2 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900 ${accent.button}`}
         >
             {processing ? (
                 <>
@@ -142,11 +192,13 @@ export function SubmitButton({ processing, label, processingLabel }: { processin
     );
 }
 
-/** The orange badge + heading + subtitle at the top of each card. */
+/** The portal-coloured badge + heading + subtitle at the top of each card. */
 export function CardHeading({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) {
+    const accent = useAccent();
+
     return (
         <div className="mb-7">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-linear-to-br from-orange-400 to-orange-600 text-white shadow-md shadow-orange-600/30">
+            <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-linear-to-br text-white shadow-md ${accent.badge}`}>
                 <Icon className="h-5 w-5" d={icon} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>

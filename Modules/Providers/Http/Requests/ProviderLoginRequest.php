@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Modules\Providers\Contracts\Data\ProviderPortalEntry;
 use Modules\Providers\Domain\Models\ProviderUser;
 
 /**
@@ -30,7 +31,13 @@ class ProviderLoginRequest extends FormRequest
         ];
     }
 
-    public function authenticate(): void
+    /**
+     * Sign the account in, through one service's door when $entry is given:
+     * an account whose provider does not run that service is refused there
+     * and pointed at the other door. The refusal counts as a failed attempt,
+     * so the door cannot be used to test passwords past the lockout.
+     */
+    public function authenticate(?ProviderPortalEntry $entry = null): void
     {
         $throttle = app(LoginThrottle::class);
         $throttle->ensureNotLocked($this, 'provider', $this->string('identifier')->toString(), 'identifier');
@@ -57,6 +64,14 @@ class ProviderLoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'identifier' => __($errorKey),
+            ]);
+        }
+
+        if ($entry !== null && ! $providerUser->hasService($entry->serviceCode())) {
+            $throttle->failed($this, 'provider', $identifier);
+
+            throw ValidationException::withMessages([
+                'identifier' => __('provider-portal.wrong_portal_'.$entry->value),
             ]);
         }
 

@@ -30,6 +30,13 @@ interface ProviderPortalSession
     public function actorHasService(Request $request, string $serviceCode): bool;
 
     /**
+     * The sign-in page a provider-portal visitor belongs on: the service's
+     * own page for a cafeteria or transport URL, else the portal this browser
+     * last signed in to, else the page that lets them choose.
+     */
+    public function loginUrl(Request $request): string;
+
+    /**
      * The props the provider-portal layout shares on every page: the locations
      * to switch between, the selected one, and the signed-in user, provider,
      * enabled services and page permissions.
