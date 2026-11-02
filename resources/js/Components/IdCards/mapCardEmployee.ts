@@ -13,11 +13,17 @@ export type CardEmployee = {
     email?: string | null;
     address?: string | null;
     photo_url?: string | null;
+    employee_number?: string | null;
+    emergency_contact_name?: string | null;
+    emergency_contact_phone?: string | null;
 };
 
 const present = (...values: (string | null | undefined)[]) => values.find((value) => value?.trim());
 
-/** Identity fields shared by screen, print, browser PNG and Save as PDF. */
+/**
+ * Card fields shared by screen, print, browser PNG and Save as PDF, for both
+ * faces: a template may print any field on either face.
+ */
 export function mapCardEmployee(card: { card_number: string; employee?: CardEmployee | null }) {
     const employee = card.employee;
     const birthDate = employee?.date_of_birth?.slice(0, 10);
@@ -40,6 +46,9 @@ export function mapCardEmployee(card: { card_number: string; employee?: CardEmpl
         phoneNumber: employee?.phone,
         email: employee?.email,
         address: employee?.address,
+        employeeNumber: employee?.employee_number,
+        emergencyContactName: employee?.emergency_contact_name,
+        emergencyContactPhone: employee?.emergency_contact_phone,
         photoUrl: employee?.photo_url,
     };
 }

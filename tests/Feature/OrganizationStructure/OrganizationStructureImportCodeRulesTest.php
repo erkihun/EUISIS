@@ -166,7 +166,7 @@ it('generates a direct position code as OWNER/SEQUENCE', function (): void {
     $sheets = blankCodeSheets([
         StructureSheet::Organization->value => [
             structureHeaders(StructureSheet::Organization),
-            ['MA-01', 'Import Bureau', null, 'IMPTYPE', null, 'active'],
+            ['MA-01', 'Import Bureau', 'የማስመጣት ቢሮ', 'IMPTYPE', null, 'active'],
         ],
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
@@ -206,7 +206,7 @@ it('generates a hosted-unit position code as OWNER/HOST/SEQUENCE', function (): 
     $sheets = blankCodeSheets([
         StructureSheet::Organization->value => [
             structureHeaders(StructureSheet::Organization),
-            ['MA-01', 'Owner Bureau', null, 'IMPTYPE', null, 'active'],
+            ['MA-01', 'Owner Bureau', 'ባለቤት ቢሮ', 'IMPTYPE', null, 'active'],
         ],
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
@@ -482,9 +482,15 @@ it('advances the code rule sequence so a second import does not reuse the codes'
 
     $first = Organization::query()->firstOrFail()->code;
 
-    // A second, otherwise identical file must not collide with the first.
+    // A second file for another organization must not collide with the first.
+    // (The same names twice would be the same institution, which is refused.)
     $this->actingAs($user)
-        ->post(route('organizations.import-structure.confirm'), ['file' => structureWorkbookFile(blankCodeSheets())])
+        ->post(route('organizations.import-structure.confirm'), ['file' => structureWorkbookFile(blankCodeSheets([
+            StructureSheet::Organization->value => [
+                structureHeaders(StructureSheet::Organization),
+                [null, 'Second Import Bureau', 'ሁለተኛ የማስመጣት ቢሮ', 'IMPTYPE', null, 'active'],
+            ],
+        ]))])
         ->assertRedirect();
 
     expect(Organization::query()->count())->toBe(2)

@@ -1,10 +1,7 @@
 import {
-    CARD_SURFACE, PORTRAIT_FONT_SIZE, layoutBox, layoutStyle, printedFieldElements, roleStyle, textStyleCss, useCardDimensions, useIdCardTemplate,
-    type AnyLayoutElement,
+    CARD_SURFACE, PORTRAIT_FONT_SIZE, layoutStyle, printedFieldElements, roleStyle, textStyleCss, useCardDimensions, useIdCardTemplate,
 } from '@/Components/IdCards/IdCardTemplateContext';
-import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
-import enEmployees from '@/i18n/en/employees';
-import amEmployees from '@/i18n/am/employees';
+import IdCardFaceFields from '@/Components/IdCards/IdCardFaceFields';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
@@ -35,6 +32,9 @@ type Props = {
     phoneNumber?: string | null;
     email?: string | null;
     address?: string | null;
+    /** The emergency contact, for a template that prints it on the front. */
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
     cityLogoUrl?: string | null;
 };
 
@@ -50,7 +50,7 @@ export default function IdCardPortraitFront({
     cardNumber, fullName, fullNameAm, employeeNumber, organizationName, organizationNameAm,
     organizationLogoUrl, positionTitle, positionTitleAm, photoUrl,
     status, rootStyle, gender, dateOfBirth, dateOfBirthAm, nationality, nationalityAm,
-    employmentStatus, phoneNumber, email, address,
+    employmentStatus, phoneNumber, email, address, emergencyContactName, emergencyContactPhone,
 }: Props) {
     const { t } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
@@ -83,15 +83,12 @@ export default function IdCardPortraitFront({
     // The template's printed-field list decides the face, as on landscape:
     // name and ID number are the large name and ID elements, every other
     // field its own box (IdCardSvgRenderer::renderPortrait draws the same).
-    const shown = printedFieldElements(cardTemplate?.employee_fields, 'front', 'portrait');
+    const shown = printedFieldElements(cardTemplate?.employee_fields, 'front', 'portrait', cardTemplate?.layout_config?.faces);
     const showsField = (key: string) => shown.some((field) => field.key === key);
-    const labelPx = Number.parseFloat(roleStyle(cardTemplate, 'front', 'label')?.font_size ?? '') || 7;
-    const valuePx = Number.parseFloat(roleStyle(cardTemplate, 'front', 'value')?.font_size ?? '') || 10;
-    const detailFields = [
-        ...buildBilingualFields({ gender, dateOfBirth, dateOfBirthAm, nationality, nationalityAm, employmentStatus, phoneNumber, cardNumber, employeeNumber }),
-        { key: 'email', labelAm: amEmployees.email, labelEn: enEmployees.email, valueAm: email, valueEn: email },
-        { key: 'address', labelAm: amEmployees.address, labelEn: enEmployees.address, valueAm: address, valueEn: address },
-    ].filter((field) => field.key !== 'name' && field.key !== 'idNumber' && showsField(field.key));
+    const fieldSource = {
+        gender, dateOfBirth, dateOfBirthAm, nationality, nationalityAm, employmentStatus, phoneNumber,
+        cardNumber, employeeNumber, email, address, emergencyContactName, emergencyContactPhone,
+    };
 
     return (
         <div style={{ containerType: 'inline-size', width: rootStyle?.width ?? '100%', maxWidth: rootStyle?.maxWidth ?? 260, height: rootStyle?.height }}>
@@ -131,17 +128,7 @@ export default function IdCardPortraitFront({
                     <p className="uppercase tracking-wide" style={labelStyle}>{t('idCards.officialIdBadge')}</p>
                 </div>}
 
-                {detailFields.map(({ key, ...field }) => (
-                    <div key={key} data-card-field={key} className="min-w-0" style={layoutStyle(cardTemplate, `field_${key}` as AnyLayoutElement)}>
-                        <IdCardBilingualField
-                            {...field}
-                            fieldKey={key}
-                            labelStyle={labelStyle}
-                            valueStyle={valueStyle}
-                            fit={{ widthPct: layoutBox(cardTemplate, `field_${key}` as AnyLayoutElement).w, labelPx, valuePx, canvasWidth: 540 }}
-                        />
-                    </div>
-                ))}
+                <IdCardFaceFields side="front" orientation="portrait" source={fieldSource} labelStyle={labelStyle} valueStyle={valueStyle} />
             </div>
         </div>
     );

@@ -129,7 +129,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                     </div>
                     <div style={{ height: 32 }} />
                     <div ref={backRef} style={{ width: PORTRAIT_W, height: PORTRAIT_H }}>
-                        <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                        <IdCardPortraitBack {...mapCardEmployee(card)} cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                     </div>
                 </div>,
                 document.body,
@@ -192,7 +192,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                             <IdCardPortraitFront {...frontProps} />
                         )}
                         {(tab === 'back' || tab === 'both') && (
-                            <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} />
+                            <IdCardPortraitBack {...mapCardEmployee(card)} cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} />
                         )}
                     </div>
 

@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Exceptions\MissingSequenceScopeContextException;
 use App\Exceptions\RandomCodeGenerationException;
+use App\Exceptions\SequenceCodesExhaustedException;
 use App\Models\CodeRule;
 use App\Models\User;
 use App\Services\CodeGeneration\CodeGeneratorService;
@@ -56,6 +57,14 @@ class GenerateCodeAction
         $codeRule = $resolvedRule ?? $this->codeRuleResolver->resolve($entityType, $context);
 
         if ($manualCode !== null && trim($manualCode) !== '') {
+            // A typed code is held to the same rule as a generated one: no other
+            // record of the entity type may already have it.
+            if ($this->codeGeneratorService->manualCodeTaken($entityType, trim($manualCode), $entityId)) {
+                throw ValidationException::withMessages([
+                    $field => __('code-rules.code_already_in_use', ['code' => trim($manualCode)]),
+                ]);
+            }
+
             if ($codeRule !== null) {
                 if (! $codeRule->allow_manual_override) {
                     throw ValidationException::withMessages([
@@ -107,6 +116,10 @@ class GenerateCodeAction
         } catch (RandomCodeGenerationException) {
             throw ValidationException::withMessages([
                 $field => __('code-rules.random_code_duplicate'),
+            ]);
+        } catch (SequenceCodesExhaustedException) {
+            throw ValidationException::withMessages([
+                $field => __('code-rules.sequence_codes_exhausted'),
             ]);
         }
 

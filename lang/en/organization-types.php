@@ -34,4 +34,6 @@ return [
     'category_service_provider' => 'Service Provider',
     'category_independent' => 'Independent',
     'category_other' => 'Other',
+    'cannot_delete_in_use' => ':count organization(s) use this type. Deactivate the type instead of deleting it.',
+    'cannot_delete_allowed_parent' => 'Other types allow this type as a parent (:names). Remove it from their allowed parents first.',
 ];

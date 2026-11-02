@@ -209,3 +209,25 @@ test('the roles index filters by search and scope and paginates like every other
         ->get(route('roles.index'))
         ->assertInertia(fn ($page) => $page->has('roles.total'));
 });
+
+test('the roles index categorises roles by module and counts them by scope', function (): void {
+    Permission::create(['name' => 'employees.moduleProbe', 'guard_name' => 'web', 'group' => 'employees']);
+    makeTestRole('Module Probe HR')->givePermissionTo('employees.moduleProbe');
+    makeTestRole('Module Probe Empty');
+
+    $this->actingAs(roleMgmtViewer())
+        ->get(route('roles.index', ['module' => 'employee-management', 'search' => 'module probe']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.module', 'employee-management')
+            ->has('roles.data', 1)
+            ->where('roles.data.0.name', 'Module Probe HR')
+            ->where('roles.data.0.modules.employee-management', 1)
+            ->where('scopeCounts', fn ($counts) => $counts['global'] + $counts['scoped'] === 1)
+            ->where('modules', fn ($modules) => collect($modules)->contains('key', 'employee-management'))
+        );
+
+    $this->actingAs(roleMgmtAdmin())
+        ->get(route('roles.create'))
+        ->assertInertia(fn ($page) => $page->where('modules', fn ($modules) => collect($modules)->contains('key', 'security-access-control')));
+});

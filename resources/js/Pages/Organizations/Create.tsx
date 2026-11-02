@@ -116,15 +116,9 @@ export default function CreateOrganization({
             branding_secondary_color: data.branding_secondary_color || null,
             ...organizationProfilePayload(organizationProfile(data)),
         }));
+        // The success message comes back as the server's flash toast.
         form.post(route('organizations.store'), {
             forceFormData: form.data.logo !== null,
-            onSuccess: () => {
-                showToast.success(
-                    form.data.parent_organization_id
-                        ? t('organizations.childOrganizationCreatedSuccessfully')
-                        : t('organizations.createdSuccessfully'),
-                );
-            },
             onError: (errors) => {
                 const firstError = Object.values(errors).find(Boolean);
 
@@ -240,7 +234,15 @@ export default function CreateOrganization({
                                     allowNoParent={!requiresParentOrganization}
                                     locale={locale}
                                     onChange={(value, option) => {
-                                        form.setData('parent_organization_id', value);
+                                        // A parent link always goes into a draft version; pick the newest one
+                                        // so the link is not lost to an empty version field.
+                                        form.setData((data) => ({
+                                            ...data,
+                                            parent_organization_id: value,
+                                            hierarchy_version_id: value && !data.hierarchy_version_id
+                                                ? (hierarchyVersions[0]?.id ?? '')
+                                                : data.hierarchy_version_id,
+                                        }));
                                         setSelectedParent(option);
                                     }}
                                     labels={{

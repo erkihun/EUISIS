@@ -40,6 +40,29 @@ let brandNames: Record<'en' | 'am', string> = {
 const currentBrand = (): string => (document.documentElement.lang === 'am' ? brandNames.am : brandNames.en);
 const pages = import.meta.glob<{ default: ResolvedComponent }>('./Pages/**/*.tsx');
 
+/**
+ * A page chunk that 404s almost always means a deploy replaced public/build
+ * while this tab (or a cached HTML page) still points at the previous build's
+ * file names. One full reload fetches fresh HTML naming the new files. The
+ * session flag stops a reload loop when the files are genuinely missing on the
+ * server (a failed or half-finished build), which only a rebuild there fixes.
+ */
+const RELOAD_FLAG = 'euisis:chunk-reload';
+function reloadForNewBuild(): void {
+    try {
+        const last = Number(sessionStorage.getItem(RELOAD_FLAG) ?? 0);
+        if (Date.now() - last < 60_000) return;
+        sessionStorage.setItem(RELOAD_FLAG, String(Date.now()));
+    } catch {
+        return;
+    }
+    window.location.reload();
+}
+window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    reloadForNewBuild();
+});
+
 /** Removes the static HTML loader once React has mounted. */
 function InitialLoaderRemover() {
     useEffect(() => {
@@ -70,6 +93,7 @@ function mount() {
             } catch (error) {
                 if (import.meta.env.DEV) throw error;
                 console.error(`Unable to resolve Inertia page: ${name}`, error);
+                reloadForNewBuild();
                 return () => null;
             }
         },

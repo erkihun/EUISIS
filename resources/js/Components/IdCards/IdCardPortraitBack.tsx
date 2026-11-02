@@ -1,10 +1,9 @@
 import {
-    BACK_PHOTO_DEFAULTS, CARD_SURFACE, PORTRAIT_FONT_SIZE, layoutBox, layoutStyle, printedFieldElements, roleStyle, textStyleCss,
+    BACK_PHOTO_DEFAULTS, CARD_SURFACE, PORTRAIT_FONT_SIZE, layoutStyle, roleStyle, textStyleCss,
     useCardDimensions, useIdCardTemplate,
 } from '@/Components/IdCards/IdCardTemplateContext';
-import IdCardBilingualField from '@/Components/IdCards/IdCardBilingualField';
-import enDict from '@/i18n/en';
-import amDict from '@/i18n/am';
+import IdCardFaceFields from '@/Components/IdCards/IdCardFaceFields';
+import type { FieldSource } from '@/Components/IdCards/IdCardBilingualField';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
@@ -18,10 +17,10 @@ type Props = {
     emergencyContactPhone?: string | null;
     photoUrl?: string | null;
     rootStyle?: CSSProperties;
-};
+} & Omit<FieldSource, 'cardNumber' | 'emergencyContactName' | 'emergencyContactPhone'>;
 
 export default function IdCardPortraitBack({
-    qrValue, photoUrl, rootStyle, emergencyContactName, emergencyContactPhone,
+    cardNumber, qrValue, photoUrl, rootStyle, emergencyContactName, emergencyContactPhone, ...fields
 }: Props) {
     const { t } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
@@ -34,21 +33,7 @@ export default function IdCardPortraitBack({
     const sealUrl = cardTemplate?.seal_url ?? getString('general.seal_url', '');
     const photo = cardTemplate?.back_photo_config ?? BACK_PHOTO_DEFAULTS;
     const background = `linear-gradient(160deg, ${CARD_SURFACE.from} 0%, ${CARD_SURFACE.to} 100%)`;
-    // Emergency contacts print when the template lists them, each in its own
-    // box (IdCardSvgRenderer::renderPortrait draws the same).
     const valueStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'value'), CARD_SURFACE.ink);
-    const labelPx = Number.parseFloat(roleStyle(cardTemplate, 'back', 'label')?.font_size ?? '') || 7;
-    const valuePx = Number.parseFloat(roleStyle(cardTemplate, 'back', 'value')?.font_size ?? '') || 8;
-    const values: Record<string, string | null | undefined> = {
-        emergency_contact_name: emergencyContactName,
-        emergency_contact_phone: emergencyContactPhone,
-    };
-    const captions = {
-        emergency_contact_name: 'emergencyContactNameLabel',
-        emergency_contact_phone: 'emergencyContactPhoneLabel',
-    } as const;
-    const contacts = printedFieldElements(cardTemplate?.employee_fields, 'back', 'portrait')
-        .filter(({ key }) => Boolean(values[key]));
 
     return (
         <div style={{ containerType: 'inline-size', width: rootStyle?.width ?? '100%', maxWidth: rootStyle?.maxWidth ?? 260, height: rootStyle?.height }}>
@@ -75,19 +60,14 @@ export default function IdCardPortraitBack({
                     {sealUrl && <img src={sealUrl} alt="" className="h-full w-full object-contain drop-shadow-md" />}
                 </div>
 
-                {contacts.map(({ key, element }) => (
-                    <div key={key} data-card-field={key} className="min-w-0" style={layoutStyle(cardTemplate, element as never, 'back')}>
-                        <IdCardBilingualField
-                            labelAm={amDict.idCards[captions[key as keyof typeof captions]]}
-                            valueAm={values[key]}
-                            labelEn={enDict.idCards[captions[key as keyof typeof captions]]}
-                            valueEn={values[key]}
-                            labelStyle={labelStyle}
-                            valueStyle={valueStyle}
-                            fit={{ widthPct: layoutBox(cardTemplate, element as never, 'back').w, labelPx, valuePx, canvasWidth: 540 }}
-                        />
-                    </div>
-                ))}
+                {/* The fields placed on the back, each in its own box (IdCardSvgRenderer::renderPortrait). */}
+                <IdCardFaceFields
+                    side="back"
+                    orientation="portrait"
+                    source={{ ...fields, cardNumber, emergencyContactName, emergencyContactPhone }}
+                    labelStyle={labelStyle}
+                    valueStyle={valueStyle}
+                />
             </div>
         </div>
     );

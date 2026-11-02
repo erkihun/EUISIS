@@ -174,12 +174,14 @@ describe('organization public contact phone', function (): void {
         $this->admin = User::factory()->create();
         $this->admin->assignRole('Super Admin');
 
+        // Both scenarios share one fixture name; one live organization per name.
+        $this->b->organization->update(['name_en' => 'Second Feedback Organization', 'name_am' => 'ሁለተኛ የአስተያየት ተቋም']);
         $this->organization = $this->a->organization->refresh();
         $this->payload = [
             'organization_type_id' => $this->organization->organization_type_id,
             'code' => $this->organization->code,
             'name_en' => $this->organization->name_en,
-            'name_am' => 'የሙከራ ተቋም',
+            'name_am' => $this->organization->name_am,
             'status' => 'active',
         ];
     });

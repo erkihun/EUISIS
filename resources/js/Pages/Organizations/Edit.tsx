@@ -256,8 +256,10 @@ export default function EditOrganization({
                                     <option value="active">{t('organizations.statusActive')}</option>
                                     <option value="draft">{t('organizations.statusDraft')}</option>
                                     <option value="inactive">{t('organizations.statusInactive')}</option>
-                                    <option value="merged">{t('organizations.statusMerged')}</option>
                                     <option value="dissolved">{t('organizations.statusDissolved')}</option>
+                                    {/* Merged and archived are kept when already set; they are not chosen here. */}
+                                    {organization.status === 'merged' && <option value="merged">{t('organizations.statusMerged')}</option>}
+                                    {organization.status === 'archived' && <option value="archived">{t('organizations.statusArchived')}</option>}
                                 </select>
                             </Field>
                             <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>

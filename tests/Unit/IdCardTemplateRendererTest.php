@@ -186,8 +186,8 @@ it('keeps portrait sections independently manageable and omits removed back cont
         ->toContain('$orientation === \'portrait\' ? null : $organizationLogo')
         ->and($editor)
         // Both orientations: the fixed elements plus one box per printed field.
-        ->toContain("faceElements('front', printedFields, form.data.orientation)")
-        ->toContain("faceElements('back', printedFields, form.data.orientation)")
+        ->toContain("faceElements('front', printedFields, form.data.orientation, form.data.layout_config.faces)")
+        ->toContain("faceElements('back', printedFields, form.data.orientation, form.data.layout_config.faces)")
         ->toContain('PORTRAIT_FRONT_LAYOUT_ELEMENTS.filter(')
         ->toContain('LANDSCAPE_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_BACK_LAYOUT_ELEMENTS');
 });

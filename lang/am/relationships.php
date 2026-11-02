@@ -40,6 +40,7 @@ return [
     ],
     'validation' => [
         'target_not_found' => 'የተመረጠው የግንኙነት መዳረሻ አልተገኘም።',
+        'target_is_source' => 'አንድ የሥራ ክፍል ለራሱ ተጠሪ ሊሆን አይችልም።',
         'invalid_effective_dates' => 'የማብቂያ ቀን ከመጀመሪያ ቀን በኋላ ወይም እኩል መሆን አለበት።',
         'only_one_primary_structural_parent' => 'አንድ ንቁ ዋና መዋቅራዊ የበላይ ብቻ ይፈቀዳል።',
         'structural_cycle' => 'መዋቅራዊ ግንኙነት ዑደት መፍጠር አይችልም።',

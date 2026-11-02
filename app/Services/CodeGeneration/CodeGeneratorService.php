@@ -8,6 +8,7 @@ use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
 use App\Exceptions\MissingSequenceScopeContextException;
 use App\Exceptions\RandomCodeGenerationException;
+use App\Exceptions\SequenceCodesExhaustedException;
 use App\Models\CodeGenerationLog;
 use App\Models\CodeRule;
 use App\Models\CodeRuleSequence;
@@ -16,7 +17,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 class CodeGeneratorService
 {
@@ -118,7 +118,7 @@ class CodeGeneratorService
                     );
                 }
 
-                throw new RuntimeException('Unable to generate a unique code after multiple attempts.');
+                throw new SequenceCodesExhaustedException('Unable to generate a unique code after multiple attempts.');
             }
 
             $sequence->fill([
@@ -181,7 +181,8 @@ class CodeGeneratorService
         }
 
         $formatted = (string) preg_replace('/[^\p{L}\p{N}\-_.\\/]/u', '', $formatted);
-        $formatted = substr($formatted, 0, 100);
+        // Characters, not bytes: an Ethiopic prefix must not be cut mid-letter.
+        $formatted = mb_substr($formatted, 0, 100, 'UTF-8');
 
         return trim($formatted, ($rule->separator ?? '').' ');
     }
@@ -252,6 +253,26 @@ class CodeGeneratorService
      */
     private function codeExists(CodeRuleEntityType|string $entityType, string $generatedCode): bool
     {
+        return $this->isTaken($entityType, $generatedCode);
+    }
+
+    /**
+     * Whether a typed code clashes with another record. Only entity types whose
+     * codes are unique across all records are checked here; the others repeat
+     * codes under different parents and their own validation scopes the check.
+     */
+    public function manualCodeTaken(CodeRuleEntityType|string $entityType, string $code, ?string $ignoreId = null): bool
+    {
+        return $this->targets->codesUniqueAcrossRecords($entityType)
+            && $this->isTaken($entityType, $code, $ignoreId);
+    }
+
+    /**
+     * Whether another record of the entity type already holds the code; the
+     * record being saved ($ignoreId) does not count.
+     */
+    public function isTaken(CodeRuleEntityType|string $entityType, string $code, ?string $ignoreId = null): bool
+    {
         $check = $this->targets->collisionCheck($entityType);
 
         if ($check === null) {
@@ -264,6 +285,9 @@ class CodeGeneratorService
             ? $model::withTrashed()
             : $model::query();
 
-        return $query->where($check['column'], $generatedCode)->exists();
+        return $query
+            ->where($check['column'], $code)
+            ->when($ignoreId !== null, fn ($builder) => $builder->whereKeyNot($ignoreId))
+            ->exists();
     }
 }

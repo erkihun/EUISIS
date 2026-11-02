@@ -71,6 +71,10 @@ return [
     'organization_unit_help' => 'የተቋም መዋቅራዊ ክፍሎች ዳይሬክቶሬቶች፣ የሥራ ክፍሎች፣ ቡድኖች እና ሌሎች ውስጣዊ መዋቅሮች ናቸው።',
     'invalid_parent_organization_type' => 'የተመረጠው የተቋም ዓይነት ይህን የበላይ ተቋም ዓይነት አይፈቅድም።',
     'inactive_organization_type' => 'ንቁ ያልሆነ የተቋም ዓይነት ለአዲስ ተቋማት ጥቅም ላይ ሊውል አይችልም።',
+    'duplicate_name_en' => 'በዚህ የእንግሊዝኛ ስም የተመዘገበ ተቋም አለ (:code)።',
+    'duplicate_name_am' => 'በዚህ የአማርኛ ስም የተመዘገበ ተቋም አለ (:code)።',
+    'type_conflicts_with_hierarchy' => 'አዲሱ ዓይነት ተቋሙ በተዋረዱ ውስጥ ካለው ግንኙነት (:names) ጋር አይጣጣምም። መጀመሪያ ግንኙነቶቹን ይቀይሩ።',
+    'child_organization_pending_publish' => 'ተጠሪ ተቋሙ ተመዝግቧል። የተዋረድ ስሪት ":version" ሲታተም በበላይ ተቋሙ ሥር ይታያል።',
     'public_contact_phone_invalid' => 'እንደ 011 123 4567 ወይም 0911 223 344 ያለ የኢትዮጵያ ቁጥር፣ በ+ የሚጀምር ቁጥር ወይም ከ3 እስከ 5 አሃዝ ያለው አጭር ቁጥር ያስገቡ። ፊደላት፣ የውስጥ መስመር ቁጥሮችና ሌሎች ምልክቶች አይፈቀዱም።',
 
     // Deletion guard

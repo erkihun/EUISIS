@@ -1,4 +1,4 @@
-import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle, layoutBox, BACK_PHOTO_DEFAULTS } from '@/Components/IdCards/IdCardTemplateContext';
+import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle, BACK_PHOTO_DEFAULTS } from '@/Components/IdCards/IdCardTemplateContext';
 import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLocale } from '@/hooks/useLocale';
@@ -6,7 +6,11 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 import enDict from '@/i18n/en';
 import amDict from '@/i18n/am';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
-import IdCardBilingualField from '@/Components/IdCards/IdCardBilingualField';
+import IdCardFaceFields from '@/Components/IdCards/IdCardFaceFields';
+import type { FieldSource } from '@/Components/IdCards/IdCardBilingualField';
+
+/** Back notice line spacing, as a multiple of its size. Mirrors IdCardSvgRenderer::NOTICE_LINE_HEIGHT. */
+const NOTICE_LINE_HEIGHT = 1.3;
 
 // The card face is bilingual by design — labels come from both dictionaries,
 // Amharic first, matching bilingualCaption() on the printed card.
@@ -24,16 +28,12 @@ type IdCardBackProps = {
     photoUrl?: string | null;
     /** Extra styles merged onto the root div — use to force explicit height for html-to-image export */
     rootStyle?: CSSProperties;
-};
+} & Omit<FieldSource, 'cardNumber' | 'emergencyContactName' | 'emergencyContactPhone'>;
 
-export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, emergencyContactPhone, photoUrl, rootStyle }: IdCardBackProps) {
+export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, emergencyContactPhone, photoUrl, rootStyle, ...fields }: IdCardBackProps) {
     const { t } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
     const cardTemplate = useIdCardTemplate('landscape');
-    if (cardTemplate?.employee_fields) {
-        if (!cardTemplate.employee_fields.includes('emergency_contact_name')) emergencyContactName = null;
-        if (!cardTemplate.employee_fields.includes('emergency_contact_phone')) emergencyContactPhone = null;
-    }
     const backgroundUrl = cardTemplate?.back_background_url;
     const dimensions = useCardDimensions('landscape');
 
@@ -44,9 +44,6 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
     // Per-template typography; falls back to the card's own back colour.
     const labelStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'label'), textColor);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'value'), textColor);
-    // Sizes in the template's px, defaulting as IdCardTextStyle::ROLES does.
-    const labelPx = Number.parseFloat(roleStyle(cardTemplate, 'back', 'label')?.font_size ?? '') || 7;
-    const valuePx = Number.parseFloat(roleStyle(cardTemplate, 'back', 'value')?.font_size ?? '') || 8;
     const footerStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'footer'), textColor);
     const showMagStripe = getBoolean('id_cards.show_magnetic_stripe', true);
     const showQr = getBoolean('id_cards.show_qr', true);
@@ -179,26 +176,29 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
 
                 {/* Notes and details column — positioned by the template. */}
                 <div className="flex min-w-0 flex-col justify-between" style={layoutStyle(cardTemplate, 'notes', 'back')}>
-                    <div className="space-y-1">
+                    {/* Lines 1.3x the notice size and no gap between the
+                        languages, as IdCardSvgRenderer prints them
+                        (NOTICE_LINE_HEIGHT). */}
+                    <div style={{ lineHeight: NOTICE_LINE_HEIGHT }}>
                         {/* Back notice in both languages, Amharic first. Both
                             come from ID card settings, so what prints on the
                             card is what an administrator typed there. */}
                         {showReturnNotice && (
                             <>
                                 {noticeAm && (
-                                    <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
+                                    <p style={{ ...footerStyle, opacity: 0.65 }}>
                                         {noticeAm}
                                     </p>
                                 )}
                                 {noticeEn && (
-                                    <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
+                                    <p style={{ ...footerStyle, opacity: 0.65 }}>
                                         {noticeEn}
                                     </p>
                                 )}
                             </>
                         )}
                         {verificationUrl && (
-                            <p className="break-all font-mono leading-tight" style={{ ...footerStyle, opacity: 0.5 }}>
+                            <p className="break-all font-mono" style={{ ...footerStyle, opacity: 0.5 }}>
                                 {verificationUrl}
                             </p>
                         )}
@@ -264,25 +264,15 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
                     </span>
                 </div>
 
-            {/* Emergency contact — who to call if the holder needs help. Name
-                and phone each have their own box, in the same stacked
-                amharic-then-english shape as the front face. */}
-            {([
-                ['emergency_contact_name', emergencyContactName, 'emergencyContactNameLabel'],
-                ['emergency_contact_phone', emergencyContactPhone, 'emergencyContactPhoneLabel'],
-            ] as const).map(([key, value, caption]) => value && (
-                <div key={key} data-card-field={key} className="min-w-0" style={layoutStyle(cardTemplate, `field_${key}`, 'back')}>
-                    <IdCardBilingualField
-                        labelAm={amDict.idCards[caption]}
-                        valueAm={value}
-                        labelEn={enDict.idCards[caption]}
-                        valueEn={value}
-                        labelStyle={labelStyle}
-                        valueStyle={contentStyle}
-                        fit={{ widthPct: layoutBox(cardTemplate, `field_${key}`, 'back').w, labelPx, valuePx }}
-                    />
-                </div>
-            ))}
+            {/* The fields placed on the back — the emergency contact, and any
+                front field a template moved here — each in its own box. */}
+            <IdCardFaceFields
+                side="back"
+                orientation="landscape"
+                source={{ ...fields, cardNumber, emergencyContactName, emergencyContactPhone }}
+                labelStyle={labelStyle}
+                valueStyle={contentStyle}
+            />
 
             {/* A digital ID prints no issue or expiry date; the QR checks validity live. */}
             </>

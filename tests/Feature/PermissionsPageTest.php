@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
+use App\Support\Rbac\PermissionCatalog;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
 function permissionsPageViewer(array $extra = []): User
@@ -61,6 +63,36 @@ test('permissions are grouped by module with group counts', function (): void {
     $response->assertInertia(fn ($page) => $page
         ->where('groupCounts', fn ($counts) => collect($counts)->has('employees') && collect($counts)->has('organizations'))
     );
+});
+
+test('permissions filter by module and by the scope of the roles holding them', function (): void {
+    $user = permissionsPageViewer();
+
+    Permission::query()->create(['name' => 'employees.scopedProbe', 'guard_name' => 'web', 'group' => 'employees']);
+    Permission::query()->create(['name' => 'employees.globalProbe', 'guard_name' => 'web', 'group' => 'employees']);
+    Permission::query()->create(['name' => 'organizations.probe', 'guard_name' => 'web', 'group' => 'organizations']);
+    Role::create(['name' => 'Scoped HR', 'guard_name' => 'web', 'scope_type' => 'scoped'])->givePermissionTo('employees.scopedProbe');
+    Role::create(['name' => 'City HR', 'guard_name' => 'web', 'scope_type' => 'global'])->givePermissionTo('employees.globalProbe');
+
+    $this->actingAs($user)
+        ->get('/permissions?module=employee-management')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.module', 'employee-management')
+            ->where('modules', fn ($modules) => collect($modules)->firstWhere('key', 'employee-management')['scopes']['scoped'] >= 1)
+            ->where('permissions.data', fn ($rows) => collect($rows)->pluck('group')->diff(PermissionCatalog::CATEGORIES['Employee Management'])->isEmpty()
+                && collect($rows)->doesntContain('name', 'organizations.probe')
+                && collect($rows)->firstWhere('name', 'employees.scopedProbe')['scope'] === 'scoped'
+                && collect($rows)->firstWhere('name', 'employees.globalProbe')['scope'] === 'global')
+        );
+
+    $this->actingAs($user)
+        ->get('/permissions?module=employee-management&scope=global')
+        ->assertInertia(fn ($page) => $page
+            ->where('filters.scope', 'global')
+            ->where('permissions.data', fn ($rows) => collect($rows)->contains('name', 'employees.globalProbe')
+                && collect($rows)->doesntContain('name', 'employees.scopedProbe'))
+        );
 });
 
 test('search and filters do not break the page', function (): void {

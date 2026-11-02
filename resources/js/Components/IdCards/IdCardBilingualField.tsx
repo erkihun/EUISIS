@@ -13,7 +13,7 @@ const DASH = '-';
  * repeat it.
  * Mirrored in IdCardSvgRenderer::JOINED_LABEL_FIELDS.
  */
-const JOINED_LABEL_FIELDS = ['idNumber', 'phone', 'email', 'address'];
+const JOINED_LABEL_FIELDS = ['idNumber', 'phone', 'email', 'address', 'emergency_contact_name', 'emergency_contact_phone'];
 
 /**
  * Fields whose value shrinks to fit its line rather than wrapping or being
@@ -126,6 +126,7 @@ export default function IdCardBilingualField({
     const fits = fieldKey !== undefined && FIT_VALUE_FIELDS.includes(fieldKey);
     let fittedValueStyle = valueStyle;
     let valueLines: string[] | null = null;
+    let labelLines: string[] | null = null;
     if (fit) {
         // The printed card's rule, in its own canvas units: a label sits beside
         // its value when it takes at most 55% of the box (a joined label, when
@@ -134,6 +135,13 @@ export default function IdCardBilingualField({
         const labelSize = fit.labelPx * CANVAS_SCALE;
         const valueSize = fit.valuePx * CANVAS_SCALE;
         const labelWidth = longest * labelSize * 0.55 + 6;
+        // A shared label wider than its box breaks after the " / ", as it
+        // prints (IdCardSvgRenderer::bilingualField).
+        const shared = rows[0][0];
+        if (joins && labelWidth > width && shared.includes(' / ')) {
+            const at = shared.indexOf(' / ');
+            labelLines = [`${shared.slice(0, at)} /`, shared.slice(at + 3)];
+        }
         stacked = alwaysStacked || (joins
             ? labelWidth + (valueAm ?? '').length * valueSize * 0.55 > width
             : labelWidth > width * 0.55);
@@ -169,7 +177,9 @@ export default function IdCardBilingualField({
             {rows.map(([label, value], row) => (
                 <div key={row} className={`${rowClass} min-w-0`}>
                     <span className={labelClass} style={labelStyle}>
-                        {label}
+                        {labelLines
+                            ? labelLines.map((line, index) => <span key={index} className="block whitespace-nowrap">{line}</span>)
+                            : label}
                     </span>
                     <span className={valueClass} style={fittedValueStyle} title={fits && value ? value : undefined}>
                         {valueLines
@@ -182,7 +192,7 @@ export default function IdCardBilingualField({
     );
 }
 
-type FieldSource = {
+export type FieldSource = {
     fullName?: string | null;
     fullNameAm?: string | null;
     gender?: string | null;
@@ -195,6 +205,10 @@ type FieldSource = {
     cardNumber: string;
     /** Shown as the ID Number on the card face. */
     employeeNumber?: string | null;
+    email?: string | null;
+    address?: string | null;
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
 };
 
 /** A label/value pair resolved in both languages. */
@@ -215,6 +229,23 @@ const statusOf = (employees: Record<string, unknown>, status?: string | null) =>
  * The seven front-face fields, each resolved in both languages. A missing
  * translation falls back to the other language so a row never renders blank.
  */
+/**
+ * Every field a card can print, on either face: the identity rows, email and
+ * address, and the emergency contact. A face picks the ones placed on it.
+ */
+export function buildCardFields(source: FieldSource): BilingualField[] {
+    const same = (key: string, labelAm: string, labelEn: string, value?: string | null): BilingualField =>
+        ({ key, labelAm, labelEn, valueAm: value, valueEn: value });
+
+    return [
+        ...buildBilingualFields(source),
+        same('email', amEmployees.email, enEmployees.email, source.email),
+        same('address', amEmployees.address, enEmployees.address, source.address),
+        same('emergency_contact_name', amDict.idCards.emergencyContactNameLabel, enDict.idCards.emergencyContactNameLabel, source.emergencyContactName),
+        same('emergency_contact_phone', amDict.idCards.emergencyContactPhoneLabel, enDict.idCards.emergencyContactPhoneLabel, source.emergencyContactPhone),
+    ];
+}
+
 export function buildBilingualFields(source: FieldSource): BilingualField[] {
     const { gender } = source;
     const genderAm = gender === 'male' ? amDict.idCards.maleLabel : gender === 'female' ? amDict.idCards.femaleLabel : gender;

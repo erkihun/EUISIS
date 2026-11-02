@@ -34,4 +34,6 @@ return [
     'category_service_provider' => 'አገልግሎት ሰጪ ተቋም',
     'category_independent' => 'ገለልተኛ ተቋም',
     'category_other' => 'ሌላ',
+    'cannot_delete_in_use' => ':count ተቋም(ማት) ይህን ዓይነት ይጠቀማሉ። ዓይነቱን ከመሰረዝ ይልቅ ንቁ ያልሆነ ያድርጉት።',
+    'cannot_delete_allowed_parent' => 'ሌሎች ዓይነቶች (:names) ይህን ዓይነት እንደ የበላይ ይፈቅዳሉ። መጀመሪያ ከተፈቀዱ የበላይ ዓይነቶቻቸው ያስወግዱት።',
 ];

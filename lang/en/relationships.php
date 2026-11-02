@@ -40,6 +40,7 @@ return [
     ],
     'validation' => [
         'target_not_found' => 'The selected relationship target does not exist.',
+        'target_is_source' => 'A unit cannot report to itself.',
         'invalid_effective_dates' => 'The effective end date must be after or equal to the start date.',
         'only_one_primary_structural_parent' => 'Only one active primary structural parent is allowed.',
         'structural_cycle' => 'Structural relationship cannot create a cycle.',

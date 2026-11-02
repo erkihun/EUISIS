@@ -25,6 +25,13 @@ type Props = {
      */
     selected?: string | null;
     onSelect?: (element: string | null) => void;
+    /**
+     * Drop a box on the other card to move it there. Called with the element
+     * and the drop point in percent of the other card; only elements for
+     * which `canTransfer` is true can cross.
+     */
+    onTransfer?: (element: string, point: { x: number; y: number }) => void;
+    canTransfer?: (element: string) => boolean;
     /** Orientation-specific elements to expose; omitted for the legacy full set. */
     elements?: readonly string[];
     /**
@@ -58,7 +65,7 @@ const snap = (value: number) => Math.round(value / SNAP) * SNAP;
  */
 export default function TemplateLayoutDesigner({
     side, value, onChange, disabled, labels, text, elements: requestedElements, guideInset, orientation = 'landscape',
-    selected: controlledSelected, onSelect, children,
+    selected: controlledSelected, onSelect, onTransfer, canTransfer, children,
 }: Props) {
     const elements: readonly string[] = requestedElements ?? (side === 'back' ? BACK_LAYOUT_ELEMENTS : LAYOUT_ELEMENTS);
     const defaults = layoutDefaults(side, orientation);
@@ -101,10 +108,34 @@ export default function TemplateLayoutDesigner({
         event.currentTarget.setPointerCapture(event.pointerId);
     }
 
+    /** The other card under the pointer, with the point in percent of it. */
+    function dropTarget(clientX: number, clientY: number): { surface: HTMLElement; x: number; y: number } | null {
+        for (const surface of document.querySelectorAll<HTMLElement>('[data-layout-surface]')) {
+            if (surface === surfaceRef.current || surface.dataset.layoutSurface === side) continue;
+            const rect = surface.getBoundingClientRect();
+            if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
+                return { surface, x: ((clientX - rect.left) / rect.width) * 100, y: ((clientY - rect.top) / rect.height) * 100 };
+            }
+        }
+        return null;
+    }
+    const highlighted = useRef<HTMLElement | null>(null);
+    function highlight(surface: HTMLElement | null) {
+        if (highlighted.current === surface) return;
+        highlighted.current?.removeAttribute('data-drop-target');
+        surface?.setAttribute('data-drop-target', 'true');
+        highlighted.current = surface;
+    }
+
     function onPointerMove(event: ReactPointerEvent<HTMLElement>) {
         const drag = dragRef.current;
         const surface = surfaceRef.current;
         if (!drag || !surface) return;
+
+        // Dragging a field off this card over the other one offers it there.
+        if (drag.mode === 'move' && onTransfer && canTransfer?.(drag.element)) {
+            highlight(dropTarget(event.clientX, event.clientY)?.surface ?? null);
+        }
 
         const rect = surface.getBoundingClientRect();
         // Pointer travel converted to percentage of the card.
@@ -129,9 +160,19 @@ export default function TemplateLayoutDesigner({
     }
 
     function endDrag(event: ReactPointerEvent<HTMLElement>) {
-        if (dragRef.current) {
+        const drag = dragRef.current;
+        if (drag) {
             event.currentTarget.releasePointerCapture?.(event.pointerId);
             dragRef.current = null;
+            highlight(null);
+            const target = drag.mode === 'move' && onTransfer && canTransfer?.(drag.element)
+                ? dropTarget(event.clientX, event.clientY)
+                : null;
+            if (target) {
+                // Put the box back where it started on this card, then hand it over.
+                update(drag.element, drag.box);
+                onTransfer?.(drag.element, { x: target.x, y: target.y });
+            }
         }
     }
 
@@ -181,7 +222,8 @@ export default function TemplateLayoutDesigner({
             {children}
             <div
                 ref={surfaceRef}
-                className="absolute inset-0"
+                data-layout-surface={side}
+                className="absolute inset-0 rounded-sm data-[drop-target=true]:bg-blue-500/10 data-[drop-target=true]:outline-2 data-[drop-target=true]:outline-dashed data-[drop-target=true]:outline-primary"
                 onPointerMove={onPointerMove}
                 onPointerUp={endDrag}
                 onPointerCancel={endDrag}

@@ -6,16 +6,27 @@ namespace App\Http\Requests;
 
 use App\Enums\OrganizationUnitStatus;
 use App\Enums\OrganizationUnitType;
+use App\Http\Requests\Concerns\ValidatesOrganizationUnitPlacement;
 use App\Http\Requests\Concerns\ValidatesOrganizationWithinScope;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Validator;
 
 class StoreOrganizationUnitRequest extends FormRequest
 {
+    use ValidatesOrganizationUnitPlacement;
     use ValidatesOrganizationWithinScope;
+
+    public function after(): array
+    {
+        return [
+            fn (Validator $validator) => $this->rejectInactiveUnitType($validator),
+            fn (Validator $validator) => $this->rejectDuplicateSiblingNames($validator, $this->string('organization_id')->toString()),
+        ];
+    }
 
     public function authorize(): bool
     {

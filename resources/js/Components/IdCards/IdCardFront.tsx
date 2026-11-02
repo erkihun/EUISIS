@@ -3,9 +3,7 @@ import type { CSSProperties } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
-import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
-import enEmployees from '@/i18n/en/employees';
-import amEmployees from '@/i18n/am/employees';
+import IdCardFaceFields from '@/Components/IdCards/IdCardFaceFields';
 
 // A digital ID: validity is checked live through the QR, so the face prints
 // no issue or expiry date.
@@ -38,6 +36,9 @@ type IdCardFrontProps = {
     phoneNumber?: string | null;
     email?: string | null;
     address?: string | null;
+    /** The emergency contact, for a template that prints it on the front. */
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
     photoUrl?: string | null;
     /** When supplied and not 'active', a diagonal watermark is shown */
     status?: string | null;
@@ -71,6 +72,8 @@ export default function IdCardFront({
     phoneNumber,
     email,
     address,
+    emergencyContactName,
+    emergencyContactPhone,
     photoUrl,
     status,
     cityLogoUrl,
@@ -152,22 +155,12 @@ export default function IdCardFront({
     const headerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'header'), textPri);
     const labelStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'label'), textSec);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'value'), textPri);
-    // Sizes in the template's px, defaulting as IdCardTextStyle::ROLES does.
-    const labelPx = Number.parseFloat(roleStyle(cardTemplate, 'front', 'label')?.font_size ?? '') || 7;
-    const valuePx = Number.parseFloat(roleStyle(cardTemplate, 'front', 'value')?.font_size ?? '') || 10;
-
-    // Every identity field has its own layout box (`field_<key>`), so an admin
-    // can place each one independently. IdCardSvgRenderer draws the same boxes.
-    const allFields = buildBilingualFields({
-        fullName, fullNameAm, gender, dateOfBirth, dateOfBirthAm,
-        nationality, nationalityAm,
+    // Every field value the card has; the front shows those placed on it.
+    const fieldSource = {
+        fullName, fullNameAm, gender, dateOfBirth, dateOfBirthAm, nationality, nationalityAm,
         employmentStatus: showEmployment ? employmentStatus : null,
-        phoneNumber, cardNumber, employeeNumber,
-    });
-    const configured = cardTemplate?.employee_fields;
-    if (configured?.includes('email')) allFields.push({ key: 'email', labelAm: amEmployees.email, labelEn: enEmployees.email, valueAm: email, valueEn: email });
-    if (configured?.includes('address')) allFields.push({ key: 'address', labelAm: amEmployees.address, labelEn: enEmployees.address, valueAm: address, valueEn: address });
-    const renderedFields = configured ? allFields.filter(field => configured.includes(field.key)) : allFields;
+        phoneNumber, cardNumber, employeeNumber, email, address, emergencyContactName, emergencyContactPhone,
+    };
 
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
     const background = template === 'modern'
@@ -315,23 +308,8 @@ export default function IdCardFront({
                 </div>
             )}
 
-            {/* Each identity field in its own box; the box's top is the label's top. */}
-            {renderedFields.map(({ key, ...field }) => (
-                <div
-                    key={key}
-                    data-card-field={key}
-                    className="min-w-0"
-                    style={layoutStyle(cardTemplate, `field_${key}` as AnyLayoutElement)}
-                >
-                    <IdCardBilingualField
-                        {...field}
-                        fieldKey={key}
-                        labelStyle={labelStyle}
-                        valueStyle={contentStyle}
-                        fit={{ widthPct: layoutBox(cardTemplate, `field_${key}` as AnyLayoutElement).w, labelPx, valuePx }}
-                    />
-                </div>
-            ))}
+            {/* Each field placed on the front in its own box; the box's top is the label's top. */}
+            <IdCardFaceFields side="front" orientation="landscape" source={fieldSource} labelStyle={labelStyle} valueStyle={contentStyle} />
 
             {/* Decorative diagonal accent (right edge) */}
             {!backgroundUrl && template === 'classic' && <>

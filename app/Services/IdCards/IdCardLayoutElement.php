@@ -51,6 +51,9 @@ final readonly class IdCardLayoutElement
             'field_email' => ['x' => 28.0, 'y' => 52.0, 'w' => 35.25, 'h' => 10.0],
             'field_address' => ['x' => 64.75, 'y' => 52.0, 'w' => 35.25, 'h' => 10.0],
             'field_idNumber' => ['x' => 2.5, 'y' => 74.5, 'w' => 96.0, 'h' => 12.0],
+            // The back's fields, for a template that moves them to the front.
+            'field_emergency_contact_name' => ['x' => 28.0, 'y' => 62.0, 'w' => 35.25, 'h' => 10.0],
+            'field_emergency_contact_phone' => ['x' => 64.75, 'y' => 62.0, 'w' => 35.25, 'h' => 10.0],
         ],
         'back' => [
             'qr' => ['x' => 0.0, 'y' => 4.5, 'w' => 38.5, 'h' => 57.0],
@@ -68,6 +71,17 @@ final readonly class IdCardLayoutElement
             'signature_label' => ['x' => 55.0, 'y' => 73.5, 'w' => 34.0, 'h' => 5.0],
             // The employee photo as a watermark; off unless a template enables it.
             'photo' => ['x' => 60.0, 'y' => 20.0, 'w' => 25.0, 'h' => 45.0],
+            // The front's fields, for a template that moves them to the back:
+            // two columns under the emergency contacts.
+            'field_name' => ['x' => 41.5, 'y' => 50.0, 'w' => 28.5, 'h' => 8.0],
+            'field_sex' => ['x' => 71.0, 'y' => 50.0, 'w' => 28.5, 'h' => 8.0],
+            'field_dob' => ['x' => 41.5, 'y' => 58.0, 'w' => 28.5, 'h' => 8.0],
+            'field_nationality' => ['x' => 71.0, 'y' => 58.0, 'w' => 28.5, 'h' => 8.0],
+            'field_employment' => ['x' => 41.5, 'y' => 66.0, 'w' => 28.5, 'h' => 8.0],
+            'field_phone' => ['x' => 71.0, 'y' => 66.0, 'w' => 28.5, 'h' => 8.0],
+            'field_idNumber' => ['x' => 41.5, 'y' => 74.0, 'w' => 28.5, 'h' => 8.0],
+            'field_email' => ['x' => 71.0, 'y' => 74.0, 'w' => 28.5, 'h' => 8.0],
+            'field_address' => ['x' => 41.5, 'y' => 82.0, 'w' => 28.5, 'h' => 8.0],
         ],
     ];
 
@@ -76,6 +90,25 @@ final readonly class IdCardLayoutElement
 
     /** Back fields; `field_` + key is the element. */
     public const BACK_FIELDS = ['emergency_contact_name', 'emergency_contact_phone'];
+
+    /**
+     * The face a field prints on: the template's choice (layout_config.faces)
+     * or the field's home face. A portrait card's name and ID number are its
+     * large badge elements, so they never leave the front.
+     *
+     * @param  array<string, mixed>|null  $faces
+     */
+    public static function faceOf(string $key, ?array $faces, string $orientation = 'landscape'): string
+    {
+        if ($orientation === 'portrait' && in_array($key, ['name', 'idNumber'], true)) {
+            return 'front';
+        }
+        $chosen = $faces[$key] ?? null;
+
+        return in_array($chosen, ['front', 'back'], true)
+            ? $chosen
+            : (in_array($key, self::BACK_FIELDS, true) ? 'back' : 'front');
+    }
 
     /**
      * Where a portrait card's fields sit until the template places them. A
@@ -94,10 +127,19 @@ final readonly class IdCardLayoutElement
             'field_phone' => ['x' => 4.0, 'y' => 52.0, 'w' => 92.0, 'h' => 7.0],
             'field_email' => ['x' => 4.0, 'y' => 59.0, 'w' => 92.0, 'h' => 7.0],
             'field_address' => ['x' => 4.0, 'y' => 66.0, 'w' => 92.0, 'h' => 7.0],
+            'field_emergency_contact_name' => ['x' => 4.0, 'y' => 73.0, 'w' => 92.0, 'h' => 7.0],
+            'field_emergency_contact_phone' => ['x' => 4.0, 'y' => 80.0, 'w' => 92.0, 'h' => 7.0],
         ],
         'back' => [
             'field_emergency_contact_name' => ['x' => 4.0, 'y' => 70.0, 'w' => 92.0, 'h' => 12.0],
             'field_emergency_contact_phone' => ['x' => 4.0, 'y' => 83.0, 'w' => 92.0, 'h' => 12.0],
+            'field_sex' => ['x' => 4.0, 'y' => 4.0, 'w' => 92.0, 'h' => 7.0],
+            'field_dob' => ['x' => 4.0, 'y' => 11.0, 'w' => 92.0, 'h' => 7.0],
+            'field_nationality' => ['x' => 4.0, 'y' => 18.0, 'w' => 92.0, 'h' => 7.0],
+            'field_employment' => ['x' => 4.0, 'y' => 25.0, 'w' => 92.0, 'h' => 7.0],
+            'field_phone' => ['x' => 4.0, 'y' => 32.0, 'w' => 92.0, 'h' => 7.0],
+            'field_email' => ['x' => 4.0, 'y' => 39.0, 'w' => 92.0, 'h' => 7.0],
+            'field_address' => ['x' => 4.0, 'y' => 46.0, 'w' => 92.0, 'h' => 7.0],
         ],
     ];
 

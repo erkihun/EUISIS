@@ -12,6 +12,7 @@ use App\Http\Requests\RoleUpdateRequest;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Rbac\PermissionCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,16 +32,32 @@ class RoleController extends Controller
         $actor = Auth::user();
 
         // The same filter bar as every other list: search by name and the role's scope, kept in the query string.
+        // Module = PermissionCatalog category: a role matches when it holds any permission of that module.
         $scope = $request->string('scope')->toString();
+        $modules = PermissionCatalog::modules();
+        $module = $request->string('module')->toString();
         $filters = [
             'search' => $request->string('search')->trim()->toString(),
             'scope' => in_array($scope, ['global', 'scoped'], true) ? $scope : '',
+            'module' => array_key_exists($module, $modules) ? $module : '',
         ];
+        $groupModule = self::groupModuleMap($modules);
 
-        $roles = Role::query()
-            ->withCount('users')
-            ->with('permissions:id,name')
+        $base = Role::query()
             ->when($filters['search'] !== '', fn ($query) => $query->where('name', ci_like_operator(), '%'.$filters['search'].'%'))
+            ->when($filters['module'] !== '', fn ($query) => $query->whereHas(
+                'permissions',
+                fn ($q) => $q->whereIn('group', $modules[$filters['module']]['groups']),
+            ));
+
+        $scopeCounts = (clone $base)->toBase()
+            ->selectRaw('scope_type, count(*) as total')
+            ->groupBy('scope_type')
+            ->pluck('total', 'scope_type');
+
+        $roles = (clone $base)
+            ->withCount('users')
+            ->with('permissions:id,name,group')
             ->when($filters['scope'] !== '', fn ($query) => $query->where('scope_type', $filters['scope']))
             ->orderBy('name')
             ->paginate(25)
@@ -51,6 +68,11 @@ class RoleController extends Controller
                 'scope_type' => $r->scope_type->value,
                 'users_count' => $r->users_count,
                 'permissions' => $r->permissions->pluck('name')->toArray(),
+                // Module key => number of the role's permissions in it, largest first.
+                'modules' => $r->permissions
+                    ->countBy(fn ($p): string => $groupModule[$p->group] ?? 'other')
+                    ->sortDesc()
+                    ->all(),
                 'is_super_admin' => $r->name === 'Super Admin',
                 'can' => [
                     'update' => $actor?->can('update', $r) ?? false,
@@ -62,6 +84,11 @@ class RoleController extends Controller
         return Inertia::render('Roles/Index', [
             'roles' => $roles,
             'filters' => $filters,
+            'modules' => self::moduleList($modules),
+            'scopeCounts' => [
+                'global' => (int) ($scopeCounts['global'] ?? 0),
+                'scoped' => (int) ($scopeCounts['scoped'] ?? 0),
+            ],
             'can' => [
                 'create' => $actor?->can('create', Role::class) ?? false,
             ],
@@ -77,6 +104,7 @@ class RoleController extends Controller
 
         return Inertia::render('Roles/Create', [
             'permissions' => $this->groupedPermissions(),
+            'modules' => self::moduleList(PermissionCatalog::modules()),
             'can' => [
                 'assignPermissions' => $actor->can('roles.assignPermissions'),
                 'manageGlobalRoles' => $actor->hasAnyRole(['Super Admin', 'System Admin']),
@@ -139,6 +167,7 @@ class RoleController extends Controller
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ],
             'permissions' => $this->groupedPermissions(),
+            'modules' => self::moduleList(PermissionCatalog::modules()),
             'can' => [
                 'assignPermissions' => $actor->can('assignPermissions', $role),
                 'manageGlobalRoles' => $actor->hasAnyRole(['Super Admin', 'System Admin']),
@@ -198,6 +227,34 @@ class RoleController extends Controller
 
         return to_route('roles.index')
             ->with('flash', ['message' => 'Role deleted.', 'type' => 'success']);
+    }
+
+    /**
+     * @param  array<string, array{name: string, groups: list<string>}>  $modules
+     * @return array<string, string> group => module key
+     */
+    private static function groupModuleMap(array $modules): array
+    {
+        $map = [];
+        foreach ($modules as $key => $module) {
+            foreach ($module['groups'] as $group) {
+                $map[$group] = $key;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  array<string, array{name: string, groups: list<string>}>  $modules
+     * @return list<array{key: string, name: string, groups: list<string>}>
+     */
+    private static function moduleList(array $modules): array
+    {
+        return collect($modules)
+            ->map(static fn (array $m, string $key): array => ['key' => $key] + $m)
+            ->values()
+            ->all();
     }
 
     private function groupedPermissions(): array

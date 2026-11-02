@@ -93,6 +93,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
                         <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">{t('idCards.cardBack')}</h3>
                         <div className="max-w-sm">
                             <IdCardBack
+                                {...mapCardEmployee(card)}
                                 cardNumber={card.card_number}
                                 qrValue={portrait ? card.feedback_qr_url ?? null : card.qr_verification_url ?? null}
                                 emergencyContactName={card.employee?.emergency_contact_name}

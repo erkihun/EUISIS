@@ -130,6 +130,7 @@ final readonly class IdCardRenderDataFactory
             boxes: $this->templates->layoutBoxes($template),
             bilingualFields: $this->bilingualFields($card, $employee, $template?->employee_fields),
             employeeFields: $template?->employee_fields,
+            fieldFaces: $this->templates->faces($template),
             header: $header,
             backPhoto: $this->templates->backPhoto($template),
             organizationLogoDataUri: $organizationLogo,

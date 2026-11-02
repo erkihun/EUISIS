@@ -344,18 +344,19 @@ it('prints emergency contact as labelled stacked fields like the front', functio
 
     $svg = app(IdCardSvgRenderer::class)->renderBack(app(IdCardRenderDataFactory::class)->make($card->fresh()));
 
-    // Each field carries its own bilingual label, Amharic row above English.
+    // Each field carries one bilingual label, Amharic first, above its value
+    // printed once — the same shape as the phone and ID number.
     foreach ([
-        'የአስቸኳይ ጊዜ ተጠሪ ስም', 'Emergency Contact Name',
-        'የአስቸኳይ ጊዜ ተጠሪ ስልክ', 'Emergency Contact Phone',
+        'የአስቸኳይ ጊዜ ተጠሪ ስም / Emergency Contact Name',
+        'የአስቸኳይ ጊዜ ተጠሪ ስልክ / Emergency Contact Phone',
         'Alemu Bekele', '+251911222333',
     ] as $needle) {
         expect($svg)->toContain($needle);
     }
 
     // The two blocks must not collide.
-    preg_match('/<text x="\d+" y="(\d+)"[^>]*>የአስቸኳይ ጊዜ ተጠሪ ስም</u', $svg, $name);
-    preg_match('/<text x="\d+" y="(\d+)"[^>]*>የአስቸኳይ ጊዜ ተጠሪ ስልክ</u', $svg, $phone);
+    preg_match('/<text x="\d+" y="(\d+)"[^>]*>የአስቸኳይ ጊዜ ተጠሪ ስም \//u', $svg, $name);
+    preg_match('/<text x="\d+" y="(\d+)"[^>]*>የአስቸኳይ ጊዜ ተጠሪ ስልክ \//u', $svg, $phone);
     expect((int) $phone[1])->toBeGreaterThan((int) $name[1] + 60);
 });
 

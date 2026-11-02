@@ -63,6 +63,13 @@ readonly class RelationshipValidationService
         $targetType = RelationshipTargetType::from($attributes['target_type']);
         $relationshipType = OrganizationRelationshipType::from($attributes['relationship_type']);
         $status = RelationshipStatus::from($attributes['status'] ?? RelationshipStatus::Active->value);
+
+        if ($targetType === RelationshipTargetType::OrganizationUnit && $attributes['target_id'] === $attributes['source_unit_id']) {
+            throw ValidationException::withMessages([
+                'target_id' => __('relationships.validation.target_is_source'),
+            ]);
+        }
+
         $this->validateTargetExists($targetType, $attributes['target_id']);
         $this->validateEffectiveDates($attributes['effective_from'] ?? null, $attributes['effective_to'] ?? null);
         $this->validateNoDuplicateActiveUnitRelationship($attributes, $status, $ignore);

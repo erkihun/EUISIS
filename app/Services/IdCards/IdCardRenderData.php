@@ -84,6 +84,14 @@ final readonly class IdCardRenderData
          */
         public ?array $employeeFields = null,
 
+        /**
+         * Fields the template moved off their home face, as key => face
+         * (IdCardLayoutElement::faceOf).
+         *
+         * @var array<string, string>
+         */
+        public array $fieldFaces = [],
+
         // Emergency contact, printed on the back face
         public ?string $emergencyContactName = null,
         public ?string $emergencyContactPhone = null,

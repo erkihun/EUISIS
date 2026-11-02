@@ -43,12 +43,15 @@ final class IdCardSvgRenderer
     /**
      * Fields whose two language labels print on one line, above a single value.
      * Their value reads the same in either language — a number, an email
-     * address, the one address on record — so a second row would only repeat
-     * it.
+     * address, the one address on record, the emergency contact's name and
+     * phone — so a second row would only repeat it.
      *
      * Mirrored in IdCardBilingualField.tsx.
      */
-    private const JOINED_LABEL_FIELDS = ['idNumber', 'phone', 'email', 'address'];
+    private const JOINED_LABEL_FIELDS = ['idNumber', 'phone', 'email', 'address', 'emergency_contact_name', 'emergency_contact_phone'];
+
+    /** Line spacing of the back notice, as a multiple of its font size. Mirrored in IdCardBack.tsx. */
+    private const NOTICE_LINE_HEIGHT = 1.3;
 
     /**
      * Fields whose value shrinks to fit its line rather than being cut: an
@@ -308,7 +311,7 @@ final class IdCardSvgRenderer
         $labelStyle = $data->textStyle('front', 'label');
         $valueStyle = $data->textStyle('front', 'value');
         $colW = (int) (($textW - 12) / 2);
-        foreach ($data->bilingualFields as $field) {
+        foreach ($this->rowsOn($data, 'front') as $field) {
             $box = $data->box('front', 'field_'.($field[4] ?? ''));
             // SVG text hangs from its baseline, so the label's line sits one
             // line below the box's top edge — where the preview draws it.
@@ -457,9 +460,11 @@ final class IdCardSvgRenderer
         // Property notice leads the notes block: Amharic first, then English,
         // both from ID card settings so the printed card matches the preview.
         $noticeLines = 0;
+        // Lines step by the notice's own size: a fixed 12 overlapped them at
+        // the default size and more so at any larger one.
+        $noticeStep = (int) ceil($noticeSize * self::NOTICE_LINE_HEIGHT);
         if ($l->showReturnNotice) {
             $noticeStyle = $data->textStyle('back', 'footer');
-            $noticeSize = $noticeStyle?->fontSizePx() !== null ? $noticeStyle->fontSizePx() * self::SCALE : 7.0;
             foreach ([$l->backNoticeAm, $l->backNoticeEn] as $notice) {
                 if ($notice === '') {
                     continue;
@@ -472,7 +477,7 @@ final class IdCardSvgRenderer
                     }
                     $svg .= sprintf(
                         '<text x="%d" y="%d" font-family="%s" %s opacity="0.65">%s</text>',
-                        $textX, $topTextY + $noticeLines * 12,
+                        $textX, $topTextY + $noticeLines * $noticeStep,
                         $this->font,
                         $this->styleAttrs($noticeStyle, 7, '400', $l->backTextColor),
                         $this->e($line),
@@ -486,7 +491,7 @@ final class IdCardSvgRenderer
         if ($l->verificationUrl !== '') {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.5">%s</text>',
-                $textX, $topTextY + max(1, $noticeLines) * 12 + 2,
+                $textX, $topTextY + max(1, $noticeLines) * $noticeStep + 2,
                 $this->font,
                 $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
                 $this->e($this->trunc($l->verificationUrl, 50)),
@@ -586,7 +591,7 @@ final class IdCardSvgRenderer
         $emergencyLabelSize = $data->textStyle('back', 'label')?->fontSizePx() !== null
             ? $data->textStyle('back', 'label')->fontSizePx() * self::SCALE
             : 9.0;
-        foreach ($data->emergencyContactFields as $index => $field) {
+        foreach ($this->rowsOn($data, 'back') as $index => $field) {
             $box = $data->box('back', 'field_'.($field[4] ?? ''));
             $svg .= $this->bilingualField(
                 $box?->xIn(self::W) ?? $padH,
@@ -713,7 +718,7 @@ final class IdCardSvgRenderer
                 [$x, $y, $w] = $box($data, 'front', 'emphasis');
                 $svg .= $centerText($data->employeeNumber ?: $data->cardNumber, $x + intdiv($w, 2), $y + 24, 18);
             }
-            foreach ($configured === null ? [] : $data->bilingualFields as $field) {
+            foreach ($configured === null ? [] : $this->rowsOn($data, 'front') as $field) {
                 if (in_array($field[4] ?? '', ['name', 'idNumber'], true)) {
                     continue;
                 }
@@ -736,7 +741,7 @@ final class IdCardSvgRenderer
                 $svg .= '<image id="officialSeal" x="'.$x.'" y="'.$y.'" width="'.$w.'" height="'.$h.'" href="'.$this->e($data->sealDataUri).'" preserveAspectRatio="xMidYMid meet"/>';
             }
             $labelSize = ($data->textStyle('back', 'label')?->fontSizePx() ?? 4.5) * self::SCALE;
-            foreach ($configured === null ? [] : $data->emergencyContactFields as $field) {
+            foreach ($configured === null ? [] : $this->rowsOn($data, 'back') as $field) {
                 [$x, $y, $w] = $box($data, 'back', 'field_'.$field[4]);
                 $svg .= $this->bilingualField(
                     $x, $y + (int) ceil($labelSize), $field, $w, $l, $data->textStyle('back', 'label'), $data->textStyle('back', 'value'),
@@ -1136,17 +1141,40 @@ final class IdCardSvgRenderer
         );
 
         $svg = '';
+        // A shared label wider than its box breaks after the " / ", Amharic on
+        // the first line and English on the second, rather than running past
+        // the box. Mirrored in IdCardBilingualField.tsx.
+        $labelLines = $joins && $labelW > $width && str_contains($labelAm, ' / ')
+            ? [strstr($labelAm, ' / ', true).' /', substr(strstr($labelAm, ' / '), 3)]
+            : null;
         $rows = $joins ? [[$labelAm, $valueAm]] : [[$labelAm, $valueAm], [$labelEn, $valueEn]];
         foreach ($rows as $row => [$rowLabel, $rowValue]) {
             $rowYPos = $y + $row * $rowGap;
-            $valueY = $inline ? $rowYPos : $rowYPos + $lineGap;
-            $svg .= $label($rowLabel, $rowYPos);
+            $valueY = $inline ? $rowYPos : $rowYPos + $lineGap * count($labelLines ?? [1]);
+            foreach ($labelLines ?? [$rowLabel] as $line => $text) {
+                $svg .= $label($text, $rowYPos + $line * $lineGap);
+            }
             foreach ($fitLines ?? [null] as $line => $text) {
                 $svg .= $value($text === null ? $render($rowValue) : $this->e($text), $valueY + $line * (int) ceil($fitSize + 3));
             }
         }
 
         return $svg;
+    }
+
+    /**
+     * The field rows a face prints: the front's identity rows and the back's
+     * emergency contacts, each on the face the template put it
+     * (IdCardLayoutElement::faceOf), in their usual order.
+     *
+     * @return array<int, array{0: string, 1: ?string, 2: string, 3: ?string, 4: string}>
+     */
+    private function rowsOn(IdCardRenderData $data, string $face): array
+    {
+        return array_values(array_filter(
+            [...$data->bilingualFields, ...$data->emergencyContactFields],
+            fn (array $row): bool => IdCardLayoutElement::faceOf((string) ($row[4] ?? ''), $data->fieldFaces, $data->orientation) === $face,
+        ));
     }
 
     /**

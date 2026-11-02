@@ -141,6 +141,8 @@ readonly class PublishHierarchyVersionAction
             ]);
         }
 
+        $this->ensureFollowsCurrentVersion($version);
+
         $edges = OrganizationEdge::query()
             ->where('hierarchy_version_id', $version->id)
             ->get(['parent_organization_id', 'child_organization_id']);
@@ -201,6 +203,39 @@ readonly class PublishHierarchyVersionAction
         }
 
         $this->ensureNoActiveOrganizationIsDropped($version, $edges);
+    }
+
+    /**
+     * A draft is a copy of the structure that was live when it was made. If
+     * another version went live after that, publishing this one would quietly
+     * undo the other's changes; and a draft must take effect after the version
+     * it replaces, whose period it closes the day before.
+     */
+    private function ensureFollowsCurrentVersion(HierarchyVersion $version): void
+    {
+        $current = HierarchyVersion::query()
+            ->whereKeyNot($version->id)
+            ->where('status', HierarchyVersionStatus::Published)
+            ->latest('effective_from')
+            ->first();
+
+        if ($current === null) {
+            return;
+        }
+
+        if ($current->approval_date !== null && $version->created_at !== null && $version->created_at->lt($current->approval_date)) {
+            throw ValidationException::withMessages([
+                'status' => __('hierarchy-versions.publish_stale_draft', ['version' => $current->version_name]),
+            ]);
+        }
+
+        if ($current->effective_from !== null && $version->effective_from !== null && $version->effective_from->lte($current->effective_from)) {
+            throw ValidationException::withMessages([
+                'effective_from' => __('hierarchy-versions.publish_effective_before_current', [
+                    'date' => $current->effective_from->toDateString(),
+                ]),
+            ]);
+        }
     }
 
     /**
