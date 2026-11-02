@@ -51,7 +51,7 @@ readonly class DeleteMistakenEmployeeAction
         'consumer_memberships' => 'employees.delete_blocked_transactions',
         'entitlements' => 'employees.delete_blocked_transactions',
         'daily_activity_logs' => 'employees.delete_blocked_work',
-        'field_work_requests' => 'employees.delete_blocked_work',
+        'field_work_requests:requester_employee_id' => 'employees.delete_blocked_work',
         'field_work_participants' => 'employees.delete_blocked_work',
         'employee_performance_agreements' => 'employees.delete_blocked_work',
         'performance_results' => 'employees.delete_blocked_work',
@@ -77,8 +77,10 @@ readonly class DeleteMistakenEmployeeAction
             $locked = Employee::query()->whereKey($employee->getKey())->lockForUpdate()->firstOrFail();
             $id = (string) $locked->getKey();
 
-            foreach (self::BLOCKERS as $table => $message) {
-                if (Schema::hasTable($table) && DB::table($table)->where('employee_id', $id)->exists()) {
+            foreach (self::BLOCKERS as $reference => $message) {
+                // "table" or "table:column"; the column is employee_id unless named (field work keeps requester_employee_id).
+                [$table, $column] = array_pad(explode(':', $reference, 2), 2, 'employee_id');
+                if (Schema::hasTable($table) && Schema::hasColumn($table, $column) && DB::table($table)->where($column, $id)->exists()) {
                     throw ValidationException::withMessages(['employee' => __($message)]);
                 }
             }
