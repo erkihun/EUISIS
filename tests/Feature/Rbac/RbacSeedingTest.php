@@ -55,6 +55,24 @@ test('5 6 53 the default role matrix is valid: every permission exists, no dupli
         ->and(count(DefaultRoleMatrix::names()))->toBe(count(array_unique(DefaultRoleMatrix::names())));
 });
 
+test('ADR 0026 every permission is reachable through a non-administrator role unless it is admin-only or a legacy alias on purpose', function (): void {
+    $administrators = ['Super Admin', 'System Admin', 'City Admin', 'Public Service Bureau Admin'];
+    $reachable = collect(DefaultRoleMatrix::roles())
+        ->except($administrators)
+        ->flatMap(fn (array $role): array => $role['permissions'])
+        ->unique()
+        ->all();
+    $reserved = [...DefaultRoleMatrix::ADMIN_ONLY, ...DefaultRoleMatrix::LEGACY_ALIASES];
+
+    // Reserved names exist, are listed once, and are indeed granted to no non-administrator role.
+    expect(array_values(array_diff($reserved, PermissionCatalog::names())))->toBe([])
+        ->and(count($reserved))->toBe(count(array_unique($reserved)))
+        ->and(array_values(array_intersect($reserved, $reachable)))->toBe([]);
+
+    // Everything else is granted to at least one non-administrator role.
+    expect(array_values(array_diff(PermissionCatalog::names(), $reachable, $reserved)))->toBe([]);
+});
+
 test('8 every catalog permission and default role uses the web guard', function (): void {
     rbacSeedAll();
 

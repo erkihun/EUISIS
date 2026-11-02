@@ -102,12 +102,15 @@ it('has its own sign-in screen that uses the one login and lands in Core', funct
     $this->get(route('core.login'))->assertRedirect(route('core.dashboard'));
 });
 
-it('is granted to the citywide administration roles only', function (): void {
+it('is granted to the citywide administration and structure roles only (ADR 0026 §4)', function (): void {
     $roles = DefaultRoleMatrix::roles();
     $holders = collect($roles)->filter(fn (array $role) => in_array('core.access', $role['permissions'], true))->keys()->sort()->values()->all();
 
     expect(PermissionCatalog::names())->toContain('core.access')
-        ->and($holders)->toBe(['City Admin', 'Public Service Bureau Admin', 'Super Admin', 'System Admin']);
+        ->and($holders)->toBe([
+            'City Admin', 'Organization Registrar', 'Public Service Bureau Admin', 'Structure Catalog Manager',
+            'Structure Implementation Officer', 'Super Admin', 'System Admin',
+        ]);
 });
 
 it('names only icons the sidebar draws and labels that exist in English and Amharic', function (): void {

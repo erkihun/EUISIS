@@ -98,6 +98,17 @@ Provider and API identities are not Spatie users. A provider session is not an a
 | Performance | officer prepares; reviewer approves; manager appraises the team; calibrator calibrates; the appeal committee decides | permissions + `EpmsAccess::assertSeparated` (approver ≠ submitter, verifier ≠ enterer) |
 | Security | role/permission authoring and security settings (Security Settings Manager) vs city operations (City Admin) | permissions + protected roles |
 | API | token management (API Manager) vs organizational administration | permissions |
+| Transfers | Transfer Vacancy Officer announces and screens; Transfer Approver approves release or receiving (scope decides the side); Transfer Final Approver gives the city-level approval and overrides; Transfer Administrator executes | permissions + organization scope (`EmployeeTransferPolicy`) |
+| Vacancies | Vacancy Officer drafts and screens vs Vacancy Selection Approver publishes, selects and starts the transfer | permissions; an applicant never decides their own record (`ApplicantOwnedRecord`) |
+| Public feedback | Coordinator routes and runs the QR; Handler resolves; only the Investigator sees submitter identity and evidence; the Administrator configures city-wide | permissions (each privileged view audited) |
+| Backup and recovery | Backup Operator, Recovery Requester, Recovery Reviewer and Recovery Approver are four roles | permissions |
+| Assessment | Assessment Oversight Officer reviews, returns and verifies vs Assessment Administrator finalizes; criterion-level responses only in the read-only Assessment Data Auditor | permissions |
+| Court | Court Registrar registers and assigns; Court Judge drafts; Court President approves decisions and letters and decides appeals; Court Administrator configures and removes | permissions + court staff membership |
+
+The complete catalog and the permissions deliberately reserved for administrators
+(`DefaultRoleMatrix::ADMIN_ONLY`) or kept only as legacy aliases
+(`DefaultRoleMatrix::LEGACY_ALIASES`) are decided in ADR 0026; the seeding test
+fails when a permission is granted to no non-administrator role and is on neither list.
 
 ## 8. Permission discovery
 
