@@ -85,6 +85,9 @@ function sflPositionService(string $organizationId, string $positionId, string $
 }
 
 it('explains a missing service and rating in the visitor language', function (): void {
+    // The service is asked for only when the officer's post has one to name.
+    sflPositionService($this->org->id, $this->position->id, 'SFL-OWN');
+
     $this->withHeader('X-Locale', 'am')
         ->post('/service-feedback/'.$this->token->token, [])
         ->assertSessionHasErrors([
@@ -98,6 +101,8 @@ it('explains a missing service and rating in the visitor language', function ():
 });
 
 it('keeps the English wording for an English visitor', function (): void {
+    sflPositionService($this->org->id, $this->position->id, 'SFL-OWN');
+
     $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', ['rating' => 9]))
         ->assertSessionHasErrors([
             'position_service_id' => 'Please choose the service you received.',

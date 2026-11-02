@@ -240,6 +240,8 @@ class PublicServiceFeedbackController extends Controller
          * caller can name any service id, including one belonging to a
          * different role, so the server decides what this officer is rated on.
          */
+        // Whether Feedback must name a service at all (a post with none configured is still
+        // ratable) is decided by StoreServiceFeedbackRequest::after(), with the other rules.
         if ($context->targetType === PublicFeedbackTargetType::Employee
             && ! empty($validated['position_service_id'])
             && ! $this->feedback->serviceIsAvailable((string) $validated['position_service_id'], $context->contextPositionId)) {

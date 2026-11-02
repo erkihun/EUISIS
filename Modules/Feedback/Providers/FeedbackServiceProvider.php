@@ -133,9 +133,10 @@ final class FeedbackServiceProvider extends ServiceProvider
          * machine and still stay under a per-token limit.
          */
         // Brief §37–38: per QR code and per address, thresholds from the public feedback policy.
+        // Applied by ThrottlePublicSubmissions, which spends them on stored submissions only.
         RateLimiter::for('service-feedback-submit', function (Request $request): array {
-            $perSource = 3;
-            $perIp = 8;
+            $perSource = PublicFeedbackSettings::DEFAULT_RATE_LIMIT_PER_SOURCE;
+            $perIp = PublicFeedbackSettings::DEFAULT_RATE_LIMIT_PER_IP;
 
             try {
                 if (Schema::hasTable('system_settings')) {

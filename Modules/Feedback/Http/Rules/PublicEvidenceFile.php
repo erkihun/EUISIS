@@ -18,8 +18,18 @@ final class PublicEvidenceFile implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (! $value instanceof UploadedFile || ! $value->isValid()) {
+        if (! $value instanceof UploadedFile) {
             $fail('service-feedback.validation.attachment_type')->translate();
+
+            return;
+        }
+
+        if (! $value->isValid()) {
+            // PHP dropped the file before this policy saw it: say "too large", not "wrong type".
+            $sizeErrors = [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE];
+            $fail(in_array($value->getError(), $sizeErrors, true)
+                ? 'service-feedback.validation.attachment_size'
+                : 'service-feedback.validation.attachment_type')->translate();
 
             return;
         }

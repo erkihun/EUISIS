@@ -124,6 +124,7 @@ use Modules\Feedback\Http\Controllers\PublicFeedbackRoutingRuleController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackSettingsController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackSubjectController;
 use Modules\Feedback\Http\Controllers\PublicServiceFeedbackController;
+use Modules\Feedback\Http\Middleware\ThrottlePublicSubmissions;
 use Modules\Feedback\Http\Controllers\PublicSubmissionListController;
 use Modules\Feedback\Http\Controllers\ServiceFeedbackController;
 use Modules\Feedback\Http\Controllers\ServiceSubmissionController;
@@ -570,7 +571,7 @@ Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class,
     ->name('service-feedback.show');
 
 Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('service-feedback.store');
 
 // The employee's photo, through the signed short-lived link the page carries.
@@ -591,12 +592,12 @@ Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController:
     ->name('service-feedback.form');
 
 Route::post('/service-feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeTypedFeedback'])
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('service-feedback.feedback.store');
 
 Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('service-feedback.entry.store');
 
 /*
@@ -624,12 +625,12 @@ Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 
     ->name('public-feedback.organization.form');
 
 Route::post('/feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeOrganizationFeedback'])
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('public-feedback.organization.feedback.store');
 
 Route::post('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeOrganizationEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
+    ->middleware(['qr.private', ThrottlePublicSubmissions::class])
     ->name('public-feedback.organization.entry.store');
 
 /*

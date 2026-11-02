@@ -174,7 +174,7 @@ never reach a browser; audit rows never carry the narrative or the contact.
 | `identity_mode` | optional | anonymous (nothing collected), identified (name + valid phone/e-mail required), optional |
 | `allow_attachments` | true | complaint files |
 | `acknowledgement_enabled` | false | e-mail receipt to a submitter who left an e-mail (type, reference, time; never the text) |
-| `rate_limit_per_source`, `rate_limit_per_ip` | 3, 8 | submissions per QR code / per address in ten minutes |
+| `rate_limit_per_source`, `rate_limit_per_ip` | 10, 30 | **stored** submissions per QR code / per address in ten minutes (ADR 0024); a refused POST costs nothing, and four times each ceiling of attempts, stored or refused, stops a flood |
 
 The group is edited only here (it is excluded from the general System
 Settings page) and every change is audited with before/after values.

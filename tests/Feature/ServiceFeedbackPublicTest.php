@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
+use Modules\Feedback\Application\Services\PublicFeedbackSettings;
 use Modules\Feedback\Contracts\Data\FeedbackTokenStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
@@ -255,7 +256,29 @@ it('rejects a rating outside 1 to 5', function (int $rating): void {
 
 it('requires a service type and a rating', function (): void {
     $this->post('/service-feedback/'.$this->token->token, [])
-        ->assertSessionHasErrors(['position_service_id', 'rating']);
+        ->assertSessionHasErrors(['rating']);
+
+    // The service is required once the token is resolved: this officer's post has one to name.
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', ['rating' => 4]))
+        ->assertSessionHasErrors(['position_service_id']);
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+});
+
+it('accepts feedback without a service when the officer\'s post has none configured', function (): void {
+    $this->positionService->delete();
+
+    $this->get('/service-feedback/'.$this->token->token.'/feedback')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('serviceTypes', []));
+
+    $this->post('/service-feedback/'.$this->token->token.'/feedback', pfComplete('feedback', ['rating' => 4, 'comment' => 'Served well.']))
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->rating)->toBe(4)
+        ->and($entry->position_service_id)->toBeNull();
 });
 
 it('rejects a service type that is inactive', function (): void {
@@ -289,16 +312,32 @@ it('rate limits repeated submissions from one device', function (): void {
     ]);
     unset($payload['comment']);
 
-    // The per-token ceiling is 3 per 10 minutes. Each attempt carries a
-    // different comment: an identical repeat is a double submit, stored once.
-    for ($i = 0; $i < 3; $i++) {
+    // The per-token ceiling counts stored submissions per 10 minutes. Each attempt
+    // carries a different comment: an identical repeat is a double submit, stored once.
+    $ceiling = PublicFeedbackSettings::DEFAULT_RATE_LIMIT_PER_SOURCE;
+    for ($i = 0; $i < $ceiling; $i++) {
         $this->post('/service-feedback/'.$this->token->token, $payload + ['comment' => 'Attempt '.$i])->assertRedirect();
     }
 
-    $this->post('/service-feedback/'.$this->token->token, $payload + ['comment' => 'Attempt 4'])
-        ->assertStatus(429);
+    $this->post('/service-feedback/'.$this->token->token, $payload + ['comment' => 'Attempt over'])
+        ->assertStatus(429)
+        ->assertHeader('Retry-After');
 
-    expect(EmployeeServiceFeedback::query()->count())->toBe(3);
+    expect(EmployeeServiceFeedback::query()->count())->toBe($ceiling);
+});
+
+it('does not spend the submission ceiling on refused attempts', function (): void {
+    $url = '/service-feedback/'.$this->token->token;
+    $valid = pfComplete('feedback', ['position_service_id' => $this->positionService->id, 'rating' => 5]);
+
+    // As many refusals as the ceiling allows stored submissions: a citizen fixing mistakes is not locked out.
+    for ($i = 0; $i < PublicFeedbackSettings::DEFAULT_RATE_LIMIT_PER_SOURCE; $i++) {
+        $this->post($url, array_diff_key($valid, ['client_name' => true]))->assertSessionHasErrors('client_name');
+    }
+
+    $this->post($url, $valid)->assertRedirect()->assertSessionHasNoErrors();
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
 
 it('writes an audit entry when feedback is submitted', function (): void {

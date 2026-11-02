@@ -565,6 +565,12 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [context.questionnaire?.version]);
 
+    // A refused submission brings a fresh one-time token; the next Send must carry it, not the one the form opened with.
+    useEffect(() => {
+        setData('form_token', formToken ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formToken]);
+
     const stepTitle = (id: StepId) => t(`serviceFeedback.${STEP_TITLE[id][kind]}`);
 
     const goTo = (index: number) => {

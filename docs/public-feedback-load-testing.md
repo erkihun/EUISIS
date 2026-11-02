@@ -43,8 +43,9 @@ over C–H; each of the six runs at a sixth of it.
 A submission counts as **stored** only when the redirect after the POST
 renders the receipt (`submitted: true`); the DB row delta during the run is
 reported alongside as an independent check. The public submit routes are
-throttled per QR code (3 per 10 minutes by default) and per client address
-(8 per 10 minutes). One generator is one address, so every request carries
+throttled per QR code (10 stored submissions per 10 minutes by default) and per
+client address (30 per 10 minutes); refused POSTs do not count, but four times
+each ceiling of attempts does (ADR 0024). One generator is one address, so every request carries
 an `X-Forwarded-For` from a per-VU pool and the nodes under test trust the
 generator as a proxy (`APP_TRUSTED_PROXIES=127.0.0.1`); a real deployment
 behind a balancer sees distinct client addresses the same way. A `429` is

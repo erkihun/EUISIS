@@ -6,7 +6,7 @@ import PublicQrActionDock, { type PublicQrCall } from '@/Components/public/Publi
 import OrganizationFeedbackForm, { type OrganizationFormContext } from '@/Components/public/OrganizationFeedbackForm';
 import {
     AboutYou, EvidenceSection, FormNotice, IdentityFields, KINDS, RequirementMark, TIP_TYPE_COPY, TipTypeChooser,
-    areaClass, cardClass, errorClass, evidenceError, fieldClass, labelClass, mutedClass, optionalClass, privacyNoteKey, sendButtonClass, useSubmissionOutcome,
+    areaClass, cardClass, errorClass, evidenceError, fieldClass, labelClass, mutedClass, privacyNoteKey, sendButtonClass, useSubmissionOutcome,
     type Links, type Receipt, type TargetDisplay,
 } from '@/Components/public/feedbackFormParts';
 import { AlertTriangle, Building2, ChevronRight, UserIcon } from '@/Components/NavIcons';
@@ -176,6 +176,11 @@ function TargetCard({ target, intro }: { target: TargetDisplay; intro?: string }
     );
 }
 
+/**
+ * The service received, from the scanned officer's post. A post with no
+ * services configured shows nothing: the visitor cannot fix that, and the
+ * server accepts the submission without a service in that case.
+ */
 function ServiceSelect({ serviceTypes, value, onChange, error, optional }: {
     serviceTypes: ServiceTypeOption[];
     value: string;
@@ -185,18 +190,15 @@ function ServiceSelect({ serviceTypes, value, onChange, error, optional }: {
 }) {
     const { t } = useLocale();
 
+    if (serviceTypes.length === 0) return null;
+
     return (
         <div className={cardClass} data-field>
             <label htmlFor="position_service_id" className={labelClass}>
                 {t('serviceFeedback.serviceTypeOrId')}
-                {optional && <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>}
+                <RequirementMark required={!optional} />
             </label>
-            {serviceTypes.length === 0 && (
-                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                    {t('serviceFeedback.noServiceTypesConfigured')}
-                </p>
-            )}
-            <select id="position_service_id" value={value} onChange={(e) => onChange(e.target.value)} className={fieldClass}>
+            <select id="position_service_id" value={value} onChange={(e) => onChange(e.target.value)} required={!optional} aria-required={!optional} className={fieldClass}>
                 <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
                 {serviceTypes.map((service) => (
                     <option key={service.id} value={service.id}>{service.service_no ? `${service.service_no} — ${service.name}` : service.name}</option>
@@ -254,6 +256,18 @@ interface FormProps {
 }
 
 /**
+ * A refused submission comes back to the same form with a fresh one-time token
+ * in the props; the form must send that one next, not the token it was opened
+ * with, or a visitor whose first attempt was refused could never send at all.
+ */
+function useFreshFormToken(formToken: string | null, setData: (field: 'form_token', value: string) => void): void {
+    useEffect(() => {
+        setData('form_token', formToken ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formToken]);
+}
+
+/**
  * The digital Tip-off (ጥቆማ) form, from the paper intake form: the target is
  * already known from the scanned QR; the tipster chooses the type and states
  * the facts; when, where, who else and a related service are optional and
@@ -280,6 +294,7 @@ function TipOffForm({ target, serviceTypes, links, formToken, requirements, evid
     });
     // Each field's error is cleared the moment the visitor changes it, so a fixed field never stays red.
     const fieldErrors = errors as Record<string, string | undefined>;
+    useFreshFormToken(formToken, setData);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -384,6 +399,7 @@ function ComplaintForm({ target, serviceTypes, links, formToken, requirements, e
         client_name: '', client_contact: '', client_email: '', submitter_organization: '',
         incident_date: '', incident_location: '', attachments: [] as File[],
     });
+    useFreshFormToken(formToken, setData);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -462,6 +478,7 @@ function RatingForm({ target, serviceTypes, links, formToken, requirements }: Om
         client_email: '',
         submitter_organization: '',
     });
+    useFreshFormToken(formToken, setData);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
