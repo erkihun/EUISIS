@@ -91,6 +91,9 @@ final class RbacSynchronizer
             if ($hasMetadata) {
                 $attributes += ['description_en' => $definition['description_en'], 'description_am' => $definition['description_am'], 'is_system' => true];
             }
+            if (Schema::hasColumn('roles', 'name_am') && DefaultRoleMatrix::nameAm($name) !== null) {
+                $attributes['name_am'] = DefaultRoleMatrix::nameAm($name);
+            }
             if ($role === null) {
                 Role::query()->create(['name' => $name, 'guard_name' => PermissionCatalog::GUARD, ...$attributes]);
                 $created[] = $name;

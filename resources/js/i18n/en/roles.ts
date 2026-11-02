@@ -4,6 +4,7 @@ const roles = {
     createRole: 'Create Role',
     editRole: 'Edit Role',
     roleName: 'Role Name',
+    roleNameAm: 'Role Name (Amharic)',
     permissions: 'Permissions',
     usersCount: 'Users',
     superAdmin: 'Super Admin',

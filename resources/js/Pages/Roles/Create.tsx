@@ -20,8 +20,9 @@ export default function CreateRole({
 }) {
     const { t, locale } = useLocale();
 
-    const form = useForm<{ name: string; scope_type: 'scoped' | 'global'; permissions: string[] }>({
+    const form = useForm<{ name: string; name_am: string; scope_type: 'scoped' | 'global'; permissions: string[] }>({
         name: '',
+        name_am: '',
         scope_type: 'scoped',
         permissions: [],
     });
@@ -55,6 +56,21 @@ export default function CreateRole({
                             {form.errors.name && (
                                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">
                                     {form.errors.name}
+                                </p>
+                            )}
+                            <label className="mt-4 block text-xs font-medium text-(--app-muted-foreground)">
+                                {t('roles.roleNameAm')}
+                            </label>
+                            <div className="mt-1">
+                                <input
+                                    className={inputCls}
+                                    value={form.data.name_am}
+                                    onChange={(e) => form.setData('name_am', e.target.value)}
+                                />
+                            </div>
+                            {form.errors.name_am && (
+                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                                    {form.errors.name_am}
                                 </p>
                             )}
                         </div>

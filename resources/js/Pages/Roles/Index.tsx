@@ -13,6 +13,7 @@ import AppActionMenu from '@/Components/ui/AppActionMenu';
 type RoleRow = {
     id: number;
     name: string;
+    name_am?: string | null;
     scope_type: 'scoped' | 'global';
     users_count: number;
     permissions: string[];
@@ -171,6 +172,7 @@ export default function RolesIndex({
                                         <tr>
                                             {[
                                                 t('roles.role'),
+                                                t('roles.roleNameAm'),
                                                 t('roles.scopeType'),
                                                 t('roles.modulesCovered'),
                                                 t('roles.permissions'),
@@ -206,6 +208,9 @@ export default function RolesIndex({
                                                                 </span>
                                                             )}
                                                         </div>
+                                                    </td>
+                                                    <td className={tableCellClassName}>
+                                                        {r.name_am ? r.name_am : <span className="text-(--app-muted-foreground)">—</span>}
                                                     </td>
                                                     <td className={tableCellClassName}>
                                                         <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${r.scope_type === 'global'

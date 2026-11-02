@@ -4,6 +4,7 @@ const roles = {
     createRole: 'ሚና ይፍጠሩ',
     editRole: 'ሚና ያርትዑ',
     roleName: 'የሚና ስም',
+    roleNameAm: 'የሚና ስም (በአማርኛ)',
     permissions: 'የመዳረሻ መብቶች',
     usersCount: 'ተጠቃሚዎች',
     superAdmin: 'ሱፐር አስተዳዳሪ',

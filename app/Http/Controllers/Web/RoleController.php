@@ -65,6 +65,7 @@ class RoleController extends Controller
             ->through(fn (Role $r) => [
                 'id' => $r->id,
                 'name' => $r->name,
+                'name_am' => $r->name_am,
                 'scope_type' => $r->scope_type->value,
                 'users_count' => $r->users_count,
                 'permissions' => $r->permissions->pluck('name')->toArray(),
@@ -130,6 +131,7 @@ class RoleController extends Controller
         DB::transaction(function () use ($request, $permissions): void {
             $role = Role::create([
                 'name' => $request->validated('name'),
+                'name_am' => $request->validated('name_am'),
                 'guard_name' => 'web',
                 'scope_type' => $request->validated('scope_type'),
             ]);
@@ -163,6 +165,7 @@ class RoleController extends Controller
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,
+                'name_am' => $role->name_am,
                 'scope_type' => $role->scope_type->value,
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ],
@@ -192,6 +195,7 @@ class RoleController extends Controller
             $oldScopeType = $role->scope_type->value;
             $role->update([
                 'name' => $request->validated('name'),
+                'name_am' => $request->validated('name_am'),
                 'scope_type' => $request->validated('scope_type'),
             ]);
             $role->syncPermissions($newPermissions);

@@ -35,6 +35,7 @@ class RoleUpdateRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($roleId)],
+            'name_am' => ['nullable', 'string', 'max:255'],
             'scope_type' => ['required', Rule::in(['scoped', 'global'])],
             'permissions' => ['array', $this->grantablePermissionsRule()],
             'permissions.*' => ['string', 'exists:permissions,name'],
