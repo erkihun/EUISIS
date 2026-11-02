@@ -150,6 +150,7 @@ const permissions = {
         'position-profiles': 'የሥራ መደብ ንድፍ',
         'position-requests': 'የሥራ መደብ ጥያቄዎች',
         'positions': 'የሥራ መደቦች',
+        'reporting-lines': 'የተጠሪነት መስመሮች',
         'processes': 'ሂደቶች',
         'professions': 'ሙያዎች',
         'public-holidays': 'የሕዝብ በዓላት',

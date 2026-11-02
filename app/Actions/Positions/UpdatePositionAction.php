@@ -11,6 +11,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
+use App\Services\ReportingLines\ReportingLineValidator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +23,7 @@ readonly class UpdatePositionAction
         private PositionCapacityService $capacity,
         private OrganizationScopeService $organizationScope,
         private EnsureSingleUnitHead $ensureSingleUnitHead,
+        private ReportingLineValidator $reportingLines,
     ) {}
 
     public function execute(Position $position, array $attributes, User $actor): Position
@@ -35,15 +37,23 @@ readonly class UpdatePositionAction
             $attributes = $this->fillOrganizationFromUnit($locked, $attributes, $actor);
             $this->refuseStrandingHolders($locked, $attributes);
 
+            $unitId = array_key_exists('organization_unit_id', $attributes) ? $attributes['organization_unit_id'] : $locked->organization_unit_id;
+            $unitId = filled($unitId) ? (string) $unitId : null;
             if ((bool) ($attributes['is_unit_head'] ?? $locked->is_unit_head)) {
                 $this->ensureSingleUnitHead->execute(
-                    (string) ($attributes['organization_unit_id'] ?? $locked->organization_unit_id),
+                    $unitId,
                     (string) $locked->getKey(),
+                    (string) ($attributes['organization_id'] ?? $locked->organization_id),
                 );
             }
 
-            $locked->update($attributes);
+            $this->ensureSingleUnitHead->guard(fn (): bool => $locked->update($attributes), $unitId);
             $fresh = $locked->fresh();
+
+            // A head whose published profile reports into its own unit would loop (ADR 0025); refused before the change lands.
+            if ($fresh->is_unit_head && ! $oldValues['is_unit_head']) {
+                $this->reportingLines->assertHeadHasNoCycle($fresh, $unitId);
+            }
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::PositionUpdated,

@@ -26,11 +26,14 @@ use App\Backbone\Contracts\OrganizationDirectory;
 use App\Backbone\Contracts\OrganizationHierarchy;
 use App\Backbone\Contracts\PositionDirectory;
 use App\Backbone\Contracts\ProviderCodeLookup;
+use App\Backbone\Contracts\ReportingLines;
 use App\Backbone\Contracts\ServiceEligibility;
 use App\Backbone\Contracts\UnitDirectory;
 use App\Backbone\Observers\BackboneDomainEventObserver;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Services\ReportingLines\ReportingGraphRepository;
+use App\Services\ReportingLines\ReportingLineResolver;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -57,6 +60,9 @@ class BackboneServiceProvider extends ServiceProvider
         // Ports that service modules fill (ServiceModuleServiceProvider); without them, no-ops.
         EmployeeFeedbackLinks::class => NoEmployeeFeedbackLinks::class,
         ProviderCodeLookup::class => NoProviderCodeLookup::class,
+        // Who supervises whom (ADR 0025). The graph repository keeps one graph per organization and date for the request.
+        ReportingLines::class => ReportingLineResolver::class,
+        ReportingGraphRepository::class => ReportingGraphRepository::class,
     ];
 
     public function boot(): void

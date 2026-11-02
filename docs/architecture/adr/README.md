@@ -38,6 +38,8 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0019](0019-strategy-hierarchy-wlms-entry.md) | Strategy hierarchy entered the WLMS way: main strategy → strategy → goal → objective → activity, weight rules, two forms | accepted 2026-10-31 |
 | [0020](0020-court-module-in-euisis.md) | The court (court-ms) as `Modules/Court`: staff on platform accounts, own portals, `court_` tables, `/court` routes; data import and in-process link to follow | accepted 2026-10-31 |
 | [0021](0021-bulk-card-printing-and-print-station.md) | Bulk ID card printing by organization or unit, and a print station that prints frozen snapshots through printer profiles and records each card's result | accepted 2026-11-01 |
+| [0024](0024-public-feedback-throttle-and-service-requirement.md) | Public feedback throttle counts stored submissions; a post without services is still ratable | accepted 2026-11-02 |
+| [0025](0025-reporting-hierarchy-and-supervisor-resolution.md) | One reporting model: published profile line, else unit leadership, acting appointment first; a person only from assignments in force on the date; every gap its own outcome; permission AND relationship for every supervisor action; delegations bounded by the delegator's live authority; one head per unit and organization at the database; workflows switch to the structure behind a flag | accepted 2026-11-02 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),

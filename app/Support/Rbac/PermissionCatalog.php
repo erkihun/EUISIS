@@ -31,7 +31,7 @@ final class PermissionCatalog
             'organizational-change-requests', 'positions', 'position-requests', 'position-establishments',
             'grade-levels', 'occupations', 'isic-activities', 'code-rules',
         ],
-        'Employee Management' => ['employees', 'transfers', 'vacancy-announcements', 'vacancy-applications'],
+        'Employee Management' => ['employees', 'transfers', 'vacancy-announcements', 'vacancy-applications', 'reporting-lines'],
         'Grievance Management' => [
             'grievances', 'grievance_committees', 'grievance_committee_members', 'grievance_routes', 'grievance_sla',
             'grievance_decisions', 'grievance_hearings', 'grievance_correspondence', 'grievance_reports', 'grievance_settings',

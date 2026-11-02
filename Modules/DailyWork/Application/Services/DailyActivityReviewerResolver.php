@@ -4,25 +4,31 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Application\Services;
 
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
-use Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment;
+use App\Enums\OccupantBasis;
+use App\Enums\ReportingBasis;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ReportingLines\ReportingLineResolver;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
-use Modules\DailyWork\Contracts\Data\DailyActivityCoverage;
-use Modules\DailyWork\Contracts\DailyWorkReviewers;
-use App\Models\Employee;
-use App\Models\EmployeeAssignment;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
+use Modules\DailyWork\Contracts\Data\DailyActivityCoverage;
+use Modules\DailyWork\Contracts\Data\ManagerResolution;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment;
 
 /**
  * Who may review whose daily activity.
  *
- * Addis One records no supervisor on positions or units, so review authority is
- * never inferred from job titles ("Director", "Team Leader"). It comes only
- * from explicit reviewer assignments:
+ * Review authority is never inferred from job titles ("Director", "Team
+ * Leader"). Coverage comes from explicit reviewer assignments; the line
+ * manager of one employee comes from the organization structure (unit heads,
+ * published position profiles, acting appointments: ADR 0025) when that is
+ * switched on, with the reviewer assignments as the fallback:
  *
  *   organization (unit null)    -> every employee logged under that organization
  *   unit (+ optional sub-units) -> employees logged under that unit subtree
@@ -41,7 +47,10 @@ class DailyActivityReviewerResolver implements DailyWorkReviewers
     /** @var array<int|string, DailyActivityCoverage> */
     private array $coverageCache = [];
 
-    public function __construct(private readonly OrganizationScopeService $scope) {}
+    public function __construct(
+        private readonly OrganizationScopeService $scope,
+        private readonly ReportingLineResolver $reportingLines,
+    ) {}
 
     public function isGlobalReviewer(User $user): bool
     {
@@ -167,6 +176,40 @@ class DailyActivityReviewerResolver implements DailyWorkReviewers
     }
 
     public function directManager(Employee $employee, ?EmployeeAssignment $assignment, Carbon $date): ?User
+    {
+        return $this->directManagerResolution($employee, $assignment, $date)->user;
+    }
+
+    public function directManagerResolution(Employee $employee, ?EmployeeAssignment $assignment, Carbon $date): ManagerResolution
+    {
+        $structuralOutcome = null;
+
+        // ADR 0025: the organization structure first, when the deployment has switched it on.
+        if (config('features.structural_reporting')) {
+            $resolution = $this->reportingLines->directSupervisorOf($employee, $assignment, $date);
+            $structuralOutcome = $resolution->outcome->value;
+            if ($resolution->isResolved()) {
+                $user = User::query()->where('employee_id', $resolution->supervisorEmployeeUuid)->where('status', 'active')->orderBy('id')->first();
+                if ($user !== null && (string) ($user->employee_id ?? '') !== (string) $employee->id) {
+                    $basis = $resolution->occupantBasis === OccupantBasis::Acting
+                        ? ManagerResolution::BASIS_ACTING_APPOINTMENT
+                        : ($resolution->basis === ReportingBasis::ExplicitProfile ? ManagerResolution::BASIS_EXPLICIT_PROFILE : ManagerResolution::BASIS_UNIT_HEAD);
+
+                    return new ManagerResolution($user, $basis, $structuralOutcome);
+                }
+            }
+            // Unresolved (vacant, ambiguous, not configured, no account): the explicit reviewer assignment decides, as before.
+        }
+
+        $user = $this->managerFromReviewerAssignments($employee, $assignment, $date);
+
+        return $user === null
+            ? ManagerResolution::nobody($structuralOutcome)
+            : new ManagerResolution($user, ManagerResolution::BASIS_REVIEWER_ASSIGNMENT, $structuralOutcome);
+    }
+
+    /** The pre-ADR-0025 rule: the most specific active reviewer assignment covering the placement. */
+    private function managerFromReviewerAssignments(Employee $employee, ?EmployeeAssignment $assignment, Carbon $date): ?User
     {
         if ($assignment === null) {
             return null;

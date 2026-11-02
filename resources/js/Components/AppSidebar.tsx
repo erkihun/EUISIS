@@ -249,6 +249,9 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 icon: UserIcon,
                 items: [
                     { routeName: 'employee.employment', labelKey: 'nav.myEmployment', icon: Briefcase },
+                    // My supervisor is the employee's own record; My Team needs the supervisor permission (ADR 0025).
+                    { routeName: 'employee.reporting-line', labelKey: 'nav.myReportingLine', icon: BranchingUpIcon, employeeOnly: true },
+                    { routeName: 'employee.my-team', labelKey: 'nav.myTeam', icon: Users, permission: 'reporting-lines.view_team', employeeOnly: true },
                     { routeName: 'employee.id-card', labelKey: 'nav.myIdCard', icon: IdCardIcon },
                     { routeName: 'employee.documents', labelKey: 'nav.myDocuments', icon: DocumentsIcon },
                 ],
@@ -517,6 +520,10 @@ const navGroups: NavGroup[] = [
             { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
             { routeName: 'vacancy-applications.index', labelKey: 'nav.vacancyApplications', icon: FileUserIcon, permission: 'vacancy-applications.viewAny' },
             { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: FileSendIcon },
+            // Reporting hierarchy (ADR 0025): who reports to whom, acting appointments and delegations; each page re-checks scope.
+            { routeName: 'reporting-lines.overview', labelKey: 'nav.reportingHierarchy', icon: BranchingUpIcon, permission: 'reporting-lines.view_any' },
+            { routeName: 'reporting-lines.acting.index', labelKey: 'nav.actingAppointments', icon: UserIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
+            { routeName: 'reporting-lines.delegations.index', labelKey: 'nav.supervisorDelegations', icon: FileSendIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
         ],
     },
     {

@@ -22,6 +22,17 @@ return [
     'service_monitoring' => (bool) env('FEATURE_SERVICE_MONITORING', true),
 
     /*
+    | structural_reporting — supervisor resolution from the organization
+    | structure (ADR 0025, docs/reporting-lines.md). Off: workflows that need a
+    | direct supervisor (field work, daily activity, assessments, EPMS) keep
+    | using the explicit reviewer assignments only, exactly as before. On: the
+    | unit-head / position-profile / acting-appointment resolution is asked
+    | first and the reviewer assignments remain the fallback when it cannot
+    | name anyone. The reporting-line pages and diagnostics work either way.
+    */
+    'structural_reporting' => (bool) env('FEATURE_STRUCTURAL_REPORTING', false),
+
+    /*
     | Staged rollout inside Transport (docs/transport/production-readiness.md).
     | Each sub-feature can be switched independently for a pilot; the core
     | boarding flow (QR, trips, manifests, reports) follows the module flag.

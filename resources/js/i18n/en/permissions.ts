@@ -150,6 +150,7 @@ const permissions = {
         'position-profiles': 'Position design',
         'position-requests': 'Position requests',
         'positions': 'Positions',
+        'reporting-lines': 'Reporting Lines',
         'processes': 'Processes',
         'professions': 'Professions',
         'public-holidays': 'Public Holidays',
