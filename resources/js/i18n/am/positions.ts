@@ -39,6 +39,8 @@ const positions = {
     statusInactive: 'ንቁ ያልሆነ',
     activePosition: 'ንቁ መደብ',
     inactivePosition: 'ንቁ ያልሆነ መደብ',
+    organizationLevelNoUnit: '— የተቋም ደረጃ (የሥራ ክፍል የለም) —',
+    organizationLevelHint: 'የሥራ ክፍል ከሌለ የተቋም ደረጃ የሥራ መደብ ነው፤ ለምሳሌ የተቋሙ ኃላፊ ወይም አማካሪ። ከላይ ተቋሙ መመረጥ አለበት።',
     unitHead: 'የዚህ የሥራ ክፍል ኃላፊ',
     unitHeadHelp: 'የሥራ ክፍሉን የሚመራ የሥራ መደብ፤ ማጽደቂያዎች፣ የደብዳቤ ፊርማዎችና የመዋቅር ሰንጠረዡ ይጠቀሙበታል። ለአንድ የሥራ ክፍል አንድ ብቻ። የሥራ ክፍል ካልተመረጠ ይህ ምልክት የመላው ተቋም ኃላፊን ያመለክታል (ለአንድ ተቋም አንድ ብቻ)።',
     noPositions: 'ምንም የሥራ መደቦች አልተገኙም',

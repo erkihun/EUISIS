@@ -39,6 +39,8 @@ const positions = {
     statusInactive: 'Inactive',
     activePosition: 'Active Position',
     inactivePosition: 'Inactive Position',
+    organizationLevelNoUnit: '— Organization level (no unit) —',
+    organizationLevelHint: 'No unit: an organization-level position such as the head of the organization or an adviser. It needs the organization above.',
     unitHead: 'Head of this unit',
     unitHeadHelp: 'The position that leads the unit; approvals, letter signatures and the organogram use it. One per unit. With no unit selected, this marks the head of the whole organization (one per organization).',
     noPositions: 'No positions found',
