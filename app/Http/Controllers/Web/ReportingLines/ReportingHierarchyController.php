@@ -68,7 +68,7 @@ class ReportingHierarchyController extends Controller
             $overview = $this->overview($selected, $asOf);
         }
 
-        return Inertia::render('ReportingLines/Index', [
+        return Inertia::render('ReportingLines/Overview', [
             'organizations' => $organizations->map(fn (Organization $o): array => ['id' => (string) $o->id, 'name_en' => $o->name_en, 'name_am' => $o->name_am, 'code' => $o->code])->values()->all(),
             'selected_organization_id' => $selected?->id,
             'as_of' => $asOf,
