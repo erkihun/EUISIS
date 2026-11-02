@@ -185,7 +185,7 @@ export default function EmployeesShow({
                             </Link>
                             {can('employees.delete') && (
                                 <button type="button" onClick={handleDelete} className={buttonClassName({ variant: 'destructiveOutline', size: 'sm' })}>
-                                    {t('employees.deleteMistaken')}
+                                    {t('common.delete')}
                                 </button>
                             )}
                         </div>

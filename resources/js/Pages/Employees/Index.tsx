@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { AlertTriangle, ChevronDown, ChevronUp, ChevronUpDown, Plus } from '@/Components/Icons';
+import { AlertTriangle, ChevronDown, ChevronUp, ChevronUpDown, EyeIcon, PencilIcon, Plus, TrashIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { toast } from '@/lib/toast';
@@ -510,9 +510,9 @@ export default function EmployeesIndex({
                                                     <div className="flex justify-end">
                                                         <AppActionMenu
                                                             items={[
-                                                                { label: t('common.view'), href: route('employees.show', employee.id) },
-                                                                { label: t('common.edit'), href: route('employees.edit', employee.id), show: can.update },
-                                                                { label: t('employees.deleteMistaken'), onClick: () => handleDelete(employee.id), variant: 'danger', show: can.delete },
+                                                                { label: t('common.view'), href: route('employees.show', employee.id), icon: <EyeIcon className="h-4 w-4" /> },
+                                                                { label: t('common.edit'), href: route('employees.edit', employee.id), show: can.update, icon: <PencilIcon className="h-4 w-4" /> },
+                                                                { label: t('common.delete'), onClick: () => handleDelete(employee.id), variant: 'danger', show: can.delete, icon: <TrashIcon className="h-4 w-4" /> },
                                                             ]}
                                                         />
                                                     </div>
