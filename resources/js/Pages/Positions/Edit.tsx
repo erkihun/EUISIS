@@ -110,14 +110,14 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Organization Unit */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="organization_unit_id" required>{t('positions.organizationUnit')}</FormLabel>
+                        <FormLabel htmlFor="organization_unit_id">{t('positions.organizationUnit')}</FormLabel>
                         <select
                             id="organization_unit_id"
                             className={inputCls}
                             value={form.data.organization_unit_id}
                             onChange={(e) => form.setData('organization_unit_id', e.target.value)}
                         >
-                            <option value="">{t('positions.selectOrganizationUnit')}</option>
+                            <option value="">{t('positions.organizationLevelNoUnit')}</option>
                             {organizationUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
                                     {unit.code} — {localizedName(unit.name_en, unit.name_am, locale)}

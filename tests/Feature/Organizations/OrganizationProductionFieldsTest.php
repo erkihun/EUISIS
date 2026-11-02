@@ -144,6 +144,25 @@ it('allows one head position per unit', function (): void {
     expect(Position::query()->where('is_unit_head', true)->count())->toBe(2);
 });
 
+it('creates an organization-level head position with no unit, one per organization', function (): void {
+    // No unit and no organization: refused. No unit with the organization: the organization's head (ADR 0025).
+    $this->actingAs($this->admin)
+        ->post(route('positions.store'), opfPosition(['organization_id' => null, 'organization_unit_id' => null, 'is_unit_head' => true]))
+        ->assertSessionHasErrors('organization_id');
+
+    $this->actingAs($this->admin)
+        ->post(route('positions.store'), opfPosition(['organization_unit_id' => null, 'title_en' => 'Bureau Head', 'title_am' => 'የቢሮ ኃላፊ', 'is_unit_head' => true]))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $this->actingAs($this->admin)
+        ->post(route('positions.store'), opfPosition(['organization_unit_id' => null, 'title_am' => 'ሁለተኛ የቢሮ ኃላፊ', 'is_unit_head' => true]))
+        ->assertSessionHasErrors('is_unit_head');
+
+    $head = Position::query()->where('is_unit_head', true)->whereNull('organization_unit_id')->sole();
+    expect($head->organization_id)->toBe($this->organization->id);
+});
+
 it('refuses marking a second head when editing', function (): void {
     Position::query()->create([
         'organization_id' => $this->organization->id, 'organization_unit_id' => $this->unit->id, 'occupation_id' => $this->occupation->id,
