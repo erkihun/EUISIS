@@ -45,7 +45,7 @@ it('shows the overview and integrity report to readers of reporting lines, insid
     $this->actingAs($this->hrUser)->get(route('reporting-lines.overview'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('ReportingLines/Index')
+            ->component('ReportingLines/Overview')
             ->where('selected_organization_id', $this->f->bureau->id)
             ->has('organizations', 1)
             ->has('overview.units', 4)
