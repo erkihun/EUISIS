@@ -40,7 +40,7 @@ const positions = {
     activePosition: 'Active Position',
     inactivePosition: 'Inactive Position',
     unitHead: 'Head of this unit',
-    unitHeadHelp: 'The position that leads the unit; approvals, letter signatures and the organogram use it. One per unit.',
+    unitHeadHelp: 'The position that leads the unit; approvals, letter signatures and the organogram use it. One per unit. With no unit selected, this marks the head of the whole organization (one per organization).',
     noPositions: 'No positions found',
     noPositionsFound: 'No positions found',
     search: 'Search positions',
