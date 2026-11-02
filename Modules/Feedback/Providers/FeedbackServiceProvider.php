@@ -19,6 +19,7 @@ use Modules\Feedback\Application\Notifications\PublicFeedbackNotification;
 use Modules\Feedback\Application\Policies\EmployeeServiceFeedbackPolicy;
 use Modules\Feedback\Application\Policies\PublicFeedbackReportExportPolicy;
 use Modules\Feedback\Application\Queries\EmployeeFeedbackQrQuery;
+use Modules\Feedback\Application\Queries\EmployeeFeedbackRatingsQuery;
 use Modules\Feedback\Application\Queries\FeedbackReportExportCommands;
 use Modules\Feedback\Application\Queries\PublicFeedbackTargetsQuery;
 use Modules\Feedback\Application\Services\EmployeeFeedbackLinkAdapter;
@@ -30,6 +31,7 @@ use Modules\Feedback\Application\Services\PublicFeedbackSettings;
 use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 use Modules\Feedback\Application\Services\PublicOrganizationServiceContext;
 use Modules\Feedback\Contracts\EmployeeFeedbackQr;
+use Modules\Feedback\Contracts\EmployeeFeedbackRatings;
 use Modules\Feedback\Contracts\FeedbackAnswerStatistics;
 use Modules\Feedback\Contracts\FeedbackDataQuality;
 use Modules\Feedback\Contracts\FeedbackReportExports;
@@ -81,6 +83,7 @@ final class FeedbackServiceProvider extends ServiceProvider
         $this->app->bind(PublicFeedbackTargets::class, PublicFeedbackTargetsQuery::class);
         $this->app->bind(PublicOrganizationServices::class, PublicOrganizationServiceContext::class);
         $this->app->bind(EmployeeFeedbackQr::class, EmployeeFeedbackQrQuery::class);
+        $this->app->bind(EmployeeFeedbackRatings::class, EmployeeFeedbackRatingsQuery::class);
         $this->app->bind(OrganizationFeedbackQrPermissions::class, OrganizationFeedbackQrAccess::class);
     }
 

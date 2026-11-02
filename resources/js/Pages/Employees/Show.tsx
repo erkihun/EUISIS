@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useCan } from '@/hooks/useCan';
 import { useConfirm } from '@/hooks/useConfirm';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
+import EmployeeFeedbackRatingCard, { type EmployeeFeedbackRating } from '@/Components/employees/EmployeeFeedbackRatingCard';
 import EmployeeWorkflowCard, { type EmployeeWorkflow } from '@/Components/employees/EmployeeWorkflowCard';
 import EmployeeEvidencePanel, { type EmployeeEvidence } from '@/Components/employees/EmployeeEvidencePanel';
 import SupervisorSummary from '@/Components/ReportingLines/SupervisorSummary';
@@ -108,12 +109,15 @@ export default function EmployeesShow({
     workflow = null,
     evidence = null,
     reportingLine = null,
+    feedbackRating = null,
 }: {
     employee: EmployeeDetail;
     qrCodes?: QrCodesProp;
     recentActivity?: RecentActivity | null;
     /** The direct supervisor and why (ADR 0025), when the viewer may read reporting lines. */
     reportingLine?: SupervisorResolution | null;
+    /** Clients' star ratings, when the viewer's feedback grants and scope cover them. */
+    feedbackRating?: EmployeeFeedbackRating | null;
     /** The verified-employee stage, when the server runs one (the Core does). */
     workflow?: EmployeeWorkflow | null;
     /** Documents, photo and signature with their versions and verification, when the server manages them (the Core does). */
@@ -354,6 +358,9 @@ export default function EmployeesShow({
                         <p className="text-sm text-(--app-muted-foreground)">{t('common.unassigned')}</p>
                     )}
                 </div>
+
+                {/* ── Client feedback rating (service_feedback.view holders only) ── */}
+                <EmployeeFeedbackRatingCard employeeId={employee.id} rating={feedbackRating} />
 
                 {/* ── Employee QR codes ────────────────────────────────── */}
                 <EmployeeQrCards employeeId={employee.id} qrCodes={qrCodes} />
