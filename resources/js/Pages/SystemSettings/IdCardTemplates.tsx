@@ -25,8 +25,10 @@ import {
     PORTRAIT_BACK_LAYOUT_ELEMENTS,
     PORTRAIT_FIELD_DEFAULTS,
     PORTRAIT_FRONT_LAYOUT_ELEMENTS,
+    fieldFace,
     layoutDefaults,
     printedFieldElements,
+    type LayoutSide,
     type LayoutBox,
     type TemplatePresentation,
     type TextStyle,
@@ -74,14 +76,14 @@ type Orientation = 'landscape' | 'portrait';
 const fieldElement = (key: string, orientation: Orientation) =>
     printedFieldElements([key], (FRONT_FIELD_KEYS as readonly string[]).includes(key) ? 'front' : 'back', orientation)[0]?.element ?? `field_${key}`;
 
-/** Every element on one face: the fixed ones, then one per printed field. */
-function faceElements(side: 'front' | 'back', fields: readonly string[], orientation: Orientation): string[] {
+/** Every element on one face: the fixed ones, then one per field printed there. */
+function faceElements(side: 'front' | 'back', fields: readonly string[], orientation: Orientation, faces?: Record<string, LayoutSide> | null): string[] {
     const fixed: readonly string[] = orientation === 'portrait'
         ? (side === 'front'
             ? PORTRAIT_FRONT_LAYOUT_ELEMENTS.filter((element) => element !== 'employee_name' && element !== 'emphasis')
             : PORTRAIT_BACK_LAYOUT_ELEMENTS)
         : (side === 'front' ? LANDSCAPE_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_BACK_LAYOUT_ELEMENTS);
-    return [...fixed, ...printedFieldElements(fields, side, orientation).map(({ element }) => element)];
+    return [...fixed, ...printedFieldElements(fields, side, orientation, faces).map(({ element }) => element)];
 }
 
 /** Field boxes moved to an orientation's defaults, when a template switches orientation. */
@@ -276,6 +278,8 @@ function TemplateForm({
                     template?.layout_config?.back?.[element] ?? BACK_LAYOUT_DEFAULTS[element],
                 ]),
             ) as Record<string, LayoutBox>,
+            // Fields moved off their home face, as key => face.
+            faces: { ...(template?.layout_config?.faces ?? {}) } as Record<string, LayoutSide>,
         },
     });
     // Creating walks the steps in order; editing opens them all at once.
@@ -303,11 +307,11 @@ function TemplateForm({
             // A field ticked on lands in the first free spot on its face, so
             // it never appears on top of a field the template already placed.
             // (A portrait name or ID number is a fixed element: it stays put.)
-            const side = (FRONT_FIELD_KEYS as readonly string[]).includes(key) ? 'front' : 'back';
+            const side = fieldFace(key, data.layout_config.faces, data.orientation);
             const element = fieldElement(key, data.orientation);
             if (!element.startsWith('field_')) return { ...data, employee_fields: fields };
             const boxes = data.layout_config[side];
-            const others = faceElements(side, fields.filter((field) => field !== key), data.orientation)
+            const others = faceElements(side, fields.filter((field) => field !== key), data.orientation, data.layout_config.faces)
                 .map((name) => boxes[name]).filter((box): box is LayoutBox => Boolean(box));
             const free = freeSpot(boxes[element] ?? layoutDefaults(side, data.orientation)[element], others);
             return {
@@ -317,6 +321,32 @@ function TemplateForm({
             };
         });
         if (!on && selectedBox?.element === fieldElement(key, form.data.orientation)) setSelectedBox(null);
+    };
+    /**
+     * Moves a field to the other face. Dropped on a card, it lands where it
+     * was dropped; moved from the list, it takes the first free spot there.
+     * A portrait name and ID number are badge elements and stay on the front.
+     */
+    const moveField = (key: PrintedField, to: LayoutSide, point?: { x: number; y: number }) => {
+        const element = fieldElement(key, form.data.orientation);
+        if (!element.startsWith('field_')) return;
+        form.setData((data) => {
+            const boxes = data.layout_config[to];
+            const size = boxes[element] ?? layoutDefaults(to, data.orientation)[element] ?? { x: 0, y: 0, w: 30, h: 10 };
+            const placed = point
+                ? {
+                    ...size,
+                    x: Math.round(Math.min(Math.max(point.x - size.w / 2, 0), 100 - size.w) * 2) / 2,
+                    y: Math.round(Math.min(Math.max(point.y - size.h / 2, 0), 100 - size.h) * 2) / 2,
+                }
+                : freeSpot(size, faceElements(to, printedFields.filter((field) => field !== key), data.orientation, data.layout_config.faces)
+                    .map((name) => boxes[name]).filter((box): box is LayoutBox => Boolean(box)));
+            const home = fieldFace(key, null, data.orientation);
+            const faces = { ...data.layout_config.faces };
+            if (to === home) delete faces[key]; else faces[key] = to;
+            return { ...data, layout_config: { ...data.layout_config, faces, [to]: { ...boxes, [element]: placed } } };
+        });
+        setSelectedBox({ side: to, element });
     };
 
     const frontUrl = useBackgroundPreview(
@@ -447,8 +477,8 @@ function TemplateForm({
     const Back = portrait ? IdCardPortraitBack : IdCardBack;
     // Each face lists its fixed elements plus one per printed field, in both
     // orientations, so the designer shows exactly what the list ticks.
-    const frontElements = faceElements('front', printedFields, form.data.orientation);
-    const backElements = faceElements('back', printedFields, form.data.orientation);
+    const frontElements = faceElements('front', printedFields, form.data.orientation, form.data.layout_config.faces);
+    const backElements = faceElements('back', printedFields, form.data.orientation, form.data.layout_config.faces);
     // Named as in the printed-fields list, including a portrait card's large
     // name and ID number elements.
     const elementLabel = (element: string) => {
@@ -606,14 +636,20 @@ function TemplateForm({
                         {/* Grouped by the face each field prints on, so the list
                             reads the same as the two cards in the preview. */}
                         <div className="grid gap-4 sm:grid-cols-2">
-                            {([['front', FRONT_FIELD_KEYS], ['back', BACK_FIELD_KEYS]] as const).map(([side, keys]) => (
+                            {(['front', 'back'] as const).map((side) => (
                                 <div key={side}>
                                     <p className="mb-1 px-2 text-xs font-semibold text-(--app-muted-foreground)">{label(`printedFields_${side}`)}</p>
                                     <ul className="space-y-0.5">
-                                        {keys.map((key) => {
+                                        {/* Each field is listed under the face it prints on now. */}
+                                        {[...FRONT_FIELD_KEYS, ...BACK_FIELD_KEYS]
+                                            .filter((key) => fieldFace(key, form.data.layout_config.faces, form.data.orientation) === side)
+                                            .map((key) => {
                                             const on = printedFields.includes(key);
                                             const element = fieldElement(key, form.data.orientation);
                                             const picked = selectedBox?.element === element;
+                                            const other: LayoutSide = side === 'front' ? 'back' : 'front';
+                                            // A portrait name and ID number are badge elements on the front.
+                                            const movable = element.startsWith('field_');
                                             return (
                                                 <li
                                                     key={key}
@@ -639,6 +675,17 @@ function TemplateForm({
                                                             className={buttonClassName({ variant: picked ? 'primary' : 'ghost', size: 'xs' })}
                                                         >
                                                             {label(picked ? 'fieldSelected' : 'fieldLocate')}
+                                                        </button>
+                                                    )}
+                                                    {on && movable && (
+                                                        <button
+                                                            type="button"
+                                                            aria-label={`${fieldLabel(key)} — ${label(`moveTo_${other}`)}`}
+                                                            title={label(`moveTo_${other}`)}
+                                                            onClick={() => moveField(key, other)}
+                                                            className={buttonClassName({ variant: 'ghost', size: 'xs' })}
+                                                        >
+                                                            {label(`moveTo_${other}`)}
                                                         </button>
                                                     )}
                                                 </li>
@@ -685,6 +732,7 @@ function TemplateForm({
                                 // Field boxes are placed for one card shape; the
                                 // other shape starts from its own arrangement.
                                 layout_config: {
+                                    ...data.layout_config,
                                     front: { ...data.layout_config.front, ...fieldBoxesFor(orientation, 'front') },
                                     back: { ...data.layout_config.back, ...fieldBoxesFor(orientation, 'back') },
                                 },
@@ -1155,6 +1203,9 @@ function TemplateForm({
                                     labels={Object.fromEntries(elements.map((element) => [element, elementLabel(element)]))}
                                     selected={selectedBox?.side === side ? selectedBox.element : null}
                                     onSelect={(element) => setSelectedBox(element ? { side, element } : null)}
+                                    // Drag a field onto the other card to print it on that face.
+                                    canTransfer={(element) => element.startsWith('field_') && element.slice(6) in PRINTED_FIELDS}
+                                    onTransfer={(element, point) => moveField(element.slice(6) as PrintedField, side === 'front' ? 'back' : 'front', point)}
                                     text={{
                                         reset: label('layout_reset'),
                                         resetAll: label('layout_reset_all'),

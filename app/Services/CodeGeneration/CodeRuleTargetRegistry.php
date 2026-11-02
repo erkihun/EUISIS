@@ -81,6 +81,23 @@ class CodeRuleTargetRegistry
     }
 
     /**
+     * Whether a code is unique across every record of the entity type, so a
+     * typed code can be refused when any record holds it. Units, and the
+     * design catalog entries checked only through their target, repeat codes
+     * under different parents (organization, mandate, process, activity).
+     */
+    public function codesUniqueAcrossRecords(CodeRuleEntityType|string $entityType): bool
+    {
+        $key = $entityType instanceof CodeRuleEntityType ? $entityType->value : $entityType;
+
+        if ($key === CodeRuleEntityType::OrganizationUnit->value) {
+            return false;
+        }
+
+        return array_key_exists($key, [...$this->coreCollisionChecks(), ...self::$moduleCollisionChecks]);
+    }
+
+    /**
      * Where the generator checks that a code is free; null when the entity
      * type has no check (the table's own unique index is the guard).
      *
@@ -90,7 +107,18 @@ class CodeRuleTargetRegistry
     {
         $key = $entityType instanceof CodeRuleEntityType ? $entityType->value : $entityType;
 
-        return [...$this->coreCollisionChecks(), ...self::$moduleCollisionChecks][$key] ?? null;
+        $check = [...$this->coreCollisionChecks(), ...self::$moduleCollisionChecks][$key] ?? null;
+
+        if ($check !== null) {
+            return $check;
+        }
+
+        // A target listed for manual overrides already says where its codes
+        // live; checking it costs one query and saves an insert failing on the
+        // unique index (or, without one, a duplicate code).
+        $target = $this->get($key);
+
+        return $target === null ? null : ['model' => $target['model'], 'column' => $target['code_column'], 'with_trashed' => true];
     }
 
     /** @return array<string, array{model: class-string, column: string, with_trashed: bool}> */

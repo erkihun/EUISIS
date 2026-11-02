@@ -11,6 +11,17 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin Permission */
 class PermissionResource extends JsonResource
 {
+    /** Which kind of role holds the permission: scoped, global, both, or none. */
+    public static function scopeOf(int $globalRoles, int $scopedRoles): string
+    {
+        return match (true) {
+            $globalRoles > 0 && $scopedRoles > 0 => 'both',
+            $scopedRoles > 0 => 'scoped',
+            $globalRoles > 0 => 'global',
+            default => 'unassigned',
+        };
+    }
+
     public function toArray(Request $request): array
     {
         $user = $request->user();
@@ -27,6 +38,10 @@ class PermissionResource extends JsonResource
             'sort_order' => $this->sort_order,
             'is_system' => (bool) $this->is_system,
             'roles_count' => $this->whenCounted('roles'),
+            'scope' => $this->when(
+                isset($this->global_roles_count, $this->scoped_roles_count),
+                fn (): string => self::scopeOf((int) $this->global_roles_count, (int) $this->scoped_roles_count),
+            ),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
             // Backend policies stay the source of truth; these flags only

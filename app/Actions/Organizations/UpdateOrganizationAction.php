@@ -67,15 +67,29 @@ readonly class UpdateOrganizationAction
             $organization->update($attributes);
 
             if ($nameChanged) {
+                // The earlier name stops on the day the new one starts, so the
+                // history reads as a sequence instead of overlapping periods. With
+                // no earlier record the name covers the organization's own period.
+                $today = now()->toDateString();
+                $openHistories = $organization->nameHistories()->whereNull('effective_to')->get();
+                $startsOn = $organization->nameHistories()->exists()
+                    ? $today
+                    : ($organization->effective_from?->format('Y-m-d') ?? $today);
+
+                $openHistories->each(fn (OrganizationNameHistory $history) => $history->update([
+                    'effective_to' => max($today, $history->effective_from?->format('Y-m-d') ?? $today),
+                ]));
+
                 OrganizationNameHistory::query()->create([
                     'organization_id' => $organization->id,
                     'name_en' => $organization->name_en,
                     'name_am' => $organization->name_am,
-                    'effective_from' => $organization->effective_from ?? now()->toDateString(),
+                    'effective_from' => $startsOn,
                     'effective_to' => $organization->effective_to,
                 ]);
-            } elseif ($effectiveDateChanged) {
-                // Keep the current name history record in sync when only dates change.
+            } elseif ($effectiveDateChanged && $organization->nameHistories()->count() === 1) {
+                // While the organization has had one name, that name's period is
+                // the organization's own; after a rename the periods stay as recorded.
                 $organization->nameHistories()->first()?->update([
                     'effective_from' => $organization->effective_from ?? now()->toDateString(),
                     'effective_to' => $organization->effective_to,

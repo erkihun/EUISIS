@@ -6,11 +6,14 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
+use App\Enums\RoleScopeType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePermissionRequest;
 use App\Http\Requests\UpdatePermissionRequest;
 use App\Http\Resources\PermissionResource;
 use App\Models\Permission;
+use App\Support\Rbac\PermissionCatalog;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +22,19 @@ use Inertia\Response;
 
 class PermissionController extends Controller
 {
+    /** Who holds a permission: scoped roles only, global roles only, both, or no role. */
+    private const SCOPES = ['scoped', 'global', 'both', 'unassigned'];
+
     public function __construct(private readonly WriteAuditLogAction $writeAuditLogAction) {}
+
+    /** @return array<string, Closure> */
+    private static function scopeCounts(): array
+    {
+        return [
+            'roles as global_roles_count' => static fn ($q) => $q->where('scope_type', RoleScopeType::Global->value),
+            'roles as scoped_roles_count' => static fn ($q) => $q->where('scope_type', RoleScopeType::Scoped->value),
+        ];
+    }
 
     public function index(Request $request): Response
     {
@@ -52,7 +67,57 @@ class PermissionController extends Controller
             $query->where('guard_name', $guard);
         }
 
-        $paginated = $query->paginate(25)->withQueryString();
+        // Module = PermissionCatalog category. Scope = which kind of role holds
+        // the permission (scoped roles act inside organization scope rows,
+        // global roles city-wide), read from the live role assignments.
+        $modules = collect(PermissionCatalog::modules());
+        $knownGroups = $modules->pluck('groups')->flatten()->all();
+
+        $overview = Permission::query()
+            ->select(['id', 'group'])
+            ->withCount(self::scopeCounts())
+            ->get()
+            ->map(static fn (Permission $p): array => [
+                'id' => $p->id,
+                'module' => $modules->search(static fn (array $m): bool => in_array($p->group, $m['groups'], true)) ?: 'other',
+                'scope' => PermissionResource::scopeOf((int) $p->global_roles_count, (int) $p->scoped_roles_count),
+            ]);
+
+        $module = $request->string('module')->trim()->value();
+        if ($module === 'other') {
+            $query->where(static fn ($q) => $q->whereNull('group')->orWhereNotIn('group', $knownGroups));
+        } elseif ($module !== '' && $modules->has($module)) {
+            $query->whereIn('group', $modules[$module]['groups']);
+        } else {
+            $module = '';
+        }
+
+        $inModule = $module === '' ? $overview : $overview->where('module', $module);
+        $scope = $request->string('scope')->trim()->value();
+        if (in_array($scope, self::SCOPES, true)) {
+            $query->whereIn('id', $inModule->where('scope', $scope)->pluck('id'));
+        } else {
+            $scope = '';
+        }
+
+        // A chosen module is shown whole, so its groups are never split across pages.
+        $paginated = $query->withCount(self::scopeCounts())
+            ->paginate($module === '' ? 25 : 1000)
+            ->withQueryString();
+
+        $moduleSummaries = $modules
+            ->map(static fn (array $m, string $key): array => ['key' => $key, 'name' => $m['name'], 'groups' => $m['groups']])
+            ->push(['key' => 'other', 'name' => 'Other', 'groups' => []])
+            ->map(static function (array $m) use ($overview): array {
+                $rows = $overview->where('module', $m['key']);
+
+                return $m + [
+                    'total' => $rows->count(),
+                    'scopes' => collect(self::SCOPES)->mapWithKeys(static fn (string $s): array => [$s => $rows->where('scope', $s)->count()])->all(),
+                ];
+            })
+            ->filter(static fn (array $m): bool => $m['total'] > 0)
+            ->values();
 
         // Cheap aggregates only — no per-user computations.
         $groupCounts = Permission::query()
@@ -66,6 +131,7 @@ class PermissionController extends Controller
         $stats = [
             'total' => Permission::query()->count(),
             'groups' => $groupCounts->count(),
+            'modules' => $moduleSummaries->count(),
             'system' => Permission::query()->where('is_system', true)->count(),
         ];
 
@@ -89,11 +155,15 @@ class PermissionController extends Controller
             'groups' => $groupCounts->keys()->values()->toArray(),
             'groupCounts' => $groupCounts->toArray(),
             'guards' => $guards,
+            'modules' => $moduleSummaries,
+            'scopeCounts' => collect(self::SCOPES)->mapWithKeys(static fn (string $s): array => [$s => $inModule->where('scope', $s)->count()])->all(),
             'stats' => $stats,
             'filters' => [
                 'search' => $request->string('search')->trim()->value(),
                 'group' => $request->string('group')->trim()->value(),
                 'guard' => $request->string('guard')->trim()->value(),
+                'module' => $module,
+                'scope' => $scope,
             ],
             'can' => [
                 'create' => $actor?->can('create', Permission::class) ?? false,

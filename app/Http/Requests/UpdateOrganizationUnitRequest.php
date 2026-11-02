@@ -6,15 +6,37 @@ namespace App\Http\Requests;
 
 use App\Enums\OrganizationUnitStatus;
 use App\Enums\OrganizationUnitType;
+use App\Http\Requests\Concerns\ValidatesOrganizationUnitPlacement;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
 use App\Services\OrganizationUnits\OrganizationUnitTreeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Validator;
 
 class UpdateOrganizationUnitRequest extends FormRequest
 {
+    use ValidatesOrganizationUnitPlacement;
+
+    public function messages(): array
+    {
+        return [
+            'organization_id.in' => __('organization-units.organization_cannot_change'),
+        ];
+    }
+
+    public function after(): array
+    {
+        /** @var OrganizationUnit $unit */
+        $unit = $this->route('organizationUnit');
+
+        return [
+            fn (Validator $validator) => $this->rejectInactiveUnitType($validator, $unit->organization_unit_type_id),
+            fn (Validator $validator) => $this->rejectDuplicateSiblingNames($validator, $unit->organization_id, $unit->getKey()),
+        ];
+    }
+
     public function authorize(): bool
     {
         $unit = $this->route('organizationUnit');
@@ -31,7 +53,9 @@ class UpdateOrganizationUnitRequest extends FormRequest
         $organizationId = $this->input('organization_id', $unit->organization_id);
 
         return [
-            'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
+            // The form shows the organization read-only: moving a unit would leave
+            // its sub-units, positions and assignments in the old organization.
+            'organization_id' => ['required', 'uuid', Rule::in([$unit->organization_id])],
             'parent_unit_id' => [
                 'nullable',
                 'uuid',
@@ -41,14 +65,14 @@ class UpdateOrganizationUnitRequest extends FormRequest
                         return;
                     }
                     if ($value === $unit->getKey()) {
-                        $fail('The parent unit cannot be the unit itself.');
+                        $fail(__('organization-units.cannot_be_own_parent'));
 
                         return;
                     }
                     /** @var OrganizationUnitTreeService $treeService */
                     $treeService = app(OrganizationUnitTreeService::class);
                     if ($treeService->isDescendantOf(OrganizationUnit::find($value), $unit->getKey())) {
-                        $fail('Circular hierarchy is not allowed.');
+                        $fail(__('organization-units.circular_hierarchy_not_allowed'));
                     }
                 },
             ],

@@ -20,6 +20,7 @@ use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmploymentStatusHistory;
 use App\Models\Organization;
+use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitRelationship;
 use App\Models\Position;
@@ -249,7 +250,20 @@ class OrganizationStructureImportService
             $organization = $plan->existingOrganization;
             $before = $organization->toArray();
 
+            $nameChanged = ($attributes['name_en'] ?? $organization->name_en) !== $organization->name_en
+                || ($attributes['name_am'] ?? $organization->name_am) !== $organization->name_am;
+
             $organization->fill($attributes)->save();
+
+            if ($nameChanged) {
+                // Same as a rename on the form: the old name ends today.
+                $today = now()->toDateString();
+                $organization->nameHistories()->whereNull('effective_to')->get()
+                    ->each(fn (OrganizationNameHistory $history) => $history->update([
+                        'effective_to' => max($today, $history->effective_from?->format('Y-m-d') ?? $today),
+                    ]));
+                $this->recordName($organization, $today);
+            }
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::OrganizationUpdated,
@@ -286,6 +300,8 @@ class OrganizationStructureImportService
             'effective_from' => now()->toDateString(),
         ]);
 
+        $this->recordName($organization, now()->toDateString());
+
         $this->writeAuditLogAction->execute(
             AuditEventType::OrganizationCreated,
             $actor,
@@ -295,6 +311,17 @@ class OrganizationStructureImportService
         );
 
         return $organization;
+    }
+
+    private function recordName(Organization $organization, string $from): void
+    {
+        OrganizationNameHistory::query()->create([
+            'organization_id' => $organization->id,
+            'name_en' => $organization->name_en,
+            'name_am' => $organization->name_am,
+            'effective_from' => $from,
+            'effective_to' => null,
+        ]);
     }
 
     /**

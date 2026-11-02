@@ -58,10 +58,15 @@ export const LAYOUT_ELEMENTS = [
     'header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'fields', 'emphasis',
     'field_name', 'field_sex', 'field_dob', 'field_nationality', 'field_employment', 'field_phone', 'field_idNumber',
     'field_email', 'field_address',
+    // The back's fields, for a template that moves them to the front.
+    'field_emergency_contact_name', 'field_emergency_contact_phone',
 ] as const;
 export const BACK_LAYOUT_ELEMENTS = [
     'qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'signature_label', 'photo',
     'field_emergency_contact_name', 'field_emergency_contact_phone',
+    // The front's fields, for a template that moves them to the back.
+    'field_name', 'field_sex', 'field_dob', 'field_nationality', 'field_employment', 'field_phone', 'field_idNumber',
+    'field_email', 'field_address',
 ] as const;
 /** Landscape elements that are not fields; the designer adds one box per printed field. */
 export const LANDSCAPE_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo'] as const;
@@ -79,6 +84,8 @@ export type LayoutBox = { x: number; y: number; w: number; h: number };
 export type LayoutConfig = {
     front?: Partial<Record<LayoutElement, LayoutBox | null>> | null;
     back?: Partial<Record<BackLayoutElement, LayoutBox | null>> | null;
+    /** Fields moved off their home face, as key => face. */
+    faces?: Record<string, LayoutSide> | null;
 };
 
 /** Mirrors IdCardLayoutElement::ELEMENTS — the built-in arrangement. */
@@ -105,6 +112,9 @@ export const LAYOUT_DEFAULTS: Record<LayoutElement, LayoutBox> = {
     field_email: { x: 28, y: 52, w: 35.25, h: 10 },
     field_address: { x: 64.75, y: 52, w: 35.25, h: 10 },
     field_idNumber: { x: 2.5, y: 74.5, w: 96, h: 12 },
+    // The back's fields, for a template that moves them to the front.
+    field_emergency_contact_name: { x: 28, y: 62, w: 35.25, h: 10 },
+    field_emergency_contact_phone: { x: 64.75, y: 62, w: 35.25, h: 10 },
 };
 
 export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {
@@ -122,6 +132,16 @@ export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {
     // Each contact in its own box: the two halves of `emergency`.
     field_emergency_contact_name: { x: 41.5, y: 6, w: 58.5, h: 21.75 },
     field_emergency_contact_phone: { x: 41.5, y: 27.75, w: 58.5, h: 21.75 },
+    // The front's fields, for a template that moves them to the back.
+    field_name: { x: 41.5, y: 50, w: 28.5, h: 8 },
+    field_sex: { x: 71, y: 50, w: 28.5, h: 8 },
+    field_dob: { x: 41.5, y: 58, w: 28.5, h: 8 },
+    field_nationality: { x: 71, y: 58, w: 28.5, h: 8 },
+    field_employment: { x: 41.5, y: 66, w: 28.5, h: 8 },
+    field_phone: { x: 71, y: 66, w: 28.5, h: 8 },
+    field_idNumber: { x: 41.5, y: 74, w: 28.5, h: 8 },
+    field_email: { x: 71, y: 74, w: 28.5, h: 8 },
+    field_address: { x: 41.5, y: 82, w: 28.5, h: 8 },
 };
 
 /** Mirrors IdCardBackPhoto — the back photo is off until a template enables it. */
@@ -147,10 +167,19 @@ export const PORTRAIT_FIELD_DEFAULTS: { front: Record<string, LayoutBox>; back: 
         field_phone: { x: 4, y: 52, w: 92, h: 7 },
         field_email: { x: 4, y: 59, w: 92, h: 7 },
         field_address: { x: 4, y: 66, w: 92, h: 7 },
+        field_emergency_contact_name: { x: 4, y: 73, w: 92, h: 7 },
+        field_emergency_contact_phone: { x: 4, y: 80, w: 92, h: 7 },
     },
     back: {
         field_emergency_contact_name: { x: 4, y: 70, w: 92, h: 12 },
         field_emergency_contact_phone: { x: 4, y: 83, w: 92, h: 12 },
+        field_sex: { x: 4, y: 4, w: 92, h: 7 },
+        field_dob: { x: 4, y: 11, w: 92, h: 7 },
+        field_nationality: { x: 4, y: 18, w: 92, h: 7 },
+        field_employment: { x: 4, y: 25, w: 92, h: 7 },
+        field_phone: { x: 4, y: 32, w: 92, h: 7 },
+        field_email: { x: 4, y: 39, w: 92, h: 7 },
+        field_address: { x: 4, y: 46, w: 92, h: 7 },
     },
 };
 
@@ -158,6 +187,18 @@ export const PORTRAIT_FIELD_DEFAULTS: { front: Record<string, LayoutBox>; back: 
 export function layoutDefaults(side: LayoutSide, orientation: 'landscape' | 'portrait' = 'landscape'): Record<string, LayoutBox> {
     const base = side === 'back' ? BACK_LAYOUT_DEFAULTS : LAYOUT_DEFAULTS;
     return orientation === 'portrait' ? { ...base, ...PORTRAIT_FIELD_DEFAULTS[side] } : base;
+}
+
+/**
+ * The face a field prints on: the template's choice or its home face. A
+ * portrait card's name and ID number are its badge elements, so they stay on
+ * the front. Mirrors IdCardLayoutElement::faceOf.
+ */
+export function fieldFace(key: string, faces: Record<string, LayoutSide> | null | undefined, orientation: 'landscape' | 'portrait'): LayoutSide {
+    if (orientation === 'portrait' && (key === 'name' || key === 'idNumber')) return 'front';
+    const chosen = faces?.[key];
+    if (chosen === 'front' || chosen === 'back') return chosen;
+    return (BACK_FIELD_KEYS as readonly string[]).includes(key) ? 'back' : 'front';
 }
 
 /**
@@ -170,12 +211,13 @@ export function printedFieldElements(
     configured: readonly string[] | null | undefined,
     side: LayoutSide,
     orientation: 'landscape' | 'portrait',
+    faces?: Record<string, LayoutSide> | null,
 ): Array<{ key: string; element: string }> {
-    const keys: readonly string[] = side === 'back' ? BACK_FIELD_KEYS : FRONT_FIELD_KEYS;
     const portrait = orientation === 'portrait';
-    const shown = keys.filter((key) => {
+    const shown = [...FRONT_FIELD_KEYS, ...BACK_FIELD_KEYS].filter((key) => {
+        if (fieldFace(key, faces, orientation) !== side) return false;
         if (configured) return configured.includes(key);
-        if (!portrait) return side === 'back' || (key !== 'email' && key !== 'address');
+        if (!portrait) return (BACK_FIELD_KEYS as readonly string[]).includes(key) || (key !== 'email' && key !== 'address');
         return key === 'name' || key === 'idNumber';
     });
     return shown.map((key) => ({

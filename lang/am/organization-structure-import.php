@@ -64,6 +64,9 @@ return [
         'organization_sheet_empty' => 'የተቋም ሉህ ምንም መረጃ የለውም።',
 
         'organization_name_required' => 'የተቋም ስም (እንግሊዝኛ) ያስፈልጋል።',
+        'organization_name_am_required' => 'ለአዲስ ተቋም የአማርኛ ስም ያስፈልጋል።',
+        'organization_name_taken' => '":name" የሚለው ስም ቀድሞ ለተቋም ":code" ተመዝግቧል።',
+        'organization_create_needs_form' => 'የእርስዎ መለያ አዲስ ተቋም መመዝገብ የሚችለው በራስዎ ተቋም ሥር በ«ተቋም መመዝገቢያ» ቅጽ ብቻ ነው። ይልቁንስ ወደ ነባር የተቋም ኮድ ያስገቡ።',
         'organization_type_required' => 'የተቋም ዓይነት ኮድ ያስፈልጋል።',
         'organization_type_not_found' => 'የተቋም ዓይነት ":code" የለም።',
         'organization_not_found' => 'ተቋም ":code" የለም።',
@@ -107,5 +110,6 @@ return [
 
     'warnings' => [
         'organization_will_be_updated' => 'ተቋም ":code" አስቀድሞ ስላለ ይዘምናል እንጂ አይፈጠርም።',
+        'parent_not_linked' => 'ማስገቢያው አዲሱን ተቋም ከበላይ ተቋም ":code" ጋር አያገናኝም። ግንኙነቱን በረቂቅ የተዋረድ ስሪት ውስጥ አክለው ያትሙት።',
     ],
 ];

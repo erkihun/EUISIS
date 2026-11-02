@@ -140,6 +140,22 @@ readonly class OrganizationTreeService
             ]);
         }
 
+        // The editor keeps the same type rule the register form applies to a
+        // new child: the child's type must allow the parent's type.
+        $types = Organization::query()
+            ->whereKey([$parentOrganizationId, $childOrganizationId])
+            ->with('type')
+            ->get()
+            ->keyBy('id');
+        $parentType = $types->get($parentOrganizationId)?->type;
+        $childType = $types->get($childOrganizationId)?->type;
+
+        if ($parentType !== null && $childType !== null && ! $childType->allowsParentType($parentType)) {
+            throw ValidationException::withMessages([
+                'child_organization_id' => __('organizations.invalid_parent_organization_type'),
+            ]);
+        }
+
         $edges = OrganizationEdge::query()
             ->where('hierarchy_version_id', $hierarchyVersion->id)
             ->when($ignoreEdgeId, fn ($query, string $edgeId) => $query->whereKeyNot($edgeId))

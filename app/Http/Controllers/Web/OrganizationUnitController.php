@@ -34,6 +34,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -398,7 +399,12 @@ class OrganizationUnitController extends Controller
     {
         $this->authorize('archive', $organizationUnit);
 
-        $action->execute($organizationUnit, $request->user(), $request->string('reason')->toString() ?: null, $request);
+        try {
+            $action->execute($organizationUnit, $request->user(), $request->string('reason')->toString() ?: null, $request);
+        } catch (ValidationException $exception) {
+            // The archive button has no form to show field errors on.
+            return back()->with('error', collect($exception->errors())->flatten()->first());
+        }
 
         return redirect()->route('organization-units.index')
             ->with('success', __('recycle-bin.archived_successfully'));

@@ -414,6 +414,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels, production }
                                     status={card.status}
                                 />
                                 <IdCardBack
+                                    {...mapCardEmployee(card)}
                                     cardNumber={card.card_number}
                                     qrValue={card.qr_verification_url ?? null}
                                     emergencyContactName={card.employee?.emergency_contact_name}
@@ -438,6 +439,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels, production }
                                         status={card.status}
                                     />
                                     <IdCardPortraitBack
+                                        {...mapCardEmployee(card)}
                                         cardNumber={card.card_number}
                                         qrValue={card.feedback_qr_url ?? null}
                                         emergencyContactName={card.employee?.emergency_contact_name}

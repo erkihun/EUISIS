@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Rbac;
 
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -123,6 +124,21 @@ final class PermissionCatalog
 
             return false;
         }));
+    }
+
+    /**
+     * The categories keyed by slug, for the permissions and role screens.
+     *
+     * @return array<string, array{name: string, groups: list<string>}>
+     */
+    public static function modules(): array
+    {
+        $modules = [];
+        foreach (self::CATEGORIES as $name => $groups) {
+            $modules[Str::slug($name)] = ['name' => $name, 'groups' => $groups];
+        }
+
+        return $modules;
     }
 
     public static function category(string $group): string

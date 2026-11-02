@@ -23,6 +23,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
+use App\Services\Organizations\OrganizationDuplicateNameFinder;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
 use Illuminate\Support\Carbon;
@@ -50,6 +51,7 @@ class OrganizationStructureImportValidator
     public function __construct(
         private readonly OrganizationScopeService $organizationScopeService,
         private readonly CodeProjectorFactory $codeProjectorFactory,
+        private readonly OrganizationDuplicateNameFinder $duplicateNameFinder,
     ) {}
 
     /**
@@ -253,9 +255,36 @@ class OrganizationStructureImportValidator
 
         $issues = [...$issues, ...$codeIssues];
 
-        // Scoped users may only import into organizations they can reach. For a
-        // brand-new organization there is nothing to scope-check yet — creation
-        // is governed by the `organizations.import` permission alone.
+        // A new organization from a file is registered the way the form does it:
+        // both names, and neither name already held by a live organization.
+        $nameAm = $this->str($row['organization_name_am'] ?? null);
+
+        if ($existing === null && $nameAm === null) {
+            $issues[] = ImportIssue::error($sheet, $rowNumber, __('organization-structure-import.errors.organization_name_am_required'), 'organization_name_am');
+        }
+
+        foreach (['name_en' => $nameEn, 'name_am' => $nameAm] as $column => $name) {
+            $duplicate = $this->duplicateNameFinder->find($column, $name, $existing?->id);
+
+            if ($duplicate !== null) {
+                $issues[] = ImportIssue::error($sheet, $rowNumber, __('organization-structure-import.errors.organization_name_taken', [
+                    'name' => (string) $name,
+                    'code' => $duplicate->code,
+                ]), "organization_{$column}");
+            }
+        }
+
+        // An administrator held to their own organization registers a new one
+        // under it with the form; a file has no place in the hierarchy to give it.
+        if ($existing === null && $this->organizationScopeService->mustCreateUnderAssignedOrganization($actor)) {
+            $issues[] = ImportIssue::error($sheet, $rowNumber, __('organization-structure-import.errors.organization_create_needs_form'), 'organization_code');
+        }
+
+        if ($existing === null && $parentCode !== null) {
+            $issues[] = ImportIssue::warning($sheet, $rowNumber, __('organization-structure-import.warnings.parent_not_linked', ['code' => $parentCode]), 'parent_organization_code');
+        }
+
+        // Scoped users may only import into organizations they can reach.
         if ($existing !== null && ! $this->organizationScopeService->canAccessOrganization($actor, $existing->id)) {
             $issues[] = ImportIssue::error($sheet, $rowNumber, __('organization-structure-import.errors.organization_out_of_scope', ['code' => (string) $code]), 'organization_code');
         }

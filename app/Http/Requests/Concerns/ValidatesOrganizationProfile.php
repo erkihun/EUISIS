@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Concerns;
 
+use App\Services\Organizations\OrganizationDuplicateNameFinder;
+use Illuminate\Validation\Validator;
 use Modules\FieldWork\Contracts\FieldWorkGpsPolicy;
 
 /**
  * An organization's short name, official contact and location, shared by the
  * create and edit requests. A form that leaves a field out keeps its value;
  * an emptied field clears it. The check-in radius follows the field work
- * limit, since it pre-fills the geofence of field work sent here.
+ * limit, since it pre-fills the geofence of field work sent here. The two
+ * names are stored with runs of spaces collapsed and may not repeat the name
+ * of another live organization.
  */
 trait ValidatesOrganizationProfile
 {
@@ -35,7 +39,30 @@ trait ValidatesOrganizationProfile
             $values['website'] = 'https://'.$values['website'];
         }
 
+        foreach (['name_en', 'name_am'] as $field) {
+            if ($this->has($field)) {
+                $values[$field] = OrganizationDuplicateNameFinder::normalize($this->input($field));
+            }
+        }
+
         $this->merge($values);
+    }
+
+    protected function rejectDuplicateOrganizationNames(Validator $validator, ?string $ignoreOrganizationId = null): void
+    {
+        $finder = app(OrganizationDuplicateNameFinder::class);
+
+        foreach (['name_en', 'name_am'] as $field) {
+            if ($validator->errors()->has($field)) {
+                continue;
+            }
+
+            $existing = $finder->find($field, $this->input($field), $ignoreOrganizationId);
+
+            if ($existing !== null) {
+                $validator->errors()->add($field, __("organizations.duplicate_{$field}", ['code' => $existing->code]));
+            }
+        }
     }
 
     /** @return array<string, list<mixed>> */

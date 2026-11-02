@@ -11,6 +11,7 @@ class Role extends SpatieRole
 {
     protected $fillable = [
         'name',
+        'name_am',
         'guard_name',
         'scope_type',
         'description_en',

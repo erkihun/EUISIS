@@ -64,6 +64,9 @@ return [
         'organization_sheet_empty' => 'The Organization sheet contains no data rows.',
 
         'organization_name_required' => 'Organization name (English) is required.',
+        'organization_name_am_required' => 'Organization name (Amharic) is required for a new organization.',
+        'organization_name_taken' => 'The name ":name" is already registered to organization ":code".',
+        'organization_create_needs_form' => 'Your account can register a new organization only under your own organization, with the Register organization form. Import into an existing organization code instead.',
         'organization_type_required' => 'Organization type code is required.',
         'organization_type_not_found' => 'Organization type ":code" does not exist.',
         'organization_not_found' => 'Organization ":code" does not exist.',
@@ -107,5 +110,6 @@ return [
 
     'warnings' => [
         'organization_will_be_updated' => 'Organization ":code" already exists and will be updated, not created.',
+        'parent_not_linked' => 'The import does not link the new organization to parent ":code". Add the link in a draft hierarchy version and publish it.',
     ],
 ];

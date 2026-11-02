@@ -142,7 +142,10 @@ class SaveIdCardTemplateRequest extends FormRequest
     private function layoutRules(): array
     {
         $rules = [
-            'layout_config' => ['nullable', 'array:'.implode(',', array_keys(IdCardLayoutElement::ELEMENTS))],
+            'layout_config' => ['nullable', 'array:'.implode(',', [...array_keys(IdCardLayoutElement::ELEMENTS), 'faces'])],
+            // Which face each moved field prints on.
+            'layout_config.faces' => ['nullable', 'array:'.implode(',', [...IdCardLayoutElement::FRONT_FIELDS, ...IdCardLayoutElement::BACK_FIELDS])],
+            'layout_config.faces.*' => [Rule::in(['front', 'back'])],
         ];
         foreach (IdCardLayoutElement::ELEMENTS as $side => $elements) {
             $rules['layout_config.'.$side] = ['nullable', 'array:'.implode(',', array_keys($elements))];
@@ -182,6 +185,9 @@ class SaveIdCardTemplateRequest extends FormRequest
             // An element that runs past the card edge is clipped silently by the
             // renderer, so reject it here rather than let it disappear.
             foreach ((array) $this->input('layout_config', []) as $side => $elements) {
+                if ($side === 'faces') {
+                    continue;
+                }
                 foreach ((array) $elements as $element => $box) {
                     if (! is_array($box)) {
                         continue;

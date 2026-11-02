@@ -358,8 +358,12 @@ class OrganizationController extends Controller
         $organization = $createOrganizationAction->execute($request->validated(), $request->user());
 
         if ($parentOrganizationId !== null) {
+            // The link goes into a draft hierarchy version, and the parent's page
+            // shows the published one, so say when the child will appear there.
+            $versionName = HierarchyVersion::query()->whereKey($request->validated('hierarchy_version_id'))->value('version_name');
+
             return to_route('organizations.show', $parentOrganizationId)
-                ->with('flash', ['message' => __('organizations.child_organization_created_successfully'), 'type' => 'success']);
+                ->with('flash', ['message' => __('organizations.child_organization_pending_publish', ['version' => (string) $versionName]), 'type' => 'success']);
         }
 
         return to_route('organizations.show', $organization)

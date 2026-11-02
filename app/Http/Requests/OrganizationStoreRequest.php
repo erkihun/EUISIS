@@ -55,7 +55,13 @@ class OrganizationStoreRequest extends FormRequest
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['required', 'string', 'max:255'],
             'legal_basis_ref' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', new Enum(OrganizationStatus::class)],
+            // Archived, merged and dissolved describe what happened to an existing
+            // body; a new registration starts as draft, active or inactive.
+            'status' => ['required', (new Enum(OrganizationStatus::class))->only([
+                OrganizationStatus::Draft,
+                OrganizationStatus::Active,
+                OrganizationStatus::Inactive,
+            ])],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'parent_organization_id' => [$requiresAssignedParent ? 'required' : 'nullable', 'uuid', 'exists:organizations,id'],
@@ -79,6 +85,7 @@ class OrganizationStoreRequest extends FormRequest
     public function after(): array
     {
         return [
+            fn (Validator $validator) => $this->rejectDuplicateOrganizationNames($validator),
             function (Validator $validator): void {
                 $orgTypeId = $this->string('organization_type_id')->toString();
 

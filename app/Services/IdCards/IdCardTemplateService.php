@@ -225,8 +225,25 @@ final class IdCardTemplateService
                 $resolved[$side][$element] = $this->box($template, $side, $element)->toArray();
             }
         }
+        $resolved['faces'] = $this->faces($template);
 
         return $resolved;
+    }
+
+    /**
+     * The fields a template moved off their home face, as key => face. Only
+     * known fields and faces survive, so a hand-edited row cannot break a card.
+     *
+     * @return array<string, string>
+     */
+    public function faces(?IdCardTemplate $template): array
+    {
+        $stored = $template?->layout_config['faces'] ?? [];
+
+        return collect(is_array($stored) ? $stored : [])
+            ->filter(fn ($face, $key): bool => in_array($face, ['front', 'back'], true)
+                && in_array($key, [...IdCardLayoutElement::FRONT_FIELDS, ...IdCardLayoutElement::BACK_FIELDS], true))
+            ->all();
     }
 
     /**
