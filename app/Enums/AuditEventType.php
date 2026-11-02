@@ -39,6 +39,8 @@ enum AuditEventType: string
     case NfcEvent = 'nfc_event';
     case EmployeeCreated = 'employee_created';
     case EmployeeUpdated = 'employee_updated';
+    /** A mistaken registration removed; the full record stays in old_values. */
+    case EmployeeDeleted = 'employee_deleted';
     case EmployeeProfileUpdated = 'employee_profile_updated';
     case EmployeeCorrectionRequested = 'employee_correction_requested';
     case EmployeeCorrectionReviewed = 'employee_correction_reviewed';

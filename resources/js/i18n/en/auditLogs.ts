@@ -64,6 +64,7 @@ const auditLogs = {
         // Employee
         employee_created: 'Employee Created',
         employee_updated: 'Employee Updated',
+        employee_deleted: 'Mistaken Registration Deleted',
         assignment_changed: 'Assignment Changed',
         // Transfers (legacy)
         transfer_requested: 'Transfer Requested',

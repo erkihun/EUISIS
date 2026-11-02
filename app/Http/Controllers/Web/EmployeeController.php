@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\Employees\DeleteMistakenEmployeeAction;
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Actions\Employees\UpdateEmployeeAction;
 use App\Actions\Positions\CreatePositionAction;
@@ -262,6 +263,8 @@ class EmployeeController extends Controller
                 // List rows are already organization-scoped. The edit endpoint
                 // continues to enforce the per-employee update policy.
                 'update' => $user?->can('employees.manage') ?? false,
+                // The delete endpoint re-checks the per-employee policy and refuses records with a history.
+                'delete' => $user?->can('employees.delete') ?? false,
             ],
         ]);
     }
@@ -572,6 +575,21 @@ class EmployeeController extends Controller
     private function educationLevelOptions(): array
     {
         return EducationLevel::query()->where('is_active', true)->orderBy('rank')->get(['id', 'name_en', 'name_am'])->all();
+    }
+
+    /**
+     * Remove a registration made by mistake. A record that has become a
+     * history (cards, transfers, transactions, cases, work) is refused by the
+     * action; a person who worked here is separated by employment status.
+     */
+    public function destroy(Request $request, Employee $employee, DeleteMistakenEmployeeAction $action): RedirectResponse
+    {
+        $this->authorize('delete', $employee);
+        $validated = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:1000']]);
+
+        $action->execute($employee, $validated['reason'], $request->user(), $request);
+
+        return redirect()->route('employees.index')->with('success', __('employees.deleted'));
     }
 
     public function show(

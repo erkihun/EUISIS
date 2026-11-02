@@ -867,6 +867,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
     Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
     Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+    // A registration made by mistake; refused once the record has a history (EmployeePolicy@delete, DeleteMistakenEmployeeAction).
+    Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->middleware('throttle:20,1')->name('employees.destroy');
     Route::post('/employees/{employee}/transfers', [EmployeeController::class, 'transfer'])->name('employees.transfer');
 
     // Occupations

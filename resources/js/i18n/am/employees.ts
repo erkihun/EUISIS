@@ -1,4 +1,8 @@
 const employees = {
+    deleteMistaken: 'በስህተት የተመዘገበን ይሰርዙ',
+    deleteMistakenTitle: 'ይህ ምዝገባ ይሰረዝ?',
+    deleteMistakenDescription: 'በስህተት ለተመዘገበ መዝገብ ብቻ። መዝገቡ፣ ምደባውና የምዝገባ ፋይሎቹ ይወገዳሉ፤ ሙሉ መዝገቡ በኦዲት መዝገብ ውስጥ ይቆያል። መታወቂያ፣ ዝውውር፣ ግብይት፣ ጉዳይ ወይም የተመዘገበ ሥራ ያለው መዝገብ ይከለከላል፤ እዚህ የሠራ ሰው በቅጥር ሁኔታ ይለያል እንጂ አይሰረዝም።',
+    deleteReasonLabel: 'ይህ ምዝገባ ለምን ስህተት ሆነ?',
     employeeStatus: 'የሠራተኛ ሁኔታ',
     employmentType: 'የቅጥር ዓይነት',
     employmentTypePlaceholder: 'የሠራተኛ ሁኔታ ይምረጡ',

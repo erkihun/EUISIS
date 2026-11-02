@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'deleted' => 'The mistaken registration was deleted.',
+    'delete_blocked_cards' => 'This record has an ID card or card request, so it is a history and cannot be deleted. Separate the employee by employment status instead.',
+    'delete_blocked_transfers' => 'This record has a transfer, so it is a history and cannot be deleted. Separate the employee by employment status instead.',
+    'delete_blocked_applications' => 'This record has a vacancy application, so it is a history and cannot be deleted.',
+    'delete_blocked_transactions' => 'This record has service, cafeteria or entitlement records, so it is a history and cannot be deleted.',
+    'delete_blocked_work' => 'This record has daily activity, field work or performance records, so it is a history and cannot be deleted.',
+    'delete_blocked_cases' => 'This record is part of a grievance, discipline or public feedback case and cannot be deleted.',
+    'delete_blocked_referenced' => 'Another record still refers to this employee, so it cannot be deleted.',
     'title' => 'Employees',
     'employee' => 'Employee',
     'employee_id' => 'Employee ID',

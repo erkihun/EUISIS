@@ -1,4 +1,8 @@
 const employees = {
+    deleteMistaken: 'Delete mistaken registration',
+    deleteMistakenTitle: 'Delete this registration?',
+    deleteMistakenDescription: 'Only for a record registered by mistake. The record, its placement and registration files are removed and the full record is kept in the audit log. A record with a card, a transfer, a transaction, a case or recorded work is refused; a person who worked here is separated by employment status instead.',
+    deleteReasonLabel: 'Why was this registration a mistake?',
     employeeStatus: 'Employee Status',
     employmentType: 'Employment Type',
     employmentTypePlaceholder: 'Select employee status',

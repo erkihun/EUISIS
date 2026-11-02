@@ -64,6 +64,7 @@ const auditLogs = {
         // Employee
         employee_created: 'ሠራተኛ ተፈጥሯል',
         employee_updated: 'ሠራተኛ ተዘምኗል',
+        employee_deleted: 'በስህተት የተመዘገበ ተሰርዟል',
         assignment_changed: 'ምደባ ተቀይሯል',
         // Transfers (legacy)
         transfer_requested: 'ዝውውር ተጠይቋል',
