@@ -56,6 +56,15 @@ readonly class EmployeePolicy
         return $this->update($user, $employee);
     }
 
+    /**
+     * Remove a registration made by mistake. The action itself refuses any
+     * record that has become a history (cards, transfers, cases, work).
+     */
+    public function delete(User $user, Employee $employee): bool
+    {
+        return $user->can('employees.delete') && $this->organizationScopeService->canAccessEmployee($user, $employee);
+    }
+
     public function viewPii(User $user, Employee $employee): bool
     {
         return $user->can('employees.viewPii')

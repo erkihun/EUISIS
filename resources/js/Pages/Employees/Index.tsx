@@ -6,6 +6,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { AlertTriangle, ChevronDown, ChevronUp, ChevronUpDown, Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 import { toast } from '@/lib/toast';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
@@ -91,7 +92,7 @@ interface Props {
     employees_pagination?: EmployeesPagination;
     filters: Filters;
     sort: SortState;
-    can: { create: boolean; update: boolean };
+    can: { create: boolean; update: boolean; delete?: boolean };
     /** The statuses to filter by, when the server has its own list (the Core adds its verification stage). */
     statusOptions?: string[];
 }
@@ -112,6 +113,21 @@ export default function EmployeesIndex({
     statusOptions,
 }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
+
+    // A registration made by mistake: the server refuses any record that has become a history.
+    async function handleDelete(id: string) {
+        const { confirmed, reason } = await confirm({
+            title: t('employees.deleteMistakenTitle'),
+            description: t('employees.deleteMistakenDescription'),
+            confirmLabel: t('employees.deleteMistaken'),
+            cancelLabel: t('confirmations.cancel'),
+            variant: 'danger',
+            requireReason: true,
+            reasonLabel: t('employees.deleteReasonLabel'),
+        });
+        if (confirmed) router.delete(route('employees.destroy', id), { data: { reason: reason ?? '' }, preserveScroll: true });
+    }
     /* Localization settings govern how organization and employee names read. */
     const { organizationName, employeeName } = useDisplayFormat();
     const [loading, setLoading] = useState(false);
@@ -496,6 +512,7 @@ export default function EmployeesIndex({
                                                             items={[
                                                                 { label: t('common.view'), href: route('employees.show', employee.id) },
                                                                 { label: t('common.edit'), href: route('employees.edit', employee.id), show: can.update },
+                                                                { label: t('employees.deleteMistaken'), onClick: () => handleDelete(employee.id), variant: 'danger', show: can.delete },
                                                             ]}
                                                         />
                                                     </div>

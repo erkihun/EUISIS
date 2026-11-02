@@ -2049,4 +2049,8 @@ return [
     ...require __DIR__.'/court-permissions.php',
     // Reporting hierarchy and supervisor resolution (ADR 0025).
     ...require __DIR__.'/reporting-line-permissions.php',
+    ['name' => 'employees.delete', 'group' => 'employees', 'sort_order' => 35, 'is_system' => true,
+        'label_en' => 'Delete Mistaken Registrations', 'label_am' => 'በስህተት የተመዘገቡ ሠራተኞችን ይሰርዙ',
+        'description_en' => 'Remove an employee record registered by mistake. Refused once the record has a card, a transfer, a transaction, a case or recorded work; a person who worked here is separated by employment status, never deleted.',
+        'description_am' => 'በስህተት የተመዘገበ የሠራተኛ መዝገብ ያስወግዳል። መዝገቡ መታወቂያ፣ ዝውውር፣ ግብይት፣ ጉዳይ ወይም የተመዘገበ ሥራ ካለው ይከለከላል፤ እዚህ የሠራ ሰው በቅጥር ሁኔታ ይለያል እንጂ በጭራሽ አይሰረዝም።'],
 ];

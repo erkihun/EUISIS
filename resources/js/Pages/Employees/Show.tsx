@@ -2,9 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useCan } from '@/hooks/useCan';
+import { useConfirm } from '@/hooks/useConfirm';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
 import EmployeeWorkflowCard, { type EmployeeWorkflow } from '@/Components/employees/EmployeeWorkflowCard';
 import EmployeeEvidencePanel, { type EmployeeEvidence } from '@/Components/employees/EmployeeEvidencePanel';
@@ -120,7 +121,22 @@ export default function EmployeesShow({
 }) {
     const { t, locale } = useLocale();
     const { can } = useCan();
+    const { confirm } = useConfirm();
     const { organizationName: orgDisplayName, employeeName } = useDisplayFormat();
+
+    // A registration made by mistake: the server refuses any record that has become a history.
+    async function handleDelete() {
+        const { confirmed, reason } = await confirm({
+            title: t('employees.deleteMistakenTitle'),
+            description: t('employees.deleteMistakenDescription'),
+            confirmLabel: t('employees.deleteMistaken'),
+            cancelLabel: t('confirmations.cancel'),
+            variant: 'danger',
+            requireReason: true,
+            reasonLabel: t('employees.deleteReasonLabel'),
+        });
+        if (confirmed) router.delete(route('employees.destroy', employee.id), { data: { reason: reason ?? '' } });
+    }
 
     const statusLabel = (status: string): string => {
         const employeeKey = `employees.${status}`;
@@ -167,6 +183,11 @@ export default function EmployeesShow({
                             >
                                 {t('common.edit')}
                             </Link>
+                            {can('employees.delete') && (
+                                <button type="button" onClick={handleDelete} className={buttonClassName({ variant: 'destructiveOutline', size: 'sm' })}>
+                                    {t('employees.deleteMistaken')}
+                                </button>
+                            )}
                         </div>
                     }
                 />
