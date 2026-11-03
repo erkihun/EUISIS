@@ -16,6 +16,7 @@ return [
     'mandate_updated' => 'Mandate updated.',
     'mandate_version_created' => 'New mandate version drafted. Publish it to bring it into force.',
     'mandate_published' => 'Mandate published.',
+    'mandate_bulk_published' => 'Published :published mandates; :skipped not published.',
     'mandate_cancelled' => 'Mandate draft cancelled.',
     'mandate_not_draft' => 'Only a draft mandate can be changed. Published versions are immutable; draft a new version instead.',
     'mandate_publish_same_person' => 'The person who drafted a mandate cannot publish it. Another authorized approver must publish.',

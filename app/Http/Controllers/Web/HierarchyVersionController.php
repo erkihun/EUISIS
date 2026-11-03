@@ -98,9 +98,10 @@ class HierarchyVersionController extends Controller
             'edges' => OrganizationEdgeResource::collection(
                 $hierarchyVersion->edges()
                     ->with([
-                        'parentOrganization:id,organization_type_id,name_en,name_am,code,status,logo_path',
+                        // Archived institutions keep their place in the versions that held them.
+                        'parentOrganization' => fn ($query) => $query->withTrashed()->select(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status', 'logo_path']),
                         'parentOrganization.type:id,code,name_en,name_am',
-                        'childOrganization:id,organization_type_id,name_en,name_am,code,status,logo_path',
+                        'childOrganization' => fn ($query) => $query->withTrashed()->select(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status', 'logo_path']),
                         'childOrganization.type:id,code,name_en,name_am',
                         'hierarchyVersion:id,status',
                     ])
@@ -110,6 +111,8 @@ class HierarchyVersionController extends Controller
             )->resolve($request),
             'tree' => HierarchyTreeNodeResource::collection(collect($tree))->resolve($request),
             'summary' => $organizationScopeService->summarizeVersionTree($tree),
+            // The whole structure, so only for those the live tree shows it to in full.
+            'snapshot' => $request->user()?->hasAnyRole(['Super Admin', 'City Admin']) ? $hierarchyVersion->archive_snapshot : null,
             'can' => [
                 'edit' => $this->canUpdate($request, $hierarchyVersion),
                 'archive' => $this->canArchive($request, $hierarchyVersion),
@@ -189,9 +192,10 @@ class HierarchyVersionController extends Controller
             'edges' => OrganizationEdgeResource::collection(
                 $hierarchyVersion->edges()
                     ->with([
-                        'parentOrganization:id,organization_type_id,name_en,name_am,code,status,logo_path',
+                        // Archived institutions keep their place in the versions that held them.
+                        'parentOrganization' => fn ($query) => $query->withTrashed()->select(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status', 'logo_path']),
                         'parentOrganization.type:id,code,name_en,name_am',
-                        'childOrganization:id,organization_type_id,name_en,name_am,code,status,logo_path',
+                        'childOrganization' => fn ($query) => $query->withTrashed()->select(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status', 'logo_path']),
                         'childOrganization.type:id,code,name_en,name_am',
                         'hierarchyVersion:id,status',
                     ])
@@ -224,9 +228,10 @@ class HierarchyVersionController extends Controller
             'edges' => OrganizationEdgeResource::collection(
                 $hierarchyVersion->edges()
                     ->with([
-                        'parentOrganization:id,organization_type_id,name_en,name_am,code,status,logo_path',
+                        // Archived institutions keep their place in the versions that held them.
+                        'parentOrganization' => fn ($query) => $query->withTrashed()->select(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status', 'logo_path']),
                         'parentOrganization.type:id,code,name_en,name_am',
-                        'childOrganization:id,organization_type_id,name_en,name_am,code,status,logo_path',
+                        'childOrganization' => fn ($query) => $query->withTrashed()->select(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status', 'logo_path']),
                         'childOrganization.type:id,code,name_en,name_am',
                         'hierarchyVersion:id,status',
                     ])

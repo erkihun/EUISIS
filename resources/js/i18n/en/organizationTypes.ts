@@ -45,6 +45,7 @@ const organizationTypes = {
     noCategory: 'No category',
     noParentRestriction: 'No restriction',
     rootOnly: 'Root (no parent)',
+    selectedParentsOnly: 'Selected types only',
 } as const;
 
 export default organizationTypes;

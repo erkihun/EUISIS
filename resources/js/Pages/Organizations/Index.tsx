@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import OrganizationFlatTable, { type DeletionBlockerKey, type OrgRow, type OrgRowCan } from '@/Components/OrganizationFlatTable';
+import OrganizationFlatTable, { type DeletionBlockerKey, type OrgRow, type OrgRowCan, type OrgSort, type OrgSortColumn } from '@/Components/OrganizationFlatTable';
 import PageHeader from '@/Components/PageHeader';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
@@ -39,6 +39,9 @@ type Filters = { search: string; type: string; status: string; category: string 
 export default function OrganizationsIndex({
     organizations,
     filters,
+    sort,
+    arranging,
+    hasManualOrder,
     filterOptions,
     stats,
     publishedVersion,
@@ -47,6 +50,9 @@ export default function OrganizationsIndex({
 }: {
     organizations: Paginator;
     filters: Filters;
+    sort: OrgSort;
+    arranging: boolean;
+    hasManualOrder: boolean;
     filterOptions: {
         types: Array<{ code: string; name_en: string; name_am: string | null }>;
         statuses: string[];
@@ -61,18 +67,55 @@ export default function OrganizationsIndex({
     const { organizationName } = useDisplayFormat();
     const { can: hasPermission } = useCan();
     const [values, setValues] = useState(filters);
+    // The order being arranged stays on the page until it is saved, so moving a row costs no request.
+    const [arrangedIds, setArrangedIds] = useState<string[] | null>(null);
+    const [saving, setSaving] = useState(false);
 
-    const rows: OrgRow[] = organizations.data.map((organization) => ({
+    const listed: OrgRow[] = organizations.data.map((organization) => ({
         ...organization,
         parent_label: organization.parent
             ? `${organization.parent.code} — ${organizationName(organization.parent.name_en, organization.parent.name_am)}`
             : null,
     }));
+    const rows = arranging && arrangedIds
+        ? arrangedIds.flatMap((id) => listed.filter((row) => row.id === id))
+        : listed;
+
+    function moveRow(from: number, to: number) {
+        const ids = rows.map((row) => row.id);
+        const [moved] = ids.splice(from, 1);
+        ids.splice(to, 0, moved);
+        setArrangedIds(ids);
+    }
+
+    function startArranging() {
+        setArrangedIds(null);
+        router.get(route('organizations.index'), { arrange: 1 }, { preserveScroll: true });
+    }
+
+    function stopArranging() {
+        setArrangedIds(null);
+        router.get(route('organizations.index'), {}, { preserveScroll: true });
+    }
+
+    function saveOrder() {
+        if (arrangedIds === null) {
+            stopArranging();
+
+            return;
+        }
+        router.post(route('organizations.reorder'), { ids: arrangedIds }, {
+            preserveScroll: true,
+            onStart: () => setSaving(true),
+            onFinish: () => setSaving(false),
+            onSuccess: () => setArrangedIds(null),
+        });
+    }
 
     function navigate(next: Partial<Filters> & { page?: number }) {
         router.get(
             route('organizations.index'),
-            { ...values, ...next },
+            { ...values, sort: sort.column, direction: sort.direction, ...next },
             { preserveState: true, preserveScroll: true, replace: true },
         );
     }
@@ -84,7 +127,16 @@ export default function OrganizationsIndex({
     function resetFilters() {
         const empty = { search: '', type: '', status: '', category: '' };
         setValues(empty);
-        router.get(route('organizations.index'), empty, { preserveScroll: true, replace: true });
+        router.get(route('organizations.index'), { ...empty, sort: sort.column, direction: sort.direction }, { preserveScroll: true, replace: true });
+    }
+
+    /* Clicking a heading sorts by it; clicking it again flips the direction. Always back to page one. */
+    function toggleSort(column: OrgSortColumn) {
+        router.get(
+            route('organizations.index'),
+            { ...filters, sort: column, direction: sort.column === column && sort.direction === 'asc' ? 'desc' : 'asc', page: 1 },
+            { preserveState: true, preserveScroll: true, replace: true },
+        );
     }
 
     const filtersActive = Object.values(filters).some(Boolean);
@@ -125,6 +177,7 @@ export default function OrganizationsIndex({
                 <StatCard label={t('organizations.kpiTypes')} value={stats.types} tone="neutral" icon={<Layers className="h-4 w-4" />} />
             </div>
 
+            {!arranging && (
             <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive} className="mt-4">
                 <FilterField label={t('common.search')} wide>
                     <Input type="search" value={values.search} onChange={(event) => setValues({ ...values, search: event.target.value })} placeholder={t('organizations.searchByCodeOrName')} />
@@ -150,10 +203,40 @@ export default function OrganizationsIndex({
                     </FilterField>
                 )}
             </FilterPanel>
+            )}
 
-            <TableCard title={t('organizations.registeredOrganizations')} className="mt-4">
-                <OrganizationFlatTable rows={rows} emptyText={filtersActive ? t('organizations.noResultsMatchFilters') : t('organizations.noOrganizations')} />
-                <ListPagination meta={organizations} onPageChange={(page) => router.get(route('organizations.index'), { ...filters, page }, { preserveState: true, preserveScroll: true, replace: true })} />
+            <TableCard
+                title={t('organizations.registeredOrganizations')}
+                description={arranging ? t('organizations.arrangeHint') : undefined}
+                className="mt-4"
+                actions={arranging ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button type="button" onClick={stopArranging} disabled={saving} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
+                            {t('common.cancel')}
+                        </button>
+                        <button type="button" onClick={saveOrder} disabled={saving} className={buttonClassName({ variant: 'primary', size: 'sm' })}>
+                            {t('organizations.saveOrder')}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex flex-wrap items-center gap-2">
+                        {hasManualOrder && sort.column !== 'manual' && (
+                            <button type="button" onClick={() => router.get(route('organizations.index'), { ...filters, sort: 'manual' }, { preserveState: true, preserveScroll: true, replace: true })} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
+                                {t('organizations.useSavedOrder')}
+                            </button>
+                        )}
+                        {can.manageHierarchy && (
+                            <button type="button" onClick={startArranging} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
+                                {t('organizations.arrangeOrder')}
+                            </button>
+                        )}
+                    </div>
+                )}
+            >
+                <OrganizationFlatTable rows={rows} sort={sort} onSort={toggleSort} onMove={arranging ? moveRow : undefined} emptyText={filtersActive ? t('organizations.noResultsMatchFilters') : t('organizations.noOrganizations')} />
+                {!arranging && (
+                    <ListPagination meta={organizations} onPageChange={(page) => router.get(route('organizations.index'), { ...filters, sort: sort.column, direction: sort.direction, page }, { preserveState: true, preserveScroll: true, replace: true })} />
+                )}
             </TableCard>
 
             {hierarchyVersions.length > 0 && (

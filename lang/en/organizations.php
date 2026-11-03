@@ -2,6 +2,7 @@
 
 return [
     'updated_successfully' => 'Organization updated successfully.',
+    'order_saved' => 'The order of the organizations was saved.',
     'title' => 'Organizations',
     'organization' => 'Organization',
     'parent_organization' => 'Parent Organization',

@@ -18,13 +18,17 @@ use App\Models\OrganizationDesignStatusHistory;
 use App\Services\OrganizationDesign\FunctionService;
 use App\Services\OrganizationDesign\MandateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class MandateController extends Controller
 {
+    private const BULK_PUBLISH_LIMIT = 500;
+
     public function __construct(
         private readonly MandateService $mandates,
         private readonly FunctionService $functions,
@@ -36,20 +40,10 @@ class MandateController extends Controller
         $this->authorize('viewAny', InstitutionMandate::class);
         $user = $request->user();
 
-        $query = InstitutionMandate::query()
+        $query = $this->listed($request)
             ->with(['organization:id,code,name_en,name_am', 'instrumentType:id,code,name_en,name_am'])
-            ->when($request->string('organization_id')->toString(), fn ($q, $id) => $q->where('organization_id', $id))
             ->when($request->string('status')->toString(), fn ($q, $status) => $q->where('status', $status))
-            ->when($request->string('search')->toString(), function ($q, $search): void {
-                $q->where(function ($nested) use ($search): void {
-                    $nested->where('code', ci_like_operator(), "%{$search}%")
-                        ->orWhere('title_en', ci_like_operator(), "%{$search}%")
-                        ->orWhere('title_am', ci_like_operator(), "%{$search}%")
-                        ->orWhere('legal_instrument_number', ci_like_operator(), "%{$search}%");
-                });
-            })
             ->orderBy('code')->orderByDesc('version_no');
-        $this->scope->applyOrganizationScope($query, $user);
 
         $mandates = $query->paginate(25)->withQueryString()->through(fn (InstitutionMandate $m) => $this->summary($m));
 
@@ -61,6 +55,70 @@ class MandateController extends Controller
             'statuses' => array_map(fn (OrganizationDesignStatus $s) => $s->value, OrganizationDesignStatus::cases()),
             'legalSources' => $this->legalSourceOptions($request->string('organization_id')->toString() ?: null),
             'can' => ['create' => $user->can('create', InstitutionMandate::class)],
+            'bulkPublish' => $user->can('institution-mandates.approve') ? $this->bulkPublishCounts($request) : null,
+        ]);
+    }
+
+    /** What the list's search and organization filters select, inside the reader's scope. */
+    private function listed(Request $request): Builder
+    {
+        $query = InstitutionMandate::query()
+            ->when($request->string('organization_id')->toString(), fn ($q, $id) => $q->where('organization_id', $id))
+            ->when($request->string('search')->toString(), function ($q, $search): void {
+                $q->where(function ($nested) use ($search): void {
+                    $nested->where('code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('title_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('title_am', ci_like_operator(), "%{$search}%")
+                        ->orWhere('legal_instrument_number', ci_like_operator(), "%{$search}%");
+                });
+            });
+        $this->scope->applyOrganizationScope($query, $request->user());
+
+        return $query;
+    }
+
+    /** @return array{publishable: int, ownDrafts: int} Own drafts are counted apart: their author may not publish them. */
+    private function bulkPublishCounts(Request $request): array
+    {
+        $drafts = $this->listed($request)->where('status', OrganizationDesignStatus::Draft);
+        $own = $drafts->clone()->where('created_by', $request->user()->getKey())->count();
+
+        return ['publishable' => $drafts->count() - $own, 'ownDrafts' => $own];
+    }
+
+    /**
+     * Publishes every draft the list's filters select, each through the same
+     * service and policy as a single publish. Maker and checker stay apart: the
+     * actor's own drafts are skipped and reported, never published.
+     */
+    public function bulkPublish(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user->can('institution-mandates.approve'), 403);
+        $organizationId = $request->string('organization_id')->toString();
+        abort_if($organizationId !== '' && ! $this->scope->canAccess($user, $organizationId), 403);
+
+        $published = 0;
+        $skipped = 0;
+        $this->listed($request)->where('status', OrganizationDesignStatus::Draft)->orderBy('code')->limit(self::BULK_PUBLISH_LIMIT)->get()
+            ->each(function (InstitutionMandate $mandate) use ($user, &$published, &$skipped): void {
+                if ((int) $mandate->created_by === (int) $user->getKey() || ! $user->can('publish', $mandate)) {
+                    $skipped++;
+
+                    return;
+                }
+
+                try {
+                    $this->mandates->publish($user, $mandate);
+                    $published++;
+                } catch (ValidationException) {
+                    $skipped++;
+                }
+            });
+
+        return back()->with('flash', [
+            'message' => __('organization-design.mandate_bulk_published', ['published' => $published, 'skipped' => $skipped]),
+            'type' => $published > 0 ? 'success' : 'warning',
         ]);
     }
 

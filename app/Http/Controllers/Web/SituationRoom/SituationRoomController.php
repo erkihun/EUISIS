@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\Intelligence\IntelligencePermissions;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SituationRoom\OrganizationRollup;
+use App\Services\SituationRoom\SituationBriefing;
 use App\Services\SituationRoom\SituationCategory;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
@@ -42,6 +43,7 @@ final class SituationRoomController extends Controller
         private readonly SituationSettings $settings,
         private readonly WriteAuditLogAction $audit,
         private readonly OrganizationScopeService $organizationScope,
+        private readonly SituationBriefing $briefing,
     ) {}
 
     public function index(Request $request): Response
@@ -52,7 +54,10 @@ final class SituationRoomController extends Controller
 
         return Inertia::render('SituationRoom/Index', [
             ...$this->frame($context),
+            'settings_href' => $user->can('system-settings.manageSituationRoom') ? route('system-settings.index') : null,
             'result' => Inertia::defer(fn (): array => $this->room->category(SituationCategory::Overview, $context)),
+            // Reads every other category, so it comes after the headlines and cannot hold them up.
+            'briefing' => Inertia::defer(fn (): array => $this->briefing->build($context), 'briefing'),
         ]);
     }
 

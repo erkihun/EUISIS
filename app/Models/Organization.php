@@ -27,6 +27,7 @@ class Organization extends Model
         'code',
         'name_en',
         'name_am',
+        'sort_order',
         'legal_basis_ref',
         'status',
         'effective_from',

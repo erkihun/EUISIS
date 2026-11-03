@@ -33,6 +33,7 @@ const isicActivities = {
     archivedSuccessfully: 'ISIC activity archived successfully',
     restoredSuccessfully: 'ISIC activity restored successfully',
     allLevels: 'All Levels',
+    allSections: 'All Sections',
     allStatuses: 'All Statuses',
     backToList: '← Back to ISIC Activities',
 } as const;

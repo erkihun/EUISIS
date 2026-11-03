@@ -4,15 +4,20 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import FunctionTree, { type FunctionNode, type PowerOption } from '@/Components/organizationDesign/FunctionTree';
 import DocumentSuggestions, { type Suggestion } from '@/Components/organizationDesign/DocumentSuggestions';
+import MandateText from '@/Components/organizationDesign/MandateText';
 import MandateForm, { type InstrumentType, type LegalSourceOption, type MandateFormValues } from '@/Components/organizationDesign/MandateForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Textarea, actionLinkClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Textarea, actionLinkClassName, cx } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { MandateSummary } from './Index';
 
 type Power = { id: string; code: string; title_en: string; title_am: string | null; description_en: string | null; description_am: string | null; legal_reference: string | null; sequence: number; status: string };
+
+const countFunctions = (nodes: FunctionNode[]): number => nodes.reduce((sum, node) => sum + 1 + countFunctions(node.children), 0);
+
+type MandateTab = 'text' | 'powers' | 'functions';
 
 type Props = {
     mandate: MandateSummary & {
@@ -35,6 +40,29 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
     const [editing, setEditing] = useState(false);
     const [versioning, setVersioning] = useState(false);
     const [powerForm, setPowerForm] = useState<Power | 'new' | null>(null);
+    const mandateText = (locale === 'am' ? mandate.description_am : mandate.description_en) ?? mandate.description_am ?? mandate.description_en;
+    const [tab, setTab] = useState<MandateTab>(mandateText ? 'text' : 'powers');
+    const [openPowers, setOpenPowers] = useState<Set<string>>(new Set());
+    const functionCount = countFunctions(functions);
+
+    const articleTitle = (number: string): string | null => {
+        const power = powers.find((p) => p.code === `ART-${number}`);
+
+        return power ? titleOf(power, locale) : null;
+    };
+
+    const togglePower = (id: string) => setOpenPowers((open) => {
+        const next = new Set(open);
+        if (next.has(id)) next.delete(id); else next.add(id);
+
+        return next;
+    });
+
+    const tabs: { key: MandateTab; label: string; count?: number }[] = [
+        { key: 'text', label: tt('mandates.textTab') },
+        { key: 'powers', label: tt('powers.title'), count: powers.length },
+        { key: 'functions', label: tt('functions.tree'), count: functionCount },
+    ];
 
     const values: MandateFormValues = {
         organization_id: mandate.organization_id, code: mandate.code, title_en: mandate.title_en, title_am: mandate.title_am ?? '',
@@ -63,7 +91,7 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
             <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
-            <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dd className="mt-0.5 wrap-break-word whitespace-pre-line text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
 
@@ -85,33 +113,57 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
         }>
             <Head title={`${mandate.code} · ${titleOf(mandate, locale)}`} />
 
-            <div className="grid gap-4 lg:grid-cols-3">
-                <div className="space-y-4 lg:col-span-2">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
+                <div className="min-w-0 space-y-4">
                     <Card>
                         <CardHeader className="flex items-center justify-between gap-3">
                             <CardTitle>{tt('mandates.details')}</CardTitle>
                             <StatusPill status={mandate.status} />
                         </CardHeader>
-                        <dl className="grid gap-4 p-5 sm:grid-cols-2">
+                        <dl className="grid gap-x-6 gap-y-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
                             {detail(tt('fields.instrumentType'), nameOf(mandate.instrument_type, locale))}
                             {detail(tt('fields.instrumentNumber'), mandate.legal_instrument_number)}
-                            {detail(tt('fields.legalReference'), mandate.legal_reference)}
                             {detail(tt('fields.articleReference'), mandate.article_reference)}
-                            {detail(tt('fields.issuingAuthority'), mandate.issuing_authority)}
-                            {detail(tt('mandates.legalSource'), mandate.legal_source ? <Link href={route('organization-design.legal-sources.show', mandate.legal_source.id)} className="hover:underline">{mandate.legal_source.code} · {locale === 'am' && mandate.legal_source.title_am ? mandate.legal_source.title_am : mandate.legal_source.title_en}</Link> : null)}
                             {detail(tt('fields.effectiveFrom'), <LocalizedDateDisplay value={mandate.effective_from} />)}
                             {detail(tt('fields.effectiveTo'), mandate.effective_to ? <LocalizedDateDisplay value={mandate.effective_to} /> : null)}
                             {detail(tt('mandates.draftedBy'), mandate.created_by)}
                             {detail(tt('mandates.publishedBy'), mandate.approved_by ? `${mandate.approved_by}` : null)}
-                            {detail(tt('fields.descriptionEn'), mandate.description_en)}
-                            {detail(tt('fields.descriptionAm'), mandate.description_am)}
+                            {detail(tt('fields.issuingAuthority'), mandate.issuing_authority)}
+                            <div className="sm:col-span-2 lg:col-span-3">{detail(tt('mandates.legalSource'), mandate.legal_source ? <Link href={route('organization-design.legal-sources.show', mandate.legal_source.id)} className="hover:underline">{mandate.legal_source.code} · {locale === 'am' && mandate.legal_source.title_am ? mandate.legal_source.title_am : mandate.legal_source.title_en}</Link> : null)}</div>
                         </dl>
                         {mandate.status === 'draft' && !can.publish && can.update && (
                             <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('mandates.publishByOther')}</p>
                         )}
                     </Card>
 
-                    <Card>
+                    <div role="tablist" aria-label={tt('mandates.details')} className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-(--app-border)">
+                        {tabs.map((item) => (
+                            <button
+                                key={item.key}
+                                type="button"
+                                role="tab"
+                                aria-selected={tab === item.key}
+                                onClick={() => setTab(item.key)}
+                                className={cx(
+                                    '-mb-px inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm transition-colors',
+                                    tab === item.key ? 'border-primary font-medium text-primary' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)',
+                                )}
+                            >
+                                {item.label}
+                                {item.count !== undefined && <span className="text-xs tabular-nums text-(--app-muted-foreground)">{item.count}</span>}
+                            </button>
+                        ))}
+                    </div>
+
+                    {tab === 'text' && (
+                        <Card>
+                            {mandateText
+                                ? <MandateText text={mandateText} articleTitle={articleTitle} />
+                                : <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mandates.noText')}</p>}
+                        </Card>
+                    )}
+
+                    {tab === 'powers' && <Card>
                         <CardHeader className="flex items-center justify-between gap-3">
                             <div><CardTitle>{tt('powers.title')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('powers.description')}</p></div>
                             {can.manageFunctions && <Button size="sm" variant="primary" onClick={() => setPowerForm('new')}>{tt('powers.add')}</Button>}
@@ -123,7 +175,16 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
                                         <span className="font-mono text-xs text-(--app-muted-foreground)">{p.code}</span>
                                         <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-(--app-foreground)">{titleOf(p, locale)}</p>
-                                            {(locale === 'am' ? p.description_am : p.description_en) && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{locale === 'am' ? p.description_am : p.description_en}</p>}
+                                            {(locale === 'am' ? p.description_am : p.description_en) && (
+                                                <>
+                                                    <p className={cx('mt-0.5 whitespace-pre-line text-xs leading-6 text-(--app-muted-foreground)', !openPowers.has(p.id) && 'line-clamp-2')}>{locale === 'am' ? p.description_am : p.description_en}</p>
+                                                    {((locale === 'am' ? p.description_am : p.description_en) ?? '').length > 160 && (
+                                                        <button type="button" className={cx(actionLinkClassName({ size: 'sm' }), 'mt-0.5')} onClick={() => togglePower(p.id)}>
+                                                            {openPowers.has(p.id) ? tt('mandates.showLess') : tt('mandates.showMore')}
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
                                             {p.legal_reference && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{p.legal_reference}</p>}
                                         </div>
                                         <StatusPill status={p.status} />
@@ -137,14 +198,14 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
                                 ))}
                             </ul>
                         )}
-                    </Card>
+                    </Card>}
 
-                    <Card>
+                    {tab === 'functions' && <Card>
                         <CardHeader><CardTitle>{tt('functions.tree')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('functions.description')}</p></CardHeader>
                         <div className="p-3">
                             <FunctionTree tree={functions} mandateId={mandate.id} powers={powers as PowerOption[]} canManage={can.manageFunctions} emptyText={tt('functions.noneForMandate')} />
                         </div>
-                    </Card>
+                    </Card>}
 
                     {(can.suggest || suggestions.length > 0) && <DocumentSuggestions mandateId={mandate.id} suggestions={suggestions} legalSources={legalSources} canSuggest={can.suggest} />}
                 </div>

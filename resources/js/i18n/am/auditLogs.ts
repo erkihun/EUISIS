@@ -239,10 +239,10 @@ const auditLogs = {
         record_deleted: 'መዝገብ ተሰርዟል',
         record_restored: 'መዝገብ ተመልሷል',
         // Occupations
-        occupation_created: 'የየሙያ ምድብ ምድብ ተፈጥሯል',
-        occupation_updated: 'የየሙያ ምድብ ምድብ ተዘምኗል',
-        occupation_archived: 'የየሙያ ምድብ ምድብ ወደ ማህደር ገብቷል',
-        occupation_restored: 'የየሙያ ምድብ ምድብ ተመልሷል',
+        occupation_created: 'የሙያ ምድብ ተፈጥሯል',
+        occupation_updated: 'የሙያ ምድብ ተዘምኗል',
+        occupation_archived: 'የሙያ ምድብ ወደ ማህደር ገብቷል',
+        occupation_restored: 'የሙያ ምድብ ተመልሷል',
         // ISIC Activities
         isic_activity_created: 'ISIC እንቅስቃሴ ተፈጥሯል',
         isic_activity_updated: 'ISIC እንቅስቃሴ ተዘምኗል',

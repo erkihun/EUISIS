@@ -1012,3 +1012,13 @@ html[data-animations="false"] .lg-card-slot { animation: none; }
 @media (prefers-reduced-motion: reduce) {
     .comm-typing-dot { animation: none; }
 }
+
+/* Situation Room wall: a screen rises in, its tab fills for the time it stays up. */
+@keyframes sr-wall-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes sr-wall-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.sr-wall-rise { animation: sr-wall-rise 0.45s ease-out; }
+.sr-wall-progress { animation: sr-wall-progress linear both; }
+@media (prefers-reduced-motion: reduce) {
+    .sr-wall-rise { animation: none; }
+    .sr-wall-progress { animation: none; transform: scaleX(1); }
+}

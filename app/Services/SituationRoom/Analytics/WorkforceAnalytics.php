@@ -9,6 +9,7 @@ use App\Models\Occupation;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
+use App\Services\SituationRoom\SituationSql;
 
 /**
  * Workforce Composition & Staffing. Counts people by their current, active
@@ -141,7 +142,7 @@ final class WorkforceAnalytics extends SituationAnalytics
     {
         $counts = WorkforceQueries::assignments($context)
             ->leftJoin('positions as p', 'p.id', '=', 'ea.position_id')
-            ->selectRaw("COALESCE(CAST(p.occupation_id AS VARCHAR(64)), '__none') AS bucket, COUNT(*) AS total")
+            ->selectRaw('COALESCE('.SituationSql::idText('p.occupation_id').", '__none') AS bucket, COUNT(*) AS total")
             ->groupByRaw('p.occupation_id')
             ->pluck('total', 'bucket')
             ->map(fn ($v): int => (int) $v)

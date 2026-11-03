@@ -115,8 +115,8 @@ class ParticipantSuggester
         $type = $organization->organizationType;
         $level = match (true) {
             $type === null => null,
-            $type->code === 'SUB_CITY' => ReportingLevel::SubCity,
-            $type->code === 'WOREDA' => ReportingLevel::Woreda,
+            $type->isSubCity() => ReportingLevel::SubCity,
+            $type->isWoreda() => ReportingLevel::Woreda,
             in_array($type->category, ['functional', 'independent'], true) && (int) $type->level_order === 2 => ReportingLevel::Center,
             default => null,
         };

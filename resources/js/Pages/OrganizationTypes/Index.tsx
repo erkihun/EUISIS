@@ -21,7 +21,7 @@ type OrgType = {
     sort_order: number;
     level_order: number;
     category: string | null;
-    parent_allowed_types: string[];
+    parent_allowed_types: string[] | null;
     organizations_count: number;
     can: { update: boolean; delete: boolean };
 };
@@ -77,11 +77,6 @@ export default function OrganizationTypesIndex({
             other: tr('organizationTypes.categoryOther'),
         };
         return map[cat] ?? cat;
-    }
-
-    function parentTypesLabel(codes: string[]): string {
-        if (codes.length === 0) return tr('organizationTypes.rootOnly');
-        return codes.join(', ');
     }
 
     return (
@@ -203,13 +198,17 @@ export default function OrganizationTypesIndex({
                                                 {type.level_order}
                                             </td>
                                             <td className={cx(tableCellClassName, 'max-w-[180px]')}>
-                                                {type.parent_allowed_types.length === 0 ? (
+                                                {type.parent_allowed_types === null ? (
+                                                    <span className="text-xs text-(--app-muted-foreground)">
+                                                        {tr('organizationTypes.noParentRestriction')}
+                                                    </span>
+                                                ) : type.parent_allowed_types.length === 0 ? (
                                                     <span className="text-xs text-amber-600 dark:text-amber-400">
                                                         {tr('organizationTypes.rootOnly')}
                                                     </span>
                                                 ) : (
                                                     <span className="font-mono text-xs text-(--app-muted-foreground)">
-                                                        {parentTypesLabel(type.parent_allowed_types)}
+                                                        {type.parent_allowed_types.join(', ')}
                                                     </span>
                                                 )}
                                             </td>

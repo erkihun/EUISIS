@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
+import ParentAllowedTypesInput from '@/Components/organizationTypes/ParentAllowedTypesInput';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 const inputCls = cx(inputClassName, 'w-full');
@@ -55,7 +56,7 @@ export default function CreateOrganizationType({
         sort_order: number;
         level_order: number;
         category: string;
-        parent_allowed_types: string[];
+        parent_allowed_types: string[] | null;
         is_active: boolean;
     }>({
         code: '',
@@ -67,21 +68,13 @@ export default function CreateOrganizationType({
         sort_order: 0,
         level_order: 1,
         category: '',
-        parent_allowed_types: [],
+        parent_allowed_types: null,
         is_active: true,
     });
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
         form.post(route('organization-types.store'));
-    }
-
-    function toggleParentType(code: string) {
-        const current = form.data.parent_allowed_types;
-        form.setData(
-            'parent_allowed_types',
-            current.includes(code) ? current.filter((c) => c !== code) : [...current, code],
-        );
     }
 
     return (
@@ -193,27 +186,11 @@ export default function CreateOrganizationType({
                                 help={t('organizationTypes.parentAllowedTypesHelp')}
                                 error={form.errors.parent_allowed_types}
                             >
-                                <div className="mt-1 grid max-h-56 grid-cols-1 gap-1 overflow-y-auto rounded-lg border border-(--app-border) p-2 md:grid-cols-2 xl:grid-cols-3">
-                                    {allTypes.map((ot) => (
-                                        <label
-                                            key={ot.code}
-                                            className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-(--app-surface-muted)"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                className="h-3.5 w-3.5 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
-                                                checked={form.data.parent_allowed_types.includes(ot.code)}
-                                                onChange={() => toggleParentType(ot.code)}
-                                            />
-                                            <span className="font-mono text-xs text-(--app-muted-foreground)">
-                                                {ot.code}
-                                            </span>
-                                            <span className="text-xs text-(--app-foreground)">
-                                                {ot.name_en}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
+                                <ParentAllowedTypesInput
+                                    value={form.data.parent_allowed_types}
+                                    onChange={(value) => form.setData('parent_allowed_types', value)}
+                                    types={allTypes}
+                                />
                             </Field>
                         )}
 

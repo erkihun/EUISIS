@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, actionLi
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-type Organization = { id: string; code: string; name_en: string; name_am: string | null };
+type Organization = { id: string; code: string; name_en: string; name_am: string | null; functions_count: number };
 type Mandate = { id: string; code: string; version_no: number; title_en: string; title_am: string | null; status: string };
 
 type Props = {
@@ -36,7 +36,7 @@ export default function FunctionsIndex({ organizations, organizationId, mandates
                 <FilterPanel onSubmit={() => router.get(route('organization-design.functions.index'), { organization_id: draft }, { preserveState: true })} hasActiveFilters={false}>
                     <FilterField label={tt('fields.organization')} wide>
                         <Select value={draft} onChange={(e) => setDraft(e.target.value)}>
-                            {organizations.map((o) => <option key={o.id} value={o.id}>{o.code} · {nameOf(o, locale)}</option>)}
+                            {organizations.map((o) => <option key={o.id} value={o.id}>{o.code} · {nameOf(o, locale)} ({o.functions_count})</option>)}
                         </Select>
                     </FilterField>
                     <FilterField label={tt('functions.underMandate')}>

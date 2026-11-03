@@ -1,6 +1,7 @@
 import Modal from '@/Components/Modal';
 import { useConfirm } from '@/hooks/useConfirm';
-import { Button, FieldError, FormField, Input, Select, Textarea, actionLinkClassName, cx } from '@/Components/ui';
+import { Button, FieldError, FormField, Input, Select, Textarea, cx } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import { StatusPill, titleOf, useDesignText } from './ui';
@@ -72,23 +73,28 @@ export default function FunctionTree({ tree, mandateId, powers = [], canManage, 
         const isCollapsed = collapsed.has(node.id);
         return (
             <li key={node.id}>
-                <div className={cx('flex flex-wrap items-center gap-2 rounded-control px-2 py-1.5 hover:bg-(--app-surface-muted)')} style={{ paddingLeft: `${node.depth * 1.25 + 0.5}rem` }}>
+                <div className={cx('flex items-start gap-2 rounded-control px-2 py-2 hover:bg-(--app-surface-muted)')} style={{ paddingLeft: `${node.depth * 1.25 + 0.5}rem` }}>
                     <button type="button" onClick={() => toggle(node.id)} aria-expanded={!isCollapsed} aria-label={node.children.length ? (isCollapsed ? tt('functions.expandAll') : tt('functions.collapseAll')) : undefined}
-                        className={cx('inline-flex h-5 w-5 items-center justify-center rounded-sm text-xs text-(--app-muted-foreground)', node.children.length === 0 && 'invisible')}>
+                        className={cx('mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-xs text-(--app-muted-foreground)', node.children.length === 0 && 'invisible')}>
                         {isCollapsed ? '▸' : '▾'}
                     </button>
-                    <span className="font-mono text-xs text-(--app-muted-foreground)">{node.code}</span>
-                    <span className="text-sm font-medium text-(--app-foreground)">{titleOf(node, locale)}</span>
-                    {node.power && <span className="text-xs text-(--app-muted-foreground)">· {node.power.code}</span>}
-                    {node.legal_reference && <span className="text-xs text-(--app-muted-foreground)">· {node.legal_reference}</span>}
-                    <StatusPill status={node.status} />
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm leading-6 text-(--app-foreground)">{titleOf(node, locale)}</p>
+                        <p className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-(--app-muted-foreground)">
+                            <span className="font-mono">{node.code}</span>
+                            {node.legal_reference && <span>· {node.legal_reference}</span>}
+                        </p>
+                    </div>
+                    <span className="mt-0.5 shrink-0"><StatusPill status={node.status} /></span>
                     {writable && (
-                        <span className="ml-auto flex items-center gap-3">
-                            <button type="button" className={actionLinkClassName()} onClick={() => setEditing({ node: null, parent: node })}>{tt('functions.addChild')}</button>
-                            <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ node, parent: null })}>{tt('functions.edit')}</button>
-                            <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setMoving(node)}>{tt('functions.move')}</button>
-                            <button type="button" className={actionLinkClassName({ tone: 'danger' })} disabled={node.children.length > 0} onClick={() => remove(node)}>{tt('functions.remove')}</button>
-                        </span>
+                        <AppActionMenu
+                            items={[
+                                { label: tt('functions.addChild'), onClick: () => setEditing({ node: null, parent: node }) },
+                                { label: tt('functions.edit'), onClick: () => setEditing({ node, parent: null }) },
+                                { label: tt('functions.move'), onClick: () => setMoving(node) },
+                                { label: tt('functions.remove'), variant: 'danger', disabled: node.children.length > 0, onClick: () => remove(node) },
+                            ]}
+                        />
                     )}
                 </div>
                 {!isCollapsed && node.children.length > 0 && <ul>{node.children.map(renderNode)}</ul>}

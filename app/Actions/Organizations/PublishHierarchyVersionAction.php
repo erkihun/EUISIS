@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationEdge;
 use App\Models\User;
+use App\Services\Hierarchy\HierarchyVersionSnapshotService;
 use App\Services\Integration\Events\IntegrationEventRecorder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ readonly class PublishHierarchyVersionAction
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
         private IntegrationEventRecorder $integrationEvents,
+        private HierarchyVersionSnapshotService $snapshots,
     ) {}
 
     public function execute(HierarchyVersion $version, User $actor): HierarchyVersion
@@ -37,6 +39,9 @@ readonly class PublishHierarchyVersionAction
                 ->where('status', HierarchyVersionStatus::Published)
                 ->get()
                 ->each(function (HierarchyVersion $publishedVersion) use ($version): void {
+                    // Recorded while it is still what it was: names and staffing move on from here.
+                    $this->snapshots->capture($publishedVersion);
+
                     $updates = ['status' => HierarchyVersionStatus::Archived];
 
                     if ($publishedVersion->effective_to === null && $version->effective_from !== null) {

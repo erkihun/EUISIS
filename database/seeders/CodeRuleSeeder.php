@@ -43,9 +43,9 @@ class CodeRuleSeeder extends Seeder
                 'scope_id' => null,
                 'name_en' => 'Organization Code',
                 'name_am' => 'የተቋም ኮድ',
-                'prefix' => 'ORG',
-                'format' => '{PREFIX}-{YEAR}-{SEQUENCE}',
-                'sequence_length' => 5,
+                'prefix' => null,
+                'format' => '{ORG_TYPE_PREFIX}-{SEQUENCE}',
+                'sequence_length' => 2,
             ],
             [
                 'entity_type' => CodeRuleEntityType::OrganizationType->value,
@@ -55,7 +55,7 @@ class CodeRuleSeeder extends Seeder
                 'name_am' => 'የተቋም ዓይነት ኮድ',
                 'prefix' => 'OT',
                 'format' => '{PREFIX}-{SEQUENCE}',
-                'sequence_length' => 4,
+                'sequence_length' => 2,
             ],
             [
                 'entity_type' => CodeRuleEntityType::Employee->value,

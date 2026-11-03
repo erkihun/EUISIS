@@ -45,6 +45,7 @@ const organizationTypes = {
     noCategory: 'ምድብ የለም',
     noParentRestriction: 'ምንም ገደብ የለም',
     rootOnly: 'ሥር ብቻ (የበላይ አካል የለም)',
+    selectedParentsOnly: 'የተመረጡ ዓይነቶች ብቻ',
 } as const;
 
 export default organizationTypes;

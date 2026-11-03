@@ -34,7 +34,7 @@ const positions = {
     organizationUnit: 'የሥራ ክፍል',
     selectOrganizationUnit: 'የሥራ ክፍል ይምረጡ',
     occupation: 'የሙያ ምድብ',
-    selectOccupation: 'የየሙያ ምድብ ምድብ ይምረጡ',
+    selectOccupation: 'የሙያ ምድብ ይምረጡ',
     statusActive: 'ንቁ',
     statusInactive: 'ንቁ ያልሆነ',
     activePosition: 'ንቁ መደብ',

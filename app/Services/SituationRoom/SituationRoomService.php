@@ -117,7 +117,7 @@ final class SituationRoomService
                 $errors = $errors || $result['has_errors'];
                 $kpis = array_values(array_filter($result['panels'], fn (array $p): bool => $p['type'] === 'kpis'));
                 $charts = array_values(array_filter($result['panels'], fn (array $p): bool => in_array($p['type'], SituationPanel::CHARTS, true)));
-                $screens[] = ['category' => $category->value, 'panels' => [...array_slice($kpis, 0, 1), ...array_slice($charts, 0, 2)]];
+                $screens[] = ['category' => $category->value, 'section' => $category->section(), 'icon' => $category->icon(), 'panels' => [...array_slice($kpis, 0, 1), ...array_slice($charts, 0, 2)]];
             }
 
             return ['screens' => $screens, 'has_errors' => $errors];

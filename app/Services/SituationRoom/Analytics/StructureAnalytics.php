@@ -9,6 +9,7 @@ use App\Models\OrganizationUnitType;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
+use App\Services\SituationRoom\SituationSql;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -73,10 +74,10 @@ final class StructureAnalytics extends SituationAnalytics
 
     private function organizationTypes(SituationContext $context): SituationPanel
     {
-        $counts = $this->countBy($this->organizations($context), "COALESCE(CAST(o.organization_type_id AS VARCHAR(64)), '__none')");
+        $counts = $this->countBy($this->organizations($context), 'COALESCE('.SituationSql::idText('o.organization_type_id').", '__none')");
         $names = OrganizationType::query()->whereIn('id', array_filter(array_keys($counts), fn ($k): bool => $k !== '__none'))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($t): string => (string) $t->id);
 
-        return $this->chart('structure_organization_types', 'donut', self::SOURCE, array_map(fn ($key): array => $key === '__none'
+        return $this->chart('structure_organization_types', 'hbar', self::SOURCE, array_map(fn ($key): array => $key === '__none'
             ? SituationLabel::key('situationRoom.values.common.not_recorded')
             : SituationLabel::names($names[$key]->name_en ?? null, $names[$key]->name_am ?? null), array_keys($counts)), [
                 ['key' => 'organizations', 'label' => SituationLabel::key('situationRoom.kpi.organizations'), 'values' => array_values($counts)],
@@ -85,7 +86,7 @@ final class StructureAnalytics extends SituationAnalytics
 
     private function unitTypes(SituationContext $context): SituationPanel
     {
-        $top = $this->topWithOther($this->countBy($this->units($context), "COALESCE(CAST(u.organization_unit_type_id AS VARCHAR(64)), '__none')"));
+        $top = $this->topWithOther($this->countBy($this->units($context), 'COALESCE('.SituationSql::idText('u.organization_unit_type_id').", '__none')"));
         $names = OrganizationUnitType::withTrashed()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($t): string => (string) $t->id);
 
         return $this->chart('structure_unit_types', 'hbar', self::SOURCE, array_map(fn ($key): array => match ((string) $key) {
