@@ -30,11 +30,19 @@ enum SituationCategory: string
     case DailyOperations = 'daily_operations';
     case Performance = 'performance';
     case Movement = 'movement';
+    case Recruitment = 'recruitment';
+    case Credentials = 'credentials';
+    case Reception = 'reception';
     case FieldWork = 'field_work';
     case ServiceMonitoring = 'service_monitoring';
     case Cafeteria = 'cafeteria';
     case Transport = 'transport';
+    case Entitlements = 'entitlements';
+    case Communication = 'communication';
     case Cases = 'cases';
+    case Court = 'court';
+    case Assessment = 'assessment';
+    case Requests = 'requests';
     case CriticalAttention = 'critical_attention';
     case Trends = 'trends';
     case DataQuality = 'data_quality';
@@ -43,14 +51,14 @@ enum SituationCategory: string
     public function permission(): string
     {
         return match ($this) {
-            self::Overview, self::Structure, self::CriticalAttention, self::Trends, self::DataQuality => SituationPermissions::VIEW,
-            self::Workforce, self::Movement => SituationPermissions::WORKFORCE,
-            self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs => SituationPermissions::PUBLIC_VOICE,
-            self::DailyOperations, self::FieldWork, self::ServiceMonitoring => SituationPermissions::OPERATIONS,
-            self::Performance => SituationPermissions::PERFORMANCE,
+            self::Overview, self::Structure, self::CriticalAttention, self::Trends, self::DataQuality, self::Requests => SituationPermissions::VIEW,
+            self::Workforce, self::Movement, self::Recruitment, self::Credentials => SituationPermissions::WORKFORCE,
+            self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs, self::Reception => SituationPermissions::PUBLIC_VOICE,
+            self::DailyOperations, self::FieldWork, self::ServiceMonitoring, self::Entitlements, self::Communication => SituationPermissions::OPERATIONS,
+            self::Performance, self::Assessment => SituationPermissions::PERFORMANCE,
             self::Cafeteria => SituationPermissions::CAFETERIA,
             self::Transport => SituationPermissions::TRANSPORT,
-            self::Cases => SituationPermissions::CASES,
+            self::Cases, self::Court => SituationPermissions::CASES,
         };
     }
 
@@ -59,10 +67,10 @@ enum SituationCategory: string
     {
         return match ($this) {
             self::Overview, self::CriticalAttention, self::Trends => 'command',
-            self::Workforce, self::Structure, self::Movement => 'people',
-            self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs => 'public_voice',
-            self::DailyOperations, self::Performance, self::FieldWork, self::ServiceMonitoring, self::Cafeteria, self::Transport => 'operations',
-            self::Cases, self::DataQuality => 'governance',
+            self::Workforce, self::Structure, self::Movement, self::Recruitment, self::Credentials => 'people',
+            self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs, self::Reception => 'public_voice',
+            self::DailyOperations, self::Performance, self::FieldWork, self::ServiceMonitoring, self::Cafeteria, self::Transport, self::Entitlements, self::Communication => 'operations',
+            self::Cases, self::Court, self::Assessment, self::Requests, self::DataQuality => 'governance',
         };
     }
 
@@ -85,6 +93,14 @@ enum SituationCategory: string
             self::Cafeteria => 'ReceiptTextIcon',
             self::Transport => 'BusIcon',
             self::Cases => 'ScaleIcon',
+            self::Court => 'GavelIcon',
+            self::Recruitment => 'UserPlusIcon',
+            self::Credentials => 'IdCardIcon',
+            self::Reception => 'InboxInIcon',
+            self::Entitlements => 'WalletIcon',
+            self::Communication => 'ChatIcon',
+            self::Assessment => 'RankingIcon',
+            self::Requests => 'TaskIcon',
             self::CriticalAttention => 'AlertTriangle',
             self::Trends => 'ActivityIcon',
             self::DataQuality => 'BadgeCheckIcon',
@@ -94,7 +110,7 @@ enum SituationCategory: string
     /** Whether the category may be shown on a wall display (aggregates only, never identities). */
     public function wallEligible(): bool
     {
-        return in_array($this, [self::Overview, self::Workforce, self::Complaints, self::Feedback, self::TipOffs, self::DailyOperations, self::FieldWork], true);
+        return in_array($this, [self::Overview, self::Workforce, self::Complaints, self::Feedback, self::TipOffs, self::DailyOperations, self::FieldWork, self::Reception, self::Recruitment, self::Court], true);
     }
 
     public function visibleTo(User $user): bool

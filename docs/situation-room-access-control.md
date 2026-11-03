@@ -13,12 +13,13 @@ enforced on the server for every request; the browser only hides links.
 | `situation_room.view_employee_targeted` (+ `service_feedback.view_employee_target`) | Employee-level tables inside one focused organization and the targeted-employee pages (audited). |
 | `situation_room.view_detail` | Submission text on the targeted-employee drill-down (audited). |
 | `situation_room.manage_actions` | Record and update actions in the Action Register. |
-| `situation_room.workforce.view` | Workforce, Movement. |
-| `situation_room.public_voice.view` | Community Voice by Institution, Complaints, Feedback, Tip-offs, Service Delivery. |
-| `situation_room.operations.view` | Daily Operations, Field Work. |
-| `situation_room.performance.view` | Performance (EPMS). |
+| `situation_room.workforce.view` | Workforce, Movement, Recruitment & Transfer, ID Cards & Credentials. |
+| `situation_room.public_voice.view` | Community Voice by Institution, Complaints, Feedback, Tip-offs, Service Delivery, Reception & Front Desk. |
+| `situation_room.operations.view` | Daily Operations, Field Work, Service Monitoring, Entitlements & Service Use, Announcements & Messaging. |
+| `situation_room.performance.view` | Performance (EPMS), Institutional Assessment. |
 | `situation_room.cafeteria.view` | Cafeteria. |
-| `situation_room.cases.view` | Grievance, Discipline & Appeal summary (counts only). |
+| `situation_room.cases.view` | Grievance, Discipline & Appeal summary and Tribunal Court (counts only). |
+| `situation_room.view` alone | Overview, Structure, Critical Attention, Trends, Data Quality, Requests & Registers. |
 | `system-settings.manageSituationRoom` | System Settings › Situation Room. |
 
 The first six come from `2026_10_14_130000_register_situation_room_permissions`;
