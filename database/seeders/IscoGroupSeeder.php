@@ -21,6 +21,9 @@ use RuntimeException;
  * Idempotent on (revision, code): a re-run refreshes names and parents and
  * creates nothing twice. Existing occupations whose recorded isco_code names
  * a unit group of this revision and which cite no group yet are linked to it.
+ * Every unit group then gets an occupation of its own (436 in ISCO-08). An
+ * occupation that already holds the code, archived ones included, is left as
+ * it is, so curated names survive and archived rows are not brought back.
  */
 class IscoGroupSeeder extends Seeder
 {
@@ -53,7 +56,35 @@ class IscoGroupSeeder extends Seeder
             }
 
             $this->linkOccupations();
+            $this->createUnitGroupOccupations();
         });
+    }
+
+    /** One occupation per unit group, carrying the group's names and its four ISCO codes. */
+    private function createUnitGroupOccupations(): void
+    {
+        $taken = [];
+        Occupation::withTrashed()->get(['code', 'isco_code'])->each(function (Occupation $occupation) use (&$taken): void {
+            $taken[$occupation->code] = true;
+            if ($occupation->isco_code !== null) {
+                $taken[$occupation->isco_code] = true;
+            }
+        });
+
+        IscoGroup::query()->where('revision', self::REVISION)->where('level', 'unit')->orderBy('code')->get()
+            ->reject(fn (IscoGroup $unit): bool => isset($taken[$unit->code]))
+            ->each(fn (IscoGroup $unit) => Occupation::query()->create([
+                'code' => $unit->code,
+                'isco_code' => $unit->code,
+                'isco_group_id' => $unit->getKey(),
+                'isco_major_group_code' => substr($unit->code, 0, 1),
+                'isco_sub_major_group_code' => substr($unit->code, 0, 2),
+                'isco_minor_group_code' => substr($unit->code, 0, 3),
+                'isco_unit_group_code' => $unit->code,
+                'name_en' => $unit->name_en,
+                'name_am' => $unit->name_am,
+                'is_active' => true,
+            ]));
     }
 
     /** Occupations that record a unit-group code but cite no ISCO row yet are pointed at the seeded row. */

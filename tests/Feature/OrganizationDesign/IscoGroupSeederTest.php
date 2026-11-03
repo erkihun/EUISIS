@@ -41,3 +41,26 @@ test('re-running the ISCO-08 seeder is idempotent and links occupations to their
         ->and($developers->iscoGroup?->level)->toBe('unit')
         ->and(Occupation::query()->whereNull('isco_group_id')->count())->toBe(0);
 });
+
+test('every ISCO-08 unit group gets one occupation and existing occupations keep their names', function (): void {
+    $this->seed(OccupationSeeder::class);
+    Occupation::query()->where('isco_code', '2411')->update(['name_en' => 'Curated accountants']);
+    Occupation::query()->where('isco_code', '2611')->firstOrFail()->delete();
+
+    $this->seed(IscoGroupSeeder::class);
+    $this->seed(IscoGroupSeeder::class);
+
+    expect(Occupation::withTrashed()->count())->toBe(436)
+        ->and(Occupation::query()->count())->toBe(435)
+        ->and(Occupation::query()->whereNull('isco_group_id')->count())->toBe(0)
+        ->and(Occupation::query()->where('isco_code', '2411')->value('name_en'))->toBe('Curated accountants');
+
+    $seeded = Occupation::query()->where('isco_code', '0110')->firstOrFail();
+    expect($seeded->code)->toBe('0110')
+        ->and($seeded->isco_major_group_code)->toBe('0')
+        ->and($seeded->isco_sub_major_group_code)->toBe('01')
+        ->and($seeded->isco_minor_group_code)->toBe('011')
+        ->and($seeded->isco_unit_group_code)->toBe('0110')
+        ->and($seeded->iscoGroup?->code)->toBe('0110')
+        ->and($seeded->is_active)->toBeTruthy();
+});
