@@ -70,6 +70,66 @@ class OrganizationType extends Model
         return in_array($parentType->code, $allowed, true);
     }
 
+    /** The category a known type starts with, by Amharic name; it stays editable on the type. */
+    public const DEFAULT_CATEGORIES = [
+        'ከተማ አስተዳደር' => 'root',
+        'የከንቲባ ጽህፈት ቤት' => 'functional',
+        'ጽህፈት ቤት' => 'functional',
+        'ቢሮ' => 'functional',
+        'ኤጀንሲ' => 'functional',
+        'ማዕከል' => 'functional',
+        'ተቋም' => 'functional',
+        'ዘርፍ' => 'functional',
+        'ዳይሬክቶሬት' => 'functional',
+        'ዲፓርትመንት' => 'functional',
+        'ቡድን' => 'functional',
+        'ፑል' => 'functional',
+        'ክፍለ ከተማ' => 'geographic',
+        'ወረዳ' => 'geographic',
+        'ቅርንጫፍ' => 'geographic',
+        'አገልግሎት ሰጪ' => 'service_provider',
+        'ምክር ቤት' => 'independent',
+        'ኮሚሽን' => 'independent',
+        'ባለሥልጣን' => 'independent',
+        'ኮርፖሬሽን' => 'independent',
+        'የልማት ድርጅት' => 'independent',
+        'ሆልዲንግስ' => 'independent',
+    ];
+
+    /** Types the owner abbreviates instead of taking the first letter of the name. */
+    public const PREFIX_EXCEPTIONS = [
+        'ከተማ አስተዳደር' => 'ከማ',
+        'ምክር ቤት' => 'ምቤ',
+        'የልማት ድርጅት' => 'ልድ',
+        'አገልግሎት ሰጪ' => 'አሰ',
+        'ኮሚሽን' => 'ኮሚ',
+        'ኮርፖሬሽን' => 'ኮር',
+    ];
+
+    /** The code prefix of a type: the first letter of its Amharic name, unless it has its own abbreviation. */
+    public static function prefixFromName(?string $nameAm): ?string
+    {
+        $name = trim((string) $nameAm);
+        if (isset(self::PREFIX_EXCEPTIONS[$name])) {
+            return self::PREFIX_EXCEPTIONS[$name];
+        }
+
+        $letter = mb_substr($name, 0, 1, 'UTF-8');
+
+        return preg_match('/^\p{Ethiopic}$/u', $letter) === 1 ? $letter : null;
+    }
+
+    /** Named rather than coded: a type's code is a generated number, not a stable meaning. */
+    public function isSubCity(): bool
+    {
+        return $this->code === 'SUB_CITY' || $this->name_am === 'ክፍለ ከተማ';
+    }
+
+    public function isWoreda(): bool
+    {
+        return $this->code === 'WOREDA' || $this->name_am === 'ወረዳ';
+    }
+
     protected function prefix(): Attribute
     {
         return Attribute::make(

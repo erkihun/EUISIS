@@ -99,7 +99,19 @@ export default function OrganizationShow({
     institutionOffices = [],
     reportingOffices = [],
     reportingUnits = [],
+    versionHistory = [],
+    isArchived = false,
 }: {
+    isArchived?: boolean;
+    versionHistory?: {
+        id: string;
+        version_name: string;
+        status: string;
+        effective_from: string | null;
+        effective_to: string | null;
+        parent: { code: string; name_en: string; name_am: string | null } | null;
+        children_count: number;
+    }[];
     organization: {
         id: string;
         code: string;
@@ -212,12 +224,14 @@ export default function OrganizationShow({
                                 </Link>
                             )}
                             {/* Read-only view: gated by `view`, which the user already holds here. */}
-                            <Link
-                                href={route('organizations.organogram', organization.id)}
-                                className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                            >
-                                {t('organizations.generateOrganogram')}
-                            </Link>
+                            {!isArchived && (
+                                <Link
+                                    href={route('organizations.organogram', organization.id)}
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                >
+                                    {t('organizations.generateOrganogram')}
+                                </Link>
+                            )}
                             {can.update && (
                                 <Link
                                     href={route('organizations.edit', organization.id)}
@@ -266,6 +280,12 @@ export default function OrganizationShow({
             }
         >
             <Head title={organization.name_en} />
+
+            {isArchived && (
+                <p role="status" className="mb-4 rounded-card border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+                    {t('organizations.archivedNotice')}
+                </p>
+            )}
 
             <section className="mb-6 overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) p-5 sm:p-6">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
@@ -484,6 +504,31 @@ export default function OrganizationShow({
 
             <OrganizationStructureTree tree={structureTree} t={t} locale={locale} />
 
+            {versionHistory.length > 0 && (
+                <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">{t('organizations.versionHistory')}</h3>
+                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('organizations.versionHistoryHelp')}</p>
+                    <ul className="mt-3 divide-y divide-(--app-border)">
+                        {versionHistory.map((entry) => (
+                            <li key={entry.id} className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1 py-3 text-sm">
+                                <div className="min-w-0">
+                                    <Link href={route('hierarchy-versions.show', entry.id)} className="font-medium text-primary hover:text-primary-hover">{entry.version_name}</Link>
+                                    <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
+                                        <LocalizedDateDisplay value={entry.effective_from} />
+                                        {entry.effective_to && <> – <LocalizedDateDisplay value={entry.effective_to} /></>}
+                                    </p>
+                                    <p className="mt-1 text-xs text-(--app-foreground)">
+                                        {t('organizations.versionHistoryParent')}: {entry.parent ? `${entry.parent.code} · ${localizedName(entry.parent.name_en, entry.parent.name_am, locale)}` : t('organizations.versionHistoryTop')}
+                                        {entry.children_count > 0 && <> · {t('organizations.versionHistoryChildren')}: {entry.children_count}</>}
+                                    </p>
+                                </div>
+                                <StatusBadge status={entry.status} />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+
             {/* Subtree descendants — readable names, not raw UUIDs */}
             {descendants.length > 0 && (
                 <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
@@ -578,12 +623,12 @@ export default function OrganizationShow({
                         <h3 className="font-semibold text-(--app-foreground)">
                             {t('institutionOffices.title')} ({institutionOffices.length})
                         </h3>
-                        <Link
+                        {!isArchived && (<Link
                             href={`${route('institution-offices.create')}?institution_id=${organization.id}`}
                             className={actionLinkClassName()}
                         >
                             + {t('institutionOffices.addOffice')}
-                        </Link>
+                        </Link>)}
                     </div>
                     <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
                         <table className={cx(tableClassName, 'min-w-full text-left')}>

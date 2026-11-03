@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Organizations\ArchiveOrganizationAction;
 use App\Actions\Organizations\CreateOrganizationAction;
 use App\Actions\Organizations\DeactivateOrganizationAction;
 use App\Actions\Organizations\DeleteOrganizationAction;
 use App\Actions\Organizations\GetOrganizationFullTreeAction;
 use App\Actions\Organizations\UpdateOrganizationAction;
+use App\Enums\AuditEventType;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationStatus;
 use App\Http\Controllers\Controller;
@@ -30,17 +32,25 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Support\MapConfig;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Feedback\Contracts\OrganizationFeedbackQrPermissions;
 
 class OrganizationController extends Controller
 {
+    private const SORTABLE_COLUMNS = ['manual', 'code', 'name', 'type', 'category', 'parent', 'status', 'created_at'];
+
+    /** Arranging needs every row on one page, so a move can cross what would be a page break. */
+    private const ARRANGE_PAGE_SIZE = 1000;
+
     public function index(Request $request, OrganizationScopeService $scopeService, OrganizationDeletionGuard $organizationDeletionGuard): Response
     {
         $user = Auth::user();
@@ -52,15 +62,20 @@ class OrganizationController extends Controller
             ->latest('approval_date')
             ->first();
 
-        $filters = [
-            'search' => $request->string('search')->trim()->toString(),
-            'type' => $request->string('type')->toString(),
-            'status' => $request->string('status')->toString(),
-            'category' => $request->string('category')->toString(),
-        ];
+        // The saved order covers every organization, so it is arranged unfiltered.
+        $arranging = $request->boolean('arrange') && ($user?->can('manageHierarchy', Organization::class) ?? false);
 
-        $organizationsQuery = Organization::query()
-            ->where('status', '!=', OrganizationStatus::Archived->value)
+        $filters = $arranging
+            ? ['search' => '', 'type' => '', 'status' => '', 'category' => '']
+            : [
+                'search' => $request->string('search')->trim()->toString(),
+                'type' => $request->string('type')->toString(),
+                'status' => $request->string('status')->toString(),
+                'category' => $request->string('category')->toString(),
+            ];
+
+        // Archived institutions stay out of the working list and open on request, as history.
+        $organizationsQuery = ($filters['status'] === OrganizationStatus::Archived->value ? Organization::withTrashed() : Organization::query()->where('status', '!=', OrganizationStatus::Archived->value))
             ->with('type:id,code,name_en,name_am,category')
             ->when($filters['search'] !== '', function ($query) use ($filters): void {
                 $search = '%'.$filters['search'].'%';
@@ -71,13 +86,23 @@ class OrganizationController extends Controller
             })
             ->when($filters['type'] !== '', fn ($query) => $query->whereHas('type', fn ($typeQuery) => $typeQuery->where('code', $filters['type'])))
             ->when($filters['category'] !== '', fn ($query) => $query->whereHas('type', fn ($typeQuery) => $typeQuery->where('category', $filters['category'])))
-            ->when($filters['status'] !== '', fn ($query) => $query->where('status', $filters['status']))
-            ->orderBy('name_en');
+            ->when($filters['status'] !== '', fn ($query) => $query->where('status', $filters['status']));
+
+        $hasManualOrder = Organization::query()->whereNotNull('sort_order')->exists();
+        $sort = $request->string('sort')->toString();
+        $sort = match (true) {
+            $arranging => 'manual',
+            in_array($sort, self::SORTABLE_COLUMNS, true) => $sort,
+            $hasManualOrder => 'manual',
+            default => 'name',
+        };
+        $direction = $sort !== 'manual' && $request->string('direction')->toString() === 'desc' ? 'desc' : 'asc';
+        $this->applyListSort($organizationsQuery, $sort, $direction, $publishedVersion?->id);
 
         $scopeService->applyOrganizationScope($organizationsQuery, $user, 'id');
 
         $paginator = $organizationsQuery
-            ->paginate(20, ['id', 'code', 'name_en', 'name_am', 'status', 'organization_type_id', 'created_at'])
+            ->paginate($arranging ? self::ARRANGE_PAGE_SIZE : 20, ['id', 'code', 'name_en', 'name_am', 'status', 'organization_type_id', 'created_at'])
             ->withQueryString();
         $pageOrganizations = $paginator->getCollection();
         $deletionBlockers = $organizationDeletionGuard->reasonsFor($pageOrganizations);
@@ -116,9 +141,12 @@ class OrganizationController extends Controller
         return Inertia::render('Organizations/Index', [
             'organizations' => $paginator,
             'filters' => $filters,
+            'sort' => ['column' => $sort, 'direction' => $direction],
+            'arranging' => $arranging,
+            'hasManualOrder' => $hasManualOrder,
             'filterOptions' => [
                 'types' => OrganizationType::query()->orderBy('name_en')->get(['code', 'name_en', 'name_am']),
-                'statuses' => collect(OrganizationStatus::cases())->reject(fn (OrganizationStatus $status) => $status === OrganizationStatus::Archived)->pluck('value'),
+                'statuses' => collect(OrganizationStatus::cases())->pluck('value'),
                 'categories' => OrganizationType::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category'),
             ],
             'stats' => $this->indexStats($user, $scopeService),
@@ -129,6 +157,134 @@ class OrganizationController extends Controller
                 'manageHierarchy' => $user?->can('manageHierarchy', Organization::class) ?? false,
             ],
         ]);
+    }
+
+    private function isArchived(Organization $organization): bool
+    {
+        return $organization->trashed() || $organization->status === OrganizationStatus::Archived;
+    }
+
+    /**
+     * Organizational memory: every hierarchy version this institution appeared in,
+     * who it sat under then and how many sat under it, newest first.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function versionHistory(Organization $organization): array
+    {
+        $edges = OrganizationEdge::query()
+            ->where(fn ($query) => $query->where('child_organization_id', $organization->id)->orWhere('parent_organization_id', $organization->id))
+            ->get(['hierarchy_version_id', 'parent_organization_id', 'child_organization_id']);
+        $parents = Organization::withTrashed()->whereIn('id', $edges->pluck('parent_organization_id')->unique())->get(['id', 'code', 'name_en', 'name_am'])->keyBy('id');
+
+        return HierarchyVersion::query()->whereIn('id', $edges->pluck('hierarchy_version_id')->unique())
+            ->orderByDesc('effective_from')->orderByDesc('created_at')
+            ->get(['id', 'version_name', 'status', 'effective_from', 'effective_to'])
+            ->map(function (HierarchyVersion $version) use ($edges, $parents, $organization): array {
+                $inVersion = $edges->where('hierarchy_version_id', $version->id);
+                $above = $inVersion->firstWhere('child_organization_id', $organization->id);
+
+                return [
+                    'id' => $version->id,
+                    'version_name' => $version->version_name,
+                    'status' => $version->status->value,
+                    'effective_from' => $version->effective_from?->toDateString(),
+                    'effective_to' => $version->effective_to?->toDateString(),
+                    'parent' => $above ? $parents->get($above->parent_organization_id)?->only(['code', 'name_en', 'name_am']) : null,
+                    'children_count' => $inVersion->where('parent_organization_id', $organization->id)->count(),
+                ];
+            })->values()->all();
+    }
+
+    /**
+     * Whitelisted, never passed through: these names choose what reaches ORDER BY.
+     * Names follow the reader's language, falling back to English where Amharic is
+     * blank, and the code breaks ties so paging stays stable.
+     *
+     * @param  Builder<Organization>  $query
+     */
+    private function applyListSort(Builder $query, string $sort, string $direction, ?string $publishedVersionId): void
+    {
+        $name = app()->getLocale() === 'am' ? 'COALESCE(%1$s.name_am, %1$s.name_en)' : 'COALESCE(%1$s.name_en, %1$s.name_am)';
+        $type = fn (string $column) => DB::table('organization_types')
+            ->selectRaw($column)
+            ->whereColumn('organization_types.id', 'organizations.organization_type_id')
+            ->limit(1);
+
+        // Databases disagree on where NULL sorts; a row with nothing to compare stays at the end either way.
+        $blanksLast = fn ($value) => $query
+            ->orderByRaw('('.$value->toSql().') IS NULL', $value->getBindings())
+            ->orderBy($value, $direction);
+
+        match ($sort) {
+            'manual' => $query->orderByRaw('sort_order IS NULL')->orderBy('sort_order'),
+            'code', 'status', 'created_at' => $query->orderBy($sort, $direction),
+            'name' => $query->orderByRaw(sprintf($name, 'organizations').' '.$direction),
+            'type' => $query->orderBy($type(sprintf($name, 'organization_types')), $direction),
+            'category' => $blanksLast($type('category')),
+            'parent' => $blanksLast(
+                DB::table('organization_edges')
+                    ->join('organizations as parents', 'parents.id', '=', 'organization_edges.parent_organization_id')
+                    ->selectRaw(sprintf($name, 'parents'))
+                    ->whereColumn('organization_edges.child_organization_id', 'organizations.id')
+                    ->where('organization_edges.hierarchy_version_id', $publishedVersionId)
+                    ->limit(1),
+            ),
+        };
+
+        $query->orderBy('code');
+    }
+
+    /**
+     * Saves the order chosen on the list. It only decides how the list is shown, so
+     * it writes past the model: a new order is not a change to the organization and
+     * must not touch updated_at or anything listening for organization updates.
+     */
+    public function reorder(Request $request, OrganizationScopeService $scopeService, WriteAuditLogAction $audit): RedirectResponse
+    {
+        $this->authorize('manageHierarchy', Organization::class);
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:'.self::ARRANGE_PAGE_SIZE],
+            'ids.*' => [
+                'required',
+                'uuid',
+                'distinct',
+                Rule::exists('organizations', 'id')
+                    ->whereNull('deleted_at')
+                    ->whereNot('status', OrganizationStatus::Archived->value),
+            ],
+        ]);
+        $ids = array_values($validated['ids']);
+
+        $query = Organization::query()->whereIn('id', $ids);
+        $scopeService->applyOrganizationScope($query, $request->user(), 'id');
+        $organizations = $query->get(['id', 'sort_order'])->keyBy('id');
+        abort_unless($organizations->count() === count($ids), 403);
+
+        DB::transaction(function () use ($ids, $organizations, $request, $audit): void {
+            foreach ($ids as $index => $id) {
+                $organization = $organizations->get($id);
+                $old = $organization->sort_order;
+                $new = $index + 1;
+                if ($old === $new) {
+                    continue;
+                }
+
+                DB::table('organizations')->where('id', $id)->update(['sort_order' => $new]);
+                $audit->execute(
+                    AuditEventType::OrganizationUpdated,
+                    $request->user(),
+                    $organization,
+                    $id,
+                    oldValues: ['sort_order' => $old],
+                    newValues: ['sort_order' => $new],
+                );
+            }
+        });
+
+        return to_route('organizations.index')
+            ->with('flash', ['message' => __('organizations.order_saved'), 'type' => 'success']);
     }
 
     /**
@@ -166,7 +322,7 @@ class OrganizationController extends Controller
      */
     private function rowActionPermissions(?User $user, ?Organization $organization): array
     {
-        if ($user === null || $organization === null) {
+        if ($user === null || $organization === null || $this->isArchived($organization)) {
             return ['update' => false, 'delete' => false, 'archive' => false, 'deactivate' => false, 'createChild' => false];
         }
 
@@ -278,6 +434,8 @@ class OrganizationController extends Controller
             'organization' => $this->organizationPayload($organization),
             'parentOrganizationId' => $parentOrganizationId,
             'parentOrganization' => $parentOrganization?->only(['id', 'code', 'name_en', 'name_am']),
+            'versionHistory' => $this->versionHistory($organization),
+            'isArchived' => $this->isArchived($organization),
             'currentAssignmentsCount' => $organization->assignments()->where('is_current', true)->count(),
             'structureSummary' => [
                 'units' => $organization->organizationUnits()->count(),
@@ -298,15 +456,18 @@ class OrganizationController extends Controller
             // `delete` ability, which also folds in the dependency guard) so the
             // UI can distinguish "hidden — no permission" from "visible but
             // disabled — has dependencies". `deletionBlockers` carries the latter.
-            'can' => [
-                'update' => $user?->can('update', $organization) ?? false,
-                'delete' => $user?->can('organizations.delete')
-                    && ($user !== null && $organizationScopeService->canManageWithinScope($user, $organization)),
-                'archive' => $user?->can('archive', $organization) ?? false,
-                'deactivate' => $user?->can('deactivate', $organization) ?? false,
-                'createChild' => $user?->can('createChild', $organization) ?? false,
-                'feedbackQr' => $user !== null && app(OrganizationFeedbackQrPermissions::class)->can($user, 'view', $organization),
-            ],
+            // An archived institution is read-only history: no action is offered, and its other routes do not resolve it.
+            'can' => $this->isArchived($organization)
+                ? ['update' => false, 'delete' => false, 'archive' => false, 'deactivate' => false, 'createChild' => false, 'feedbackQr' => false]
+                : [
+                    'update' => $user?->can('update', $organization) ?? false,
+                    'delete' => $user?->can('organizations.delete')
+                        && ($user !== null && $organizationScopeService->canManageWithinScope($user, $organization)),
+                    'archive' => $user?->can('archive', $organization) ?? false,
+                    'deactivate' => $user?->can('deactivate', $organization) ?? false,
+                    'createChild' => $user?->can('createChild', $organization) ?? false,
+                    'feedbackQr' => $user !== null && app(OrganizationFeedbackQrPermissions::class)->can($user, 'view', $organization),
+                ],
             'deletionBlockers' => $organizationDeletionGuard->reasons($organization),
         ]);
     }

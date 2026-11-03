@@ -711,6 +711,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     // Organizations
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
     Route::post('/organizations', [OrganizationController::class, 'store'])->name('organizations.store');
+    Route::post('/organizations/reorder', [OrganizationController::class, 'reorder'])->name('organizations.reorder');
     Route::get('/organizations/create', [OrganizationController::class, 'create'])->name('organizations.create');
     Route::get('/organizations/parent-options', [OrganizationController::class, 'parentOptions'])->name('organizations.parent-options');
 
@@ -722,7 +723,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/organizations/import-structure/preview', [OrganizationStructureImportController::class, 'preview'])->name('organizations.import-structure.preview');
     Route::post('/organizations/import-structure/confirm', [OrganizationStructureImportController::class, 'confirm'])->name('organizations.import-structure.confirm');
 
-    Route::get('/organizations/{organization}', [OrganizationController::class, 'show'])->name('organizations.show');
+    Route::get('/organizations/{organization}', [OrganizationController::class, 'show'])->withTrashed()->name('organizations.show');
     Route::get('/organizations/{organization}/organogram', [OrganizationController::class, 'organogram'])->name('organizations.organogram');
     Route::get('/organizations/{organization}/edit', [OrganizationController::class, 'edit'])->name('organizations.edit');
     Route::patch('/organizations/{organization}', [OrganizationController::class, 'update'])->name('organizations.update');

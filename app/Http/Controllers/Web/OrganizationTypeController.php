@@ -65,7 +65,7 @@ class OrganizationTypeController extends Controller
                 'sort_order' => $t->sort_order,
                 'level_order' => $t->level_order,
                 'category' => $t->category,
-                'parent_allowed_types' => $t->parent_allowed_types ?? [],
+                'parent_allowed_types' => $t->parent_allowed_types,
                 'organizations_count' => (int) $t->organizations_count,
                 'can' => [
                     'update' => $user?->can('update', $t) ?? false,
@@ -109,7 +109,7 @@ class OrganizationTypeController extends Controller
                 'sort_order' => $organizationType->sort_order,
                 'level_order' => $organizationType->level_order,
                 'category' => $organizationType->category,
-                'parent_allowed_types' => $organizationType->parent_allowed_types ?? [],
+                'parent_allowed_types' => $organizationType->parent_allowed_types,
                 'organizations_count' => $organizationType->organizations()->count(),
                 'created_at' => $organizationType->created_at?->toISOString(),
                 'updated_at' => $organizationType->updated_at?->toISOString(),
@@ -191,8 +191,8 @@ class OrganizationTypeController extends Controller
         return OrganizationType::query()
             ->orderBy('level_order')
             ->orderBy('name_en')
-            ->get(['id', 'code', 'name_en'])
-            ->map(fn (OrganizationType $t) => ['code' => $t->code, 'name_en' => $t->name_en])
+            ->get(['id', 'code', 'name_en', 'name_am'])
+            ->map(fn (OrganizationType $t) => ['code' => $t->code, 'name_en' => $t->name_en, 'name_am' => $t->name_am])
             ->values()
             ->all();
     }

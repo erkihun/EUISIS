@@ -85,7 +85,8 @@ class CodeFormatTokenResolver
 
         return match ($token) {
             // ── CORE ──────────────────────────────────────────────────────────
-            'PREFIX' => $rule->prefix ?? '',
+            // A record may bring its own prefix (an organization type's first Amharic letter).
+            'PREFIX' => filled($context['code_prefix'] ?? null) ? $this->sanitize((string) $context['code_prefix']) : ($rule->prefix ?? ''),
             'SUFFIX' => $rule->suffix ?? '',
             'SEPARATOR' => $rule->separator ?? '',
             'SEQUENCE' => str_pad((string) $sequenceNumber, (int) ($rule->sequence_length ?? 4), '0', STR_PAD_LEFT),

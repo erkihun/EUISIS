@@ -185,6 +185,38 @@ test('organization type can be created with level_order category and parent_allo
         ->and($created->parent_allowed_types)->toContain('CITY_ADMIN_S');
 });
 
+test('the list tells no restriction apart from a root type', function (): void {
+    makeHierarchyOrgType('NO_RULE');
+    makeHierarchyOrgType('ROOT_ONLY', ['parent_allowed_types' => []]);
+
+    $this->actingAs(hierarchyAdminUser())
+        ->get(route('organization-types.index'))
+        ->assertOk()
+        ->assertInertia(function (AssertableInertia $page): void {
+            $types = collect($page->toArray()['props']['types']['data'])->keyBy('code');
+
+            expect($types['NO_RULE']['parent_allowed_types'])->toBeNull()
+                ->and($types['ROOT_ONLY']['parent_allowed_types'])->toBe([]);
+        });
+});
+
+test('saving a type with no restriction keeps it unrestricted, so it can still take a parent', function (): void {
+    $parent = makeHierarchyOrgType('A_PARENT');
+    $type = makeHierarchyOrgType('NO_RULE');
+
+    $this->actingAs(hierarchyAdminUser())
+        ->patch(route('organization-types.update', $type), [
+            'code' => 'NO_RULE',
+            'name_en' => 'Renamed',
+            'parent_allowed_types' => null,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($type->fresh()->name_en)->toBe('Renamed')
+        ->and($type->fresh()->parent_allowed_types)->toBeNull()
+        ->and($type->fresh()->allowsParentType($parent))->toBeTrue();
+});
+
 test('organization type store rejects non-existent parent code', function (): void {
     $this->actingAs(hierarchyAdminUser())
         ->post(route('organization-types.store'), [
