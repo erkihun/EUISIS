@@ -28,11 +28,21 @@ class FunctionController extends Controller
         $this->authorize('viewAny', OrganizationFunction::class);
         $user = $request->user();
 
-        $organizations = Organization::query()->orderBy('name_en');
+        // The saved list order, and how many functions each holds, so the page can open on one with something to show.
+        $organizations = Organization::query()
+            ->select(['id', 'code', 'name_en', 'name_am'])
+            ->selectSub(
+                OrganizationFunction::query()->selectRaw('count(*)')->whereColumn('organization_functions.organization_id', 'organizations.id'),
+                'functions_count',
+            )
+            ->orderByRaw('sort_order IS NULL')
+            ->orderBy('sort_order')
+            ->orderBy('name_en');
         $this->scope->applyOrganizationScope($organizations, $user, 'id');
-        $options = $organizations->limit(500)->get(['id', 'code', 'name_en', 'name_am']);
+        $options = $organizations->limit(500)->get();
 
-        $organizationId = $request->string('organization_id')->toString() ?: ($options->first()?->id);
+        $organizationId = $request->string('organization_id')->toString()
+            ?: ($options->firstWhere('functions_count', '>', 0)?->id ?? $options->first()?->id);
         abort_if($organizationId !== null && ! $this->scope->canAccess($user, $organizationId), 403);
 
         return Inertia::render('OrganizationDesign/Functions/Index', [

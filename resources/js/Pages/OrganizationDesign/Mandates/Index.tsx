@@ -8,6 +8,7 @@ import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableC
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type Organization = { id: string; code: string; name_en: string; name_am: string | null };
 
@@ -29,13 +30,29 @@ type Props = {
     legalSources: LegalSourceOption[];
     statuses: string[];
     can: { create: boolean };
+    bulkPublish: { publishable: number; ownDrafts: number } | null;
 };
 
-export default function MandatesIndex({ mandates, filters, organizations, instrumentTypes, legalSources, statuses, can }: Props) {
+export default function MandatesIndex({ mandates, filters, organizations, instrumentTypes, legalSources, statuses, can, bulkPublish }: Props) {
+    const { confirm } = useConfirm();
     const { t, locale, tt } = useDesignText();
     const [draft, setDraft] = useState({ organization_id: filters.organization_id ?? '', status: filters.status ?? '', search: filters.search ?? '' });
     const [creating, setCreating] = useState(false);
     const hasActiveFilters = Object.values(filters).some(Boolean);
+
+    /* The server re-checks every draft; the count here is only what the button promises. */
+    async function publishAllDrafts(count: number) {
+        const { confirmed } = await confirm({
+            title: tt('mandates.bulkPublish').replace(':count', String(count)),
+            description: tt('mandates.bulkPublishConfirm').replace(':count', String(count)),
+            confirmLabel: tt('mandates.publish'),
+            cancelLabel: t('common.cancel'),
+            variant: 'default',
+        });
+        if (confirmed) {
+            router.post(route('organization-design.mandates.bulk-publish'), { organization_id: filters.organization_id ?? '', search: filters.search ?? '' }, { preserveScroll: true });
+        }
+    }
 
     return (
         <AuthenticatedLayout header={<PageHeader title={tt('mandates.title')} description={tt('mandates.description')}
@@ -65,7 +82,15 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                     </FilterField>
                 </FilterPanel>
 
-                <TableCard title={tt('mandates.title')}>
+                <TableCard
+                    title={tt('mandates.title')}
+                    description={bulkPublish && bulkPublish.ownDrafts > 0 ? tt('mandates.bulkPublishOwnDrafts').replace(':count', String(bulkPublish.ownDrafts)) : undefined}
+                    actions={bulkPublish && bulkPublish.publishable > 0 ? (
+                        <Button variant="primary" onClick={() => publishAllDrafts(bulkPublish.publishable)}>
+                            {tt('mandates.bulkPublish').replace(':count', String(bulkPublish.publishable))}
+                        </Button>
+                    ) : undefined}
+                >
                     {mandates.data.length === 0 ? (
                         <EmptyState title={tt('mandates.noMandates')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('mandates.noMandatesHint')} />
                     ) : (

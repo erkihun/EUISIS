@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         // Phase 1: mandates, powers, functions.
         Route::get('/mandates', [MandateController::class, 'index'])->name('mandates.index');
         Route::post('/mandates', [MandateController::class, 'store'])->middleware('throttle:60,1')->name('mandates.store');
+        Route::post('/mandates/bulk-publish', [MandateController::class, 'bulkPublish'])->middleware('throttle:10,1')->name('mandates.bulk-publish');
         Route::get('/mandates/{mandate}', [MandateController::class, 'show'])->whereUuid('mandate')->name('mandates.show');
         Route::put('/mandates/{mandate}', [MandateController::class, 'update'])->whereUuid('mandate')->name('mandates.update');
         Route::post('/mandates/{mandate}/versions', [MandateController::class, 'storeVersion'])->whereUuid('mandate')->name('mandates.versions.store');

@@ -243,3 +243,128 @@ test('the function tree cannot cycle and moving a branch rewrites descendant pat
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('OrganizationDesign/Functions/Index')->has('tree', 2));
 });
+
+function odBulkDraft(Organization $organization, User $author, string $code): InstitutionMandate
+{
+    return InstitutionMandate::query()->create([
+        'organization_id' => $organization->id, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'code' => $code,
+        'title_en' => 'Mandate '.$code, 'legal_instrument_type_id' => LegalInstrumentType::query()->firstOrCreate(['code' => 'BULK-TEST'], ['name_en' => 'Bulk test'])->id,
+        'legal_instrument_number' => '1/2019', 'effective_from' => now()->subDay()->toDateString(),
+        'status' => OrganizationDesignStatus::Draft, 'created_by' => $author->id,
+    ]);
+}
+
+function odBulkApproverFor(Organization $organization): User
+{
+    $user = User::factory()->create();
+    $user->assignRole('Design Approver');
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id, 'organization_id' => $organization->id, 'scope_type' => OrganizationScopeType::Self,
+        'is_active' => true, 'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    return $user;
+}
+
+test('bulk publish publishes the drafts in scope and keeps maker and checker apart', function (): void {
+    $mine = odOrganization('BULK-A');
+    $foreign = odOrganization('BULK-B');
+    $author = User::factory()->create();
+    $approver = odBulkApproverFor($mine);
+    $first = odBulkDraft($mine, $author, 'B-1');
+    $second = odBulkDraft($mine, $author, 'B-2');
+    $own = odBulkDraft($mine, $approver, 'B-3');
+    $outOfScope = odBulkDraft($foreign, $author, 'B-4');
+
+    $this->actingAs($approver)->post(route('organization-design.mandates.bulk-publish'))->assertRedirect();
+
+    expect($first->fresh()->status)->toBe(OrganizationDesignStatus::Published)
+        ->and($first->fresh()->approved_by)->toBe($approver->id)
+        ->and($second->fresh()->status)->toBe(OrganizationDesignStatus::Published)
+        ->and($own->fresh()->status)->toBe(OrganizationDesignStatus::Draft)
+        ->and($outOfScope->fresh()->status)->toBe(OrganizationDesignStatus::Draft);
+});
+
+test('bulk publish follows the list filters and the page counts what it would publish', function (): void {
+    $organization = odOrganization('BULK-C');
+    $other = odOrganization('BULK-D');
+    $author = User::factory()->create();
+    $approver = User::factory()->create();
+    $approver->assignRole('Design Approver');
+    foreach ([$organization, $other] as $scoped) {
+        UserOrganizationScope::query()->create([
+            'user_id' => $approver->id, 'organization_id' => $scoped->id, 'scope_type' => OrganizationScopeType::Self,
+            'is_active' => true, 'effective_from' => now()->subDay()->toDateString(),
+        ]);
+    }
+    $selected = odBulkDraft($organization, $author, 'C-1');
+    $notSelected = odBulkDraft($other, $author, 'C-2');
+    odBulkDraft($other, $approver, 'C-3');
+
+    $this->actingAs($approver)->get(route('organization-design.mandates.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('bulkPublish.publishable', 2)->where('bulkPublish.ownDrafts', 1));
+
+    $this->actingAs($approver)->post(route('organization-design.mandates.bulk-publish'), ['organization_id' => $organization->id])->assertRedirect();
+
+    expect($selected->fresh()->status)->toBe(OrganizationDesignStatus::Published)
+        ->and($notSelected->fresh()->status)->toBe(OrganizationDesignStatus::Draft);
+});
+
+test('bulk publish is refused without the approve permission and the page offers nothing', function (): void {
+    $organization = odOrganization('BULK-E');
+    $officer = odOfficerFor($organization);
+    $draft = odBulkDraft($organization, User::factory()->create(), 'E-1');
+
+    $this->actingAs($officer)->post(route('organization-design.mandates.bulk-publish'))->assertForbidden();
+    $this->actingAs($officer)->get(route('organization-design.mandates.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('bulkPublish', null));
+
+    expect($draft->fresh()->status)->toBe(OrganizationDesignStatus::Draft);
+});
+
+test('bulk publish refuses an organization outside the approver scope', function (): void {
+    $mine = odOrganization('BULK-F');
+    $foreign = odOrganization('BULK-G');
+    $approver = odBulkApproverFor($mine);
+    $draft = odBulkDraft($foreign, User::factory()->create(), 'G-1');
+
+    $this->actingAs($approver)
+        ->post(route('organization-design.mandates.bulk-publish'), ['organization_id' => $foreign->id])
+        ->assertForbidden();
+
+    expect($draft->fresh()->status)->toBe(OrganizationDesignStatus::Draft);
+});
+
+test('the functions page opens on an institution that has functions and shows each count', function (): void {
+    $empty = odOrganization('A-EMPTY');
+    $filled = odOrganization('B-FILLED');
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo('organization-functions.viewAny');
+    foreach ([$empty, $filled] as $organization) {
+        UserOrganizationScope::query()->create([
+            'user_id' => $viewer->id, 'organization_id' => $organization->id, 'scope_type' => OrganizationScopeType::Self,
+            'is_active' => true, 'effective_from' => now()->subDay()->toDateString(),
+        ]);
+    }
+    $empty->update(['name_en' => 'A first by name']);
+    $filled->update(['name_en' => 'B second by name']);
+    $mandate = odBulkDraft($filled, $viewer, 'F-1');
+    OrganizationFunction::query()->create([
+        'organization_id' => $filled->id, 'mandate_id' => $mandate->id, 'code' => 'F-1-01', 'title_en' => 'A function',
+        'sequence' => 1, 'path' => (string) Str::uuid(), 'depth' => 0, 'status' => 'active', 'version_no' => 1,
+    ]);
+
+    $this->actingAs($viewer)->get(route('organization-design.functions.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('organizationId', $filled->id)
+            ->has('tree', 1)
+            ->where('organizations.0.functions_count', 0)
+            ->where('organizations.1.functions_count', 1));
+
+    $this->actingAs($viewer)->get(route('organization-design.functions.index', ['organization_id' => $empty->id]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('organizationId', $empty->id)->has('tree', 0));
+});

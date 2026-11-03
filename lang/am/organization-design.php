@@ -16,6 +16,7 @@ return [
     'mandate_updated' => 'ሥልጣን ተሻሽሏል።',
     'mandate_version_created' => 'አዲስ የሥልጣን ስሪት ተረቅቋል። በሥራ ላይ ለማዋል ያትሙት።',
     'mandate_published' => 'ሥልጣን ይፋ ሆኗል።',
+    'mandate_bulk_published' => ':published ሥልጣኖች ይፋ ሆነዋል፤ :skipped ይፋ አልሆኑም።',
     'mandate_cancelled' => 'የሥልጣን ረቂቅ ተሰርዟል።',
     'mandate_not_draft' => 'ረቂቅ ሥልጣን ብቻ ሊቀየር ይችላል። ይፋ የሆኑ ስሪቶች አይስተካከሉም፤ በምትኩ አዲስ ስሪት ያርቅቁ።',
     'mandate_publish_same_person' => 'ሥልጣኑን ያረቀቀው ሰው ሊያትመው አይችልም። ሌላ የተፈቀደለት አጽዳቂ ማተም አለበት።',
