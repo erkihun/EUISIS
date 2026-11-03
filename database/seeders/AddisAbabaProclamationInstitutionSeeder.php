@@ -25,7 +25,7 @@ use RuntimeException;
  * hierarchy version. The rows live in
  * database/seeders/data/addis-ababa-proclamation-94-2019-institutions.csv.
  *
- * Not part of DatabaseSeeder: it registers real institutions, so it is run on
+ * Not part of the default seeding: it registers real institutions, so it is run on
  * purpose. Idempotent on the Amharic name: a live institution of that name is
  * reused and a re-run publishes nothing new. It archives nothing. English names
  * are translations; the Amharic names follow the proclamation's text. The 11

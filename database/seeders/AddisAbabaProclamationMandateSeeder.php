@@ -22,7 +22,7 @@ use RuntimeException;
  * function per numbered item of its article with lettered items as sub-functions.
  * The text is the proclamation's own, in database/seeders/data/proclamation-94-2019-powers.json.
  *
- * Run after AddisAbabaProclamationInstitutionSeeder; not part of DatabaseSeeder.
+ * Run after AddisAbabaProclamationInstitutionSeeder; not part of the default seeding.
  * A mandate's description holds the whole text of what the proclamation gives that
  * institution. Mandates stay drafts: publishing needs a second person, and nobody's approval is
  * recorded here. The function's required English title is the article citation

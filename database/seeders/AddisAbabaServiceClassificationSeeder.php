@@ -16,7 +16,7 @@ use RuntimeException;
  * numbered function. Names of institutions and functions are the proclamation's;
  * the six sectors are a working grouping the proclamation does not state, and this
  * is not an officially approved classification list. Idempotent, as the importer is,
- * so names edited on the page are overwritten by a re-run. Not part of DatabaseSeeder.
+ * so names edited on the page are overwritten by a re-run. Not part of the default seeding.
  */
 class AddisAbabaServiceClassificationSeeder extends Seeder
 {
