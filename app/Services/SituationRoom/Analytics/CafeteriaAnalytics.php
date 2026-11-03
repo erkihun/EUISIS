@@ -7,6 +7,7 @@ namespace App\Services\SituationRoom\Analytics;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
+use App\Services\SituationRoom\SituationSql;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Modules\Cafeteria\Contracts\Data\TransactionStatus;
@@ -95,7 +96,7 @@ final class CafeteriaAnalytics extends SituationAnalytics
 
     private function providers(SituationContext $context): SituationPanel
     {
-        $top = $this->topWithOther($this->countBy($this->accepted($context), "COALESCE(CAST(c.cafeteria_provider_id AS VARCHAR(64)), '__none')"));
+        $top = $this->topWithOther($this->countBy($this->accepted($context), 'COALESCE('.SituationSql::idText('c.cafeteria_provider_id').", '__none')"));
         $names = DB::table('cafeteria_providers')->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($p): string => (string) $p->id);
 
         return $this->chart('cafeteria_providers', 'hbar', self::SOURCE, array_map(fn ($key): array => match ((string) $key) {

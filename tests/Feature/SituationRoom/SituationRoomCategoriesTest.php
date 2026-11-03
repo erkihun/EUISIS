@@ -91,3 +91,9 @@ it('lists Transport only with its grant and only while the module is on', functi
     config(['features.transport' => false]);
     expect(SituationCategory::Transport->visibleTo($withGrant))->toBeFalse();
 });
+
+it('never casts to VARCHAR, which MySQL refuses and MariaDB does not catch', function (): void {
+    foreach (glob(app_path('Services/SituationRoom/Analytics/*.php')) as $file) {
+        expect(file_get_contents($file))->not->toContain('AS VARCHAR', basename($file));
+    }
+});

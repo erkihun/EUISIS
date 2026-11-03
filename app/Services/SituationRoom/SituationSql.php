@@ -23,6 +23,16 @@ final class SituationSql
         };
     }
 
+    /** An id column as text; MySQL has no CAST(... AS VARCHAR) and refuses it. */
+    public static function idText(string $column): string
+    {
+        return match (DB::connection()->getDriverName()) {
+            'pgsql' => "CAST({$column} AS VARCHAR(64))",
+            'mysql', 'mariadb' => "CAST({$column} AS CHAR(64))",
+            default => "CAST({$column} AS TEXT)",
+        };
+    }
+
     /** The calendar day of a timestamp column, as Y-m-d. */
     public static function day(string $column): string
     {

@@ -7,6 +7,7 @@ namespace App\Services\SituationRoom\Analytics;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
+use App\Services\SituationRoom\SituationSql;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -104,7 +105,7 @@ final class FieldWorkAnalytics extends SituationAnalytics
 
     private function types(SituationContext $context): SituationPanel
     {
-        $counts = $this->countBy($this->inPeriod(self::base($context), 'r.starts_at', $context->period()), "COALESCE(CAST(r.field_work_type_id AS VARCHAR(64)), '__none')");
+        $counts = $this->countBy($this->inPeriod(self::base($context), 'r.starts_at', $context->period()), 'COALESCE('.SituationSql::idText('r.field_work_type_id').", '__none')");
         $top = $this->topWithOther($counts);
         $names = FieldWorkTypeRecord::query()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($t): string => (string) $t->id);
 

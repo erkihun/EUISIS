@@ -115,6 +115,17 @@ export interface SrCan {
     intelligence: boolean;
 }
 
+/** What the landing page reads from the other categories (SituationBriefing). */
+export interface SrBriefing {
+    headlines: Record<string, Array<{ key: string; label: string; value: number | null; unit: string | null; state: SrKpiItem['state'] | null }>>;
+    structure: SrKpiItem[];
+    attention: SrKpiItem[];
+    comparison: Array<{ metric: SrLabel; current: number; previous: number; change: number | null }>;
+    quality: Array<{ check: SrLabel; count: number; of: number; share: number | null; state: SrLabel; fix_in: SrLabel }>;
+    institutions: { columns: SrColumn[]; rows: Array<Record<string, unknown>>; active: number; total: number } | null;
+    placement: { placed: number; total: number } | null;
+}
+
 export interface SrFrameProps {
     labels: SrLabels;
     categories: SrCategory[];

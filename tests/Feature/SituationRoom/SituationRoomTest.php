@@ -495,3 +495,29 @@ it('needs the wall permission for wall mode, and defers the slower sections', fu
             ->where('can.export', false)
             ->where('can.employeeTargeted', false));
 });
+
+it('briefs the landing page only on the areas the viewer may open, without naming anyone', function (): void {
+    $employee = srEmployee($this->woreda, 'Kebede');
+    srEmployeeRow($employee, $this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['comment' => 'Secret briefing text', 'client_name' => 'Visitor Name']);
+
+    $load = function (User $viewer): array {
+        $props = [];
+        $this->actingAs($viewer)->get(route('situation-room.index'))->assertOk()
+            ->assertInertia(function (Assert $page) use (&$props): void {
+                $page->component('SituationRoom/Index')->loadDeferredProps(function (Assert $reload) use (&$props): void {
+                    $props = $reload->toArray()['props'];
+                });
+            });
+
+        return $props['briefing'];
+    };
+
+    $full = $load($this->bureauHead);
+    expect($full['headlines'])->toHaveKey('complaints')
+        ->and($full['quality'])->not->toBeEmpty()
+        ->and(json_encode($full, JSON_THROW_ON_ERROR))->not->toContain('Secret briefing text')->not->toContain('Visitor Name')->not->toContain('Kebede');
+
+    $limited = $load(srUser(['situation_room.view'], $this->bureau));
+    expect($limited['headlines'])->not->toHaveKey('complaints')->not->toHaveKey('workforce')
+        ->and($limited['placement'])->toBeNull();
+});
