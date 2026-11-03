@@ -71,7 +71,7 @@ Set `DB_HOST_PORT` in your shell to use a different port.
 
 | Service | Image | Role |
 | --- | --- | --- |
-| `db` | `postgres:17-alpine` | database; data persists in the `db-data` volume |
+| `db` | `postgres:18-alpine` | database; data persists in the `db-data` volume |
 | `app` | built, target `app` | PHP 8.4 FPM; waits for the database, links storage, migrates, caches config/routes/views |
 | `web` | built, target `web` | nginx on port 8080; serves `public/` and passes PHP to `app` |
 | `queue` | same image as `app` | `php artisan queue:work --queue=default,notifications,long` |

@@ -5,7 +5,7 @@
 #   open http://localhost:8080
 #
 # Services:
-#   db         PostgreSQL 17 (data in the db-data volume; port 15432 on this machine)
+#   db         PostgreSQL 18 (data in the db-data volume; port 15432 on this machine)
 #   app        PHP-FPM; runs migrations on start when AUTO_MIGRATE=true
 #   web        nginx on http://localhost:8080 (APP_PORT overrides)
 #   queue      php artisan queue:work  (default, notifications, long)
@@ -31,12 +31,14 @@ x-app: &app
 
 services:
   db:
-    image: postgres:17-alpine
+    # Matches the PostgreSQL 18 server the development database was copied from.
+    image: postgres:18-alpine
     env_file: .env.docker
     environment:
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      # postgres:18+ images keep the data in a version-named subdirectory of this path.
+      - db-data:/var/lib/postgresql
     ports:
       # 5433 is refused by Windows on some machines (Hyper-V port reservations); 15432 is safe.
       - "127.0.0.1:${DB_HOST_PORT:-15432}:5432"
