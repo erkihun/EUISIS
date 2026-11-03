@@ -5,9 +5,17 @@ declare(strict_types=1);
 namespace App\Services\SituationRoom;
 
 use App\Models\User;
+use App\Services\SituationRoom\Analytics\AssessmentAnalytics;
 use App\Services\SituationRoom\Analytics\CafeteriaAnalytics;
 use App\Services\SituationRoom\Analytics\CaseSummaryAnalytics;
+use App\Services\SituationRoom\Analytics\CommunicationAnalytics;
 use App\Services\SituationRoom\Analytics\ComplaintsAnalytics;
+use App\Services\SituationRoom\Analytics\CourtAnalytics;
+use App\Services\SituationRoom\Analytics\CredentialsAnalytics;
+use App\Services\SituationRoom\Analytics\EntitlementsAnalytics;
+use App\Services\SituationRoom\Analytics\ReceptionAnalytics;
+use App\Services\SituationRoom\Analytics\RecruitmentAnalytics;
+use App\Services\SituationRoom\Analytics\RequestsAnalytics;
 use App\Services\SituationRoom\Analytics\CriticalAttentionAnalytics;
 use App\Services\SituationRoom\Analytics\DailyOperationsAnalytics;
 use App\Services\SituationRoom\Analytics\DataQualityAnalytics;
@@ -56,6 +64,14 @@ final class SituationRoomService
         'cafeteria' => CafeteriaAnalytics::class,
         'transport' => TransportAnalytics::class,
         'cases' => CaseSummaryAnalytics::class,
+        'court' => CourtAnalytics::class,
+        'recruitment' => RecruitmentAnalytics::class,
+        'credentials' => CredentialsAnalytics::class,
+        'reception' => ReceptionAnalytics::class,
+        'entitlements' => EntitlementsAnalytics::class,
+        'communication' => CommunicationAnalytics::class,
+        'assessment' => AssessmentAnalytics::class,
+        'requests' => RequestsAnalytics::class,
         'critical_attention' => CriticalAttentionAnalytics::class,
         'trends' => TrendsAnalytics::class,
         'data_quality' => DataQualityAnalytics::class,
