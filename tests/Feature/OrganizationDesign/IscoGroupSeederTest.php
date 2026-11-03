@@ -70,3 +70,43 @@ test('every ISCO-08 unit group gets one occupation and existing occupations keep
         ->and($seeded->iscoGroup?->code)->toBe('0110')
         ->and($seeded->is_active)->toBeTruthy();
 });
+
+test('every occupation takes its minor group as skill specialization in both languages unless one is recorded', function (): void {
+    $this->seed(OccupationSeeder::class);
+    Occupation::query()->where('isco_code', '2423')->update(['skill_specialization' => 'Curated specialization']);
+
+    $this->seed(IscoGroupSeeder::class);
+
+    expect(Occupation::query()->whereNull('skill_specialization')->count())->toBe(0)
+        ->and(Occupation::query()->whereNull('skill_specialization_am')->count())->toBe(0)
+        ->and(Occupation::query()->where('isco_code', '2423')->value('skill_specialization'))->toBe('Curated specialization')
+        ->and(Occupation::query()->where('isco_code', '2423')->value('skill_specialization_am'))->not->toBeNull();
+
+    $accountants = Occupation::query()->where('isco_code', '2411')->firstOrFail();
+    expect($accountants->skill_specialization)->toBe('Finance professionals')
+        ->and($accountants->skill_specialization_am)->toBe(IscoGroup::query()->where('code', '241')->value('name_am'));
+});
+
+test('every occupation gets the ILO skill level and a description in both languages unless recorded', function (): void {
+    $this->seed(OccupationSeeder::class);
+    Occupation::query()->where('isco_code', '2423')->update(['skill_level' => '3', 'description_en' => 'Curated description']);
+
+    $this->seed(IscoGroupSeeder::class);
+
+    expect(Occupation::query()->whereNull('skill_level')->count())->toBe(0)
+        ->and(Occupation::query()->whereNull('description_en')->count())->toBe(0)
+        ->and(Occupation::query()->whereNull('description_am')->count())->toBe(0);
+
+    $levels = Occupation::query()->whereIn('isco_code', ['0110', '0210', '0310', '1211', '1411', '2411', '3353', '4110', '8322', '9111'])
+        ->pluck('skill_level', 'isco_code')->all();
+
+    expect($levels)->toMatchArray([
+        '0110' => '4', '0210' => '2', '0310' => '1', '1211' => '4', '1411' => '3',
+        '2411' => '4', '3353' => '3', '4110' => '2', '8322' => '2', '9111' => '1',
+    ]);
+
+    $curated = Occupation::query()->where('isco_code', '2423')->firstOrFail();
+    expect($curated->skill_level)->toBe('3')
+        ->and($curated->description_en)->toBe('Curated description')
+        ->and($curated->description_am)->not->toBeNull();
+});

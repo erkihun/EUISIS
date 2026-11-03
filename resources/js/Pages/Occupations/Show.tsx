@@ -1,13 +1,23 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import ClassificationName from '@/Components/ClassificationName';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 import { actionLinkClassName, buttonClassName } from '@/Components/ui';
-export default function OccupationsShow({ occupation }: { occupation: any }) {
+type IscoPathRow = { level: string; code: string; name_en: string | null; name_am: string | null };
+
+const ISCO_LEVEL_LABELS: Record<string, string> = {
+    major: 'occupations.majorGroup',
+    sub_major: 'occupations.subMajorGroup',
+    minor: 'occupations.minorGroup',
+    unit: 'occupations.unitGroup',
+};
+
+export default function OccupationsShow({ occupation, iscoPath = [] }: { occupation: any; iscoPath?: IscoPathRow[] }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
 
@@ -83,8 +93,28 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                         />
                         <Field label={t('occupations.nameEn')} value={occupation.name_en} />
                         <Field label={t('occupations.nameAm')} value={occupation.name_am} />
-                        <Field label={t('occupations.skillSpecialization')} value={occupation.skill_specialization} />
+                        <Field
+                            label={t('occupations.skillLevel')}
+                            value={occupation.skill_level ? t(`occupations.skillLevel${occupation.skill_level}`) : null}
+                        />
+                        <div className="hidden md:block" />
+                        <Field label={t('occupations.skillSpecializationEn')} value={occupation.skill_specialization} />
+                        <Field label={t('occupations.skillSpecializationAm')} value={occupation.skill_specialization_am} />
                     </div>
+                    {iscoPath.length > 0 && (
+                        <div className="mt-4 border-t border-(--app-border) pt-4">
+                            <div className="text-xs font-medium text-(--app-muted-foreground)">{t('occupations.iscoHierarchy')}</div>
+                            <dl className="mt-3 space-y-3 text-sm">
+                                {iscoPath.map((row) => (
+                                    <div key={row.code} className="grid gap-1 sm:grid-cols-[10rem_3.5rem_1fr]">
+                                        <dt className="text-xs text-(--app-muted-foreground)">{t(ISCO_LEVEL_LABELS[row.level] ?? row.level)}</dt>
+                                        <dd className="font-mono text-xs">{row.code}</dd>
+                                        <dd><ClassificationName nameEn={row.name_en} nameAm={row.name_am} plain /></dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </div>
+                    )}
                     {(occupation.description_en || occupation.description_am) && (
                         <div className="mt-4 space-y-3 border-t border-(--app-border) pt-4">
                             {occupation.description_en && (

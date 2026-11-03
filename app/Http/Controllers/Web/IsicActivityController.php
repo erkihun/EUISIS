@@ -26,7 +26,8 @@ class IsicActivityController extends Controller
     {
         $this->authorize('viewAny', IsicActivity::class);
 
-        $query = IsicActivity::query()
+        // Everything but the level, so each level tab can say how many rows it would show.
+        $filtered = IsicActivity::query()
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $search = $request->string('search')->toString();
                 $q->where(function ($nested) use ($search): void {
@@ -35,12 +36,17 @@ class IsicActivityController extends Controller
                         ->orWhere('name_am', ci_like_operator(), "%{$search}%");
                 });
             })
-            ->when($request->filled('level'), fn ($q) => $q->where('level', $request->string('level')->toString()))
-            ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
-            ->orderBy('sort_order')
-            ->orderBy('isic_code');
+            ->when($request->filled('section'), fn ($q) => $q->where('section_code', $request->string('section')->toString()))
+            ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')));
 
-        $activities = $query->paginate(30)->withQueryString();
+        $levelCounts = $filtered->clone()->toBase()->select('level')->selectRaw('count(*) as total')->groupBy('level')->pluck('total', 'level');
+
+        $activities = $filtered
+            ->when($request->filled('level'), fn ($q) => $q->where('level', $request->string('level')->toString()))
+            ->orderBy('sort_order')
+            ->orderBy('isic_code')
+            ->paginate(30)
+            ->withQueryString();
 
         return Inertia::render('IsicActivities/Index', [
             'isicActivities' => IsicActivityResource::collection($activities)->resolve(),
@@ -50,8 +56,12 @@ class IsicActivityController extends Controller
                 'total' => $activities->total(),
                 'per_page' => $activities->perPage(),
             ],
-            'filters' => $request->only(['search', 'level', 'is_active']),
+            'filters' => $request->only(['search', 'section', 'level', 'is_active']),
             'levels' => self::LEVELS,
+            'levelCounts' => $levelCounts,
+            'sections' => IsicActivity::query()->where('level', 'section')->orderBy('sort_order')->orderBy('isic_code')
+                ->get(['isic_code', 'name_en', 'name_am'])
+                ->map(fn (IsicActivity $section): array => ['code' => $section->isic_code, 'name_en' => $section->name_en, 'name_am' => $section->name_am]),
             'can' => [
                 'create' => $request->user()?->can('create', IsicActivity::class) ?? false,
             ],

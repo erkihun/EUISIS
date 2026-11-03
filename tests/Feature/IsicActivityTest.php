@@ -124,3 +124,23 @@ test('unauthorized user cannot create an ISIC activity', function (): void {
         ])
         ->assertForbidden();
 });
+
+test('the list filters by section and counts each level without the level filter', function (): void {
+    foreach ([
+        ['A', 'section', 'A'], ['01', 'division', 'A'], ['011', 'group', 'A'], ['J', 'section', 'J'],
+    ] as [$code, $level, $section]) {
+        IsicActivity::query()->create(['isic_code' => $code, 'level' => $level, 'section_code' => $section, 'name_en' => "Name {$code}", 'is_active' => true]);
+    }
+
+    $this->actingAs(isicViewer())
+        ->get(route('isic-activities.index', ['section' => 'A', 'level' => 'group']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('isicActivities', 1)
+            ->where('isicActivities.0.isic_code', '011')
+            ->where('levelCounts.section', 1)
+            ->where('levelCounts.division', 1)
+            ->where('levelCounts.group', 1)
+            ->has('sections', 2)
+            ->where('sections.0.code', 'A'));
+});

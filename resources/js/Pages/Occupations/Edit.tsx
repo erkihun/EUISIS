@@ -4,14 +4,17 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName as uiInputClassName, FormLabel } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName as uiInputClassName, FormLabel, Select } from '@/Components/ui';
 type Occupation = {
     id: string;
     isco_code: string;
     name_en: string | null;
     name_am: string | null;
     skill_specialization: string | null;
-    description: string | null;
+    skill_specialization_am: string | null;
+    skill_level: string | null;
+    description_en: string | null;
+    description_am: string | null;
 };
 
 type OccupationFormData = {
@@ -19,7 +22,10 @@ type OccupationFormData = {
     name_en: string;
     name_am: string;
     skill_specialization: string;
-    description: string;
+    skill_specialization_am: string;
+    skill_level: string;
+    description_en: string;
+    description_am: string;
 };
 
 export default function OccupationsEdit({ occupation }: { occupation: Occupation }) {
@@ -29,7 +35,10 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
         name_en: occupation.name_en ?? '',
         name_am: occupation.name_am ?? '',
         skill_specialization: occupation.skill_specialization ?? '',
-        description: occupation.description ?? '',
+        skill_specialization_am: occupation.skill_specialization_am ?? '',
+        skill_level: occupation.skill_level ?? '',
+        description_en: occupation.description_en ?? '',
+        description_am: occupation.description_am ?? '',
     });
 
     const inputClassName = cx(uiInputClassName, 'w-full');
@@ -65,13 +74,36 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
                         />
                     </FormField>
 
-                    <FormField error={form.errors.skill_specialization} label={t('occupations.skillSpecialization')}>
+                    <FormField error={form.errors.skill_specialization} label={t('occupations.skillSpecializationEn')}>
                         <input
                             id="skill_specialization"
                             className={inputClassName}
                             value={form.data.skill_specialization}
                             onChange={(event) => form.setData('skill_specialization', event.target.value)}
                         />
+                    </FormField>
+
+                    <FormField error={form.errors.skill_specialization_am} label={t('occupations.skillSpecializationAm')}>
+                        <input
+                            id="skill_specialization_am"
+                            lang="am"
+                            className={inputClassName}
+                            value={form.data.skill_specialization_am}
+                            onChange={(event) => form.setData('skill_specialization_am', event.target.value)}
+                        />
+                    </FormField>
+
+                    <FormField error={form.errors.skill_level} label={t('occupations.skillLevel')}>
+                        <Select
+                            id="skill_level"
+                            value={form.data.skill_level}
+                            onChange={(event) => form.setData('skill_level', event.target.value)}
+                        >
+                            <option value="">{t('occupations.skillLevelAuto')}</option>
+                            {['1', '2', '3', '4'].map((level) => (
+                                <option key={level} value={level}>{t(`occupations.skillLevel${level}`)}</option>
+                            ))}
+                        </Select>
                     </FormField>
 
                     <FormField error={form.errors.name_en} label={t('occupations.nameEn')}>
@@ -92,16 +124,24 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
                         />
                     </FormField>
 
-                    <div className="md:col-span-2">
-                        <FormField error={form.errors.description} label={t('occupations.description')}>
-                            <textarea
-                                id="description"
-                                className={`${inputClassName} min-h-32 resize-y`}
-                                value={form.data.description}
-                                onChange={(event) => form.setData('description', event.target.value)}
-                            />
-                        </FormField>
-                    </div>
+                    <FormField error={form.errors.description_en} label={t('occupations.descriptionEn')}>
+                        <textarea
+                            id="description_en"
+                            className={`${inputClassName} min-h-32 resize-y`}
+                            value={form.data.description_en}
+                            onChange={(event) => form.setData('description_en', event.target.value)}
+                        />
+                    </FormField>
+
+                    <FormField error={form.errors.description_am} label={t('occupations.descriptionAm')}>
+                        <textarea
+                            id="description_am"
+                            lang="am"
+                            className={`${inputClassName} min-h-32 resize-y`}
+                            value={form.data.description_am}
+                            onChange={(event) => form.setData('description_am', event.target.value)}
+                        />
+                    </FormField>
                 </div>
 
                 <div className="flex justify-end gap-3 border-t border-(--app-border) px-6 py-4">

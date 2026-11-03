@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOccupationRequest;
 use App\Http\Requests\UpdateOccupationRequest;
 use App\Http\Resources\OccupationResource;
+use App\Models\IscoGroup;
 use App\Models\Occupation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,9 +36,12 @@ class OccupationController extends Controller
                     $nested->where('isco_code', ci_like_operator(), "%{$search}%")
                         ->orWhere('name_en', ci_like_operator(), "%{$search}%")
                         ->orWhere('name_am', ci_like_operator(), "%{$search}%")
-                        ->orWhere('skill_specialization', ci_like_operator(), "%{$search}%");
+                        ->orWhere('skill_specialization', ci_like_operator(), "%{$search}%")
+                        ->orWhere('skill_specialization_am', ci_like_operator(), "%{$search}%");
                 });
             })
+            ->when($request->filled('major_group'), fn ($q) => $q->where('isco_major_group_code', $request->string('major_group')->toString()))
+            ->when($request->filled('skill_level'), fn ($q) => $q->where('skill_level', $request->string('skill_level')->toString()))
             ->orderBy('isco_code');
 
         $occupations = $query->paginate(30)->withQueryString();
@@ -50,7 +54,11 @@ class OccupationController extends Controller
                 'total' => $occupations->total(),
                 'per_page' => $occupations->perPage(),
             ],
-            'filters' => $request->only(['search', 'is_active']),
+            'filters' => $request->only(['search', 'major_group', 'skill_level', 'is_active']),
+            'majorGroups' => IscoGroup::query()->where('level', 'major')->orderBy('code')
+                ->get(['code', 'name_en', 'name_am'])
+                ->unique('code')
+                ->values(),
             'can' => [
                 'create' => $request->user()?->can('create', Occupation::class) ?? false,
             ],
@@ -76,8 +84,15 @@ class OccupationController extends Controller
     {
         $this->authorize('view', $occupation);
 
+        $iscoPath = [];
+        $occupation->loadMissing('iscoGroup.parent.parent.parent');
+        for ($group = $occupation->iscoGroup; $group !== null; $group = $group->parent) {
+            array_unshift($iscoPath, $group->only(['level', 'code', 'name_en', 'name_am']));
+        }
+
         return Inertia::render('Occupations/Show', [
             'occupation' => (new OccupationResource($occupation))->resolve(),
+            'iscoPath' => $iscoPath,
         ]);
     }
 

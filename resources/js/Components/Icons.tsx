@@ -285,6 +285,20 @@ export function ChevronUp(p: IconProps) {
     );
 }
 
+/* Marks a row that can be dragged to a new place. */
+export function GripVertical(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <circle cx="9" cy="6" r="1" />
+            <circle cx="15" cy="6" r="1" />
+            <circle cx="9" cy="12" r="1" />
+            <circle cx="15" cy="12" r="1" />
+            <circle cx="9" cy="18" r="1" />
+            <circle cx="15" cy="18" r="1" />
+        </svg>
+    );
+}
+
 /* Neutral "this column can be sorted" marker for unsorted table headings. */
 export function ChevronUpDown(p: IconProps) {
     return (

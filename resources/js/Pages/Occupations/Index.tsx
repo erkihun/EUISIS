@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import ClassificationName from '@/Components/ClassificationName';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
@@ -14,6 +15,9 @@ type OccupationRow = {
     isco_code: string;
     name_en: string | null;
     name_am: string | null;
+    skill_specialization: string | null;
+    skill_specialization_am: string | null;
+    skill_level: string | null;
     is_active: boolean;
     deleted_at: string | null;
     can: { view: boolean; update: boolean; archive: boolean; restore: boolean };
@@ -26,21 +30,27 @@ type Meta = {
     per_page: number;
 };
 
+type MajorGroup = { code: string; name_en: string | null; name_am: string | null };
+
 export default function OccupationsIndex({
     occupations,
     meta,
     filters,
+    majorGroups,
     can,
 }: {
     occupations: OccupationRow[];
     meta: Meta;
     filters: Record<string, string>;
+    majorGroups: MajorGroup[];
     can: { create: boolean };
 }) {
-    const { t } = useLocale();
+    const { locale, t } = useLocale();
     const { confirm } = useConfirm();
     const form = useForm({
         search: filters.search ?? '',
+        major_group: filters.major_group ?? '',
+        skill_level: filters.skill_level ?? '',
         is_active: filters.is_active ?? '',
     });
 
@@ -93,7 +103,7 @@ export default function OccupationsIndex({
         >
             <Head title={t('occupations.occupations')} />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 <FilterPanel onSubmit={submit} onReset={() => router.get(route('occupations.index'))} hasActiveFilters={hasActiveFilters}>
                     <FilterField label={t('common.search')} wide>
                         <Input type="search"
@@ -102,7 +112,31 @@ export default function OccupationsIndex({
                             onChange={(e) => form.setData('search', e.target.value)}
                         />
                     </FilterField>
-                    <FilterField label={t('common.status')}>
+                    <FilterField label={t('occupations.majorGroup')} className="sm:w-72">
+                        <Select
+                            value={form.data.major_group}
+                            onChange={(e) => form.setData('major_group', e.target.value)}
+                        >
+                            <option value="">{t('occupations.allMajorGroups')}</option>
+                            {majorGroups.map((group) => (
+                                <option key={group.code} value={group.code}>
+                                    {group.code} · {(locale === 'am' ? group.name_am : group.name_en) ?? group.name_en ?? group.name_am}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('occupations.skillLevel')} className="sm:w-64">
+                        <Select
+                            value={form.data.skill_level}
+                            onChange={(e) => form.setData('skill_level', e.target.value)}
+                        >
+                            <option value="">{t('occupations.allSkillLevels')}</option>
+                            {['1', '2', '3', '4'].map((level) => (
+                                <option key={level} value={level}>{t(`occupations.skillLevel${level}`)}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('common.status')} className="sm:w-40">
                         <Select
                             value={form.data.is_active}
                             onChange={(e) => form.setData('is_active', e.target.value)}
@@ -122,20 +156,12 @@ export default function OccupationsIndex({
                             <table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
-                                        {[
-                                            t('occupations.iscoCode'),
-                                            t('occupations.nameEn'),
-                                            t('occupations.nameAm'),
-                                            t('common.status'),
-                                            '',
-                                        ].map((heading, i) => (
-                                            <th
-                                                key={i}
-                                                className={cx(tableHeaderCellClassName, 'text-left')}
-                                            >
-                                                {heading}
-                                            </th>
-                                        ))}
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'w-24 text-left')}>{t('occupations.iscoCode')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('occupations.occupation')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'hidden w-1/3 text-left xl:table-cell')}>{t('occupations.skillSpecialization')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'hidden w-24 text-left sm:table-cell')}>{t('occupations.skillLevel')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'hidden w-24 text-left xl:table-cell')}>{t('common.status')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'w-12')}><span className="sr-only">{t('common.actions')}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody className={tableBodyClassName}>
@@ -144,24 +170,45 @@ export default function OccupationsIndex({
                                             key={occ.id}
                                             className={tableRowClassName}
                                         >
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs')}>
+                                            <td className={cx(tableCellClassName, 'whitespace-nowrap font-mono text-xs align-top')}>
                                                 <Link
                                                     href={route('occupations.show', occ.id)}
-                                                    className="text-primary hover:text-primary-hover dark:text-primary"
+                                                    className="font-semibold text-primary hover:text-primary-hover dark:text-primary"
                                                 >
                                                     {occ.isco_code}
                                                 </Link>
                                             </td>
-                                            <td className={cx(tableCellClassName, 'font-medium')}>
-                                                {occ.name_en ?? '—'}
+                                            <td className={cx(tableCellClassName, 'whitespace-normal align-top')}>
+                                                <ClassificationName nameEn={occ.name_en} nameAm={occ.name_am} />
+                                                {occ.skill_level && (
+                                                    <div className="mt-1 text-xs text-(--app-muted-foreground) sm:hidden">
+                                                        {t('occupations.skillLevelNumber')} {occ.skill_level}
+                                                    </div>
+                                                )}
+                                                {(occ.skill_specialization || occ.skill_specialization_am) && (
+                                                    <div className="mt-2 text-sm xl:hidden">
+                                                        <div className="mb-0.5 text-xs text-(--app-muted-foreground)">{t('occupations.skillSpecialization')}</div>
+                                                        <ClassificationName nameEn={occ.skill_specialization} nameAm={occ.skill_specialization_am} plain />
+                                                    </div>
+                                                )}
                                             </td>
-                                            <td className={tableCellClassName}>
-                                                {occ.name_am ?? '—'}
+                                            <td className={cx(tableCellClassName, 'hidden whitespace-normal align-top xl:table-cell')}>
+                                                <ClassificationName nameEn={occ.skill_specialization} nameAm={occ.skill_specialization_am} plain />
                                             </td>
-                                            <td className={tableCellClassName}>
+                                            <td className={cx(tableCellClassName, 'hidden align-top sm:table-cell')}>
+                                                {occ.skill_level ? (
+                                                    <span
+                                                        title={t(`occupations.skillLevel${occ.skill_level}`)}
+                                                        className="inline-flex items-center whitespace-nowrap rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium text-(--app-foreground)"
+                                                    >
+                                                        {t('occupations.skillLevelNumber')} {occ.skill_level}
+                                                    </span>
+                                                ) : '—'}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'hidden align-top xl:table-cell')}>
                                                 <StatusBadge status={occ.is_active ? 'active' : 'inactive'} />
                                             </td>
-                                            <td className={tableCellClassName}>
+                                            <td className={cx(tableCellClassName, 'align-top')}>
                                                 <div className="flex justify-end">
                                                     <AppActionMenu
                                                         items={[

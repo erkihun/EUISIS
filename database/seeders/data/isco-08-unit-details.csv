@@ -1,0 +1,437 @@
+code,description_en,description_am
+0110,Lead and command military units and plan defence operations.,ወታደራዊ ክፍሎችን ይመራሉ፣ ያዛሉ እንዲሁም የመከላከያ ዘመቻዎችን ያቅዳሉ።
+0210,"Supervise troops, enforce discipline and carry out orders in the armed forces.",በጦር ኃይል ውስጥ ወታደሮችን ይቆጣጠራሉ፣ ዲሲፕሊን ያስከብራሉ እንዲሁም ትዕዛዞችን ያስፈጽማሉ።
+0310,Perform routine military duties under the direction of officers.,በመኮንኖች መሪነት መደበኛ ወታደራዊ ተግባራትን ያከናውናሉ።
+1111,Make laws and represent citizens in national or regional assemblies.,ሕግ ያወጣሉ፤ በሀገር አቀፍ ወይም በክልል ምክር ቤቶች ዜጎችን ይወክላሉ።
+1112,Head government institutions and advise on national or regional policy.,የመንግሥት ተቋማትን ይመራሉ፤ በሀገራዊ ወይም ክልላዊ ፖሊሲ ላይ ያማክራሉ።
+1113,"Lead local communities, settle disputes and uphold customary practice.",የአካባቢ ማኅበረሰቦችን ይመራሉ፣ ግጭቶችን ይፈታሉ እንዲሁም ባህላዊ ሥርዓትን ይጠብቃሉ።
+1114,"Head parties, unions, associations and humanitarian or advocacy bodies.",ፓርቲዎችን፣ ማኅበራትን እና የሰብዓዊ ወይም የአድቮኬሲ ድርጅቶችን ይመራሉ።
+1120,Set overall direction and run enterprises or large organizations.,የድርጅቶችን አጠቃላይ አቅጣጫ ይወስናሉ፤ ድርጅቶችን ይመራሉ።
+1211,"Plan and control an organization's budgets, accounts and funds.",የድርጅትን በጀት፣ ሂሳብ እና ገንዘብ ያቅዳሉ እንዲሁም ይቆጣጠራሉ።
+1212,"Direct recruitment, pay, staff development and employee relations.",የሠራተኛ ቅጥርን፣ ክፍያን፣ የሠራተኛ ልማትን እና የሥራ ግንኙነትን ይመራሉ።
+1213,Develop and coordinate organizational policy and strategic plans.,የድርጅት ፖሊሲዎችን እና ስትራቴጂያዊ ዕቅዶችን ያዘጋጃሉ እንዲሁም ያስተባብራሉ።
+1219,Manage corporate services and administrative functions not covered elsewhere.,በሌላ ያልተጠቀሱ የድርጅት አገልግሎቶችን እና የአስተዳደር ተግባራትን ይመራሉ።
+1221,"Direct sales targets, pricing and marketing of goods and services.",የሽያጭ ግቦችን፣ ዋጋን እና የዕቃና አገልግሎት ግብይትን ይመራሉ።
+1222,Direct promotional campaigns and an organization's public image.,የማስታወቂያ ዘመቻዎችን እና የድርጅትን የሕዝብ ገጽታ ይመራሉ።
+1223,Plan and oversee research and new product development programmes.,የምርምር እና የአዲስ ምርት ልማት ፕሮግራሞችን ያቅዳሉ እንዲሁም ይቆጣጠራሉ።
+1311,"Run large-scale farming, plantation and forestry operations.",ሰፋፊ የእርሻ፣ የተክል እና የደን ሥራዎችን ይመራሉ።
+1312,Run commercial fish farming and fishing operations.,የንግድ ዓሣ እርባታ እና ዓሣ ማስገር ሥራዎችን ይመራሉ።
+1321,Plan and direct production in factories and processing plants.,በፋብሪካዎች እና በማቀነባበሪያዎች ምርትን ያቅዳሉ እንዲሁም ይመራሉ።
+1322,Plan and direct mine and quarry operations.,የማዕድን እና የድንጋይ ማውጫ ሥራዎችን ያቅዳሉ እንዲሁም ይመራሉ።
+1323,"Plan, schedule and supervise building and civil works projects.",የሕንፃ እና የሲቪል ሥራ ፕሮጀክቶችን ያቅዳሉ፣ መርሐ ግብር ያወጣሉ እንዲሁም ይቆጣጠራሉ።
+1324,"Direct purchasing, storage, transport and distribution of goods.",የዕቃ ግዥን፣ ክምችትን፣ መጓጓዣን እና ስርጭትን ይመራሉ።
+1330,Plan and manage an organization's computing and network services.,የድርጅትን የኮምፒውተር እና የኔትወርክ አገልግሎቶች ያቅዳሉ እንዲሁም ይመራሉ።
+1341,Manage day-care centres and other services for young children.,የሕፃናት ማቆያ ማዕከላትን እና ሌሎች የሕፃናት አገልግሎቶችን ይመራሉ።
+1342,"Manage hospitals, clinics and public health services.",ሆስፒታሎችን፣ ክሊኒኮችን እና የሕዝብ ጤና አገልግሎቶችን ይመራሉ።
+1343,Manage residential and community care services for older people.,ለአረጋውያን የሚሰጡ የመኖሪያ እና የማኅበረሰብ እንክብካቤ አገልግሎቶችን ይመራሉ።
+1344,Manage social assistance and community welfare programmes.,የማኅበራዊ ድጋፍ እና የማኅበረሰብ ደኅንነት ፕሮግራሞችን ይመራሉ።
+1345,"Direct schools, colleges and other education institutions.",ትምህርት ቤቶችን፣ ኮሌጆችን እና ሌሎች የትምህርት ተቋማትን ይመራሉ።
+1346,"Run branches of banks, insurers and other financial institutions.",የባንክ፣ የኢንሹራንስ እና የሌሎች የፋይናንስ ተቋማት ቅርንጫፎችን ይመራሉ።
+1349,Manage specialised professional services not covered elsewhere.,በሌላ ያልተጠቀሱ ልዩ የሙያ አገልግሎቶችን ይመራሉ።
+1411,Run hotels and similar lodging establishments.,ሆቴሎችን እና ተመሳሳይ የመኝታ ተቋማትን ይመራሉ።
+1412,"Run restaurants, cafes and catering businesses.",ምግብ ቤቶችን፣ ካፌዎችን እና የምግብ አቅርቦት ንግዶችን ይመራሉ።
+1420,"Run shops and wholesale businesses, including staff and stock.",ሱቆችን እና የጅምላ ንግዶችን ከሠራተኛ እና ከክምችት ጋር ይመራሉ።
+1431,"Run sports facilities, cultural venues and recreation centres.",የስፖርት ተቋማትን፣ የባህል ቦታዎችን እና የመዝናኛ ማዕከላትን ይመራሉ።
+1439,Manage other service businesses such as travel or facilities services.,እንደ ጉዞ ወይም የተቋማት አገልግሎት ያሉ ሌሎች የአገልግሎት ንግዶችን ይመራሉ።
+2111,"Study matter, energy and the universe through research and experiment.",ቁስን፣ ኃይልን እና ሕዋን በምርምር እና በሙከራ ያጠናሉ።
+2112,Study the atmosphere and forecast weather and climate.,ከባቢ አየርን ያጠናሉ፤ የአየር ሁኔታን እና የአየር ንብረትን ይተነብያሉ።
+2113,Study substances and develop chemical processes and products.,ንጥረ ነገሮችን ያጠናሉ፤ የኬሚካል ሂደቶችን እና ምርቶችን ያለማሉ።
+2114,"Study the earth's structure and locate minerals, oil and water.",የመሬትን አወቃቀር ያጠናሉ፤ ማዕድን፣ ነዳጅ እና ውሃ ያፈላልጋሉ።
+2120,Apply mathematics and statistics to solve practical and financial problems.,ተግባራዊ እና የፋይናንስ ችግሮችን ለመፍታት ሒሳብን እና ስታቲስቲክስን ይጠቀማሉ።
+2131,"Study living organisms and apply findings to health, farming and industry.",ሕያዋን ፍጥረታትን ያጠናሉ፤ ውጤቱን በጤና፣ በግብርና እና በኢንዱስትሪ ይተገብራሉ።
+2132,Advise farmers and foresters on production and land management.,ለገበሬዎች እና ለደን ሠራተኞች በምርት እና በመሬት አጠቃቀም ላይ ምክር ይሰጣሉ።
+2133,Assess environmental damage and design ways to protect natural resources.,የአካባቢ ጉዳትን ይገመግማሉ፤ የተፈጥሮ ሀብትን የመጠበቅ ዘዴዎችን ይነድፋሉ።
+2141,"Design efficient production systems for people, machines and materials.",ለሰው፣ ለማሽን እና ለቁሳቁስ ቀልጣፋ የምርት ሥርዓቶችን ይነድፋሉ።
+2142,"Design and oversee roads, bridges, dams, buildings and water systems.",መንገዶችን፣ ድልድዮችን፣ ግድቦችን፣ ሕንፃዎችን እና የውሃ ሥርዓቶችን ይነድፋሉ እንዲሁም ይቆጣጠራሉ።
+2143,"Design solutions for pollution, waste and environmental risks.",ለብክለት፣ ለቆሻሻ እና ለአካባቢ አደጋዎች መፍትሔ ይነድፋሉ።
+2144,"Design and improve machines, engines and mechanical systems.",ማሽኖችን፣ ሞተሮችን እና መካኒካል ሥርዓቶችን ይነድፋሉ እንዲሁም ያሻሽላሉ።
+2145,Design large-scale chemical processes and plants.,ሰፋፊ የኬሚካል ሂደቶችን እና ፋብሪካዎችን ይነድፋሉ።
+2146,Plan mineral extraction and develop metal production methods.,ማዕድን የማውጣት ሥራን ያቅዳሉ፤ የብረት ማምረቻ ዘዴዎችን ያለማሉ።
+2149,"Apply specialised engineering, such as materials or safety, not covered elsewhere.",በሌላ ያልተጠቀሱ እንደ ቁሳቁስ ወይም ደኅንነት ያሉ ልዩ የምህንድስና ዘርፎችን ይተገብራሉ።
+2151,"Design and oversee power generation, transmission and electrical systems.",የኃይል ማመንጫ፣ ማስተላለፊያ እና የኤሌክትሪክ ሥርዓቶችን ይነድፋሉ እንዲሁም ይቆጣጠራሉ።
+2152,"Design electronic circuits, devices and control systems.",የኤሌክትሮኒክስ ሰርኮችን፣ መሣሪያዎችን እና የቁጥጥር ሥርዓቶችን ይነድፋሉ።
+2153,"Design and maintain voice, data and wireless communication networks.",የድምፅ፣ የዳታ እና የገመድ አልባ መገናኛ ኔትወርኮችን ይነድፋሉ እንዲሁም ይጠብቃሉ።
+2161,Design buildings and supervise their construction.,ሕንፃዎችን ይነድፋሉ፤ ግንባታቸውን ይቆጣጠራሉ።
+2162,"Design parks, gardens and other outdoor spaces.",ፓርኮችን፣ የአትክልት ስፍራዎችን እና ሌሎች የውጭ ቦታዎችን ይነድፋሉ።
+2163,"Design manufactured products, clothing and textiles.",የፋብሪካ ምርቶችን፣ አልባሳትን እና ጨርቃ ጨርቆችን ይነድፋሉ።
+2164,"Plan land use, urban growth and traffic movement.",የመሬት አጠቃቀምን፣ የከተማ ዕድገትን እና የትራፊክ እንቅስቃሴን ያቅዳሉ።
+2165,Measure land and prepare maps and geographic data.,መሬት ይለካሉ፤ ካርታዎችን እና የመልክዓ ምድር መረጃዎችን ያዘጋጃሉ።
+2166,Create visual and interactive content for print and digital media.,ለኅትመት እና ለዲጂታል ሚዲያ ምስላዊ እና መስተጋብራዊ ይዘት ይፈጥራሉ።
+2211,Diagnose and treat a wide range of illnesses and injuries.,የተለያዩ በሽታዎችን እና ጉዳቶችን ይመረምራሉ እንዲሁም ያክማሉ።
+2212,Diagnose and treat conditions within a particular medical specialty.,በተወሰነ የሕክምና ስፔሻሊቲ ውስጥ ያሉ ችግሮችን ይመረምራሉ እንዲሁም ያክማሉ።
+2221,Plan and deliver nursing care and lead care teams.,የነርሲንግ እንክብካቤን ያቅዳሉ፣ ይሰጣሉ እንዲሁም የእንክብካቤ ቡድኖችን ይመራሉ።
+2222,Care for women through pregnancy and birth and care for newborns.,ሴቶችን በእርግዝና እና በወሊድ ጊዜ እንዲሁም አራስ ሕፃናትን ይንከባከባሉ።
+2230,"Treat patients using herbal, traditional or complementary methods.",በዕፅዋት፣ በባህላዊ ወይም በተጓዳኝ ዘዴዎች ሕሙማንን ያክማሉ።
+2240,"Provide clinical care and minor procedures, often where doctors are scarce.",በተለይ ሐኪሞች እጥረት ባለባቸው ቦታዎች ክሊኒካዊ ሕክምና እና ቀላል ሂደቶችን ይሰጣሉ።
+2250,"Diagnose, treat and prevent diseases in animals.",የእንስሳት በሽታዎችን ይመረምራሉ፣ ያክማሉ እንዲሁም ይከላከላሉ።
+2261,Diagnose and treat diseases of the teeth and mouth.,የጥርስ እና የአፍ በሽታዎችን ይመረምራሉ እንዲሁም ያክማሉ።
+2262,Prepare and dispense medicines and advise on their safe use.,መድኃኒቶችን ያዘጋጃሉ፣ ያድላሉ እንዲሁም ስለ ደኅንነታቸው አጠቃቀም ያማክራሉ።
+2263,Assess and control health risks in workplaces and communities.,በሥራ ቦታዎች እና በማኅበረሰብ ውስጥ ያሉ የጤና አደጋዎችን ይገመግማሉ እንዲሁም ይቆጣጠራሉ።
+2264,Restore movement and physical function through therapy and exercise.,በሕክምና እና በእንቅስቃሴ የሰውነት እንቅስቃሴን እና ተግባርን ይመልሳሉ።
+2265,Advise people and institutions on diet and nutrition for health.,ለሰዎች እና ለተቋማት ለጤና በሚሆን አመጋገብ ላይ ምክር ይሰጣሉ።
+2266,"Assess and treat hearing, speech and communication disorders.",የመስማት፣ የንግግር እና የመግባባት ችግሮችን ይገመግማሉ እንዲሁም ያክማሉ።
+2267,Examine eyes and prescribe lenses and vision treatment.,ዓይንን ይመረምራሉ፤ መነጽር እና የዕይታ ሕክምና ያዝዛሉ።
+2269,"Provide specialised health care not covered elsewhere, such as occupational therapy.",በሌላ ያልተጠቀሱ እንደ የሙያ ሕክምና ያሉ ልዩ የጤና አገልግሎቶችን ይሰጣሉ።
+2310,Teach at universities and colleges and carry out scholarly research.,በዩኒቨርሲቲዎች እና ኮሌጆች ያስተምራሉ፤ ምሁራዊ ምርምር ያካሂዳሉ።
+2320,Teach trade and technical skills to prepare learners for work.,ተማሪዎችን ለሥራ ለማዘጋጀት የሙያ እና የቴክኒክ ክህሎቶችን ያስተምራሉ።
+2330,Teach subjects at secondary school level.,በሁለተኛ ደረጃ ትምህርት ቤቶች የትምህርት ዓይነቶችን ያስተምራሉ።
+2341,"Teach reading, writing, numeracy and other basics to primary pupils.",ለአንደኛ ደረጃ ተማሪዎች ማንበብ፣ መጻፍ፣ ሒሳብ እና ሌሎች መሠረታዊ ትምህርቶችን ያስተምራሉ።
+2342,Support young children's learning and development before primary school.,ከአንደኛ ደረጃ በፊት የሕፃናትን ትምህርት እና ዕድገት ይደግፋሉ።
+2351,"Research and advise on curricula, teaching methods and school practice.",በሥርዓተ ትምህርት፣ በማስተማር ዘዴ እና በትምህርት ቤት አሠራር ላይ ምርምር እና ምክር ይሰጣሉ።
+2352,"Teach learners with physical, sensory or learning disabilities.",የአካል፣ የስሜት ሕዋስ ወይም የመማር እክል ያለባቸውን ተማሪዎች ያስተምራሉ።
+2353,Teach languages outside the regular school system.,ከመደበኛው የትምህርት ሥርዓት ውጭ ቋንቋዎችን ያስተምራሉ።
+2354,Teach singing and musical instruments outside regular schooling.,ከመደበኛ ትምህርት ውጭ ዘፈን እና የሙዚቃ መሣሪያ ያስተምራሉ።
+2355,"Teach dance, drama and visual arts outside regular schooling.",ከመደበኛ ትምህርት ውጭ ውዝዋዜ፣ ትወና እና ሥዕል ያስተምራሉ።
+2356,Train people to use computers and software.,ሰዎች ኮምፒውተር እና ሶፍትዌር እንዲጠቀሙ ያሠለጥናሉ።
+2359,"Provide specialised instruction not covered elsewhere, such as tutoring.",በሌላ ያልተጠቀሱ እንደ ልዩ ድጋፍ ትምህርት ያሉ ሥልጠናዎችን ይሰጣሉ።
+2411,Prepare and audit financial records and advise on accounts and tax.,የፋይናንስ መዛግብትን ያዘጋጃሉ፣ ኦዲት ያደርጋሉ እንዲሁም በሂሳብ እና በታክስ ያማክራሉ።
+2412,"Advise clients on savings, investments and financial plans.",ለደንበኞች በቁጠባ፣ በኢንቨስትመንት እና በፋይናንስ ዕቅድ ላይ ምክር ይሰጣሉ።
+2413,Analyse financial data and investments to support decisions.,ውሳኔን ለመደገፍ የፋይናንስ መረጃዎችን እና ኢንቨስትመንቶችን ይተነትናሉ።
+2421,Study how organizations work and recommend improvements.,ድርጅቶች እንዴት እንደሚሠሩ ያጠናሉ፤ ማሻሻያዎችን ይጠቁማሉ።
+2422,"Develop, analyse and implement government and organizational policy.",የመንግሥት እና የድርጅት ፖሊሲዎችን ያዘጋጃሉ፣ ይተነትናሉ እንዲሁም ያስፈጽማሉ።
+2423,"Recruit staff, analyse jobs and advise on careers and employment.",ሠራተኞችን ይቀጥራሉ፣ ሥራዎችን ይተነትናሉ እንዲሁም በሙያ እና በቅጥር ያማክራሉ።
+2424,Plan and deliver training that builds employee skills.,የሠራተኞችን ክህሎት የሚያሳድግ ሥልጠና ያቅዳሉ እንዲሁም ይሰጣሉ።
+2431,Research markets and plan advertising and marketing campaigns.,ገበያን ያጠናሉ፤ የማስታወቂያ እና የግብይት ዘመቻዎችን ያቅዳሉ።
+2432,Build public understanding and manage an organization's communications.,የሕዝብን ግንዛቤ ይገነባሉ፤ የድርጅትን ኮሙኒኬሽን ያስተዳድራሉ።
+2433,"Sell technical, medical and industrial goods using specialist knowledge.",በልዩ ዕውቀት የቴክኒክ፣ የሕክምና እና የኢንዱስትሪ ዕቃዎችን ይሸጣሉ።
+2434,"Sell computer hardware, software and related services to organizations.",ለድርጅቶች የኮምፒውተር ሃርድዌር፣ ሶፍትዌር እና ተዛማጅ አገልግሎቶችን ይሸጣሉ።
+2511,Study user needs and design computer systems to meet them.,የተጠቃሚዎችን ፍላጎት ያጠናሉ፤ የሚያሟሉ የኮምፒውተር ሥርዓቶችን ይነድፋሉ።
+2512,"Design, build and test software applications and systems.",የሶፍትዌር መተግበሪያዎችን እና ሥርዓቶችን ይነድፋሉ፣ ይገነባሉ እንዲሁም ይፈትሻሉ።
+2513,Build websites and digital multimedia applications.,ድረ ገጾችን እና ዲጂታል መልቲሚዲያ መተግበሪያዎችን ይገነባሉ።
+2514,Write and maintain code for software from technical specifications.,ከቴክኒክ መግለጫዎች በመነሳት የሶፍትዌር ኮድ ይጽፋሉ እንዲሁም ይጠብቃሉ።
+2519,"Handle software work not covered elsewhere, such as quality testing.",በሌላ ያልተጠቀሱ እንደ የጥራት ሙከራ ያሉ የሶፍትዌር ሥራዎችን ያከናውናሉ።
+2521,"Design, secure and maintain databases.",የመረጃ ቋቶችን ይነድፋሉ፣ ደኅንነታቸውን ያረጋግጣሉ እንዲሁም ይጠብቃሉ።
+2522,"Install, configure and keep servers and operating systems running.",ሰርቨሮችን እና የኦፕሬቲንግ ሥርዓቶችን ይጭናሉ፣ ያዋቅራሉ እንዲሁም ያስቀጥላሉ።
+2523,Design and manage data networks and their performance.,የዳታ ኔትወርኮችን እና አፈጻጸማቸውን ይነድፋሉ እንዲሁም ያስተዳድራሉ።
+2529,"Handle data and network work not covered elsewhere, such as security.",በሌላ ያልተጠቀሱ እንደ ደኅንነት ያሉ የዳታ እና የኔትወርክ ሥራዎችን ያከናውናሉ።
+2611,Advise clients on the law and represent them in legal matters.,ለደንበኞች በሕግ ላይ ምክር ይሰጣሉ፤ በሕግ ጉዳዮች ይወክላሉ።
+2612,Hear cases and give rulings in courts and tribunals.,በፍርድ ቤቶች እና በልዩ ችሎቶች ጉዳዮችን ያያሉ፤ ውሳኔ ይሰጣሉ።
+2619,"Perform legal work not covered elsewhere, such as notary services.",በሌላ ያልተጠቀሱ እንደ ኖታሪ ያሉ የሕግ ሥራዎችን ያከናውናሉ።
+2621,"Collect, preserve and present records, artefacts and collections.",መዛግብትን፣ ቅርሶችን እና ስብስቦችን ይሰበስባሉ፣ ይጠብቃሉ እንዲሁም ለዕይታ ያቀርባሉ።
+2622,Organize library and information collections and help people use them.,የቤተ መጻሕፍት እና የመረጃ ስብስቦችን ያደራጃሉ፤ ሰዎች እንዲጠቀሙባቸው ያግዛሉ።
+2631,"Study production, markets and the economy and advise on policy.",ምርትን፣ ገበያን እና ኢኮኖሚን ያጠናሉ፤ በፖሊሲ ላይ ያማክራሉ።
+2632,"Study societies, cultures and human relationships.",ማኅበረሰቦችን፣ ባህሎችን እና የሰዎችን ግንኙነት ያጠናሉ።
+2633,"Study ideas, past events and political systems.",ሐሳቦችን፣ ያለፉ ክስተቶችን እና የፖለቲካ ሥርዓቶችን ያጠናሉ።
+2634,Study human behaviour and provide assessment and therapy.,የሰውን ባህሪ ያጠናሉ፤ ግምገማ እና የሥነ ልቦና ሕክምና ይሰጣሉ።
+2635,Help individuals and families deal with social and personal problems.,ግለሰቦች እና ቤተሰቦች ማኅበራዊ እና ግላዊ ችግሮችን እንዲቋቋሙ ያግዛሉ።
+2636,Lead worship and give spiritual guidance to communities.,አምልኮን ይመራሉ፤ ለማኅበረሰቦች መንፈሳዊ መመሪያ ይሰጣሉ።
+2641,"Write books, scripts, articles and other works.",መጻሕፍትን፣ ድርሰቶችን፣ ጽሑፎችን እና ሌሎች ሥራዎችን ይጽፋሉ።
+2642,"Investigate and report news for print, broadcast and online media.",ለኅትመት፣ ለብሮድካስት እና ለኦንላይን ሚዲያ ዜና ያጣራሉ እንዲሁም ያቀርባሉ።
+2643,"Translate text, interpret speech and study languages.",ጽሑፍ ይተረጉማሉ፣ ንግግር ያስተረጉማሉ እንዲሁም ቋንቋዎችን ያጠናሉ።
+2651,"Create paintings, sculpture and other visual works.",ሥዕሎችን፣ ቅርጻ ቅርጾችን እና ሌሎች ምስላዊ ሥራዎችን ይፈጥራሉ።
+2652,"Compose, perform and arrange music.",ሙዚቃ ያቀናብራሉ፣ ያቀርባሉ እንዲሁም ያደራጃሉ።
+2653,Create and perform dance works.,የውዝዋዜ ሥራዎችን ይፈጥራሉ እንዲሁም ያቀርባሉ።
+2654,"Direct and produce film, theatre and broadcast productions.",የፊልም፣ የቲያትር እና የብሮድካስት ሥራዎችን ያዘጋጃሉ እንዲሁም ይመራሉ።
+2655,"Portray characters on stage, screen and radio.",በመድረክ፣ በፊልም እና በሬዲዮ ገጸ ባህሪያትን ይወክላሉ።
+2656,"Present news and programmes on radio, television and other media.",በሬዲዮ፣ በቴሌቪዥን እና በሌሎች ሚዲያዎች ዜና እና ፕሮግራሞችን ያቀርባሉ።
+2659,"Perform entertainment not covered elsewhere, such as circus or magic acts.",በሌላ ያልተጠቀሱ እንደ ሰርከስ ወይም አስማት ያሉ የመዝናኛ ትርኢቶችን ያቀርባሉ።
+3111,Run tests and support research in chemistry and physics laboratories.,በኬሚስትሪ እና በፊዚክስ ቤተ ሙከራዎች ሙከራ ያካሂዳሉ፤ ምርምርን ይደግፋሉ።
+3112,"Support civil engineers with site testing, surveying and supervision.",ሲቪል መሐንዲሶችን በቦታ ሙከራ፣ በቅየሳ እና በቁጥጥር ይደግፋሉ።
+3113,"Support the design, installation and testing of electrical systems.",የኤሌክትሪክ ሥርዓቶችን ንድፍ፣ ተከላ እና ሙከራ ይደግፋሉ።
+3114,"Support the design, testing and repair of electronic equipment.",የኤሌክትሮኒክስ መሣሪያዎችን ንድፍ፣ ሙከራ እና ጥገና ይደግፋሉ።
+3115,"Support the design, testing and maintenance of machinery.",የማሽነሪዎችን ንድፍ፣ ሙከራ እና ጥገና ይደግፋሉ።
+3116,Support chemical engineers with process testing and monitoring.,የኬሚካል መሐንዲሶችን በሂደት ሙከራ እና ክትትል ይደግፋሉ።
+3117,"Support mine exploration, operations and metal testing.",የማዕድን ፍለጋን፣ ሥራን እና የብረት ሙከራን ይደግፋሉ።
+3118,Prepare technical drawings and plans for engineers and architects.,ለመሐንዲሶች እና ለአርክቴክቶች የቴክኒክ ሥዕሎችን እና ዕቅዶችን ያዘጋጃሉ።
+3119,"Provide technical support in other fields, such as fire safety or robotics.",እንደ እሳት ደኅንነት ወይም ሮቦቲክስ ባሉ ሌሎች ዘርፎች የቴክኒክ ድጋፍ ይሰጣሉ።
+3121,Supervise and coordinate miners and quarry workers.,የማዕድን እና የድንጋይ ማውጫ ሠራተኞችን ይቆጣጠራሉ እንዲሁም ያስተባብራሉ።
+3122,Supervise production workers on factory floors.,በፋብሪካ ውስጥ የምርት ሠራተኞችን ይቆጣጠራሉ።
+3123,Supervise crews and daily work on construction sites.,በግንባታ ቦታዎች ሠራተኞችን እና የዕለት ሥራን ይቆጣጠራሉ።
+3131,Operate and monitor plants that generate electricity.,ኤሌክትሪክ የሚያመነጩ ተቋማትን ያንቀሳቅሳሉ እንዲሁም ይከታተላሉ።
+3132,Operate waste incinerators and water and sewage treatment plants.,የቆሻሻ ማቃጠያዎችን እና የውሃ እና የፍሳሽ ማከሚያዎችን ያንቀሳቅሳሉ።
+3133,Monitor and control plants that process chemicals.,ኬሚካሎችን የሚያቀነባብሩ ተቋማትን ይከታተላሉ እንዲሁም ይቆጣጠራሉ።
+3134,Control the refining of crude oil and natural gas.,የድፍድፍ ነዳጅ እና የተፈጥሮ ጋዝ ማጣራትን ይቆጣጠራሉ።
+3135,Control furnaces and processes that produce metals.,ብረት የሚያመርቱ ምድጃዎችን እና ሂደቶችን ይቆጣጠራሉ።
+3139,Control automated production processes not covered elsewhere.,በሌላ ያልተጠቀሱ አውቶማቲክ የምርት ሂደቶችን ይቆጣጠራሉ።
+3141,Assist life-science research with laboratory tests and samples.,የሕይወት ሳይንስ ምርምርን በቤተ ሙከራ ሙከራዎች እና ናሙናዎች ያግዛሉ።
+3142,"Test soil, crops and livestock and support farm production.",አፈርን፣ ሰብልን እና እንስሳትን ይፈትሻሉ፤ የእርሻ ምርትን ይደግፋሉ።
+3143,"Support forest surveys, protection and management.",የደን ቅየሳን፣ ጥበቃን እና አስተዳደርን ይደግፋሉ።
+3151,Operate and maintain engines and machinery on ships.,በመርከቦች ላይ ሞተሮችን እና ማሽነሪዎችን ያንቀሳቅሳሉ እንዲሁም ይጠብቃሉ።
+3152,Navigate ships and guide vessels through harbours.,መርከቦችን ይመራሉ፤ በወደቦች ውስጥ ያሳልፋሉ።
+3153,Fly aircraft and carry out related flight duties.,አውሮፕላን ያበራሉ፤ ተዛማጅ የበረራ ተግባራትን ያከናውናሉ።
+3154,Direct aircraft movements to keep air traffic safe.,የአየር ትራፊክ ደኅንነትን ለመጠበቅ የአውሮፕላኖችን እንቅስቃሴ ይመራሉ።
+3155,Install and maintain navigation and air traffic electronic systems.,የአቅጣጫ መምሪያ እና የአየር ትራፊክ ኤሌክትሮኒክ ሥርዓቶችን ይተክላሉ እንዲሁም ይጠብቃሉ።
+3211,Operate imaging and radiation equipment for diagnosis and treatment.,ለምርመራ እና ለሕክምና የምስል እና የጨረር መሣሪያዎችን ያንቀሳቅሳሉ።
+3212,"Run clinical tests on blood, tissue and other samples.",በደም፣ በሕብረ ሕዋስ እና በሌሎች ናሙናዎች ላይ የሕክምና ምርመራ ያካሂዳሉ።
+3213,Prepare and dispense medicines under a pharmacist's supervision.,በፋርማሲስት ቁጥጥር መድኃኒቶችን ያዘጋጃሉ እንዲሁም ያድላሉ።
+3214,"Make and repair artificial limbs, braces and dental appliances.",ሰው ሠራሽ አካላትን፣ ድጋፎችን እና የጥርስ መሣሪያዎችን ይሠራሉ እንዲሁም ይጠግናሉ።
+3221,Provide basic nursing care under the direction of health professionals.,በጤና ባለሙያዎች መሪነት መሠረታዊ የነርሲንግ እንክብካቤ ይሰጣሉ።
+3222,Assist with birth and care for mothers and newborns.,በወሊድ ያግዛሉ፤ እናቶችን እና አራስ ሕፃናትን ይንከባከባሉ።
+3230,Give herbal and traditional remedies based on community practice.,በማኅበረሰብ ልምድ ላይ ተመስርተው የዕፅዋት እና የባህል ሕክምና ይሰጣሉ።
+3240,Assist veterinarians in caring for and treating animals.,እንስሳትን በመንከባከብ እና በማከም የእንስሳት ሐኪሞችን ያግዛሉ።
+3251,Provide basic dental care and assist dentists.,መሠረታዊ የጥርስ እንክብካቤ ይሰጣሉ፤ የጥርስ ሐኪሞችን ያግዛሉ።
+3252,Maintain patient records and health information systems.,የሕሙማን መዛግብትን እና የጤና መረጃ ሥርዓቶችን ያስተዳድራሉ።
+3253,Provide health education and basic care in local communities.,በአካባቢ ማኅበረሰብ ውስጥ የጤና ትምህርት እና መሠረታዊ እንክብካቤ ይሰጣሉ።
+3254,Fit and supply glasses and contact lenses from prescriptions.,በማዘዣ መሠረት መነጽር እና የዓይን ሌንስ ያዘጋጃሉ እንዲሁም ያቀርባሉ።
+3255,Assist physiotherapists with exercises and treatment.,የፊዚዮቴራፒ ባለሙያዎችን በእንቅስቃሴ እና በሕክምና ያግዛሉ።
+3256,Perform routine clinical and administrative tasks in medical settings.,በሕክምና ቦታዎች መደበኛ ክሊኒካዊ እና አስተዳደራዊ ተግባራትን ያከናውናሉ።
+3257,Inspect premises for compliance with health and safety rules.,ቦታዎች የጤና እና የደኅንነት ደንቦችን ማክበራቸውን ይመረምራሉ።
+3258,Give emergency care and transport sick or injured people.,የድንገተኛ ሕክምና ይሰጣሉ፤ ሕሙማንን እና ጉዳተኞችን ያጓጉዛሉ።
+3259,"Provide health support not covered elsewhere, such as HIV counselling.",በሌላ ያልተጠቀሱ እንደ ኤች አይ ቪ ምክር ያሉ የጤና ድጋፎችን ይሰጣሉ።
+3311,"Buy and sell shares, currencies and other financial products.",አክሲዮኖችን፣ ገንዘቦችን እና ሌሎች የፋይናንስ ምርቶችን ይገዛሉ እንዲሁም ይሸጣሉ።
+3312,Assess applications and approve loans and credit.,ማመልከቻዎችን ይገመግማሉ፤ ብድር ያጸድቃሉ።
+3313,Keep accounts and prepare financial reports with limited supervision.,በውስን ቁጥጥር ሂሳብ ይይዛሉ፤ የፋይናንስ ሪፖርቶችን ያዘጋጃሉ።
+3314,"Assist with statistical surveys, calculations and data analysis.",በስታቲስቲክስ ጥናቶች፣ በስሌቶች እና በመረጃ ትንተና ያግዛሉ።
+3315,Estimate the value of property and goods and assess insurance losses.,የንብረት እና የዕቃ ዋጋን ይገምታሉ፤ የኢንሹራንስ ኪሳራን ይገመግማሉ።
+3321,Sell insurance and advise clients on cover.,ኢንሹራንስ ይሸጣሉ፤ ለደንበኞች በሽፋን ላይ ያማክራሉ።
+3322,Sell goods and services to businesses on behalf of companies.,ኩባንያዎችን ወክለው ዕቃ እና አገልግሎት ለንግድ ድርጅቶች ይሸጣሉ።
+3323,Purchase goods and materials for organizations or for resale.,ለድርጅቶች ወይም እንደገና ለመሸጥ ዕቃ እና ቁሳቁስ ይገዛሉ።
+3324,Arrange the purchase and sale of commodities for clients.,ለደንበኞች የሸቀጦች ግዥ እና ሽያጭ ያመቻቻሉ።
+3331,Handle customs paperwork and arrange international freight.,የጉምሩክ ሰነዶችን ያስተናግዳሉ፤ ዓለም አቀፍ ጭነትን ያመቻቻሉ።
+3332,"Organize conferences, meetings and other events.",ጉባኤዎችን፣ ስብሰባዎችን እና ሌሎች ዝግጅቶችን ያዘጋጃሉ።
+3333,Match job seekers with employers and supply workers under contract.,ሥራ ፈላጊዎችን ከአሠሪዎች ጋር ያገናኛሉ፤ በውል ሠራተኞችን ያቀርባሉ።
+3334,"Sell, rent and manage buildings and land for clients.",ለደንበኞች ሕንፃዎችን እና መሬትን ይሸጣሉ፣ ያከራያሉ እንዲሁም ያስተዳድራሉ።
+3339,"Provide business services not covered elsewhere, such as selling advertising.",በሌላ ያልተጠቀሱ እንደ ማስታወቂያ መሸጥ ያሉ የንግድ አገልግሎቶችን ይሰጣሉ።
+3341,Supervise clerical staff and coordinate office work.,የጽሕፈት ሠራተኞችን ይቆጣጠራሉ፤ የቢሮ ሥራን ያስተባብራሉ።
+3342,Prepare legal documents and support lawyers and courts.,የሕግ ሰነዶችን ያዘጋጃሉ፤ ጠበቆችን እና ፍርድ ቤቶችን ይደግፋሉ።
+3343,"Handle correspondence, schedules and administration for senior staff.",ለከፍተኛ ኃላፊዎች ደብዳቤዎችን፣ መርሐ ግብሮችን እና አስተዳደርን ያስተናግዳሉ።
+3344,"Support medical staff with records, appointments and correspondence.",የሕክምና ባለሙያዎችን በመዛግብት፣ በቀጠሮ እና በደብዳቤ ይደግፋሉ።
+3351,Check people and goods crossing borders against the law.,ድንበር የሚያቋርጡ ሰዎችን እና ዕቃዎችን በሕግ መሠረት ይፈትሻሉ።
+3352,"Assess, collect and check taxes and excise duties.",ታክስ እና የኤክሳይዝ ቀረጥን ይገምታሉ፣ ይሰበስባሉ እንዲሁም ያረጋግጣሉ።
+3353,Assess claims and administer government benefit programmes.,የጥቅማ ጥቅም ጥያቄዎችን ይገመግማሉ፤ የመንግሥት የድጋፍ ፕሮግራሞችን ያስተዳድራሉ።
+3354,Examine applications and issue permits and licences.,ማመልከቻዎችን ይመረምራሉ፤ ፈቃዶችን ይሰጣሉ።
+3355,Investigate crimes and gather evidence.,ወንጀሎችን ይመረምራሉ፤ ማስረጃ ይሰበስባሉ።
+3359,Enforce government regulations not covered elsewhere.,በሌላ ያልተጠቀሱ የመንግሥት ደንቦችን ያስፈጽማሉ።
+3411,"Support legal work through research, documents and court services.",በምርምር፣ በሰነዶች እና በፍርድ ቤት አገልግሎቶች የሕግ ሥራን ይደግፋሉ።
+3412,Provide social assistance to people and support social workers.,ለሰዎች ማኅበራዊ ድጋፍ ይሰጣሉ፤ የማኅበራዊ ሠራተኞችን ያግዛሉ።
+3413,Support religious activities and provide spiritual assistance.,ሃይማኖታዊ እንቅስቃሴዎችን ይደግፋሉ፤ መንፈሳዊ እገዛ ይሰጣሉ።
+3421,Train for and take part in competitive sports.,ይሠለጥናሉ፤ በተወዳዳሪ ስፖርቶች ይሳተፋሉ።
+3422,Coach athletes and officiate at sporting events.,አትሌቶችን ያሠለጥናሉ፤ የስፖርት ውድድሮችን ይዳኛሉ።
+3423,Lead fitness classes and recreational programmes.,የአካል ብቃት ትምህርቶችን እና የመዝናኛ ፕሮግራሞችን ይመራሉ።
+3431,"Take photographs for commercial, news or artistic purposes.",ለንግድ፣ ለዜና ወይም ለኪነ ጥበብ ዓላማ ፎቶግራፍ ያነሳሉ።
+3432,Plan and decorate interiors of buildings and displays.,የሕንፃዎችን የውስጥ ክፍል እና ማሳያዎችን ያቅዳሉ እንዲሁም ያስውባሉ።
+3433,Prepare exhibits and care for collections in cultural institutions.,በባህል ተቋማት ማሳያዎችን ያዘጋጃሉ፤ ስብስቦችን ይንከባከባሉ።
+3434,Plan menus and direct food preparation in kitchens.,የምግብ ዝርዝር ያቅዳሉ፤ በኩሽና የምግብ ዝግጅትን ይመራሉ።
+3435,"Support stage, film and artistic production in other technical roles.",በሌሎች ቴክኒካዊ ሚናዎች የመድረክ፣ የፊልም እና የኪነ ጥበብ ሥራዎችን ይደግፋሉ።
+3511,Monitor computer systems and run daily processing operations.,የኮምፒውተር ሥርዓቶችን ይከታተላሉ፤ የዕለት ማቀነባበሪያ ሥራዎችን ያካሂዳሉ።
+3512,Help computer users solve hardware and software problems.,የኮምፒውተር ተጠቃሚዎች የሃርድዌር እና የሶፍትዌር ችግሮችን እንዲፈቱ ያግዛሉ።
+3513,Install and maintain computer networks and related equipment.,የኮምፒውተር ኔትወርኮችን እና ተዛማጅ መሣሪያዎችን ይተክላሉ እንዲሁም ይጠብቃሉ።
+3514,Maintain websites and web servers and monitor their performance.,ድረ ገጾችን እና ሰርቨሮችን ይጠብቃሉ፤ አፈጻጸማቸውን ይከታተላሉ።
+3521,Operate equipment for recording and broadcasting sound and video.,ድምፅ እና ምስል ለመቅዳት እና ለማስተላለፍ መሣሪያዎችን ያንቀሳቅሳሉ።
+3522,"Install, test and maintain telecommunications equipment.",የቴሌኮሙኒኬሽን መሣሪያዎችን ይተክላሉ፣ ይፈትሻሉ እንዲሁም ይጠብቃሉ።
+4110,"Handle filing, records, data entry and general office tasks.",የፋይል አያያዝን፣ መዛግብትን፣ መረጃ ማስገባትን እና አጠቃላይ የቢሮ ሥራዎችን ያከናውናሉ።
+4120,"Type documents, manage correspondence and support office routines.",ሰነዶችን ይተይባሉ፣ ደብዳቤዎችን ያስተናግዳሉ እንዲሁም የቢሮ ሥራን ይደግፋሉ።
+4131,Type and format documents using computers.,በኮምፒውተር ሰነዶችን ይተይባሉ እንዲሁም ያዘጋጃሉ።
+4132,Enter data accurately into computer systems.,መረጃዎችን በትክክል ወደ ኮምፒውተር ሥርዓቶች ያስገባሉ።
+4211,"Receive deposits, pay out cash and serve bank customers.",ገንዘብ ይቀበላሉ፣ ይከፍላሉ እንዲሁም የባንክ ደንበኞችን ያስተናግዳሉ።
+4212,Take bets and run games in betting and gaming venues.,በውርርድ እና በጨዋታ ቦታዎች ውርርድ ይቀበላሉ፤ ጨዋታዎችን ያካሂዳሉ።
+4213,Lend money against pledged goods or at agreed interest.,በመያዣ ዕቃ ወይም በተስማሙበት ወለድ ገንዘብ ያበድራሉ።
+4214,Recover overdue payments and unpaid accounts.,ጊዜያቸው ያለፈ ክፍያዎችን እና ያልተከፈሉ ሂሳቦችን ይሰበስባሉ።
+4221,"Arrange trips, tickets and accommodation for travellers.",ለተጓዦች ጉዞን፣ ትኬትን እና መኝታን ያመቻቻሉ።
+4222,Answer customer enquiries by telephone or online from contact centres.,ከጥሪ ማዕከላት በስልክ ወይም በኦንላይን የደንበኞችን ጥያቄ ይመልሳሉ።
+4223,Connect and direct calls through switchboards.,በስልክ ማዕከል ጥሪዎችን ያገናኛሉ እንዲሁም ይመራሉ።
+4224,"Welcome guests, register them and handle room bookings.",እንግዶችን ይቀበላሉ፣ ይመዘግባሉ እንዲሁም የክፍል ቦታ ማስያዝን ያስተናግዳሉ።
+4225,Answer questions from the public about services or procedures.,ስለ አገልግሎቶች ወይም አሠራሮች ከሕዝብ ለሚነሱ ጥያቄዎች መልስ ይሰጣሉ።
+4226,"Greet visitors, answer calls and direct people in organizations.",በድርጅቶች እንግዶችን ይቀበላሉ፣ ስልክ ያነሳሉ እንዲሁም ሰዎችን ይመራሉ።
+4227,Interview people and record answers for surveys and research.,ለጥናት እና ለምርምር ሰዎችን ይጠይቃሉ፤ መልሶችን ይመዘግባሉ።
+4229,Give clients information in roles not covered elsewhere.,በሌላ ባልተጠቀሱ ሚናዎች ለደንበኞች መረጃ ይሰጣሉ።
+4311,Record transactions and maintain accounting books.,ግብይቶችን ይመዘግባሉ፤ የሂሳብ መዛግብትን ይይዛሉ።
+4312,"Compile and check statistical, financial and insurance records.",የስታቲስቲክስ፣ የፋይናንስ እና የኢንሹራንስ መዛግብትን ያጠናቅራሉ እንዲሁም ያረጋግጣሉ።
+4313,Calculate pay and maintain payroll records.,ደመወዝ ያሰላሉ፤ የደመወዝ መዛግብትን ይይዛሉ።
+4321,"Record goods received, stored and issued.",የገቡ፣ የተከማቹ እና የወጡ ዕቃዎችን ይመዘግባሉ።
+4322,Prepare production schedules and track materials and output.,የምርት መርሐ ግብሮችን ያዘጋጃሉ፤ ቁሳቁስን እና ውጤትን ይከታተላሉ።
+4323,Keep records and coordinate schedules for vehicles and freight.,ለተሽከርካሪዎች እና ለጭነት መዛግብትን ይይዛሉ፤ መርሐ ግብሮችን ያስተባብራሉ።
+4411,"Issue, receive and shelve library materials.",የቤተ መጻሕፍት ቁሳቁሶችን ያውሳሉ፣ ይቀበላሉ እንዲሁም በመደርደሪያ ያስቀምጣሉ።
+4412,Sort and deliver letters and parcels.,ደብዳቤዎችን እና ጥቅሎችን ይለያሉ እንዲሁም ያደርሳሉ።
+4413,Assign codes to information and check text for errors.,ለመረጃ ኮድ ይሰጣሉ፤ ጽሑፍን ለስህተት ያርማሉ።
+4414,Write letters and fill in forms for people who need help writing.,መጻፍ ለሚቸገሩ ሰዎች ደብዳቤ ይጽፋሉ፤ ቅጾችን ይሞላሉ።
+4415,File documents and operate copying equipment.,ሰነዶችን በፋይል ያደራጃሉ፤ የማባዣ መሣሪያዎችን ያንቀሳቅሳሉ።
+4416,Maintain employee records and process personnel paperwork.,የሠራተኛ መዛግብትን ይይዛሉ፤ የሰው ኃይል ሰነዶችን ያስተናግዳሉ።
+4419,Perform clerical work not covered elsewhere.,በሌላ ያልተጠቀሱ የጽሕፈት ሥራዎችን ያከናውናሉ።
+5111,"Look after passengers' comfort and safety on planes, ships and trains.",በአውሮፕላን፣ በመርከብ እና በባቡር የተሳፋሪዎችን ምቾት እና ደኅንነት ይጠብቃሉ።
+5112,Check tickets and assist passengers on public transport.,በሕዝብ ትራንስፖርት ትኬቶችን ይፈትሻሉ፤ ተሳፋሪዎችን ያግዛሉ።
+5113,Accompany visitors and explain places of interest.,ጎብኚዎችን ያጅባሉ፤ የመስህብ ቦታዎችን ያብራራሉ።
+5120,"Plan and prepare meals in restaurants, hotels and other places.",በምግብ ቤቶች፣ በሆቴሎች እና በሌሎች ቦታዎች ምግብ ያቅዳሉ እንዲሁም ያዘጋጃሉ።
+5131,Take orders and serve food and drinks to customers.,ትዕዛዝ ይቀበላሉ፤ ለደንበኞች ምግብ እና መጠጥ ያቀርባሉ።
+5132,Mix and serve drinks at bars and counters.,በባር እና በቆጣሪ መጠጦችን ይቀላቅላሉ እንዲሁም ያቀርባሉ።
+5141,"Cut, style and treat hair.",ፀጉር ይቆርጣሉ፣ ያስተካክላሉ እንዲሁም ይንከባከባሉ።
+5142,"Provide skin care, make-up and other beauty treatments.",የቆዳ እንክብካቤ፣ ሜካፕ እና ሌሎች የውበት አገልግሎቶችን ይሰጣሉ።
+5151,Supervise cleaning and housekeeping staff in establishments.,በተቋማት የጽዳት እና የቤት አያያዝ ሠራተኞችን ይቆጣጠራሉ።
+5152,"Manage cleaning, meals and supplies in private households.",በግል ቤቶች ጽዳትን፣ ምግብን እና አቅርቦትን ያስተዳድራሉ።
+5153,Look after buildings and grounds and their upkeep.,ሕንፃዎችን እና ግቢዎችን ይጠብቃሉ እንዲሁም ይንከባከባሉ።
+5161,Offer predictions about people's lives based on stars or other signs.,በከዋክብት ወይም በሌሎች ምልክቶች ስለ ሰዎች ሕይወት ትንበያ ይሰጣሉ።
+5162,Keep employers company and attend to their personal needs.,ለአሠሪዎቻቸው አብረው ይሆናሉ፤ የግል ፍላጎቶቻቸውን ያሟላሉ።
+5163,Prepare bodies and arrange funeral services.,አስከሬን ያዘጋጃሉ፤ የቀብር አገልግሎቶችን ያመቻቻሉ።
+5164,"Feed, groom and care for pets and other animals.",የቤት እንስሳትን እና ሌሎች እንስሳትን ይመግባሉ፣ ያስውባሉ እንዲሁም ይንከባከባሉ።
+5165,Teach people how to drive motor vehicles.,ሰዎች ተሽከርካሪ እንዲያሽከረክሩ ያስተምራሉ።
+5169,Provide personal services not covered elsewhere.,በሌላ ያልተጠቀሱ የግል አገልግሎቶችን ይሰጣሉ።
+5211,Sell goods from stalls in markets.,በገበያ ከመሸጫ ቦታዎች ዕቃ ይሸጣሉ።
+5212,Prepare and sell food on streets and in public places.,በመንገድ እና በሕዝብ ቦታዎች ምግብ ያዘጋጃሉ እንዲሁም ይሸጣሉ።
+5221,"Run small shops, alone or with a few staff.",ትናንሽ ሱቆችን ብቻቸውን ወይም ከጥቂት ሠራተኞች ጋር ያካሂዳሉ።
+5222,Supervise shop assistants and daily shop activity.,የሱቅ ረዳቶችን እና የዕለት ሱቅ ሥራዎችን ይቆጣጠራሉ።
+5223,Help customers and sell goods in shops.,ደንበኞችን ያግዛሉ፤ በሱቆች ዕቃ ይሸጣሉ።
+5230,Take payments and sell tickets.,ክፍያ ይቀበላሉ፤ ትኬት ይሸጣሉ።
+5241,Show clothing and products for promotion and sale.,ለማስተዋወቅ እና ለመሸጥ ልብሶችን እና ምርቶችን ያሳያሉ።
+5242,Demonstrate products to customers in stores or at exhibitions.,በመደብሮች ወይም በኤግዚቢሽኖች ለደንበኞች ምርቶችን ያሳያሉ።
+5243,Sell goods and services by visiting homes and businesses.,ቤቶችን እና ንግዶችን በመጎብኘት ዕቃ እና አገልግሎት ይሸጣሉ።
+5244,Sell goods and services by telephone or internet from contact centres.,ከጥሪ ማዕከላት በስልክ ወይም በኢንተርኔት ዕቃ እና አገልግሎት ይሸጣሉ።
+5245,Sell fuel and provide basic services to vehicles.,ነዳጅ ይሸጣሉ፤ ለተሽከርካሪዎች መሠረታዊ አገልግሎት ይሰጣሉ።
+5246,Serve food and drinks to customers across a counter.,በቆጣሪ ለደንበኞች ምግብ እና መጠጥ ያቀርባሉ።
+5249,Perform sales work not covered elsewhere.,በሌላ ያልተጠቀሱ የሽያጭ ሥራዎችን ያከናውናሉ።
+5311,Care for children in homes and child care centres.,በቤቶች እና በሕፃናት ማቆያ ማዕከላት ሕፃናትን ይንከባከባሉ።
+5312,Assist teachers with pupils and classroom tasks.,መምህራንን በተማሪዎች እና በክፍል ሥራዎች ያግዛሉ።
+5321,Provide basic personal care to patients in health facilities.,በጤና ተቋማት ለሕሙማን መሠረታዊ የግል እንክብካቤ ይሰጣሉ።
+5322,"Provide personal care to sick, older or disabled people at home.",በቤት ውስጥ ለታመሙ፣ ለአረጋውያን ወይም ለአካል ጉዳተኞች የግል እንክብካቤ ይሰጣሉ።
+5329,Provide personal care in health services not covered elsewhere.,በሌላ ባልተጠቀሱ የጤና አገልግሎቶች የግል እንክብካቤ ይሰጣሉ።
+5411,Put out fires and rescue people and property.,እሳት ያጠፋሉ፤ ሰዎችን እና ንብረትን ይታደጋሉ።
+5412,"Maintain public order, prevent crime and enforce the law.",የሕዝብን ሰላም ይጠብቃሉ፣ ወንጀልን ይከላከላሉ እንዲሁም ሕግን ያስከብራሉ።
+5413,Guard inmates and keep order in prisons.,እስረኞችን ይጠብቃሉ፤ በማረሚያ ቤቶች ሥርዓትን ያስከብራሉ።
+5414,Protect property and people against theft and other risks.,ንብረትን እና ሰዎችን ከስርቆት እና ከሌሎች አደጋዎች ይጠብቃሉ።
+5419,"Provide protective services not covered elsewhere, such as lifeguarding.",በሌላ ያልተጠቀሱ እንደ ዋና ጠባቂነት ያሉ የጥበቃ አገልግሎቶችን ይሰጣሉ።
+6111,Grow field crops and vegetables for market.,ለገበያ የመስክ ሰብሎችን እና አትክልቶችን ያለማሉ።
+6112,"Grow fruit trees, coffee, tea and other tree and shrub crops.",የፍራፍሬ ዛፎችን፣ ቡናን፣ ሻይን እና ሌሎች የዛፍ እና የቁጥቋጦ ሰብሎችን ያለማሉ።
+6113,"Grow flowers, seedlings and garden plants.",አበቦችን፣ ችግኞችን እና የአትክልት ስፍራ ተክሎችን ያለማሉ።
+6114,Grow a combination of crops for market.,ለገበያ የተለያዩ ሰብሎችን በጥምር ያለማሉ።
+6121,"Raise cattle, sheep, goats and other livestock for meat and milk.",ለሥጋ እና ለወተት ከብት፣ በግ፣ ፍየል እና ሌሎች እንስሳትን ያረባሉ።
+6122,Raise chickens and other birds for eggs and meat.,ለእንቁላል እና ለሥጋ ዶሮዎችን እና ሌሎች ወፎችን ያረባሉ።
+6123,Keep bees for honey and raise silkworms for silk.,ለማር ንብ ያረባሉ፤ ለሐር የሐር ትል ያረባሉ።
+6129,"Raise other animals for sale, such as ostriches or laboratory stock.",እንደ ሰጎን ወይም የቤተ ሙከራ እንስሳት ያሉ ሌሎች እንስሳትን ለሽያጭ ያረባሉ።
+6130,Combine crop growing and animal raising for market.,ለገበያ የሰብል ልማትን እና የእንስሳት እርባታን ያጣምራሉ።
+6210,"Plant, tend and harvest trees and other forest resources.",ዛፎችን እና ሌሎች የደን ሀብቶችን ይተክላሉ፣ ይንከባከባሉ እንዲሁም ይሰበስባሉ።
+6221,Breed and raise fish and other water animals.,ዓሣዎችን እና ሌሎች የውሃ እንስሳትን ያራባሉ።
+6222,"Catch fish in rivers, lakes and coastal waters.",በወንዞች፣ በሐይቆች እና በባሕር ዳርቻዎች ዓሣ ያስገራሉ።
+6223,Catch fish at sea on ocean-going vessels.,በጥልቅ ባሕር መርከቦች ዓሣ ያስገራሉ።
+6224,Hunt and trap wild animals.,የዱር እንስሳትን ያድናሉ እንዲሁም በወጥመድ ይይዛሉ።
+6310,Grow crops mainly to feed their own households.,በዋናነት ለራሳቸው ቤተሰብ ፍጆታ ሰብል ያለማሉ።
+6320,Raise animals mainly to feed their own households.,በዋናነት ለራሳቸው ቤተሰብ ፍጆታ እንስሳትን ያረባሉ።
+6330,Grow crops and raise animals mainly for household use.,በዋናነት ለቤተሰብ ፍጆታ ሰብል ያለማሉ እንዲሁም እንስሳትን ያረባሉ።
+6340,"Fish, hunt and gather wild food mainly for household use.",በዋናነት ለቤተሰብ ፍጆታ ዓሣ ያስገራሉ፣ ያድናሉ እንዲሁም የዱር ምግብ ይሰበስባሉ።
+7111,"Build and repair houses, often using traditional methods.",ብዙውን ጊዜ በባህላዊ ዘዴ ቤቶችን ይሠራሉ እንዲሁም ይጠግናሉ።
+7112,Lay bricks and blocks to build walls and structures.,ግድግዳዎችን እና መዋቅሮችን ለመሥራት ጡብ እና ብሎኬት ይገነባሉ።
+7113,"Cut, shape and carve stone for building and monuments.",ለግንባታ እና ለሐውልት ድንጋይ ይቆርጣሉ፣ ይቀርጻሉ እንዲሁም ያስውባሉ።
+7114,Pour and finish concrete for structures and floors.,ለመዋቅሮች እና ለወለሎች ኮንክሪት ይሞላሉ እንዲሁም ያጠናቅቃሉ።
+7115,Build and fit wooden structures and fittings.,የእንጨት መዋቅሮችን እና መገጣጠሚያዎችን ይሠራሉ እንዲሁም ይገጥማሉ።
+7119,Carry out building frame work not covered elsewhere.,በሌላ ያልተጠቀሱ የሕንፃ መዋቅር ሥራዎችን ያከናውናሉ።
+7121,Install and repair roofs.,ጣሪያ ይገጥማሉ እንዲሁም ይጠግናሉ።
+7122,Lay floor coverings and fix tiles on floors and walls.,የወለል ልባስ ያነጥፋሉ፤ በወለል እና በግድግዳ ሴራሚክ ይለጥፋሉ።
+7123,Apply plaster to walls and ceilings.,በግድግዳ እና በኮርኒስ ልስን ይለስናሉ።
+7124,Fit materials that insulate buildings and equipment.,ሕንፃዎችን እና መሣሪያዎችን የሚያገልሉ ቁሳቁሶችን ይገጥማሉ።
+7125,"Cut and fit glass in windows, doors and frames.",በመስኮት፣ በበር እና በፍሬም መስታወት ይቆርጣሉ እንዲሁም ይገጥማሉ።
+7126,"Install and repair water, gas and drainage pipes.",የውሃ፣ የጋዝ እና የፍሳሽ ቧንቧዎችን ይዘረጋሉ እንዲሁም ይጠግናሉ።
+7127,Install and repair cooling and air conditioning systems.,የማቀዝቀዣ እና የአየር ማቀዝቀዣ ሥርዓቶችን ይተክላሉ እንዲሁም ይጠግናሉ።
+7131,Paint and decorate buildings and hang wallpaper.,ሕንፃዎችን ቀለም ይቀባሉ፣ ያስውባሉ እንዲሁም የግድግዳ ወረቀት ይለጥፋሉ።
+7132,Spray paint and varnish on vehicles and manufactured goods.,በተሽከርካሪዎች እና በፋብሪካ ዕቃዎች ላይ ቀለም እና ቫርኒሽ ይረጫሉ።
+7133,Clean building exteriors and chimneys.,የሕንፃ ውጫዊ ክፍሎችን እና የጭስ ማውጫዎችን ያጸዳሉ።
+7211,Make moulds and cores for casting metal.,ብረት ለመጣል ቅርጾችን እና ኮሮችን ይሠራሉ።
+7212,Join and cut metal using heat and welding equipment.,በሙቀት እና በብየዳ መሣሪያዎች ብረት ይቀጥላሉ እንዲሁም ይቆርጣሉ።
+7213,Make and repair products from sheet metal.,ከላሜራ ብረት ምርቶችን ይሠራሉ እንዲሁም ይጠግናሉ።
+7214,Prepare and assemble steel frames for buildings and structures.,ለሕንፃዎች እና ለመዋቅሮች የብረት ፍሬሞችን ያዘጋጃሉ እንዲሁም ይገጣጠማሉ።
+7215,Set up lifting gear and join ropes and cables.,የማንሻ መሣሪያዎችን ያዘጋጃሉ፤ ገመዶችን እና ኬብሎችን ይቀጥላሉ።
+7221,Heat and hammer metal into tools and other products.,ብረትን አግለው በመቀጥቀጥ መሣሪያዎችን እና ሌሎች ምርቶችን ይሠራሉ።
+7222,"Make precision tools, dies and metal parts.",ትክክለኛ መሣሪያዎችን፣ ቅርጻ ብረቶችን እና የብረት ክፍሎችን ይሠራሉ።
+7223,Set up and run machines that cut and shape metal.,ብረት የሚቆርጡ እና የሚቀርጹ ማሽኖችን ያዘጋጃሉ እንዲሁም ያንቀሳቅሳሉ።
+7224,"Grind, polish and sharpen metal surfaces and tools.",የብረት ገጽታዎችን እና መሣሪያዎችን ይፈጫሉ፣ ያብረቀርቃሉ እንዲሁም ይስላሉ።
+7231,"Repair and service cars, trucks and motorcycles.",መኪናዎችን፣ የጭነት ተሽከርካሪዎችን እና ሞተር ብስክሌቶችን ይጠግናሉ።
+7232,Repair and service aircraft engines and systems.,የአውሮፕላን ሞተሮችን እና ሥርዓቶችን ይጠግናሉ።
+7233,"Repair farm, mining and factory machinery.",የእርሻ፣ የማዕድን እና የፋብሪካ ማሽነሪዎችን ይጠግናሉ።
+7234,Repair bicycles and similar vehicles.,ብስክሌቶችን እና ተመሳሳይ ተሽከርካሪዎችን ይጠግናሉ።
+7311,"Make and repair watches, scales and other precision instruments.",ሰዓቶችን፣ ሚዛኖችን እና ሌሎች ትክክለኛ መሣሪያዎችን ይሠራሉ እንዲሁም ይጠግናሉ።
+7312,"Make, repair and tune musical instruments.",የሙዚቃ መሣሪያዎችን ይሠራሉ፣ ይጠግናሉ እንዲሁም ይቃኛሉ።
+7313,"Make jewellery and items from gold, silver and other metals.",ከወርቅ፣ ከብር እና ከሌሎች ብረቶች ጌጣጌጥ እና ዕቃዎችን ይሠራሉ።
+7314,Shape and fire clay into pottery and ceramics.,ሸክላን ቀርጸው በማቃጠል የሸክላ እና የሴራሚክ ዕቃዎችን ይሠራሉ።
+7315,"Make, cut and finish glass products.",የመስታወት ምርቶችን ይሠራሉ፣ ይቆርጣሉ እንዲሁም ያጠናቅቃሉ።
+7316,Paint signs and engrave or decorate surfaces.,ማስታወቂያዎችን ይስላሉ፤ ገጽታዎችን ይቀርጻሉ ወይም ያስውባሉ።
+7317,"Make handcrafted goods from wood, cane and similar materials.",ከእንጨት፣ ከሸምበቆ እና ከተመሳሳይ ቁሳቁሶች የእጅ ሥራ ዕቃዎችን ይሠራሉ።
+7318,"Make handcrafted goods from textiles, leather and similar materials.",ከጨርቃ ጨርቅ፣ ከቆዳ እና ከተመሳሳይ ቁሳቁሶች የእጅ ሥራ ዕቃዎችን ይሠራሉ።
+7319,Make other handcrafted goods not covered elsewhere.,በሌላ ያልተጠቀሱ ሌሎች የእጅ ሥራ ዕቃዎችን ይሠራሉ።
+7321,Prepare text and images for printing.,ጽሑፍን እና ምስልን ለኅትመት ያዘጋጃሉ።
+7322,Operate printing presses and other printing machines.,የኅትመት ማሽኖችን ያንቀሳቅሳሉ።
+7323,"Bind, fold and finish printed materials.",የታተሙ ሥራዎችን ይጠርዛሉ፣ ያጥፋሉ እንዲሁም ያጠናቅቃሉ።
+7411,Install and repair wiring and electrical fittings in buildings.,በሕንፃዎች የኤሌክትሪክ መስመሮችን እና መገጣጠሚያዎችን ይዘረጋሉ እንዲሁም ይጠግናሉ።
+7412,Fit and repair electrical machinery and equipment.,የኤሌክትሪክ ማሽነሪዎችን እና መሣሪያዎችን ይገጥማሉ እንዲሁም ይጠግናሉ።
+7413,Install and repair power transmission and distribution lines.,የኃይል ማስተላለፊያ እና ማከፋፈያ መስመሮችን ይዘረጋሉ እንዲሁም ይጠግናሉ።
+7421,Repair and service electronic equipment.,የኤሌክትሮኒክስ መሣሪያዎችን ይጠግናሉ።
+7422,"Install and repair computers, phones and network lines.",ኮምፒውተሮችን፣ ስልኮችን እና የኔትወርክ መስመሮችን ይተክላሉ እንዲሁም ይጠግናሉ።
+7511,Slaughter animals and prepare meat and fish for sale.,እንስሳትን ያርዳሉ፤ ሥጋ እና ዓሣን ለሽያጭ ያዘጋጃሉ።
+7512,"Make bread, cakes and confectionery.",ዳቦ፣ ኬክ እና ጣፋጭ ምግቦችን ይሠራሉ።
+7513,"Make butter, cheese and other dairy products.",ቅቤ፣ አይብ እና ሌሎች የወተት ውጤቶችን ይሠራሉ።
+7514,"Preserve fruit, vegetables and similar foods.",ፍራፍሬን፣ አትክልትን እና ተመሳሳይ ምግቦችን ያቆያሉ።
+7515,Taste and grade food and drinks for quality.,ለጥራት ምግቦችን እና መጠጦችን ይቀምሳሉ እንዲሁም ደረጃ ይሰጣሉ።
+7516,Prepare tobacco and make tobacco products.,ትንባሆ ያዘጋጃሉ፤ የትንባሆ ውጤቶችን ይሠራሉ።
+7521,Season and treat wood to preserve it.,እንጨትን ለማቆየት ያደርቃሉ እንዲሁም ያክማሉ።
+7522,Make and repair wooden furniture.,የእንጨት የቤት ዕቃዎችን ይሠራሉ እንዲሁም ይጠግናሉ።
+7523,Set up and run machines that shape wood.,እንጨት የሚቀርጹ ማሽኖችን ያዘጋጃሉ እንዲሁም ያንቀሳቅሳሉ።
+7531,Make and alter clothing and hats.,ልብሶችን እና ባርኔጣዎችን ይሰፋሉ እንዲሁም ያስተካክላሉ።
+7532,Create patterns and cut material for garments.,ለልብስ ቅርጾችን ያዘጋጃሉ፤ ጨርቅ ይቆርጣሉ።
+7533,Sew and embroider textiles and similar materials.,ጨርቃ ጨርቆችን እና ተመሳሳይ ቁሳቁሶችን ይሰፋሉ እንዲሁም ጥልፍ ይጠልፋሉ።
+7534,Cover and repair furniture and vehicle seats.,የቤት ዕቃዎችን እና የተሽከርካሪ ወንበሮችን ይለብጣሉ እንዲሁም ይጠግናሉ።
+7535,"Clean, tan and prepare hides and skins.",ቆዳ እና ሌጦን ያጸዳሉ፣ ያለፋሉ እንዲሁም ያዘጋጃሉ።
+7536,Make and repair shoes and leather goods.,ጫማዎችን እና የቆዳ ዕቃዎችን ይሠራሉ እንዲሁም ይጠግናሉ።
+7541,"Work under water on inspection, construction and repair.",በውሃ ውስጥ የምርመራ፣ የግንባታ እና የጥገና ሥራ ይሠራሉ።
+7542,Place and set off explosives in mines and on construction sites.,በማዕድን ማውጫዎች እና በግንባታ ቦታዎች ፈንጂ ያጠምዳሉ እንዲሁም ያፈነዳሉ።
+7543,Inspect and test manufactured products for quality.,የፋብሪካ ምርቶችን ለጥራት ይመረምራሉ እንዲሁም ይፈትሻሉ።
+7544,"Control insects, rodents and weeds using chemicals and other methods.",በኬሚካል እና በሌሎች ዘዴዎች ነፍሳትን፣ አይጦችን እና አረምን ይቆጣጠራሉ።
+7549,Perform skilled craft work not covered elsewhere.,በሌላ ያልተጠቀሱ የሠለጠነ የእጅ ሙያ ሥራዎችን ያከናውናሉ።
+8111,"Extract coal, ore and stone from mines and quarries.",ከማዕድን እና ከድንጋይ ማውጫዎች ከሰል፣ ማዕድን እና ድንጋይ ያወጣሉ።
+8112,"Operate machines that crush, wash and process minerals and stone.",ማዕድን እና ድንጋይ የሚፈጩ፣ የሚያጥቡ እና የሚያቀነባብሩ ማሽኖችን ያንቀሳቅሳሉ።
+8113,"Drill wells and boreholes for water, oil and gas.",ለውሃ፣ ለነዳጅ እና ለጋዝ ጉድጓዶችን ይቆፍራሉ።
+8114,"Operate machines that make cement, stone and concrete products.",የሲሚንቶ፣ የድንጋይ እና የኮንክሪት ውጤቶችን የሚያመርቱ ማሽኖችን ያንቀሳቅሳሉ።
+8121,"Operate plants that melt, roll and treat metal.",ብረት የሚያቀልጡ፣ የሚጠቀልሉ እና የሚያክሙ ተቋማትን ያንቀሳቅሳሉ።
+8122,"Operate machines that clean, plate and coat metal.",ብረት የሚያጸዱ፣ የሚለብጡ እና የሚሸፍኑ ማሽኖችን ያንቀሳቅሳሉ።
+8131,Operate equipment that makes chemical and pharmaceutical products.,የኬሚካል እና የመድኃኒት ውጤቶችን የሚያመርቱ መሣሪያዎችን ያንቀሳቅሳሉ።
+8132,Operate machines that make and process photographic materials.,የፎቶግራፍ ቁሳቁሶችን የሚያመርቱ እና የሚያቀነባብሩ ማሽኖችን ያንቀሳቅሳሉ።
+8141,Operate machines that make rubber goods.,የጎማ ዕቃዎችን የሚያመርቱ ማሽኖችን ያንቀሳቅሳሉ።
+8142,Operate machines that make plastic goods.,የፕላስቲክ ዕቃዎችን የሚያመርቱ ማሽኖችን ያንቀሳቅሳሉ።
+8143,Operate machines that make boxes and other paper goods.,ሳጥኖችን እና ሌሎች የወረቀት ዕቃዎችን የሚያመርቱ ማሽኖችን ያንቀሳቅሳሉ።
+8151,Operate machines that prepare fibres and spin and wind yarn.,ቃጫ የሚያዘጋጁ እና ክር የሚፈትሉ እና የሚጠቀልሉ ማሽኖችን ያንቀሳቅሳሉ።
+8152,Operate machines that weave and knit fabric.,ጨርቅ የሚሸምኑ እና የሚሰሩ ማሽኖችን ያንቀሳቅሳሉ።
+8153,Operate sewing machines to make garments and other articles.,ልብሶችን እና ሌሎች ዕቃዎችን ለመሥራት የስፌት ማሽኖችን ያንቀሳቅሳሉ።
+8154,"Operate machines that bleach, dye and clean fabric.",ጨርቅ የሚያነጡ፣ የሚያቀልሙ እና የሚያጸዱ ማሽኖችን ያንቀሳቅሳሉ።
+8155,Operate machines that prepare leather and fur.,ቆዳ እና ፀጉር የሚያዘጋጁ ማሽኖችን ያንቀሳቅሳሉ።
+8156,Operate machines that make shoes and similar goods.,ጫማዎችን እና ተመሳሳይ ዕቃዎችን የሚያመርቱ ማሽኖችን ያንቀሳቅሳሉ።
+8157,"Operate commercial washing, drying and pressing machines.",የንግድ ማጠቢያ፣ ማድረቂያ እና መተኮሻ ማሽኖችን ያንቀሳቅሳሉ።
+8159,"Operate textile, fur and leather machines not covered elsewhere.",በሌላ ያልተጠቀሱ የጨርቃ ጨርቅ፣ የፀጉር እና የቆዳ ማሽኖችን ያንቀሳቅሳሉ።
+8160,Operate machines that process food and drink.,ምግብ እና መጠጥ የሚያቀነባብሩ ማሽኖችን ያንቀሳቅሳሉ።
+8171,Operate plants that make pulp and paper.,የወረቀት ጥሬ ዕቃ እና ወረቀት የሚያመርቱ ተቋማትን ያንቀሳቅሳሉ።
+8172,Operate sawmills and plants that process wood.,የእንጨት መሰንጠቂያዎችን እና እንጨት የሚያቀነባብሩ ተቋማትን ያንቀሳቅሳሉ።
+8181,Operate kilns and machines that make glass and ceramic goods.,የመስታወት እና የሴራሚክ ዕቃዎችን የሚያመርቱ ምድጃዎችን እና ማሽኖችን ያንቀሳቅሳሉ።
+8182,Operate boilers and steam engines.,ቦይለሮችን እና የእንፋሎት ሞተሮችን ያንቀሳቅሳሉ።
+8183,"Operate machines that pack, fill and label products.",ምርቶችን የሚያሽጉ፣ የሚሞሉ እና ምልክት የሚያደርጉ ማሽኖችን ያንቀሳቅሳሉ።
+8189,Operate fixed machines not covered elsewhere.,በሌላ ያልተጠቀሱ ቋሚ ማሽኖችን ያንቀሳቅሳሉ።
+8211,Assemble machines and mechanical equipment from parts.,ከክፍሎች ማሽኖችን እና መካኒካል መሣሪያዎችን ይገጣጠማሉ።
+8212,Assemble electrical and electronic equipment from parts.,ከክፍሎች የኤሌክትሪክ እና የኤሌክትሮኒክስ መሣሪያዎችን ይገጣጠማሉ።
+8219,Assemble other manufactured products from parts.,ከክፍሎች ሌሎች የፋብሪካ ምርቶችን ይገጣጠማሉ።
+8311,Drive trains that carry passengers and freight.,መንገደኞችን እና ጭነትን የሚያጓጉዙ ባቡሮችን ያሽከረክራሉ።
+8312,"Control railway brakes, signals and track switches.",የባቡር ፍሬኖችን፣ ምልክቶችን እና የሐዲድ መቀየሪያዎችን ይቆጣጠራሉ።
+8321,Ride motorcycles to carry people or goods.,ሰዎችን ወይም ዕቃዎችን ለማጓጓዝ ሞተር ብስክሌት ያሽከረክራሉ።
+8322,"Drive cars, taxis and small vans.",መኪናዎችን፣ ታክሲዎችን እና ትናንሽ ቫኖችን ያሽከረክራሉ።
+8331,Drive buses and trams on passenger routes.,በመንገደኞች መስመሮች አውቶቡሶችን እና ትራሞችን ያሽከረክራሉ።
+8332,Drive heavy trucks to carry goods.,ዕቃ ለማጓጓዝ ከባድ የጭነት ተሽከርካሪዎችን ያሽከረክራሉ።
+8341,"Operate tractors, harvesters and other mobile farm machines.",ትራክተሮችን፣ አጨዳ ማሽኖችን እና ሌሎች ተንቀሳቃሽ የእርሻ ማሽኖችን ያንቀሳቅሳሉ።
+8342,"Operate excavators, bulldozers and similar earthmoving machines.",ኤክስካቫተሮችን፣ ቡልዶዘሮችን እና ተመሳሳይ አፈር የሚያንቀሳቅሱ ማሽኖችን ያንቀሳቅሳሉ።
+8343,Operate cranes and hoists that lift heavy loads.,ከባድ ጭነት የሚያነሱ ክሬኖችን እና ማንሻዎችን ያንቀሳቅሳሉ።
+8344,Drive forklifts and similar vehicles to move goods.,ዕቃ ለማንቀሳቀስ ፎርክሊፍቶችን እና ተመሳሳይ ተሽከርካሪዎችን ያሽከረክራሉ።
+8350,Handle deck duties and maintenance on ships and boats.,በመርከቦች እና በጀልባዎች የላይኛው ወለል ተግባራትን እና ጥገናን ያከናውናሉ።
+9111,Clean homes and help with household chores.,ቤቶችን ያጸዳሉ፤ በቤት ውስጥ ሥራዎች ያግዛሉ።
+9112,"Clean offices, hotels and other premises.",ቢሮዎችን፣ ሆቴሎችን እና ሌሎች ቦታዎችን ያጸዳሉ።
+9121,Wash and iron clothes by hand.,ልብሶችን በእጅ ያጥባሉ እንዲሁም ይተኩሳሉ።
+9122,Wash and polish vehicles.,ተሽከርካሪዎችን ያጥባሉ እንዲሁም ያጸዳሉ።
+9123,Clean windows and glass surfaces.,መስኮቶችን እና የመስታወት ገጽታዎችን ያጸዳሉ።
+9129,"Do other cleaning work, such as carpets or pools.",እንደ ምንጣፍ ወይም መዋኛ ያሉ ሌሎች የጽዳት ሥራዎችን ይሠራሉ።
+9211,Do simple manual work on crop farms.,በሰብል እርሻዎች ቀላል የጉልበት ሥራ ይሠራሉ።
+9212,Do simple manual work with livestock.,በእንስሳት እርባታ ቀላል የጉልበት ሥራ ይሠራሉ።
+9213,Do simple manual work on mixed crop and livestock farms.,በቅይጥ እርሻዎች ቀላል የጉልበት ሥራ ይሠራሉ።
+9214,Do simple manual work in gardens and nurseries.,በአትክልት ስፍራዎች እና በችግኝ ጣቢያዎች ቀላል የጉልበት ሥራ ይሠራሉ።
+9215,Do simple manual work in forests.,በደን ውስጥ ቀላል የጉልበት ሥራ ይሠራሉ።
+9216,Do simple manual work in fishing and fish farming.,በዓሣ ማስገር እና በዓሣ እርባታ ቀላል የጉልበት ሥራ ይሠራሉ።
+9311,Do simple manual work in mines and quarries.,በማዕድን እና በድንጋይ ማውጫዎች ቀላል የጉልበት ሥራ ይሠራሉ።
+9312,"Do simple manual work on roads, dams and similar projects.",በመንገድ፣ በግድብ እና በተመሳሳይ ፕሮጀክቶች ቀላል የጉልበት ሥራ ይሠራሉ።
+9313,Do simple manual work on building sites.,በሕንፃ ግንባታ ቦታዎች ቀላል የጉልበት ሥራ ይሠራሉ።
+9321,Pack and label goods by hand.,ዕቃዎችን በእጅ ያሽጋሉ እንዲሁም ምልክት ያደርጋሉ።
+9329,Do simple manual work in factories.,በፋብሪካዎች ቀላል የጉልበት ሥራ ይሠራሉ።
+9331,Drive pedal or hand-powered vehicles to carry people or goods.,ሰዎችን ወይም ዕቃዎችን ለማጓጓዝ በፔዳል ወይም በእጅ የሚሠሩ ተሽከርካሪዎችን ይነዳሉ።
+9332,Drive vehicles and machines pulled by animals.,በእንስሳት የሚጎተቱ ተሽከርካሪዎችን እና ማሽኖችን ይነዳሉ።
+9333,Load and unload goods and move freight.,ዕቃዎችን ይጭናሉ፣ ያወርዳሉ እንዲሁም ጭነት ያንቀሳቅሳሉ።
+9334,Keep shop shelves stocked and tidy.,የሱቅ መደርደሪያዎችን ይሞላሉ እንዲሁም ያስተካክላሉ።
+9411,Prepare and serve simple food quickly to order.,ቀላል ምግቦችን በትዕዛዝ በፍጥነት ያዘጋጃሉ እንዲሁም ያቀርባሉ።
+9412,Clean kitchens and help prepare food.,ኩሽናዎችን ያጸዳሉ፤ ምግብ በማዘጋጀት ያግዛሉ።
+9510,"Provide simple services on streets, such as shoe shining.",በመንገድ ላይ እንደ ጫማ መጥረግ ያሉ ቀላል አገልግሎቶችን ይሰጣሉ።
+9520,Sell non-food goods on streets and in public places.,በመንገድ እና በሕዝብ ቦታዎች ከምግብ ውጭ ያሉ ዕቃዎችን ይሸጣሉ።
+9611,Collect household and business waste and recyclable materials.,የቤት እና የንግድ ቆሻሻን እንዲሁም መልሶ ጥቅም ላይ የሚውሉ ቁሳቁሶችን ይሰበስባሉ።
+9612,Sort waste to recover usable materials.,ጠቃሚ ቁሳቁሶችን ለማግኘት ቆሻሻን ይለያሉ።
+9613,"Sweep streets, parks and other public areas.",መንገዶችን፣ ፓርኮችን እና ሌሎች የሕዝብ ቦታዎችን ይጠርጋሉ።
+9621,"Carry messages, packages and luggage.",መልእክቶችን፣ ጥቅሎችን እና ሻንጣዎችን ይወስዳሉ።
+9622,Do a variety of simple repair and maintenance jobs.,የተለያዩ ቀላል የጥገና እና የእንክብካቤ ሥራዎችን ይሠራሉ።
+9623,Read utility meters and collect money from vending machines.,የአገልግሎት ቆጣሪዎችን ያነባሉ፤ ከሽያጭ ማሽኖች ገንዘብ ይሰበስባሉ።
+9624,Fetch water and gather firewood for households.,ለቤተሰብ ውሃ ይቀዳሉ፤ ማገዶ ይለቅማሉ።
+9629,Do simple manual work not covered elsewhere.,በሌላ ያልተጠቀሱ ቀላል የጉልበት ሥራዎችን ይሠራሉ።

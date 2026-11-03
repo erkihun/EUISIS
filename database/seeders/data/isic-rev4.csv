@@ -1,0 +1,767 @@
+code,parent_code,level,name_en,name_am
+A,,1,"Agriculture, forestry and fishing",ግብርና፣ ደን እና ዓሣ ማስገር
+01,A,2,"Crop and animal production, hunting and related service activities",የሰብል ልማት፣ የእንስሳት እርባታ፣ አደን እና ተዛማጅ አገልግሎቶች
+011,01,3,Growing of non-perennial crops,ዓመታዊ ሰብሎችን ማልማት
+0111,011,4,"Growing of cereals (except rice), leguminous crops and oil seeds",የእህል (ከሩዝ በስተቀር)፣ የጥራጥሬ እና የቅባት እህሎችን ማልማት
+0112,011,4,Growing of rice,ሩዝ ማልማት
+0113,011,4,"Growing of vegetables and melons, roots and tubers",አትክልት፣ ሐብሐብ እና ሥራ ሥር ሰብሎችን ማልማት
+0114,011,4,Growing of sugar cane,ሸንኮራ አገዳ ማልማት
+0115,011,4,Growing of tobacco,ትንባሆ ማልማት
+0116,011,4,Growing of fibre crops,የቃጫ ሰብሎችን ማልማት
+0119,011,4,Growing of other non-perennial crops,ሌሎች ዓመታዊ ሰብሎችን ማልማት
+012,01,3,Growing of perennial crops,ቋሚ ሰብሎችን ማልማት
+0121,012,4,Growing of grapes,ወይን ማልማት
+0122,012,4,Growing of tropical and subtropical fruits,የሐሩር እና ከፊል ሐሩር ፍራፍሬዎችን ማልማት
+0123,012,4,Growing of citrus fruits,የብርቱካን ዘር ፍራፍሬዎችን ማልማት
+0124,012,4,Growing of pome fruits and stone fruits,የፖም ዘር እና ባለ ጠንካራ ፍሬ ፍራፍሬዎችን ማልማት
+0125,012,4,Growing of other tree and bush fruits and nuts,ሌሎች የዛፍ እና የቁጥቋጦ ፍራፍሬዎችን እና ለውዞችን ማልማት
+0126,012,4,Growing of oleaginous fruits,የቅባት ፍራፍሬዎችን ማልማት
+0127,012,4,Growing of beverage crops,የመጠጥ ሰብሎችን ማልማት
+0128,012,4,"Growing of spices, aromatic, drug and pharmaceutical crops",የቅመማ ቅመም፣ የመዓዛ፣ የመድኃኒት እና የፋርማሲ ሰብሎችን ማልማት
+0129,012,4,Growing of other perennial crops,ሌሎች ቋሚ ሰብሎችን ማልማት
+013,01,3,Plant propagation,የተክል ማራባት
+0130,013,4,Plant propagation,የተክል ማራባት
+014,01,3,Animal production,የእንስሳት እርባታ
+0141,014,4,Raising of cattle and buffaloes,የቀንድ ከብት እና የጎሽ እርባታ
+0142,014,4,Raising of horses and other equines,የፈረስ እና ሌሎች ጋማ ከብቶች እርባታ
+0143,014,4,Raising of camels and camelids,የግመል እና የግመል ዘሮች እርባታ
+0144,014,4,Raising of sheep and goats,የበግ እና የፍየል እርባታ
+0145,014,4,Raising of swine/pigs,የአሳማ እርባታ
+0146,014,4,Raising of poultry,የዶሮ እርባታ
+0149,014,4,Raising of other animals,የሌሎች እንስሳት እርባታ
+015,01,3,Mixed farming,ቅይጥ እርሻ
+0150,015,4,Mixed farming,ቅይጥ እርሻ
+016,01,3,Support activities to agriculture and post-harvest crop activities,ለግብርና የሚሰጡ ድጋፍ ሥራዎች እና የድኅረ ምርት የሰብል ሥራዎች
+0161,016,4,Support activities for crop production,ለሰብል ልማት የሚሰጡ ድጋፍ ሥራዎች
+0162,016,4,Support activities for animal production,ለእንስሳት እርባታ የሚሰጡ ድጋፍ ሥራዎች
+0163,016,4,Post-harvest crop activities,የድኅረ ምርት የሰብል ሥራዎች
+0164,016,4,Seed processing for propagation,ለማራቢያ የሚውል ዘር ማዘጋጀት
+017,01,3,"Hunting, trapping and related service activities",አደን፣ በወጥመድ መያዝ እና ተዛማጅ አገልግሎቶች
+0170,017,4,"Hunting, trapping and related service activities",አደን፣ በወጥመድ መያዝ እና ተዛማጅ አገልግሎቶች
+02,A,2,Forestry and logging,የደን ልማት እና ዛፍ መቁረጥ
+021,02,3,Silviculture and other forestry activities,የዛፍ ልማት እና ሌሎች የደን ሥራዎች
+0210,021,4,Silviculture and other forestry activities,የዛፍ ልማት እና ሌሎች የደን ሥራዎች
+022,02,3,Logging,ዛፍ መቁረጥ እና ግንድ ማውጣት
+0220,022,4,Logging,ዛፍ መቁረጥ እና ግንድ ማውጣት
+023,02,3,Gathering of non-wood forest products,ከእንጨት ውጭ የሆኑ የደን ውጤቶችን መሰብሰብ
+0230,023,4,Gathering of non-wood forest products,ከእንጨት ውጭ የሆኑ የደን ውጤቶችን መሰብሰብ
+024,02,3,Support services to forestry,ለደን ልማት የሚሰጡ ድጋፍ አገልግሎቶች
+0240,024,4,Support services to forestry,ለደን ልማት የሚሰጡ ድጋፍ አገልግሎቶች
+03,A,2,Fishing and aquaculture,ዓሣ ማስገር እና የውሃ እንስሳት እርባታ
+031,03,3,Fishing,ዓሣ ማስገር
+0311,031,4,Marine fishing,የባሕር ዓሣ ማስገር
+0312,031,4,Freshwater fishing,የንጹህ ውሃ ዓሣ ማስገር
+032,03,3,Aquaculture,የውሃ እንስሳት እርባታ
+0321,032,4,Marine aquaculture,የባሕር ውሃ እንስሳት እርባታ
+0322,032,4,Freshwater aquaculture,የንጹህ ውሃ እንስሳት እርባታ
+B,,1,Mining and quarrying,ማዕድን እና ድንጋይ ማውጣት
+05,B,2,Mining of coal and lignite,የድንጋይ ከሰል እና የሊግናይት ማውጣት
+051,05,3,Mining of hard coal,ጠንካራ የድንጋይ ከሰል ማውጣት
+0510,051,4,Mining of hard coal,ጠንካራ የድንጋይ ከሰል ማውጣት
+052,05,3,Mining of lignite,ሊግናይት ማውጣት
+0520,052,4,Mining of lignite,ሊግናይት ማውጣት
+06,B,2,Extraction of crude petroleum and natural gas,ድፍድፍ ነዳጅ እና የተፈጥሮ ጋዝ ማውጣት
+061,06,3,Extraction of crude petroleum,ድፍድፍ ነዳጅ ማውጣት
+0610,061,4,Extraction of crude petroleum,ድፍድፍ ነዳጅ ማውጣት
+062,06,3,Extraction of natural gas,የተፈጥሮ ጋዝ ማውጣት
+0620,062,4,Extraction of natural gas,የተፈጥሮ ጋዝ ማውጣት
+07,B,2,Mining of metal ores,የብረት ማዕድናትን ማውጣት
+071,07,3,Mining of iron ores,የአይረን ማዕድን ማውጣት
+0710,071,4,Mining of iron ores,የአይረን ማዕድን ማውጣት
+072,07,3,Mining of non-ferrous metal ores,ከአይረን ውጭ የሆኑ የብረት ማዕድናትን ማውጣት
+0721,072,4,Mining of uranium and thorium ores,የዩራኒየም እና የቶሪየም ማዕድናትን ማውጣት
+0729,072,4,Mining of other non-ferrous metal ores,ሌሎች ከአይረን ውጭ የሆኑ የብረት ማዕድናትን ማውጣት
+08,B,2,Other mining and quarrying,ሌሎች የማዕድን ማውጣት እና የድንጋይ ማውጣት ሥራዎች
+081,08,3,"Quarrying of stone, sand and clay",ድንጋይ፣ አሸዋ እና ሸክላ ማምረት
+0810,081,4,"Quarrying of stone, sand and clay",ድንጋይ፣ አሸዋ እና ሸክላ ማምረት
+089,08,3,Mining and quarrying n.e.c.,በሌላ ያልተመደቡ የማዕድን ማውጣት እና የድንጋይ ማውጣት ሥራዎች
+0891,089,4,Mining of chemical and fertilizer minerals,የኬሚካል እና የማዳበሪያ ማዕድናትን ማውጣት
+0892,089,4,Extraction of peat,ፒት (የረግረግ ከሰል) ማውጣት
+0893,089,4,Extraction of salt,ጨው ማውጣት
+0899,089,4,Other mining and quarrying n.e.c.,በሌላ ያልተመደቡ ሌሎች የማዕድን ማውጣት እና የድንጋይ ማውጣት ሥራዎች
+09,B,2,Mining support service activities,የማዕድን ማውጣት ድጋፍ አገልግሎቶች
+091,09,3,Support activities for petroleum and natural gas extraction,ለነዳጅ እና ለተፈጥሮ ጋዝ ማውጣት የሚሰጡ ድጋፍ ሥራዎች
+0910,091,4,Support activities for petroleum and natural gas extraction,ለነዳጅ እና ለተፈጥሮ ጋዝ ማውጣት የሚሰጡ ድጋፍ ሥራዎች
+099,09,3,Support activities for other mining and quarrying,ለሌሎች የማዕድን ማውጣት እና የድንጋይ ማውጣት ሥራዎች የሚሰጡ ድጋፍ ሥራዎች
+0990,099,4,Support activities for other mining and quarrying,ለሌሎች የማዕድን ማውጣት እና የድንጋይ ማውጣት ሥራዎች የሚሰጡ ድጋፍ ሥራዎች
+C,,1,Manufacturing,የማምረቻ ኢንዱስትሪ
+10,C,2,Manufacture of food products,የምግብ ውጤቶች ማምረት
+101,10,3,Processing and preserving of meat,ሥጋ ማቀነባበር እና ማቆየት
+1010,101,4,Processing and preserving of meat,ሥጋ ማቀነባበር እና ማቆየት
+102,10,3,"Processing and preserving of fish, crustaceans and molluscs",ዓሣ፣ ክራስቴሽያን እና ሞለስክ ማቀነባበር እና ማቆየት
+1020,102,4,"Processing and preserving of fish, crustaceans and molluscs",ዓሣ፣ ክራስቴሽያን እና ሞለስክ ማቀነባበር እና ማቆየት
+103,10,3,Processing and preserving of fruit and vegetables,ፍራፍሬ እና አትክልት ማቀነባበር እና ማቆየት
+1030,103,4,Processing and preserving of fruit and vegetables,ፍራፍሬ እና አትክልት ማቀነባበር እና ማቆየት
+104,10,3,Manufacture of vegetable and animal oils and fats,የአትክልት እና የእንስሳት ዘይት እና ስብ ማምረት
+1040,104,4,Manufacture of vegetable and animal oils and fats,የአትክልት እና የእንስሳት ዘይት እና ስብ ማምረት
+105,10,3,Manufacture of dairy products,የወተት ውጤቶች ማምረት
+1050,105,4,Manufacture of dairy products,የወተት ውጤቶች ማምረት
+106,10,3,"Manufacture of grain mill products, starches and starch products",የወፍጮ ውጤቶች፣ ስታርች እና የስታርች ውጤቶች ማምረት
+1061,106,4,Manufacture of grain mill products,የወፍጮ ውጤቶች ማምረት
+1062,106,4,Manufacture of starches and starch products,ስታርች እና የስታርች ውጤቶች ማምረት
+107,10,3,Manufacture of other food products,ሌሎች የምግብ ውጤቶች ማምረት
+1071,107,4,Manufacture of bakery products,የዳቦ እና የመጋገሪያ ውጤቶች ማምረት
+1072,107,4,Manufacture of sugar,ስኳር ማምረት
+1073,107,4,"Manufacture of cocoa, chocolate and sugar confectionery",ኮኮዋ፣ ቸኮሌት እና የስኳር ጣፋጮች ማምረት
+1074,107,4,"Manufacture of macaroni, noodles, couscous and similar farinaceous products",ማካሮኒ፣ ኑድል፣ ኩስኩስ እና ተመሳሳይ የዱቄት ውጤቶች ማምረት
+1075,107,4,Manufacture of prepared meals and dishes,የተዘጋጁ ምግቦች ማምረት
+1079,107,4,Manufacture of other food products n.e.c.,በሌላ ያልተመደቡ ሌሎች የምግብ ውጤቶች ማምረት
+108,10,3,Manufacture of prepared animal feeds,የተዘጋጀ የእንስሳት መኖ ማምረት
+1080,108,4,Manufacture of prepared animal feeds,የተዘጋጀ የእንስሳት መኖ ማምረት
+11,C,2,Manufacture of beverages,መጠጦች ማምረት
+110,11,3,Manufacture of beverages,መጠጦች ማምረት
+1101,110,4,"Distilling, rectifying and blending of spirits",የአልኮል መጠጦችን መጥመቅ፣ ማጣራት እና መቀላቀል
+1102,110,4,Manufacture of wines,የወይን ጠጅ ማምረት
+1103,110,4,Manufacture of malt liquors and malt,ቢራ እና ብቅል ማምረት
+1104,110,4,Manufacture of soft drinks; production of mineral waters and other bottled waters,ለስላሳ መጠጦች ማምረት፤ የማዕድን ውሃ እና ሌሎች የታሸጉ ውሃዎች ማምረት
+12,C,2,Manufacture of tobacco products,የትንባሆ ውጤቶች ማምረት
+120,12,3,Manufacture of tobacco products,የትንባሆ ውጤቶች ማምረት
+1200,120,4,Manufacture of tobacco products,የትንባሆ ውጤቶች ማምረት
+13,C,2,Manufacture of textiles,ጨርቃ ጨርቅ ማምረት
+131,13,3,"Spinning, weaving and finishing of textiles",ጨርቃ ጨርቅ መፍተል፣ መሸመን እና ማጠናቀቅ
+1311,131,4,Preparation and spinning of textile fibres,የጨርቃ ጨርቅ ቃጫ ማዘጋጀት እና መፍተል
+1312,131,4,Weaving of textiles,ጨርቃ ጨርቅ መሸመን
+1313,131,4,Finishing of textiles,ጨርቃ ጨርቅ ማጠናቀቅ
+139,13,3,Manufacture of other textiles,ሌሎች ጨርቃ ጨርቆች ማምረት
+1391,139,4,Manufacture of knitted and crocheted fabrics,የሹራብ እና የክሮሽ ጨርቆች ማምረት
+1392,139,4,"Manufacture of made-up textile articles, except apparel",ከልብስ በስተቀር የተዘጋጁ የጨርቃ ጨርቅ ዕቃዎች ማምረት
+1393,139,4,Manufacture of carpets and rugs,ምንጣፍ እና ስጋጃ ማምረት
+1394,139,4,"Manufacture of cordage, rope, twine and netting",ገመድ፣ ሲባጎ፣ ክር እና መረብ ማምረት
+1399,139,4,Manufacture of other textiles n.e.c.,በሌላ ያልተመደቡ ሌሎች ጨርቃ ጨርቆች ማምረት
+14,C,2,Manufacture of wearing apparel,አልባሳት ማምረት
+141,14,3,"Manufacture of wearing apparel, except fur apparel",ከፀጉር ልብስ በስተቀር አልባሳት ማምረት
+1410,141,4,"Manufacture of wearing apparel, except fur apparel",ከፀጉር ልብስ በስተቀር አልባሳት ማምረት
+142,14,3,Manufacture of articles of fur,የፀጉር ዕቃዎች ማምረት
+1420,142,4,Manufacture of articles of fur,የፀጉር ዕቃዎች ማምረት
+143,14,3,Manufacture of knitted and crocheted apparel,የሹራብ እና የክሮሽ አልባሳት ማምረት
+1430,143,4,Manufacture of knitted and crocheted apparel,የሹራብ እና የክሮሽ አልባሳት ማምረት
+15,C,2,Manufacture of leather and related products,ቆዳ እና ተዛማጅ ውጤቶች ማምረት
+151,15,3,"Tanning and dressing of leather; manufacture of luggage, handbags, saddlery and harness; dressing and dyeing of fur",ቆዳ ማልፋት እና ማዘጋጀት፤ የጉዞ ሻንጣ፣ የእጅ ቦርሳ፣ ኮርቻ እና ልጓም ማምረት፤ ፀጉር ማዘጋጀት እና ማቅለም
+1511,151,4,Tanning and dressing of leather; dressing and dyeing of fur,ቆዳ ማልፋት እና ማዘጋጀት፤ ፀጉር ማዘጋጀት እና ማቅለም
+1512,151,4,"Manufacture of luggage, handbags and the like, saddlery and harness",የጉዞ ሻንጣ፣ የእጅ ቦርሳ እና መሰል ዕቃዎች፣ ኮርቻ እና ልጓም ማምረት
+152,15,3,Manufacture of footwear,ጫማ ማምረት
+1520,152,4,Manufacture of footwear,ጫማ ማምረት
+16,C,2,"Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials",ከቤት ዕቃ በስተቀር እንጨት እና የእንጨት እና የቡሽ ውጤቶች ማምረት፤ የገለባ እና የመሸመኛ ቁሳቁስ ዕቃዎች ማምረት
+161,16,3,Sawmilling and planing of wood,እንጨት መሰንጠቅ እና መላግ
+1610,161,4,Sawmilling and planing of wood,እንጨት መሰንጠቅ እና መላግ
+162,16,3,"Manufacture of products of wood, cork, straw and plaiting materials",የእንጨት፣ የቡሽ፣ የገለባ እና የመሸመኛ ቁሳቁስ ውጤቶች ማምረት
+1621,162,4,Manufacture of veneer sheets and wood-based panels,ቬኒየር እና የእንጨት ጣውላዎች ማምረት
+1622,162,4,Manufacture of builders' carpentry and joinery,ለግንባታ የሚውሉ የእንጨት እና የአናጺነት ሥራ ውጤቶች ማምረት
+1623,162,4,Manufacture of wooden containers,የእንጨት መያዣዎች ማምረት
+1629,162,4,"Manufacture of other products of wood; manufacture of articles of cork, straw and plaiting materials",ሌሎች የእንጨት ውጤቶች ማምረት፤ የቡሽ፣ የገለባ እና የመሸመኛ ቁሳቁስ ዕቃዎች ማምረት
+17,C,2,Manufacture of paper and paper products,ወረቀት እና የወረቀት ውጤቶች ማምረት
+170,17,3,Manufacture of paper and paper products,ወረቀት እና የወረቀት ውጤቶች ማምረት
+1701,170,4,"Manufacture of pulp, paper and paperboard",የወረቀት ጥሬ ዕቃ፣ ወረቀት እና ካርቶን ማምረት
+1702,170,4,Manufacture of corrugated paper and paperboard and of containers of paper and paperboard,የተሸበሸበ ወረቀት እና ካርቶን እንዲሁም የወረቀት እና የካርቶን መያዣዎች ማምረት
+1709,170,4,Manufacture of other articles of paper and paperboard,ሌሎች የወረቀት እና የካርቶን ዕቃዎች ማምረት
+18,C,2,Printing and reproduction of recorded media,ኅትመት እና የተቀዳ ሚዲያ ማባዛት
+181,18,3,Printing and service activities related to printing,ኅትመት እና ከኅትመት ጋር የተያያዙ አገልግሎቶች
+1811,181,4,Printing,ኅትመት
+1812,181,4,Service activities related to printing,ከኅትመት ጋር የተያያዙ አገልግሎቶች
+182,18,3,Reproduction of recorded media,የተቀዳ ሚዲያ ማባዛት
+1820,182,4,Reproduction of recorded media,የተቀዳ ሚዲያ ማባዛት
+19,C,2,Manufacture of coke and refined petroleum products,ኮክ እና የተጣሩ የነዳጅ ውጤቶች ማምረት
+191,19,3,Manufacture of coke oven products,የኮክ ምድጃ ውጤቶች ማምረት
+1910,191,4,Manufacture of coke oven products,የኮክ ምድጃ ውጤቶች ማምረት
+192,19,3,Manufacture of refined petroleum products,የተጣሩ የነዳጅ ውጤቶች ማምረት
+1920,192,4,Manufacture of refined petroleum products,የተጣሩ የነዳጅ ውጤቶች ማምረት
+20,C,2,Manufacture of chemicals and chemical products,ኬሚካሎች እና የኬሚካል ውጤቶች ማምረት
+201,20,3,"Manufacture of basic chemicals, fertilizers and nitrogen compounds, plastics and synthetic rubber in primary forms",መሠረታዊ ኬሚካሎች፣ ማዳበሪያ እና የናይትሮጂን ውህዶች፣ ፕላስቲክ እና ሰው ሠራሽ ጎማ በመጀመሪያ ደረጃ ቅርጽ ማምረት
+2011,201,4,Manufacture of basic chemicals,መሠረታዊ ኬሚካሎች ማምረት
+2012,201,4,Manufacture of fertilizers and nitrogen compounds,ማዳበሪያ እና የናይትሮጂን ውህዶች ማምረት
+2013,201,4,Manufacture of plastics and synthetic rubber in primary forms,ፕላስቲክ እና ሰው ሠራሽ ጎማ በመጀመሪያ ደረጃ ቅርጽ ማምረት
+202,20,3,Manufacture of other chemical products,ሌሎች የኬሚካል ውጤቶች ማምረት
+2021,202,4,Manufacture of pesticides and other agrochemical products,ፀረ ተባይ እና ሌሎች የግብርና ኬሚካል ውጤቶች ማምረት
+2022,202,4,"Manufacture of paints, varnishes and similar coatings, printing ink and mastics",ቀለም፣ ቫርኒሽ እና ተመሳሳይ ልባስ፣ የኅትመት ቀለም እና ማስቲክ ማምረት
+2023,202,4,"Manufacture of soap and detergents, cleaning and polishing preparations, perfumes and toilet preparations",ሳሙና እና ማጽጃዎች፣ የማጽጃ እና የማለስለሻ ዝግጅቶች፣ ሽቶ እና የንጽህና መጠበቂያ ዝግጅቶች ማምረት
+2029,202,4,Manufacture of other chemical products n.e.c.,በሌላ ያልተመደቡ ሌሎች የኬሚካል ውጤቶች ማምረት
+203,20,3,Manufacture of man-made fibres,ሰው ሠራሽ ቃጫዎች ማምረት
+2030,203,4,Manufacture of man-made fibres,ሰው ሠራሽ ቃጫዎች ማምረት
+21,C,2,Manufacture of basic pharmaceutical products and pharmaceutical preparations,መሠረታዊ የመድኃኒት ውጤቶች እና የመድኃኒት ዝግጅቶች ማምረት
+210,21,3,"Manufacture of pharmaceuticals, medicinal chemical and botanical products",መድኃኒቶች፣ የመድኃኒት ኬሚካል እና የዕፅዋት ውጤቶች ማምረት
+2100,210,4,"Manufacture of pharmaceuticals, medicinal chemical and botanical products",መድኃኒቶች፣ የመድኃኒት ኬሚካል እና የዕፅዋት ውጤቶች ማምረት
+22,C,2,Manufacture of rubber and plastics products,የጎማ እና የፕላስቲክ ውጤቶች ማምረት
+221,22,3,Manufacture of rubber products,የጎማ ውጤቶች ማምረት
+2211,221,4,Manufacture of rubber tyres and tubes; retreading and rebuilding of rubber tyres,የተሽከርካሪ ጎማዎች እና የውስጥ ላስቲኮች ማምረት፤ ያገለገሉ ጎማዎችን ማደስ
+2219,221,4,Manufacture of other rubber products,ሌሎች የጎማ ውጤቶች ማምረት
+222,22,3,Manufacture of plastics products,የፕላስቲክ ውጤቶች ማምረት
+2220,222,4,Manufacture of plastics products,የፕላስቲክ ውጤቶች ማምረት
+23,C,2,Manufacture of other non-metallic mineral products,ሌሎች ከብረት ያልሆኑ የማዕድን ውጤቶች ማምረት
+231,23,3,Manufacture of glass and glass products,ብርጭቆ እና የብርጭቆ ውጤቶች ማምረት
+2310,231,4,Manufacture of glass and glass products,ብርጭቆ እና የብርጭቆ ውጤቶች ማምረት
+239,23,3,Manufacture of non-metallic mineral products n.e.c.,በሌላ ያልተመደቡ ከብረት ያልሆኑ የማዕድን ውጤቶች ማምረት
+2391,239,4,Manufacture of refractory products,እሳት የሚቋቋሙ ውጤቶች ማምረት
+2392,239,4,Manufacture of clay building materials,ከሸክላ የሚሠሩ የግንባታ ቁሳቁሶች ማምረት
+2393,239,4,Manufacture of other porcelain and ceramic products,ሌሎች የሸክላ እና የሴራሚክ ውጤቶች ማምረት
+2394,239,4,"Manufacture of cement, lime and plaster",ሲሚንቶ፣ ኖራ እና ጂፕሰም ማምረት
+2395,239,4,"Manufacture of articles of concrete, cement and plaster",የኮንክሪት፣ የሲሚንቶ እና የጂፕሰም ዕቃዎች ማምረት
+2396,239,4,"Cutting, shaping and finishing of stone",ድንጋይ መቁረጥ፣ መቅረጽ እና ማጠናቀቅ
+2399,239,4,Manufacture of other non-metallic mineral products n.e.c.,በሌላ ያልተመደቡ ሌሎች ከብረት ያልሆኑ የማዕድን ውጤቶች ማምረት
+24,C,2,Manufacture of basic metals,መሠረታዊ ብረቶች ማምረት
+241,24,3,Manufacture of basic iron and steel,መሠረታዊ ብረት እና አረብ ብረት ማምረት
+2410,241,4,Manufacture of basic iron and steel,መሠረታዊ ብረት እና አረብ ብረት ማምረት
+242,24,3,Manufacture of basic precious and other non-ferrous metals,መሠረታዊ ውድ ብረቶች እና ሌሎች ከአይረን ውጭ የሆኑ ብረቶች ማምረት
+2420,242,4,Manufacture of basic precious and other non-ferrous metals,መሠረታዊ ውድ ብረቶች እና ሌሎች ከአይረን ውጭ የሆኑ ብረቶች ማምረት
+243,24,3,Casting of metals,ብረት ማቅለጥ እና በቅርጽ መጣል
+2431,243,4,Casting of iron and steel,ብረት እና አረብ ብረት በቅርጽ መጣል
+2432,243,4,Casting of non-ferrous metals,ከአይረን ውጭ የሆኑ ብረቶችን በቅርጽ መጣል
+25,C,2,"Manufacture of fabricated metal products, except machinery and equipment",ከማሽነሪ እና ከመሣሪያ በስተቀር የተሠሩ የብረት ውጤቶች ማምረት
+251,25,3,"Manufacture of structural metal products, tanks, reservoirs and steam generators",የግንባታ ብረት ውጤቶች፣ ታንከሮች፣ ማጠራቀሚያዎች እና የእንፋሎት ማመንጫዎች ማምረት
+2511,251,4,Manufacture of structural metal products,የግንባታ ብረት ውጤቶች ማምረት
+2512,251,4,"Manufacture of tanks, reservoirs and containers of metal",የብረት ታንከሮች፣ ማጠራቀሚያዎች እና መያዣዎች ማምረት
+2513,251,4,"Manufacture of steam generators, except central heating hot water boilers",ከማዕከላዊ ማሞቂያ የሙቅ ውሃ ቦይለሮች በስተቀር የእንፋሎት ማመንጫዎች ማምረት
+252,25,3,Manufacture of weapons and ammunition,የጦር መሣሪያ እና ጥይት ማምረት
+2520,252,4,Manufacture of weapons and ammunition,የጦር መሣሪያ እና ጥይት ማምረት
+259,25,3,Manufacture of other fabricated metal products; metalworking service activities,ሌሎች የተሠሩ የብረት ውጤቶች ማምረት፤ የብረት ሥራ አገልግሎቶች
+2591,259,4,"Forging, pressing, stamping and roll-forming of metal; powder metallurgy",ብረት መቀጥቀጥ፣ መጫን፣ ማተም እና በሮል መቅረጽ፤ የዱቄት ብረት ሥራ
+2592,259,4,Treatment and coating of metals; machining,ብረት ማከም እና መለበጥ፤ በማሽን መቅረጽ
+2593,259,4,"Manufacture of cutlery, hand tools and general hardware",የመቁረጫ ዕቃዎች፣ የእጅ መሣሪያዎች እና አጠቃላይ የብረት ዕቃዎች ማምረት
+2599,259,4,Manufacture of other fabricated metal products n.e.c.,በሌላ ያልተመደቡ ሌሎች የተሠሩ የብረት ውጤቶች ማምረት
+26,C,2,"Manufacture of computer, electronic and optical products",የኮምፒውተር፣ የኤሌክትሮኒክስ እና የኦፕቲካል ውጤቶች ማምረት
+261,26,3,Manufacture of electronic components and boards,የኤሌክትሮኒክስ ክፍሎች እና ቦርዶች ማምረት
+2610,261,4,Manufacture of electronic components and boards,የኤሌክትሮኒክስ ክፍሎች እና ቦርዶች ማምረት
+262,26,3,Manufacture of computers and peripheral equipment,ኮምፒውተሮች እና ተጓዳኝ መሣሪያዎች ማምረት
+2620,262,4,Manufacture of computers and peripheral equipment,ኮምፒውተሮች እና ተጓዳኝ መሣሪያዎች ማምረት
+263,26,3,Manufacture of communication equipment,የመገናኛ መሣሪያዎች ማምረት
+2630,263,4,Manufacture of communication equipment,የመገናኛ መሣሪያዎች ማምረት
+264,26,3,Manufacture of consumer electronics,የሸማች ኤሌክትሮኒክስ ዕቃዎች ማምረት
+2640,264,4,Manufacture of consumer electronics,የሸማች ኤሌክትሮኒክስ ዕቃዎች ማምረት
+265,26,3,"Manufacture of measuring, testing, navigating and control equipment; watches and clocks",የመለኪያ፣ የሙከራ፣ የአቅጣጫ መምሪያ እና የቁጥጥር መሣሪያዎች፤ የእጅ እና የግድግዳ ሰዓቶች ማምረት
+2651,265,4,"Manufacture of measuring, testing, navigating and control equipment",የመለኪያ፣ የሙከራ፣ የአቅጣጫ መምሪያ እና የቁጥጥር መሣሪያዎች ማምረት
+2652,265,4,Manufacture of watches and clocks,የእጅ እና የግድግዳ ሰዓቶች ማምረት
+266,26,3,"Manufacture of irradiation, electromedical and electrotherapeutic equipment",የጨረር፣ የኤሌክትሮ ሕክምና እና የኤሌክትሮ ቴራፒ መሣሪያዎች ማምረት
+2660,266,4,"Manufacture of irradiation, electromedical and electrotherapeutic equipment",የጨረር፣ የኤሌክትሮ ሕክምና እና የኤሌክትሮ ቴራፒ መሣሪያዎች ማምረት
+267,26,3,Manufacture of optical instruments and photographic equipment,የኦፕቲካል መሣሪያዎች እና የፎቶግራፍ መሣሪያዎች ማምረት
+2670,267,4,Manufacture of optical instruments and photographic equipment,የኦፕቲካል መሣሪያዎች እና የፎቶግራፍ መሣሪያዎች ማምረት
+268,26,3,Manufacture of magnetic and optical media,መግነጢሳዊ እና ኦፕቲካል ሚዲያ ማምረት
+2680,268,4,Manufacture of magnetic and optical media,መግነጢሳዊ እና ኦፕቲካል ሚዲያ ማምረት
+27,C,2,Manufacture of electrical equipment,የኤሌክትሪክ መሣሪያዎች ማምረት
+271,27,3,"Manufacture of electric motors, generators, transformers and electricity distribution and control apparatus",የኤሌክትሪክ ሞተሮች፣ ጄኔሬተሮች፣ ትራንስፎርመሮች እና የኤሌክትሪክ ማከፋፈያ እና መቆጣጠሪያ መሣሪያዎች ማምረት
+2710,271,4,"Manufacture of electric motors, generators, transformers and electricity distribution and control apparatus",የኤሌክትሪክ ሞተሮች፣ ጄኔሬተሮች፣ ትራንስፎርመሮች እና የኤሌክትሪክ ማከፋፈያ እና መቆጣጠሪያ መሣሪያዎች ማምረት
+272,27,3,Manufacture of batteries and accumulators,ባትሪዎች እና አኩሙሌተሮች ማምረት
+2720,272,4,Manufacture of batteries and accumulators,ባትሪዎች እና አኩሙሌተሮች ማምረት
+273,27,3,Manufacture of wiring and wiring devices,የሽቦ ዝርጋታ እና የሽቦ ዝርጋታ መሣሪያዎች ማምረት
+2731,273,4,Manufacture of fibre optic cables,የፋይበር ኦፕቲክ ገመዶች ማምረት
+2732,273,4,Manufacture of other electronic and electric wires and cables,ሌሎች የኤሌክትሮኒክስ እና የኤሌክትሪክ ሽቦዎች እና ገመዶች ማምረት
+2733,273,4,Manufacture of wiring devices,የሽቦ ዝርጋታ መሣሪያዎች ማምረት
+274,27,3,Manufacture of electric lighting equipment,የኤሌክትሪክ መብራት መሣሪያዎች ማምረት
+2740,274,4,Manufacture of electric lighting equipment,የኤሌክትሪክ መብራት መሣሪያዎች ማምረት
+275,27,3,Manufacture of domestic appliances,የቤት ውስጥ መገልገያ ዕቃዎች ማምረት
+2750,275,4,Manufacture of domestic appliances,የቤት ውስጥ መገልገያ ዕቃዎች ማምረት
+279,27,3,Manufacture of other electrical equipment,ሌሎች የኤሌክትሪክ መሣሪያዎች ማምረት
+2790,279,4,Manufacture of other electrical equipment,ሌሎች የኤሌክትሪክ መሣሪያዎች ማምረት
+28,C,2,Manufacture of machinery and equipment n.e.c.,በሌላ ያልተመደቡ ማሽነሪዎች እና መሣሪያዎች ማምረት
+281,28,3,Manufacture of general-purpose machinery,አጠቃላይ አገልግሎት ማሽነሪዎች ማምረት
+2811,281,4,"Manufacture of engines and turbines, except aircraft, vehicle and cycle engines",ከአውሮፕላን፣ ከተሽከርካሪ እና ከብስክሌት ሞተሮች በስተቀር ሞተሮች እና ተርባይኖች ማምረት
+2812,281,4,Manufacture of fluid power equipment,የፈሳሽ ኃይል መሣሪያዎች ማምረት
+2813,281,4,"Manufacture of other pumps, compressors, taps and valves",ሌሎች ፓምፖች፣ ኮምፕሬሰሮች፣ ቧንቧዎች እና ቫልቮች ማምረት
+2814,281,4,"Manufacture of bearings, gears, gearing and driving elements",ቤሪንጎች፣ ጊሮች፣ የጊር ሥርዓቶች እና የማንቀሳቀሻ አካላት ማምረት
+2815,281,4,"Manufacture of ovens, furnaces and furnace burners",ምድጃዎች፣ የማቅለጫ ምድጃዎች እና የምድጃ ማቀጣጠያዎች ማምረት
+2816,281,4,Manufacture of lifting and handling equipment,የማንሻ እና የማንቀሳቀሻ መሣሪያዎች ማምረት
+2817,281,4,Manufacture of office machinery and equipment (except computers and peripheral equipment),የቢሮ ማሽኖች እና መሣሪያዎች (ከኮምፒውተሮች እና ተጓዳኝ መሣሪያዎች በስተቀር) ማምረት
+2818,281,4,Manufacture of power-driven hand tools,በኃይል የሚሠሩ የእጅ መሣሪያዎች ማምረት
+2819,281,4,Manufacture of other general-purpose machinery,ሌሎች አጠቃላይ አገልግሎት ማሽነሪዎች ማምረት
+282,28,3,Manufacture of special-purpose machinery,ለተለየ አገልግሎት የሚውሉ ማሽነሪዎች ማምረት
+2821,282,4,Manufacture of agricultural and forestry machinery,የግብርና እና የደን ማሽነሪዎች ማምረት
+2822,282,4,Manufacture of metal-forming machinery and machine tools,የብረት መቅረጫ ማሽነሪዎች እና የማሽን መሣሪያዎች ማምረት
+2823,282,4,Manufacture of machinery for metallurgy,ለብረት ማቅለጥ ሥራ የሚውሉ ማሽነሪዎች ማምረት
+2824,282,4,"Manufacture of machinery for mining, quarrying and construction",ለማዕድን ማውጣት፣ ለድንጋይ ማውጣት እና ለግንባታ የሚውሉ ማሽነሪዎች ማምረት
+2825,282,4,"Manufacture of machinery for food, beverage and tobacco processing",ለምግብ፣ ለመጠጥ እና ለትንባሆ ማቀነባበሪያ የሚውሉ ማሽነሪዎች ማምረት
+2826,282,4,"Manufacture of machinery for textile, apparel and leather production",ለጨርቃ ጨርቅ፣ ለአልባሳት እና ለቆዳ ምርት የሚውሉ ማሽነሪዎች ማምረት
+2829,282,4,Manufacture of other special-purpose machinery,ለተለየ አገልግሎት የሚውሉ ሌሎች ማሽነሪዎች ማምረት
+29,C,2,"Manufacture of motor vehicles, trailers and semi-trailers",ተሽከርካሪዎች፣ ተሳቢዎች እና ከፊል ተሳቢዎች ማምረት
+291,29,3,Manufacture of motor vehicles,ተሽከርካሪዎች ማምረት
+2910,291,4,Manufacture of motor vehicles,ተሽከርካሪዎች ማምረት
+292,29,3,Manufacture of bodies (coachwork) for motor vehicles; manufacture of trailers and semi-trailers,የተሽከርካሪ አካላት (ቦዲ) ማምረት፤ ተሳቢዎች እና ከፊል ተሳቢዎች ማምረት
+2920,292,4,Manufacture of bodies (coachwork) for motor vehicles; manufacture of trailers and semi-trailers,የተሽከርካሪ አካላት (ቦዲ) ማምረት፤ ተሳቢዎች እና ከፊል ተሳቢዎች ማምረት
+293,29,3,Manufacture of parts and accessories for motor vehicles,የተሽከርካሪ መለዋወጫዎች እና ተጨማሪ ዕቃዎች ማምረት
+2930,293,4,Manufacture of parts and accessories for motor vehicles,የተሽከርካሪ መለዋወጫዎች እና ተጨማሪ ዕቃዎች ማምረት
+30,C,2,Manufacture of other transport equipment,ሌሎች የመጓጓዣ መሣሪያዎች ማምረት
+301,30,3,Building of ships and boats,መርከቦች እና ጀልባዎች መሥራት
+3011,301,4,Building of ships and floating structures,መርከቦች እና ተንሳፋፊ መዋቅሮች መሥራት
+3012,301,4,Building of pleasure and sporting boats,የመዝናኛ እና የስፖርት ጀልባዎች መሥራት
+302,30,3,Manufacture of railway locomotives and rolling stock,የባቡር ሎኮሞቲቮች እና ፉርጎዎች ማምረት
+3020,302,4,Manufacture of railway locomotives and rolling stock,የባቡር ሎኮሞቲቮች እና ፉርጎዎች ማምረት
+303,30,3,Manufacture of air and spacecraft and related machinery,አውሮፕላኖች፣ የጠፈር መንኮራኩሮች እና ተዛማጅ ማሽነሪዎች ማምረት
+3030,303,4,Manufacture of air and spacecraft and related machinery,አውሮፕላኖች፣ የጠፈር መንኮራኩሮች እና ተዛማጅ ማሽነሪዎች ማምረት
+304,30,3,Manufacture of military fighting vehicles,ወታደራዊ የውጊያ ተሽከርካሪዎች ማምረት
+3040,304,4,Manufacture of military fighting vehicles,ወታደራዊ የውጊያ ተሽከርካሪዎች ማምረት
+309,30,3,Manufacture of transport equipment n.e.c.,በሌላ ያልተመደቡ የመጓጓዣ መሣሪያዎች ማምረት
+3091,309,4,Manufacture of motorcycles,ሞተር ብስክሌቶች ማምረት
+3092,309,4,Manufacture of bicycles and invalid carriages,ብስክሌቶች እና የአካል ጉዳተኞች ተሽከርካሪዎች ማምረት
+3099,309,4,Manufacture of other transport equipment n.e.c.,በሌላ ያልተመደቡ ሌሎች የመጓጓዣ መሣሪያዎች ማምረት
+31,C,2,Manufacture of furniture,የቤት ዕቃዎች ማምረት
+310,31,3,Manufacture of furniture,የቤት ዕቃዎች ማምረት
+3100,310,4,Manufacture of furniture,የቤት ዕቃዎች ማምረት
+32,C,2,Other manufacturing,ሌሎች የማምረቻ ሥራዎች
+321,32,3,"Manufacture of jewellery, bijouterie and related articles",ጌጣጌጥ፣ የጌጥ ዕቃዎች እና ተዛማጅ ውጤቶች ማምረት
+3211,321,4,Manufacture of jewellery and related articles,ጌጣጌጥ እና ተዛማጅ ውጤቶች ማምረት
+3212,321,4,Manufacture of imitation jewellery and related articles,አስመሳይ ጌጣጌጥ እና ተዛማጅ ውጤቶች ማምረት
+322,32,3,Manufacture of musical instruments,የሙዚቃ መሣሪያዎች ማምረት
+3220,322,4,Manufacture of musical instruments,የሙዚቃ መሣሪያዎች ማምረት
+323,32,3,Manufacture of sports goods,የስፖርት ዕቃዎች ማምረት
+3230,323,4,Manufacture of sports goods,የስፖርት ዕቃዎች ማምረት
+324,32,3,Manufacture of games and toys,የጨዋታ ዕቃዎች እና መጫወቻዎች ማምረት
+3240,324,4,Manufacture of games and toys,የጨዋታ ዕቃዎች እና መጫወቻዎች ማምረት
+325,32,3,Manufacture of medical and dental instruments and supplies,የሕክምና እና የጥርስ ሕክምና መሣሪያዎች እና አቅርቦቶች ማምረት
+3250,325,4,Manufacture of medical and dental instruments and supplies,የሕክምና እና የጥርስ ሕክምና መሣሪያዎች እና አቅርቦቶች ማምረት
+329,32,3,Other manufacturing n.e.c.,በሌላ ያልተመደቡ ሌሎች የማምረቻ ሥራዎች
+3290,329,4,Other manufacturing n.e.c.,በሌላ ያልተመደቡ ሌሎች የማምረቻ ሥራዎች
+33,C,2,Repair and installation of machinery and equipment,ማሽነሪዎች እና መሣሪያዎች መጠገን እና መትከል
+331,33,3,"Repair of fabricated metal products, machinery and equipment",የተሠሩ የብረት ውጤቶች፣ ማሽነሪዎች እና መሣሪያዎች መጠገን
+3311,331,4,Repair of fabricated metal products,የተሠሩ የብረት ውጤቶች መጠገን
+3312,331,4,Repair of machinery,ማሽነሪዎች መጠገን
+3313,331,4,Repair of electronic and optical equipment,የኤሌክትሮኒክስ እና የኦፕቲካል መሣሪያዎች መጠገን
+3314,331,4,Repair of electrical equipment,የኤሌክትሪክ መሣሪያዎች መጠገን
+3315,331,4,"Repair of transport equipment, except motor vehicles",ከተሽከርካሪዎች በስተቀር የመጓጓዣ መሣሪያዎች መጠገን
+3319,331,4,Repair of other equipment,ሌሎች መሣሪያዎች መጠገን
+332,33,3,Installation of industrial machinery and equipment,የኢንዱስትሪ ማሽነሪዎች እና መሣሪያዎች መትከል
+3320,332,4,Installation of industrial machinery and equipment,የኢንዱስትሪ ማሽነሪዎች እና መሣሪያዎች መትከል
+D,,1,"Electricity, gas, steam and air conditioning supply",የኤሌክትሪክ፣ የጋዝ፣ የእንፋሎት እና የአየር ማቀዝቀዣ አቅርቦት
+35,D,2,"Electricity, gas, steam and air conditioning supply",የኤሌክትሪክ፣ የጋዝ፣ የእንፋሎት እና የአየር ማቀዝቀዣ አቅርቦት
+351,35,3,"Electric power generation, transmission and distribution",የኤሌክትሪክ ኃይል ማመንጨት፣ ማስተላለፍ እና ማከፋፈል
+3510,351,4,"Electric power generation, transmission and distribution",የኤሌክትሪክ ኃይል ማመንጨት፣ ማስተላለፍ እና ማከፋፈል
+352,35,3,Manufacture of gas; distribution of gaseous fuels through mains,ጋዝ ማምረት፤ በመስመር የጋዝ ነዳጅ ማከፋፈል
+3520,352,4,Manufacture of gas; distribution of gaseous fuels through mains,ጋዝ ማምረት፤ በመስመር የጋዝ ነዳጅ ማከፋፈል
+353,35,3,Steam and air conditioning supply,የእንፋሎት እና የአየር ማቀዝቀዣ አቅርቦት
+3530,353,4,Steam and air conditioning supply,የእንፋሎት እና የአየር ማቀዝቀዣ አቅርቦት
+E,,1,"Water supply; sewerage, waste management and remediation activities",የውሃ አቅርቦት፤ የፍሳሽ ማስወገድ፣ የቆሻሻ አስተዳደር እና የማገገሚያ ሥራዎች
+36,E,2,"Water collection, treatment and supply",ውሃ መሰብሰብ፣ ማከም እና ማቅረብ
+360,36,3,"Water collection, treatment and supply",ውሃ መሰብሰብ፣ ማከም እና ማቅረብ
+3600,360,4,"Water collection, treatment and supply",ውሃ መሰብሰብ፣ ማከም እና ማቅረብ
+37,E,2,Sewerage,የፍሳሽ ማስወገድ
+370,37,3,Sewerage,የፍሳሽ ማስወገድ
+3700,370,4,Sewerage,የፍሳሽ ማስወገድ
+38,E,2,"Waste collection, treatment and disposal activities; materials recovery",ቆሻሻ መሰብሰብ፣ ማከም እና ማስወገድ፤ ቁሳቁስ መልሶ ማግኘት
+381,38,3,Waste collection,ቆሻሻ መሰብሰብ
+3811,381,4,Collection of non-hazardous waste,አደገኛ ያልሆነ ቆሻሻ መሰብሰብ
+3812,381,4,Collection of hazardous waste,አደገኛ ቆሻሻ መሰብሰብ
+382,38,3,Waste treatment and disposal,ቆሻሻ ማከም እና ማስወገድ
+3821,382,4,Treatment and disposal of non-hazardous waste,አደገኛ ያልሆነ ቆሻሻ ማከም እና ማስወገድ
+3822,382,4,Treatment and disposal of hazardous waste,አደገኛ ቆሻሻ ማከም እና ማስወገድ
+383,38,3,Materials recovery,ቁሳቁስ መልሶ ማግኘት
+3830,383,4,Materials recovery,ቁሳቁስ መልሶ ማግኘት
+39,E,2,Remediation activities and other waste management services,የማገገሚያ ሥራዎች እና ሌሎች የቆሻሻ አስተዳደር አገልግሎቶች
+390,39,3,Remediation activities and other waste management services,የማገገሚያ ሥራዎች እና ሌሎች የቆሻሻ አስተዳደር አገልግሎቶች
+3900,390,4,Remediation activities and other waste management services,የማገገሚያ ሥራዎች እና ሌሎች የቆሻሻ አስተዳደር አገልግሎቶች
+F,,1,Construction,ኮንስትራክሽን
+41,F,2,Construction of buildings,የሕንፃ ግንባታ
+410,41,3,Construction of buildings,የሕንፃ ግንባታ
+4100,410,4,Construction of buildings,የሕንፃ ግንባታ
+42,F,2,Civil engineering,የሲቪል ምህንድስና
+421,42,3,Construction of roads and railways,የመንገድ እና የባቡር ሐዲድ ግንባታ
+4210,421,4,Construction of roads and railways,የመንገድ እና የባቡር ሐዲድ ግንባታ
+422,42,3,Construction of utility projects,የመሠረተ ልማት አገልግሎት ፕሮጀክቶች ግንባታ
+4220,422,4,Construction of utility projects,የመሠረተ ልማት አገልግሎት ፕሮጀክቶች ግንባታ
+429,42,3,Construction of other civil engineering projects,ሌሎች የሲቪል ምህንድስና ፕሮጀክቶች ግንባታ
+4290,429,4,Construction of other civil engineering projects,ሌሎች የሲቪል ምህንድስና ፕሮጀክቶች ግንባታ
+43,F,2,Specialized construction activities,ልዩ የግንባታ ሥራዎች
+431,43,3,Demolition and site preparation,ማፍረስ እና የግንባታ ቦታ ማዘጋጀት
+4311,431,4,Demolition,ማፍረስ
+4312,431,4,Site preparation,የግንባታ ቦታ ማዘጋጀት
+432,43,3,"Electrical, plumbing and other construction installation activities",የኤሌክትሪክ፣ የቧንቧ እና ሌሎች የግንባታ ተከላ ሥራዎች
+4321,432,4,Electrical installation,የኤሌክትሪክ ተከላ
+4322,432,4,"Plumbing, heat and air-conditioning installation",የቧንቧ፣ የሙቀት እና የአየር ማቀዝቀዣ ተከላ
+4329,432,4,Other construction installation,ሌሎች የግንባታ ተከላ ሥራዎች
+433,43,3,Building completion and finishing,የሕንፃ ማጠናቀቂያ ሥራዎች
+4330,433,4,Building completion and finishing,የሕንፃ ማጠናቀቂያ ሥራዎች
+439,43,3,Other specialized construction activities,ሌሎች ልዩ የግንባታ ሥራዎች
+4390,439,4,Other specialized construction activities,ሌሎች ልዩ የግንባታ ሥራዎች
+G,,1,Wholesale and retail trade; repair of motor vehicles and motorcycles,የጅምላ እና የችርቻሮ ንግድ፤ የተሽከርካሪዎች እና የሞተር ብስክሌቶች ጥገና
+45,G,2,Wholesale and retail trade and repair of motor vehicles and motorcycles,የተሽከርካሪዎች እና የሞተር ብስክሌቶች የጅምላ እና የችርቻሮ ንግድ እና ጥገና
+451,45,3,Sale of motor vehicles,የተሽከርካሪዎች ሽያጭ
+4510,451,4,Sale of motor vehicles,የተሽከርካሪዎች ሽያጭ
+452,45,3,Maintenance and repair of motor vehicles,የተሽከርካሪዎች ዕድሳት እና ጥገና
+4520,452,4,Maintenance and repair of motor vehicles,የተሽከርካሪዎች ዕድሳት እና ጥገና
+453,45,3,Sale of motor vehicle parts and accessories,የተሽከርካሪ መለዋወጫዎች እና ተጨማሪ ዕቃዎች ሽያጭ
+4530,453,4,Sale of motor vehicle parts and accessories,የተሽከርካሪ መለዋወጫዎች እና ተጨማሪ ዕቃዎች ሽያጭ
+454,45,3,"Sale, maintenance and repair of motorcycles and related parts and accessories",የሞተር ብስክሌቶች እና ተዛማጅ መለዋወጫዎች እና ተጨማሪ ዕቃዎች ሽያጭ፣ ዕድሳት እና ጥገና
+4540,454,4,"Sale, maintenance and repair of motorcycles and related parts and accessories",የሞተር ብስክሌቶች እና ተዛማጅ መለዋወጫዎች እና ተጨማሪ ዕቃዎች ሽያጭ፣ ዕድሳት እና ጥገና
+46,G,2,"Wholesale trade, except of motor vehicles and motorcycles",ከተሽከርካሪዎች እና ከሞተር ብስክሌቶች በስተቀር የጅምላ ንግድ
+461,46,3,Wholesale on a fee or contract basis,በክፍያ ወይም በውል የሚከናወን የጅምላ ንግድ
+4610,461,4,Wholesale on a fee or contract basis,በክፍያ ወይም በውል የሚከናወን የጅምላ ንግድ
+462,46,3,Wholesale of agricultural raw materials and live animals,የግብርና ጥሬ ዕቃዎች እና የቁም እንስሳት የጅምላ ንግድ
+4620,462,4,Wholesale of agricultural raw materials and live animals,የግብርና ጥሬ ዕቃዎች እና የቁም እንስሳት የጅምላ ንግድ
+463,46,3,"Wholesale of food, beverages and tobacco",የምግብ፣ የመጠጥ እና የትንባሆ የጅምላ ንግድ
+4630,463,4,"Wholesale of food, beverages and tobacco",የምግብ፣ የመጠጥ እና የትንባሆ የጅምላ ንግድ
+464,46,3,Wholesale of household goods,የቤት ውስጥ ዕቃዎች የጅምላ ንግድ
+4641,464,4,"Wholesale of textiles, clothing and footwear",የጨርቃ ጨርቅ፣ የአልባሳት እና የጫማ የጅምላ ንግድ
+4649,464,4,Wholesale of other household goods,የሌሎች የቤት ውስጥ ዕቃዎች የጅምላ ንግድ
+465,46,3,"Wholesale of machinery, equipment and supplies",የማሽነሪዎች፣ የመሣሪያዎች እና የአቅርቦቶች የጅምላ ንግድ
+4651,465,4,"Wholesale of computers, computer peripheral equipment and software",የኮምፒውተሮች፣ የኮምፒውተር ተጓዳኝ መሣሪያዎች እና የሶፍትዌር የጅምላ ንግድ
+4652,465,4,Wholesale of electronic and telecommunications equipment and parts,የኤሌክትሮኒክስ እና የቴሌኮሙኒኬሽን መሣሪያዎች እና ክፍሎች የጅምላ ንግድ
+4653,465,4,"Wholesale of agricultural machinery, equipment and supplies",የግብርና ማሽነሪዎች፣ መሣሪያዎች እና አቅርቦቶች የጅምላ ንግድ
+4659,465,4,Wholesale of other machinery and equipment,የሌሎች ማሽነሪዎች እና መሣሪያዎች የጅምላ ንግድ
+466,46,3,Other specialized wholesale,ሌሎች ልዩ የጅምላ ንግዶች
+4661,466,4,"Wholesale of solid, liquid and gaseous fuels and related products",የጠጣር፣ የፈሳሽ እና የጋዝ ነዳጆች እና ተዛማጅ ውጤቶች የጅምላ ንግድ
+4662,466,4,Wholesale of metals and metal ores,የብረቶች እና የብረት ማዕድናት የጅምላ ንግድ
+4663,466,4,"Wholesale of construction materials, hardware, plumbing and heating equipment and supplies",የግንባታ ቁሳቁሶች፣ የብረት ዕቃዎች፣ የቧንቧ እና የማሞቂያ መሣሪያዎች እና አቅርቦቶች የጅምላ ንግድ
+4669,466,4,Wholesale of waste and scrap and other products n.e.c.,በሌላ ያልተመደቡ የቆሻሻ፣ የቁርጥራጭ ብረት እና ሌሎች ውጤቶች የጅምላ ንግድ
+469,46,3,Non-specialized wholesale trade,ልዩ ያልሆነ የጅምላ ንግድ
+4690,469,4,Non-specialized wholesale trade,ልዩ ያልሆነ የጅምላ ንግድ
+47,G,2,"Retail trade, except of motor vehicles and motorcycles",ከተሽከርካሪዎች እና ከሞተር ብስክሌቶች በስተቀር የችርቻሮ ንግድ
+471,47,3,Retail sale in non-specialized stores,ልዩ ባልሆኑ መደብሮች የችርቻሮ ሽያጭ
+4711,471,4,"Retail sale in non-specialized stores with food, beverages or tobacco predominating",ምግብ፣ መጠጥ ወይም ትንባሆ በብዛት በሚሸጥባቸው ልዩ ባልሆኑ መደብሮች የችርቻሮ ሽያጭ
+4719,471,4,Other retail sale in non-specialized stores,ልዩ ባልሆኑ መደብሮች የሚከናወን ሌላ የችርቻሮ ሽያጭ
+472,47,3,"Retail sale of food, beverages and tobacco in specialized stores",በልዩ መደብሮች የምግብ፣ የመጠጥ እና የትንባሆ የችርቻሮ ሽያጭ
+4721,472,4,Retail sale of food in specialized stores,በልዩ መደብሮች የምግብ የችርቻሮ ሽያጭ
+4722,472,4,Retail sale of beverages in specialized stores,በልዩ መደብሮች የመጠጥ የችርቻሮ ሽያጭ
+4723,472,4,Retail sale of tobacco products in specialized stores,በልዩ መደብሮች የትንባሆ ውጤቶች የችርቻሮ ሽያጭ
+473,47,3,Retail sale of automotive fuel in specialized stores,በልዩ መደብሮች የተሽከርካሪ ነዳጅ የችርቻሮ ሽያጭ
+4730,473,4,Retail sale of automotive fuel in specialized stores,በልዩ መደብሮች የተሽከርካሪ ነዳጅ የችርቻሮ ሽያጭ
+474,47,3,Retail sale of information and communications equipment in specialized stores,በልዩ መደብሮች የመረጃ እና የመገናኛ መሣሪያዎች የችርቻሮ ሽያጭ
+4741,474,4,"Retail sale of computers, peripheral units, software and telecommunications equipment in specialized stores",በልዩ መደብሮች የኮምፒውተሮች፣ ተጓዳኝ መሣሪያዎች፣ የሶፍትዌር እና የቴሌኮሙኒኬሽን መሣሪያዎች የችርቻሮ ሽያጭ
+4742,474,4,Retail sale of audio and video equipment in specialized stores,በልዩ መደብሮች የድምፅ እና የምስል መሣሪያዎች የችርቻሮ ሽያጭ
+475,47,3,Retail sale of other household equipment in specialized stores,በልዩ መደብሮች የሌሎች የቤት ውስጥ መሣሪያዎች የችርቻሮ ሽያጭ
+4751,475,4,Retail sale of textiles in specialized stores,በልዩ መደብሮች የጨርቃ ጨርቅ የችርቻሮ ሽያጭ
+4752,475,4,"Retail sale of hardware, paints and glass in specialized stores",በልዩ መደብሮች የብረት ዕቃዎች፣ የቀለም እና የብርጭቆ የችርቻሮ ሽያጭ
+4753,475,4,"Retail sale of carpets, rugs, wall and floor coverings in specialized stores",በልዩ መደብሮች የምንጣፍ፣ የስጋጃ፣ የግድግዳ እና የወለል ልባስ የችርቻሮ ሽያጭ
+4759,475,4,"Retail sale of electrical household appliances, furniture, lighting equipment and other household articles in specialized stores",በልዩ መደብሮች የኤሌክትሪክ የቤት ዕቃዎች፣ የቤት ቁሳቁስ፣ የመብራት መሣሪያዎች እና ሌሎች የቤት ውስጥ ዕቃዎች የችርቻሮ ሽያጭ
+476,47,3,Retail sale of cultural and recreation goods in specialized stores,በልዩ መደብሮች የባህል እና የመዝናኛ ዕቃዎች የችርቻሮ ሽያጭ
+4761,476,4,"Retail sale of books, newspapers and stationary in specialized stores",በልዩ መደብሮች የመጻሕፍት፣ የጋዜጣ እና የጽሕፈት መሣሪያዎች የችርቻሮ ሽያጭ
+4762,476,4,Retail sale of music and video recordings in specialized stores,በልዩ መደብሮች የሙዚቃ እና የቪዲዮ ቅጂዎች የችርቻሮ ሽያጭ
+4763,476,4,Retail sale of sporting equipment in specialized stores,በልዩ መደብሮች የስፖርት መሣሪያዎች የችርቻሮ ሽያጭ
+4764,476,4,Retail sale of games and toys in specialized stores,በልዩ መደብሮች የጨዋታ ዕቃዎች እና መጫወቻዎች የችርቻሮ ሽያጭ
+477,47,3,Retail sale of other goods in specialized stores,በልዩ መደብሮች የሌሎች ዕቃዎች የችርቻሮ ሽያጭ
+4771,477,4,"Retail sale of clothing, footwear and leather articles in specialized stores",በልዩ መደብሮች የአልባሳት፣ የጫማ እና የቆዳ ዕቃዎች የችርቻሮ ሽያጭ
+4772,477,4,"Retail sale of pharmaceutical and medical goods, cosmetic and toilet articles in specialized stores",በልዩ መደብሮች የመድኃኒት እና የሕክምና ዕቃዎች፣ የመዋቢያ እና የንጽህና ዕቃዎች የችርቻሮ ሽያጭ
+4773,477,4,Other retail sale of new goods in specialized stores,በልዩ መደብሮች የሌሎች አዳዲስ ዕቃዎች የችርቻሮ ሽያጭ
+4774,477,4,Retail sale of second-hand goods,ያገለገሉ ዕቃዎች የችርቻሮ ሽያጭ
+478,47,3,Retail sale via stalls and markets,በመሸጫ ኪዮስኮች እና በገበያዎች የችርቻሮ ሽያጭ
+4781,478,4,"Retail sale via stalls and markets of food, beverages and tobacco products",በመሸጫ ኪዮስኮች እና በገበያዎች የምግብ፣ የመጠጥ እና የትንባሆ ውጤቶች የችርቻሮ ሽያጭ
+4782,478,4,"Retail sale via stalls and markets of textiles, clothing and footwear",በመሸጫ ኪዮስኮች እና በገበያዎች የጨርቃ ጨርቅ፣ የአልባሳት እና የጫማ የችርቻሮ ሽያጭ
+4789,478,4,Retail sale via stalls and markets of other goods,በመሸጫ ኪዮስኮች እና በገበያዎች የሌሎች ዕቃዎች የችርቻሮ ሽያጭ
+479,47,3,"Retail trade not in stores, stalls or markets",ከመደብሮች፣ ከመሸጫ ኪዮስኮች እና ከገበያዎች ውጭ የሚከናወን የችርቻሮ ንግድ
+4791,479,4,Retail sale via mail order houses or via Internet,በፖስታ ትዕዛዝ ድርጅቶች ወይም በኢንተርኔት የሚከናወን የችርቻሮ ሽያጭ
+4799,479,4,"Other retail sale not in stores, stalls or markets",ከመደብሮች፣ ከመሸጫ ኪዮስኮች እና ከገበያዎች ውጭ የሚከናወን ሌላ የችርቻሮ ሽያጭ
+H,,1,Transportation and storage,ትራንስፖርት እና ማከማቻ
+49,H,2,Land transport and transport via pipelines,የየብስ ትራንስፖርት እና በቧንቧ መስመር ትራንስፖርት
+491,49,3,Transport via railways,የባቡር ትራንስፖርት
+4911,491,4,"Passenger rail transport, interurban",በከተሞች መካከል የመንገደኞች የባቡር ትራንስፖርት
+4912,491,4,Freight rail transport,የጭነት የባቡር ትራንስፖርት
+492,49,3,Other land transport,ሌሎች የየብስ ትራንስፖርቶች
+4921,492,4,Urban and suburban passenger land transport,የከተማ እና የከተማ ዳርቻ የመንገደኞች የየብስ ትራንስፖርት
+4922,492,4,Other passenger land transport,ሌሎች የመንገደኞች የየብስ ትራንስፖርቶች
+4923,492,4,Freight transport by road,የመንገድ የጭነት ትራንስፖርት
+493,49,3,Transport via pipeline,በቧንቧ መስመር ትራንስፖርት
+4930,493,4,Transport via pipeline,በቧንቧ መስመር ትራንስፖርት
+50,H,2,Water transport,የውሃ ትራንስፖርት
+501,50,3,Sea and coastal water transport,የባሕር እና የባሕር ዳርቻ የውሃ ትራንስፖርት
+5011,501,4,Sea and coastal passenger water transport,የባሕር እና የባሕር ዳርቻ የመንገደኞች የውሃ ትራንስፖርት
+5012,501,4,Sea and coastal freight water transport,የባሕር እና የባሕር ዳርቻ የጭነት የውሃ ትራንስፖርት
+502,50,3,Inland water transport,የውስጥ የውሃ ትራንስፖርት
+5021,502,4,Inland passenger water transport,የመንገደኞች የውስጥ የውሃ ትራንስፖርት
+5022,502,4,Inland freight water transport,የጭነት የውስጥ የውሃ ትራንስፖርት
+51,H,2,Air transport,የአየር ትራንስፖርት
+511,51,3,Passenger air transport,የመንገደኞች የአየር ትራንስፖርት
+5110,511,4,Passenger air transport,የመንገደኞች የአየር ትራንስፖርት
+512,51,3,Freight air transport,የጭነት የአየር ትራንስፖርት
+5120,512,4,Freight air transport,የጭነት የአየር ትራንስፖርት
+52,H,2,Warehousing and support activities for transportation,የመጋዘን እና የትራንስፖርት ድጋፍ ሥራዎች
+521,52,3,Warehousing and storage,መጋዘን እና ማከማቻ
+5210,521,4,Warehousing and storage,መጋዘን እና ማከማቻ
+522,52,3,Support activities for transportation,የትራንስፖርት ድጋፍ ሥራዎች
+5221,522,4,Service activities incidental to land transportation,ከየብስ ትራንስፖርት ጋር የተያያዙ አገልግሎቶች
+5222,522,4,Service activities incidental to water transportation,ከውሃ ትራንስፖርት ጋር የተያያዙ አገልግሎቶች
+5223,522,4,Service activities incidental to air transportation,ከአየር ትራንስፖርት ጋር የተያያዙ አገልግሎቶች
+5224,522,4,Cargo handling,ጭነት ማንቀሳቀስ
+5229,522,4,Other transportation support activities,ሌሎች የትራንስፖርት ድጋፍ ሥራዎች
+53,H,2,Postal and courier activities,የፖስታ እና የፈጣን መልእክት ሥራዎች
+531,53,3,Postal activities,የፖስታ ሥራዎች
+5310,531,4,Postal activities,የፖስታ ሥራዎች
+532,53,3,Courier activities,የፈጣን መልእክት ሥራዎች
+5320,532,4,Courier activities,የፈጣን መልእክት ሥራዎች
+I,,1,Accommodation and food service activities,የመኝታ እና የምግብ አገልግሎት ሥራዎች
+55,I,2,Accommodation,የመኝታ አገልግሎት
+551,55,3,Short term accommodation activities,የአጭር ጊዜ የመኝታ አገልግሎት ሥራዎች
+5510,551,4,Short term accommodation activities,የአጭር ጊዜ የመኝታ አገልግሎት ሥራዎች
+552,55,3,"Camping grounds, recreational vehicle parks and trailer parks",የድንኳን መስፈሪያ ቦታዎች፣ የመዝናኛ ተሽከርካሪ እና የተሳቢ ማቆሚያ ቦታዎች
+5520,552,4,"Camping grounds, recreational vehicle parks and trailer parks",የድንኳን መስፈሪያ ቦታዎች፣ የመዝናኛ ተሽከርካሪ እና የተሳቢ ማቆሚያ ቦታዎች
+559,55,3,Other accommodation,ሌሎች የመኝታ አገልግሎቶች
+5590,559,4,Other accommodation,ሌሎች የመኝታ አገልግሎቶች
+56,I,2,Food and beverage service activities,የምግብ እና የመጠጥ አገልግሎት ሥራዎች
+561,56,3,Restaurants and mobile food service activities,ምግብ ቤቶች እና ተንቀሳቃሽ የምግብ አገልግሎት ሥራዎች
+5610,561,4,Restaurants and mobile food service activities,ምግብ ቤቶች እና ተንቀሳቃሽ የምግብ አገልግሎት ሥራዎች
+562,56,3,Event catering and other food service activities,የዝግጅት ምግብ አቅርቦት እና ሌሎች የምግብ አገልግሎት ሥራዎች
+5621,562,4,Event catering,የዝግጅት ምግብ አቅርቦት
+5629,562,4,Other food service activities,ሌሎች የምግብ አገልግሎት ሥራዎች
+563,56,3,Beverage serving activities,የመጠጥ አገልግሎት ሥራዎች
+5630,563,4,Beverage serving activities,የመጠጥ አገልግሎት ሥራዎች
+J,,1,Information and communication,መረጃ እና ኮሙኒኬሽን
+58,J,2,Publishing activities,የኅትመት ውጤቶች አሳታሚነት ሥራዎች
+581,58,3,"Publishing of books, periodicals and other publishing activities",የመጻሕፍት፣ የወቅታዊ ኅትመቶች እና ሌሎች የአሳታሚነት ሥራዎች
+5811,581,4,Book publishing,መጻሕፍት ማሳተም
+5812,581,4,Publishing of directories and mailing lists,የአድራሻ መጻሕፍት እና የመልእክት መላኪያ ዝርዝሮች ማሳተም
+5813,581,4,"Publishing of newspapers, journals and periodicals",ጋዜጦች፣ መጽሔቶች እና ወቅታዊ ኅትመቶች ማሳተም
+5819,581,4,Other publishing activities,ሌሎች የአሳታሚነት ሥራዎች
+582,58,3,Software publishing,ሶፍትዌር ማሳተም
+5820,582,4,Software publishing,ሶፍትዌር ማሳተም
+59,J,2,"Motion picture, video and television programme production, sound recording and music publishing activities",የፊልም፣ የቪዲዮ እና የቴሌቪዥን ፕሮግራም ዝግጅት፣ የድምፅ ቀረጻ እና የሙዚቃ አሳታሚነት ሥራዎች
+591,59,3,"Motion picture, video and television programme activities",የፊልም፣ የቪዲዮ እና የቴሌቪዥን ፕሮግራም ሥራዎች
+5911,591,4,"Motion picture, video and television programme production activities",የፊልም፣ የቪዲዮ እና የቴሌቪዥን ፕሮግራም ዝግጅት ሥራዎች
+5912,591,4,"Motion picture, video and television programme post-production activities",የፊልም፣ የቪዲዮ እና የቴሌቪዥን ፕሮግራም የድኅረ ዝግጅት ሥራዎች
+5913,591,4,"Motion picture, video and television programme distribution activities",የፊልም፣ የቪዲዮ እና የቴሌቪዥን ፕሮግራም ስርጭት ሥራዎች
+5914,591,4,Motion picture projection activities,የፊልም ማሳያ ሥራዎች
+592,59,3,Sound recording and music publishing activities,የድምፅ ቀረጻ እና የሙዚቃ አሳታሚነት ሥራዎች
+5920,592,4,Sound recording and music publishing activities,የድምፅ ቀረጻ እና የሙዚቃ አሳታሚነት ሥራዎች
+60,J,2,Programming and broadcasting activities,የፕሮግራም ዝግጅት እና የብሮድካስት ሥራዎች
+601,60,3,Radio broadcasting,የሬዲዮ ብሮድካስት
+6010,601,4,Radio broadcasting,የሬዲዮ ብሮድካስት
+602,60,3,Television programming and broadcasting activities,የቴሌቪዥን ፕሮግራም ዝግጅት እና የብሮድካስት ሥራዎች
+6020,602,4,Television programming and broadcasting activities,የቴሌቪዥን ፕሮግራም ዝግጅት እና የብሮድካስት ሥራዎች
+61,J,2,Telecommunications,ቴሌኮሙኒኬሽን
+611,61,3,Wired telecommunications activities,የባለገመድ ቴሌኮሙኒኬሽን ሥራዎች
+6110,611,4,Wired telecommunications activities,የባለገመድ ቴሌኮሙኒኬሽን ሥራዎች
+612,61,3,Wireless telecommunications activities,የገመድ አልባ ቴሌኮሙኒኬሽን ሥራዎች
+6120,612,4,Wireless telecommunications activities,የገመድ አልባ ቴሌኮሙኒኬሽን ሥራዎች
+613,61,3,Satellite telecommunications activities,የሳተላይት ቴሌኮሙኒኬሽን ሥራዎች
+6130,613,4,Satellite telecommunications activities,የሳተላይት ቴሌኮሙኒኬሽን ሥራዎች
+619,61,3,Other telecommunications activities,ሌሎች የቴሌኮሙኒኬሽን ሥራዎች
+6190,619,4,Other telecommunications activities,ሌሎች የቴሌኮሙኒኬሽን ሥራዎች
+62,J,2,"Computer programming, consultancy and related activities",የኮምፒውተር ፕሮግራም፣ የማማከር እና ተዛማጅ ሥራዎች
+620,62,3,"Computer programming, consultancy and related activities",የኮምፒውተር ፕሮግራም፣ የማማከር እና ተዛማጅ ሥራዎች
+6201,620,4,Computer programming activities,የኮምፒውተር ፕሮግራም ሥራዎች
+6202,620,4,Computer consultancy and computer facilities management activities,የኮምፒውተር ማማከር እና የኮምፒውተር ተቋማት አስተዳደር ሥራዎች
+6209,620,4,Other information technology and computer service activities,ሌሎች የመረጃ ቴክኖሎጂ እና የኮምፒውተር አገልግሎት ሥራዎች
+63,J,2,Information service activities,የመረጃ አገልግሎት ሥራዎች
+631,63,3,"Data processing, hosting and related activities; web portals",የመረጃ ማቀነባበር፣ የማስተናገድ እና ተዛማጅ ሥራዎች፤ የድረ ገጽ መግቢያዎች
+6311,631,4,"Data processing, hosting and related activities",የመረጃ ማቀነባበር፣ የማስተናገድ እና ተዛማጅ ሥራዎች
+6312,631,4,Web portals,የድረ ገጽ መግቢያዎች
+639,63,3,Other information service activities,ሌሎች የመረጃ አገልግሎት ሥራዎች
+6391,639,4,News agency activities,የዜና አገልግሎት ድርጅቶች ሥራዎች
+6399,639,4,Other information service activities n.e.c.,በሌላ ያልተመደቡ ሌሎች የመረጃ አገልግሎት ሥራዎች
+K,,1,Financial and insurance activities,የፋይናንስ እና የኢንሹራንስ ሥራዎች
+64,K,2,"Financial service activities, except insurance and pension funding",ከኢንሹራንስ እና ከጡረታ ፈንድ በስተቀር የፋይናንስ አገልግሎት ሥራዎች
+641,64,3,Monetary intermediation,የገንዘብ አማላጅነት
+6411,641,4,Central banking,የማዕከላዊ ባንክ ሥራዎች
+6419,641,4,Other monetary intermediation,ሌሎች የገንዘብ አማላጅነት ሥራዎች
+642,64,3,Activities of holding companies,የይዞታ ኩባንያዎች ሥራዎች
+6420,642,4,Activities of holding companies,የይዞታ ኩባንያዎች ሥራዎች
+643,64,3,"Trusts, funds and similar financial entities",አደራዎች፣ ፈንዶች እና ተመሳሳይ የፋይናንስ ተቋማት
+6430,643,4,"Trusts, funds and similar financial entities",አደራዎች፣ ፈንዶች እና ተመሳሳይ የፋይናንስ ተቋማት
+649,64,3,"Other financial service activities, except insurance and pension funding activities",ከኢንሹራንስ እና ከጡረታ ፈንድ ሥራዎች በስተቀር ሌሎች የፋይናንስ አገልግሎት ሥራዎች
+6491,649,4,Financial leasing,የፋይናንስ ኪራይ
+6492,649,4,Other credit granting,ሌሎች የብድር አቅርቦቶች
+6499,649,4,"Other financial service activities, except insurance and pension funding activities, n.e.c.",በሌላ ያልተመደቡ ከኢንሹራንስ እና ከጡረታ ፈንድ ሥራዎች በስተቀር ሌሎች የፋይናንስ አገልግሎት ሥራዎች
+65,K,2,"Insurance, reinsurance and pension funding, except compulsory social security",ከግዴታ ማኅበራዊ ዋስትና በስተቀር ኢንሹራንስ፣ ጠለፋ ኢንሹራንስ እና የጡረታ ፈንድ
+651,65,3,Insurance,ኢንሹራንስ
+6511,651,4,Life insurance,የሕይወት ኢንሹራንስ
+6512,651,4,Non-life insurance,ከሕይወት ውጭ ኢንሹራንስ
+652,65,3,Reinsurance,ጠለፋ ኢንሹራንስ
+6520,652,4,Reinsurance,ጠለፋ ኢንሹራንስ
+653,65,3,Pension funding,የጡረታ ፈንድ
+6530,653,4,Pension funding,የጡረታ ፈንድ
+66,K,2,Activities auxiliary to financial service and insurance activities,ለፋይናንስ አገልግሎት እና ለኢንሹራንስ ሥራዎች ረዳት የሆኑ ሥራዎች
+661,66,3,"Activities auxiliary to financial service activities, except insurance and pension funding",ከኢንሹራንስ እና ከጡረታ ፈንድ በስተቀር ለፋይናንስ አገልግሎት ሥራዎች ረዳት የሆኑ ሥራዎች
+6611,661,4,Administration of financial markets,የፋይናንስ ገበያዎች አስተዳደር
+6612,661,4,Security and commodity contracts brokerage,የሰነዶች እና የሸቀጦች ውል ደላላነት
+6619,661,4,Other activities auxiliary to financial service activities,ለፋይናንስ አገልግሎት ሥራዎች ረዳት የሆኑ ሌሎች ሥራዎች
+662,66,3,Activities auxiliary to insurance and pension funding,ለኢንሹራንስ እና ለጡረታ ፈንድ ረዳት የሆኑ ሥራዎች
+6621,662,4,Risk and damage evaluation,የሥጋት እና የጉዳት ግምገማ
+6622,662,4,Activities of insurance agents and brokers,የኢንሹራንስ ወኪሎች እና ደላሎች ሥራዎች
+6629,662,4,Other activities auxiliary to insurance and pension funding,ለኢንሹራንስ እና ለጡረታ ፈንድ ረዳት የሆኑ ሌሎች ሥራዎች
+663,66,3,Fund management activities,የፈንድ አስተዳደር ሥራዎች
+6630,663,4,Fund management activities,የፈንድ አስተዳደር ሥራዎች
+L,,1,Real estate activities,የሪል እስቴት ሥራዎች
+68,L,2,Real estate activities,የሪል እስቴት ሥራዎች
+681,68,3,Real estate activities with own or leased property,በራስ ወይም በተከራዩት ንብረት የሚከናወኑ የሪል እስቴት ሥራዎች
+6810,681,4,Real estate activities with own or leased property,በራስ ወይም በተከራዩት ንብረት የሚከናወኑ የሪል እስቴት ሥራዎች
+682,68,3,Real estate activities on a fee or contract basis,በክፍያ ወይም በውል የሚከናወኑ የሪል እስቴት ሥራዎች
+6820,682,4,Real estate activities on a fee or contract basis,በክፍያ ወይም በውል የሚከናወኑ የሪል እስቴት ሥራዎች
+M,,1,"Professional, scientific and technical activities",የሙያ፣ የሳይንስ እና የቴክኒክ ሥራዎች
+69,M,2,Legal and accounting activities,የሕግ እና የሂሳብ ሥራዎች
+691,69,3,Legal activities,የሕግ ሥራዎች
+6910,691,4,Legal activities,የሕግ ሥራዎች
+692,69,3,"Accounting, bookkeeping and auditing activities; tax consultancy",የሂሳብ አያያዝ፣ የመዝገብ አያያዝ እና የኦዲት ሥራዎች፤ የታክስ ማማከር
+6920,692,4,"Accounting, bookkeeping and auditing activities; tax consultancy",የሂሳብ አያያዝ፣ የመዝገብ አያያዝ እና የኦዲት ሥራዎች፤ የታክስ ማማከር
+70,M,2,Activities of head offices; management consultancy activities,የዋና መሥሪያ ቤቶች ሥራዎች፤ የማኔጅመንት ማማከር ሥራዎች
+701,70,3,Activities of head offices,የዋና መሥሪያ ቤቶች ሥራዎች
+7010,701,4,Activities of head offices,የዋና መሥሪያ ቤቶች ሥራዎች
+702,70,3,Management consultancy activities,የማኔጅመንት ማማከር ሥራዎች
+7020,702,4,Management consultancy activities,የማኔጅመንት ማማከር ሥራዎች
+71,M,2,Architectural and engineering activities; technical testing and analysis,የሥነ ሕንፃ እና የምህንድስና ሥራዎች፤ የቴክኒክ ሙከራ እና ትንተና
+711,71,3,Architectural and engineering activities and related technical consultancy,የሥነ ሕንፃ እና የምህንድስና ሥራዎች እና ተዛማጅ የቴክኒክ ማማከር
+7110,711,4,Architectural and engineering activities and related technical consultancy,የሥነ ሕንፃ እና የምህንድስና ሥራዎች እና ተዛማጅ የቴክኒክ ማማከር
+712,71,3,Technical testing and analysis,የቴክኒክ ሙከራ እና ትንተና
+7120,712,4,Technical testing and analysis,የቴክኒክ ሙከራ እና ትንተና
+72,M,2,Scientific research and development,ሳይንሳዊ ምርምር እና ልማት
+721,72,3,Research and experimental development on natural sciences and engineering,በተፈጥሮ ሳይንስ እና በምህንድስና ላይ የሚከናወን ምርምር እና የሙከራ ልማት
+7210,721,4,Research and experimental development on natural sciences and engineering,በተፈጥሮ ሳይንስ እና በምህንድስና ላይ የሚከናወን ምርምር እና የሙከራ ልማት
+722,72,3,Research and experimental development on social sciences and humanities,በማኅበራዊ ሳይንስ እና በሰብዓዊ ጥናቶች ላይ የሚከናወን ምርምር እና የሙከራ ልማት
+7220,722,4,Research and experimental development on social sciences and humanities,በማኅበራዊ ሳይንስ እና በሰብዓዊ ጥናቶች ላይ የሚከናወን ምርምር እና የሙከራ ልማት
+73,M,2,Advertising and market research,ማስታወቂያ እና የገበያ ጥናት
+731,73,3,Advertising,ማስታወቂያ
+7310,731,4,Advertising,ማስታወቂያ
+732,73,3,Market research and public opinion polling,የገበያ ጥናት እና የሕዝብ አስተያየት ጥናት
+7320,732,4,Market research and public opinion polling,የገበያ ጥናት እና የሕዝብ አስተያየት ጥናት
+74,M,2,"Other professional, scientific and technical activities",ሌሎች የሙያ፣ የሳይንስ እና የቴክኒክ ሥራዎች
+741,74,3,Specialized design activities,ልዩ የዲዛይን ሥራዎች
+7410,741,4,Specialized design activities,ልዩ የዲዛይን ሥራዎች
+742,74,3,Photographic activities,የፎቶግራፍ ሥራዎች
+7420,742,4,Photographic activities,የፎቶግራፍ ሥራዎች
+749,74,3,"Other professional, scientific and technical activities n.e.c.",በሌላ ያልተመደቡ ሌሎች የሙያ፣ የሳይንስ እና የቴክኒክ ሥራዎች
+7490,749,4,"Other professional, scientific and technical activities n.e.c.",በሌላ ያልተመደቡ ሌሎች የሙያ፣ የሳይንስ እና የቴክኒክ ሥራዎች
+75,M,2,Veterinary activities,የእንስሳት ሕክምና ሥራዎች
+750,75,3,Veterinary activities,የእንስሳት ሕክምና ሥራዎች
+7500,750,4,Veterinary activities,የእንስሳት ሕክምና ሥራዎች
+N,,1,Administrative and support service activities,የአስተዳደር እና የድጋፍ አገልግሎት ሥራዎች
+77,N,2,Rental and leasing activities,የኪራይ እና የሊዝ ሥራዎች
+771,77,3,Renting and leasing of motor vehicles,ተሽከርካሪዎችን ማከራየት እና በሊዝ መስጠት
+7710,771,4,Renting and leasing of motor vehicles,ተሽከርካሪዎችን ማከራየት እና በሊዝ መስጠት
+772,77,3,Renting and leasing of personal and household goods,የግል እና የቤት ውስጥ ዕቃዎችን ማከራየት እና በሊዝ መስጠት
+7721,772,4,Renting and leasing of recreational and sports goods,የመዝናኛ እና የስፖርት ዕቃዎችን ማከራየት እና በሊዝ መስጠት
+7722,772,4,Renting of video tapes and disks,የቪዲዮ ካሴቶችን እና ዲስኮችን ማከራየት
+7729,772,4,Renting and leasing of other personal and household goods,ሌሎች የግል እና የቤት ውስጥ ዕቃዎችን ማከራየት እና በሊዝ መስጠት
+773,77,3,"Renting and leasing of other machinery, equipment and tangible goods",ሌሎች ማሽነሪዎችን፣ መሣሪያዎችን እና ተጨባጭ ዕቃዎችን ማከራየት እና በሊዝ መስጠት
+7730,773,4,"Renting and leasing of other machinery, equipment and tangible goods",ሌሎች ማሽነሪዎችን፣ መሣሪያዎችን እና ተጨባጭ ዕቃዎችን ማከራየት እና በሊዝ መስጠት
+774,77,3,"Leasing of intellectual property and similar products, except copyrighted works",ከቅጂ መብት ሥራዎች በስተቀር የአዕምሮ ንብረት እና ተመሳሳይ ውጤቶችን በሊዝ መስጠት
+7740,774,4,"Leasing of intellectual property and similar products, except copyrighted works",ከቅጂ መብት ሥራዎች በስተቀር የአዕምሮ ንብረት እና ተመሳሳይ ውጤቶችን በሊዝ መስጠት
+78,N,2,Employment activities,የሥራ ስምሪት ሥራዎች
+781,78,3,Activities of employment placement agencies,የሥራ ማገናኛ ኤጀንሲዎች ሥራዎች
+7810,781,4,Activities of employment placement agencies,የሥራ ማገናኛ ኤጀንሲዎች ሥራዎች
+782,78,3,Temporary employment agency activities,የጊዜያዊ ሥራ ስምሪት ኤጀንሲ ሥራዎች
+7820,782,4,Temporary employment agency activities,የጊዜያዊ ሥራ ስምሪት ኤጀንሲ ሥራዎች
+783,78,3,Other human resources provision,ሌሎች የሰው ኃይል አቅርቦቶች
+7830,783,4,Other human resources provision,ሌሎች የሰው ኃይል አቅርቦቶች
+79,N,2,"Travel agency, tour operator, reservation service and related activities",የጉዞ ወኪል፣ የአስጎብኚ፣ የቦታ ማስያዝ አገልግሎት እና ተዛማጅ ሥራዎች
+791,79,3,Travel agency and tour operator activities,የጉዞ ወኪል እና የአስጎብኚ ሥራዎች
+7911,791,4,Travel agency activities,የጉዞ ወኪል ሥራዎች
+7912,791,4,Tour operator activities,የአስጎብኚ ሥራዎች
+799,79,3,Other reservation service and related activities,ሌሎች የቦታ ማስያዝ አገልግሎት እና ተዛማጅ ሥራዎች
+7990,799,4,Other reservation service and related activities,ሌሎች የቦታ ማስያዝ አገልግሎት እና ተዛማጅ ሥራዎች
+80,N,2,Security and investigation activities,የጥበቃ እና የምርመራ ሥራዎች
+801,80,3,Private security activities,የግል ጥበቃ ሥራዎች
+8010,801,4,Private security activities,የግል ጥበቃ ሥራዎች
+802,80,3,Security systems service activities,የጥበቃ ሥርዓቶች አገልግሎት ሥራዎች
+8020,802,4,Security systems service activities,የጥበቃ ሥርዓቶች አገልግሎት ሥራዎች
+803,80,3,Investigation activities,የምርመራ ሥራዎች
+8030,803,4,Investigation activities,የምርመራ ሥራዎች
+81,N,2,Services to buildings and landscape activities,ለሕንፃዎች የሚሰጡ አገልግሎቶች እና የመሬት ገጽታ ሥራዎች
+811,81,3,Combined facilities support activities,የተቀናጀ የተቋማት ድጋፍ ሥራዎች
+8110,811,4,Combined facilities support activities,የተቀናጀ የተቋማት ድጋፍ ሥራዎች
+812,81,3,Cleaning activities,የጽዳት ሥራዎች
+8121,812,4,General cleaning of buildings,የሕንፃዎች አጠቃላይ ጽዳት
+8129,812,4,Other building and industrial cleaning activities,ሌሎች የሕንፃ እና የኢንዱስትሪ ጽዳት ሥራዎች
+813,81,3,Landscape care and maintenance service activities,የመሬት ገጽታ እንክብካቤ እና ጥገና አገልግሎት ሥራዎች
+8130,813,4,Landscape care and maintenance service activities,የመሬት ገጽታ እንክብካቤ እና ጥገና አገልግሎት ሥራዎች
+82,N,2,"Office administrative, office support and other business support activities",የቢሮ አስተዳደር፣ የቢሮ ድጋፍ እና ሌሎች የንግድ ድጋፍ ሥራዎች
+821,82,3,Office administrative and support activities,የቢሮ አስተዳደር እና ድጋፍ ሥራዎች
+8211,821,4,Combined office administrative service activities,የተቀናጀ የቢሮ አስተዳደር አገልግሎት ሥራዎች
+8219,821,4,"Photocopying, document preparation and other specialized office support activities",ፎቶ ኮፒ፣ ሰነድ ዝግጅት እና ሌሎች ልዩ የቢሮ ድጋፍ ሥራዎች
+822,82,3,Activities of call centres,የጥሪ ማዕከላት ሥራዎች
+8220,822,4,Activities of call centres,የጥሪ ማዕከላት ሥራዎች
+823,82,3,Organization of conventions and trade shows,የጉባኤዎች እና የንግድ ትርኢቶች ዝግጅት
+8230,823,4,Organization of conventions and trade shows,የጉባኤዎች እና የንግድ ትርኢቶች ዝግጅት
+829,82,3,Business support service activities n.e.c.,በሌላ ያልተመደቡ የንግድ ድጋፍ አገልግሎት ሥራዎች
+8291,829,4,Activities of collection agencies and credit bureaus,የዕዳ ሰብሳቢ ኤጀንሲዎች እና የብድር መረጃ ቢሮዎች ሥራዎች
+8292,829,4,Packaging activities,የማሸግ ሥራዎች
+8299,829,4,Other business support service activities n.e.c.,በሌላ ያልተመደቡ ሌሎች የንግድ ድጋፍ አገልግሎት ሥራዎች
+O,,1,Public administration and defence; compulsory social security,የሕዝብ አስተዳደር እና መከላከያ፤ የግዴታ ማኅበራዊ ዋስትና
+84,O,2,Public administration and defence; compulsory social security,የሕዝብ አስተዳደር እና መከላከያ፤ የግዴታ ማኅበራዊ ዋስትና
+841,84,3,Administration of the State and the economic and social policy of the community,የመንግሥት አስተዳደር እና የኅብረተሰቡ የኢኮኖሚ እና ማኅበራዊ ፖሊሲ
+8411,841,4,General public administration activities,አጠቃላይ የሕዝብ አስተዳደር ሥራዎች
+8412,841,4,"Regulation of the activities of providing health care, education, cultural services and other social services, excluding social security",ከማኅበራዊ ዋስትና በስተቀር የጤና፣ የትምህርት፣ የባህል እና ሌሎች ማኅበራዊ አገልግሎቶች አቅርቦት ሥራዎችን መቆጣጠር
+8413,841,4,Regulation of and contribution to more efficient operation of businesses,የንግድ ድርጅቶች ይበልጥ ውጤታማ እንዲሠሩ መቆጣጠር እና አስተዋጽኦ ማድረግ
+842,84,3,Provision of services to the community as a whole,ለኅብረተሰቡ በአጠቃላይ የሚሰጡ አገልግሎቶች
+8421,842,4,Foreign affairs,የውጭ ጉዳይ
+8422,842,4,Defence activities,የመከላከያ ሥራዎች
+8423,842,4,Public order and safety activities,የሕዝብ ሥርዓት እና ደኅንነት ሥራዎች
+843,84,3,Compulsory social security activities,የግዴታ ማኅበራዊ ዋስትና ሥራዎች
+8430,843,4,Compulsory social security activities,የግዴታ ማኅበራዊ ዋስትና ሥራዎች
+P,,1,Education,ትምህርት
+85,P,2,Education,ትምህርት
+851,85,3,Pre-primary and primary education,ቅድመ አንደኛ እና አንደኛ ደረጃ ትምህርት
+8510,851,4,Pre-primary and primary education,ቅድመ አንደኛ እና አንደኛ ደረጃ ትምህርት
+852,85,3,Secondary education,ሁለተኛ ደረጃ ትምህርት
+8521,852,4,General secondary education,አጠቃላይ ሁለተኛ ደረጃ ትምህርት
+8522,852,4,Technical and vocational secondary education,የቴክኒክ እና የሙያ ሁለተኛ ደረጃ ትምህርት
+853,85,3,Higher education,ከፍተኛ ትምህርት
+8530,853,4,Higher education,ከፍተኛ ትምህርት
+854,85,3,Other education,ሌሎች ትምህርቶች
+8541,854,4,Sports and recreation education,የስፖርት እና የመዝናኛ ትምህርት
+8542,854,4,Cultural education,የባህል ትምህርት
+8549,854,4,Other education n.e.c.,በሌላ ያልተመደቡ ሌሎች ትምህርቶች
+855,85,3,Educational support activities,የትምህርት ድጋፍ ሥራዎች
+8550,855,4,Educational support activities,የትምህርት ድጋፍ ሥራዎች
+Q,,1,Human health and social work activities,የሰው ጤና እና የማኅበራዊ ሥራ ተግባራት
+86,Q,2,Human health activities,የሰው ጤና ሥራዎች
+861,86,3,Hospital activities,የሆስፒታል ሥራዎች
+8610,861,4,Hospital activities,የሆስፒታል ሥራዎች
+862,86,3,Medical and dental practice activities,የሕክምና እና የጥርስ ሕክምና ሥራዎች
+8620,862,4,Medical and dental practice activities,የሕክምና እና የጥርስ ሕክምና ሥራዎች
+869,86,3,Other human health activities,ሌሎች የሰው ጤና ሥራዎች
+8690,869,4,Other human health activities,ሌሎች የሰው ጤና ሥራዎች
+87,Q,2,Residential care activities,የመኖሪያ እንክብካቤ ሥራዎች
+871,87,3,Residential nursing care facilities,የመኖሪያ የነርሲንግ እንክብካቤ ተቋማት
+8710,871,4,Residential nursing care facilities,የመኖሪያ የነርሲንግ እንክብካቤ ተቋማት
+872,87,3,"Residential care activities for mental retardation, mental health and substance abuse",ለአዕምሮ እድገት ውስንነት፣ ለአዕምሮ ጤና እና ለሱስ ችግር የሚሰጡ የመኖሪያ እንክብካቤ ሥራዎች
+8720,872,4,"Residential care activities for mental retardation, mental health and substance abuse",ለአዕምሮ እድገት ውስንነት፣ ለአዕምሮ ጤና እና ለሱስ ችግር የሚሰጡ የመኖሪያ እንክብካቤ ሥራዎች
+873,87,3,Residential care activities for the elderly and disabled,ለአረጋውያን እና ለአካል ጉዳተኞች የሚሰጡ የመኖሪያ እንክብካቤ ሥራዎች
+8730,873,4,Residential care activities for the elderly and disabled,ለአረጋውያን እና ለአካል ጉዳተኞች የሚሰጡ የመኖሪያ እንክብካቤ ሥራዎች
+879,87,3,Other residential care activities,ሌሎች የመኖሪያ እንክብካቤ ሥራዎች
+8790,879,4,Other residential care activities,ሌሎች የመኖሪያ እንክብካቤ ሥራዎች
+88,Q,2,Social work activities without accommodation,የመኖሪያ አገልግሎት የሌላቸው የማኅበራዊ ሥራ ተግባራት
+881,88,3,Social work activities without accommodation for the elderly and disabled,ለአረጋውያን እና ለአካል ጉዳተኞች የሚሰጡ የመኖሪያ አገልግሎት የሌላቸው የማኅበራዊ ሥራ ተግባራት
+8810,881,4,Social work activities without accommodation for the elderly and disabled,ለአረጋውያን እና ለአካል ጉዳተኞች የሚሰጡ የመኖሪያ አገልግሎት የሌላቸው የማኅበራዊ ሥራ ተግባራት
+889,88,3,Other social work activities without accommodation,ሌሎች የመኖሪያ አገልግሎት የሌላቸው የማኅበራዊ ሥራ ተግባራት
+8890,889,4,Other social work activities without accommodation,ሌሎች የመኖሪያ አገልግሎት የሌላቸው የማኅበራዊ ሥራ ተግባራት
+R,,1,"Arts, entertainment and recreation",ሥነ ጥበብ፣ መዝናኛ እና ጨዋታ
+90,R,2,"Creative, arts and entertainment activities",የፈጠራ፣ የሥነ ጥበብ እና የመዝናኛ ሥራዎች
+900,90,3,"Creative, arts and entertainment activities",የፈጠራ፣ የሥነ ጥበብ እና የመዝናኛ ሥራዎች
+9000,900,4,"Creative, arts and entertainment activities",የፈጠራ፣ የሥነ ጥበብ እና የመዝናኛ ሥራዎች
+91,R,2,"Libraries, archives, museums and other cultural activities",ቤተ መጻሕፍት፣ መዛግብት፣ ሙዚየሞች እና ሌሎች የባህል ሥራዎች
+910,91,3,"Libraries, archives, museums and other cultural activities",ቤተ መጻሕፍት፣ መዛግብት፣ ሙዚየሞች እና ሌሎች የባህል ሥራዎች
+9101,910,4,Library and archives activities,የቤተ መጻሕፍት እና የመዛግብት ሥራዎች
+9102,910,4,Museums activities and operation of historical sites and buildings,የሙዚየም ሥራዎች እና የታሪካዊ ቦታዎች እና ሕንፃዎች አስተዳደር
+9103,910,4,Botanical and zoological gardens and nature reserves activities,የዕፅዋት እና የእንስሳት ማቆያ ስፍራዎች እና የተፈጥሮ ጥብቅ ቦታዎች ሥራዎች
+92,R,2,Gambling and betting activities,የቁማር እና የውርርድ ሥራዎች
+920,92,3,Gambling and betting activities,የቁማር እና የውርርድ ሥራዎች
+9200,920,4,Gambling and betting activities,የቁማር እና የውርርድ ሥራዎች
+93,R,2,Sports activities and amusement and recreation activities,የስፖርት ሥራዎች እና የመዝናኛ እና የጨዋታ ሥራዎች
+931,93,3,Sports activities,የስፖርት ሥራዎች
+9311,931,4,Operation of sports facilities,የስፖርት ተቋማት አስተዳደር
+9312,931,4,Activities of sports clubs,የስፖርት ክለቦች ሥራዎች
+9319,931,4,Other sports activities,ሌሎች የስፖርት ሥራዎች
+932,93,3,Other amusement and recreation activities,ሌሎች የመዝናኛ እና የጨዋታ ሥራዎች
+9321,932,4,Activities of amusement parks and theme parks,የመዝናኛ ፓርኮች እና ገጽታ ተኮር ፓርኮች ሥራዎች
+9329,932,4,Other amusement and recreation activities n.e.c.,በሌላ ያልተመደቡ ሌሎች የመዝናኛ እና የጨዋታ ሥራዎች
+S,,1,Other service activities,ሌሎች የአገልግሎት ሥራዎች
+94,S,2,Activities of membership organizations,የአባልነት ድርጅቶች ሥራዎች
+941,94,3,"Activities of business, employers and professional membership organizations",የንግድ፣ የአሠሪ እና የሙያ አባልነት ድርጅቶች ሥራዎች
+9411,941,4,Activities of business and employers membership organizations,የንግድ እና የአሠሪ አባልነት ድርጅቶች ሥራዎች
+9412,941,4,Activities of professional membership organizations,የሙያ አባልነት ድርጅቶች ሥራዎች
+942,94,3,Activities of trade unions,የሠራተኛ ማኅበራት ሥራዎች
+9420,942,4,Activities of trade unions,የሠራተኛ ማኅበራት ሥራዎች
+949,94,3,Activities of other membership organizations,የሌሎች አባልነት ድርጅቶች ሥራዎች
+9491,949,4,Activities of religious organizations,የሃይማኖት ድርጅቶች ሥራዎች
+9492,949,4,Activities of political organizations,የፖለቲካ ድርጅቶች ሥራዎች
+9499,949,4,Activities of other membership organizations n.e.c.,በሌላ ያልተመደቡ የሌሎች አባልነት ድርጅቶች ሥራዎች
+95,S,2,Repair of computers and personal and household goods,የኮምፒውተሮች እና የግል እና የቤት ውስጥ ዕቃዎች ጥገና
+951,95,3,Repair of computers and communication equipment,የኮምፒውተሮች እና የመገናኛ መሣሪያዎች ጥገና
+9511,951,4,Repair of computers and peripheral equipment,የኮምፒውተሮች እና ተጓዳኝ መሣሪያዎች ጥገና
+9512,951,4,Repair of communication equipment,የመገናኛ መሣሪያዎች ጥገና
+952,95,3,Repair of personal and household goods,የግል እና የቤት ውስጥ ዕቃዎች ጥገና
+9521,952,4,Repair of consumer electronics,የሸማች ኤሌክትሮኒክስ ዕቃዎች ጥገና
+9522,952,4,Repair of household appliances and home and garden equipment,የቤት ውስጥ መገልገያ ዕቃዎች እና የቤት እና የአትክልት ስፍራ መሣሪያዎች ጥገና
+9523,952,4,Repair of footwear and leather goods,የጫማ እና የቆዳ ዕቃዎች ጥገና
+9524,952,4,Repair of furniture and home furnishings,የቤት ዕቃዎች እና የቤት ማስዋቢያዎች ጥገና
+9529,952,4,Repair of other personal and household goods,የሌሎች የግል እና የቤት ውስጥ ዕቃዎች ጥገና
+96,S,2,Other personal service activities,ሌሎች የግል አገልግሎት ሥራዎች
+960,96,3,Other personal service activities,ሌሎች የግል አገልግሎት ሥራዎች
+9601,960,4,Washing and (dry-) cleaning of textile and fur products,የጨርቃ ጨርቅ እና የፀጉር ውጤቶች ማጠብ እና በደረቅ ማጽዳት
+9602,960,4,Hairdressing and other beauty treatment,የፀጉር ሥራ እና ሌሎች የውበት እንክብካቤዎች
+9603,960,4,Funeral and related activities,የቀብር እና ተዛማጅ ሥራዎች
+9609,960,4,Other personal service activities n.e.c.,በሌላ ያልተመደቡ ሌሎች የግል አገልግሎት ሥራዎች
+T,,1,Activities of households as employers; undifferentiated goods- and services-producing activities of households for own use,የቤተሰቦች እንደ አሠሪ ሥራዎች፤ ቤተሰቦች ለራሳቸው ፍጆታ የሚያከናውኗቸው ያልተለዩ የዕቃ እና የአገልግሎት ማምረት ሥራዎች
+97,T,2,Activities of households as employers of domestic personnel,የቤተሰቦች የቤት ሠራተኞች አሠሪነት ሥራዎች
+970,97,3,Activities of households as employers of domestic personnel,የቤተሰቦች የቤት ሠራተኞች አሠሪነት ሥራዎች
+9700,970,4,Activities of households as employers of domestic personnel,የቤተሰቦች የቤት ሠራተኞች አሠሪነት ሥራዎች
+98,T,2,Undifferentiated goods- and services-producing activities of private households for own use,የግል ቤተሰቦች ለራሳቸው ፍጆታ የሚያከናውኗቸው ያልተለዩ የዕቃ እና የአገልግሎት ማምረት ሥራዎች
+981,98,3,Undifferentiated goods-producing activities of private households for own use,የግል ቤተሰቦች ለራሳቸው ፍጆታ የሚያከናውኗቸው ያልተለዩ የዕቃ ማምረት ሥራዎች
+9810,981,4,Undifferentiated goods-producing activities of private households for own use,የግል ቤተሰቦች ለራሳቸው ፍጆታ የሚያከናውኗቸው ያልተለዩ የዕቃ ማምረት ሥራዎች
+982,98,3,Undifferentiated service-producing activities of private households for own use,የግል ቤተሰቦች ለራሳቸው ፍጆታ የሚያከናውኗቸው ያልተለዩ የአገልግሎት ሥራዎች
+9820,982,4,Undifferentiated service-producing activities of private households for own use,የግል ቤተሰቦች ለራሳቸው ፍጆታ የሚያከናውኗቸው ያልተለዩ የአገልግሎት ሥራዎች
+U,,1,Activities of extraterritorial organizations and bodies,የዓለም አቀፍ ድርጅቶች እና አካላት ሥራዎች
+99,U,2,Activities of extraterritorial organizations and bodies,የዓለም አቀፍ ድርጅቶች እና አካላት ሥራዎች
+990,99,3,Activities of extraterritorial organizations and bodies,የዓለም አቀፍ ድርጅቶች እና አካላት ሥራዎች
+9900,990,4,Activities of extraterritorial organizations and bodies,የዓለም አቀፍ ድርጅቶች እና አካላት ሥራዎች

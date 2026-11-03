@@ -33,6 +33,7 @@ const isicActivities = {
     archivedSuccessfully: 'የISIC ምደባው ወደ ማህደር ተዛውሯል',
     restoredSuccessfully: 'የISIC ምደባ ተመልሷል',
     allLevels: 'ሁሉም ደረጃዎች',
+    allSections: 'ሁሉም ዘርፎች',
     allStatuses: 'ሁሉም ሁኔታዎች',
     backToList: '← ወደ ISIC ምደባዎች ይመለሱ',
 } as const;
