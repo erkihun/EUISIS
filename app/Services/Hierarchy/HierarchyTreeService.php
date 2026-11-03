@@ -93,7 +93,9 @@ class HierarchyTreeService
         }
 
         // ── 2. Load all organizations in one query ──────────────────────────
+        // An archived version is history: the institutions it held stay in it even once archived themselves.
         $organizations = Organization::query()
+            ->when($version->status === HierarchyVersionStatus::Archived, fn ($query) => $query->withTrashed())
             ->whereIn('id', $allOrgIds)
             ->with('type:id,code,name_en,name_am')
             ->get()

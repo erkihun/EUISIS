@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import HierarchyTreePreview from '@/Components/organizations/HierarchyTreePreview';
 import HierarchyGovernancePanel, { type HierarchyGovernance } from '@/Components/hierarchy/HierarchyGovernancePanel';
+import ArchivedVersionSnapshot, { type VersionSnapshot } from '@/Components/hierarchy/ArchivedVersionSnapshot';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -42,12 +43,14 @@ export default function HierarchyVersionShow({
     version,
     edges,
     tree,
+    snapshot = null,
     can,
     governance = null,
 }: {
     version: Version;
     edges: Edge[];
     tree: TreeNode[];
+    snapshot?: VersionSnapshot | null;
     can: { edit: boolean; archive: boolean; publish: boolean; manageTree: boolean };
     /** The governed review and publication steps, where the server offers them. */
     governance?: HierarchyGovernance | null;
@@ -201,17 +204,19 @@ export default function HierarchyVersionShow({
                     </div>
                 </section>
 
-                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
-                    <h3 className="font-semibold text-(--app-foreground)">
-                        {t('hierarchyVersions.viewTree')}
-                    </h3>
-                    <div className="mt-4">
-                        <HierarchyTreePreview
-                            nodes={tree}
-                            emptyMessage={t('hierarchyVersions.noHierarchyVersionsFound')}
-                        />
-                    </div>
-                </section>
+                {snapshot ? <ArchivedVersionSnapshot snapshot={snapshot} /> : (
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="font-semibold text-(--app-foreground)">
+                            {t('hierarchyVersions.viewTree')}
+                        </h3>
+                        <div className="mt-4">
+                            <HierarchyTreePreview
+                                nodes={tree}
+                                emptyMessage={t('hierarchyVersions.noHierarchyVersionsFound')}
+                            />
+                        </div>
+                    </section>
+                )}
             </div>
 
             <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">

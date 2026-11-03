@@ -9,11 +9,15 @@ use App\Enums\AuditEventType;
 use App\Enums\HierarchyVersionStatus;
 use App\Models\HierarchyVersion;
 use App\Models\User;
+use App\Services\Hierarchy\HierarchyVersionSnapshotService;
 use Illuminate\Validation\ValidationException;
 
 readonly class ArchiveHierarchyVersionAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private HierarchyVersionSnapshotService $snapshots,
+    ) {}
 
     public function execute(HierarchyVersion $version, User $actor): HierarchyVersion
     {
@@ -24,6 +28,8 @@ readonly class ArchiveHierarchyVersionAction
         }
 
         $oldValues = $version->toArray();
+
+        $this->snapshots->capture($version);
 
         $version->update([
             'status' => HierarchyVersionStatus::Archived,
