@@ -125,6 +125,7 @@ export default function OccupationsIndex({
                                         {[
                                             t('occupations.iscoCode'),
                                             t('occupations.nameEn'),
+                                            t('occupations.nameAm'),
                                             t('common.status'),
                                             '',
                                         ].map((heading, i) => (
@@ -152,7 +153,10 @@ export default function OccupationsIndex({
                                                 </Link>
                                             </td>
                                             <td className={cx(tableCellClassName, 'font-medium')}>
-                                                {occ.name_en ?? occ.name_am ?? '—'}
+                                                {occ.name_en ?? '—'}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                {occ.name_am ?? '—'}
                                             </td>
                                             <td className={tableCellClassName}>
                                                 <StatusBadge status={occ.is_active ? 'active' : 'inactive'} />

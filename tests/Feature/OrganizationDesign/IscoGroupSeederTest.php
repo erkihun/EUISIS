@@ -17,7 +17,7 @@ test('the ISCO-08 seeder loads the full four-level structure from the dataset fi
         ->and($groups->clone()->where('level', 'minor')->count())->toBe(130)
         ->and($groups->clone()->where('level', 'unit')->count())->toBe(436)
         ->and($groups->clone()->where('level', '!=', 'major')->whereNull('parent_id')->count())->toBe(0)
-        ->and($groups->clone()->where('level', '!=', 'unit')->whereNull('name_am')->count())->toBe(0);
+        ->and($groups->clone()->whereNull('name_am')->count())->toBe(0);
 
     $accountants = IscoGroup::query()->where('revision', IscoGroupSeeder::REVISION)->where('code', '2411')->firstOrFail();
     expect($accountants->name_en)->toBe('Accountants')
@@ -45,6 +45,7 @@ test('re-running the ISCO-08 seeder is idempotent and links occupations to their
 test('every ISCO-08 unit group gets one occupation and existing occupations keep their names', function (): void {
     $this->seed(OccupationSeeder::class);
     Occupation::query()->where('isco_code', '2411')->update(['name_en' => 'Curated accountants']);
+    Occupation::query()->where('isco_code', '2423')->update(['name_am' => 'Curated Amharic']);
     Occupation::query()->where('isco_code', '2611')->firstOrFail()->delete();
 
     $this->seed(IscoGroupSeeder::class);
@@ -53,7 +54,12 @@ test('every ISCO-08 unit group gets one occupation and existing occupations keep
     expect(Occupation::withTrashed()->count())->toBe(436)
         ->and(Occupation::query()->count())->toBe(435)
         ->and(Occupation::query()->whereNull('isco_group_id')->count())->toBe(0)
+        ->and(Occupation::query()->whereNull('name_am')->count())->toBe(0)
+        ->and(Occupation::query()->where('isco_code', '2423')->value('name_am'))->toBe('Curated Amharic')
         ->and(Occupation::query()->where('isco_code', '2411')->value('name_en'))->toBe('Curated accountants');
+
+    $accountants = Occupation::query()->where('isco_code', '2411')->firstOrFail();
+    expect($accountants->name_am)->toBe($accountants->iscoGroup?->name_am);
 
     $seeded = Occupation::query()->where('isco_code', '0110')->firstOrFail();
     expect($seeded->code)->toBe('0110')

@@ -23,7 +23,8 @@ use RuntimeException;
  * a unit group of this revision and which cite no group yet are linked to it.
  * Every unit group then gets an occupation of its own (436 in ISCO-08). An
  * occupation that already holds the code, archived ones included, is left as
- * it is, so curated names survive and archived rows are not brought back.
+ * it is, so curated names survive and archived rows are not brought back. The
+ * one exception is a blank Amharic name, which is filled from the linked group.
  */
 class IscoGroupSeeder extends Seeder
 {
@@ -57,7 +58,19 @@ class IscoGroupSeeder extends Seeder
 
             $this->linkOccupations();
             $this->createUnitGroupOccupations();
+            $this->fillBlankAmharicNames();
         });
+    }
+
+    /** A linked occupation with no Amharic name takes its group's; a name already recorded is never replaced. */
+    private function fillBlankAmharicNames(): void
+    {
+        Occupation::query()->whereNull('name_am')->whereNotNull('isco_group_id')
+            ->with('iscoGroup:id,name_am')
+            ->get(['id', 'isco_group_id'])
+            ->filter(fn (Occupation $occupation): bool => $occupation->iscoGroup?->name_am !== null)
+            ->each(fn (Occupation $occupation) => Occupation::query()->whereKey($occupation->getKey())
+                ->update(['name_am' => $occupation->iscoGroup->name_am]));
     }
 
     /** One occupation per unit group, carrying the group's names and its four ISCO codes. */
