@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
                 'DatabaseSeeder creates demo data and is disabled in production. Seed reference data with: '
                 .'PermissionSeeder, RoleSeeder, RolePermissionSeeder, SystemSettingsSeeder, CodeRuleSeeder, '
                 .'GrievanceDefaultsSeeder, FieldWorkTypeSeeder, OrganizationTypeSeeder, OrganizationUnitTypeSeeder, '
-                .'IsicActivitySeeder, OccupationSeeder, CafeteriaSettingsSeeder, CafeteriaDayRuleSeeder, '
+                .'IsicActivitySeeder, OccupationSeeder, IscoGroupSeeder, CafeteriaSettingsSeeder, CafeteriaDayRuleSeeder, '
                 .'PublicSiteDefaultsSeeder (php artisan db:seed --class=...).'
             );
         }
@@ -78,6 +78,7 @@ class DatabaseSeeder extends Seeder
         $this->call(LegalInstrumentTypeSeeder::class);
         $this->call(OrganizationDesignCatalogSeeder::class);
         $this->call(OccupationSeeder::class);
+        $this->call(IscoGroupSeeder::class);
 
         $organizationTypes = collect([
             ['code' => 'city_government', 'prefix' => 'CITY', 'name_en' => 'City Government'],

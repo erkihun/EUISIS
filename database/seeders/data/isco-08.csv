@@ -1,0 +1,620 @@
+code,parent_code,level,name_en,name_am
+0,,1,Armed forces occupations,የጦር ኃይል ሙያዎች
+01,0,2,Commissioned armed forces officers,ባለሥልጣን የጦር ኃይል መኮንኖች
+011,01,3,Commissioned armed forces officers,ባለሥልጣን የጦር ኃይል መኮንኖች
+0110,011,4,Commissioned armed forces officers,ባለሥልጣን የጦር ኃይል መኮንኖች
+02,0,2,Non-commissioned armed forces officers,ባለሥልጣን ያልሆኑ የጦር ኃይል መኮንኖች
+021,02,3,Non-commissioned armed forces officers,ባለሥልጣን ያልሆኑ የጦር ኃይል መኮንኖች
+0210,021,4,Non-commissioned armed forces officers,ባለሥልጣን ያልሆኑ የጦር ኃይል መኮንኖች
+03,0,2,"Armed forces occupations, other ranks",ሌሎች ደረጃ የጦር ኃይል ሙያዎች
+031,03,3,"Armed forces occupations, other ranks",ሌሎች ደረጃ የጦር ኃይል ሙያዎች
+0310,031,4,"Armed forces occupations, other ranks",ሌሎች ደረጃ የጦር ኃይል ሙያዎች
+1,,1,Managers,ሥራ አስኪያጆች
+11,1,2,"Chief executives, senior officials and legislators",ዋና ሥራ አስፈጻሚዎች፣ ከፍተኛ ባለሥልጣናት እና ሕግ አውጪዎች
+111,11,3,Legislators and senior officials,ሕግ አውጪዎች እና ከፍተኛ ባለሥልጣናት
+1111,111,4,Legislators,
+1112,111,4,Senior government officials,
+1113,111,4,Traditional chiefs and heads of villages,
+1114,111,4,Senior officials of special-interest organizations,
+112,11,3,Managing directors and chief executives,ማኔጂንግ ዳይሬክተሮች እና ዋና ሥራ አስፈጻሚዎች
+1120,112,4,Managing directors and chief executives,
+12,1,2,Administrative and commercial managers,የአስተዳደር እና የንግድ ሥራ አስኪያጆች
+121,12,3,Business services and administration managers,የቢዝነስ አገልግሎቶች እና አስተዳደር ሥራ አስኪያጆች
+1211,121,4,Finance managers,
+1212,121,4,Human resource managers,
+1213,121,4,Policy and planning managers,
+1219,121,4,Business services and administration managers not elsewhere classified,
+122,12,3,"Sales, marketing and development managers",የሽያጭ፣ ግብይት እና ልማት ሥራ አስኪያጆች
+1221,122,4,Sales and marketing managers,
+1222,122,4,Advertising and public relations managers,
+1223,122,4,Research and development managers,
+13,1,2,Production and specialised services managers,የምርት እና ልዩ አገልግሎቶች ሥራ አስኪያጆች
+131,13,3,"Production managers in agriculture, forestry and fisheries",በግብርና፣ ደን እና ዓሣ ሀብት የምርት ሥራ አስኪያጆች
+1311,131,4,Agricultural and forestry production managers,
+1312,131,4,Aquaculture and fisheries production managers,
+132,13,3,"Manufacturing, mining, construction, and distribution managers",የማኑፋክቸሪንግ፣ ማዕድን፣ ግንባታ እና ስርጭት ሥራ አስኪያጆች
+1321,132,4,Manufacturing managers,
+1322,132,4,Mining managers,
+1323,132,4,Construction managers,
+1324,132,4,"Supply, distribution and related managers",
+133,13,3,Information and communications technology service managers,የመረጃ እና ኮሙኒኬሽን ቴክኖሎጂ አገልግሎት ሥራ አስኪያጆች
+1330,133,4,Information and communications technology service managers,
+134,13,3,Professional services managers,የሙያዊ አገልግሎቶች ሥራ አስኪያጆች
+1341,134,4,Child care services managers,
+1342,134,4,Health services managers,
+1343,134,4,Aged care services managers,
+1344,134,4,Social welfare managers,
+1345,134,4,Education managers,
+1346,134,4,Financial and insurance services branch managers,
+1349,134,4,Professional services managers not elsewhere classified,
+14,1,2,"Hospitality, retail and other services managers",የመስተንግዶ፣ የችርቻሮ እና ሌሎች አገልግሎቶች ሥራ አስኪያጆች
+141,14,3,Hotel and restaurant managers,የሆቴል እና ሬስቶራንት ሥራ አስኪያጆች
+1411,141,4,Hotel managers,
+1412,141,4,Restaurant managers,
+142,14,3,Retail and wholesale trade managers,የችርቻሮ እና ጅምላ ንግድ ሥራ አስኪያጆች
+1420,142,4,Retail and wholesale trade managers,
+143,14,3,Other services managers,ሌሎች አገልግሎቶች ሥራ አስኪያጆች
+1431,143,4,"Sports, recreation and cultural centre managers",
+1439,143,4,Services managers not elsewhere classified,
+2,,1,Professionals,ባለሙያዎች
+21,2,2,Science and engineering professionals,የሳይንስ እና ኢንጂነሪንግ ባለሙያዎች
+211,21,3,Physical and earth science professionals,የፊዚካል እና የምድር ሳይንስ ባለሙያዎች
+2111,211,4,Physicists and astronomers,
+2112,211,4,Meteorologists,
+2113,211,4,Chemists,
+2114,211,4,Geologists and geophysicists,
+212,21,3,"Mathematicians, actuaries and statisticians",የሒሳብ ሊቃውንት፣ አክቹወሪዎች እና ስታቲስቲሺያኖች
+2120,212,4,"Mathematicians, actuaries and statisticians",
+213,21,3,Life science professionals,የሕይወት ሳይንስ ባለሙያዎች
+2131,213,4,"Biologists, botanists, zoologists and related professionals",
+2132,213,4,"Farming, forestry and fisheries advisers",
+2133,213,4,Environmental protection professionals,
+214,21,3,Engineering professionals (excluding electrotechnology),የኢንጂነሪንግ ባለሙያዎች (ኤሌክትሮቴክኖሎጂን ሳይጨምር)
+2141,214,4,Industrial and production engineers,
+2142,214,4,Civil engineers,
+2143,214,4,Environmental engineers,
+2144,214,4,Mechanical engineers,
+2145,214,4,Chemical engineers,
+2146,214,4,"Mining engineers, metallurgists and related professionals",
+2149,214,4,Engineering professionals not elsewhere classified,
+215,21,3,Electrotechnology engineers,የኤሌክትሮቴክኖሎጂ ኢንጂነሮች
+2151,215,4,Electrical engineers,
+2152,215,4,Electronics engineers,
+2153,215,4,Telecommunications engineers,
+216,21,3,"Architects, planners, surveyors and designers",አርክቴክቶች፣ ፕላነሮች፣ ሰርቬየሮች እና ዲዛይነሮች
+2161,216,4,Building architects,
+2162,216,4,Landscape architects,
+2163,216,4,Product and garment designers,
+2164,216,4,Town and traffic planners,
+2165,216,4,Cartographers and surveyors,
+2166,216,4,Graphic and multimedia designers,
+22,2,2,Health professionals,የጤና ባለሙያዎች
+221,22,3,Medical doctors,የሕክምና ዶክተሮች
+2211,221,4,Generalist medical practitioners,
+2212,221,4,Specialist medical practitioners,
+222,22,3,Nursing and midwifery professionals,የነርሲንግ እና የሚድዋይፈሪ ባለሙያዎች
+2221,222,4,Nursing professionals,
+2222,222,4,Midwifery professionals,
+223,22,3,Traditional and complementary medicine professionals,የባህላዊ እና አማራጭ ሕክምና ባለሙያዎች
+2230,223,4,Traditional and complementary medicine professionals,
+224,22,3,Paramedical practitioners,የፓራሜዲካል ባለሙያዎች
+2240,224,4,Paramedical practitioners,
+225,22,3,Veterinarians,የእንስሳት ሐኪሞች
+2250,225,4,Veterinarians,
+226,22,3,Other health professionals,ሌሎች የጤና ባለሙያዎች
+2261,226,4,Dentists,
+2262,226,4,Pharmacists,
+2263,226,4,Environmental and occupational health and hygiene professionals,
+2264,226,4,Physiotherapists,
+2265,226,4,Dieticians and nutritionists,
+2266,226,4,Audiologists and speech therapists,
+2267,226,4,Optometrists and ophthalmic opticians,
+2269,226,4,Health professionals not elsewhere classified,
+23,2,2,Teaching professionals,የማስተማር ባለሙያዎች
+231,23,3,University and higher education teachers,የዩኒቨርሲቲ እና ከፍተኛ ትምህርት መምህራን
+2310,231,4,University and higher education teachers,
+232,23,3,Vocational education teachers,የሙያ ትምህርት መምህራን
+2320,232,4,Vocational education teachers,
+233,23,3,Secondary education teachers,የሁለተኛ ደረጃ ትምህርት መምህራን
+2330,233,4,Secondary education teachers,
+234,23,3,Primary school and early childhood teachers,የመጀመሪያ ደረጃ እና የቅድመ መደበኛ ትምህርት መምህራን
+2341,234,4,Primary school teachers,
+2342,234,4,Early childhood educators,
+235,23,3,Other teaching professionals,ሌሎች የማስተማር ባለሙያዎች
+2351,235,4,Education methods specialists,
+2352,235,4,Special needs teachers,
+2353,235,4,Other language teachers,
+2354,235,4,Other music teachers,
+2355,235,4,Other arts teachers,
+2356,235,4,Information technology trainers,
+2359,235,4,Teaching professionals not elsewhere classified,
+24,2,2,Business and administration professionals,የቢዝነስ እና አስተዳደር ባለሙያዎች
+241,24,3,Finance professionals,የፋይናንስ ባለሙያዎች
+2411,241,4,Accountants,
+2412,241,4,Financial and investment advisers,
+2413,241,4,Financial analysts,
+242,24,3,Administration professionals,የአስተዳደር ባለሙያዎች
+2421,242,4,Management and organization analysts,
+2422,242,4,Policy administration professionals,
+2423,242,4,Personnel and careers professionals,
+2424,242,4,Training and staff development professionals,
+243,24,3,"Sales, marketing and public relations professionals",የሽያጭ፣ ግብይት እና ሕዝብ ግንኙነት ባለሙያዎች
+2431,243,4,Advertising and marketing professionals,
+2432,243,4,Public relations professionals,
+2433,243,4,Technical and medical sales professionals (excluding ICT),
+2434,243,4,Information and communications technology sales professionals,
+25,2,2,Information and communications technology professionals,የመረጃ እና ኮሙኒኬሽን ቴክኖሎጂ ባለሙያዎች
+251,25,3,Software and applications developers and analysts,የሶፍትዌር እና አፕሊኬሽን ገንቢዎች እና ተንታኞች
+2511,251,4,Systems analysts,
+2512,251,4,Software developers,
+2513,251,4,Web and multimedia developers,
+2514,251,4,Applications programmers,
+2519,251,4,Software and applications developers and analysts not elsewhere classified,
+252,25,3,Database and network professionals,የዳታቤዝ እና ኔትወርክ ባለሙያዎች
+2521,252,4,Database designers and administrators,
+2522,252,4,Systems administrators,
+2523,252,4,Computer network professionals,
+2529,252,4,Database and network professionals not elsewhere classified,
+26,2,2,"Legal, social and cultural professionals",የሕግ፣ ማኅበራዊ እና ባህላዊ ባለሙያዎች
+261,26,3,Legal professionals,የሕግ ባለሙያዎች
+2611,261,4,Lawyers,
+2612,261,4,Judges,
+2619,261,4,Legal professionals not elsewhere classified,
+262,26,3,"Librarians, archivists and curators",የቤተ መጻሕፍት፣ የማህደር እና የሙዚየም ባለሙያዎች
+2621,262,4,Archivists and curators,
+2622,262,4,Librarians and related information professionals,
+263,26,3,Social and religious professionals,የማኅበራዊ እና የሃይማኖት ባለሙያዎች
+2631,263,4,Economists,
+2632,263,4,"Sociologists, anthropologists and related professionals",
+2633,263,4,"Philosophers, historians and political scientists",
+2634,263,4,Psychologists,
+2635,263,4,Social work and counselling professionals,
+2636,263,4,Religious professionals,
+264,26,3,"Authors, journalists and linguists",ደራሲዎች፣ ጋዜጠኞች እና የቋንቋ ባለሙያዎች
+2641,264,4,Authors and related writers,
+2642,264,4,Journalists,
+2643,264,4,"Translators, interpreters and other linguists",
+265,26,3,Creative and performing artists,የፈጠራ እና የትወና ጥበብ ባለሙያዎች
+2651,265,4,Visual artists,
+2652,265,4,"Musicians, singers and composers",
+2653,265,4,Dancers and choreographers,
+2654,265,4,"Film, stage and related directors and producers",
+2655,265,4,Actors,
+2656,265,4,"Announcers on radio, television and other media",
+2659,265,4,Creative and performing artists not elsewhere classified,
+3,,1,Technicians and associate professionals,ቴክኒሺያኖች እና ተባባሪ ባለሙያዎች
+31,3,2,Science and engineering associate professionals,የሳይንስ እና ኢንጂነሪንግ ተባባሪ ባለሙያዎች
+311,31,3,Physical and engineering science technicians,የፊዚካል እና ኢንጂነሪንግ ሳይንስ ቴክኒሺያኖች
+3111,311,4,Chemical and physical science technicians,
+3112,311,4,Civil engineering technicians,
+3113,311,4,Electrical engineering technicians,
+3114,311,4,Electronics engineering technicians,
+3115,311,4,Mechanical engineering technicians,
+3116,311,4,Chemical engineering technicians,
+3117,311,4,Mining and metallurgical technicians,
+3118,311,4,Draughtspersons,
+3119,311,4,Physical and engineering science technicians not elsewhere classified,
+312,31,3,"Mining, manufacturing and construction supervisors",የማዕድን፣ ማኑፋክቸሪንግ እና ግንባታ ሱፐርቫይዘሮች
+3121,312,4,Mining supervisors,
+3122,312,4,Manufacturing supervisors,
+3123,312,4,Construction supervisors,
+313,31,3,Process control technicians,የሂደት ቁጥጥር ቴክኒሺያኖች
+3131,313,4,Power production plant operators,
+3132,313,4,Incinerator and water treatment plant operators,
+3133,313,4,Chemical processing plant controllers,
+3134,313,4,Petroleum and natural gas refining plant operators,
+3135,313,4,Metal production process controllers,
+3139,313,4,Process control technicians not elsewhere classified,
+314,31,3,Life science technicians and related associate professionals,የሕይወት ሳይንስ ቴክኒሺያኖች እና ተዛማጅ ተባባሪ ባለሙያዎች
+3141,314,4,Life science technicians (excluding medical),
+3142,314,4,Agricultural technicians,
+3143,314,4,Forestry technicians,
+315,31,3,Ship and aircraft controllers and technicians,የመርከብ እና አውሮፕላን ተቆጣጣሪዎች እና ቴክኒሺያኖች
+3151,315,4,Ships' engineers,
+3152,315,4,Ships' deck officers and pilots,
+3153,315,4,Aircraft pilots and related associate professionals,
+3154,315,4,Air traffic controllers,
+3155,315,4,Air traffic safety electronics technicians,
+32,3,2,Health associate professionals,የጤና ተባባሪ ባለሙያዎች
+321,32,3,Medical and pharmaceutical technicians,የሕክምና እና የመድኃኒት ቴክኒሺያኖች
+3211,321,4,Medical imaging and therapeutic equipment technicians,
+3212,321,4,Medical and pathology laboratory technicians,
+3213,321,4,Pharmaceutical technicians and assistants,
+3214,321,4,Medical and dental prosthetic technicians,
+322,32,3,Nursing and midwifery associate professionals,የነርሲንግ እና የሚድዋይፈሪ ተባባሪ ባለሙያዎች
+3221,322,4,Nursing associate professionals,
+3222,322,4,Midwifery associate professionals,
+323,32,3,Traditional and complementary medicine associate professionals,የባህላዊ እና አማራጭ ሕክምና ተባባሪ ባለሙያዎች
+3230,323,4,Traditional and complementary medicine associate professionals,
+324,32,3,Veterinary technicians and assistants,የእንስሳት ሕክምና ቴክኒሺያኖች እና ረዳቶች
+3240,324,4,Veterinary technicians and assistants,
+325,32,3,Other health associate professionals,ሌሎች የጤና ተባባሪ ባለሙያዎች
+3251,325,4,Dental assistants and therapists,
+3252,325,4,Medical records and health information technicians,
+3253,325,4,Community health workers,
+3254,325,4,Dispensing opticians,
+3255,325,4,Physiotherapy technicians and assistants,
+3256,325,4,Medical assistants,
+3257,325,4,Environmental and occupational health inspectors and associates,
+3258,325,4,Ambulance workers,
+3259,325,4,Health associate professionals not elsewhere classified,
+33,3,2,Business and administration associate professionals,የቢዝነስ እና አስተዳደር ተባባሪ ባለሙያዎች
+331,33,3,Financial and mathematical associate professionals,የፋይናንስ እና የሒሳብ ተባባሪ ባለሙያዎች
+3311,331,4,Securities and finance dealers and brokers,
+3312,331,4,Credit and loans officers,
+3313,331,4,Accounting associate professionals,
+3314,331,4,"Statistical, mathematical and related associate professionals",
+3315,331,4,Valuers and loss assessors,
+332,33,3,Sales and purchasing agents and brokers,የሽያጭ እና የግዢ ወኪሎች እና ደላሎች
+3321,332,4,Insurance representatives,
+3322,332,4,Commercial sales representatives,
+3323,332,4,Buyers,
+3324,332,4,Trade brokers,
+333,33,3,Business services agents,የቢዝነስ አገልግሎት ወኪሎች
+3331,333,4,Clearing and forwarding agents,
+3332,333,4,Conference and event planners,
+3333,333,4,Employment agents and contractors,
+3334,333,4,Real estate agents and property managers,
+3339,333,4,Business services agents not elsewhere classified,
+334,33,3,Administrative and specialised secretaries,የአስተዳደር እና ልዩ ጸሐፊዎች
+3341,334,4,Office supervisors,
+3342,334,4,Legal secretaries,
+3343,334,4,Administrative and executive secretaries,
+3344,334,4,Medical secretaries,
+335,33,3,Regulatory government associate professionals,የመንግሥት ተቆጣጣሪ ተባባሪ ባለሙያዎች
+3351,335,4,Customs and border inspectors,
+3352,335,4,Government tax and excise officials,
+3353,335,4,Government social benefits officials,
+3354,335,4,Government licensing officials,
+3355,335,4,Police inspectors and detectives,
+3359,335,4,Regulatory government associate professionals not elsewhere classified,
+34,3,2,"Legal, social, cultural and related associate professionals",የሕግ፣ ማኅበራዊ፣ ባህላዊ እና ተዛማጅ ተባባሪ ባለሙያዎች
+341,34,3,"Legal, social and religious associate professionals",የሕግ፣ ማኅበራዊ እና ሃይማኖት ተባባሪ ባለሙያዎች
+3411,341,4,Legal and related associate professionals,
+3412,341,4,Social work associate professionals,
+3413,341,4,Religious associate professionals,
+342,34,3,Sports and fitness workers,የስፖርት እና የአካል ብቃት ሠራተኞች
+3421,342,4,Athletes and sports players,
+3422,342,4,"Sports coaches, instructors and officials",
+3423,342,4,Fitness and recreation instructors and program leaders,
+343,34,3,"Artistic, cultural and culinary associate professionals",የጥበብ፣ ባህል እና ምግብ ዝግጅት ተባባሪ ባለሙያዎች
+3431,343,4,Photographers,
+3432,343,4,Interior designers and decorators,
+3433,343,4,"Gallery, museum and library technicians",
+3434,343,4,Chefs,
+3435,343,4,Other artistic and cultural associate professionals,
+35,3,2,Information and communications technicians,የመረጃ እና ኮሙኒኬሽን ቴክኒሺያኖች
+351,35,3,Information and communications technology operations and user support technicians,የመረጃ እና ኮሙኒኬሽን ቴክኖሎጂ ኦፕሬሽን እና የተጠቃሚ ድጋፍ ቴክኒሺያኖች
+3511,351,4,Information and communications technology operations technicians,
+3512,351,4,Information and communications technology user support technicians,
+3513,351,4,Computer network and systems technicians,
+3514,351,4,Web technicians,
+352,35,3,Telecommunications and broadcasting technicians,የቴሌኮሙኒኬሽን እና ብሮድካስቲንግ ቴክኒሺያኖች
+3521,352,4,Broadcasting and audio-visual technicians,
+3522,352,4,Telecommunications engineering technicians,
+4,,1,Clerical support workers,የጽሕፈት ድጋፍ ሠራተኞች
+41,4,2,General and keyboard clerks,አጠቃላይ እና የኪቦርድ ጸሐፊዎች
+411,41,3,General office clerks,አጠቃላይ የቢሮ ጸሐፊዎች
+4110,411,4,General office clerks,
+412,41,3,Secretaries (general),ጸሐፊዎች (አጠቃላይ)
+4120,412,4,Secretaries (general),
+413,41,3,Keyboard operators,የኪቦርድ ኦፕሬተሮች
+4131,413,4,Typists and word processing operators,
+4132,413,4,Data entry clerks,
+42,4,2,Customer services clerks,የደንበኞች አገልግሎት ጸሐፊዎች
+421,42,3,"Tellers, money collectors and related clerks",ገንዘብ ተቀባዮች፣ ገንዘብ ሰብሳቢዎች እና ተዛማጅ ጸሐፊዎች
+4211,421,4,Bank tellers and related clerks,
+4212,421,4,"Bookmakers, croupiers and related gaming workers",
+4213,421,4,Pawnbrokers and money-lenders,
+4214,421,4,Debt-collectors and related workers,
+422,42,3,Client information workers,የደንበኞች መረጃ ሠራተኞች
+4221,422,4,Travel consultants and clerks,
+4222,422,4,Contact centre information clerks,
+4223,422,4,Telephone switchboard operators,
+4224,422,4,Hotel receptionists,
+4225,422,4,Enquiry clerks,
+4226,422,4,Receptionists (general),
+4227,422,4,Survey and market research interviewers,
+4229,422,4,Client information workers not elsewhere classified,
+43,4,2,Numerical and material recording clerks,የቁጥር እና የቁሳቁስ መዝጋቢ ጸሐፊዎች
+431,43,3,Numerical clerks,የቁጥር ጸሐፊዎች
+4311,431,4,Accounting and bookkeeping clerks,
+4312,431,4,"Statistical, finance and insurance clerks",
+4313,431,4,Payroll clerks,
+432,43,3,Material-recording and transport clerks,የቁሳቁስ መዝጋቢ እና የትራንስፖርት ጸሐፊዎች
+4321,432,4,Stock clerks,
+4322,432,4,Production clerks,
+4323,432,4,Transport clerks,
+44,4,2,Other clerical support workers,ሌሎች የጽሕፈት ድጋፍ ሠራተኞች
+441,44,3,Other clerical support workers,ሌሎች የጽሕፈት ድጋፍ ሠራተኞች
+4411,441,4,Library clerks,
+4412,441,4,Mail carriers and sorting clerks,
+4413,441,4,"Coding, proof-reading and related clerks",
+4414,441,4,Scribes and related workers,
+4415,441,4,Filing and copying clerks,
+4416,441,4,Personnel clerks,
+4419,441,4,Clerical support workers not elsewhere classified,
+5,,1,Service and sales workers,የአገልግሎት እና የሽያጭ ሠራተኞች
+51,5,2,Personal service workers,የግል አገልግሎት ሠራተኞች
+511,51,3,"Travel attendants, conductors and guides",የጉዞ አስተናጋጆች፣ ኮንዳክተሮች እና አስጎብኚዎች
+5111,511,4,Travel attendants and travel stewards,
+5112,511,4,Transport conductors,
+5113,511,4,Travel guides,
+512,51,3,Cooks,ምግብ አብሳዮች
+5120,512,4,Cooks,
+513,51,3,Waiters and bartenders,አስተናጋጆች እና ባርቴንደሮች
+5131,513,4,Waiters,
+5132,513,4,Bartenders,
+514,51,3,"Hairdressers, beauticians and related workers",ፀጉር አስተካካዮች፣ የውበት ባለሙያዎች እና ተዛማጅ ሠራተኞች
+5141,514,4,Hairdressers,
+5142,514,4,Beauticians and related workers,
+515,51,3,Building and housekeeping supervisors,የሕንፃ እና የቤት አያያዝ ሱፐርቫይዘሮች
+5151,515,4,"Cleaning and housekeeping supervisors in offices, hotels and other establishments",
+5152,515,4,Domestic housekeepers,
+5153,515,4,Building caretakers,
+516,51,3,Other personal services workers,ሌሎች የግል አገልግሎት ሠራተኞች
+5161,516,4,"Astrologers, fortune-tellers and related workers",
+5162,516,4,Companions and valets,
+5163,516,4,Undertakers and embalmers,
+5164,516,4,Pet groomers and animal care workers,
+5165,516,4,Driving instructors,
+5169,516,4,Personal services workers not elsewhere classified,
+52,5,2,Sales workers,የሽያጭ ሠራተኞች
+521,52,3,Street and market salespersons,የመንገድ ላይ እና የገበያ ሻጮች
+5211,521,4,Stall and market salespersons,
+5212,521,4,Street food salespersons,
+522,52,3,Shop salespersons,የሱቅ ሻጮች
+5221,522,4,Shop keepers,
+5222,522,4,Shop supervisors,
+5223,522,4,Shop sales assistants,
+523,52,3,Cashiers and ticket clerks,ካሸሮች እና የትኬት ጸሐፊዎች
+5230,523,4,Cashiers and ticket clerks,
+524,52,3,Other sales workers,ሌሎች የሽያጭ ሠራተኞች
+5241,524,4,Fashion and other models,
+5242,524,4,Sales demonstrators,
+5243,524,4,Door to door salespersons,
+5244,524,4,Contact centre salespersons,
+5245,524,4,Service station attendants,
+5246,524,4,Food service counter attendants,
+5249,524,4,Sales workers not elsewhere classified,
+53,5,2,Personal care workers,የግል እንክብካቤ ሠራተኞች
+531,53,3,Child care workers and teachers' aides,የሕፃናት እንክብካቤ ሠራተኞች እና የመምህራን ረዳቶች
+5311,531,4,Child care workers,
+5312,531,4,Teachers' aides,
+532,53,3,Personal care workers in health services,በጤና አገልግሎት የግል እንክብካቤ ሠራተኞች
+5321,532,4,Health care assistants,
+5322,532,4,Home-based personal care workers,
+5329,532,4,Personal care workers in health services not elsewhere classified,
+54,5,2,Protective services workers,የጥበቃ አገልግሎት ሠራተኞች
+541,54,3,Protective services workers,የጥበቃ አገልግሎት ሠራተኞች
+5411,541,4,Fire-fighters,
+5412,541,4,Police officers,
+5413,541,4,Prison guards,
+5414,541,4,Security guards,
+5419,541,4,Protective services workers not elsewhere classified,
+6,,1,"Skilled agricultural, forestry and fishery workers",የሰለጠኑ የግብርና፣ የደን እና የዓሣ ሀብት ሠራተኞች
+61,6,2,Market-oriented skilled agricultural workers,ለገበያ ያተኮሩ የሰለጠኑ የግብርና ሠራተኞች
+611,61,3,Market gardeners and crop growers,የአትክልት እና የሰብል አምራቾች
+6111,611,4,Field crop and vegetable growers,
+6112,611,4,Tree and shrub crop growers,
+6113,611,4,"Gardeners, horticultural and nursery growers",
+6114,611,4,Mixed crop growers,
+612,61,3,Animal producers,የእንስሳት አምራቾች
+6121,612,4,Livestock and dairy producers,
+6122,612,4,Poultry producers,
+6123,612,4,Apiarists and sericulturists,
+6129,612,4,Animal producers not elsewhere classified,
+613,61,3,Mixed crop and animal producers,የሰብል እና እንስሳት ድብልቅ አምራቾች
+6130,613,4,Mixed crop and animal producers,
+62,6,2,"Market-oriented skilled forestry, fishery and hunting workers",ለገበያ ያተኮሩ የሰለጠኑ የደን፣ የዓሣ ሀብት እና የአደን ሠራተኞች
+621,62,3,Forestry and related workers,የደን እና ተዛማጅ ሠራተኞች
+6210,621,4,Forestry and related workers,
+622,62,3,"Fishery workers, hunters and trappers",የዓሣ ሀብት ሠራተኞች፣ አዳኞች እና ወጥመድ አጥማጆች
+6221,622,4,Aquaculture workers,
+6222,622,4,Inland and coastal waters fishery workers,
+6223,622,4,Deep-sea fishery workers,
+6224,622,4,Hunters and trappers,
+63,6,2,"Subsistence farmers, fishers, hunters and gatherers",ለኑሮ የሚያርሱ ገበሬዎች፣ ዓሣ አስጋሪዎች፣ አዳኞች እና ለቃሚዎች
+631,63,3,Subsistence crop farmers,ለኑሮ የሚያርሱ የሰብል ገበሬዎች
+6310,631,4,Subsistence crop farmers,
+632,63,3,Subsistence livestock farmers,ለኑሮ የሚያረቡ የእንስሳት እርባታ ገበሬዎች
+6320,632,4,Subsistence livestock farmers,
+633,63,3,Subsistence mixed crop and livestock farmers,ለኑሮ የሚያርሱ የሰብል እና እንስሳት ድብልቅ ገበሬዎች
+6330,633,4,Subsistence mixed crop and livestock farmers,
+634,63,3,"Subsistence fishers, hunters, trappers and gatherers",ለኑሮ የሚሠሩ ዓሣ አስጋሪዎች፣ አዳኞች፣ ወጥመድ አጥማጆች እና ለቃሚዎች
+6340,634,4,"Subsistence fishers, hunters, trappers and gatherers",
+7,,1,Craft and related trades workers,የእደ ጥበብ እና ተዛማጅ ሙያ ሠራተኞች
+71,7,2,"Building and related trades workers, excluding electricians",የግንባታ እና ተዛማጅ ሙያ ሠራተኞች (ኤሌክትሪሺያኖችን ሳይጨምር)
+711,71,3,Building frame and related trades workers,የሕንፃ አጽም እና ተዛማጅ ሙያ ሠራተኞች
+7111,711,4,House builders,
+7112,711,4,Bricklayers and related workers,
+7113,711,4,"Stonemasons, stone cutters, splitters and carvers",
+7114,711,4,"Concrete placers, concrete finishers and related workers",
+7115,711,4,Carpenters and joiners,
+7119,711,4,Building frame and related trades workers not elsewhere classified,
+712,71,3,Building finishers and related trades workers,የሕንፃ ማጠናቀቂያ እና ተዛማጅ ሙያ ሠራተኞች
+7121,712,4,Roofers,
+7122,712,4,Floor layers and tile setters,
+7123,712,4,Plasterers,
+7124,712,4,Insulation workers,
+7125,712,4,Glaziers,
+7126,712,4,Plumbers and pipe fitters,
+7127,712,4,Air conditioning and refrigeration mechanics,
+713,71,3,"Painters, building structure cleaners and related trades workers",ቀለም ቀቢዎች፣ የሕንፃ አጽም አጽጂዎች እና ተዛማጅ ሙያ ሠራተኞች
+7131,713,4,Painters and related workers,
+7132,713,4,Spray painters and varnishers,
+7133,713,4,Building structure cleaners,
+72,7,2,"Metal, machinery and related trades workers",የብረት፣ የማሽነሪ እና ተዛማጅ ሙያ ሠራተኞች
+721,72,3,"Sheet and structural metal workers, moulders and welders, and related workers",የላሜራ እና መዋቅራዊ ብረት ሠራተኞች፣ ቀራጺዎች፣ ብየዳዎች እና ተዛማጅ ሠራተኞች
+7211,721,4,Metal moulders and coremakers,
+7212,721,4,Welders and flamecutters,
+7213,721,4,Sheet-metal workers,
+7214,721,4,Structural-metal preparers and erectors,
+7215,721,4,Riggers and cable splicers,
+722,72,3,"Blacksmiths, toolmakers and related trades workers",አንጥረኞች፣ መሣሪያ ሠሪዎች እና ተዛማጅ ሙያ ሠራተኞች
+7221,722,4,"Blacksmiths, hammersmiths and forging press workers",
+7222,722,4,Toolmakers and related workers,
+7223,722,4,Metal working machine tool setters and operators,
+7224,722,4,"Metal polishers, wheel grinders and tool sharpeners",
+723,72,3,Machinery mechanics and repairers,የማሽነሪ መካኒኮች እና ጠጋኞች
+7231,723,4,Motor vehicle mechanics and repairers,
+7232,723,4,Aircraft engine mechanics and repairers,
+7233,723,4,Agricultural and industrial machinery mechanics and repairers,
+7234,723,4,Bicycle and related repairers,
+73,7,2,Handicraft and printing workers,የእጅ ሥራ እና የሕትመት ሠራተኞች
+731,73,3,Handicraft workers,የእጅ ሥራ ሠራተኞች
+7311,731,4,Precision-instrument makers and repairers,
+7312,731,4,Musical instrument makers and tuners,
+7313,731,4,Jewellery and precious-metal workers,
+7314,731,4,Potters and related workers,
+7315,731,4,"Glass makers, cutters, grinders and finishers",
+7316,731,4,"Sign writers, decorative painters, engravers and etchers",
+7317,731,4,"Handicraft workers in wood, basketry and related materials",
+7318,731,4,"Handicraft workers in textile, leather and related materials",
+7319,731,4,Handicraft workers not elsewhere classified,
+732,73,3,Printing trades workers,የሕትመት ሙያ ሠራተኞች
+7321,732,4,Pre-press technicians,
+7322,732,4,Printers,
+7323,732,4,Print finishing and binding workers,
+74,7,2,Electrical and electronic trades workers,የኤሌክትሪክ እና ኤሌክትሮኒክስ ሙያ ሠራተኞች
+741,74,3,Electrical equipment installers and repairers,የኤሌክትሪክ መሣሪያ ተካዮች እና ጠጋኞች
+7411,741,4,Building and related electricians,
+7412,741,4,Electrical mechanics and fitters,
+7413,741,4,Electrical line installers and repairers,
+742,74,3,Electronics and telecommunications installers and repairers,የኤሌክትሮኒክስ እና ቴሌኮሙኒኬሽን ተካዮች እና ጠጋኞች
+7421,742,4,Electronics mechanics and servicers,
+7422,742,4,Information and communications technology installers and servicers,
+75,7,2,"Food processing, wood working, garment and other craft and related trades workers",የምግብ ማቀነባበር፣ የእንጨት ሥራ፣ የአልባሳት እና ሌሎች የእደ ጥበብ ሠራተኞች
+751,75,3,Food processing and related trades workers,የምግብ ማቀነባበር እና ተዛማጅ ሙያ ሠራተኞች
+7511,751,4,"Butchers, fishmongers and related food preparers",
+7512,751,4,"Bakers, pastry-cooks and confectionery makers",
+7513,751,4,Dairy-products makers,
+7514,751,4,"Fruit, vegetable and related preservers",
+7515,751,4,Food and beverage tasters and graders,
+7516,751,4,Tobacco preparers and tobacco products makers,
+752,75,3,"Wood treaters, cabinet-makers and related trades workers",የእንጨት አቀነባባሪዎች፣ የቤት ዕቃ ሠሪዎች እና ተዛማጅ ሙያ ሠራተኞች
+7521,752,4,Wood treaters,
+7522,752,4,Cabinet-makers and related workers,
+7523,752,4,Woodworking-machine tool setters and operators,
+753,75,3,Garment and related trades workers,የአልባሳት እና ተዛማጅ ሙያ ሠራተኞች
+7531,753,4,"Tailors, dressmakers, furriers and hatters",
+7532,753,4,Garment and related pattern-makers and cutters,
+7533,753,4,"Sewing, embroidery and related workers",
+7534,753,4,Upholsterers and related workers,
+7535,753,4,"Pelt dressers, tanners and fellmongers",
+7536,753,4,Shoemakers and related workers,
+754,75,3,Other craft and related workers,ሌሎች የእደ ጥበብ እና ተዛማጅ ሠራተኞች
+7541,754,4,Underwater divers,
+7542,754,4,Shotfirers and blasters,
+7543,754,4,Product graders and testers (excluding foods and beverages),
+7544,754,4,Fumigators and other pest and weed controllers,
+7549,754,4,Craft and related workers not elsewhere classified,
+8,,1,"Plant and machine operators, and assemblers",የማሽን እና የፋብሪካ ኦፕሬተሮች እና ገጣጣሚዎች
+81,8,2,Stationary plant and machine operators,የቋሚ ፋብሪካ እና ማሽን ኦፕሬተሮች
+811,81,3,Mining and mineral processing plant operators,የማዕድን እና የማዕድን ማቀነባበሪያ ፋብሪካ ኦፕሬተሮች
+8111,811,4,Miners and quarriers,
+8112,811,4,Mineral and stone processing plant operators,
+8113,811,4,Well drillers and borers and related workers,
+8114,811,4,"Cement, stone and other mineral products machine operators",
+812,81,3,Metal processing and finishing plant operators,የብረት ማቀነባበሪያ እና ማጠናቀቂያ ፋብሪካ ኦፕሬተሮች
+8121,812,4,Metal processing plant operators,
+8122,812,4,"Metal finishing, plating and coating machine operators",
+813,81,3,Chemical and photographic products plant and machine operators,የኬሚካል እና የፎቶግራፍ ምርቶች ፋብሪካ እና ማሽን ኦፕሬተሮች
+8131,813,4,Chemical products plant and machine operators,
+8132,813,4,Photographic products machine operators,
+814,81,3,"Rubber, plastic and paper products machine operators",የጎማ፣ ፕላስቲክ እና ወረቀት ምርቶች ማሽን ኦፕሬተሮች
+8141,814,4,Rubber products machine operators,
+8142,814,4,Plastic products machine operators,
+8143,814,4,Paper products machine operators,
+815,81,3,"Textile, fur and leather products machine operators",የጨርቃ ጨርቅ፣ ፀጉራማ ቆዳ እና ቆዳ ምርቶች ማሽን ኦፕሬተሮች
+8151,815,4,"Fibre preparing, spinning and winding machine operators",
+8152,815,4,Weaving and knitting machine operators,
+8153,815,4,Sewing machine operators,
+8154,815,4,"Bleaching, dyeing and fabric cleaning machine operators",
+8155,815,4,Fur and leather preparing machine operators,
+8156,815,4,Shoemaking and related machine operators,
+8157,815,4,Laundry machine operators,
+8159,815,4,"Textile, fur and leather products machine operators not elsewhere classified",
+816,81,3,Food and related products machine operators,የምግብ እና ተዛማጅ ምርቶች ማሽን ኦፕሬተሮች
+8160,816,4,Food and related products machine operators,
+817,81,3,Wood processing and papermaking plant operators,የእንጨት ማቀነባበሪያ እና ወረቀት ማምረቻ ፋብሪካ ኦፕሬተሮች
+8171,817,4,Pulp and papermaking plant operators,
+8172,817,4,Wood processing plant operators,
+818,81,3,Other stationary plant and machine operators,ሌሎች የቋሚ ፋብሪካ እና ማሽን ኦፕሬተሮች
+8181,818,4,Glass and ceramics plant operators,
+8182,818,4,Steam engine and boiler operators,
+8183,818,4,"Packing, bottling and labelling machine operators",
+8189,818,4,Stationary plant and machine operators not elsewhere classified,
+82,8,2,Assemblers,ገጣጣሚዎች
+821,82,3,Assemblers,ገጣጣሚዎች
+8211,821,4,Mechanical machinery assemblers,
+8212,821,4,Electrical and electronic equipment assemblers,
+8219,821,4,Assemblers not elsewhere classified,
+83,8,2,Drivers and mobile plant operators,አሽከርካሪዎች እና የተንቀሳቃሽ ማሽን ኦፕሬተሮች
+831,83,3,Locomotive engine drivers and related workers,የባቡር ሎኮሞቲቭ አሽከርካሪዎች እና ተዛማጅ ሠራተኞች
+8311,831,4,Locomotive engine drivers,
+8312,831,4,"Railway brake, signal and switch operators",
+832,83,3,"Car, van and motorcycle drivers",የመኪና፣ ቫን እና ሞተር ሳይክል አሽከርካሪዎች
+8321,832,4,Motorcycle drivers,
+8322,832,4,"Car, taxi and van drivers",
+833,83,3,Heavy truck and bus drivers,የከባድ መኪና እና አውቶቡስ አሽከርካሪዎች
+8331,833,4,Bus and tram drivers,
+8332,833,4,Heavy truck and lorry drivers,
+834,83,3,Mobile plant operators,የተንቀሳቃሽ ማሽን ኦፕሬተሮች
+8341,834,4,Mobile farm and forestry plant operators,
+8342,834,4,Earthmoving and related plant operators,
+8343,834,4,"Crane, hoist and related plant operators",
+8344,834,4,Lifting truck operators,
+835,83,3,Ships' deck crews and related workers,የመርከብ ወለል ሠራተኞች እና ተዛማጅ ሠራተኞች
+8350,835,4,Ships' deck crews and related workers,
+9,,1,Elementary occupations,መሠረታዊ ሙያዎች
+91,9,2,Cleaners and helpers,የጽዳት ሠራተኞች እና ረዳቶች
+911,91,3,"Domestic, hotel and office cleaners and helpers",የቤት፣ ሆቴል እና ቢሮ አጽጂዎች እና ረዳቶች
+9111,911,4,Domestic cleaners and helpers,
+9112,911,4,"Cleaners and helpers in offices, hotels and other establishments",
+912,91,3,"Vehicle, window, laundry and other hand cleaning workers",የተሽከርካሪ፣ መስኮት፣ ልብስ ማጠብ እና ሌሎች የእጅ ጽዳት ሠራተኞች
+9121,912,4,Hand launderers and pressers,
+9122,912,4,Vehicle cleaners,
+9123,912,4,Window cleaners,
+9129,912,4,Other cleaning workers,
+92,9,2,"Agricultural, forestry and fishery labourers",የግብርና፣ የደን እና የዓሣ ሀብት ጉልበት ሠራተኞች
+921,92,3,"Agricultural, forestry and fishery labourers",የግብርና፣ የደን እና የዓሣ ሀብት ጉልበት ሠራተኞች
+9211,921,4,Crop farm labourers,
+9212,921,4,Livestock farm labourers,
+9213,921,4,Mixed crop and livestock farm labourers,
+9214,921,4,Garden and horticultural labourers,
+9215,921,4,Forestry labourers,
+9216,921,4,Fishery and aquaculture labourers,
+93,9,2,"Labourers in mining, construction, manufacturing and transport",የማዕድን፣ የግንባታ፣ የማኑፋክቸሪንግ እና የትራንስፖርት ጉልበት ሠራተኞች
+931,93,3,Mining and construction labourers,የማዕድን እና ግንባታ ጉልበት ሠራተኞች
+9311,931,4,Mining and quarrying labourers,
+9312,931,4,Civil engineering labourers,
+9313,931,4,Building construction labourers,
+932,93,3,Manufacturing labourers,የማኑፋክቸሪንግ ጉልበት ሠራተኞች
+9321,932,4,Hand packers,
+9329,932,4,Manufacturing labourers not elsewhere classified,
+933,93,3,Transport and storage labourers,የትራንስፖርት እና መጋዘን ጉልበት ሠራተኞች
+9331,933,4,Hand and pedal vehicle drivers,
+9332,933,4,Drivers of animal-drawn vehicles and machinery,
+9333,933,4,Freight handlers,
+9334,933,4,Shelf fillers,
+94,9,2,Food preparation assistants,የምግብ ዝግጅት ረዳቶች
+941,94,3,Food preparation assistants,የምግብ ዝግጅት ረዳቶች
+9411,941,4,Fast food preparers,
+9412,941,4,Kitchen helpers,
+95,9,2,Street and related sales and service workers,የመንገድ ላይ እና ተዛማጅ ሽያጭ እና አገልግሎት ሠራተኞች
+951,95,3,Street and related service workers,የመንገድ ላይ እና ተዛማጅ አገልግሎት ሠራተኞች
+9510,951,4,Street and related service workers,
+952,95,3,Street vendors (excluding food),የመንገድ ላይ ሻጮች (ምግብን ሳይጨምር)
+9520,952,4,Street vendors (excluding food),
+96,9,2,Refuse workers and other elementary workers,የቆሻሻ ሠራተኞች እና ሌሎች መሠረታዊ ሠራተኞች
+961,96,3,Refuse workers,የቆሻሻ ሠራተኞች
+9611,961,4,Garbage and recycling collectors,
+9612,961,4,Refuse sorters,
+9613,961,4,Sweepers and related labourers,
+962,96,3,Other elementary workers,ሌሎች መሠረታዊ ሠራተኞች
+9621,962,4,"Messengers, package deliverers and luggage porters",
+9622,962,4,Odd job persons,
+9623,962,4,Meter readers and vending-machine collectors,
+9624,962,4,Water and firewood collectors,
+9629,962,4,Elementary workers not elsewhere classified,

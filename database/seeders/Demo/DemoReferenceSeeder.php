@@ -8,6 +8,7 @@ use App\Models\OrganizationType;
 use App\Support\Demo\DemoDataset;
 use Database\Seeders\CodeRuleSeeder;
 use Database\Seeders\GrievanceDefaultsSeeder;
+use Database\Seeders\IscoGroupSeeder;
 use Database\Seeders\OccupationSeeder;
 use Database\Seeders\OrganizationTypeSeeder;
 use Database\Seeders\OrganizationUnitTypeSeeder;
@@ -32,6 +33,7 @@ class DemoReferenceSeeder extends DemoSeeder
         $this->call(GrievanceDefaultsSeeder::class);
         $this->call(OrganizationUnitTypeSeeder::class);
         $this->call(OccupationSeeder::class);
+        $this->call(IscoGroupSeeder::class);
 
         ServiceType::query()->firstOrCreate(['code' => 'cafeteria'], ['name_en' => 'Cafeteria', 'is_active' => true]);
 
