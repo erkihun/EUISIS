@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 uses(RefreshDatabase::class);
 
@@ -49,7 +50,7 @@ test('self profile page displays signature as read only', function (): void {
     // The profile page (Profile/Edit) shows the signature in a read-only card; the form has no signature field.
     $this->actingAs($user)->get(route('court.profile.edit'))
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Profile/Edit')
             ->where('signature.url', null)
             ->where('signature.read_only', true))

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services\Execution;
 
-use Modules\Assessment\Domain\Models\AssessmentRecord;
-use Modules\Assessment\Domain\Models\AssessmentResultVersion;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Assessment\Domain\Models\AssessmentRecord;
+use Modules\Assessment\Domain\Models\AssessmentResultVersion;
 
 /** The only writer of immutable, authoritative competency-result versions. */
 final class AssessmentResultVersionService

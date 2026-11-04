@@ -2,21 +2,21 @@
 
 namespace Tests\Feature\Court;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\ApplicantResponseReply;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Domain\Models\SystemSetting;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Modules\Court\Application\Notifications\ApplicantResponseReplyReviewed;
 use Modules\Court\Application\Notifications\ApplicantResponseReplySubmitted;
 use Modules\Court\Application\Notifications\RespondentResponseReviewed;
 use Modules\Court\Application\Notifications\RespondentResponseSubmitted;
 use Modules\Court\Application\Services\ResponseNotificationService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Notification;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\ApplicantResponseReply;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
+use Modules\Court\Domain\Models\SystemSetting;
 use Tests\TestCase;
 
 class ResponseNotificationServiceTest extends TestCase

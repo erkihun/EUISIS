@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\ApplicantSignInTicket;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Services\Notifications\PortalNotificationFeed;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\Notifications\PortalNotificationFeed;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\ApplicantSignInTicket;
+use Modules\Court\Domain\Models\IntegrationClient;
 
 /**
  * Flow 4 of the EUISIS integration (docs/euisis-integration.md): an EUISIS

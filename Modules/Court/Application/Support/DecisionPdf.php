@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Support;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Decision;
 use Modules\Court\Domain\Models\DecisionTemplate;
 use Modules\Court\Domain\Models\SystemSetting;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Storage;
 
 class DecisionPdf
 {
@@ -31,7 +31,7 @@ class DecisionPdf
         if ($decision->isApproved()) {
             $seal = SystemSetting::current()->seal_path ?? null;
             if ($seal && Storage::disk('court_public')->exists($seal)) {
-                $sealPath = public_path('storage/' . $seal);
+                $sealPath = public_path('storage/'.$seal);
             }
         }
 
@@ -41,7 +41,7 @@ class DecisionPdf
         return Pdf::loadView('court::pdf.decision-output', [
             'decision' => $decision,
             'template' => $template,
-            'body'     => $body,
+            'body' => $body,
             'sealPath' => $sealPath,
             'displayPanel' => $displayPanel,
             'signaturePaths' => $signaturePaths,
@@ -52,7 +52,7 @@ class DecisionPdf
     {
         $safeNumber = preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($decision->case_number ?: $decision->id));
 
-        return 'decision-' . trim($safeNumber, '-') . '.pdf';
+        return 'decision-'.trim($safeNumber, '-').'.pdf';
     }
 
     /**
@@ -66,24 +66,24 @@ class DecisionPdf
         $judgeVote = static fn (array $panel, int $i): string => (string) ($panel[$i]['vote'] ?? '');
 
         $replacements = [
-            'applicant_name'     => (string) ($decision->applicant_full_name ?? ''),
-            'respondent_name'    => (string) ($decision->respondent_full_name ?? ''),
-            'case_number'        => (string) ($decision->case_number ?? ''),
-            'case_file_number'   => (string) ($decision->case_file_number ?? ''),
-            'judge_name'         => (string) ($decision->courtCase?->judge?->name ?? ''),
-            'decision_date'      => EthiopianDate::format($decision->decision_date, fallback: ''),
-            'decision_content'   => (string) ($decision->decision_content ?? ''),
-            'decision_name'      => (string) ($decision->name ?? ''),
-            'judge_one'          => $judgeName($panel, 0),
-            'judge_two'          => $judgeName($panel, 1),
-            'judge_three'        => $judgeName($panel, 2),
-            'judge_one_vote'     => $judgeVote($panel, 0),
-            'judge_two_vote'     => $judgeVote($panel, 1),
-            'judge_three_vote'   => $judgeVote($panel, 2),
+            'applicant_name' => (string) ($decision->applicant_full_name ?? ''),
+            'respondent_name' => (string) ($decision->respondent_full_name ?? ''),
+            'case_number' => (string) ($decision->case_number ?? ''),
+            'case_file_number' => (string) ($decision->case_file_number ?? ''),
+            'judge_name' => (string) ($decision->courtCase?->judge?->name ?? ''),
+            'decision_date' => EthiopianDate::format($decision->decision_date, fallback: ''),
+            'decision_content' => (string) ($decision->decision_content ?? ''),
+            'decision_name' => (string) ($decision->name ?? ''),
+            'judge_one' => $judgeName($panel, 0),
+            'judge_two' => $judgeName($panel, 1),
+            'judge_three' => $judgeName($panel, 2),
+            'judge_one_vote' => $judgeVote($panel, 0),
+            'judge_two_vote' => $judgeVote($panel, 1),
+            'judge_three_vote' => $judgeVote($panel, 2),
         ];
 
         foreach ($replacements as $key => $value) {
-            $body = preg_replace('/\{\{\s*' . preg_quote($key, '/') . '\s*\}\}/', $value, $body);
+            $body = preg_replace('/\{\{\s*'.preg_quote($key, '/').'\s*\}\}/', $value, $body);
         }
 
         return $body;

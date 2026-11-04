@@ -1,11 +1,12 @@
 <?php
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 test('respondent response of response list and download include accepted records only', function () {
     $suffix = str_replace('.', '', uniqid('respondent-reply', true));
@@ -17,7 +18,7 @@ test('respondent response of response list and download include accepted records
         'gender' => 'male',
         'position' => 'Officer',
         'organization_name' => 'Resp Org',
-        'phone' => '0912111' . substr($suffix, -4),
+        'phone' => '0912111'.substr($suffix, -4),
         'email' => "resp-viewer-{$suffix}@example.com",
         'address' => 'Addis Ababa',
         'national_id_number' => '1212121212121212',
@@ -34,7 +35,7 @@ test('respondent response of response list and download include accepted records
         'position' => 'Officer',
         'organization_name' => 'Resp Org',
         'address' => 'Addis Ababa',
-        'phone' => '0912222' . substr($suffix, -4),
+        'phone' => '0912222'.substr($suffix, -4),
         'email' => $viewerApplicant->email,
         'password' => Hash::make('password'),
     ]);
@@ -46,7 +47,7 @@ test('respondent response of response list and download include accepted records
         'gender' => 'female',
         'position' => 'Owner',
         'organization_name' => 'Owner Org',
-        'phone' => '0912333' . substr($suffix, -4),
+        'phone' => '0912333'.substr($suffix, -4),
         'email' => "owner-accepted-{$suffix}@example.com",
         'address' => 'Adama',
         'national_id_number' => '1313131313131313',
@@ -62,7 +63,7 @@ test('respondent response of response list and download include accepted records
         'gender' => 'female',
         'position' => 'Owner',
         'organization_name' => 'Owner Org',
-        'phone' => '0912444' . substr($suffix, -4),
+        'phone' => '0912444'.substr($suffix, -4),
         'email' => "owner-awaiting-{$suffix}@example.com",
         'address' => 'Hawassa',
         'national_id_number' => '1414141414141414',
@@ -72,13 +73,13 @@ test('respondent response of response list and download include accepted records
     ]);
 
     $caseTypeId = DB::table('court_case_types')->insertGetId([
-        'name' => 'Civil Respondent Reply ' . $suffix,
+        'name' => 'Civil Respondent Reply '.$suffix,
         'description' => null,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
 
-    $caseNumber = 'CASE-RSP-' . strtoupper(substr($suffix, -8));
+    $caseNumber = 'CASE-RSP-'.strtoupper(substr($suffix, -8));
     $caseId = DB::table('court_cases')->insertGetId([
         'applicant_id' => $ownerApplicant->id,
         'case_number' => $caseNumber,
@@ -138,7 +139,7 @@ test('respondent response of response list and download include accepted records
     $this->actingAs($viewerApplicant, 'applicant')
         ->get(route('court.respondent.response-replies.index'))
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Court/Respondent/ResponseReplies/Index')
             ->has('replies.data', 1)
             ->where('replies.data.0.id', $acceptedReplyId)

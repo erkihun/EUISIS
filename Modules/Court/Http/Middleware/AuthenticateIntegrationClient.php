@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Middleware;
 
-use Modules\Court\Domain\Models\IntegrationClient;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Modules\Court\Domain\Models\IntegrationClient;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

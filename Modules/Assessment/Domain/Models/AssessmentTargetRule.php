@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Domain\Models;
 
-use Modules\Assessment\Domain\Enums\TargetType;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Assessment\Domain\Enums\TargetType;
 
 /**
  * Which employees a form version applies to (AssessmentTargetResolver).

@@ -1,9 +1,9 @@
 <?php
 
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 test('response number increments per case number', function () {
     $caseTypeId = DB::table('court_case_types')->insertGetId([

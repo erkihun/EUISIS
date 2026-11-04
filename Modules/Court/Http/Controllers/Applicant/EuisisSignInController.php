@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Application\Services\Euisis\EmployeeCourtAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\Court\Application\Services\Euisis\EmployeeCourtAccess;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * Opens the applicant portal for an employee coming from the EUISIS employee

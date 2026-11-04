@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Infrastructure\Jobs;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
-use Modules\Assessment\Application\Services\Execution\AssessmentAssignmentService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,6 +11,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Modules\Assessment\Application\Services\Execution\AssessmentAssignmentService;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
 
 /**
  * Fans a cycle's eligible employees out into chunk jobs of 500

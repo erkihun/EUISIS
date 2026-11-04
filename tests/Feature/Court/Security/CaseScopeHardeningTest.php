@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 require_once __DIR__.'/JudicialWorkHelpers.php';
 
@@ -19,8 +21,8 @@ test('a plain team member cannot download files of a case outside their scope', 
     jwTeam($member);
     $other = jwCase();
     $fileId = DB::table('court_case_files')->insertGetId(['case_id' => $other->id, 'label' => 'Deed', 'path' => 'case_files/deed.pdf', 'mime' => 'application/pdf', 'size' => 10, 'created_at' => now(), 'updated_at' => now()]);
-    $respondent = \Modules\Court\Domain\Models\Respondent::create(['first_name' => 'R', 'last_name' => 'One', 'phone' => '09'.random_int(10000000, 99999999), 'email' => 'scope-'.uniqid().'@example.com', 'password' => 'x']);
-    $response = RespondentResponse::create(['respondent_id' => $respondent->id,'case_number' => $other->case_number, 'title' => 'Answer', 'pdf_path' => 'respondent/responses/x.pdf']);
+    $respondent = Respondent::create(['first_name' => 'R', 'last_name' => 'One', 'phone' => '09'.random_int(10000000, 99999999), 'email' => 'scope-'.uniqid().'@example.com', 'password' => 'x']);
+    $response = RespondentResponse::create(['respondent_id' => $respondent->id, 'case_number' => $other->case_number, 'title' => 'Answer', 'pdf_path' => 'respondent/responses/x.pdf']);
 
     $this->actingAs($member)->get(route('court.cases.files.download', [$other->id, $fileId]))->assertForbidden();
     $this->actingAs($member)->get(route('court.respondent-responses.download', $response->id))->assertForbidden();
@@ -36,7 +38,7 @@ test('a plain team member cannot link a case outside their scope to EUISIS', fun
     jwTeam($member);
     $other = jwCase();
 
-    $this->actingAs($member)->patch(route('court.cases.euisis.organization', $other->id), ['organization_uuid' => (string) \Illuminate\Support\Str::uuid()])
+    $this->actingAs($member)->patch(route('court.cases.euisis.organization', $other->id), ['organization_uuid' => (string) Str::uuid()])
         ->assertForbidden();
 });
 

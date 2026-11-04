@@ -37,6 +37,8 @@
             <directory>tests/Feature/Grievances</directory>
             <directory>tests/Feature/Intelligence</directory>
             <directory>tests/Feature/Performance</directory>
+        </testsuite>
+        <testsuite name="Shard4">
             <directory>tests/Feature/Cafeteria</directory>
             <directory>tests/Feature/Transport</directory>
             <directory>tests/Feature/ServiceMonitoring</directory>
@@ -45,7 +47,31 @@
             <directory>tests/Feature/Assistant</directory>
             <directory>tests/Feature/PublicAssistant</directory>
         </testsuite>
-        <testsuite name="Shard4">
+        <testsuite name="Shard5">
+            <directory>tests/Feature/Employees</directory>
+            <directory>tests/Feature/Communication</directory>
+            <directory>tests/Feature/Rbac</directory>
+            <directory>tests/Feature/Settings</directory>
+            <directory>tests/Feature/Discipline</directory>
+            <directory>tests/Feature/CodeRules</directory>
+            <directory>tests/Feature/SituationRoom</directory>
+            <directory>tests/Feature/Core</directory>
+            <directory>tests/Feature/Positions</directory>
+            <directory>tests/Feature/ReportingLines</directory>
+            <directory>tests/Feature/PublicSite</directory>
+            <directory>tests/Feature/OrganizationStructure</directory>
+            <directory>tests/Feature/Localization</directory>
+            <directory>tests/Feature/Demo</directory>
+            <directory>tests/Feature/Vacancy</directory>
+            <directory>tests/Feature/OrganizationUnits</directory>
+            <directory>tests/Feature/OrganizationRelationships</directory>
+            <directory>tests/Feature/InstitutionOffices</directory>
+            <directory>tests/Feature/Assessment</directory>
+            <directory>tests/Feature/GoldenPath</directory>
+            <directory>tests/Feature/GoLive</directory>
+            <directory>tests/Feature/Governance</directory>
+        </testsuite>
+        <testsuite name="Shard6">
             <directory>tests/Unit</directory>
             <directory>tests/Feature</directory>
             <exclude>tests/Feature/Court</exclude>
@@ -70,6 +96,28 @@
             <exclude>tests/Feature/Integration</exclude>
             <exclude>tests/Feature/Assistant</exclude>
             <exclude>tests/Feature/PublicAssistant</exclude>
+            <exclude>tests/Feature/Employees</exclude>
+            <exclude>tests/Feature/Communication</exclude>
+            <exclude>tests/Feature/Rbac</exclude>
+            <exclude>tests/Feature/Settings</exclude>
+            <exclude>tests/Feature/Discipline</exclude>
+            <exclude>tests/Feature/CodeRules</exclude>
+            <exclude>tests/Feature/SituationRoom</exclude>
+            <exclude>tests/Feature/Core</exclude>
+            <exclude>tests/Feature/Positions</exclude>
+            <exclude>tests/Feature/ReportingLines</exclude>
+            <exclude>tests/Feature/PublicSite</exclude>
+            <exclude>tests/Feature/OrganizationStructure</exclude>
+            <exclude>tests/Feature/Localization</exclude>
+            <exclude>tests/Feature/Demo</exclude>
+            <exclude>tests/Feature/Vacancy</exclude>
+            <exclude>tests/Feature/OrganizationUnits</exclude>
+            <exclude>tests/Feature/OrganizationRelationships</exclude>
+            <exclude>tests/Feature/InstitutionOffices</exclude>
+            <exclude>tests/Feature/Assessment</exclude>
+            <exclude>tests/Feature/GoldenPath</exclude>
+            <exclude>tests/Feature/GoLive</exclude>
+            <exclude>tests/Feature/Governance</exclude>
         </testsuite>
     </testsuites>
     <source>

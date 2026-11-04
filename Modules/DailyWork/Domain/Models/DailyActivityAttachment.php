@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
 
 /** Supporting evidence, stored on the private `local` disk. */
 class DailyActivityAttachment extends Model

@@ -2,10 +2,10 @@
 
 namespace Modules\Court\Application\Notifications;
 
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 class RespondentResponseReviewed extends Notification implements ShouldQueue
 {
@@ -15,8 +15,7 @@ class RespondentResponseReviewed extends Notification implements ShouldQueue
         private RespondentResponse $response,
         private string $decision,
         private ?string $note = null
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -33,7 +32,7 @@ class RespondentResponseReviewed extends Notification implements ShouldQueue
             'decision' => $this->decision,
             'note' => $this->note,
             'message' => __('court::notifications.respondent_response_reviewed', [
-                'status' => __('court::notifications.status.' . $this->decision),
+                'status' => __('court::notifications.status.'.$this->decision),
                 'case' => $this->response->case_number ?? __('court::notifications.case_unknown'),
             ]),
         ];

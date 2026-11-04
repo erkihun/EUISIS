@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Support\Ui;
 
+use Illuminate\Support\Facades\Route;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Facades\Route;
 
 /**
  * The court-ms sidebar, sent as the `workspace` prop the EUISIS sidebar draws

@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Encryption\Encrypter;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 /** A value encrypted with a key this server does not have (an APP_KEY changed without APP_PREVIOUS_KEYS). */
@@ -38,7 +39,7 @@ test('a value encrypted with a key listed in APP_PREVIOUS_KEYS counts as readabl
 
     config(['app.previous_keys' => ['base64:'.base64_encode(str_repeat('o', 32))]]);
     app()->forgetInstance('encrypter');
-    \Illuminate\Support\Facades\Crypt::clearResolvedInstance('encrypter');
+    Crypt::clearResolvedInstance('encrypter');
 
     $this->artisan('security:encrypted-values')->assertSuccessful();
     expect($user->fresh()->phone_number)->toBe('+251933000000');

@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Notifications\LawyerApplicationApproved;
-use Modules\Court\Application\Notifications\LawyerApplicationRefused;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +14,12 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Notifications\LawyerApplicationApproved;
+use Modules\Court\Application\Notifications\LawyerApplicationRefused;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**

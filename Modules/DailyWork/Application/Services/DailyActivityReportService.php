@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Application\Services;
 
-use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityItem;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Support\RichText\RichText;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Modules\DailyWork\Contracts\Data\DailyActivityCoverage;
+use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * The eight Daily Activity reports.

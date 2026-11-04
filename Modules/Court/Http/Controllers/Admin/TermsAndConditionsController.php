@@ -2,15 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\TermsAndCondition;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
-use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Domain\Models\TermsAndCondition;
+use Modules\Court\Http\Controllers\Controller;
 
 class TermsAndConditionsController extends Controller
 {
@@ -40,14 +39,14 @@ class TermsAndConditionsController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'title'        => ['required', 'string', 'max:255'],
-            'body'         => ['required', 'string'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
             'is_published' => ['nullable', 'boolean'],
         ]);
 
         $data['is_published'] = (bool) ($data['is_published'] ?? false);
         $data['published_at'] = $data['is_published'] ? now() : null;
-        $data['slug'] = Str::slug($data['title'] . '-' . Str::random(4));
+        $data['slug'] = Str::slug($data['title'].'-'.Str::random(4));
 
         TermsAndCondition::create($data);
 
@@ -70,15 +69,15 @@ class TermsAndConditionsController extends Controller
     public function update(Request $request, TermsAndCondition $term): RedirectResponse
     {
         $data = $request->validate([
-            'title'        => ['required', 'string', 'max:255'],
-            'body'         => ['required', 'string'],
+            'title' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
             'is_published' => ['nullable', 'boolean'],
         ]);
 
         $data['is_published'] = (bool) ($data['is_published'] ?? false);
-        if ($data['is_published'] && !$term->published_at) {
+        if ($data['is_published'] && ! $term->published_at) {
             $data['published_at'] = now();
-        } elseif (!$data['is_published']) {
+        } elseif (! $data['is_published']) {
             $data['published_at'] = null;
         }
 

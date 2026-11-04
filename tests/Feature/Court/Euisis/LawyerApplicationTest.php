@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Permission;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Notifications\ApplicantResetPassword;
-use Modules\Court\Application\Notifications\LawyerApplicationApproved;
-use Modules\Court\Application\Notifications\LawyerApplicationRefused;
-use Modules\Court\Application\Services\Notifications\AdminNotificationFeed;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Notifications\ApplicantResetPassword;
+use Modules\Court\Application\Notifications\LawyerApplicationApproved;
+use Modules\Court\Application\Notifications\LawyerApplicationRefused;
+use Modules\Court\Application\Services\Notifications\AdminNotificationFeed;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Permission;
+use Modules\Court\Domain\Models\Role;
 
 /*
 | Lawyers apply to be registered at /lawyer/register (EUISIS ADR 0013 #13 as

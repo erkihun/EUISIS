@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
+use Illuminate\Validation\ValidationException;
 use Modules\Court\Contracts\CourtIntegration;
 use Modules\Court\Contracts\Data\CourtAnswer;
 use Modules\Court\Domain\Models\IntegrationClient;
@@ -16,7 +17,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Runs the court's integration action for a path directly: the action is

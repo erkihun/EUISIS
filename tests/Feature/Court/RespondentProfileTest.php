@@ -1,10 +1,11 @@
 <?php
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\Respondent;
 
 function respondentProfileApplicant(): Applicant
 {
@@ -129,14 +130,14 @@ test('respondent can view and revoke another respondent session', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Court/Respondent/Profile')
             ->where('tab', 'devices')
-            ->where('sessions', fn ($sessions) => collect($sessions)->contains(fn (array $session): bool => $session['id'] === \Modules\Court\Application\Support\SessionRows::publicKey('respondent-other-session')
+            ->where('sessions', fn ($sessions) => collect($sessions)->contains(fn (array $session): bool => $session['id'] === SessionRows::publicKey('respondent-other-session')
                 && str_contains($session['device_name'], 'Windows')
                 && str_contains($session['browser_name'], 'Chrome 150')
                 && $session['is_current'] === false
                 && $session['ip_address'] === '203.0.113.25')));
 
     $this->actingAs($applicant, 'applicant')
-        ->delete(route('court.respondent.profile.sessions.destroy', \Modules\Court\Application\Support\SessionRows::publicKey('respondent-other-session')))
+        ->delete(route('court.respondent.profile.sessions.destroy', SessionRows::publicKey('respondent-other-session')))
         ->assertRedirect();
 
     $this->assertDatabaseMissing('sessions', ['id' => 'respondent-other-session']);

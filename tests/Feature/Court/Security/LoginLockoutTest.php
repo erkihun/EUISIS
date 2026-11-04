@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Support\LoginThrottle;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Court\Application\Support\LoginThrottle;
+use Modules\Court\Domain\Models\Applicant;
 
 /*
 | The client IP is resolved from X-Forwarded-For (proxies are trusted), so a
@@ -49,9 +48,6 @@ function accountAttemptLimit(): int
 {
     return 5 * LoginThrottle::ACCOUNT_MULTIPLIER;
 }
-
-
-
 
 test('applicant lockout cannot be bypassed by rotating the forwarded client ip', function (): void {
     $applicant = lockoutApplicant();

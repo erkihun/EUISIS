@@ -11,7 +11,7 @@ class RequireRole
     {
         $user = $request->user();
 
-        if (!$user || !method_exists($user, 'hasRole') || !$user->hasRole($role)) {
+        if (! $user || ! method_exists($user, 'hasRole') || ! $user->hasRole($role)) {
             return redirect()->route('court.dashboard')
                 ->with('error', 'You are not allowed to access that page.');
         }

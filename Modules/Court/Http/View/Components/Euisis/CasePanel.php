@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\View\Components\Euisis;
 
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\Component;
+use Modules\Court\Application\Services\Euisis\EuisisClient;
+use Modules\Court\Application\Services\Euisis\EuisisSync;
 use Modules\Court\Domain\Models\EuisisEmployee;
 use Modules\Court\Domain\Models\EuisisOrganization;
 use Modules\Court\Domain\Models\EuisisPosition;
 use Modules\Court\Domain\Models\EuisisReferral;
-use Modules\Court\Application\Services\Euisis\EuisisClient;
-use Modules\Court\Application\Services\Euisis\EuisisSync;
-use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
-use Illuminate\View\Component;
 
 /**
  * The EUISIS panel on the admin case page: where a referred case came from,

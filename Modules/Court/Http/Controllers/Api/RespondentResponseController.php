@@ -2,13 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Api;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Application\Services\ResponseNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Application\Services\ResponseNotificationService;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
+use Modules\Court\Http\Controllers\Controller;
 
 class RespondentResponseController extends Controller
 {
@@ -74,7 +75,7 @@ class RespondentResponseController extends Controller
 
         $this->assertCaseAuthorized($caseNumber, $actor->id, true);
 
-        $path = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+        $path = app(SecureUploadService::class)->store(
             $request->file('pdf'),
             'respondent/responses',
             'court_private',
@@ -108,12 +109,12 @@ class RespondentResponseController extends Controller
 
     private function assertCaseAuthorized(?string $caseNumber, int $respondentId, bool $api): void
     {
-        if (!$caseNumber) {
+        if (! $caseNumber) {
             return;
         }
 
         $caseExists = DB::table('court_cases')->where('case_number', $caseNumber)->exists();
-        if (!$caseExists) {
+        if (! $caseExists) {
             $this->throwCaseNumberError(__('court::respondent.case_not_found'), $api);
         }
 
@@ -122,7 +123,7 @@ class RespondentResponseController extends Controller
             ->where('case_number', $caseNumber)
             ->exists();
 
-        if (!$authorized) {
+        if (! $authorized) {
             $this->throwCaseNumberError(__('court::respondent.case_not_authorized'), $api);
         }
     }
@@ -143,6 +144,7 @@ class RespondentResponseController extends Controller
         }
 
         $normalized = trim($caseNumber);
+
         return $normalized === '' ? null : $normalized;
     }
 

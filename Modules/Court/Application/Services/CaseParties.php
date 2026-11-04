@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CaseApplicant;
-use Modules\Court\Domain\Models\CaseRepresentative;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CaseApplicant;
+use Modules\Court\Domain\Models\CaseRepresentative;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 /**
  * The parties on the applicant's side of a case (EUISIS ADR 0013 #13):
@@ -315,7 +315,7 @@ final class CaseParties
                     }
                 }
 
-                foreach (['case_evidences', 'case_files', 'case_witnesses'] as $table) {
+                foreach (['court_case_evidences', 'court_case_files', 'court_case_witnesses'] as $table) {
                     DB::table($table)->where('case_id', $source->id)->update(['case_id' => $targetId]);
                 }
                 DB::table('court_case_hearings')->where('case_id', $source->id)->where('hearing_at', '>=', now())->update(['case_id' => $targetId]);

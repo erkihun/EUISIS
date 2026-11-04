@@ -2,15 +2,6 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Domain\Models\Permission;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Services\AppealRecordBundle;
-use Modules\Court\Application\Services\AppealRecords;
-use Modules\Court\Application\Services\PdfNormalizer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +9,15 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Services\AppealRecordBundle;
+use Modules\Court\Application\Services\AppealRecords;
+use Modules\Court\Application\Services\PdfNormalizer;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Decision;
+use Modules\Court\Domain\Models\IntegrationClient;
+use Modules\Court\Domain\Models\Permission;
+use Modules\Court\Domain\Models\Role;
 use setasign\Fpdi\Fpdi;
 use setasign\Fpdi\PdfParser\CrossReference\CrossReferenceException;
 use setasign\Fpdi\PdfParser\StreamReader;

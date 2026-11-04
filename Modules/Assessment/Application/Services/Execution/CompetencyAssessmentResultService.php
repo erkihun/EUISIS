@@ -6,10 +6,10 @@ namespace Modules\Assessment\Application\Services\Execution;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use Modules\Assessment\Domain\Models\AssessmentRecord;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Modules\Assessment\Domain\Models\AssessmentRecord;
 
 /**
  * The controlled outlet for finalized competency-assessment results

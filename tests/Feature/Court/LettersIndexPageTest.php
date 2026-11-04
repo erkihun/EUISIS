@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Letter;
 use Modules\Court\Domain\Models\LetterTemplate;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Str;
-use Inertia\Testing\AssertableInertia;
 
 function lettersUser(array $permissions): User
 {

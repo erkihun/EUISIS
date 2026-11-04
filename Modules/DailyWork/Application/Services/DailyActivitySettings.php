@@ -7,8 +7,8 @@ namespace Modules\DailyWork\Application\Services;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Carbon;
-use Throwable;
 use Modules\DailyWork\Contracts\DailyWorkCalendarSettings;
+use Throwable;
 
 /**
  * Typed reader over the `daily_activity` settings group, plus the clock the

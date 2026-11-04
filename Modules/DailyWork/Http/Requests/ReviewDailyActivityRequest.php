@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Http\Requests;
 
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
-use Modules\DailyWork\Application\Services\DailyActivityReviewerResolver;
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\DailyWork\Application\Services\DailyActivityReviewerResolver;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * Approve or return a daily activity. Authorisation is the policy's job

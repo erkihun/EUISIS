@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Support\Ui;
 
-use Modules\Court\Domain\Models\SystemSetting;
 use Illuminate\Support\Facades\Schema;
+use Modules\Court\Domain\Models\SystemSetting;
 
 /**
  * The `settings` and `branding` props every page gets, in the EUISIS shape

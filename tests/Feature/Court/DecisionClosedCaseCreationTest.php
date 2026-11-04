@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Str;
 
 function closedCaseDecisionCreator(): User
 {
@@ -46,7 +47,7 @@ test('a decision can only be created for a closed case', function (): void {
     $this->actingAs($creator)
         ->get(route('court.decisions.create'))
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Court/Decisions/Create')
             ->where('cases', fn ($cases) => collect($cases)->pluck('case_number')->contains($closedCase->case_number)
                 && ! collect($cases)->pluck('case_number')->contains($activeCase->case_number))

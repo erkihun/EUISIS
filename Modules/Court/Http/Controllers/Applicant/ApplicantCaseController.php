@@ -2,32 +2,35 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-
-use Modules\Court\Domain\Models\ApplicantTermAcceptance;
-use Modules\Court\Domain\Models\TermsAndCondition;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
-use Modules\Court\Application\Services\CaseParties;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Carbon;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
-use Modules\Court\Application\Mail\CaseMessageMail;
+use Inertia\Inertia;
 use Modules\Court\Application\Mail\ApplicantReceiptMail;
+use Modules\Court\Application\Mail\CaseMessageMail;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\LegalHoldService;
 use Modules\Court\Application\Services\ResponseNotificationService;
 use Modules\Court\Application\Services\SecureUploadService;
-use Modules\Court\Application\Services\LegalHoldService;
+use Modules\Court\Application\Support\EuisisParties;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Application\Support\Sql;
+use Modules\Court\Domain\Models\ApplicantTermAcceptance;
+use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
 use Modules\Court\Domain\Models\EuisisOrganization;
-use Illuminate\Support\Facades\URL;
-use Inertia\Inertia;
+use Modules\Court\Domain\Models\TermsAndCondition;
+use Modules\Court\Domain\Support\AggregateLock;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantCaseController extends Controller
 {
@@ -80,11 +83,11 @@ class ApplicantCaseController extends Controller
     public function create()
     {
         // With EUISIS parties only, employees file from the EUISIS employee portal (Flow 5).
-        if (\Modules\Court\Application\Support\EuisisParties::only()) {
+        if (EuisisParties::only()) {
             return redirect()->route('court.applicant.cases.index')->with('info', __('court::cases.file_in_euisis'));
         }
 
-        $types  = DB::table('court_case_types')->orderBy('name')->get(['id', 'name', 'prefix']);
+        $types = DB::table('court_case_types')->orderBy('name')->get(['id', 'name', 'prefix']);
         $activeTerms = TermsAndCondition::published()->orderByDesc('published_at')->first();
         $applicant = auth('applicant')->user();
 
@@ -103,7 +106,7 @@ class ApplicantCaseController extends Controller
             'types' => $this->caseTypeOptions($types),
             'terms' => $activeTerms ? [
                 'id' => (int) $activeTerms->id,
-                'body_html' => \Modules\Court\Application\Support\Purifier::clean(nl2br(e((string) $activeTerms->body)), 'cases'),
+                'body_html' => Purifier::clean(nl2br(e((string) $activeTerms->body)), 'cases'),
             ] : null,
             'applicant' => [
                 'is_lawyer' => (bool) ($applicant?->is_lawyer),
@@ -118,7 +121,7 @@ class ApplicantCaseController extends Controller
     private function generateCaseNumber($caseTypeId)
     {
         // Build a short prefix from the case type name (no separate column required)
-        $caseType = \Modules\Court\Domain\Models\CaseType::findOrFail($caseTypeId);
+        $caseType = CaseType::findOrFail($caseTypeId);
         $prefixBase = (string) ($caseType->prifix ?? $caseType->prefix ?? $caseType->name ?? 'CASE');
         // Keep letters/numbers from any locale, strip spaces/punctuation, take first 4 chars
         $clean = preg_replace('/[\s\p{P}]+/u', '', $prefixBase);
@@ -129,8 +132,8 @@ class ApplicantCaseController extends Controller
         // Lock rows for this prefix/year while computing the next sequence to avoid duplicates on concurrent requests.
         $maxSeq = DB::table('court_cases')
             ->where('case_number', 'LIKE', "{$prifix}/%/{$year}")
-            ->tap(fn ($q) => \Modules\Court\Domain\Support\AggregateLock::apply($q, 'court_cases'))
-            ->selectRaw("MAX(".\Modules\Court\Application\Support\Sql::middleSegmentNumber('case_number').") as max_seq")
+            ->tap(fn ($q) => AggregateLock::apply($q, 'court_cases'))
+            ->selectRaw('MAX('.Sql::middleSegmentNumber('case_number').') as max_seq')
             ->value('max_seq');
 
         $nextNumber = ((int) $maxSeq) + 1;
@@ -139,8 +142,6 @@ class ApplicantCaseController extends Controller
 
         return "{$prifix}/{$sequence}/{$year}";
     }
-
-
 
     private function generateCaseCode(): string
     {
@@ -159,40 +160,40 @@ class ApplicantCaseController extends Controller
     public function store(Request $request)
     {
         $aid = auth('applicant')->id();
-        abort_if(!$aid, 403);
+        abort_if(! $aid, 403);
 
         // With EUISIS parties only, employees file from the EUISIS employee portal (Flow 5).
-        if (\Modules\Court\Application\Support\EuisisParties::only()) {
+        if (EuisisParties::only()) {
             return redirect()->route('court.applicant.cases.index')->with('info', __('court::cases.file_in_euisis'));
         }
 
         $activeTerms = TermsAndCondition::published()->orderByDesc('published_at')->first();
 
         $rules = [
-            'title'              => ['required', 'string', 'max:255'],
-            'description'        => ['required', 'string'],
-            'relief_requested'   => ['required', 'string'],
-            'certify_appeal'     => ['accepted'],
-            'respondent_name'    => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'relief_requested' => ['required', 'string'],
+            'certify_appeal' => ['accepted'],
+            'respondent_name' => ['required', 'string', 'max:255'],
             'respondent_address' => ['required', 'string', 'max:500'],
             // Optional: the respondent organization from the EUISIS city directory.
             'respondent_organization_uuid' => ['nullable', 'uuid', 'exists:court_euisis_organizations,uuid'],
-            'case_type_id'       => ['required', 'integer', 'exists:court_case_types,id'],
+            'case_type_id' => ['required', 'integer', 'exists:court_case_types,id'],
 
-            'filing_date'        => ['required', 'date'],
+            'filing_date' => ['required', 'date'],
             'first_hearing_date' => ['nullable', 'date'],
 
             // initial evidence & witnesses
-            'evidence_titles'    => ['required', 'array', 'min:1'],
-            'evidence_titles.*'  => ['required', 'string', 'max:255'],
-            'evidence_files'     => ['required', 'array', 'min:1'],
-            'evidence_files.*'   => ['required', 'file', 'mimes:pdf', 'max:5120'],
+            'evidence_titles' => ['required', 'array', 'min:1'],
+            'evidence_titles.*' => ['required', 'string', 'max:255'],
+            'evidence_files' => ['required', 'array', 'min:1'],
+            'evidence_files.*' => ['required', 'file', 'mimes:pdf', 'max:5120'],
 
-            'witnesses'              => ['required', 'array', 'min:1'],
-            'witnesses.*.full_name'  => ['required', 'string', 'max:255'],
-            'witnesses.*.phone'      => ['required', 'string', 'max:60'],
-            'witnesses.*.address'    => ['required', 'string', 'max:255'],
-            'certify_evidence'       => ['accepted'],
+            'witnesses' => ['required', 'array', 'min:1'],
+            'witnesses.*.full_name' => ['required', 'string', 'max:255'],
+            'witnesses.*.phone' => ['required', 'string', 'max:60'],
+            'witnesses.*.address' => ['required', 'string', 'max:255'],
+            'certify_evidence' => ['accepted'],
         ];
 
         if ($activeTerms) {
@@ -210,8 +211,8 @@ class ApplicantCaseController extends Controller
         $validator->after(function ($validator) use ($request) {
             $witnesses = collect($request->input('witnesses', []));
 
-            $phones = $witnesses->pluck('phone')->filter(fn($phone) => filled($phone))
-                ->map(fn($phone) => mb_strtolower(trim($phone)));
+            $phones = $witnesses->pluck('phone')->filter(fn ($phone) => filled($phone))
+                ->map(fn ($phone) => mb_strtolower(trim($phone)));
             if ($phones->count() !== $phones->unique()->count()) {
                 $validator->errors()->add('witnesses_duplicate_phone', 'Witness phone numbers must be unique.');
             }
@@ -222,7 +223,7 @@ class ApplicantCaseController extends Controller
         $data = $validator->validate();
 
         // Sanitize TinyMCE HTML (decode if entity-encoded, then Purifier 'cases' profile)
-        $descHtml   = $this->cleanHtml($data['description'] ?? '');
+        $descHtml = $this->cleanHtml($data['description'] ?? '');
         $reliefHtml = $this->cleanHtml($data['relief_requested'] ?? '');
 
         DB::beginTransaction();
@@ -232,26 +233,26 @@ class ApplicantCaseController extends Controller
             $finalNumber = $this->generateCaseNumber($data['case_type_id']);
 
             $caseId = DB::table('court_cases')->insertGetId([
-                'applicant_id'       => $aid,
-                'respondent_name'    => isset($data['respondent_name']) ? strip_tags($data['respondent_name']) : null,
+                'applicant_id' => $aid,
+                'respondent_name' => isset($data['respondent_name']) ? strip_tags($data['respondent_name']) : null,
                 'respondent_address' => isset($data['respondent_address']) ? strip_tags($data['respondent_address']) : null,
                 'respondent_organization_uuid' => $data['respondent_organization_uuid'] ?? null,
-                'case_number'        => $finalNumber,
-                'code'               => $this->generateCaseCode(),
-                'title'              => trim($data['title']),
-                'description'        => $descHtml,      // sanitized HTML
-                'case_type_id'       => $data['case_type_id'],
+                'case_number' => $finalNumber,
+                'code' => $this->generateCaseCode(),
+                'title' => trim($data['title']),
+                'description' => $descHtml,      // sanitized HTML
+                'case_type_id' => $data['case_type_id'],
 
-                'relief_requested'   => $reliefHtml ?: null, // sanitized HTML
-                'filing_date'        => $data['filing_date'],
+                'relief_requested' => $reliefHtml ?: null, // sanitized HTML
+                'filing_date' => $data['filing_date'],
                 'first_hearing_date' => $data['first_hearing_date'] ?? null,
-                'status'             => 'pending',
-                'review_status'      => 'awaiting_review',
-                'assigned_user_id'   => null,
-                'assigned_at'        => null,
-                'notes'              => $data['notes'] ?? null,
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'status' => 'pending',
+                'review_status' => 'awaiting_review',
+                'assigned_user_id' => null,
+                'assigned_at' => null,
+                'notes' => $data['notes'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             // The applicant is the case's lead party (Modules\Court\Application\Services\CaseParties).
@@ -259,12 +260,12 @@ class ApplicantCaseController extends Controller
 
             // 2) Initial status log
             DB::table('court_case_status_logs')->insert([
-                'case_id'            => $caseId,
-                'from_status'        => null,
-                'to_status'          => 'pending',
+                'case_id' => $caseId,
+                'from_status' => null,
+                'to_status' => 'pending',
                 'changed_by_user_id' => null,
-                'created_at'         => now(),
-                'updated_at'         => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             if ($activeTerms) {
@@ -283,7 +284,9 @@ class ApplicantCaseController extends Controller
             if ($request->hasFile('evidence_files')) {
                 $titles = $request->input('evidence_titles', []);
                 foreach ($request->file('evidence_files') as $i => $file) {
-                    if (!$file) continue;
+                    if (! $file) {
+                        continue;
+                    }
 
                     /** @var UploadedFile $file */
                     $stored = app(SecureUploadService::class)->store($file, 'evidences', 'court_private', [
@@ -293,8 +296,8 @@ class ApplicantCaseController extends Controller
                     ]);
 
                     $insert = [
-                        'case_id'    => $caseId,
-                        'type'       => 'document',
+                        'case_id' => $caseId,
+                        'type' => 'document',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -306,7 +309,7 @@ class ApplicantCaseController extends Controller
                     }
 
                     if (Schema::hasColumn('court_case_evidences', 'title')) {
-                        $insert['title'] = $titles[$i] ?? ('Document ' . ($i + 1));
+                        $insert['title'] = $titles[$i] ?? ('Document '.($i + 1));
                     }
                     if (Schema::hasColumn('court_case_evidences', 'description')) {
                         $insert['description'] = null;
@@ -333,19 +336,21 @@ class ApplicantCaseController extends Controller
             $witnesses = $request->input('witnesses', []);
             foreach ($witnesses as $w) {
                 $fullName = trim((string) ($w['full_name'] ?? ''));
-                if ($fullName === '') continue;
+                if ($fullName === '') {
+                    continue;
+                }
 
                 DB::table('court_case_witnesses')->insert([
-                    'case_id'            => $caseId,
-                    'full_name'          => $fullName,
-                    'phone'              => $w['phone'] ?? null,
-                    'email'              => $w['email'] ?? null,
-                    'address'            => $w['address'] ?? null,
+                    'case_id' => $caseId,
+                    'full_name' => $fullName,
+                    'phone' => $w['phone'] ?? null,
+                    'email' => $w['email'] ?? null,
+                    'address' => $w['address'] ?? null,
 
                     'created_by_user_id' => null,
                     'updated_by_user_id' => null,
-                    'created_at'         => now(),
-                    'updated_at'         => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
@@ -359,6 +364,7 @@ class ApplicantCaseController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return back()->withInput()->with('error', 'Failed to create case. Please try again.');
         }
     }
@@ -378,7 +384,7 @@ class ApplicantCaseController extends Controller
             ->whereIn('c.id', CaseParties::caseIdsFor((int) $aid))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $timeline = DB::table('court_case_status_logs')
             ->where('case_id', $id)
@@ -439,7 +445,7 @@ class ApplicantCaseController extends Controller
             ->get();
 
         // Auto-mark as seen
-        $now  = now();
+        $now = now();
         $rows = [];
 
         $unseenMsgIds = DB::table('court_case_messages as m')
@@ -488,7 +494,7 @@ class ApplicantCaseController extends Controller
             $rows[] = ['applicant_id' => $aid, 'type' => 'hearing', 'source_id' => $hid, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             DB::table('court_notification_reads')->upsert(
                 $rows,
                 ['applicant_id', 'type', 'source_id'],
@@ -516,7 +522,7 @@ class ApplicantCaseController extends Controller
                 ->whereIn('id', $applicantIds)
                 ->select('id', 'first_name', 'last_name')
                 ->get()
-                ->mapWithKeys(fn($r) => [$r->id => trim(($r->first_name ?? '') . ' ' . ($r->last_name ?? ''))]);
+                ->mapWithKeys(fn ($r) => [$r->id => trim(($r->first_name ?? '').' '.($r->last_name ?? ''))]);
         }
 
         foreach ($audits as $a) {
@@ -537,17 +543,17 @@ class ApplicantCaseController extends Controller
             'case' => [
                 'id' => (int) $case->id,
                 'case_number' => (string) $case->case_number,
-                'code' => !empty($case->code) ? (string) $case->code : null,
+                'code' => ! empty($case->code) ? (string) $case->code : null,
                 'title' => $case->title ?? null,
                 'status' => (string) ($case->status ?? 'pending'),
                 'review_status' => (string) ($case->review_status ?? 'accepted'),
-                'review_note' => !empty($case->review_note) ? (string) $case->review_note : null,
+                'review_note' => ! empty($case->review_note) ? (string) $case->review_note : null,
                 'case_type' => $case->case_type ?? null,
                 'filed_at' => $iso($case->filing_date ?? $case->created_at ?? null),
                 'respondent_name' => $case->respondent_name ?? null,
                 'respondent_address' => $case->respondent_address ?? null,
-                'description_html' => \Modules\Court\Application\Support\Purifier::clean((string) ($case->description ?? ''), 'cases'),
-                'relief_html' => !empty($case->relief_requested) ? \Modules\Court\Application\Support\Purifier::clean((string) $case->relief_requested, 'cases') : null,
+                'description_html' => Purifier::clean((string) ($case->description ?? ''), 'cases'),
+                'relief_html' => ! empty($case->relief_requested) ? Purifier::clean((string) $case->relief_requested, 'cases') : null,
             ],
             'applicant' => [
                 // The case title doubles as the applicant's name, as on the Blade page.
@@ -563,8 +569,8 @@ class ApplicantCaseController extends Controller
                     'mime' => $d->mime ?? null,
                     'size' => isset($d->size) ? max(0, (int) $d->size) : null,
                     'created_at' => $iso($d->created_at ?? null),
-                    'description_html' => !empty($d->description) ? \Modules\Court\Application\Support\Purifier::clean((string) $d->description, 'cases') : null,
-                    'has_file' => !empty($docPath),
+                    'description_html' => ! empty($d->description) ? Purifier::clean((string) $d->description, 'cases') : null,
+                    'has_file' => ! empty($docPath),
                 ];
             })->values()->all(),
             'witnesses' => $this->witnessRows($witnesses),
@@ -579,7 +585,7 @@ class ApplicantCaseController extends Controller
                 try {
                     $previewUrl = URL::signedRoute('court.letters.case-preview', ['letter' => $letter->id]);
                 } catch (\Throwable $e) {
-                    $previewUrl = url('/court/case-letters/' . $letter->id);
+                    $previewUrl = url('/court/case-letters/'.$letter->id);
                 }
 
                 return [
@@ -597,17 +603,17 @@ class ApplicantCaseController extends Controller
                 'id' => (int) $r->id,
                 'title' => $r->title ?? null,
                 'case_number' => (string) ($r->case_number ?? $case->case_number),
-                'response_number' => !empty($r->response_number) ? (string) $r->response_number : null,
+                'response_number' => ! empty($r->response_number) ? (string) $r->response_number : null,
                 'created_at' => $iso($r->created_at ?? null),
-                'excerpt' => !empty($r->description) ? Str::limit(strip_tags((string) $r->description), 180) : null,
-                'has_pdf' => !empty($r->pdf_path),
+                'excerpt' => ! empty($r->description) ? Str::limit(strip_tags((string) $r->description), 180) : null,
+                'has_pdf' => ! empty($r->pdf_path),
             ])->values()->all(),
             'messages' => $msgs->map(fn ($m): array => [
                 'id' => (int) $m->id,
                 'body' => (string) ($m->body ?? ''),
                 'mine' => (int) ($m->sender_applicant_id ?? 0) === (int) $aid,
                 // Another party's name; null for a court message without a named sender: the page shows "Court staff".
-                'sender_name' => !empty($m->sender_applicant_id)
+                'sender_name' => ! empty($m->sender_applicant_id)
                     ? ((int) $m->sender_applicant_id === (int) $aid ? null : trim(implode(' ', array_filter([$m->sender_first_name ?? null, $m->sender_middle_name ?? null, $m->sender_last_name ?? null]))))
                     : ($m->admin_name ?? null),
                 'created_at' => $iso($m->created_at ?? null),
@@ -643,7 +649,7 @@ class ApplicantCaseController extends Controller
 
         $case = $this->findApplicantCaseWithType($caseId, $aid);
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $response = DB::table('court_respondent_responses as rr')
             ->leftJoin('court_respondents as r', 'r.id', '=', 'rr.respondent_id')
@@ -661,7 +667,7 @@ class ApplicantCaseController extends Controller
             ->where('rr.review_status', 'accepted')
             ->first();
 
-        abort_if(!$response, 404);
+        abort_if(! $response, 404);
 
         // Every party's replies on this side of the case; each is changed by its own author only.
         $replies = DB::table('court_applicant_response_replies')
@@ -675,18 +681,18 @@ class ApplicantCaseController extends Controller
             'response' => array_merge($this->respondentResponseSummary($response), [
                 'title' => $response->title ?? null,
                 'case_number' => (string) ($response->case_number ?? $case->case_number),
-                'respondent_email' => !empty($response->respondent_email) ? (string) $response->respondent_email : null,
-                'respondent_phone' => !empty($response->respondent_phone) ? (string) $response->respondent_phone : null,
-                'respondent_org' => !empty($response->respondent_org) ? (string) $response->respondent_org : null,
+                'respondent_email' => ! empty($response->respondent_email) ? (string) $response->respondent_email : null,
+                'respondent_phone' => ! empty($response->respondent_phone) ? (string) $response->respondent_phone : null,
+                'respondent_org' => ! empty($response->respondent_org) ? (string) $response->respondent_org : null,
                 'created_at' => $this->isoDate($response->created_at ?? null),
-                'summary' => !empty($response->summary) ? (string) $response->summary : null,
-                'description_html' => \Modules\Court\Application\Support\Purifier::clean((string) ($response->description ?? ''), 'cases'),
-                'pdf_name' => !empty($response->pdf_path) ? basename((string) $response->pdf_path) : null,
+                'summary' => ! empty($response->summary) ? (string) $response->summary : null,
+                'description_html' => Purifier::clean((string) ($response->description ?? ''), 'cases'),
+                'pdf_name' => ! empty($response->pdf_path) ? basename((string) $response->pdf_path) : null,
             ]),
             'replies' => $replies->map(fn ($reply): array => [
                 'id' => (int) $reply->id,
                 'review_status' => (string) ($reply->review_status ?? 'awaiting_review'),
-                'review_note' => !empty($reply->review_note) ? (string) $reply->review_note : null,
+                'review_note' => ! empty($reply->review_note) ? (string) $reply->review_note : null,
                 'excerpt' => Str::limit((string) ($reply->description ?? ''), 180),
                 'created_at' => $this->isoDate($reply->created_at ?? null),
                 // An accepted reply is locked (ApplicantResponseReplyController::ensureEditableReply).
@@ -702,7 +708,7 @@ class ApplicantCaseController extends Controller
 
         $case = $this->findApplicantCaseWithType($caseId, $aid);
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $response = DB::table('court_respondent_responses as rr')
             ->leftJoin('court_respondents as r', 'r.id', '=', 'rr.respondent_id')
@@ -720,7 +726,7 @@ class ApplicantCaseController extends Controller
             ->where('rr.review_status', 'accepted')
             ->first();
 
-        abort_if(!$response, 404);
+        abort_if(! $response, 404);
 
         // Same page as ApplicantResponseReplyController::create.
         $applicant = auth('applicant')->user();
@@ -744,15 +750,14 @@ class ApplicantCaseController extends Controller
             ->whereIn('id', CaseParties::leadCaseIdsFor((int) $me))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         if ($case->status !== 'pending' || ($case->review_status ?? null) === 'accepted') {
             return redirect()->route('court.applicant.cases.show', $id)
                 ->with('error', 'You can only edit pending cases.');
         }
 
-        $types  = DB::table('court_case_types')->orderBy('name')->get(['id', 'name', 'prefix']);
-
+        $types = DB::table('court_case_types')->orderBy('name')->get(['id', 'name', 'prefix']);
 
         $docs = DB::table('court_case_evidences')
             ->where('case_id', $id)->where('type', 'document')
@@ -777,8 +782,8 @@ class ApplicantCaseController extends Controller
                 'case_type_id' => $case->case_type_id !== null ? (int) $case->case_type_id : null,
                 'respondent_name' => (string) ($case->respondent_name ?? ''),
                 'respondent_address' => (string) ($case->respondent_address ?? ''),
-                'description' => \Modules\Court\Application\Support\Purifier::clean((string) ($case->description ?? ''), 'cases'),
-                'relief_requested' => \Modules\Court\Application\Support\Purifier::clean((string) ($case->relief_requested ?? ''), 'cases'),
+                'description' => Purifier::clean((string) ($case->description ?? ''), 'cases'),
+                'relief_requested' => Purifier::clean((string) ($case->relief_requested ?? ''), 'cases'),
             ],
             'editable' => $editable,
             'types' => $this->caseTypeOptions($types),
@@ -788,7 +793,7 @@ class ApplicantCaseController extends Controller
                 return [
                     'id' => (int) $d->id,
                     'title' => ($d->title ?? null) ?: ($docPath ? basename((string) $docPath) : null),
-                    'has_file' => !empty($docPath),
+                    'has_file' => ! empty($docPath),
                 ];
             })->values()->all(),
             'witnesses' => $this->witnessRows($witnesses),
@@ -796,6 +801,7 @@ class ApplicantCaseController extends Controller
             'yearSuffix' => now()->format('y'),
         ]);
     }
+
     public function destroy($id)
     {
         $applicantId = auth('applicant')->id();
@@ -814,6 +820,7 @@ class ApplicantCaseController extends Controller
             ->route('court.applicant.cases.index')
             ->with('success', __('court::cases.deleted_successfully') ?? 'Case deleted successfully.');
     }
+
     /**
      * Update case (add more docs/witness names; only while pending)
      * NOTE: Sanitizes TinyMCE HTML fields on save.
@@ -827,7 +834,7 @@ class ApplicantCaseController extends Controller
             ->whereIn('id', CaseParties::leadCaseIdsFor((int) $me))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         if ($case->status !== 'pending' || ($case->review_status ?? null) === 'accepted') {
             return redirect()->route('court.applicant.cases.show', $id)
@@ -835,27 +842,27 @@ class ApplicantCaseController extends Controller
         }
 
         $rules = [
-            'title'              => ['required', 'string', 'max:255'],
-            'description'        => ['required', 'string'],
-            'relief_requested'   => ['required', 'string'],
-            'certify_appeal'     => ['accepted'],
-            'respondent_name'    => ['nullable', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'relief_requested' => ['required', 'string'],
+            'certify_appeal' => ['accepted'],
+            'respondent_name' => ['nullable', 'string', 'max:255'],
             'respondent_address' => ['nullable', 'string', 'max:500'],
-            'case_type_id'       => ['required', 'integer', 'exists:court_case_types,id'],
+            'case_type_id' => ['required', 'integer', 'exists:court_case_types,id'],
 
-            'filing_date'        => ['required', 'date'],
+            'filing_date' => ['required', 'date'],
 
             // uploads
-            'evidence_titles.*'  => ['nullable', 'string', 'max:255'],
-            'evidence_files.*'   => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
+            'evidence_titles.*' => ['nullable', 'string', 'max:255'],
+            'evidence_files.*' => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
 
             // witnesses (match edit form names)
-            'witnesses'                 => ['array'],
-            'witnesses.*.full_name'     => ['nullable', 'string', 'max:255'],
-            'witnesses.*.phone'         => ['nullable', 'string', 'max:60'],
-            'witnesses.*.email'         => ['nullable', 'email', 'max:150'],
-            'witnesses.*.address'       => ['nullable', 'string', 'max:255'],
-            'certify_evidence'          => ['accepted'],
+            'witnesses' => ['array'],
+            'witnesses.*.full_name' => ['nullable', 'string', 'max:255'],
+            'witnesses.*.phone' => ['nullable', 'string', 'max:60'],
+            'witnesses.*.email' => ['nullable', 'email', 'max:150'],
+            'witnesses.*.address' => ['nullable', 'string', 'max:255'],
+            'certify_evidence' => ['accepted'],
         ];
 
         $messages = [
@@ -869,8 +876,8 @@ class ApplicantCaseController extends Controller
             $newWitnesses = collect($request->input('witnesses', []));
 
             $newPhones = $newWitnesses->pluck('phone')
-                ->filter(fn($phone) => filled($phone))
-                ->map(fn($phone) => mb_strtolower(trim($phone)))
+                ->filter(fn ($phone) => filled($phone))
+                ->map(fn ($phone) => mb_strtolower(trim($phone)))
                 ->values();
             if ($newPhones->count() !== $newPhones->unique()->count()) {
                 $validator->errors()->add('witnesses_duplicate_phone', 'Witness phone numbers must be unique.');
@@ -879,15 +886,15 @@ class ApplicantCaseController extends Controller
             $existingPhones = DB::table('court_case_witnesses')
                 ->where('case_id', $id)
                 ->pluck('phone')
-                ->filter(fn($phone) => filled($phone))
-                ->map(fn($phone) => mb_strtolower(trim($phone)));
+                ->filter(fn ($phone) => filled($phone))
+                ->map(fn ($phone) => mb_strtolower(trim($phone)));
             if ($existingPhones->intersect($newPhones)->isNotEmpty()) {
                 $validator->errors()->add('witnesses_duplicate_phone', 'Witness phone numbers must be unique.');
             }
 
             $newEmails = $newWitnesses->pluck('email')
-                ->filter(fn($email) => filled($email))
-                ->map(fn($email) => mb_strtolower(trim($email)))
+                ->filter(fn ($email) => filled($email))
+                ->map(fn ($email) => mb_strtolower(trim($email)))
                 ->values();
             if ($newEmails->count() !== $newEmails->unique()->count()) {
                 $validator->errors()->add('witnesses_duplicate_email', 'Witness email addresses must be unique.');
@@ -896,8 +903,8 @@ class ApplicantCaseController extends Controller
             $existingEmails = DB::table('court_case_witnesses')
                 ->where('case_id', $id)
                 ->pluck('email')
-                ->filter(fn($email) => filled($email))
-                ->map(fn($email) => mb_strtolower(trim($email)));
+                ->filter(fn ($email) => filled($email))
+                ->map(fn ($email) => mb_strtolower(trim($email)));
             if ($existingEmails->intersect($newEmails)->isNotEmpty()) {
                 $validator->errors()->add('witnesses_duplicate_email', 'Witness email addresses must be unique.');
             }
@@ -906,7 +913,7 @@ class ApplicantCaseController extends Controller
         $data = $validator->validate();
 
         // Sanitize TinyMCE HTML (decode if entity-encoded, then Purifier 'cases' profile)
-        $descHtml   = $this->cleanHtml($data['description'] ?? '');
+        $descHtml = $this->cleanHtml($data['description'] ?? '');
         $reliefHtml = $this->cleanHtml($data['relief_requested'] ?? '');
 
         // Optional word limit to mirror UI
@@ -928,28 +935,30 @@ class ApplicantCaseController extends Controller
                 $newCaseNumber = $this->generateCaseNumber($data['case_type_id']);
             }
             DB::table('court_cases')->where('id', $id)->update([
-                'title'              => trim($data['title']),
-                'description'        => $descHtml,           // sanitized HTML
-                'case_number'        => $newCaseNumber,
-                'relief_requested'   => $reliefHtml ?: null, // sanitized HTML
-                'respondent_name'    => isset($data['respondent_name']) ? strip_tags($data['respondent_name']) : null,
+                'title' => trim($data['title']),
+                'description' => $descHtml,           // sanitized HTML
+                'case_number' => $newCaseNumber,
+                'relief_requested' => $reliefHtml ?: null, // sanitized HTML
+                'respondent_name' => isset($data['respondent_name']) ? strip_tags($data['respondent_name']) : null,
                 'respondent_address' => isset($data['respondent_address']) ? strip_tags($data['respondent_address']) : null,
-                'case_type_id'       => $data['case_type_id'],
+                'case_type_id' => $data['case_type_id'],
 
-                'filing_date'        => $data['filing_date'],
-                'review_status'      => 'awaiting_review',
+                'filing_date' => $data['filing_date'],
+                'review_status' => 'awaiting_review',
                 'reviewed_by_user_id' => null,
-                'reviewed_at'        => null,
-                'updated_at'         => now(),
+                'reviewed_at' => null,
+                'updated_at' => now(),
             ]);
 
             // add new PDFs (if any)
             if ($request->hasFile('evidence_files')) {
                 $titles = $request->input('evidence_titles', []);
                 foreach ($request->file('evidence_files') as $i => $file) {
-                    if (!$file) continue;
+                    if (! $file) {
+                        continue;
+                    }
 
-                    /** @var \Illuminate\Http\UploadedFile $file */
+                    /** @var UploadedFile $file */
                     $stored = app(SecureUploadService::class)->store($file, 'evidences', 'court_private', [
                         'related_type' => 'court_case',
                         'related_id' => (int) $id,
@@ -957,8 +966,8 @@ class ApplicantCaseController extends Controller
                     ]);
 
                     $insert = [
-                        'case_id'    => $id,
-                        'type'       => 'document',
+                        'case_id' => $id,
+                        'type' => 'document',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -969,7 +978,7 @@ class ApplicantCaseController extends Controller
                         $insert['path'] = $stored;
                     }
                     if (Schema::hasColumn('court_case_evidences', 'title')) {
-                        $insert['title'] = $titles[$i] ?? ('Document ' . ($i + 1));
+                        $insert['title'] = $titles[$i] ?? ('Document '.($i + 1));
                     }
                     if (Schema::hasColumn('court_case_evidences', 'description')) {
                         $insert['description'] = null;
@@ -994,14 +1003,16 @@ class ApplicantCaseController extends Controller
             $incoming = $request->input('witnesses', []);
             foreach ($incoming as $w) {
                 $full = trim((string) ($w['full_name'] ?? ''));
-                if ($full === '') continue; // skip empty rows
+                if ($full === '') {
+                    continue;
+                } // skip empty rows
 
                 $row = [
-                    'case_id'    => $id,
-                    'full_name'  => $full,
-                    'phone'      => $w['phone']   ?? null,
-                    'email'      => $w['email']   ?? null,
-                    'address'    => $w['address'] ?? null,
+                    'case_id' => $id,
+                    'full_name' => $full,
+                    'phone' => $w['phone'] ?? null,
+                    'email' => $w['email'] ?? null,
+                    'address' => $w['address'] ?? null,
 
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -1023,10 +1034,12 @@ class ApplicantCaseController extends Controller
                 $this->notifyAdminCaseUpdated($case, $me);
                 $this->logCaseAudit($id, 'applicant_updated', ['sections' => 'case_core']);
             }
+
             return redirect()->route('court.applicant.cases.show', $id)->with('success', 'Case updated.');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return back()->withInput()->with('error', 'Failed to update case. Please try again.');
         }
     }
@@ -1045,7 +1058,7 @@ class ApplicantCaseController extends Controller
             ->where('id', $id)
             ->whereIn('id', CaseParties::leadCaseIdsFor((int) $applicantId))
             ->first();
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         if (! $this->applicantMayModify($case)) {
             return back()->with('error', __('court::cases.hints.edit_only_pending'));
@@ -1055,10 +1068,10 @@ class ApplicantCaseController extends Controller
             ->where('id', $evidenceId)
             ->where('case_id', $id)
             ->first();
-        abort_if(!$ev, 404);
+        abort_if(! $ev, 404);
 
         $filePath = $ev->file_path ?? $ev->path ?? null;
-        if (!empty($filePath)) {
+        if (! empty($filePath)) {
             app(LegalHoldService::class)->assertFileMayBeDeleted((string) $filePath);
             $this->deleteStoredFile($filePath);
         }
@@ -1078,7 +1091,7 @@ class ApplicantCaseController extends Controller
             ->whereIn('id', CaseParties::leadCaseIdsFor((int) $applicantId))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         if (! $this->applicantMayModify($case)) {
             return back()->with('error', __('court::cases.hints.edit_only_pending'));
@@ -1111,7 +1124,7 @@ class ApplicantCaseController extends Controller
 
         $data = $request->validate([
             'label' => ['nullable', 'string', 'max:255'],
-            'file'  => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:4096'],
+            'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:4096'],
         ]);
 
         /** @var UploadedFile $file */
@@ -1123,19 +1136,19 @@ class ApplicantCaseController extends Controller
         ]);
 
         DB::table('court_case_files')->insert([
-            'case_id'                   => $id,
-            'uploaded_by_applicant_id'  => $applicantId,
-            'label'                     => isset($data['label']) ? strip_tags($data['label']) : null,
-            'path'                      => $path,
-            'mime'                      => $file->getClientMimeType(),
-            'size'                      => $file->getSize(),
-            'created_at'                => now(),
-            'updated_at'                => now(),
+            'case_id' => $id,
+            'uploaded_by_applicant_id' => $applicantId,
+            'label' => isset($data['label']) ? strip_tags($data['label']) : null,
+            'path' => $path,
+            'mime' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->logCaseAudit($id, 'file_uploaded', [
             'label' => $data['label'] ?? null,
-            'path'  => $path,
+            'path' => $path,
         ]);
 
         return back()->with('success', 'File uploaded.');
@@ -1160,7 +1173,7 @@ class ApplicantCaseController extends Controller
 
         $this->logCaseAudit($id, 'file_deleted', [
             'file_id' => $fileId,
-            'label'   => $file->label ?? null,
+            'label' => $file->label ?? null,
         ]);
 
         return back()->with('success', 'File removed.');
@@ -1181,18 +1194,18 @@ class ApplicantCaseController extends Controller
         ]);
 
         DB::table('court_case_messages')->insert([
-            'case_id'             => $id,
+            'case_id' => $id,
             'sender_applicant_id' => $applicantId,
-            'body'                => $data['body'], // rendered with {{ }} so XSS-safe
-            'created_at'          => now(),
-            'updated_at'          => now(),
+            'body' => $data['body'], // rendered with {{ }} so XSS-safe
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         // notify assignee (or fallback inbox)
         $caseRow = DB::table('court_cases')->where('id', $id)->first();
 
         $assigneeEmail = null;
-        if (!empty($caseRow->assigned_user_id)) {
+        if (! empty($caseRow->assigned_user_id)) {
             $assigneeEmail = DB::table('court_staff')->where('id', $caseRow->assigned_user_id)->value('email');
         }
         $to = $assigneeEmail ?: config('mail.from.address');
@@ -1205,13 +1218,13 @@ class ApplicantCaseController extends Controller
             } catch (\Throwable $e) {
                 Log::error('Failed sending case message notification', [
                     'case_id' => $id,
-                    'error'   => $e->getMessage(),
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
         $this->logCaseAudit($id, 'message_posted', [
-            'by'   => 'applicant',
+            'by' => 'applicant',
             'body' => mb_strimwidth($data['body'], 0, 200, '...'),
         ]);
 
@@ -1245,7 +1258,7 @@ class ApplicantCaseController extends Controller
             ->whereIn('c.id', CaseParties::caseIdsFor((int) $me))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $evidenceDocs = DB::table('court_case_evidences')
             ->where('case_id', $id)
@@ -1291,8 +1304,8 @@ class ApplicantCaseController extends Controller
                     ? ['name' => $case->respondent_name ?: null, 'address' => $case->respondent_address ?: null]
                     : null,
                 // The details are the editor's HTML; the Blade page printed the tags as text.
-                'description_html' => \Modules\Court\Application\Support\Purifier::clean((string) ($case->description ?? ''), 'cases'),
-                'relief_html' => ! empty($case->relief_requested) ? \Modules\Court\Application\Support\Purifier::clean((string) $case->relief_requested, 'cases') : null,
+                'description_html' => Purifier::clean((string) ($case->description ?? ''), 'cases'),
+                'relief_html' => ! empty($case->relief_requested) ? Purifier::clean((string) $case->relief_requested, 'cases') : null,
             ],
             'witnesses' => $witnesses->map(fn (object $w): array => [
                 'id' => (int) $w->id,
@@ -1330,10 +1343,10 @@ class ApplicantCaseController extends Controller
         $aid = auth('applicant')->id();
 
         $case = DB::table('court_cases')->where('id', $id)->whereIn('id', CaseParties::caseIdsFor((int) $aid))->first();
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $hearing = DB::table('court_case_hearings')->where('id', $hearingId)->where('case_id', $id)->first();
-        abort_if(!$hearing, 404);
+        abort_if(! $hearing, 404);
 
         DB::table('court_notification_reads')->updateOrInsert(
             ['applicant_id' => $aid, 'type' => 'hearing', 'source_id' => $hearing->id],
@@ -1341,21 +1354,21 @@ class ApplicantCaseController extends Controller
         );
 
         $start = Carbon::parse($hearing->hearing_at)->utc();
-        $end   = (clone $start)->addHour();
-        $now   = Carbon::now('UTC');
+        $end = (clone $start)->addHour();
+        $now = Carbon::now('UTC');
 
         $host = parse_url(config('app.url', 'https://court-ms.local'), PHP_URL_HOST) ?: 'court-ms.local';
-        $uid  = 'hearing-' . $hearing->id . '@' . $host;
+        $uid = 'hearing-'.$hearing->id.'@'.$host;
 
-        $escape = fn($t) => str_replace(["\\", ";", ","], ["\\\\", "\;", "\,"], $t ?? '');
+        $escape = fn ($t) => str_replace(['\\', ';', ','], ['\\\\', "\;", "\,"], $t ?? '');
 
-        $summary     = $escape(__('court::notifications.mail.hearing_calendar_summary', [
+        $summary = $escape(__('court::notifications.mail.hearing_calendar_summary', [
             'case' => $case->case_number ?? '',
         ]));
         $description = $escape(__('court::notifications.mail.hearing_calendar_description', [
             'title' => $case->title ?? '',
         ]));
-        $location    = $escape($hearing->location ?? '');
+        $location = $escape($hearing->location ?? '');
 
         $ics = implode("\r\n", [
             'BEGIN:VCALENDAR',
@@ -1364,24 +1377,24 @@ class ApplicantCaseController extends Controller
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'BEGIN:VEVENT',
-            'UID:' . $uid,
-            'DTSTAMP:' . $now->format('Ymd\THis\Z'),
-            'DTSTART:' . $start->format('Ymd\THis\Z'),
-            'DTEND:'   . $end->format('Ymd\THis\Z'),
-            'SUMMARY:' . $summary,
-            'DESCRIPTION:' . $description,
-            'LOCATION:' . $location,
+            'UID:'.$uid,
+            'DTSTAMP:'.$now->format('Ymd\THis\Z'),
+            'DTSTART:'.$start->format('Ymd\THis\Z'),
+            'DTEND:'.$end->format('Ymd\THis\Z'),
+            'SUMMARY:'.$summary,
+            'DESCRIPTION:'.$description,
+            'LOCATION:'.$location,
             'END:VEVENT',
             'END:VCALENDAR',
             '',
         ]);
 
         $safeCaseNumber = $this->sanitizeFilenamePart($case->case_number, 'case');
-        $filename = 'hearing-' . $safeCaseNumber . '-' . $hearing->id . '.ics';
+        $filename = 'hearing-'.$safeCaseNumber.'-'.$hearing->id.'.ics';
 
         return response($ics, 200, [
-            'Content-Type'              => 'text/calendar; charset=utf-8',
-            'Content-Disposition'       => 'attachment; filename="' . $filename . '"',
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'Content-Transfer-Encoding' => 'binary',
         ]);
     }
@@ -1411,26 +1424,27 @@ class ApplicantCaseController extends Controller
             ->whereIn('c.id', CaseParties::caseIdsFor((int) $me))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $evidenceDocs = DB::table('court_case_evidences')->where('case_id', $id)->where('type', 'document')->orderBy('id')->get();
 
         // witnesses
-        $witnesses    = DB::table('court_case_witnesses')->where('case_id', $id)->orderBy('id')->get();
+        $witnesses = DB::table('court_case_witnesses')->where('case_id', $id)->orderBy('id')->get();
 
-        $files        = DB::table('court_case_files')->where('case_id', $id)->orderByDesc('created_at')->get();
-        $hearings     = DB::table('court_case_hearings')->where('case_id', $id)->orderBy('hearing_at')->get();
+        $files = DB::table('court_case_files')->where('case_id', $id)->orderByDesc('created_at')->get();
+        $hearings = DB::table('court_case_hearings')->where('case_id', $id)->orderBy('hearing_at')->get();
 
         $pdf = PDF::loadView('court::applicant.cases.receipt-pdf', [
-            'case'         => $case,
+            'case' => $case,
             'evidenceDocs' => $evidenceDocs,
-            'witnesses'    => $witnesses,
-            'files'        => $files,
-            'hearings'     => $hearings,
+            'witnesses' => $witnesses,
+            'files' => $files,
+            'hearings' => $hearings,
         ])->setPaper('a4');
 
         $safeCaseNumber = $this->sanitizeFilenamePart($case->case_number, 'case');
-        $filename = 'receipt-' . $safeCaseNumber . '.pdf';
+        $filename = 'receipt-'.$safeCaseNumber.'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -1439,7 +1453,7 @@ class ApplicantCaseController extends Controller
      */
     public function emailReceipt(int $id)
     {
-        $me    = auth('applicant')->id();
+        $me = auth('applicant')->id();
         $email = auth('applicant')->user()->email ?? null;
 
         $case = DB::table('court_cases as c')
@@ -1460,38 +1474,39 @@ class ApplicantCaseController extends Controller
             ->whereIn('c.id', CaseParties::caseIdsFor((int) $me))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $evidenceDocs = DB::table('court_case_evidences')->where('case_id', $id)->where('type', 'document')->orderBy('id')->get();
 
         // witnesses
-        $witnesses    = DB::table('court_case_witnesses')->where('case_id', $id)->orderBy('id')->get();
+        $witnesses = DB::table('court_case_witnesses')->where('case_id', $id)->orderBy('id')->get();
 
-        $files        = DB::table('court_case_files')->where('case_id', $id)->orderByDesc('created_at')->get();
-        $hearings     = DB::table('court_case_hearings')->where('case_id', $id)->orderBy('hearing_at')->get();
+        $files = DB::table('court_case_files')->where('case_id', $id)->orderByDesc('created_at')->get();
+        $hearings = DB::table('court_case_hearings')->where('case_id', $id)->orderBy('hearing_at')->get();
 
         $pdf = PDF::loadView('court::applicant.cases.receipt-pdf', [
-            'case'         => $case,
+            'case' => $case,
             'evidenceDocs' => $evidenceDocs,
-            'witnesses'    => $witnesses,
-            'files'        => $files,
-            'hearings'     => $hearings,
+            'witnesses' => $witnesses,
+            'files' => $files,
+            'hearings' => $hearings,
         ])->setPaper('a4');
 
-        if (!$email) {
+        if (! $email) {
             return back()->with('error', __('court::cases.notifications.receipt_email_missing'));
         }
 
         try {
             $safeCaseNumber = $this->sanitizeFilenamePart($case->case_number, 'case');
-            $filename = 'receipt-' . $safeCaseNumber . '.pdf';
+            $filename = 'receipt-'.$safeCaseNumber.'.pdf';
             Mail::to($email)->send(new ApplicantReceiptMail($case, $pdf->output(), $filename));
             Log::info('Applicant receipt PDF sent', ['case_id' => $id, 'to' => $email]);
         } catch (\Throwable $e) {
             Log::error('Failed sending applicant receipt PDF', [
                 'case_id' => $id,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
+
             return back()->with('error', __('court::cases.notifications.receipt_email_failed'));
         }
 
@@ -1508,12 +1523,15 @@ class ApplicantCaseController extends Controller
     private function cleanHtml(?string $html): string
     {
         $s = (string) ($html ?? '');
-        if ($s === '') return '';
+        if ($s === '') {
+            return '';
+        }
         // If TinyMCE content got entity-encoded (&lt;p&gt;), decode to real tags first
         if (str_contains($s, '&lt;') || str_contains($s, '&gt;')) {
             $s = htmlspecialchars_decode($s, ENT_QUOTES);
         }
-        return \Modules\Court\Application\Support\Purifier::clean($s, 'cases');
+
+        return Purifier::clean($s, 'cases');
     }
 
     /**
@@ -1570,9 +1588,9 @@ class ApplicantCaseController extends Controller
         return collect($witnesses)->map(fn ($w): array => [
             'id' => (int) $w->id,
             'full_name' => (string) ($w->full_name ?? ''),
-            'phone' => !empty($w->phone) ? (string) $w->phone : null,
-            'email' => !empty($w->email) ? (string) $w->email : null,
-            'address' => !empty($w->address) ? (string) $w->address : null,
+            'phone' => ! empty($w->phone) ? (string) $w->phone : null,
+            'email' => ! empty($w->email) ? (string) $w->email : null,
+            'address' => ! empty($w->address) ? (string) $w->address : null,
         ])->values()->all();
     }
 
@@ -1584,9 +1602,9 @@ class ApplicantCaseController extends Controller
 
         return [
             'id' => (int) $response->id,
-            'response_number' => !empty($response->response_number) ? (string) $response->response_number : null,
+            'response_number' => ! empty($response->response_number) ? (string) $response->response_number : null,
             'respondent_name' => $name !== '' ? $name : null,
-            'has_pdf' => !empty($response->pdf_path),
+            'has_pdf' => ! empty($response->pdf_path),
         ];
     }
 
@@ -1606,16 +1624,16 @@ class ApplicantCaseController extends Controller
         try {
             $body = __('court::cases.notifications.applicant_updated_submission');
             DB::table('court_case_messages')->insert([
-                'case_id'             => $case->id,
+                'case_id' => $case->id,
                 'sender_applicant_id' => $applicantId,
-                'sender_user_id'      => null,
-                'body'                => $body,
-                'created_at'          => now(),
-                'updated_at'          => now(),
+                'sender_user_id' => null,
+                'body' => $body,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
             $to = null;
-            if (!empty($case->assigned_user_id)) {
+            if (! empty($case->assigned_user_id)) {
                 $to = DB::table('court_staff')->where('id', $case->assigned_user_id)->value('email');
             }
             $to = $to ?: config('mail.from.address');
@@ -1629,7 +1647,7 @@ class ApplicantCaseController extends Controller
         } catch (\Throwable $e) {
             Log::error('Failed sending admin update notification', [
                 'case_id' => $case->id ?? null,
-                'error'   => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -1651,11 +1669,11 @@ class ApplicantCaseController extends Controller
     {
         try {
             DB::table('court_case_audits')->insert([
-                'case_id'    => $caseId,
-                'action'     => $action,
+                'case_id' => $caseId,
+                'action' => $action,
                 'actor_type' => 'applicant',
-                'actor_id'   => auth('applicant')->id(),
-                'meta'       => empty($meta) ? null : json_encode($meta),
+                'actor_id' => auth('applicant')->id(),
+                'meta' => empty($meta) ? null : json_encode($meta),
                 'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
@@ -1668,6 +1686,7 @@ class ApplicantCaseController extends Controller
         $private = Storage::disk('court_private');
         if ($private->exists($path)) {
             $private->delete($path);
+
             return;
         }
 

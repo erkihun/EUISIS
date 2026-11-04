@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Support;
 
-use Modules\Court\Domain\Models\SystemSetting;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\SystemSetting;
 
 /**
  * Failed-login lockout shared by every sign-in entry point.

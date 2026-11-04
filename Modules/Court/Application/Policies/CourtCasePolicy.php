@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Policies;
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Application\Support\CourtPermissions;
 use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 final class CourtCasePolicy
 {
     public function view(User $user, CourtCase $case): bool
     {
         // Registrar can preview any case before acceptance
-        if ($this->hasPerm($user, 'cases.review')) return true;
+        if ($this->hasPerm($user, 'cases.review')) {
+            return true;
+        }
 
         // Assigned officer can view even if not yet accepted
-        if (!empty($case->assigned_user_id) && (int)$case->assigned_user_id === (int)$user->id) {
+        if (! empty($case->assigned_user_id) && (int) $case->assigned_user_id === (int) $user->id) {
             return true;
         }
 
@@ -44,10 +47,11 @@ final class CourtCasePolicy
         }
         if (true) {
             try {
-                return (bool) \Modules\Court\Application\Support\CourtPermissions::check($perm);
+                return (bool) CourtPermissions::check($perm);
             } catch (\Throwable $e) {
             }
         }
+
         return false;
     }
 }

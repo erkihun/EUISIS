@@ -57,19 +57,21 @@ By default the suite runs against SQLite in memory through `phpunit.xml.dist`.
 ### CI shards
 
 The whole suite (~4,700 tests) takes 16 minutes or more on one runner, so CI runs
-it as four shards in parallel, on PHP 8.4 and 8.5 (`.github/workflows/laravel.yml`).
-The shards are testsuites in `phpunit.xml.dist`:
+it as six shards in parallel, on PHP 8.4 and 8.5 (`.github/workflows/laravel.yml`,
+60-minute timeout per job). The shards are testsuites in `phpunit.xml.dist`:
 
 ```bash
-php artisan test --testsuite=Shard1   # Court, Auth, Api, Backbone, Architecture, Infrastructure
-php artisan test --testsuite=Shard2   # Security, PublicFeedback, OrganizationDesign, IdCards, Nfc, Branding
-php artisan test --testsuite=Shard3   # Grievances, Intelligence, Performance, Cafeteria, Transport, ServiceMonitoring, Organizations, Integration, Assistant, PublicAssistant
-php artisan test --testsuite=Shard4   # tests/Unit and every other tests/Feature directory
+php artisan test --testsuite=Shard1   # Court, Auth, Api, Backbone, Architecture, Infrastructure (~7 min in CI)
+php artisan test --testsuite=Shard2   # Security, PublicFeedback, OrganizationDesign, IdCards, Nfc, Branding (~8 min)
+php artisan test --testsuite=Shard3   # Grievances, Intelligence, Performance (the slow ones; Performance alone can hang)
+php artisan test --testsuite=Shard4   # Cafeteria, Transport, ServiceMonitoring, Organizations, Integration, Assistant, PublicAssistant
+php artisan test --testsuite=Shard5   # Employees, Communication, Rbac, Settings, Discipline, CodeRules, SituationRoom, Core, Positions, ReportingLines, PublicSite and the small directories
+php artisan test --testsuite=Shard6   # tests/Unit, the root tests/Feature files and every other directory
 ```
 
-Shard4 is the catch-all: a new test directory runs there without any change to
+Shard6 is the catch-all: a new test directory runs there without any change to
 the configuration. When a shard grows past the others, move a directory from
-Shard4's `<exclude>` list into Shard1-3. Running one shard locally is also the
+Shard6's `<exclude>` list into Shard1-5. Running one shard locally is also the
 quickest way to check an area before a commit; `--parallel` is still not used
 because the suite outgrows the memory limit that way.
 

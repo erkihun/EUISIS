@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Domain\Models;
 
-use Modules\DailyWork\Domain\Enums\DailyActivityHistoryAction;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User;
+use Modules\DailyWork\Domain\Enums\DailyActivityHistoryAction;
 
 /** Append-only workflow history. Never updated after insert. */
 class DailyActivityHistory extends Model

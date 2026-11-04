@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\AboutPage;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Notifications\ApplicantEmailOtp;
-use Modules\Court\Application\Notifications\PasswordResetOtp;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Notifications\ApplicantEmailOtp;
+use Modules\Court\Application\Notifications\PasswordResetOtp;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Domain\Models\AboutPage;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 /*
  * The applicant portal's account side is React (Pages/Court/Applicant/*):
@@ -440,7 +441,7 @@ test('the sessions page lists the applicant sessions and ends another one from t
             ->component('Court/Applicant/Sessions')
             ->where('supported', config('session.driver') === 'database')
             ->where('status', null)
-            ->where('sessions', fn ($sessions) => collect($sessions)->contains(fn ($session) => $session['id'] === \Modules\Court\Application\Support\SessionRows::publicKey('aap-other-session')
+            ->where('sessions', fn ($sessions) => collect($sessions)->contains(fn ($session) => $session['id'] === SessionRows::publicKey('aap-other-session')
                 && $session['device_name'] === 'Windows'
                 && $session['browser_name'] === 'Chrome 150'
                 && $session['ip_address'] === '203.0.113.30'
@@ -450,7 +451,7 @@ test('the sessions page lists the applicant sessions and ends another one from t
 
     $this->actingAs($applicant, 'applicant')
         ->from(route('court.applicant.profile.sessions.index'))
-        ->delete(route('court.applicant.profile.sessions.destroy', \Modules\Court\Application\Support\SessionRows::publicKey('aap-other-session')))
+        ->delete(route('court.applicant.profile.sessions.destroy', SessionRows::publicKey('aap-other-session')))
         ->assertRedirect(route('court.applicant.profile.sessions.index'));
 
     $this->assertDatabaseMissing('sessions', ['id' => 'aap-other-session']);

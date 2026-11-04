@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services\Oversight;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
-use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
+use Modules\Assessment\Domain\Models\AssessmentInstitutionSubmission;
 
 /**
  * Read model for the oversight pages: institution table, drill-downs, form

@@ -2,8 +2,6 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Respondent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -12,6 +10,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Controllers\Respondent\RespondentProfilePage;
 
 class ApplicantProfileController extends Controller
 {
@@ -21,7 +23,7 @@ class ApplicantProfileController extends Controller
             $request->session()->put('acting_as_respondent', true);
 
             // The respondent portal's profile is its own React page (Court/Respondent/Profile).
-            return \Modules\Court\Http\Controllers\Respondent\RespondentProfilePage::render($request);
+            return RespondentProfilePage::render($request);
         }
 
         $user = $request->user('applicant');
@@ -86,7 +88,7 @@ class ApplicantProfileController extends Controller
 
         // Only lawyers may upload a credential document.
         if ($request->hasFile('lawyer_document') && $user->is_lawyer) {
-            $newPath = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+            $newPath = app(SecureUploadService::class)->store(
                 $request->file('lawyer_document'),
                 'lawyer_documents',
                 'court_private',

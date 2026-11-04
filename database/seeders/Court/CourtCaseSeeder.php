@@ -23,6 +23,7 @@ class CourtCaseSeeder extends Seeder
         foreach (['court_cases', 'case_types'] as $table) {
             if (! $schema->hasTable($table)) {
                 $this->command?->warn("Skipping CourtCaseSeeder: missing table '{$table}'.");
+
                 return;
             }
         }
@@ -33,7 +34,7 @@ class CourtCaseSeeder extends Seeder
             foreach ($seedTypes as $name) {
                 DB::table('court_case_types')->insert([
                     'name' => $name,
-                    'description' => $name . ' case',
+                    'description' => $name.' case',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -67,7 +68,7 @@ class CourtCaseSeeder extends Seeder
                 'applicant_id' => count($applicantIds) ? $faker->randomElement($applicantIds) : null,
                 'case_number' => $caseNumber,
                 'code' => $code,
-                'title' => 'Sample Case ' . $i,
+                'title' => 'Sample Case '.$i,
                 'respondent_name' => $faker->name,
                 'respondent_address' => $faker->address,
                 'description' => $faker->paragraph,

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 
 /** A member of the court (president, judges, registrar) as the public site lists its composition. */
 class CourtMember extends Model

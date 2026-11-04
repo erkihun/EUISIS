@@ -1,9 +1,10 @@
 <?php
 
-use Modules\Court\Domain\Models\Applicant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Domain\Models\Applicant;
 
 test('applicant profile page is displayed', function () {
     $applicant = Applicant::create([
@@ -132,7 +133,7 @@ test('applicant profile update validates duplicate national id after normalizati
         ->assertSessionHasErrors('national_id_number')
         ->assertRedirect(route('court.applicant.profile.edit'));
 
-expect($applicant->fresh()->getRawOriginal('national_id_number'))->toBe('1234567890123456');
+    expect($applicant->fresh()->getRawOriginal('national_id_number'))->toBe('1234567890123456');
 });
 
 test('applicant profile exposes profile security and sessions navigation', function () {
@@ -229,12 +230,12 @@ test('applicant can view and revoke another session', function () {
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('Court/Applicant/Sessions')
-            ->where('sessions', fn ($sessions) => collect($sessions)->contains(fn ($session) => $session['id'] === \Modules\Court\Application\Support\SessionRows::publicKey('applicant-other-session')
+            ->where('sessions', fn ($sessions) => collect($sessions)->contains(fn ($session) => $session['id'] === SessionRows::publicKey('applicant-other-session')
                 && $session['device_name'] === 'Windows'
                 && $session['browser_name'] === 'Chrome 150')));
 
     $this->actingAs($applicant, 'applicant')
-        ->delete(route('court.applicant.profile.sessions.destroy', \Modules\Court\Application\Support\SessionRows::publicKey('applicant-other-session')))
+        ->delete(route('court.applicant.profile.sessions.destroy', SessionRows::publicKey('applicant-other-session')))
         ->assertRedirect();
 
     $this->assertDatabaseMissing('sessions', ['id' => 'applicant-other-session']);

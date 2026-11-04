@@ -2,15 +2,15 @@
 
 namespace Modules\Court\Http\Controllers\Api;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Support\LoginThrottle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Application\Support\LoginThrottle;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
@@ -34,7 +34,7 @@ class AuthController extends Controller
 
         $user = $this->findUserForGuard($data['guard'], $data['email']);
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        if (! $user || ! Hash::check($data['password'], $user->password)) {
             $throttle->hit();
 
             throw ValidationException::withMessages([
@@ -104,7 +104,7 @@ class AuthController extends Controller
             ]);
         }
 
-        if ($user instanceof Applicant && !$user->is_active) {
+        if ($user instanceof Applicant && ! $user->is_active) {
             throw ValidationException::withMessages([
                 'email' => ['Your applicant account has been deactivated.'],
             ]);

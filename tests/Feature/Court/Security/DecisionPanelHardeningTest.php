@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 require_once __DIR__.'/JudicialWorkHelpers.php';
 
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Decision;
 
 function decisionPanelEditor(): User
 {

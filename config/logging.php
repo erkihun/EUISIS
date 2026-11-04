@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\ErrorTrackerHandler;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -64,7 +65,7 @@ return [
         'error_tracker' => [
             'driver' => 'monolog',
             'level' => env('ERROR_TRACKER_LEVEL', 'error'),
-            'handler' => App\Logging\ErrorTrackerHandler::class,
+            'handler' => ErrorTrackerHandler::class,
             'with' => [
                 'dsn' => env('ERROR_TRACKER_DSN'),
                 'timeout' => (float) env('ERROR_TRACKER_TIMEOUT', 3),

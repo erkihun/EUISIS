@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Application\Services;
 
-use Modules\DailyWork\Domain\Enums\DailyActivityReviewMode;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Enums\DailyActivityReviewMode;
 use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use Modules\DailyWork\Domain\Models\DailyActivityReviewPolicy;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Which submitted days need a reviewer, per organization.

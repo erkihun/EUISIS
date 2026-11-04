@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
+use Inertia\Testing\AssertableInertia;
 use Modules\Court\Domain\Models\AboutPage;
 use Modules\Court\Domain\Models\Announcement;
 use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Role;
 use Modules\Court\Domain\Models\TermsAndCondition;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Inertia\Testing\AssertableInertia;
 
 function cmsFormsAdmin(): User
 {

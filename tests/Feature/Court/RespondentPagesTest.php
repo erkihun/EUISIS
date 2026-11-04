@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\LetterTemplate;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\LetterTemplate;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 /** Someone who answers cases: the applicant account they sign in with, and its respondent record. */
 function respondentPagesPerson(string $first = 'Ruth'): Applicant

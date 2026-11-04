@@ -1,12 +1,12 @@
 <?php
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 test('applicant can create a response of response with pdf attachment', function () {
     $applicant = Applicant::create([

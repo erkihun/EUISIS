@@ -2,7 +2,12 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Modules\Court\Application\Support\Purifier;
 use Modules\Court\Domain\Models\CourtMember;
 use Modules\Court\Domain\Models\HomeFaq;
 use Modules\Court\Domain\Models\HomeResource;
@@ -10,12 +15,8 @@ use Modules\Court\Domain\Models\HomeService;
 use Modules\Court\Domain\Models\HomeSetting;
 use Modules\Court\Domain\Models\HomeSlide;
 use Modules\Court\Domain\Models\HomeTimelineStep;
+use Modules\Court\Http\Controllers\Controller;
 use Modules\Court\Http\Support\Ui\EditorLink;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
 
 class LandingPageController extends Controller
 {
@@ -45,7 +46,7 @@ class LandingPageController extends Controller
 
     private function flushCache(): void
     {
-        foreach (['court.home_slides','court.home_faqs','court.home_settings','court.home_metrics','court.home_services','court.home_timeline','court.home_resources','court.home_footer','court.home_user_manual','court.home_about','court.home_members'] as $key) {
+        foreach (['court.home_slides', 'court.home_faqs', 'court.home_settings', 'court.home_metrics', 'court.home_services', 'court.home_timeline', 'court.home_resources', 'court.home_footer', 'court.home_user_manual', 'court.home_about', 'court.home_members'] as $key) {
             Cache::forget($key);
         }
     }
@@ -55,25 +56,25 @@ class LandingPageController extends Controller
         $titled = ['visible' => true, 'title' => '', 'subtitle' => '', 'title_am' => '', 'subtitle_am' => ''];
 
         return [
-            'about'    => $titled,
-            'members'  => $titled,
+            'about' => $titled,
+            'members' => $titled,
             'services' => $titled,
             'hearings' => $titled,
-            'metrics'  => $titled,
-            'process'  => $titled,
-            'news'     => $titled,
-            'resources'=> $titled,
-            'faq'      => $titled,
-            'contact'  => $titled,
-            'cases'    => ['visible' => true],
-            'cta'      => [
-                'visible'         => true,
-                'title'           => '',
-                'description'     => '',
-                'primary_label'   => '',
-                'primary_href'    => '',
+            'metrics' => $titled,
+            'process' => $titled,
+            'news' => $titled,
+            'resources' => $titled,
+            'faq' => $titled,
+            'contact' => $titled,
+            'cases' => ['visible' => true],
+            'cta' => [
+                'visible' => true,
+                'title' => '',
+                'description' => '',
+                'primary_label' => '',
+                'primary_href' => '',
                 'secondary_label' => '',
-                'secondary_href'  => '',
+                'secondary_href' => '',
             ],
         ];
     }
@@ -87,36 +88,42 @@ class LandingPageController extends Controller
                 $sections[$key] = array_merge($sections[$key], $stored);
             }
         }
+
         return $sections;
     }
 
     private function storeFile(Request $request, string $field, string $dir): ?string
     {
-        if (!$request->hasFile($field)) return null;
+        if (! $request->hasFile($field)) {
+            return null;
+        }
+
         return $request->file($field)->store("landing/{$dir}", 'court_public');
     }
 
     private function deleteFile(?string $path): void
     {
-        if ($path) Storage::disk('court_public')->delete($path);
+        if ($path) {
+            Storage::disk('court_public')->delete($path);
+        }
     }
 
     // ── Index ─────────────────────────────────────────────────────────────────
 
     public function index()
     {
-        $slides    = HomeSlide::orderBy('sort_order')->get();
-        $faqs      = HomeFaq::orderBy('sort_order')->get();
-        $services  = HomeService::orderBy('sort_order')->get();
-        $steps     = HomeTimelineStep::orderBy('sort_order')->get();
+        $slides = HomeSlide::orderBy('sort_order')->get();
+        $faqs = HomeFaq::orderBy('sort_order')->get();
+        $services = HomeService::orderBy('sort_order')->get();
+        $steps = HomeTimelineStep::orderBy('sort_order')->get();
         $resources = HomeResource::orderBy('sort_order')->get();
-        $members   = CourtMember::orderBy('sort_order')->get();
-        $about     = HomeSetting::getJson('about.settings');
-        $about     = is_array($about) ? $about : [];
+        $members = CourtMember::orderBy('sort_order')->get();
+        $about = HomeSetting::getJson('about.settings');
+        $about = is_array($about) ? $about : [];
         $userManual = HomeSetting::getJson('user_manual.settings');
-        $sections  = $this->loadSections();
-        $metrics   = HomeSetting::getJson('metrics.content');
-        $footer    = HomeSetting::getJson('footer.settings');
+        $sections = $this->loadSections();
+        $metrics = HomeSetting::getJson('metrics.content');
+        $footer = HomeSetting::getJson('footer.settings');
         $totalCases = DB::table('court_cases')->count();
         $resolvedCases = DB::table('court_cases')->whereIn('status', ['closed', 'dismissed'])->count();
         $pendingCases = DB::table('court_cases')->where('status', 'pending')->count();
@@ -249,15 +256,15 @@ class LandingPageController extends Controller
     private function slideRules(): array
     {
         return [
-            'badge'           => 'nullable|string|max:120',
-            'title'           => 'required|string|max:255',
-            'description'     => 'nullable|string|max:1000',
-            'primary_label'   => 'required|string|max:120',
-            'primary_href'    => ['required', 'string', 'max:500', EditorLink::rule()],
+            'badge' => 'nullable|string|max:120',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'primary_label' => 'required|string|max:120',
+            'primary_href' => ['required', 'string', 'max:500', EditorLink::rule()],
             'secondary_label' => 'nullable|string|max:120',
-            'secondary_href'  => ['nullable', 'string', 'max:500', EditorLink::rule()],
-            'bg_style'        => 'required|in:blue,orange,emerald',
-            'bg_image'        => 'nullable|image|max:3072',
+            'secondary_href' => ['nullable', 'string', 'max:500', EditorLink::rule()],
+            'bg_style' => 'required|in:blue,orange,emerald',
+            'bg_image' => 'nullable|image|max:3072',
             ...$this->amharicRules('slide'),
         ];
     }
@@ -266,8 +273,8 @@ class LandingPageController extends Controller
     {
         $data = $this->withAmharic($request, $request->validate($this->slideRules(), [], $this->attributeNames()), 'slide');
 
-        $data['bg_image']    = $this->storeFile($request, 'bg_image', 'slides');
-        $data['sort_order']  = HomeSlide::max('sort_order') + 1;
+        $data['bg_image'] = $this->storeFile($request, 'bg_image', 'slides');
+        $data['sort_order'] = HomeSlide::max('sort_order') + 1;
         HomeSlide::create($data);
         $this->flushCache();
 
@@ -307,8 +314,9 @@ class LandingPageController extends Controller
 
     public function toggleSlide(HomeSlide $slide)
     {
-        $slide->update(['is_active' => !$slide->is_active]);
+        $slide->update(['is_active' => ! $slide->is_active]);
         $this->flushCache();
+
         return back();
     }
 
@@ -319,6 +327,7 @@ class LandingPageController extends Controller
             HomeSlide::where('id', $id)->update(['sort_order' => $position]);
         }
         $this->flushCache();
+
         return response()->json(['ok' => true]);
     }
 
@@ -327,11 +336,11 @@ class LandingPageController extends Controller
     public function storeStep(Request $request)
     {
         $data = $this->withAmharic($request, $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'meta'        => 'nullable|string|max:120',
-            'duration'    => 'nullable|string|max:60',
-            'color'       => 'required|in:blue,orange,emerald,violet,amber',
+            'meta' => 'nullable|string|max:120',
+            'duration' => 'nullable|string|max:60',
+            'color' => 'required|in:blue,orange,emerald,violet,amber',
             ...$this->amharicRules('step'),
         ], [], $this->attributeNames()), 'step');
 
@@ -345,11 +354,11 @@ class LandingPageController extends Controller
     public function updateStep(Request $request, HomeTimelineStep $step)
     {
         $data = $this->withAmharic($request, $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'meta'        => 'nullable|string|max:120',
-            'duration'    => 'nullable|string|max:60',
-            'color'       => 'required|in:blue,orange,emerald,violet,amber',
+            'meta' => 'nullable|string|max:120',
+            'duration' => 'nullable|string|max:60',
+            'color' => 'required|in:blue,orange,emerald,violet,amber',
             ...$this->amharicRules('step'),
         ], [], $this->attributeNames()), 'step');
 
@@ -363,13 +372,15 @@ class LandingPageController extends Controller
     {
         $step->delete();
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.step_deleted'));
     }
 
     public function toggleStep(HomeTimelineStep $step)
     {
-        $step->update(['is_active' => !$step->is_active]);
+        $step->update(['is_active' => ! $step->is_active]);
         $this->flushCache();
+
         return back();
     }
 
@@ -379,12 +390,13 @@ class LandingPageController extends Controller
     {
         $data = $this->withAmharic($request, $request->validate([
             'question' => 'required|string|max:500',
-            'answer'   => 'required|string|max:2000',
+            'answer' => 'required|string|max:2000',
             ...$this->amharicRules('faq'),
         ], [], $this->attributeNames()), 'faq');
         $data['sort_order'] = HomeFaq::max('sort_order') + 1;
         HomeFaq::create($data);
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.faq_added'));
     }
 
@@ -392,10 +404,11 @@ class LandingPageController extends Controller
     {
         $faq->update($this->withAmharic($request, $request->validate([
             'question' => 'required|string|max:500',
-            'answer'   => 'required|string|max:2000',
+            'answer' => 'required|string|max:2000',
             ...$this->amharicRules('faq'),
         ], [], $this->attributeNames()), 'faq'));
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.faq_updated'));
     }
 
@@ -403,13 +416,15 @@ class LandingPageController extends Controller
     {
         $faq->delete();
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.faq_deleted'));
     }
 
     public function toggleFaq(HomeFaq $faq)
     {
-        $faq->update(['is_active' => !$faq->is_active]);
+        $faq->update(['is_active' => ! $faq->is_active]);
         $this->flushCache();
+
         return back();
     }
 
@@ -418,37 +433,39 @@ class LandingPageController extends Controller
     public function storeService(Request $request)
     {
         $data = $this->withAmharic($request, $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'meta'        => 'nullable|string|max:120',
-            'features'    => 'nullable|string',
-            'icon_type'   => 'required|in:document,calendar,lock,chart,database,chat',
-            'accent'      => 'required|in:blue,orange,emerald,violet,amber,pink',
-            'href'        => ['nullable', 'string', 'max:500', EditorLink::rule()],
+            'meta' => 'nullable|string|max:120',
+            'features' => 'nullable|string',
+            'icon_type' => 'required|in:document,calendar,lock,chart,database,chat',
+            'accent' => 'required|in:blue,orange,emerald,violet,amber,pink',
+            'href' => ['nullable', 'string', 'max:500', EditorLink::rule()],
             ...$this->amharicRules('service'),
         ], [], $this->attributeNames()), 'service');
-        $data['features']   = $this->parseLines($request->input('features', ''));
+        $data['features'] = $this->parseLines($request->input('features', ''));
         $data['sort_order'] = HomeService::max('sort_order') + 1;
         HomeService::create($data);
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.service_added'));
     }
 
     public function updateService(Request $request, HomeService $service)
     {
         $data = $this->withAmharic($request, $request->validate([
-            'title'       => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'meta'        => 'nullable|string|max:120',
-            'features'    => 'nullable|string',
-            'icon_type'   => 'required|in:document,calendar,lock,chart,database,chat',
-            'accent'      => 'required|in:blue,orange,emerald,violet,amber,pink',
-            'href'        => ['nullable', 'string', 'max:500', EditorLink::rule()],
+            'meta' => 'nullable|string|max:120',
+            'features' => 'nullable|string',
+            'icon_type' => 'required|in:document,calendar,lock,chart,database,chat',
+            'accent' => 'required|in:blue,orange,emerald,violet,amber,pink',
+            'href' => ['nullable', 'string', 'max:500', EditorLink::rule()],
             ...$this->amharicRules('service'),
         ], [], $this->attributeNames()), 'service');
         $data['features'] = $this->parseLines($request->input('features', ''));
         $service->update($data);
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.service_updated'));
     }
 
@@ -456,13 +473,15 @@ class LandingPageController extends Controller
     {
         $service->delete();
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.service_deleted'));
     }
 
     public function toggleService(HomeService $service)
     {
-        $service->update(['is_active' => !$service->is_active]);
+        $service->update(['is_active' => ! $service->is_active]);
         $this->flushCache();
+
         return back();
     }
 
@@ -472,14 +491,14 @@ class LandingPageController extends Controller
     private function resourceRules(): array
     {
         return [
-            'title'        => 'required|string|max:255',
-            'type'         => 'required|in:post,form,document,link',
-            'description'  => 'nullable|string|max:2000',
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:post,form,document,link',
+            'description' => 'nullable|string|max:2000',
             'external_url' => ['nullable', 'string', 'max:500', EditorLink::rule(allowRelative: false)],
-            'is_featured'  => 'boolean',
+            'is_featured' => 'boolean',
             'published_at' => 'nullable|date',
-            'file'         => 'nullable|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip',
-            'cover_image'  => 'nullable|image|max:2048',
+            'file' => 'nullable|file|max:20480|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip',
+            'cover_image' => 'nullable|image|max:2048',
             ...$this->amharicRules('resource'),
         ];
     }
@@ -488,10 +507,10 @@ class LandingPageController extends Controller
     {
         $data = $this->withAmharic($request, $request->validate($this->resourceRules(), [], $this->attributeNames()), 'resource');
 
-        $data['file_path']    = $this->storeFile($request, 'file', 'resources');
-        $data['cover_image']  = $this->storeFile($request, 'cover_image', 'covers');
-        $data['is_featured']  = $request->boolean('is_featured');
-        $data['sort_order']   = HomeResource::max('sort_order') + 1;
+        $data['file_path'] = $this->storeFile($request, 'file', 'resources');
+        $data['cover_image'] = $this->storeFile($request, 'cover_image', 'covers');
+        $data['is_featured'] = $request->boolean('is_featured');
+        $data['sort_order'] = HomeResource::max('sort_order') + 1;
         HomeResource::create($data);
         $this->flushCache();
 
@@ -534,13 +553,15 @@ class LandingPageController extends Controller
         $this->deleteFile($resource->cover_image);
         $resource->delete();
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.resource_deleted'));
     }
 
     public function toggleResource(HomeResource $resource)
     {
-        $resource->update(['is_active' => !$resource->is_active]);
+        $resource->update(['is_active' => ! $resource->is_active]);
         $this->flushCache();
+
         return back();
     }
 
@@ -570,23 +591,23 @@ class LandingPageController extends Controller
         // rule alone lets through a scheme such as "javascript://…".
         $social = ['nullable', 'string', 'max:300', EditorLink::rule(allowRelative: false)];
         $data = $request->validate([
-            'description'         => 'nullable|string|max:500',
-            'description_am'      => 'nullable|string|max:500',
-            'authority_name'      => 'nullable|string|max:160',
-            'authority_name_am'   => 'nullable|string|max:160',
-            'contact_phone'       => 'nullable|string|max:60',
-            'contact_email'       => 'nullable|email|max:120',
-            'contact_address'     => 'nullable|string|max:255',
-            'contact_address_am'  => 'nullable|string|max:255',
-            'office_hours'        => 'nullable|string|max:255',
-            'office_hours_am'     => 'nullable|string|max:255',
-            'map_url'             => ['nullable', 'string', 'max:500', EditorLink::rule(allowRelative: false)],
-            'social_facebook'     => $social,
-            'social_twitter'      => $social,
-            'social_linkedin'     => $social,
-            'social_youtube'      => $social,
-            'social_telegram'     => $social,
-            'social_instagram'    => $social,
+            'description' => 'nullable|string|max:500',
+            'description_am' => 'nullable|string|max:500',
+            'authority_name' => 'nullable|string|max:160',
+            'authority_name_am' => 'nullable|string|max:160',
+            'contact_phone' => 'nullable|string|max:60',
+            'contact_email' => 'nullable|email|max:120',
+            'contact_address' => 'nullable|string|max:255',
+            'contact_address_am' => 'nullable|string|max:255',
+            'office_hours' => 'nullable|string|max:255',
+            'office_hours_am' => 'nullable|string|max:255',
+            'map_url' => ['nullable', 'string', 'max:500', EditorLink::rule(allowRelative: false)],
+            'social_facebook' => $social,
+            'social_twitter' => $social,
+            'social_linkedin' => $social,
+            'social_youtube' => $social,
+            'social_telegram' => $social,
+            'social_instagram' => $social,
         ], [], $this->attributeNames());
 
         HomeSetting::setJson('footer.settings', $data);
@@ -638,14 +659,14 @@ class LandingPageController extends Controller
         }
         $validated = $request->validate([
             ...$titled,
-            'cases.visible'            => 'boolean',
-            'cta.visible'              => 'boolean',
-            'cta.title'                => 'nullable|string|max:255',
-            'cta.description'          => 'nullable|string|max:500',
-            'cta.primary_label'        => 'nullable|string|max:120',
-            'cta.primary_href'         => ['nullable', 'string', 'max:500', EditorLink::rule()],
-            'cta.secondary_label'      => 'nullable|string|max:120',
-            'cta.secondary_href'       => ['nullable', 'string', 'max:500', EditorLink::rule()],
+            'cases.visible' => 'boolean',
+            'cta.visible' => 'boolean',
+            'cta.title' => 'nullable|string|max:255',
+            'cta.description' => 'nullable|string|max:500',
+            'cta.primary_label' => 'nullable|string|max:120',
+            'cta.primary_href' => ['nullable', 'string', 'max:500', EditorLink::rule()],
+            'cta.secondary_label' => 'nullable|string|max:120',
+            'cta.secondary_href' => ['nullable', 'string', 'max:500', EditorLink::rule()],
         ], [], $this->attributeNames());
 
         // Only the validated keys are stored: the request's own section arrays
@@ -657,6 +678,7 @@ class LandingPageController extends Controller
         }
 
         $this->flushCache();
+
         return back()->with('success', __('court::admin_landing.flash.sections_saved'))->with('landing_tab', 'sections');
     }
 
@@ -666,11 +688,11 @@ class LandingPageController extends Controller
     public function updateAbout(Request $request)
     {
         $data = $request->validate([
-            'body'             => 'nullable|string|max:5000',
-            'body_am'          => 'nullable|string|max:5000',
-            'facts'            => 'nullable|array|max:8',
-            'facts.*.label'    => 'nullable|string|max:120',
-            'facts.*.value'    => 'nullable|string|max:255',
+            'body' => 'nullable|string|max:5000',
+            'body_am' => 'nullable|string|max:5000',
+            'facts' => 'nullable|array|max:8',
+            'facts.*.label' => 'nullable|string|max:120',
+            'facts.*.value' => 'nullable|string|max:255',
             'facts.*.label_am' => 'nullable|string|max:120',
             'facts.*.value_am' => 'nullable|string|max:255',
         ], [], $this->attributeNames());
@@ -690,9 +712,9 @@ class LandingPageController extends Controller
     private function memberRules(): array
     {
         return [
-            'name'  => 'required|string|max:255',
-            'role'  => 'nullable|string|max:255',
-            'bio'   => 'nullable|string|max:2000',
+            'name' => 'required|string|max:255',
+            'role' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:2000',
             'photo' => 'nullable|image|max:2048',
             ...$this->amharicRules('member'),
         ];
@@ -809,7 +831,7 @@ class LandingPageController extends Controller
     private function sanitizeManualHtml(string $html): string
     {
         // HTMLPurifier writes the platform's line endings; store "\n" everywhere.
-        return trim((string) preg_replace('/\r\n?/', "\n", (string) \Modules\Court\Application\Support\Purifier::clean($html, 'default')));
+        return trim((string) preg_replace('/\r\n?/', "\n", (string) Purifier::clean($html, 'default')));
     }
 
     /**

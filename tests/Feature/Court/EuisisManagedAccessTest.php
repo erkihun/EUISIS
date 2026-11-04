@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 use Modules\Court\Domain\Models\CourtStaffMember;
 
 /*
@@ -47,7 +48,7 @@ test('an account without court permissions does not get in', function (): void {
 
 test('the court has no account, role, permission or system settings screens of its own', function (): void {
     foreach (['court.users.index', 'court.roles.index', 'court.permissions.index', 'court.settings.system.edit', 'court.admin.roles.switch'] as $name) {
-        expect(\Illuminate\Support\Facades\Route::has($name))->toBeFalse($name);
+        expect(Route::has($name))->toBeFalse($name);
     }
 });
 

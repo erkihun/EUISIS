@@ -1,11 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Modules\Court\Application\Services\Euisis\EuisisSync;
 use Modules\Court\Domain\Models\EuisisEmployee;
 use Modules\Court\Domain\Models\EuisisOrganization;
 use Modules\Court\Domain\Models\EuisisOrganizationUnit;
 use Modules\Court\Domain\Models\EuisisPosition;
-use Modules\Court\Application\Services\Euisis\EuisisSync;
-use Illuminate\Support\Facades\Http;
 
 // Flow 1 of docs/euisis-integration.md: the EUISIS master-data cache.
 
@@ -25,7 +26,7 @@ beforeEach(function () {
 
 function euisisSyncEvent(string $type, string $aggregate, int $sequence, array $data, string $kind = 'upsert'): array
 {
-    return ['event_id' => (string) Illuminate\Support\Str::uuid(), 'event_type' => $type, 'event_version' => 1, 'aggregate_uuid' => $aggregate, 'sequence' => $sequence, 'change_kind' => $kind, 'data' => $data];
+    return ['event_id' => (string) Str::uuid(), 'event_type' => $type, 'event_version' => 1, 'aggregate_uuid' => $aggregate, 'sequence' => $sequence, 'change_kind' => $kind, 'data' => $data];
 }
 
 function euisisSyncFakeDirectory(array $feed, bool $feedOn = true): void

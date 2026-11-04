@@ -2,18 +2,21 @@
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Modules\Court\Application\Services\ResponseNotificationService;
 use Inertia\Inertia;
+use Modules\Court\Application\Services\LegalHoldService;
+use Modules\Court\Application\Services\ResponseNotificationService;
+use Modules\Court\Application\Services\SecureUploadService;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
+use Modules\Court\Http\Controllers\Controller;
 
 class ResponseController extends Controller
 {
@@ -72,7 +75,7 @@ class ResponseController extends Controller
         $this->assertNotOwnCase($caseNumber, (int) $applicant->id);
         $this->assertCaseAuthorized($caseNumber, $respondentId, false);
 
-        $path = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+        $path = app(SecureUploadService::class)->store(
             $request->file('pdf'),
             'respondent/responses',
             'court_private',
@@ -136,7 +139,7 @@ class ResponseController extends Controller
             'has_pdf' => ! empty($response->pdf_path),
             'created_at' => $response->created_at?->toIso8601String(),
             // Purified on save; cleaned again on the way out, as the other rich text is.
-            ...($withDescription ? ['description' => $response->description ? (string) \Modules\Court\Application\Support\Purifier::clean($response->description, 'cases') : null] : []),
+            ...($withDescription ? ['description' => $response->description ? (string) Purifier::clean($response->description, 'cases') : null] : []),
         ];
     }
 
@@ -160,10 +163,10 @@ class ResponseController extends Controller
         $this->assertCaseAuthorized($caseNumber, $this->currentRespondentId(), false);
 
         if ($request->hasFile('pdf')) {
-            app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $response->pdf_path);
+            app(LegalHoldService::class)->assertFileMayBeDeleted((string) $response->pdf_path);
             Storage::disk('court_private')->delete($response->pdf_path);
             Storage::disk('court_public')->delete($response->pdf_path); // legacy cleanup
-            $path = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+            $path = app(SecureUploadService::class)->store(
                 $request->file('pdf'),
                 'respondent/responses',
                 'court_private',
@@ -201,7 +204,7 @@ class ResponseController extends Controller
     {
         $this->authorizeOwnership($response);
         $this->ensureEditable($response);
-        app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $response->pdf_path);
+        app(LegalHoldService::class)->assertFileMayBeDeleted((string) $response->pdf_path);
         Storage::disk('court_private')->delete($response->pdf_path);
         Storage::disk('court_public')->delete($response->pdf_path); // legacy cleanup
         $response->delete();
@@ -232,29 +235,29 @@ class ResponseController extends Controller
         abort_unless($applicant, 403);
 
         $respondent = Respondent::where('email', $applicant->email)->first();
-        if (!$respondent) {
-            $phone = $applicant->phone ?? 'resp_' . substr(md5((string) microtime(true)), 0, 12);
+        if (! $respondent) {
+            $phone = $applicant->phone ?? 'resp_'.substr(md5((string) microtime(true)), 0, 12);
             if (Respondent::where('phone', $phone)->where('email', '!=', $applicant->email)->exists()) {
-                $phone = 'resp_' . substr(md5(uniqid('', true)), 0, 12);
+                $phone = 'resp_'.substr(md5(uniqid('', true)), 0, 12);
             }
 
             $respondent = Respondent::create([
-                'first_name'        => $applicant->first_name ?? '',
-                'middle_name'       => $applicant->middle_name ?? '',
-                'last_name'         => $applicant->last_name ?? '',
-                'gender'            => $applicant->gender ?? null,
-                'position'          => $applicant->position ?? '',
+                'first_name' => $applicant->first_name ?? '',
+                'middle_name' => $applicant->middle_name ?? '',
+                'last_name' => $applicant->last_name ?? '',
+                'gender' => $applicant->gender ?? null,
+                'position' => $applicant->position ?? '',
                 'organization_name' => $applicant->organization_name ?? '',
-                'address'           => $applicant->address ?? '',
-                'national_id'       => $this->applicantNationalId($applicant),
-                'phone'             => $phone,
-                'email'             => $applicant->email,
-                'password'          => \Illuminate\Support\Str::random(32),
+                'address' => $applicant->address ?? '',
+                'national_id' => $this->applicantNationalId($applicant),
+                'phone' => $phone,
+                'email' => $applicant->email,
+                'password' => Str::random(32),
             ]);
         } else {
             $dirty = false;
             $maybeNationalId = $this->applicantNationalId($applicant);
-            if (!$respondent->national_id && $maybeNationalId) {
+            if (! $respondent->national_id && $maybeNationalId) {
                 $respondent->national_id = $maybeNationalId;
                 $dirty = true;
             }
@@ -268,7 +271,7 @@ class ResponseController extends Controller
 
     private function assertNotOwnCase(?string $caseNumber, int $applicantId): void
     {
-        if (!$caseNumber) {
+        if (! $caseNumber) {
             return;
         }
 
@@ -284,12 +287,12 @@ class ResponseController extends Controller
 
     private function assertCaseAuthorized(?string $caseNumber, int $respondentId, bool $api): void
     {
-        if (!$caseNumber) {
+        if (! $caseNumber) {
             return;
         }
 
         $caseExists = DB::table('court_cases')->where('case_number', $caseNumber)->exists();
-        if (!$caseExists) {
+        if (! $caseExists) {
             $this->throwCaseNumberError(__('court::respondent.case_not_found'), $api);
         }
 
@@ -298,7 +301,7 @@ class ResponseController extends Controller
             ->where('case_number', $caseNumber)
             ->exists();
 
-        if (!$authorized) {
+        if (! $authorized) {
             $this->throwCaseNumberError(__('court::respondent.case_not_authorized'), $api);
         }
     }
@@ -319,6 +322,7 @@ class ResponseController extends Controller
         }
 
         $normalized = trim($caseNumber);
+
         return $normalized === '' ? null : $normalized;
     }
 
@@ -343,6 +347,7 @@ class ResponseController extends Controller
         if ($digits === '') {
             return null;
         }
+
         return substr($digits, 0, 16);
     }
 
@@ -355,6 +360,7 @@ class ResponseController extends Controller
         if (str_contains($s, '&lt;') || str_contains($s, '&gt;')) {
             $s = htmlspecialchars_decode($s, ENT_QUOTES);
         }
-        return \Modules\Court\Application\Support\Purifier::clean($s, 'cases');
+
+        return Purifier::clean($s, 'cases');
     }
 }

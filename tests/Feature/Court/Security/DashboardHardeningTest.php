@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Permission;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Permission;
+use Modules\Court\Domain\Models\Role;
 
 /*
  * The staff dashboard: case statistics (counts, workload by person and team,

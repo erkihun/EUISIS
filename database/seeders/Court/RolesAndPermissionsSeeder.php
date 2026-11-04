@@ -23,14 +23,16 @@ class RolesAndPermissionsSeeder extends Seeder
     private function assignAdminPermissions(): void
     {
         $schema = DB::getSchemaBuilder();
-        if (!$schema->hasTable('court_roles') || !$schema->hasTable('court_permissions') || !$schema->hasTable('court_permission_role')) {
-            $this->command->warn("Skipping RolesAndPermissionsSeeder: required tables missing.");
+        if (! $schema->hasTable('court_roles') || ! $schema->hasTable('court_permissions') || ! $schema->hasTable('court_permission_role')) {
+            $this->command->warn('Skipping RolesAndPermissionsSeeder: required tables missing.');
+
             return;
         }
 
         $adminRoleId = DB::table('court_roles')->where('name', 'admin')->value('id');
-        if (!$adminRoleId) {
+        if (! $adminRoleId) {
             $this->command->warn("Skipping RolesAndPermissionsSeeder: 'admin' role not found.");
+
             return;
         }
 

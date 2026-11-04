@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Assessment\Infrastructure\Console;
 
 use App\Models\User;
-use Modules\Assessment\Application\Services\AssessmentFormImporter;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 use JsonException;
+use Modules\Assessment\Application\Services\AssessmentFormImporter;
 
 /**
  * Imports assessment forms from definition files (default: the official

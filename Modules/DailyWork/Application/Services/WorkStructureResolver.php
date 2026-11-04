@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Application\Services;
 
 use App\Enums\TaskQualitySource;
-use Modules\DailyWork\Domain\Models\DailyActivityItem;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\PositionService;
 use App\Models\PositionServiceSubService;
 use App\Models\PositionServiceTask;
@@ -15,6 +13,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * Turns the employee's choice of main task into a measured item.

@@ -2,13 +2,6 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Services\AppealRecordBundle;
-use Modules\Court\Application\Services\AppealRecords;
-use Modules\Court\Application\Services\CaseParties;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -20,7 +13,16 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Services\AppealRecordBundle;
+use Modules\Court\Application\Services\AppealRecords;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Support\CaseScope;
+use Modules\Court\Application\Support\CourtPermissions;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
+use Modules\Court\Http\Controllers\Controller;
 
 class RecordController extends Controller
 {
@@ -43,7 +45,7 @@ class RecordController extends Controller
 
         $isReviewer = false;
         if (true) {
-            $isReviewer = (bool) \Modules\Court\Application\Support\CourtPermissions::check('cases.review');
+            $isReviewer = (bool) CourtPermissions::check('cases.review');
         } elseif (Auth::user()) {
             $isReviewer = (bool) Auth::user()->can('cases.review');
         }
@@ -104,7 +106,7 @@ class RecordController extends Controller
         }
 
         $memberScopeIds = $this->teamLeaderAssignmentIds(Auth::user());
-        if (!empty($memberScopeIds)) {
+        if (! empty($memberScopeIds)) {
             $leaderTeamId = Team::where('team_leader_id', Auth::id())->value('id');
             $builder->where(function ($inner) use ($memberScopeIds, $leaderTeamId) {
                 $inner->whereIn('c.assigned_user_id', $memberScopeIds);
@@ -118,12 +120,12 @@ class RecordController extends Controller
             $isLeader = Auth::user()?->hasPermission('cases.assign.member') ?? false;
             $canAssignTeams = Auth::user()?->hasPermission('cases.assign.team') ?? false;
 
-            if ($isTeamMember && !$isLeader && !$canAssignTeams) {
+            if ($isTeamMember && ! $isLeader && ! $canAssignTeams) {
                 $builder->where('c.assigned_member_user_id', $userId);
             }
         }
 
-        if (!$isReviewer) {
+        if (! $isReviewer) {
             $builder->where('c.review_status', 'accepted');
         }
 
@@ -297,7 +299,7 @@ class RecordController extends Controller
                 ->map(fn (object $reply): array => [
                     'id' => (int) $reply->id,
                     'response_id' => (int) $reply->respondent_response_id,
-                    'description' => $reply->description ? \Modules\Court\Application\Support\Purifier::clean((string) $reply->description, 'default') : null,
+                    'description' => $reply->description ? Purifier::clean((string) $reply->description, 'default') : null,
                     'created_at' => $iso($reply->created_at),
                 ])->values()->all(),
         ];
@@ -360,7 +362,7 @@ class RecordController extends Controller
     {
         $iso = fn ($value): ?string => $value ? Carbon::parse($value)->toIso8601String() : null;
         $date = fn ($value): ?string => $value ? Carbon::parse($value)->toDateString() : null;
-        $clean = fn (?string $html): ?string => $html !== null && $html !== '' ? \Modules\Court\Application\Support\Purifier::clean($html, 'default') : null;
+        $clean = fn (?string $html): ?string => $html !== null && $html !== '' ? Purifier::clean($html, 'default') : null;
 
         // The Blade page listed the case's submitted documents, or, when it had none, the case files in their place.
         $submittedDocuments = collect($case->submitted_documents ?? []);
@@ -473,6 +475,7 @@ class RecordController extends Controller
             ->map(function ($resp) {
                 $resp->pdf_embed = null;
                 $resp->download_url = $resp->id ? route('court.respondent-responses.download', $resp->id) : null;
+
                 return $resp;
             });
 
@@ -523,7 +526,7 @@ class RecordController extends Controller
         $firstEvidenceEmbed = null;
         foreach ($withEvidenceEmbed ? $evidences : [] as $ev) {
             $path = $ev->file_path ?? $ev->path ?? null;
-            if (!$path) {
+            if (! $path) {
                 continue;
             }
 
@@ -580,7 +583,7 @@ class RecordController extends Controller
 
         $assignedUser = null;
         $assignedTeams = collect();
-        if (!empty($case->assigned_user_id)) {
+        if (! empty($case->assigned_user_id)) {
             $assignedUser = DB::table('court_staff')->where('id', $case->assigned_user_id)->first();
             $assignedTeams = DB::table('court_team_user as tu')
                 ->join('court_teams as t', 't.id', '=', 'tu.team_id')
@@ -628,19 +631,19 @@ class RecordController extends Controller
         $user = Auth::user();
         abort_unless($user instanceof User && Gate::forUser($user)->allows('view', $case), 403);
         // The team scope of the record list and the case page (CaseScope).
-        abort_unless(\Modules\Court\Application\Support\CaseScope::allows($user, $case), 403);
+        abort_unless(CaseScope::allows($user, $case), 403);
     }
 
     private function teamLeaderAssignmentIds(?User $user): array
     {
-        if (!$user) {
+        if (! $user) {
             return [];
         }
 
         $isLeader = $user->hasPermission('cases.assign.member');
         $hasAdminAssign = $user->hasPermission('cases.assign.team');
 
-        if (!$isLeader || $hasAdminAssign) {
+        if (! $isLeader || $hasAdminAssign) {
             return [];
         }
 

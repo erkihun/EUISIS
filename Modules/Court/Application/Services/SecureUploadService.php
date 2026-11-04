@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services;
 
-use Modules\Court\Domain\Models\FileSecurityRecord;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Domain\Models\FileSecurityRecord;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
@@ -20,8 +20,7 @@ final readonly class SecureUploadService
         string $directory,
         string $disk = 'court_private',
         array $context = [],
-    ): string
-    {
+    ): string {
         $scan = $this->scan($file);
 
         if ($scan['status'] === 'infected') {

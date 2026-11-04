@@ -10,9 +10,11 @@ use App\Enums\OccupantBasis;
 use App\Models\ActingAppointment;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmploymentStatusHistory;
 use App\Services\Employees\EmployeeWorkContextResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Who holds which positions on a date (ADR 0025): the assignments in force
@@ -113,7 +115,7 @@ class OccupantResolver
         return ['substantive' => $substantive, 'acting' => $acting];
     }
 
-    /** @param \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, \App\Models\EmploymentStatusHistory>> $histories */
+    /** @param Collection<string, Collection<int, EmploymentStatusHistory>> $histories */
     private function occupant(Employee $employee, string $positionId, OccupantBasis $basis, string $day, $histories, ?string $assignmentId = null, ?string $actingId = null): Occupant
     {
         $status = $day === today()->toDateString()

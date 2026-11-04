@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\FileSecurityRecord;
-use Modules\Court\Application\Services\LegalHoldService;
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Application\Services\LegalHoldService;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\FileSecurityRecord;
 
 test('secure uploads are privately stored with integrity metadata', function () {
     Storage::fake('court_private');

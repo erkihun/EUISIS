@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Http\Requests\Admin\StoreDecisionRequest;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Domain\Models\DecisionReview;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\DecisionPdf;
+use Modules\Court\Application\Support\EthiopianDate;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Decision;
+use Modules\Court\Domain\Models\DecisionReview;
+use Modules\Court\Domain\Models\DecisionTemplate;
+use Modules\Court\Domain\Models\Team;
+use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Requests\Admin\StoreDecisionRequest;
 
 class DecisionController extends Controller
 {
@@ -105,7 +109,7 @@ class DecisionController extends Controller
         $user = auth()->user();
 
         $teamIds = $user
-            ? \Modules\Court\Domain\Models\Team::query()
+            ? Team::query()
                 ->whereHas('users', fn ($q) => $q->where('court_staff.id', $user->id))
                 ->pluck('id')
                 ->all()
@@ -113,6 +117,7 @@ class DecisionController extends Controller
 
         if (empty($teamIds)) {
             $query->whereRaw('1 = 0'); // No team => no decisions.
+
             return;
         }
 
@@ -135,7 +140,7 @@ class DecisionController extends Controller
         }
 
         return $user
-            ? \Modules\Court\Domain\Models\Team::query()
+            ? Team::query()
                 ->where('id', $teamId)
                 ->whereHas('users', fn ($q) => $q->where('court_staff.id', $user->id))
                 ->exists()
@@ -193,7 +198,7 @@ class DecisionController extends Controller
                 'approved_at' => $decision->approved_at?->toIso8601String(),
                 'approver_name' => $decision->approver?->name,
                 // Purified on save; cleaned again on output for rows saved before that.
-                'decision_content' => \Modules\Court\Application\Support\Purifier::clean((string) $decision->decision_content, 'cases'),
+                'decision_content' => Purifier::clean((string) $decision->decision_content, 'cases'),
                 'panel' => $panel,
                 'panel_complete' => $decision->hasCompletePanel(),
             ],
@@ -205,8 +210,8 @@ class DecisionController extends Controller
                 'updated_at' => $review->updated_at?->toIso8601String(),
                 'is_owner' => $user?->id === $review->reviewer_id,
             ])->values()->all(),
-            'templates' => \Modules\Court\Domain\Models\DecisionTemplate::orderBy('title')->get(['id', 'title'])
-                ->map(fn (\Modules\Court\Domain\Models\DecisionTemplate $template): array => ['id' => (int) $template->id, 'title' => $template->title])
+            'templates' => DecisionTemplate::orderBy('title')->get(['id', 'title'])
+                ->map(fn (DecisionTemplate $template): array => ['id' => (int) $template->id, 'title' => $template->title])
                 ->all(),
             'statuses' => self::STATUS_OPTIONS,
             'can' => [
@@ -276,15 +281,15 @@ class DecisionController extends Controller
 
         $validated = $request->validate([
             'template_id' => ['nullable', 'integer', 'exists:court_decision_templates,id'],
-            'mode'        => ['nullable', 'in:stream,download'],
+            'mode' => ['nullable', 'in:stream,download'],
         ]);
 
         $template = ! empty($validated['template_id'])
-            ? \Modules\Court\Domain\Models\DecisionTemplate::find($validated['template_id'])
+            ? DecisionTemplate::find($validated['template_id'])
             : null;
 
-        $pdf = \Modules\Court\Application\Support\DecisionPdf::render($decision, $template);
-        $filename = \Modules\Court\Application\Support\DecisionPdf::filename($decision);
+        $pdf = DecisionPdf::render($decision, $template);
+        $filename = DecisionPdf::filename($decision);
 
         return ($validated['mode'] ?? 'stream') === 'download'
             ? $pdf->download($filename)
@@ -339,30 +344,30 @@ class DecisionController extends Controller
         };
 
         $replacements = [
-            'applicant_name'     => (string) ($decision->applicant_full_name ?? ''),
-            'respondent_name'    => (string) ($decision->respondent_full_name ?? ''),
-            'case_number'        => (string) ($decision->case_number ?? ''),
-            'case_file_number'   => (string) ($decision->case_file_number ?? ''),
-            'judge_name'         => (string) ($decision->courtCase?->judge?->name ?? ''),
-            'decision_date'      => \Modules\Court\Application\Support\EthiopianDate::format($decision->decision_date, fallback: ''),
-            'decision_content'   => (string) ($decision->decision_content ?? ''),
-            'decision_name'      => (string) ($decision->name ?? ''),
+            'applicant_name' => (string) ($decision->applicant_full_name ?? ''),
+            'respondent_name' => (string) ($decision->respondent_full_name ?? ''),
+            'case_number' => (string) ($decision->case_number ?? ''),
+            'case_file_number' => (string) ($decision->case_file_number ?? ''),
+            'judge_name' => (string) ($decision->courtCase?->judge?->name ?? ''),
+            'decision_date' => EthiopianDate::format($decision->decision_date, fallback: ''),
+            'decision_content' => (string) ($decision->decision_content ?? ''),
+            'decision_name' => (string) ($decision->name ?? ''),
 
             // Panel judges (1 = presiding/first, 2 = middle, 3 = third)
-            'judge_one'          => $judgeName($panel, 0),
-            'judge_two'          => $judgeName($panel, 1),
-            'judge_three'        => $judgeName($panel, 2),
-            'judge_one_vote'     => $judgeVote($panel, 0),
-            'judge_two_vote'     => $judgeVote($panel, 1),
-            'judge_three_vote'   => $judgeVote($panel, 2),
+            'judge_one' => $judgeName($panel, 0),
+            'judge_two' => $judgeName($panel, 1),
+            'judge_three' => $judgeName($panel, 2),
+            'judge_one_vote' => $judgeVote($panel, 0),
+            'judge_two_vote' => $judgeVote($panel, 1),
+            'judge_three_vote' => $judgeVote($panel, 2),
 
             // Signature block for all panel judges (HTML)
-            'judges_signatures'  => $this->buildJudgesSignatures($panel),
+            'judges_signatures' => $this->buildJudgesSignatures($panel),
         ];
 
         foreach ($replacements as $key => $value) {
             // Allow optional spaces inside the braces: {{ key }} or {{key}}
-            $body = preg_replace('/\{\{\s*' . preg_quote($key, '/') . '\s*\}\}/', $value, $body);
+            $body = preg_replace('/\{\{\s*'.preg_quote($key, '/').'\s*\}\}/', $value, $body);
         }
 
         return $body;
@@ -382,17 +387,17 @@ class DecisionController extends Controller
                 continue;
             }
             $cells .= '<td style="width:33%;text-align:center;padding:8px;vertical-align:bottom;">'
-                . '<div style="border-top:1px solid #111827;margin-top:36px;padding-top:4px;">'
-                . '<div style="font-size:9pt;color:#6b7280;">' . e($labels[$i]) . '</div>'
-                . '<div style="font-weight:600;">' . e($name) . '</div>'
-                . '</div></td>';
+                .'<div style="border-top:1px solid #111827;margin-top:36px;padding-top:4px;">'
+                .'<div style="font-size:9pt;color:#6b7280;">'.e($labels[$i]).'</div>'
+                .'<div style="font-weight:600;">'.e($name).'</div>'
+                .'</div></td>';
         }
 
         if ($cells === '') {
             return '';
         }
 
-        return '<table style="width:100%;border-collapse:collapse;margin-top:18px;"><tr>' . $cells . '</tr></table>';
+        return '<table style="width:100%;border-collapse:collapse;margin-top:18px;"><tr>'.$cells.'</tr></table>';
     }
 
     public function store(StoreDecisionRequest $request)
@@ -570,6 +575,7 @@ class DecisionController extends Controller
         $this->ensureMiddleJudge($decision);
         $this->ensureNotPublished($decision);
         $decision->delete();
+
         return back()->with('success', [
             'key' => 'court::messages.success.deleted',
             'replace' => ['resource' => __('court::messages.resources.decision')],
@@ -597,7 +603,7 @@ class DecisionController extends Controller
         $payload['name'] = trim((string) ($payload['name'] ?? ''));
         $payload['case_file_number'] = trim((string) ($payload['case_file_number'] ?? ''));
         $payload['description'] = isset($payload['description']) ? strip_tags(trim($payload['description'])) : null;
-        $payload['decision_content'] = \Modules\Court\Application\Support\Purifier::clean(trim($payload['decision_content'] ?? ''), 'cases');
+        $payload['decision_content'] = Purifier::clean(trim($payload['decision_content'] ?? ''), 'cases');
         $payload['reviewing_admin_user_names'] = $payload['reviewing_admin_user_names'] ?? [];
         $payload['judges'] = $payload['judges'] ?? [];
 
@@ -639,7 +645,7 @@ class DecisionController extends Controller
     {
         if (is_array($raw)) {
             return collect($raw)
-                ->map(fn($value) => trim((string) $value))
+                ->map(fn ($value) => trim((string) $value))
                 ->filter()
                 ->unique()
                 ->values()
@@ -651,7 +657,7 @@ class DecisionController extends Controller
         }
 
         return collect(preg_split('/[\r\n,]+/', $raw))
-            ->map(fn($value) => trim($value))
+            ->map(fn ($value) => trim($value))
             ->filter()
             ->unique()
             ->values()
@@ -669,6 +675,7 @@ class DecisionController extends Controller
 
         return $ordered->map(function ($row, $index) use ($namesById) {
             $id = (int) Arr::get($row, 'admin_user_id');
+
             return [
                 'order' => $index + 1,
                 'admin_user_id' => $id ?: null,
@@ -726,7 +733,7 @@ class DecisionController extends Controller
             ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->get(['id', 'case_number', 'title', 'filing_date', 'applicant_id', 'respondent_name', 'status']);
 
-        if ($decision && $decision->court_case_id && !$cases->contains('id', $decision->court_case_id)) {
+        if ($decision && $decision->court_case_id && ! $cases->contains('id', $decision->court_case_id)) {
             $current = CourtCase::find($decision->court_case_id, ['id', 'case_number', 'title', 'filing_date', 'status']);
             if ($current) {
                 $cases->push($current);
@@ -744,13 +751,13 @@ class DecisionController extends Controller
         $query = User::query()->orderBy('name');
 
         if ($teamIds->isNotEmpty()) {
-            $query->whereHas('teams', fn($q) => $q->whereIn('court_teams.id', $teamIds));
+            $query->whereHas('teams', fn ($q) => $q->whereIn('court_teams.id', $teamIds));
         }
 
         $judges = $query->get(['id', 'name']);
 
         // Ensure current user is present
-        if ($user && !$judges->contains('id', $user->id)) {
+        if ($user && ! $judges->contains('id', $user->id)) {
             $judges->push($user);
         }
 

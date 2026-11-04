@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Actions;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\SystemSetting;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\SystemSetting;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -40,6 +40,11 @@ final readonly class RecordSystemAuditAction
 
         [$actorType, $actorId] = $this->resolveActor($request);
         $routeName = $request->route()?->getName();
+        // An unnamed route inside a named group carries only the group's prefix ("court."),
+        // which identifies nothing; the URI template does.
+        if ($routeName !== null && str_ends_with($routeName, '.')) {
+            $routeName = null;
+        }
         $routeTemplate = $request->route()?->uri() ?? $request->path();
         $status = $responseStatus ?? $this->statusFor($exception);
         $action = $routeName ?: sprintf('%s %s', $request->method(), $routeTemplate);

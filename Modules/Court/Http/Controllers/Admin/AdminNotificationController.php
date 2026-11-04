@@ -2,33 +2,37 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
+use Modules\Court\Http\Controllers\Controller;
 
 class AdminNotificationController extends Controller
 {
     public function count(): JsonResponse
     {
         $uid = auth()->id();
-        if (!$uid) return response()->json(['count' => 0]);
-        if (!$this->canSeeCaseNotifications()) return response()->json(['count' => 0]);
+        if (! $uid) {
+            return response()->json(['count' => 0]);
+        }
+        if (! $this->canSeeCaseNotifications()) {
+            return response()->json(['count' => 0]);
+        }
 
         // Cache per user for 2 minutes — invalidated on markOne / markAll
         $count = Cache::remember("admin_notif_count_{$uid}", 120, function () use ($uid) {
-            $c  = $this->applyCaseAccessScope(
+            $c = $this->applyCaseAccessScope(
                 DB::table('court_case_messages as m')
                     ->join('court_cases as c', 'c.id', '=', 'm.case_id')
                     ->whereNotNull('m.sender_applicant_id')
                     ->where('m.created_at', '>=', now()->subDays(14))
-                    ->whereNotExists(fn($q) => $q->from('court_admin_notification_reads as nr')
+                    ->whereNotExists(fn ($q) => $q->from('court_admin_notification_reads as nr')
                         ->whereColumn('nr.source_id', 'm.id')->where('nr.type', 'message')->where('nr.user_id', $uid))
             )->count();
 
@@ -36,7 +40,7 @@ class AdminNotificationController extends Controller
                 DB::table('court_cases as c')
                     ->where('c.status', 'pending')->whereNull('c.assigned_user_id')
                     ->where('c.created_at', '>=', now()->subDays(14))
-                    ->whereNotExists(fn($q) => $q->from('court_admin_notification_reads as nr')
+                    ->whereNotExists(fn ($q) => $q->from('court_admin_notification_reads as nr')
                         ->whereColumn('nr.source_id', 'c.id')->where('nr.type', 'case')->where('nr.user_id', $uid))
             )->count();
 
@@ -45,7 +49,7 @@ class AdminNotificationController extends Controller
                     ->join('court_cases as c', 'c.id', '=', 'h.case_id')
                     ->where('c.assigned_user_id', $uid)
                     ->whereBetween('h.hearing_at', [now(), now()->addDays(14)])
-                    ->whereNotExists(fn($q) => $q->from('court_admin_notification_reads as nr')
+                    ->whereNotExists(fn ($q) => $q->from('court_admin_notification_reads as nr')
                         ->whereColumn('nr.source_id', 'h.id')->where('nr.type', 'hearing')->where('nr.user_id', $uid))
             )->count();
 
@@ -56,7 +60,7 @@ class AdminNotificationController extends Controller
                         $q->where('c.assigned_user_id', $uid)->orWhereNull('c.assigned_user_id');
                     })
                     ->where('v.viewed_at', '>=', now()->subDays(14))
-                    ->whereNotExists(fn($q) => $q->from('court_admin_notification_reads as nr')
+                    ->whereNotExists(fn ($q) => $q->from('court_admin_notification_reads as nr')
                         ->whereColumn('nr.source_id', 'v.id')->where('nr.type', 'respondent_view')->where('nr.user_id', $uid))
             )->count();
 
@@ -69,7 +73,7 @@ class AdminNotificationController extends Controller
     public function index(Request $request)
     {
         $uid = auth()->id();
-        abort_if(!$uid, 403);
+        abort_if(! $uid, 403);
         abort_unless($this->canSeeCaseNotifications(), 403);
 
         // Applicant -> Admin messages (last 14 days)
@@ -189,10 +193,10 @@ class AdminNotificationController extends Controller
     public function markOne(Request $request)
     {
         $uid = auth()->id();
-        abort_if(!$uid, 403);
+        abort_if(! $uid, 403);
 
         $data = $request->validate([
-            'type'     => 'required|in:message,case,hearing,respondent_view',
+            'type' => 'required|in:message,case,hearing,respondent_view',
             'sourceId' => 'required|integer',
         ]);
 
@@ -209,7 +213,7 @@ class AdminNotificationController extends Controller
     public function markAll()
     {
         $uid = auth()->id();
-        abort_if(!$uid, 403);
+        abort_if(! $uid, 403);
         abort_unless($this->canSeeCaseNotifications(), 403);
         $now = now();
 
@@ -269,12 +273,20 @@ class AdminNotificationController extends Controller
         )->pluck('v.id')->all();
 
         $rows = [];
-        foreach ($msgIds as $id)     $rows[] = ['user_id' => $uid, 'type' => 'message', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
-        foreach ($caseIds as $id)    $rows[] = ['user_id' => $uid, 'type' => 'case', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
-        foreach ($hearingIds as $id) $rows[] = ['user_id' => $uid, 'type' => 'hearing', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
-        foreach ($respondentViewIds as $id) $rows[] = ['user_id' => $uid, 'type' => 'respondent_view', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
+        foreach ($msgIds as $id) {
+            $rows[] = ['user_id' => $uid, 'type' => 'message', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
+        }
+        foreach ($caseIds as $id) {
+            $rows[] = ['user_id' => $uid, 'type' => 'case', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
+        }
+        foreach ($hearingIds as $id) {
+            $rows[] = ['user_id' => $uid, 'type' => 'hearing', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
+        }
+        foreach ($respondentViewIds as $id) {
+            $rows[] = ['user_id' => $uid, 'type' => 'respondent_view', 'source_id' => $id, 'seen_at' => $now, 'created_at' => $now, 'updated_at' => $now];
+        }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             // upsert avoids duplicate-key issues
             DB::table('court_admin_notification_reads')->upsert(
                 $rows,
@@ -297,16 +309,16 @@ class AdminNotificationController extends Controller
             && $user->hasPermission('cases.view');
     }
 
-    private function applyCaseAccessScope(\Illuminate\Database\Query\Builder $query, string $caseAlias = 'c'): \Illuminate\Database\Query\Builder
+    private function applyCaseAccessScope(Builder $query, string $caseAlias = 'c'): Builder
     {
         $user = auth()->user();
         $uid = auth()->id();
-        if (!$user || !$uid) {
+        if (! $user || ! $uid) {
             return $query->whereRaw('1 = 0');
         }
 
         $memberScopeIds = $this->teamLeaderAssignmentIds($user);
-        if (!empty($memberScopeIds)) {
+        if (! empty($memberScopeIds)) {
             $leaderTeamId = Team::where('team_leader_id', $uid)->value('id');
 
             return $query->where(function ($q) use ($caseAlias, $memberScopeIds, $leaderTeamId) {
@@ -321,7 +333,7 @@ class AdminNotificationController extends Controller
         $isLeader = $user->hasPermission('cases.assign.member');
         $canAssignTeams = $user->hasPermission('cases.assign.team');
 
-        if ($isTeamMember && !$isLeader && !$canAssignTeams) {
+        if ($isTeamMember && ! $isLeader && ! $canAssignTeams) {
             return $query->where(function ($q) use ($caseAlias, $uid) {
                 $q->where("{$caseAlias}.assigned_member_user_id", $uid)
                     ->orWhere("{$caseAlias}.assigned_user_id", $uid);
@@ -336,7 +348,7 @@ class AdminNotificationController extends Controller
         $isLeader = $user->hasPermission('cases.assign.member');
         $hasAdminAssign = $user->hasPermission('cases.assign.team');
 
-        if (!$isLeader || $hasAdminAssign) {
+        if (! $isLeader || $hasAdminAssign) {
             return [];
         }
 

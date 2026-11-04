@@ -2,13 +2,15 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Application\Services\AppealRecords;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Carbon;
 use Inertia\Inertia;
+use Modules\Court\Application\Services\AppealRecords;
+use Modules\Court\Application\Services\LegalHoldService;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Http\Controllers\Controller;
 
 class AppealController extends Controller
 {
@@ -18,7 +20,7 @@ class AppealController extends Controller
             ->join('court_cases as c', 'c.id', '=', 'a.court_case_id')
             ->leftJoin('court_staff as u', 'u.id', '=', 'a.decided_by_user_id')
             ->select('a.*', 'c.case_number', 'u.name as decided_by')
-            ->when($request->filled('status'), fn($q) => $q->where('a.status', $request->status))
+            ->when($request->filled('status'), fn ($q) => $q->where('a.status', $request->status))
             ->orderByDesc('a.created_at')
             ->paginate(15)
             ->withQueryString();
@@ -80,7 +82,7 @@ class AppealController extends Controller
             ->where('a.id', $appealId)
             ->first();
 
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
         $docs = DB::table('court_appeal_documents')
             ->where('appeal_id', $appealId)
@@ -127,9 +129,9 @@ class AppealController extends Controller
     public function edit($appealId)
     {
         $appeal = DB::table('court_appeals')->where('id', $appealId)->first();
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
-        if (!in_array($appeal->status, ['draft', 'submitted'], true)) {
+        if (! in_array($appeal->status, ['draft', 'submitted'], true)) {
             return redirect()->route('court.appeals.show', $appealId)
                 ->with('error', 'court::messages.error.cannot_edit_stage');
         }
@@ -143,22 +145,22 @@ class AppealController extends Controller
     public function update(Request $request, $appealId)
     {
         $appeal = DB::table('court_appeals')->where('id', $appealId)->first();
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
         // Same stage rule as edit(): a decided appeal is a record and must not change.
-        if (!in_array($appeal->status, ['draft', 'submitted'], true)) {
+        if (! in_array($appeal->status, ['draft', 'submitted'], true)) {
             return redirect()->route('court.appeals.show', $appealId)
                 ->with('error', 'court::messages.error.cannot_edit_stage');
         }
 
         $data = $request->validate([
-            'title'   => ['required', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
             'grounds' => ['nullable', 'string', 'max:10000'],
         ]);
 
         DB::table('court_appeals')->where('id', $appealId)->update([
-            'title'      => $data['title'],
-            'grounds'    => $data['grounds'] ?? null,
+            'title' => $data['title'],
+            'grounds' => $data['grounds'] ?? null,
             'updated_at' => now(),
         ]);
 
@@ -171,16 +173,16 @@ class AppealController extends Controller
     public function submit($appealId)
     {
         $appeal = DB::table('court_appeals')->where('id', $appealId)->first();
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
         if ($appeal->status !== 'draft') {
             return back()->with('error', 'court::messages.error.only_drafts_submit');
         }
 
         DB::table('court_appeals')->where('id', $appealId)->update([
-            'status'       => 'submitted',
+            'status' => 'submitted',
             'submitted_at' => now(),
-            'updated_at'   => now(),
+            'updated_at' => now(),
         ]);
 
         return back()->with('success', [
@@ -196,14 +198,14 @@ class AppealController extends Controller
     public function decide(Request $request, $appealId, AppealRecords $appeals)
     {
         $appeal = DB::table('court_appeals')->where('id', $appealId)->first();
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
         $data = $request->validate([
-            'decision'        => ['required', 'in:approved,rejected,closed'],
-            'decision_notes'  => ['nullable', 'string', 'max:5000'],
+            'decision' => ['required', 'in:approved,rejected,closed'],
+            'decision_notes' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        if (!in_array($appeal->status, ['submitted', 'under_review'], true)) {
+        if (! in_array($appeal->status, ['submitted', 'under_review'], true)) {
             return back()->with('error', 'court::messages.error.not_decidable');
         }
 
@@ -227,7 +229,7 @@ class AppealController extends Controller
     public function outcome(Request $request, $appealId, AppealRecords $appeals)
     {
         $appeal = DB::table('court_appeals')->where('id', $appealId)->first();
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
         $data = $request->validate([
             'outcome' => ['required', 'in:'.implode(',', AppealRecords::OUTCOMES)],
@@ -238,7 +240,7 @@ class AppealController extends Controller
             'document' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
         $path = $request->hasFile('document')
-            ? app(\Modules\Court\Application\Services\SecureUploadService::class)->store($request->file('document'), 'appeals', 'court_private', ['related_type' => 'appeal', 'related_id' => $appeal->id, 'user_id' => auth()->id()])
+            ? app(SecureUploadService::class)->store($request->file('document'), 'appeals', 'court_private', ['related_type' => 'appeal', 'related_id' => $appeal->id, 'user_id' => auth()->id()])
             : null;
         $appeals->recordOutcome($appeal, $request->user(), $data, $path);
 
@@ -256,26 +258,26 @@ class AppealController extends Controller
     public function uploadDoc(Request $request, $appealId)
     {
         $appeal = DB::table('court_appeals')->where('id', $appealId)->first();
-        abort_if(!$appeal, 404);
+        abort_if(! $appeal, 404);
 
         $data = $request->validate([
             'label' => ['nullable', 'string', 'max:255'],
-            'file'  => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,webp', 'max:5120'], // 5MB
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png,webp', 'max:5120'], // 5MB
         ]);
 
         $file = $request->file('file');
-        $path = app(\Modules\Court\Application\Services\SecureUploadService::class)->store($file, 'appeals', 'court_private', [
+        $path = app(SecureUploadService::class)->store($file, 'appeals', 'court_private', [
             'related_type' => 'appeal',
             'related_id' => $appeal->id,
             'user_id' => auth()->id(),
         ]);
 
         DB::table('court_appeal_documents')->insert([
-            'appeal_id'  => $appealId,
-            'label'      => $data['label'] ?? null,
-            'path'       => $path,
-            'mime'       => $file->getClientMimeType(),
-            'size'       => $file->getSize(),
+            'appeal_id' => $appealId,
+            'label' => $data['label'] ?? null,
+            'path' => $path,
+            'mime' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -293,10 +295,10 @@ class AppealController extends Controller
             ->where('appeal_id', $appealId)
             ->first();
 
-        abort_if(!$doc, 404);
+        abort_if(! $doc, 404);
 
-        if (!empty($doc->path)) {
-            app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $doc->path);
+        if (! empty($doc->path)) {
+            app(LegalHoldService::class)->assertFileMayBeDeleted((string) $doc->path);
             Storage::disk('court_private')->delete($doc->path);
             Storage::disk('court_public')->delete($doc->path); // legacy cleanup
         }

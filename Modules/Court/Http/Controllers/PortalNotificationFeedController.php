@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers;
 
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Application\Services\Notifications\PortalNotificationFeed;
-use Modules\Court\Http\Support\Ui\PortalNavigation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Court\Application\Services\Notifications\PortalNotificationFeed;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Support\Ui\PortalNavigation;
 
 /**
  * The header bell of the applicant and respondent portals (EUISIS

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 test('web requests receive a generic 500 message without internal details', function () {
@@ -16,7 +15,6 @@ test('web requests receive a generic 500 message without internal details', func
     $response->assertDontSeeText('SQLSTATE');
     $response->assertDontSeeText('/var/www/secret.php');
 });
-
 
 test('validation error responses remain unchanged', function () {
     Route::post('/__test/validation', function (Request $request) {

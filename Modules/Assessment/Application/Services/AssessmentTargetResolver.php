@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services;
 
-use Modules\Assessment\Domain\Enums\FormVersionStatus;
-use Modules\Assessment\Domain\Enums\TargetType;
-use Modules\Assessment\Domain\Models\AssessmentFormVersion;
-use Modules\Assessment\Domain\Models\AssessmentTargetRule;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\OrganizationUnit;
@@ -16,6 +12,10 @@ use App\Services\Employees\EmployeeWorkContextResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Modules\Assessment\Domain\Enums\FormVersionStatus;
+use Modules\Assessment\Domain\Enums\TargetType;
+use Modules\Assessment\Domain\Models\AssessmentFormVersion;
+use Modules\Assessment\Domain\Models\AssessmentTargetRule;
 
 /**
  * Which published form version applies to an employee?

@@ -2,13 +2,15 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\CaseInspectionFinding;
-use Modules\Court\Domain\Models\CaseInspectionRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Services\LegalHoldService;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\CaseInspectionFinding;
+use Modules\Court\Domain\Models\CaseInspectionRequest;
+use Modules\Court\Http\Controllers\Controller;
 
 class CaseInspectionFindingController extends Controller
 {
@@ -25,7 +27,7 @@ class CaseInspectionFindingController extends Controller
             ->orderByDesc('finding_date')
             ->orderByDesc('id');
 
-        if (!$this->canAccessAllFindings()) {
+        if (! $this->canAccessAllFindings()) {
             $query->whereHas('request', function ($q) use ($user) {
                 $q->where('assigned_inspector_user_id', $user?->id);
             });
@@ -89,7 +91,7 @@ class CaseInspectionFindingController extends Controller
         ]);
 
         $requestRecord = CaseInspectionRequest::findOrFail((int) $data['case_inspection_request_id']);
-        if (!$this->canAccessAllFindings() && (int) ($requestRecord->assigned_inspector_user_id ?? 0) !== (int) $request->user()?->id) {
+        if (! $this->canAccessAllFindings() && (int) ($requestRecord->assigned_inspector_user_id ?? 0) !== (int) $request->user()?->id) {
             return back()
                 ->withErrors(['case_inspection_request_id' => __('court::case_inspections.findings.create_assigned_only')])
                 ->withInput();
@@ -99,7 +101,7 @@ class CaseInspectionFindingController extends Controller
         $attachmentOriginalName = null;
         if ($request->hasFile('attachment_pdf')) {
             $file = $request->file('attachment_pdf');
-            $attachmentPath = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+            $attachmentPath = app(SecureUploadService::class)->store(
                 $file,
                 'case-inspections/findings',
                 'local',
@@ -145,8 +147,8 @@ class CaseInspectionFindingController extends Controller
                 'accepted_at' => $finding->accepted_at ? $finding->accepted_at->toIso8601String() : null,
                 'accepted_by_name' => $finding->acceptedBy?->name,
             ],
-            'canEdit' => !$this->isAcceptedLocked($finding),
-            'canAccept' => $this->canAccessAllFindings() && !$this->isAcceptedLocked($finding),
+            'canEdit' => ! $this->isAcceptedLocked($finding),
+            'canAccept' => $this->canAccessAllFindings() && ! $this->isAcceptedLocked($finding),
         ]);
     }
 
@@ -184,7 +186,7 @@ class CaseInspectionFindingController extends Controller
         ]);
 
         $requestRecord = CaseInspectionRequest::findOrFail((int) $data['case_inspection_request_id']);
-        if (!$this->canAccessAllFindings() && (int) ($requestRecord->assigned_inspector_user_id ?? 0) !== (int) $request->user()?->id) {
+        if (! $this->canAccessAllFindings() && (int) ($requestRecord->assigned_inspector_user_id ?? 0) !== (int) $request->user()?->id) {
             return back()
                 ->withErrors(['case_inspection_request_id' => __('court::case_inspections.findings.update_assigned_only')])
                 ->withInput();
@@ -194,11 +196,11 @@ class CaseInspectionFindingController extends Controller
         $attachmentOriginalName = $finding->attachment_original_name;
         if ($request->hasFile('attachment_pdf')) {
             if ($attachmentPath && Storage::disk('local')->exists($attachmentPath)) {
-                app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $attachmentPath);
+                app(LegalHoldService::class)->assertFileMayBeDeleted((string) $attachmentPath);
                 Storage::disk('local')->delete($attachmentPath);
             }
             $file = $request->file('attachment_pdf');
-            $attachmentPath = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+            $attachmentPath = app(SecureUploadService::class)->store(
                 $file,
                 'case-inspections/findings',
                 'local',
@@ -231,7 +233,7 @@ class CaseInspectionFindingController extends Controller
         }
 
         if ($finding->attachment_path && Storage::disk('local')->exists($finding->attachment_path)) {
-            app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $finding->attachment_path);
+            app(LegalHoldService::class)->assertFileMayBeDeleted((string) $finding->attachment_path);
             Storage::disk('local')->delete($finding->attachment_path);
         }
 
@@ -261,10 +263,10 @@ class CaseInspectionFindingController extends Controller
     public function downloadAttachment(CaseInspectionFinding $finding)
     {
         $this->authorizeFindingAccess($finding);
-        abort_if(!$finding->attachment_path, 404);
+        abort_if(! $finding->attachment_path, 404);
         abort_unless(Storage::disk('local')->exists($finding->attachment_path), 404);
 
-        $filename = $finding->attachment_original_name ?: ('finding-' . $finding->id . '.pdf');
+        $filename = $finding->attachment_original_name ?: ('finding-'.$finding->id.'.pdf');
 
         return Storage::disk('local')->response(
             $finding->attachment_path,
@@ -311,7 +313,7 @@ class CaseInspectionFindingController extends Controller
             ->orderByDesc('request_date')
             ->select(['id', 'court_case_id', 'subject', 'request_date']);
 
-        if (!$this->canAccessAllFindings()) {
+        if (! $this->canAccessAllFindings()) {
             $requestsQuery->where('assigned_inspector_user_id', $user?->id);
         }
         if ($caseId) {
@@ -335,7 +337,7 @@ class CaseInspectionFindingController extends Controller
 
     private function isAcceptedLocked(CaseInspectionFinding $finding): bool
     {
-        return !is_null($finding->accepted_at);
+        return ! is_null($finding->accepted_at);
     }
 
     private function authorizeFindingAccess(CaseInspectionFinding $finding): void

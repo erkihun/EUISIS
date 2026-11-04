@@ -11,7 +11,6 @@ use App\Services\ErrorLoggingService;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\Sms\HttpSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
-use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
@@ -21,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 
 /*
 |--------------------------------------------------------------------------

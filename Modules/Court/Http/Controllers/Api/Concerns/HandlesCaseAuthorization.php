@@ -2,12 +2,12 @@
 
 namespace Modules\Court\Http\Controllers\Api\Concerns;
 
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Court\Domain\Models\Applicant;
 use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Respondent;
 use Modules\Court\Domain\Models\RespondentCaseView;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Database\Eloquent\Builder;
 
 trait HandlesCaseAuthorization
 {
@@ -17,17 +17,20 @@ trait HandlesCaseAuthorization
 
         if ($actor instanceof Applicant) {
             $query->where('applicant_id', $actor->id);
+
             return;
         }
 
         if ($actor instanceof Respondent) {
             $caseIds = RespondentCaseView::where('respondent_id', $actor->id)->select('case_id');
             $query->whereIn('id', $caseIds);
+
             return;
         }
 
         if ($actor instanceof User) {
             abort_unless($actor->canDo('cases.view'), 403, 'Not authorized to view cases.');
+
             return;
         }
 

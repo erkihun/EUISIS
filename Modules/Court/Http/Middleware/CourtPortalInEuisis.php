@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Middleware;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Support\EuisisParties;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Domain\Models\Applicant;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

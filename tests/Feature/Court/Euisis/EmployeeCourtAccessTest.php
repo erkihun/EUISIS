@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\ApplicantSignInTicket;
-use Modules\Court\Domain\Models\IntegrationClient;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\ApplicantSignInTicket;
+use Modules\Court\Domain\Models\IntegrationClient;
 
 /*
 | Flow 4 (docs/euisis-integration.md): the EUISIS employee portal reads an

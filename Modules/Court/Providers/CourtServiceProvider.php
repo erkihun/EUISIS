@@ -11,6 +11,8 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\RequestGuard;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -24,13 +26,17 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Modules\Court\Application\Listeners\RecordAuthEvent;
 use Modules\Court\Application\Listeners\RecordModelMutation;
+use Modules\Court\Application\Notifications\ApplicantAccountMessages;
 use Modules\Court\Application\Policies\CourtCasePolicy;
 use Modules\Court\Application\Policies\UserPolicy;
+use Modules\Court\Application\Queries\CourtIntegrationGateway;
+use Modules\Court\Contracts\CourtIntegration;
 use Modules\Court\Domain\Models;
 use Modules\Court\Http\Middleware\ActAsRespondent;
 use Modules\Court\Http\Middleware\AdminOnly;
 use Modules\Court\Http\Middleware\Authenticate;
 use Modules\Court\Http\Middleware\AuthenticateIntegrationClient;
+use Modules\Court\Http\Middleware\CourtPortalInEuisis;
 use Modules\Court\Http\Middleware\RedirectIfAuthenticated;
 use Modules\Court\Http\Middleware\RequirePermission;
 use Modules\Court\Http\Middleware\RequireRole;
@@ -113,8 +119,8 @@ final class CourtServiceProvider extends ServiceProvider
     public function register(): void
     {
         // The court's public contract: what EUISIS asks of it, answered in this process.
-        $this->app->bind(\Modules\Court\Contracts\CourtIntegration::class, \Modules\Court\Application\Queries\CourtIntegrationGateway::class);
-        $this->app->bind(Models\Concerns\ApplicantMessages::class, \Modules\Court\Application\Notifications\ApplicantAccountMessages::class);
+        $this->app->bind(CourtIntegration::class, CourtIntegrationGateway::class);
+        $this->app->bind(Models\Concerns\ApplicantMessages::class, ApplicantAccountMessages::class);
 
         $this->app['config']->set([
             'auth.guards.court' => ['driver' => 'court-staff'],
@@ -159,7 +165,7 @@ final class CourtServiceProvider extends ServiceProvider
             $router->aliasMiddleware($alias, $class);
         }
         // Flow 6: with the portal in EUISIS a guest gets not found, not a sign-in redirect (before the portals' own auth).
-        $this->app->make(\Illuminate\Contracts\Http\Kernel::class)->prependToMiddlewarePriority(\Modules\Court\Http\Middleware\CourtPortalInEuisis::class);
+        $this->app->make(Kernel::class)->prependToMiddlewarePriority(CourtPortalInEuisis::class);
 
         Gate::policy(Models\CourtStaffMember::class, UserPolicy::class);
         Gate::policy(Models\CourtCase::class, CourtCasePolicy::class);
@@ -172,7 +178,7 @@ final class CourtServiceProvider extends ServiceProvider
         $this->registerAuditTrail();
 
         // The court's settings secrets never come back to a form after a validation error (court-ms bootstrap/app.php).
-        $handler = $this->app->make(\Illuminate\Contracts\Debug\ExceptionHandler::class);
+        $handler = $this->app->make(ExceptionHandler::class);
         if (method_exists($handler, 'dontFlash')) {
             $handler->dontFlash(['mail_password', 'telegram_bot_token', 'sms_api_key', 'sms_api_secret']);
         }

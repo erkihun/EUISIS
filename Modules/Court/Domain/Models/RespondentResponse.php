@@ -4,6 +4,7 @@ namespace Modules\Court\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Court\Domain\Support\AggregateLock;
 
 class RespondentResponse extends Model
 {
@@ -31,13 +32,14 @@ class RespondentResponse extends Model
         }
 
         /** @var int $existingCount */
-        $existingCount = (int) \Modules\Court\Domain\Support\AggregateLock::apply($query, 'court_respondent_responses')->count();
+        $existingCount = (int) AggregateLock::apply($query, 'court_respondent_responses')->count();
 
         if ($existingCount === 0) {
             return "\u{1218}/{$caseNumber}";
         }
 
         $sequence = str_pad((string) $existingCount, 2, '0', STR_PAD_LEFT);
+
         return "\u{1218}/{$caseNumber}/{$sequence}";
     }
 

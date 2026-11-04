@@ -2,17 +2,18 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\BenchNote;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Support\CourtPermissions;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\BenchNote;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * Routes are gated by perm:bench-notes.manage; each action additionally needs
@@ -243,9 +244,9 @@ class BenchNoteController extends Controller
             'case_id' => (int) $note->case_id,
             'case_number' => $note->case?->case_number,
             'case_title' => $note->case?->title,
-            'title' => $title !== null && $title !== '' ? strip_tags(\Modules\Court\Application\Support\Purifier::clean((string) $title, 'cases')) : null,
+            'title' => $title !== null && $title !== '' ? strip_tags(Purifier::clean((string) $title, 'cases')) : null,
             'note_date' => $noteDate ? $noteDate->toDateString() : null,
-            'note' => $note->note ? \Modules\Court\Application\Support\Purifier::clean((string) $note->note, 'default') : '',
+            'note' => $note->note ? Purifier::clean((string) $note->note, 'default') : '',
             'author_name' => $note->user?->name,
             // The author or an administrator; the edit and delete buttons follow it.
             'mine' => $this->mayModify($note),
@@ -282,7 +283,7 @@ class BenchNoteController extends Controller
 
     private function authorizeAction(string $action): void
     {
-        abort_unless(\Modules\Court\Application\Support\CourtPermissions::check('bench-notes.'.$action), 403);
+        abort_unless(CourtPermissions::check('bench-notes.'.$action), 403);
     }
 
     /** A judge's notes are their own: only the author or an administrator may change or delete one. */
@@ -331,7 +332,7 @@ class BenchNoteController extends Controller
             $s = htmlspecialchars_decode($s, ENT_QUOTES);
         }
 
-        return \Modules\Court\Application\Support\Purifier::clean($s, 'default');
+        return Purifier::clean($s, 'default');
     }
 
     private function loadJudgeUsers()

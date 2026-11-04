@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
 
 class RespondentAuthController extends Controller
 {

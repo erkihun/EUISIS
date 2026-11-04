@@ -12,8 +12,9 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $schema = DB::getSchemaBuilder();
-        if (!$schema->hasTable('court_permissions')) {
+        if (! $schema->hasTable('court_permissions')) {
             $this->command->warn("Skipping PermissionSeeder: 'permissions' table not found.");
+
             return;
         }
 

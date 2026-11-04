@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Support\Ui;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Support\EuisisParties;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Domain\Models\Applicant;
 
 /**
  * The applicant and respondent portals in the EUISIS shell: which portal a

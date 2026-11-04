@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Policies;
 
-use Modules\Assessment\Domain\Models\AssessmentForm;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Modules\Assessment\Domain\Models\AssessmentForm;
 
 /**
  * Assessment forms: permission says WHAT, organization scope says WHERE.

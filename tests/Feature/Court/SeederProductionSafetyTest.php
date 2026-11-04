@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\HomeFaq;
-use Modules\Court\Domain\Models\HomeSetting;
-use Modules\Court\Domain\Models\HomeSlide;
 use Database\Seeders\Court\CourtCaseSeeder;
 use Database\Seeders\Court\HomeLandingSeeder;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\HomeFaq;
+use Modules\Court\Domain\Models\HomeSetting;
+use Modules\Court\Domain\Models\HomeSlide;
 
 test('the sample case seeder adds nothing in production', function (): void {
     app()->detectEnvironment(fn (): string => 'production');

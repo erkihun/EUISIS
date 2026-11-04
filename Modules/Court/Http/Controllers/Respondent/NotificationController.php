@@ -2,10 +2,10 @@
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Respondent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
 
 class NotificationController extends Controller
 {
@@ -13,22 +13,22 @@ class NotificationController extends Controller
     {
         session(['acting_as_respondent' => true]);
         $respondentId = $this->resolveRespondentId();
-        abort_if(!$respondentId, 403);
+        abort_if(! $respondentId, 403);
 
         $data = $request->validate([
             // Only the kinds the respondent feed lists (any string used to be stored).
-            'type'     => 'required|in:hearing,message,status,respondent_view',
+            'type' => 'required|in:hearing,message,status,respondent_view',
             'sourceId' => 'required|integer',
         ]);
 
         DB::table('court_respondent_notification_reads')->updateOrInsert(
             [
                 'respondent_id' => $respondentId,
-                'type'          => $data['type'],
-                'source_id'     => $data['sourceId'],
+                'type' => $data['type'],
+                'source_id' => $data['sourceId'],
             ],
             [
-                'seen_at'    => now(),
+                'seen_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
@@ -41,7 +41,7 @@ class NotificationController extends Controller
     {
         session(['acting_as_respondent' => true]);
         $respondentId = $this->resolveRespondentId();
-        abort_if(!$respondentId, 403);
+        abort_if(! $respondentId, 403);
 
         $now = now();
         $tablesExist = DB::getSchemaBuilder()->hasTable('court_respondent_notification_reads')
@@ -50,7 +50,7 @@ class NotificationController extends Controller
             && DB::getSchemaBuilder()->hasTable('court_case_status_logs')
             && DB::getSchemaBuilder()->hasTable('court_case_messages');
 
-        if (!$tablesExist) {
+        if (! $tablesExist) {
             return back()->with('success', __('court::app.admin_notifications.marked_as_seen'));
         }
 
@@ -99,16 +99,16 @@ class NotificationController extends Controller
             foreach ($builder->pluck('source_id') as $id) {
                 $rows[] = [
                     'respondent_id' => $respondentId,
-                    'type'          => $type,
-                    'source_id'     => $id,
-                    'seen_at'       => $now,
-                    'created_at'    => $now,
-                    'updated_at'    => $now,
+                    'type' => $type,
+                    'source_id' => $id,
+                    'seen_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             // An upsert, so a double click (or two tabs) cannot hit the unique key.
             DB::table('court_respondent_notification_reads')->upsert($rows, ['respondent_id', 'type', 'source_id'], ['seen_at', 'updated_at']);
         }
@@ -123,11 +123,12 @@ class NotificationController extends Controller
         }
 
         $applicant = auth('applicant')->user();
-        if (!$applicant) {
+        if (! $applicant) {
             return null;
         }
 
         $resp = Respondent::where('email', $applicant->email)->first();
+
         return $resp?->id;
     }
 }

@@ -2,9 +2,6 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Notifications\PasswordResetOtp;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +10,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Modules\Court\Application\Notifications\PasswordResetOtp;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantPasswordController extends Controller
 {

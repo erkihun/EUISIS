@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Assessment\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Employee;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssessmentExclusionRequest extends Model
 {

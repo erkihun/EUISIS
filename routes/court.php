@@ -9,37 +9,35 @@
 | staff area (a platform account with a court_staff row, ResolveCourtStaff).
 | The mobile and integration API is routes/court-api.php.
 */
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Modules\Court\Application\Support\EuisisParties;
 use Modules\Court\Http\Controllers\Admin\AboutController;
-use Modules\Court\Http\Controllers\Admin\ActiveSessionController;
 use Modules\Court\Http\Controllers\Admin\AdminNotificationController;
-use Modules\Court\Http\Controllers\Admin\NotificationFeedController;
-use Modules\Court\Http\Controllers\PortalNotificationFeedController;
-use Modules\Court\Http\Controllers\Applicant\EuisisSignInController;
 use Modules\Court\Http\Controllers\Admin\AnnouncementController;
 use Modules\Court\Http\Controllers\Admin\AppealController;
 // Applicant-facing controllers
 use Modules\Court\Http\Controllers\Admin\ApplicantController;
 use Modules\Court\Http\Controllers\Admin\BenchNoteController;
-use Modules\Court\Http\Controllers\Admin\EuisisCaseLinkController;
 use Modules\Court\Http\Controllers\Admin\CaseController;
-use Modules\Court\Http\Controllers\Admin\LawyerController;
-use Modules\Court\Http\Controllers\Lawyer\LawyerAuthController;
-use Modules\Court\Http\Controllers\Lawyer\LawyerCaseController;
-use Modules\Court\Http\Controllers\Admin\CasePartiesController;
 use Modules\Court\Http\Controllers\Admin\CaseInspectionFindingController;
 use Modules\Court\Http\Controllers\Admin\CaseInspectionRequestController;
+use Modules\Court\Http\Controllers\Admin\CasePartiesController;
 use Modules\Court\Http\Controllers\Admin\CaseTypeController;
 use Modules\Court\Http\Controllers\Admin\DashboardController;
 use Modules\Court\Http\Controllers\Admin\DecisionController;
 use Modules\Court\Http\Controllers\Admin\DecisionTemplateController;
+use Modules\Court\Http\Controllers\Admin\EuisisCaseLinkController;
 use Modules\Court\Http\Controllers\Admin\HearingController;
 use Modules\Court\Http\Controllers\Admin\LandingPageController;
 use Modules\Court\Http\Controllers\Admin\LanguageController;
+use Modules\Court\Http\Controllers\Admin\LawyerController;
 use Modules\Court\Http\Controllers\Admin\LetterCategoryController;
 use Modules\Court\Http\Controllers\Admin\LetterComposerController;
 use Modules\Court\Http\Controllers\Admin\LetterController;
-// Admin-facing controllers
 use Modules\Court\Http\Controllers\Admin\LetterTemplateController;
+use Modules\Court\Http\Controllers\Admin\NotificationFeedController;
+// Admin-facing controllers
 use Modules\Court\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use Modules\Court\Http\Controllers\Admin\RecordController;
 use Modules\Court\Http\Controllers\Admin\TeamController;
@@ -54,6 +52,10 @@ use Modules\Court\Http\Controllers\Applicant\ApplicantResponseReplyController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantRoleSwitchController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantSessionController;
 use Modules\Court\Http\Controllers\Applicant\ApplicantVerificationController;
+use Modules\Court\Http\Controllers\Applicant\EuisisSignInController;
+use Modules\Court\Http\Controllers\Lawyer\LawyerAuthController;
+use Modules\Court\Http\Controllers\Lawyer\LawyerCaseController;
+use Modules\Court\Http\Controllers\PortalNotificationFeedController;
 use Modules\Court\Http\Controllers\PublicHomeController;
 use Modules\Court\Http\Controllers\PublicSignageController;
 use Modules\Court\Http\Controllers\Respondent\CaseSearchController;
@@ -61,19 +63,17 @@ use Modules\Court\Http\Controllers\Respondent\DashboardController as RespondentD
 use Modules\Court\Http\Controllers\Respondent\NotificationController as RespondentNotificationController;
 use Modules\Court\Http\Controllers\Respondent\RespondentAuthController;
 use Modules\Court\Http\Controllers\Respondent\ResponseController;
+// Localization middleware
 use Modules\Court\Http\Controllers\Respondent\ResponseReplyController;
 use Modules\Court\Http\Controllers\SecureFileController;
 use Modules\Court\Http\Controllers\TermsDisplayController;
-// Localization middleware
 use Modules\Court\Http\Controllers\UserManualController;
-use Modules\Court\Http\Middleware\SetLocale;
-use Modules\Court\Http\Middleware\UseGuard;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Modules\Court\Http\Middleware\CourtPortalInEuisis;
 use Modules\Court\Http\Middleware\EnforceSystemAvailability;
 use Modules\Court\Http\Middleware\ResolveCourtStaff;
+use Modules\Court\Http\Middleware\SetLocale;
 use Modules\Court\Http\Middleware\ShareCourtProps;
+use Modules\Court\Http\Middleware\UseGuard;
 
 /*
 |--------------------------------------------------------------------------
@@ -112,7 +112,7 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
         Route::get('/debug-locale', fn () => 'locale='.app()->getLocale());
     }
     // With the portal in EUISIS (Flow 6) the court's home is its public site.
-    Route::get('/', fn () => redirect()->route(\Modules\Court\Application\Support\EuisisParties::portalClosed() ? 'court.landing.home' : 'court.applicant.login'))->name('root');
+    Route::get('/', fn () => redirect()->route(EuisisParties::portalClosed() ? 'court.landing.home' : 'court.applicant.login'))->name('root');
     Route::get('/resources', [PublicHomeController::class, 'resources'])->name('public.resources');
     Route::get('/news', [PublicHomeController::class, 'newsIndex'])->name('public.news');
     Route::get('/news/{announcement}', [PublicHomeController::class, 'newsItem'])->whereNumber('announcement')->name('public.news.show');
@@ -375,7 +375,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
         // Admin dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-
         // Admin self profile
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
@@ -518,7 +517,7 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
             Route::patch('/lawyers/{applicant}/verification', [LawyerController::class, 'verify'])->middleware(['court.perm:applicants.manage', 'throttle:30,1'])->name('lawyers.verify');
             Route::patch('/lawyers/{applicant}/refusal', [LawyerController::class, 'refuse'])->middleware(['court.perm:applicants.manage', 'throttle:30,1'])->name('lawyers.refuse');
             Route::get('/lawyers/{applicant}', [LawyerController::class, 'show'])->middleware('court.perm:applicants.view')->whereNumber('applicant')->name('lawyers.show');
-            Route::get('/lawyers/{applicant}/license',[LawyerController::class, 'license'])->middleware('court.perm:applicants.view')->name('lawyers.license');
+            Route::get('/lawyers/{applicant}/license', [LawyerController::class, 'license'])->middleware('court.perm:applicants.view')->name('lawyers.license');
             Route::get('/applicants', [ApplicantController::class, 'index'])
                 ->middleware('court.perm:applicants.view')
                 ->name('applicants.index');
@@ -551,7 +550,6 @@ Route::middleware([CourtPortalInEuisis::class, SetLocale::class, EnforceSystemAv
             Route::delete('/teams/{team}', [TeamController::class, 'destroy'])
                 ->middleware('court.perm:teams.manage')
                 ->name('teams.destroy');
-
 
             /*
              * Appeals (admin)

@@ -2,15 +2,18 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Services\Notifications\PortalNotificationFeed;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Mail\RespondentViewedCaseMail;
+use Modules\Court\Application\Services\Notifications\PortalNotificationFeed;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 /*
 | Fixes #3 made in the applicant and respondent portals (58e8368, 59726fe, 1059d39),
@@ -178,20 +181,20 @@ test('an applicant cannot remove evidence or witnesses once the case is accepted
 });
 
 test('a respondent reopening a case tells the applicant and court at most once a day', function (): void {
-    \Illuminate\Support\Facades\Mail::fake();
-    \Illuminate\Support\Facades\Http::fake();
+    Mail::fake();
+    Http::fake();
     $person = portalHardeningPerson();
     $case = portalHardeningCase(portalHardeningPerson(false));
 
     $this->actingAs($person, 'applicant')->post(route('court.respondent.case.search.submit'), ['case_number' => $case['number'], 'case_code' => $case['code']]);
     $this->get(route('court.respondent.cases.show', ['caseNumber' => $case['number']]))->assertOk();
-    $sent = \Illuminate\Support\Facades\Mail::sent(\Modules\Court\Application\Mail\RespondentViewedCaseMail::class)->count();
+    $sent = Mail::sent(RespondentViewedCaseMail::class)->count();
     expect($sent)->toBeGreaterThan(0);
 
     $this->get(route('court.respondent.cases.show', ['caseNumber' => $case['number']]))->assertOk();
     $this->get(route('court.respondent.cases.show', ['caseNumber' => $case['number']]))->assertOk();
 
-    expect(\Illuminate\Support\Facades\Mail::sent(\Modules\Court\Application\Mail\RespondentViewedCaseMail::class)->count())->toBe($sent);
+    expect(Mail::sent(RespondentViewedCaseMail::class)->count())->toBe($sent);
     // Every view is still recorded.
     $this->assertDatabaseHas('court_respondent_case_views', ['case_id' => $case['id']]);
 });

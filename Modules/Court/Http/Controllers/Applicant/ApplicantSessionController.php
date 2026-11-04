@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Application\Support\SessionRows;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Controllers\Respondent\RespondentProfilePage;
 
 final class ApplicantSessionController extends Controller
 {
-    public function index(Request $request): View|\Inertia\Response
+    public function index(Request $request): View|Response
     {
         if ($request->routeIs('court.respondent.profile.*')) {
             $request->session()->put('acting_as_respondent', true);
@@ -37,11 +40,11 @@ final class ApplicantSessionController extends Controller
 
         if ($request->routeIs('court.respondent.profile.*')) {
             // The respondent portal's profile is its own React page (Court/Respondent/Profile), on its devices tab.
-            return \Modules\Court\Http\Controllers\Respondent\RespondentProfilePage::render($request, $sessions);
+            return RespondentProfilePage::render($request, $sessions);
         }
 
         // The applicant's signed-in sessions (React, Court/Applicant/Sessions), beside the profile and security tabs.
-        return \Inertia\Inertia::render('Court/Applicant/Sessions', [
+        return Inertia::render('Court/Applicant/Sessions', [
             'sessions' => $sessions->map(fn (object $session): array => [
                 'id' => (string) $session->id,
                 'ip_address' => $session->ip_address ?: null,
@@ -156,7 +159,7 @@ final class ApplicantSessionController extends Controller
     }
 
     /**
-     * @param array{platform?: string, platform_version?: string, brands?: string} $hints
+     * @param  array{platform?: string, platform_version?: string, brands?: string}  $hints
      */
     private function deviceFromHints(array $hints): ?string
     {
@@ -180,7 +183,7 @@ final class ApplicantSessionController extends Controller
     }
 
     /**
-     * @param array{platform?: string, platform_version?: string, brands?: string} $hints
+     * @param  array{platform?: string, platform_version?: string, brands?: string}  $hints
      */
     private function browserFromHints(array $hints): ?string
     {

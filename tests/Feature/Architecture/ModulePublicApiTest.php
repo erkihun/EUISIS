@@ -7,6 +7,9 @@ use App\Support\Retention\RetentionMatrix;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Cafeteria\Contracts\Data\TransactionStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
+use Modules\Communication\Contracts\Data\AccessRequestStatus;
+use Modules\Communication\Contracts\Data\AnnouncementPriority;
+use Modules\Communication\Contracts\Data\AnnouncementStatus;
 use Modules\Transport\Contracts\Data\TripStatus;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 
@@ -52,6 +55,14 @@ const MODULE_DEV_TOOLING = [
  * no entry; the retention matrix has its own check below.
  */
 const MODULE_TABLE_READERS = [
+    'Assessment' => [
+        // Situation Room's workforce panel counts assessment cycles and coverage by organization scope (counts only).
+        'app/Services/SituationRoom/Analytics/AssessmentAnalytics.php' => 'reporting',
+    ],
+    'Communication' => [
+        // Situation Room's communication panel counts announcements, channels and access requests (counts only).
+        'app/Services/SituationRoom/Analytics/CommunicationAnalytics.php' => 'reporting',
+    ],
     'Transport' => [
         // Situation Room panels aggregate boardings and trips by organization scope (counts only).
         'app/Services/SituationRoom/Analytics/TransportAnalytics.php' => 'reporting',
@@ -79,6 +90,8 @@ const MODULE_TABLE_READERS = [
     'Entitlements' => [
         // Settlement and dashboard aggregates; all are read-only.
         'app/Console/Commands/Audit/AuditDuplicateData.php' => 'reporting',
+        // Situation Room's entitlements panel counts active entitlements by service (counts only).
+        'app/Services/SituationRoom/Analytics/EntitlementsAnalytics.php' => 'reporting',
         'app/Services/Dashboard/DashboardChartService.php' => 'reporting',
         'app/Services/Dashboard/DashboardMetricService.php' => 'reporting',
         'Modules/Transport/Application/Services/TransportDataQualityService.php' => 'reporting',
@@ -119,6 +132,8 @@ const MODULE_TABLE_READERS = [
     'Feedback' => [
         // Production readiness counts active routing rules and institutions with an active QR.
         'app/Console/Commands/ProductionReadiness.php' => 'reporting',
+        // The pilot indicators count public feedback and its average rating for a period (totals only).
+        'app/Console/Commands/PilotBaseline.php' => 'reporting',
         // Intelligence reports count submissions, QR coverage and services rated, by scope and target grants (totals only).
         'app/Services/Intelligence/Business/DataQualityAnalysis.php' => 'reporting',
         'app/Services/Intelligence/Business/PublicVoiceAnalysis.php' => 'reporting',
@@ -130,6 +145,22 @@ const MODULE_TABLE_READERS = [
         'app/Services/SituationRoom/Analytics/ServiceDeliveryAnalytics.php' => 'reporting',
         // The attention wall counts institutions without an active feedback QR.
         'app/Services/SituationRoom/AttentionCenter.php' => 'reporting',
+    ],
+    'Court' => [
+        // Situation Room's case panel counts tribunal cases by status and age (counts only).
+        'app/Services/SituationRoom/Analytics/CourtAnalytics.php' => 'reporting',
+    ],
+    'Reception' => [
+        // Situation Room's service-delivery panel counts visits and waiting time (totals only).
+        'app/Services/SituationRoom/Analytics/ReceptionAnalytics.php' => 'reporting',
+    ],
+    'Transfer' => [
+        // Situation Room's recruitment panel counts open transfer announcements (counts only).
+        'app/Services/SituationRoom/Analytics/RecruitmentAnalytics.php' => 'reporting',
+    ],
+    'Recruitment' => [
+        // Situation Room's recruitment panel counts vacancies and positions (counts only).
+        'app/Services/SituationRoom/Analytics/RecruitmentAnalytics.php' => 'reporting',
     ],
     'PublicSite' => [
         // The public assistant checks the public FAQ and service tables exist before reading them
@@ -371,5 +402,8 @@ it('never prunes transport or cafeteria records automatically', function (): voi
 
 it('publishes exactly the status values the modules use', function (): void {
     expect(TripStatus::ALL)->toBe(TransportTripStatus::values())
-        ->and(TransactionStatus::ALL)->toBe(array_column(CafeteriaTransactionStatus::cases(), 'value'));
+        ->and(TransactionStatus::ALL)->toBe(array_column(CafeteriaTransactionStatus::cases(), 'value'))
+        ->and(AnnouncementStatus::ALL)->toBe(Modules\Communication\Domain\Enums\AnnouncementStatus::values())
+        ->and(AnnouncementPriority::ALL)->toBe(Modules\Communication\Domain\Enums\AnnouncementPriority::values())
+        ->and(AccessRequestStatus::ALL)->toBe(Modules\Communication\Domain\Enums\AccessRequestStatus::values());
 });

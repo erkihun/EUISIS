@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
+use App\Enums\AuditEventType;
+use App\Models\AuditLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 uses(RefreshDatabase::class);
 
@@ -114,8 +116,8 @@ test('court record changes go on the EUISIS audit log', function (): void {
         'name' => 'Updated Audit Name',
     ])->save();
 
-    $audit = \App\Models\AuditLog::query()
-        ->where('event_type', \App\Enums\AuditEventType::CourtRecordUpdated)
+    $audit = AuditLog::query()
+        ->where('event_type', AuditEventType::CourtRecordUpdated)
         ->where('auditable_type', User::class)
         ->where('auditable_id', (string) $user->id)
         ->latest('created_at')
@@ -145,7 +147,8 @@ test('successful api login is attributed to the verified actor and redacts crede
         'device_name' => 'audit-test',
     ])->assertOk();
 
-    $audit = DB::table('court_system_audits')->where('route', 'api/v1/auth/login')->sole();
+    // The route has no name, so the audit keeps its URI template; EUISIS serves it under /court/api.
+    $audit = DB::table('court_system_audits')->where('route', 'court/api/v1/auth/login')->sole();
     $context = json_decode($audit->context, true, flags: JSON_THROW_ON_ERROR);
 
     expect($audit->actor_type)->toBe('applicant')

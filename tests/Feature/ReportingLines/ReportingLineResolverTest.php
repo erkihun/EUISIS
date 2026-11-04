@@ -7,9 +7,13 @@ use App\Enums\OrganizationDesignStatus;
 use App\Enums\ReportingBasis;
 use App\Enums\ReportingOutcome;
 use App\Models\ActingAppointment;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
+use App\Models\Position;
 use App\Models\PositionProfile;
 use App\Services\ReportingLines\ReportingGraphRepository;
 use App\Services\ReportingLines\ReportingLineResolver;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\ReportingHierarchyFixture;
 
@@ -33,7 +37,7 @@ beforeEach(function (): void {
     $this->officer = $this->f->person('Officer', $this->f->directorateOfficer);
 });
 
-function rlProfile(\App\Models\Position $position, ?string $reportsTo, string $status = 'published', string $from = '2026-01-01', ?string $to = null, int $version = 1, ?string $lineage = null): PositionProfile
+function rlProfile(Position $position, ?string $reportsTo, string $status = 'published', string $from = '2026-01-01', ?string $to = null, int $version = 1, ?string $lineage = null): PositionProfile
 {
     return PositionProfile::query()->create([
         'position_id' => $position->id, 'organization_id' => $position->organization_id, 'lineage_key' => $lineage ?? (string) Str::uuid(), 'version_no' => $version,
@@ -90,8 +94,8 @@ it('resolves organization-level staff with no unit to the organization head', fu
 
 it('connects the organization head to the head of the parent organization in the published hierarchy', function (): void {
     [$city, $mayorPosition] = $this->f->parentOrganization();
-    $mayor = \App\Models\Employee::query()->create(['employee_number' => 'CITY-1', 'first_name' => 'Mayor', 'last_name' => 'Tester', 'full_name' => 'Mayor Tester', 'email' => 'mayor@rl.test', 'status' => 'active']);
-    \App\Models\EmployeeAssignment::query()->create(['employee_id' => $mayor->id, 'organization_id' => $city->id, 'position_id' => $mayorPosition->id, 'assignment_status' => 'active', 'effective_from' => '2026-01-01', 'is_current' => true]);
+    $mayor = Employee::query()->create(['employee_number' => 'CITY-1', 'first_name' => 'Mayor', 'last_name' => 'Tester', 'full_name' => 'Mayor Tester', 'email' => 'mayor@rl.test', 'status' => 'active']);
+    EmployeeAssignment::query()->create(['employee_id' => $mayor->id, 'organization_id' => $city->id, 'position_id' => $mayorPosition->id, 'assignment_status' => 'active', 'effective_from' => '2026-01-01', 'is_current' => true]);
     app(ReportingGraphRepository::class)->forget();
 
     $r = $this->resolver->directSupervisorOf($this->head);
@@ -224,7 +228,7 @@ it('reports a position whose profile reports to itself', function (): void {
 });
 
 it('distinguishes no assignment, pending transfer and several assignments', function (): void {
-    $nobody = \App\Models\Employee::query()->create(['employee_number' => 'RL-NONE', 'first_name' => 'No', 'last_name' => 'Body', 'full_name' => 'No Body', 'email' => 'nobody@rl.test', 'status' => 'active']);
+    $nobody = Employee::query()->create(['employee_number' => 'RL-NONE', 'first_name' => 'No', 'last_name' => 'Body', 'full_name' => 'No Body', 'email' => 'nobody@rl.test', 'status' => 'active']);
     expect($this->resolver->directSupervisorOf($nobody)->outcome)->toBe(ReportingOutcome::NoAssignment);
 
     $this->f->place($nobody, $this->f->member, '2026-01-01', null, ['assignment_status' => 'pending_transfer']);
@@ -298,10 +302,10 @@ it('resolves a large flat hierarchy with a bounded number of queries', function 
     }
     app(ReportingGraphRepository::class)->forget();
 
-    \Illuminate\Support\Facades\DB::enableQueryLog();
+    DB::enableQueryLog();
     $page = $this->resolver->directReportsQuery($bigDirector)->paginate(25);
-    $count = count(\Illuminate\Support\Facades\DB::getQueryLog());
-    \Illuminate\Support\Facades\DB::disableQueryLog();
+    $count = count(DB::getQueryLog());
+    DB::disableQueryLog();
 
     expect($page->total())->toBe(60)
         ->and($page->count())->toBe(25)

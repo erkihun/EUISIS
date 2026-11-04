@@ -5,16 +5,16 @@ namespace Modules\Court\Domain\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 class CourtCase extends Model
 {
     protected $table = 'court_cases';
+
     protected $guarded = [];        // or list explicit fillables if you prefer
+
     public $timestamps = true;      // if your table has created_at/updated_at
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

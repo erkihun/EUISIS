@@ -2,10 +2,9 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 class DecisionReview extends Model
 {

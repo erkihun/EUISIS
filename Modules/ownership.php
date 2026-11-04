@@ -103,6 +103,7 @@ return [
             'App\Models\CardIssuance',
             'App\Models\CardPrintBatch',
             'App\Models\CardPrintBatchItem',
+            'App\Models\CardPrinterProfile',
             'App\Models\CardReplacement',
             'App\Models\CardRequest',
             'App\Models\CardVerification',

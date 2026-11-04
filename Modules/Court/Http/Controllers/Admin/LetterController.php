@@ -2,26 +2,27 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Letter;
-use Modules\Court\Application\Mail\LetterApprovedMail;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\LetterTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Modules\Court\Application\Mail\LetterApprovedMail;
+use Modules\Court\Application\Services\Euisis\LetterDeliveries;
+use Modules\Court\Application\Support\EthiopianDate;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\Letter;
+use Modules\Court\Domain\Models\LetterTemplate;
+use Modules\Court\Http\Controllers\Controller;
 
 class LetterController extends Controller
 {
     public function index(Request $request)
     {
         $statusFilter = (string) $request->query('status', '');
-        if (!in_array($statusFilter, ['', 'pending', 'approved', 'rejected'], true)) {
+        if (! in_array($statusFilter, ['', 'pending', 'approved', 'rejected'], true)) {
             $statusFilter = '';
         }
         $search = trim((string) $request->query('q', ''));
@@ -47,9 +48,9 @@ class LetterController extends Controller
             ->selectRaw("NULLIF(TRIM(CONCAT_WS(' ', NULLIF(a.first_name, ''), NULLIF(a.middle_name, ''), NULLIF(a.last_name, ''))), '') as applicant_lawyer_name")
             ->selectRaw('CASE WHEN a.is_lawyer THEN 1 ELSE 0 END as applicant_is_lawyer')
             ->selectRaw("NULLIF(TRIM(c.respondent_name), '') as respondent_name")
-            ->when($statusFilter === 'approved', fn($query) => $query->where('court_letters.approval_status', 'approved'))
-            ->when($statusFilter === 'rejected', fn($query) => $query->where('court_letters.approval_status', 'rejected'))
-            ->when($statusFilter === 'pending', fn($query) => $query->where(function ($pendingQuery) {
+            ->when($statusFilter === 'approved', fn ($query) => $query->where('court_letters.approval_status', 'approved'))
+            ->when($statusFilter === 'rejected', fn ($query) => $query->where('court_letters.approval_status', 'rejected'))
+            ->when($statusFilter === 'pending', fn ($query) => $query->where(function ($pendingQuery) {
                 $pendingQuery
                     ->whereNull('court_letters.approval_status')
                     ->orWhere('court_letters.approval_status', '')
@@ -116,31 +117,31 @@ class LetterController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'template_id'       => ['required', 'exists:court_letter_templates,id'],
-            'recipient_name'    => ['nullable', 'string', 'max:255'],
-            'recipient_title'   => ['nullable', 'string', 'max:255'],
+            'template_id' => ['required', 'exists:court_letter_templates,id'],
+            'recipient_name' => ['nullable', 'string', 'max:255'],
+            'recipient_title' => ['nullable', 'string', 'max:255'],
             'recipient_company' => ['nullable', 'string', 'max:255'],
-            'subject'           => ['nullable', 'string', 'max:255'],
-            'case_number'       => ['nullable', 'string', 'max:60'],
-            'body'              => ['required', 'string'],
-            'cc'                => ['nullable', 'string', 'max:255'],
+            'subject' => ['nullable', 'string', 'max:255'],
+            'case_number' => ['nullable', 'string', 'max:60'],
+            'body' => ['required', 'string'],
+            'cc' => ['nullable', 'string', 'max:255'],
             'send_to_applicant' => ['nullable', 'boolean'],
-            'send_to_respondent'=> ['nullable', 'boolean'],
-            'approved_by_name'  => ['nullable', 'string', 'max:255'],
+            'send_to_respondent' => ['nullable', 'boolean'],
+            'approved_by_name' => ['nullable', 'string', 'max:255'],
             'approved_by_title' => ['nullable', 'string', 'max:255'],
         ]);
 
         $sendToApplicant = array_key_exists('send_to_applicant', $data) ? (bool) $data['send_to_applicant'] : true;
         $sendToRespondent = array_key_exists('send_to_respondent', $data) ? (bool) $data['send_to_respondent'] : true;
 
-        if (!$sendToApplicant && !$sendToRespondent) {
+        if (! $sendToApplicant && ! $sendToRespondent) {
             return back()
                 ->withErrors(['send_to_applicant' => __('court::letters.form.delivery_required')])
                 ->withInput();
         }
 
         // Block letters for closed cases
-        if (!empty($data['case_number'])) {
+        if (! empty($data['case_number'])) {
             $case = CourtCase::where('case_number', $data['case_number'])->first();
             if ($case && ($case->status === 'closed')) {
                 return back()
@@ -151,7 +152,7 @@ class LetterController extends Controller
 
         $data['send_to_applicant'] = $sendToApplicant;
         $data['send_to_respondent'] = $sendToRespondent;
-        $data['body'] = \Modules\Court\Application\Support\Purifier::clean(
+        $data['body'] = Purifier::clean(
             $this->applyTemplatePlaceholders(
                 (string) ($data['body'] ?? ''),
                 $data['case_number'] ?? null
@@ -162,7 +163,7 @@ class LetterController extends Controller
         if ($recipientName === '') {
             $targets = [];
             $caseParty = null;
-            if (!empty($data['case_number'])) {
+            if (! empty($data['case_number'])) {
                 $caseParty = DB::table('court_cases as c')
                     ->leftJoin('court_applicants as a', 'a.id', '=', 'c.applicant_id')
                     ->select(
@@ -182,8 +183,8 @@ class LetterController extends Controller
         }
         $data['recipient_name'] = $recipientName;
 
-        $letter          = null;
-        $template        = LetterTemplate::findOrFail($data['template_id']);
+        $letter = null;
+        $template = LetterTemplate::findOrFail($data['template_id']);
         DB::transaction(function () use ($request, $data, $template, &$letter) {
             $lockedTemplate = LetterTemplate::where('id', $template->id)->lockForUpdate()->first();
             $lockedTemplate->reference_sequence = ($lockedTemplate->reference_sequence ?? 0) + 1;
@@ -227,19 +228,19 @@ class LetterController extends Controller
 
             $letter = Letter::create([
                 'letter_template_id' => $lockedTemplate->id,
-                'user_id'            => $request->user()->id,
-                'recipient_name'     => $data['recipient_name'],
-                'recipient_title'    => $data['recipient_title'] ?? null,
-                'recipient_company'  => $data['recipient_company'] ?? null,
-                'subject'            => $subjectValue,
-                'reference_number'   => $referenceNumber,
-                'case_number'        => $data['case_number'] ?? null,
-                'body'               => $data['body'],
-                'cc'                 => $data['cc'] ?? null,
-                'send_to_applicant'  => $data['send_to_applicant'],
+                'user_id' => $request->user()->id,
+                'recipient_name' => $data['recipient_name'],
+                'recipient_title' => $data['recipient_title'] ?? null,
+                'recipient_company' => $data['recipient_company'] ?? null,
+                'subject' => $subjectValue,
+                'reference_number' => $referenceNumber,
+                'case_number' => $data['case_number'] ?? null,
+                'body' => $data['body'],
+                'cc' => $data['cc'] ?? null,
+                'send_to_applicant' => $data['send_to_applicant'],
                 'send_to_respondent' => $data['send_to_respondent'],
-                'approved_by_name'   => $data['approved_by_name'] ?? null,
-                'approved_by_title'  => $data['approved_by_title'] ?? null,
+                'approved_by_name' => $data['approved_by_name'] ?? null,
+                'approved_by_title' => $data['approved_by_title'] ?? null,
             ]);
         });
 
@@ -300,16 +301,16 @@ class LetterController extends Controller
         }
 
         $data = $request->validate([
-            'recipient_name'    => ['nullable', 'string', 'max:255'],
-            'recipient_title'   => ['nullable', 'string', 'max:255'],
+            'recipient_name' => ['nullable', 'string', 'max:255'],
+            'recipient_title' => ['nullable', 'string', 'max:255'],
             'recipient_company' => ['nullable', 'string', 'max:255'],
-            'subject'           => ['nullable', 'string', 'max:255'],
-            'case_number'       => ['nullable', 'string', 'max:60'],
-            'body'              => ['required', 'string'],
-            'cc'                => ['nullable', 'string', 'max:255'],
+            'subject' => ['nullable', 'string', 'max:255'],
+            'case_number' => ['nullable', 'string', 'max:60'],
+            'body' => ['required', 'string'],
+            'cc' => ['nullable', 'string', 'max:255'],
             'send_to_applicant' => ['nullable', 'boolean'],
-            'send_to_respondent'=> ['nullable', 'boolean'],
-            'approved_by_name'  => ['nullable', 'string', 'max:255'],
+            'send_to_respondent' => ['nullable', 'boolean'],
+            'approved_by_name' => ['nullable', 'string', 'max:255'],
             'approved_by_title' => ['nullable', 'string', 'max:255'],
         ]);
 
@@ -320,7 +321,7 @@ class LetterController extends Controller
             ? (bool) $data['send_to_respondent']
             : ($letter->send_to_respondent ?? true);
 
-        if (!$sendToApplicant && !$sendToRespondent) {
+        if (! $sendToApplicant && ! $sendToRespondent) {
             return back()
                 ->withErrors(['send_to_applicant' => __('court::letters.form.delivery_required')])
                 ->withInput();
@@ -356,7 +357,7 @@ class LetterController extends Controller
         $resolvedCaseNumber = array_key_exists('case_number', $data)
             ? (trim((string) ($data['case_number'] ?? '')) ?: null)
             : ($letter->case_number ?: null);
-        $data['body'] = \Modules\Court\Application\Support\Purifier::clean(
+        $data['body'] = Purifier::clean(
             $this->applyTemplatePlaceholders(
                 (string) ($data['body'] ?? ''),
                 $resolvedCaseNumber
@@ -370,17 +371,17 @@ class LetterController extends Controller
         $subjectValue = $baseSubject === '' ? null : $baseSubject;
 
         $letter->update([
-            'recipient_name'    => $data['recipient_name'],
-            'recipient_title'   => $data['recipient_title'] ?? null,
+            'recipient_name' => $data['recipient_name'],
+            'recipient_title' => $data['recipient_title'] ?? null,
             'recipient_company' => $data['recipient_company'] ?? null,
-            'subject'           => $subjectValue,
-            'case_number'       => $resolvedCaseNumber,
-            'body'              => $data['body'],
-            'cc'                => $data['cc'] ?? null,
-            'send_to_applicant'  => $sendToApplicant,
+            'subject' => $subjectValue,
+            'case_number' => $resolvedCaseNumber,
+            'body' => $data['body'],
+            'cc' => $data['cc'] ?? null,
+            'send_to_applicant' => $sendToApplicant,
             'send_to_respondent' => $sendToRespondent,
-            'approved_by_name'   => $data['approved_by_name'] ?? null,
-            'approved_by_title'  => $data['approved_by_title'] ?? null,
+            'approved_by_name' => $data['approved_by_name'] ?? null,
+            'approved_by_title' => $data['approved_by_title'] ?? null,
         ]);
 
         return redirect()->route('court.letters.show', $letter)->with('success', [
@@ -440,7 +441,7 @@ class LetterController extends Controller
 
         // Applicant owns the case
         if (
-            !$authorized
+            ! $authorized
             && $sendToApplicant
             && $case
             && $applicantId
@@ -450,7 +451,7 @@ class LetterController extends Controller
         }
 
         // Respondent has viewed this case (association via respondent_case_views)
-        if (!$authorized && $sendToRespondent && $case && $respondentId) {
+        if (! $authorized && $sendToRespondent && $case && $respondentId) {
             $hasAccess = DB::table('court_respondent_case_views')
                 ->where('respondent_id', $respondentId)
                 ->where('case_id', $case->id)
@@ -483,21 +484,21 @@ class LetterController extends Controller
         }
 
         $letter->update([
-            'approved_by_name'  => $user?->name,
+            'approved_by_name' => $user?->name,
             'approved_by_title' => $user?->position,
-            'approval_status'   => $data['status'],
+            'approval_status' => $data['status'],
         ]);
 
         if ($data['status'] === 'approved') {
             $this->notifyPartiesOfApprovedLetter($letter);
             $this->createSystemCaseMessage($letter, $user?->id);
             // A letter to an EUISIS institution also goes to EUISIS, which delivers it (Flow 5).
-            app(\Modules\Court\Application\Services\Euisis\LetterDeliveries::class)->record($letter);
+            app(LetterDeliveries::class)->record($letter);
         }
 
         return redirect()->route('court.letters.index')->with('success', [
             'key' => 'court::messages.success.letter_status',
-            'replace' => ['status' => __('court::messages.letter_status_values.' . $data['status'])],
+            'replace' => ['status' => __('court::messages.letter_status_values.'.$data['status'])],
         ]);
     }
 
@@ -506,7 +507,7 @@ class LetterController extends Controller
      */
     protected function notifyPartiesOfApprovedLetter(Letter $letter): void
     {
-        if (!$letter->case_number) {
+        if (! $letter->case_number) {
             return;
         }
 
@@ -519,7 +520,7 @@ class LetterController extends Controller
         if ($sendToApplicant && $case?->applicant?->email) {
             $recipients->push([
                 'email' => $case->applicant->email,
-                'name'  => $case->applicant->full_name ?? $case->applicant->email,
+                'name' => $case->applicant->full_name ?? $case->applicant->email,
             ]);
         }
 
@@ -533,12 +534,12 @@ class LetterController extends Controller
                 ->get();
 
             foreach ($respondents as $resp) {
-                if (!$resp->email) {
+                if (! $resp->email) {
                     continue;
                 }
                 $recipients->push([
                     'email' => $resp->email,
-                    'name'  => trim("{$resp->first_name} {$resp->middle_name} {$resp->last_name}") ?: $resp->email,
+                    'name' => trim("{$resp->first_name} {$resp->middle_name} {$resp->last_name}") ?: $resp->email,
                 ]);
             }
         }
@@ -553,12 +554,12 @@ class LetterController extends Controller
                 ->get();
 
             foreach ($responses as $resp) {
-                if (!$resp->email) {
+                if (! $resp->email) {
                     continue;
                 }
                 $recipients->push([
                     'email' => $resp->email,
-                    'name'  => trim("{$resp->first_name} {$resp->middle_name} {$resp->last_name}") ?: $resp->email,
+                    'name' => trim("{$resp->first_name} {$resp->middle_name} {$resp->last_name}") ?: $resp->email,
                 ]);
             }
         }
@@ -577,7 +578,7 @@ class LetterController extends Controller
      */
     protected function createSystemCaseMessage(Letter $letter, ?int $senderUserId = null): void
     {
-        if (!$letter->case_number) {
+        if (! $letter->case_number) {
             return;
         }
 
@@ -585,26 +586,26 @@ class LetterController extends Controller
             ->where('case_number', $letter->case_number)
             ->value('id');
 
-        if (!$caseId) {
+        if (! $caseId) {
             return;
         }
 
         $previewUrl = Route::has('court.letters.case-preview')
             ? URL::signedRoute('court.letters.case-preview', ['letter' => $letter->getKey()])
-            : URL::to('/court/case-letters/' . $letter->getKey());
+            : URL::to('/court/case-letters/'.$letter->getKey());
 
         $subject = $letter->subject ?: optional($letter->template)->title ?: __('court::cases.notifications.letter');
         $body = __('court::cases.notifications.approved_letter_subject', ['subject' => $subject])
-            . "\n"
-            . __('court::cases.notifications.preview_link', ['url' => $previewUrl]);
+            ."\n"
+            .__('court::cases.notifications.preview_link', ['url' => $previewUrl]);
 
         DB::table('court_case_messages')->insert([
-            'case_id'            => $caseId,
-            'sender_applicant_id'=> null,
-            'sender_user_id'     => $senderUserId,
-            'body'               => $body,
-            'created_at'         => now(),
-            'updated_at'         => now(),
+            'case_id' => $caseId,
+            'sender_applicant_id' => null,
+            'sender_user_id' => $senderUserId,
+            'body' => $body,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -623,7 +624,7 @@ class LetterController extends Controller
             ->where('case_number', $caseNumber)
             ->first();
 
-        if (!$case) {
+        if (! $case) {
             return $content;
         }
 
@@ -632,7 +633,7 @@ class LetterController extends Controller
             '{case_number}' => (string) ($case->case_number ?? ''),
             '{case_code}' => (string) ($case->code ?? ''),
             '{case_title}' => (string) ($case->title ?? ''),
-            '{case_filing_date}' => (string) ($case->filing_date ? \Modules\Court\Application\Support\EthiopianDate::format($case->filing_date) : ''),
+            '{case_filing_date}' => (string) ($case->filing_date ? EthiopianDate::format($case->filing_date) : ''),
             '{case_status}' => (string) ($case->status ?? ''),
             '{respondent_name}' => (string) ($case->respondent_name ?? ''),
             '{applicant_name}' => (string) ($case->title ?? ''),

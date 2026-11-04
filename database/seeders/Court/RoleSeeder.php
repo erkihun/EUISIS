@@ -10,8 +10,9 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $schema = DB::getSchemaBuilder();
-        if (!$schema->hasTable('court_roles')) {
+        if (! $schema->hasTable('court_roles')) {
             $this->command->warn("Skipping RoleSeeder: 'roles' table not found.");
+
             return;
         }
 

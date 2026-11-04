@@ -2,11 +2,10 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantNotificationSettingsController extends Controller
 {
@@ -19,12 +18,12 @@ class ApplicantNotificationSettingsController extends Controller
             ->where('applicant_id', $aid)
             ->first();
 
-        if (!$settings) {
+        if (! $settings) {
             DB::table('applicant_notification_settings')->insert([
                 'applicant_id' => $aid,
                 'hearing_email' => true,
                 'message_email' => true,
-                'status_email'  => true,
+                'status_email' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -50,15 +49,15 @@ class ApplicantNotificationSettingsController extends Controller
         $data = $request->validate([
             'hearing_email' => ['nullable', 'boolean'],
             'message_email' => ['nullable', 'boolean'],
-            'status_email'  => ['nullable', 'boolean'],
+            'status_email' => ['nullable', 'boolean'],
         ]);
 
         // Checkboxes send only when checked; coerce to bool
         $payload = [
-            'hearing_email' => (bool)$request->boolean('hearing_email'),
-            'message_email' => (bool)$request->boolean('message_email'),
-            'status_email'  => (bool)$request->boolean('status_email'),
-            'updated_at'    => now(),
+            'hearing_email' => (bool) $request->boolean('hearing_email'),
+            'message_email' => (bool) $request->boolean('message_email'),
+            'status_email' => (bool) $request->boolean('status_email'),
+            'updated_at' => now(),
         ];
 
         DB::table('applicant_notification_settings')

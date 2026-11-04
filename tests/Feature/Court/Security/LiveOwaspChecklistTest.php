@@ -1,12 +1,12 @@
 <?php
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 // Live, request-level companion to docs/insa-security-assurance/21_OWASP_Testing_Checklist.md.
 // Runs real HTTP requests (routing + middleware + controllers) through Laravel's test client

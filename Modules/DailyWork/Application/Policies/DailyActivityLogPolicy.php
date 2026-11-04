@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Application\Policies;
 
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
-use Modules\DailyWork\Application\Services\DailyActivityReviewerResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Modules\DailyWork\Application\Services\DailyActivityReviewerResolver;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * Authorization for daily activity logs.

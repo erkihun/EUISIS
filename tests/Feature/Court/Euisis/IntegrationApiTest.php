@@ -1,12 +1,12 @@
 <?php
 
-use Modules\Court\Domain\Models\EuisisReferral;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\EuisisReferral;
+use Modules\Court\Domain\Models\IntegrationClient;
 
 // The EUISIS integration API (docs/euisis-integration.md, Flows 2 and 3).
 

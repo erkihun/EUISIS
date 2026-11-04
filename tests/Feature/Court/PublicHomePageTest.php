@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Inertia\Testing\AssertableInertia;
 use Modules\Court\Domain\Models\Announcement;
 use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
@@ -12,9 +15,6 @@ use Modules\Court\Domain\Models\HomeService;
 use Modules\Court\Domain\Models\HomeSetting;
 use Modules\Court\Domain\Models\HomeSlide;
 use Modules\Court\Domain\Models\HomeTimelineStep;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Inertia\Testing\AssertableInertia;
 
 /*
  * The public home page and the resources page on the EUISIS stack

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\CaseType;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Role;
 
 test('the hearings list shows each hearing with its case and filters by case number and date', function (): void {
     $user = User::factory()->create(['status' => 'active', 'email_verified_at' => now()]);

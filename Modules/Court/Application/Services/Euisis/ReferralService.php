@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Domain\Models\EuisisReferral;
-use Modules\Court\Domain\Models\IntegrationClient;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\EuisisReferral;
+use Modules\Court\Domain\Models\IntegrationClient;
 
 /**
  * Opens a court case from an EUISIS tribunal referral

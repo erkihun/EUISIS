@@ -2,13 +2,13 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Application\Support\EthiopianDate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\EthiopianDate;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantNotificationController extends Controller
 {
@@ -19,7 +19,7 @@ class ApplicantNotificationController extends Controller
     public function index(Request $request)
     {
         $aid = auth('applicant')->id();
-        abort_if(!$aid, 403);
+        abort_if(! $aid, 403);
 
         // Unseen hearings (next 60d + last 1d)
         $unseenHearings = DB::table('court_case_hearings as h')
@@ -161,10 +161,10 @@ class ApplicantNotificationController extends Controller
     public function markOne(Request $request)
     {
         $aid = auth('applicant')->id();
-        abort_if(!$aid, 403);
+        abort_if(! $aid, 403);
 
         $data = $request->validate([
-            'type'     => 'required|in:hearing,message,status,respondent_view',
+            'type' => 'required|in:hearing,message,status,respondent_view',
             'sourceId' => 'required|integer',
         ]);
 
@@ -182,7 +182,7 @@ class ApplicantNotificationController extends Controller
     public function markAll()
     {
         $aid = auth('applicant')->id();
-        abort_if(!$aid, 403);
+        abort_if(! $aid, 403);
 
         $now = now();
 
@@ -244,45 +244,45 @@ class ApplicantNotificationController extends Controller
         foreach ($hIds as $id) {
             $rows[] = [
                 'applicant_id' => $aid,
-                'type'         => 'hearing',
-                'source_id'    => $id,
-                'seen_at'      => $now,
-                'created_at'   => $now,
-                'updated_at'   => $now,
+                'type' => 'hearing',
+                'source_id' => $id,
+                'seen_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
         foreach ($mIds as $id) {
             $rows[] = [
                 'applicant_id' => $aid,
-                'type'         => 'message',
-                'source_id'    => $id,
-                'seen_at'      => $now,
-                'created_at'   => $now,
-                'updated_at'   => $now,
+                'type' => 'message',
+                'source_id' => $id,
+                'seen_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
         foreach ($sIds as $id) {
             $rows[] = [
                 'applicant_id' => $aid,
-                'type'         => 'status',
-                'source_id'    => $id,
-                'seen_at'      => $now,
-                'created_at'   => $now,
-                'updated_at'   => $now,
+                'type' => 'status',
+                'source_id' => $id,
+                'seen_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
         foreach ($respondentViewIds as $id) {
             $rows[] = [
                 'applicant_id' => $aid,
-                'type'         => 'respondent_view',
-                'source_id'    => $id,
-                'seen_at'      => $now,
-                'created_at'   => $now,
-                'updated_at'   => $now,
+                'type' => 'respondent_view',
+                'source_id' => $id,
+                'seen_at' => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
         }
 
-        if (!empty($rows)) {
+        if (! empty($rows)) {
             // Avoid unique key errors on (applicant_id,type,source_id)
             DB::table('court_notification_reads')->upsert(
                 $rows,
@@ -300,18 +300,18 @@ class ApplicantNotificationController extends Controller
     public function settingsEdit()
     {
         $aid = auth('applicant')->id();
-        abort_if(!$aid, 403);
+        abort_if(! $aid, 403);
 
         $prefs = DB::table('court_applicant_notification_prefs')
             ->where('applicant_id', $aid)
             ->first();
 
-        if (!$prefs) {
+        if (! $prefs) {
             // Defaults match your SQL defaults
             $prefs = (object) [
-                'email_status'        => 1,
-                'email_hearing'       => 1,
-                'email_message'       => 1,
+                'email_status' => 1,
+                'email_hearing' => 1,
+                'email_message' => 1,
                 'email_weekly_digest' => 0,
             ];
         }
@@ -334,24 +334,24 @@ class ApplicantNotificationController extends Controller
     public function settingsUpdate(Request $request)
     {
         $aid = auth('applicant')->id();
-        abort_if(!$aid, 403);
+        abort_if(! $aid, 403);
 
         $request->validate([
-            'email_status'        => 'sometimes|boolean',
-            'email_hearing'       => 'sometimes|boolean',
-            'email_message'       => 'sometimes|boolean',
+            'email_status' => 'sometimes|boolean',
+            'email_hearing' => 'sometimes|boolean',
+            'email_message' => 'sometimes|boolean',
             'email_weekly_digest' => 'sometimes|boolean',
         ]);
 
         DB::table('court_applicant_notification_prefs')->updateOrInsert(
             ['applicant_id' => $aid],
             [
-                'email_status'        => (int) $request->boolean('email_status'),
-                'email_hearing'       => (int) $request->boolean('email_hearing'),
-                'email_message'       => (int) $request->boolean('email_message'),
+                'email_status' => (int) $request->boolean('email_status'),
+                'email_hearing' => (int) $request->boolean('email_hearing'),
+                'email_message' => (int) $request->boolean('email_message'),
                 'email_weekly_digest' => (int) $request->boolean('email_weekly_digest'),
-                'updated_at'          => now(),
-                'created_at'          => now(), // ignored on update
+                'updated_at' => now(),
+                'created_at' => now(), // ignored on update
             ]
         );
 

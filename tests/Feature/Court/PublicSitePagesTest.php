@@ -2,10 +2,18 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Modules\Court\Domain\Models\Announcement;
 use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
 use Modules\Court\Domain\Models\CourtMember;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\HomeFaq;
 use Modules\Court\Domain\Models\HomeResource;
 use Modules\Court\Domain\Models\HomeService;
@@ -15,17 +23,6 @@ use Modules\Court\Domain\Models\HomeTimelineStep;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
 use Modules\Court\Domain\Models\TermsAndCondition;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Notifications\PasswordResetOtp;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Inertia\Testing\AssertableInertia;
 
 /*
  * The public site, the landing-page manager and the staff account pages on the
@@ -138,7 +135,7 @@ test('the signage board shows today\'s cause list with each sitting\'s bench and
             ->where('announcements.0.summary', 'Closed Friday. Back Monday.')
             ->where('registry', ['office_hours' => null, 'phone' => null, 'address' => null])
             ->where('refreshSeconds', 60)
-            ->where('timezone', config('app.timezone'))
+            ->where('timezone', config('court.timezone'))
             ->has('now')
             ->missing('activeStaff')->missing('todayCases')->missing('statusCounts'));
 });
@@ -459,9 +456,6 @@ test('statistics, sections, footer and the user manual save from the page payloa
 });
 
 /* ── Staff account pages ──────────────────────────────────────────────── */
-
-
-
 
 test('the landing manager keeps Amharic text, the court\'s facts and its members', function (): void {
     $admin = publicSiteStaff();

@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Application\Support\DecisionPdf;
-use Modules\Court\Application\Support\EthiopianDate;
-use Modules\Court\Application\Services\CaseParties;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Support\DecisionPdf;
+use Modules\Court\Application\Support\EthiopianDate;
+use Modules\Court\Domain\Models\Decision;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantDashboardController extends Controller
 {
@@ -46,10 +46,10 @@ class ApplicantDashboardController extends Controller
             ")
             ->first();
 
-        $total   = (int) ($counts->total ?? 0);
+        $total = (int) ($counts->total ?? 0);
         $pending = (int) ($counts->pending ?? 0);
-        $active  = (int) ($counts->active ?? 0);
-        $closed  = (int) ($counts->closed ?? 0);
+        $active = (int) ($counts->active ?? 0);
+        $closed = (int) ($counts->closed ?? 0);
 
         $caseNumbers = DB::table('court_cases')
             ->whereIn('id', CaseParties::caseIdsFor((int) $applicantId))

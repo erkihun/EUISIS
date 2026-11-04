@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Notifications;
 
-use Modules\Court\Application\Services\CaseParties;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Court\Application\Services\CaseParties;
 
 /**
  * An applicant's or a respondent's notifications as one feed, for the header

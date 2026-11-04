@@ -2,18 +2,16 @@
 
 namespace Modules\Court\Application\Notifications;
 
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 class RespondentResponseSubmitted extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private RespondentResponse $response)
-    {
-    }
+    public function __construct(private RespondentResponse $response) {}
 
     public function via(object $notifiable): array
     {

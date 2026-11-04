@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers;
 
-use Modules\Court\Domain\Models\HomeSetting;
-use Modules\Court\Http\Support\Ui\PublicSiteChrome;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\HomeSetting;
+use Modules\Court\Http\Support\Ui\PublicSiteChrome;
 
 class UserManualController extends Controller
 {
@@ -33,7 +34,7 @@ class UserManualController extends Controller
             // before HTMLPurifier was used may still hold anything). The default
             // profile keeps the tables, headings and inline styles a manual needs
             // (HTMLPurifier writes the platform's line endings; the page gets "\n").
-            'content' => $content !== '' ? (string) preg_replace('/\r\n?/', "\n", (string) \Modules\Court\Application\Support\Purifier::clean($content, 'default')) : '',
+            'content' => $content !== '' ? (string) preg_replace('/\r\n?/', "\n", (string) Purifier::clean($content, 'default')) : '',
             'publicSite' => PublicSiteChrome::props(),
         ]);
     }

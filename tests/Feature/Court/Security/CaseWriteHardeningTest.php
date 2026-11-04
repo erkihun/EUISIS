@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 require_once __DIR__.'/JudicialWorkHelpers.php';
 
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
 
 function caseWriteMember(): User
 {

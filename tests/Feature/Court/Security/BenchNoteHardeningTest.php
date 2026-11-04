@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 require_once __DIR__.'/JudicialWorkHelpers.php';
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 function benchNoteRow(int $caseId, User $author, string $note = '<p>Noted.</p>'): int
 {

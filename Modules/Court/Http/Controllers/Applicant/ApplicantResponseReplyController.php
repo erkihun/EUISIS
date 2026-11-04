@@ -2,23 +2,25 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\ApplicantResponseReply;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Application\Services\ResponseNotificationService;
-use Modules\Court\Application\Services\CaseParties;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\LegalHoldService;
+use Modules\Court\Application\Services\ResponseNotificationService;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\ApplicantResponseReply;
+use Modules\Court\Domain\Models\RespondentResponse;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantResponseReplyController extends Controller
 {
     public function index()
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         $replies = DB::table('court_applicant_response_replies as arr')
             ->join('court_cases as cc', 'cc.id', '=', 'arr.case_id')
@@ -50,7 +52,7 @@ class ApplicantResponseReplyController extends Controller
                 'case_id' => (int) $reply->case_id,
                 'respondent_response_id' => (int) $reply->respondent_response_id,
                 'case_number' => (string) $reply->case_number,
-                'response_number' => !empty($reply->response_number) ? (string) $reply->response_number : null,
+                'response_number' => ! empty($reply->response_number) ? (string) $reply->response_number : null,
                 'review_status' => (string) ($reply->review_status ?? 'awaiting_review'),
                 'created_at' => $this->isoDate($reply->created_at ?? null),
                 'editable' => ($reply->review_status ?? null) !== 'accepted',
@@ -61,7 +63,7 @@ class ApplicantResponseReplyController extends Controller
     public function create(int $caseId, int $responseId)
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         [$case, $response] = $this->loadCaseAndResponse($caseId, $responseId, $applicantId);
         $applicant = auth('applicant')->user();
@@ -76,7 +78,7 @@ class ApplicantResponseReplyController extends Controller
     public function store(Request $request, int $caseId, int $responseId)
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         [$case, $response] = $this->loadCaseAndResponse($caseId, $responseId, $applicantId);
 
@@ -85,7 +87,7 @@ class ApplicantResponseReplyController extends Controller
             'pdf' => ['required', 'file', 'mimes:pdf', 'max:2048'],
         ]);
 
-        $path = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+        $path = app(SecureUploadService::class)->store(
             $request->file('pdf'),
             'applicant/response-replies',
             'court_private',
@@ -113,7 +115,7 @@ class ApplicantResponseReplyController extends Controller
     public function show(int $caseId, int $responseId, int $replyId)
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         [$case, $response] = $this->loadCaseAndResponse($caseId, $responseId, $applicantId);
         $reply = $this->loadReply($replyId, $case->id, $response->id, $applicantId);
@@ -128,7 +130,7 @@ class ApplicantResponseReplyController extends Controller
     public function edit(int $caseId, int $responseId, int $replyId)
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         [$case, $response] = $this->loadCaseAndResponse($caseId, $responseId, $applicantId);
         $reply = $this->loadReply($replyId, $case->id, $response->id, $applicantId);
@@ -144,7 +146,7 @@ class ApplicantResponseReplyController extends Controller
     public function update(Request $request, int $caseId, int $responseId, int $replyId)
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         [$case, $response] = $this->loadCaseAndResponse($caseId, $responseId, $applicantId);
         $reply = ApplicantResponseReply::query()
@@ -161,10 +163,10 @@ class ApplicantResponseReplyController extends Controller
         ]);
 
         if ($request->hasFile('pdf')) {
-            app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $reply->pdf_path);
+            app(LegalHoldService::class)->assertFileMayBeDeleted((string) $reply->pdf_path);
             Storage::disk('court_private')->delete($reply->pdf_path);
             Storage::disk('court_public')->delete($reply->pdf_path);
-            $reply->pdf_path = app(\Modules\Court\Application\Services\SecureUploadService::class)->store(
+            $reply->pdf_path = app(SecureUploadService::class)->store(
                 $request->file('pdf'),
                 'applicant/response-replies',
                 'court_private',
@@ -185,7 +187,7 @@ class ApplicantResponseReplyController extends Controller
     public function destroy(int $caseId, int $responseId, int $replyId)
     {
         $applicantId = auth('applicant')->id();
-        abort_if(!$applicantId, 403);
+        abort_if(! $applicantId, 403);
 
         [$case, $response] = $this->loadCaseAndResponse($caseId, $responseId, $applicantId);
 
@@ -197,7 +199,7 @@ class ApplicantResponseReplyController extends Controller
             ->firstOrFail();
         $this->ensureEditableReply($reply);
 
-        app(\Modules\Court\Application\Services\LegalHoldService::class)->assertFileMayBeDeleted((string) $reply->pdf_path);
+        app(LegalHoldService::class)->assertFileMayBeDeleted((string) $reply->pdf_path);
         Storage::disk('court_private')->delete($reply->pdf_path);
         Storage::disk('court_public')->delete($reply->pdf_path);
         $reply->delete();
@@ -214,7 +216,7 @@ class ApplicantResponseReplyController extends Controller
             ->whereIn('cc.id', CaseParties::caseIdsFor($applicantId))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
         $response = DB::table('court_respondent_responses as rr')
             ->leftJoin('court_respondents as r', 'r.id', '=', 'rr.respondent_id')
@@ -232,7 +234,7 @@ class ApplicantResponseReplyController extends Controller
             ->where('rr.review_status', 'accepted')
             ->first();
 
-        abort_if(!$response, 404);
+        abort_if(! $response, 404);
 
         return [$case, $response];
     }
@@ -253,7 +255,7 @@ class ApplicantResponseReplyController extends Controller
             ->where('arr.applicant_id', $applicantId)
             ->first();
 
-        abort_if(!$reply, 404);
+        abort_if(! $reply, 404);
 
         return $reply;
     }
@@ -271,9 +273,9 @@ class ApplicantResponseReplyController extends Controller
 
         return [
             'id' => (int) $response->id,
-            'response_number' => !empty($response->response_number) ? (string) $response->response_number : null,
+            'response_number' => ! empty($response->response_number) ? (string) $response->response_number : null,
             'respondent_name' => $name !== '' ? $name : null,
-            'has_pdf' => !empty($response->pdf_path),
+            'has_pdf' => ! empty($response->pdf_path),
         ];
     }
 
@@ -284,11 +286,11 @@ class ApplicantResponseReplyController extends Controller
             'id' => (int) $reply->id,
             'description' => (string) ($reply->description ?? ''),
             'review_status' => (string) ($reply->review_status ?? 'awaiting_review'),
-            'review_note' => !empty($reply->review_note) ? (string) $reply->review_note : null,
+            'review_note' => ! empty($reply->review_note) ? (string) $reply->review_note : null,
             'created_at' => $this->isoDate($reply->created_at ?? null),
             'applicant_name' => $this->joinName($reply->applicant_first_name ?? null, $reply->applicant_middle_name ?? null, $reply->applicant_last_name ?? null),
             'editable' => ($reply->review_status ?? null) !== 'accepted',
-            'has_pdf' => !empty($reply->pdf_path),
+            'has_pdf' => ! empty($reply->pdf_path),
         ];
     }
 

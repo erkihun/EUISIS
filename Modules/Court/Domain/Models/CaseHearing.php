@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CaseHearing extends Model
 {
     protected $table = 'court_case_hearings';
+
     protected $guarded = [];
+
     public $timestamps = false;
 
     public function courtCase(): BelongsTo

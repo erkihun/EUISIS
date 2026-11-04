@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Http\Requests;
 
-use Modules\Assessment\Domain\Enums\EvaluatorType;
-use Modules\Assessment\Domain\Enums\InputMode;
-use Modules\Assessment\Domain\Enums\PeriodType;
-use Modules\Assessment\Domain\Enums\ScoringMethod;
-use Modules\Assessment\Domain\Enums\SelectionMethod;
-use Modules\Assessment\Domain\Enums\TargetType;
-use Modules\Assessment\Domain\Models\AssessmentFormVersion;
 use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -19,6 +12,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Modules\Assessment\Application\Services\AssessmentFormVersionRules;
+use Modules\Assessment\Domain\Models\AssessmentFormVersion;
 
 /**
  * The whole draft of a form version: header, sections → criteria → rating

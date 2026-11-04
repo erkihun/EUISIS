@@ -33,7 +33,7 @@ class SqlQueryParameterizationTest extends TestCase
             }
 
             foreach ($patterns as $pattern) {
-                if (!preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
+                if (! preg_match_all($pattern, $content, $matches, PREG_OFFSET_CAPTURE)) {
                     continue;
                 }
 
@@ -47,12 +47,12 @@ class SqlQueryParameterizationTest extends TestCase
         $this->assertSame(
             [],
             $violations,
-            "Potential non-parameterized raw SQL patterns found:\n" . implode("\n", $violations)
+            "Potential non-parameterized raw SQL patterns found:\n".implode("\n", $violations)
         );
     }
 
     /**
-     * @param list<string> $roots
+     * @param  list<string>  $roots
      * @return list<string>
      */
     private function phpFiles(array $roots): array
@@ -60,7 +60,7 @@ class SqlQueryParameterizationTest extends TestCase
         $files = [];
 
         foreach ($roots as $root) {
-            if (!is_dir($root)) {
+            if (! is_dir($root)) {
                 continue;
             }
 
@@ -69,7 +69,7 @@ class SqlQueryParameterizationTest extends TestCase
             );
 
             foreach ($iterator as $item) {
-                if (!$item->isFile() || $item->getExtension() !== 'php') {
+                if (! $item->isFile() || $item->getExtension() !== 'php') {
                     continue;
                 }
 

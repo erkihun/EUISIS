@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\SystemSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -15,6 +13,9 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Support\Sql;
+use Modules\Court\Domain\Models\SystemSetting;
+use Modules\Court\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {
@@ -62,15 +63,15 @@ class DashboardController extends Controller
     private function allTime(): array
     {
         return Cache::remember('court.dashboard_index_v4', self::CACHE_TTL, function () {
-            $totalCases    = DB::table('court_cases')->count();
-            $pendingCases  = DB::table('court_cases')->where('status', 'pending')->count();
+            $totalCases = DB::table('court_cases')->count();
+            $pendingCases = DB::table('court_cases')->where('status', 'pending')->count();
             $resolvedCases = DB::table('court_decisions')
                 ->where('status', 'published')
                 ->whereNotNull('court_case_id')
                 ->distinct()
                 ->count('court_case_id');
-            $activeUsers   = DB::table('court_staff')->where('status', 'active')->count();
-            $activeCases   = DB::table('court_cases')->where('status', 'active')->count();
+            $activeUsers = DB::table('court_staff')->where('status', 'active')->count();
+            $activeCases = DB::table('court_cases')->where('status', 'active')->count();
 
             $recent = DB::table('court_cases')
                 ->select('id', 'case_number', 'title', 'status', 'created_at')
@@ -81,7 +82,7 @@ class DashboardController extends Controller
             // monthly cases (last 6 months) — single query, build labels in PHP
             $reference = Carbon::now();
             $months = DB::table('court_cases')
-                ->selectRaw(\Modules\Court\Application\Support\Sql::yearMonth('created_at')." as ym, COUNT(*) as cnt")
+                ->selectRaw(Sql::yearMonth('created_at').' as ym, COUNT(*) as cnt')
                 ->where('created_at', '>=', $reference->copy()->subMonths(5)->startOfMonth())
                 ->groupBy('ym')
                 ->orderBy('ym')
@@ -146,8 +147,9 @@ class DashboardController extends Controller
             $memberCaseCounts = $memberCaseCounts->map(function ($member) use ($memberCaseTypeCounts) {
                 $member->case_type_counts = $memberCaseTypeCounts
                     ->get($member->id, collect())
-                    ->map(fn($row) => ['label' => $row->case_type, 'count' => (int) $row->cases_count])
+                    ->map(fn ($row) => ['label' => $row->case_type, 'count' => (int) $row->cases_count])
                     ->values();
+
                 return $member;
             });
 
@@ -164,7 +166,7 @@ class DashboardController extends Controller
                 ->orderByDesc('total')
                 ->limit(8)
                 ->get()
-                ->mapWithKeys(fn($row) => [$row->label => $row->total])
+                ->mapWithKeys(fn ($row) => [$row->label => $row->total])
                 ->toArray();
 
             $keys = [];
@@ -314,11 +316,11 @@ class DashboardController extends Controller
         $now = Carbon::now();
 
         return match ($range) {
-            '7d'  => [$now->copy()->subDays(6)->startOfDay(),         $now->copy()],
+            '7d' => [$now->copy()->subDays(6)->startOfDay(),         $now->copy()],
             '30d' => [$now->copy()->subDays(29)->startOfDay(),        $now->copy()],
             '90d' => [$now->copy()->subDays(89)->startOfDay(),        $now->copy()],
             '12m' => [$now->copy()->subMonths(11)->startOfMonth(),    $now->copy()],
-            default=>[$now->copy()->subMonths(5)->startOfMonth(),     $now->copy()],
+            default => [$now->copy()->subMonths(5)->startOfMonth(),     $now->copy()],
         };
     }
 
@@ -326,9 +328,17 @@ class DashboardController extends Controller
     private function serviceHealth(): array
     {
         $database = true;
-        try { DB::connection()->getPdo(); } catch (\Throwable) { $database = false; }
+        try {
+            DB::connection()->getPdo();
+        } catch (\Throwable) {
+            $database = false;
+        }
         $queue = null;
-        try { $queue = Schema::hasTable('jobs') ? (int) DB::table('jobs')->count() : null; } catch (\Throwable) { $queue = null; }
+        try {
+            $queue = Schema::hasTable('jobs') ? (int) DB::table('jobs')->count() : null;
+        } catch (\Throwable) {
+            $queue = null;
+        }
         $settings = SystemSetting::current();
 
         return [
@@ -363,7 +373,8 @@ class DashboardController extends Controller
             $tables = DB::connection()->getDriverName() === 'mysql'
                 ? count(DB::select('SHOW TABLES'))
                 : count(Schema::getTables());
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
         $size = null;
         try {
             $driver = DB::connection()->getDriverName();
@@ -374,7 +385,8 @@ class DashboardController extends Controller
                 default => null,
             };
             $size = $bytes === null ? null : round($bytes / 1048576, 2).' MB';
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         return [
             'tables' => $tables,
@@ -387,10 +399,15 @@ class DashboardController extends Controller
 
     private function sqliteSize(string $database): ?int
     {
-        if ($database === ':memory:') return null;
+        if ($database === ':memory:') {
+            return null;
+        }
         $path = realpath($database);
-        if ($path === false || ! is_file($path)) return null;
+        if ($path === false || ! is_file($path)) {
+            return null;
+        }
         $bytes = filesize($path);
+
         return $bytes === false ? null : $bytes;
     }
 
@@ -406,7 +423,7 @@ class DashboardController extends Controller
         if ($request->filled('start') && $request->filled('end')) {
             try {
                 $start = Carbon::parse($request->input('start'))->startOfDay();
-                $end   = Carbon::parse($request->input('end'))->endOfDay();
+                $end = Carbon::parse($request->input('end'))->endOfDay();
             } catch (\Exception) {
                 return response()->json(['ok' => false, 'message' => 'Invalid date format.'], 422);
             }
@@ -425,7 +442,7 @@ class DashboardController extends Controller
     private function rangeStats(Carbon $start, Carbon $end): array
     {
         // Cache key encodes the exact day range so custom ranges also benefit
-        $cacheKey = 'dashboard_stats_v4_' . $start->toDateString() . '_' . $end->toDateString();
+        $cacheKey = 'dashboard_stats_v4_'.$start->toDateString().'_'.$end->toDateString();
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($start, $end) {
 
@@ -444,10 +461,10 @@ class DashboardController extends Controller
                 ->whereBetween('c.created_at', [$start, $end])
                 ->first();
 
-            $totalCases    = (int) $kpiRow->total;
-            $pendingCases  = (int) $kpiRow->pending;
+            $totalCases = (int) $kpiRow->total;
+            $pendingCases = (int) $kpiRow->pending;
             $resolvedCases = (int) $kpiRow->resolved;
-            $activeCases   = (int) $kpiRow->active;
+            $activeCases = (int) $kpiRow->active;
 
             $activeUsers = DB::table('court_staff')
                 ->whereBetween('updated_at', [$start, $end])
@@ -525,8 +542,9 @@ class DashboardController extends Controller
             $memberCaseCounts = $memberCaseCounts->map(function ($member) use ($memberCaseTypeCounts) {
                 $member->case_type_counts = $memberCaseTypeCounts
                     ->get($member->id, collect())
-                    ->map(fn($row) => ['label' => $row->case_type, 'count' => (int) $row->cases_count])
+                    ->map(fn ($row) => ['label' => $row->case_type, 'count' => (int) $row->cases_count])
                     ->values();
+
                 return $member;
             });
 
@@ -537,7 +555,7 @@ class DashboardController extends Controller
 
             if ($useDaily) {
                 $rows = DB::table('court_cases')
-                    ->selectRaw("DATE(created_at) as day, COUNT(*) as cnt")
+                    ->selectRaw('DATE(created_at) as day, COUNT(*) as cnt')
                     ->whereBetween('created_at', [$start, $end])
                     ->groupBy('day')
                     ->pluck('cnt', 'day');
@@ -551,7 +569,7 @@ class DashboardController extends Controller
                 }
             } else {
                 $rows = DB::table('court_cases')
-                    ->selectRaw(\Modules\Court\Application\Support\Sql::yearMonth('created_at')." as ym, COUNT(*) as cnt")
+                    ->selectRaw(Sql::yearMonth('created_at').' as ym, COUNT(*) as cnt')
                     ->whereBetween('created_at', [$start, $end])
                     ->groupBy('ym')
                     ->pluck('cnt', 'ym');
@@ -566,7 +584,7 @@ class DashboardController extends Controller
             }
 
             // Both gender + case-type in one query pass each
-            $genderCounts  = DB::table('court_applicants')
+            $genderCounts = DB::table('court_applicants')
                 ->select('gender', DB::raw('COUNT(*) as total'))
                 ->whereBetween('created_at', [$start, $end])
                 ->groupBy('gender')
@@ -580,32 +598,32 @@ class DashboardController extends Controller
                 ->groupBy('label')
                 ->orderByDesc('total')
                 ->get()
-                ->map(fn($row) => ['label' => $row->label, 'total' => (int) $row->total]);
+                ->map(fn ($row) => ['label' => $row->label, 'total' => (int) $row->total]);
 
             return [
-                'ok'    => true,
+                'ok' => true,
                 'range' => [
                     'start' => $start->toDateString(),
-                    'end'   => $end->toDateString(),
-                    'mode'  => $useDaily ? 'daily' : 'monthly',
+                    'end' => $end->toDateString(),
+                    'mode' => $useDaily ? 'daily' : 'monthly',
                 ],
                 'kpis' => [
-                    'totalCases'    => $totalCases,
-                    'pendingCases'  => $pendingCases,
+                    'totalCases' => $totalCases,
+                    'pendingCases' => $pendingCases,
                     'resolvedCases' => $resolvedCases,
-                    'activeCases'   => $activeCases,
-                    'activeUsers'   => $activeUsers,
+                    'activeCases' => $activeCases,
+                    'activeUsers' => $activeUsers,
                 ],
-                'recent'          => $recent,
-                'teamCaseCounts'  => $teamCaseCounts,
-                'memberCaseCounts'=> $memberCaseCounts,
+                'recent' => $recent,
+                'teamCaseCounts' => $teamCaseCounts,
+                'memberCaseCounts' => $memberCaseCounts,
                 'charts' => [
-                    'line'   => ['labels' => $labels, 'keys' => $keys, 'values' => $values],
+                    'line' => ['labels' => $labels, 'keys' => $keys, 'values' => $values],
                     'gender' => [
                         'labels' => array_keys($genderCounts),
                         'values' => array_values($genderCounts),
                     ],
-                    'types'  => [
+                    'types' => [
                         'labels' => $caseTypeCounts->pluck('label')->all(),
                         'values' => $caseTypeCounts->pluck('total')->all(),
                     ],

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Modules\DailyWork\Domain\Models\DailyActivityItem;
 use Database\Seeders\DemoDataSeeder;
+use Modules\DailyWork\Domain\Models\DailyActivityItem;
 
 /*
  * The demo seeds the work execution register example: HR Officer →

@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Support\SessionRows;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Domain\Models\Applicant;
 
 /*
 | The sessions table is shared by the staff and applicant guards, and user_id is
@@ -30,9 +29,6 @@ function sessionHardeningRow(string $id, int $userId, ?string $guard): void
 beforeEach(function (): void {
     config(['session.driver' => 'database']);
 });
-
-
-
 
 test('the applicant sessions page sends keyed handles and ends a session only by its handle', function (): void {
     $applicant = Applicant::create([

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Infrastructure\Console;
 
-use Modules\DailyWork\Application\Services\DailyActivityReminderService;
 use Illuminate\Console\Command;
+use Modules\DailyWork\Application\Services\DailyActivityReminderService;
 
 /**
  * Sends end-of-day and next-working-day Daily Activity reminders.

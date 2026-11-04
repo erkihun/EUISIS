@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Domain\Models;
 
-use Modules\Assessment\Domain\Enums\InputMode;
+use App\Models\Competency;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Competency;
+use Modules\Assessment\Domain\Enums\InputMode;
 
 /**
  * What is rated, in a section. Optionally linked to an EPMS catalog competency.

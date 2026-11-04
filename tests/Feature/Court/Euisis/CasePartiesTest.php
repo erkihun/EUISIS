@@ -2,17 +2,6 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CaseApplicant;
-use Modules\Court\Domain\Models\CaseRepresentative;
-use Modules\Court\Domain\Models\EuisisOrganization;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Domain\Models\Permission;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Notifications\ApplicantResetPassword;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Http\Support\Ui\PortalNavigation;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +13,17 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Application\Notifications\ApplicantResetPassword;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CaseApplicant;
+use Modules\Court\Domain\Models\CaseRepresentative;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\EuisisOrganization;
+use Modules\Court\Domain\Models\IntegrationClient;
+use Modules\Court\Domain\Models\Permission;
+use Modules\Court\Domain\Models\Role;
+use Modules\Court\Http\Support\Ui\PortalNavigation;
 
 /*
 | Several parties to a case (EUISIS ADR 0013 #13): an employee files through a

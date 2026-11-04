@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Support\Ui;
 
-use Modules\Court\Domain\Models\HomeSetting;
-use Modules\Court\Application\Support\EuisisParties;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Domain\Models\HomeSetting;
 
 /**
  * What the React public layout (resources/js/court/public/PublicLayout.tsx)

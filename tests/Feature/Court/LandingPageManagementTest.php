@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\HomeSetting;
-use Modules\Court\Domain\Models\Permission;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\HomeSetting;
+use Modules\Court\Domain\Models\Permission;
+use Modules\Court\Domain\Models\Role;
 
 uses(RefreshDatabase::class);
 

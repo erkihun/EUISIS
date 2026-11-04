@@ -3,8 +3,8 @@
 namespace Modules\Court\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Illuminate\Http\Request;
 
 class EnsureApplicantIsVerified
 {
@@ -13,7 +13,7 @@ class EnsureApplicantIsVerified
         $user = auth('applicant')->user();
 
         // Not logged in as applicant → send to login
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('court.applicant.login');
         }
 
@@ -24,7 +24,7 @@ class EnsureApplicantIsVerified
             }
         } else {
             // Fallback: check the timestamp column directly
-            if (!empty($user->email_verified_at)) {
+            if (! empty($user->email_verified_at)) {
                 return $next($request);
             }
         }

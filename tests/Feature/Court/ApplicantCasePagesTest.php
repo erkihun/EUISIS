@@ -2,12 +2,6 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\LetterTemplate;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Domain\Models\TermsAndCondition;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +10,12 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\LetterTemplate;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
+use Modules\Court\Domain\Models\TermsAndCondition;
 
 // The applicant's case pages and the replies to respondent responses on the
 // EUISIS stack (Court/Applicant/Cases/*, Court/Applicant/Replies/*): each page's

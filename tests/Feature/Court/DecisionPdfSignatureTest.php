@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\CaseType;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Support\DecisionPdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Court\Application\Support\DecisionPdf;
+use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Decision;
 
 function decisionWithPanelJudge(User $judge, string $status = 'published', bool $approved = true): Decision
 {

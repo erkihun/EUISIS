@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 require_once __DIR__.'/JudicialWorkHelpers.php';
 
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
 
 test('a case awaiting review is not open to a plain viewer through the record or its PDFs', function (): void {
     $viewer = jwStaff(['cases.view']);

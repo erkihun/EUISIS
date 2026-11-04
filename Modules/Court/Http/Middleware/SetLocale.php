@@ -2,10 +2,10 @@
 
 namespace Modules\Court\Http\Middleware;
 
-use Modules\Court\Domain\Models\SystemSetting;
 use Closure;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Schema;
+use Modules\Court\Domain\Models\SystemSetting;
 
 class SetLocale
 {

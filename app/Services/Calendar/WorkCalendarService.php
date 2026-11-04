@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Calendar;
 
-use App\Services\Calendar\PublicHolidayCalendar;
 use Illuminate\Support\Carbon;
 use Modules\DailyWork\Contracts\DailyWorkCalendarSettings;
 

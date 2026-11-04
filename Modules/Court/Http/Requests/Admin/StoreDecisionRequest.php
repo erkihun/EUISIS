@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Requests\Admin;
 
-use Modules\Court\Domain\Models\CourtCase;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Court\Domain\Models\CourtCase;
 
 class StoreDecisionRequest extends FormRequest
 {

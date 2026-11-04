@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\ApplicantResponseReply;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\ApplicantResponseReply;
+use Modules\Court\Domain\Models\IntegrationClient;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 
 /*
 | Flow 6 (docs/euisis-integration.md): the employee works on their own cases

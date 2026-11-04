@@ -9,13 +9,13 @@ declare(strict_types=1);
  * other test files' helpers (Pest loads every test file into one namespace).
  */
 
+use Illuminate\Support\Str;
 use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
 use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Str;
 
 /** An active, verified staff user holding exactly `$permissions` (role 'admin' grants everything). */
 function jwStaff(array $permissions, ?string $roleName = null): User

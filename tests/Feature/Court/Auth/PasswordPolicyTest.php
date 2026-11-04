@@ -1,6 +1,5 @@
 <?php
 
-
 test('applicant registration rejects weak passwords', function () {
     $response = $this->post(route('court.applicant.register.submit'), [
         'first_name' => 'Test',

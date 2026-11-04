@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\CaseInspectionFinding;
-use Modules\Court\Domain\Models\CaseInspectionRequest;
-use Modules\Court\Domain\Models\CaseType;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Permission;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\CaseInspectionFinding;
+use Modules\Court\Domain\Models\CaseInspectionRequest;
+use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Permission;
+use Modules\Court\Domain\Models\Role;
 
 /** A user holding exactly these permissions through one role. */
 function ibrUser(array $permissions, ?string $roleName = null): User

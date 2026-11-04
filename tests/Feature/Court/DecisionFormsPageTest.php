@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Decision;
 use Modules\Court\Domain\Models\DecisionReview;
 use Modules\Court\Domain\Models\DecisionTemplate;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Str;
-use Inertia\Testing\AssertableInertia;
 
 function decisionFormsUser(array $permissions, string $name = 'Decision Judge'): User
 {
@@ -123,7 +123,7 @@ test('the show page carries the decision, its panel, the reviews, the templates 
         ['order' => 2, 'admin_user_id' => $judge->id, 'admin_user_name' => $judge->name, 'vote' => null],
         ['order' => 3, 'admin_user_id' => $third->id, 'admin_user_name' => $third->name, 'vote' => null],
     ]]);
-    $template =DecisionTemplate::query()->create(['title' => 'Standard layout', 'body' => '<p>{{decision_content}}</p>', 'is_default' => true]);
+    $template = DecisionTemplate::query()->create(['title' => 'Standard layout', 'body' => '<p>{{decision_content}}</p>', 'is_default' => true]);
     $own = DecisionReview::query()->create(['decision_id' => $decision->id, 'case_number' => $decision->case_number, 'reviewer_id' => $judge->id, 'outcome' => 'improve', 'review_note' => 'Tighten the reasoning.']);
     DecisionReview::query()->create(['decision_id' => $decision->id, 'case_number' => $decision->case_number, 'reviewer_id' => $colleague->id, 'outcome' => 'approve']);
 

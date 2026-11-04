@@ -2,8 +2,8 @@
 
 namespace Modules\Court\Http\Controllers\Api;
 
-use Modules\Court\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Http\Controllers\Controller;
 
 class LookupController extends Controller
 {

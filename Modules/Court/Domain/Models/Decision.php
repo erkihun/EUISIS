@@ -7,7 +7,6 @@ namespace Modules\Court\Domain\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Court\Domain\Models\CourtCase;
 use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 class Decision extends Model

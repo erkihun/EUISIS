@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Modules\Court\Domain\Models\CaseType;
 use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\Decision;
 use Modules\Court\Domain\Models\Permission;
 use Modules\Court\Domain\Models\Role;
 use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
-use Inertia\Testing\AssertableInertia;
 
 function dashboardResolvedCase(string $status, User $assignee): CourtCase
 {

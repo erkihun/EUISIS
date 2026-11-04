@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Domain\Models;
 
-use Modules\Assessment\Domain\Enums\FormVersionStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Organization;
+use Modules\Assessment\Domain\Enums\FormVersionStatus;
 
 /**
  * An assessment form. Its content lives in versions; assessments use a

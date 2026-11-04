@@ -2,8 +2,8 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 
 class HomeService extends Model
 {
@@ -18,7 +18,7 @@ class HomeService extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'features'  => 'array',
+        'features' => 'array',
     ];
 
     public function scopeActive($query)

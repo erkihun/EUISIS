@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\Role;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Role;
 
 function peopleAdmin(): User
 {
@@ -34,4 +34,3 @@ test('the applicants list shows each applicant, filters by state and lets a mana
     $this->actingAs($admin)->patch(route('court.applicants.status.update', $inactive), ['is_active' => 1])->assertRedirect();
     expect($inactive->fresh()->is_active)->toBeTrue();
 });
-

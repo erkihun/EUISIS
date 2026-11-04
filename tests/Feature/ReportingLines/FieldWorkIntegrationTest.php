@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Organization;
+use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ReportingLines\ReportingGraphRepository;
 use App\Services\ReportingLines\SupervisorActions;
@@ -51,7 +52,7 @@ beforeEach(function (): void {
 
 afterEach(fn () => Carbon::setTestNow());
 
-function rlSubmit(\App\Models\User $user): FieldWorkRequest
+function rlSubmit(User $user): FieldWorkRequest
 {
     test()->actingAs($user)->post(route('employee.field-work.store'), [
         'action' => 'draft', 'field_work_type_id' => test()->type->id, 'purpose' => 'Inspect the records office',

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 
 /**
  * Daily Operations: the Daily Activity Register as volumes — days reported,

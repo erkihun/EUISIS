@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Court\Infrastructure\Console;
 
-use Modules\Court\Domain\Models\IntegrationClient;
 use Illuminate\Console\Command;
+use Modules\Court\Domain\Models\IntegrationClient;
 
 /**
  * Issues (or rotates) the token EUISIS uses to send tribunal referrals and

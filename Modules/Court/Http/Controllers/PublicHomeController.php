@@ -4,6 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Application\Support\Purifier;
 use Modules\Court\Domain\Models\Announcement;
 use Modules\Court\Domain\Models\CourtMember;
 use Modules\Court\Domain\Models\HomeFaq;
@@ -12,16 +21,8 @@ use Modules\Court\Domain\Models\HomeService;
 use Modules\Court\Domain\Models\HomeSetting;
 use Modules\Court\Domain\Models\HomeSlide;
 use Modules\Court\Domain\Models\HomeTimelineStep;
-use Modules\Court\Application\Support\EuisisParties;
 use Modules\Court\Http\Support\Ui\EditorLink;
 use Modules\Court\Http\Support\Ui\PublicSiteChrome;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
-use Inertia\Inertia;
-use Inertia\Response;
 
 /**
  * The public home page (Court/Public/Home), laid out as an administrative
@@ -187,7 +188,7 @@ class PublicHomeController extends Controller
                 'id' => (int) $announcement->id,
                 'title' => (string) $announcement->title,
                 // Purified here, as the court screen does, and again by the viewer.
-                'content' => (string) \Modules\Court\Application\Support\Purifier::clean((string) $announcement->content, 'default'),
+                'content' => (string) Purifier::clean((string) $announcement->content, 'default'),
                 'created_at' => $announcement->created_at?->toIso8601String(),
             ],
             'publicSite' => PublicSiteChrome::props(),

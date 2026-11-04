@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Enums\TemporaryAuthorityStatus;
 use App\Models\ActingAppointment;
 use App\Models\SupervisorDelegation;
+use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ReportingLines\ActingAppointmentService;
 use App\Services\ReportingLines\AuthorityDecision;
 use App\Services\ReportingLines\ReportingAuthority;
@@ -12,7 +14,7 @@ use App\Services\ReportingLines\ReportingGraphRepository;
 use App\Services\ReportingLines\ReportingLineResolver;
 use App\Services\ReportingLines\SupervisorActions;
 use App\Services\ReportingLines\SupervisorDelegationService;
-use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\ReportingHierarchyFixture;
@@ -37,11 +39,11 @@ beforeEach(function (): void {
     $this->alice = $this->f->person('Alice', $this->f->member);
     $this->bob = $this->f->person('Bob', $this->f->member);
     $this->officer = $this->f->person('Officer', $this->f->directorateOfficer);
-    $this->hr = \App\Models\User::factory()->create();
+    $this->hr = User::factory()->create();
     app(OrganizationScopeService::class)->clearCache();
 });
 
-afterEach(fn () => \Illuminate\Support\Carbon::setTestNow());
+afterEach(fn () => Carbon::setTestNow());
 
 function rlErrors(callable $call): array
 {

@@ -2,9 +2,9 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantRoleSwitchController extends Controller
 {

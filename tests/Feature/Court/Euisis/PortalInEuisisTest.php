@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\IntegrationClient;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\IntegrationClient;
 
 /*
 | Flow 6: with EUISIS_PORTAL_IN_EUISIS on, employees work on their cases in

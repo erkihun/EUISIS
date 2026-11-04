@@ -3,8 +3,8 @@
 namespace Modules\Court\Domain\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Court\Domain\Models\Concerns\AuditableContract as AuditableContract;
 use Modules\Court\Domain\Models\Concerns\Auditable;
+use Modules\Court\Domain\Models\Concerns\AuditableContract;
 
 class LetterTemplate extends Model implements AuditableContract
 {

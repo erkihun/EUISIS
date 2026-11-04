@@ -6,14 +6,14 @@ namespace Modules\DailyWork\Http\Controllers;
 
 use App\Actions\SystemSettings\UpdateSystemSettingsGroupAction;
 use App\Http\Controllers\Controller;
-use Modules\DailyWork\Http\Requests\UpdateDailyActivitySettingsRequest;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
-use Modules\DailyWork\Application\Services\DailyActivityAbilities;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\DailyWork\Application\Services\DailyActivityAbilities;
+use Modules\DailyWork\Http\Requests\UpdateDailyActivitySettingsRequest;
 
 /**
  * Daily Activities > Settings: the city-wide module rules (deadline,

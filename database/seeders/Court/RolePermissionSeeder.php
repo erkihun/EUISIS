@@ -10,14 +10,16 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         $schema = DB::getSchemaBuilder();
-        if (!$schema->hasTable('court_roles') || !$schema->hasTable('court_permissions') || !$schema->hasTable('court_permission_role')) {
-            $this->command->warn("Skipping RolePermissionSeeder: missing tables.");
+        if (! $schema->hasTable('court_roles') || ! $schema->hasTable('court_permissions') || ! $schema->hasTable('court_permission_role')) {
+            $this->command->warn('Skipping RolePermissionSeeder: missing tables.');
+
             return;
         }
 
         $adminRoleId = DB::table('court_roles')->where('name', 'admin')->value('id');
-        if (!$adminRoleId) {
-            $this->command->warn("Admin role not found, skipping RolePermissionSeeder.");
+        if (! $adminRoleId) {
+            $this->command->warn('Admin role not found, skipping RolePermissionSeeder.');
+
             return;
         }
 
