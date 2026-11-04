@@ -5,6 +5,10 @@ process rather than code (docs/architecture/adr/0027-personal-data-protection-co
 The data steward of the domain (docs/governance/roles-register.md) owns each
 request; the Super Admin role is not needed.
 
+**Draft.** The periods here (30 days, 72 hours, one working day) are proposed
+working targets, not figures checked against the proclamation. Legal review is
+needed before this runbook is used.
+
 ## 1. A person asks about their data
 
 Requests arrive through My Portal › My requests (employees), the public

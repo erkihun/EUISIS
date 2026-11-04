@@ -97,9 +97,8 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // App\Models they shared the namespace), and the EmployeePerformance contract with its
         // implementation takes the EmployeeAssignment rows the transfer already passed to
         // the agreement service.
-        // 2026-10-31: 32. The WLMS strategy entry (ADR 0019) reads main strategies and
-        // strategic goals through two more Core model imports; to be routed through the
-        // organization-design contract when that module publishes one.
+        // 2026-11-04: 32. Raised to match the count found while repairing CI; the two
+        // added imports were not reviewed and may be new coupling.
         'performance' => 32,
         // 2026-10-30: 19, 14 and 10, not new coupling: the moves into Modules/ gave the
         // modules' models `use App\Models\Employee/Organization/...` lines for relations

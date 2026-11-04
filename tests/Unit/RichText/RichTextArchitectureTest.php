@@ -59,10 +59,10 @@ it('renders raw HTML only through the viewer and the reviewed exceptions', funct
         'resources/js/Components/forms/RichTextViewer.tsx',
         // Public-site Markdown, sanitized by SafeContentRenderer on the server.
         'resources/js/Components/public/PublicPage.tsx',
-        // Court screens ported from court-ms (ADR 0020): the sign-in notice, case details and
-        // document sheet render HTML the court's own server sanitizer (SafeHtml) produced; the
-        // signage board and the user manual render the court's own static content. Step 2 of the
-        // port moves them onto RichTextViewer (docs/governance/technical-debt.md).
+        // Court screens ported from court-ms (ADR 0020). The About text and case descriptions go
+        // through Purifier when saved or served; the signage board's value is a QR SVG drawn on
+        // the server; the user manual runs DOMPurify in the browser. Not yet traced: document
+        // descriptions and responses shown through DetailsSection and DocumentSheet.
         'resources/js/Pages/Court/Applicant/Login.tsx',
         'resources/js/Pages/Court/Cases/Show/DetailsSection.tsx',
         'resources/js/Pages/Court/Cases/Show/DocumentSheet.tsx',

@@ -1,8 +1,9 @@
 # ADR 0027: Personal data protection under Proclamation No. 1321/2024
 
-- Status: accepted (2026-11-04), decided by the System Owner (compliance mapping
-  delegated to the implementer and recorded here; items that need a legal
-  reading are listed under "Needs management or legal approval").
+- Status: proposed (2026-11-04), drafted by the implementer. Not reviewed or
+  approved by the System Owner or a lawyer. The proclamation's text was not
+  checked while drafting, so the citation, the duties and the "exists" states
+  below all need review before anyone relies on them.
 - Context: Agelgay holds the personal data of every civil servant of the city
   (identity, photo, employment history, disciplinary and grievance records,
   court cases, contact details) and of members of the public who give
