@@ -10,7 +10,7 @@ return [
         'appeal_pdf' => 'Appeal record',
     ],
     'descriptions' => [
-        'index_intro' => '',
+        'index_intro' => 'Open a case to view or download its consolidated record (PDF).',
         'applicant_pdf_loading' => 'Loading applicant PDF...',
         'applicant_pdf_missing' => 'Applicant PDF is unavailable.',
     ],

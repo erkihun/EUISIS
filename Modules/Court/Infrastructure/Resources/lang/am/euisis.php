@@ -2,7 +2,7 @@
 
 return [
     'panel' => [
-        'title' => 'EUISIS',
+        'title' => 'አገልጋይ',
         'referred_badge' => 'ከEUISIS የተላከ',
         'grievance_reference' => 'የቅሬታ መለያ ቁጥር',
         'tribunal_case_number' => 'የEUISIS የፍርድ ቤት ቁጥር',

@@ -12,7 +12,7 @@ const respondentPages = {
         size_kb: ':size KB',
     },
     am: {
-        response_pdf_note: 'መልሱ ሲሰጡ የሚመለከተው አካል ፊርማ እና ማህተም ያረፈበትን መልስ ስካን አድርገው በፒዲፍ ያያይዙ. እንዲሁም የመልሱን ሙሉ ይዘት በወርድ :field የሚለው ላይ ያስገቡ።',
+        response_pdf_note: 'መልሱ ሲሰጡ የሚመለከተው አካል ፊርማ እና ማህተም ያረፈበትን መልስ ቃኝተው በ PDF ያያይዙ። እንዲሁም የመልሱን ሙሉ ይዘት በወርድ :field የሚለው ላይ ያስገቡ።',
         delete_response_confirm: 'ይህ መልስ ይሰረዝ? የተያያዘው ፒዲኤፍም አብሮ ይሰረዛል።',
         size_kb: ':size ኪባ',
     },

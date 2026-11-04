@@ -275,7 +275,7 @@ const publicSite = {
         signage: {
             title: 'የፍርድ ቤቱ ማሳያ',
             // The letterhead: the parent office over the court's own name, read as one.
-            crestOffice: 'በአዲስ አበባ ከተማ አስተዳደር የፐብሊክ ሰርቪስና የሰው ሃብት ልማት ቢሮ',
+            crestOffice: 'በአዲስ አበባ ከተማ አስተዳደር የፐብሊክ ሰርቪስና የሰው ሀብት ልማት ቢሮ',
             crestCourt: 'የአስተዳደር ፍርድ ቤት',
             restarting: 'ማሳያው እንደገና እየተጀመረ ነው፤ በጥቂት ሰከንዶች ይመለሳል።',
             plaintiff: 'ከሳሽ',

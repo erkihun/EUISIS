@@ -51,10 +51,10 @@ return [
         'actions' => [
             'review_new_case' => 'አዲሱን መዝገብ በተቋሙ የመዝገብ አስተዳደር ገጽ ይገምግሙ እና ይመድቡ።',
             'review_updated_case' => 'የተዘመነውን የመዝገብ ዝርዝር እና አባሪዎች በተቋሙ የመዝገብ አስተዳደር ገጽ ይገምግሙ።',
-            'check_review_status' => 'የግምገማ ሁኔታውን እና የአመልካች መልዕክት ውይይት በተቋሙ ስርዓት ይመልከቱ።',
+            'check_review_status' => 'የግምገማ ሁኔታውን እና የአመልካች መልዕክት ውይይት በተቋሙ ሥርዓት ይመልከቱ።',
             'review_case_timeline' => 'የመዝገቡን የጊዜ መስመር በተቋሙ የመዝገብ አስተዳደር ገጽ ይገምግሙ።',
-            'open_message_thread' => 'የመዝገብ መልዕክት ውይይቱን በተቋሙ ስርዓት ይክፈቱ።',
-            'check_respondent_activity' => 'የተጠሪውን እንቅስቃሴ እና የመዝገቡን የጊዜ መስመር በተቋሙ ስርዓት ይመልከቱ።',
+            'open_message_thread' => 'የመዝገብ መልዕክት ውይይቱን በተቋሙ ሥርዓት ይክፈቱ።',
+            'check_respondent_activity' => 'የተጠሪውን እንቅስቃሴ እና የመዝገቡን የጊዜ መስመር በተቋሙ ሥርዓት ይመልከቱ።',
             'check_reviewed_respondent_response' => 'የተገመገመውን የተጠሪ ምላሽ ይመልከቱ።',
             'check_reviewed_applicant_reply' => 'የተገመገመውን የአመልካች መልስ ይመልከቱ።',
             'review_response' => 'ምላሹን በተቋሙ የመዝገብ አስተዳደር ገጽ ይገምግሙ።',

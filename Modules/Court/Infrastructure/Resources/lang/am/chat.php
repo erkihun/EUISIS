@@ -11,6 +11,6 @@ return [
     'write_message' => 'መልዕክትዎን ያንብቡ…',
     'send' => 'መልዕክት ላክ',
     'enter_to_send' => 'Ctrl+Enter ይጫኑ ለመላክ',
-    'system' => 'ስርዓት',
+    'system' => 'ሥርዓት',
     'no_name' => 'ያልታወቀ ተጠቃሚ',
 ];

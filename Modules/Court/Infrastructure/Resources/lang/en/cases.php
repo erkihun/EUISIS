@@ -248,6 +248,7 @@ return [
         'receipt_email_failed' => 'Could not send the receipt email right now.',
         'receipt_email_sent' => 'Receipt PDF emailed to :email.',
     ],
+    'not_available' => 'Not available',
     'placeholders' => [
         'select' => '-- Select --',
         'document_title' => 'Document title',
@@ -255,6 +256,8 @@ return [
         'phone' => 'Phone',
         'email' => 'Email',
         'address' => 'Address',
+        'summary' => 'Summary',
+        'not_available' => 'Not available',
     ],
     'please_fix_errors' => 'Please fix the following:',
     'print' => 'Print',
@@ -387,6 +390,7 @@ return [
     ],
     'system' => 'system',
     'table' => [
+        'delete' => 'Delete',
         'number' => '#',
         'case_number' => 'Case #',
         'title' => 'Title',

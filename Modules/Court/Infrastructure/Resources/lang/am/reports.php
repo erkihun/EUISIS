@@ -15,7 +15,7 @@ return [
     ],
     'print' => 'ሊታተም የሚችል ሪፖርት',
     'filter' => [
-        'title' => 'የህትመት ማጣሪያዎች',
+        'title' => 'የሕትመት ማጣሪያዎች',
         'subtitle' => 'ከማተምዎ በፊት መረጃውን ያጥቡ',
         'start' => 'ከቀን',
         'end' => 'እስከ ቀን',
@@ -34,7 +34,7 @@ return [
     ],
     'sections' => [
         'cases_status' => 'መዝገቦች በሁኔታ',
-        'cases_types' => 'መዝገቦች በአይነት',
+        'cases_types' => 'መዝገቦች በዓይነት',
         'appeals_status' => 'ይግባኞች በሁኔታ',
         'decisions_status' => 'ውሳኔዎች በሁኔታ',
         'letters_status' => 'ደብዳቤዎች በማጽደቅ ሁኔታ',

@@ -19,7 +19,7 @@ return [
     'action_delete' => 'ሰርዝ',
     'confirm_delete' => 'ይህን የስለ እኛ ይዘት ማስወገድ ይፈልጋሉ?',
     'form_title_label' => 'ርዕስ',
-    'form_slug_label' => 'Slug',
+    'form_slug_label' => 'ስላግ (የአድራሻ መለያ)',
     'form_body_label' => 'ይዘት',
     'form_published_label' => 'ይህን የስለ እኛ ገጽ አትም',
     'form_save' => 'አስቀምጥ',

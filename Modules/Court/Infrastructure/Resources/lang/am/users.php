@@ -2,7 +2,7 @@
 
 return [
     'administration' => 'የተጠቃሚ አስተዳደር',
-    'management_subtitle' => 'የሰራተኞች መለያዎችን፣ የመዳረሻ ሚናዎችን እና የመለያ ሕይወት ዑደትን ያስተዳድሩ።',
+    'management_subtitle' => 'የሠራተኞች መለያዎችን፣ የመዳረሻ ሚናዎችን እና የመለያ ሕይወት ዑደትን ያስተዳድሩ።',
     'new_user' => 'አዲስ ተጠቃሚ',
     'new_user_title' => 'አዲስ ተጠቃሚ',
     'create_account_title' => 'የተጠቃሚ መለያ ይፍጠሩ',
@@ -55,7 +55,7 @@ return [
     'create_user' => 'ተጠቃሚ ይፍጠሩ',
     'edit_user_title' => 'ተጠቃሚ አርትዕ',
     'edit_profile_title' => 'የተጠቃሚ መገለጫ አርትዕ',
-    'edit_profile_subtitle' => 'የመለያ ማንነትን፣ የደህንነት ዝርዝሮችን እና የፈቃድ ምደባዎችን ያዘምኑ።',
+    'edit_profile_subtitle' => 'የመለያ ማንነትን፣ የደህንነት ዝርዝሮችን እና የመብት ምደባዎችን ያዘምኑ።',
     'new_password_optional' => 'አዲስ የይለፍ ቃል (አማራጭ)',
     'confirm_password' => 'የይለፍ ቃል ያረጋግጡ',
     'save' => 'አስቀምጥ',

@@ -45,7 +45,7 @@ const caseDetail = {
         timeline_from: 'ከ',
         timeline_to: 'ወደ',
         timeline_note: 'ማስታወሻ',
-        print_dialog_blocked: 'አሳሹ የህትመት መስኮቱን አግዷል። ለዚህ ጣቢያ ብቅ-ባይ መስኮቶችን ፍቀዱና እንደገና ይሞክሩ።',
+        print_dialog_blocked: 'አሳሹ የሕትመት መስኮቱን አግዷል። ለዚህ ጣቢያ ብቅ-ባይ መስኮቶችን ፍቀዱና እንደገና ይሞክሩ።',
         template_loaded: 'አብነቱ ወደ ደብዳቤው ገብቷል።',
         open_pdf: 'PDF ክፈት',
         replies_count: 'ምላሾች',

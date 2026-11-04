@@ -2,21 +2,21 @@
 
 return [
     'index' => [
-        'title' => 'ፈቃዶች',
+        'title' => 'መብቶች',
         'showing' => 'እየታዩ',
-        'total_permissions' => 'ፈቃዶች',
-        'search_placeholder' => 'ፈቃዶችን ፈልግ…',
-        'new_permission' => 'አዲስ ፈቃድ',
+        'total_permissions' => 'መብቶች',
+        'search_placeholder' => 'መብቶችን ፈልግ…',
+        'new_permission' => 'አዲስ መብት',
         'roles' => 'ሚናዎች',
         'users' => 'ተጠቃሚዎች',
         'actions' => 'እርምጃዎች',
         'roles_count' => 'ሚና(ዎች)',
         'edit' => 'አስተካክል',
         'delete' => 'ሰርዝ',
-        'delete_title' => 'ፈቃድ ሰርዝ',
+        'delete_title' => 'መብት ሰርዝ',
         'delete_confirm' => 'እርግጠኛ ነዎት ለማስወገድ?',
         'cancel' => 'ተው',
-        'empty' => 'ምንም ፈቃድ አልተገኘም።',
+        'empty' => 'ምንም መብት አልተገኘም።',
     ],
     'fields' => [
         'name' => 'ስም',
@@ -25,13 +25,13 @@ return [
         'primary_locale_notice' => 'ዋና ቋንቋ',
     ],
     'create' => [
-        'title' => 'ፈቃድ ፍጠር',
+        'title' => 'መብት ፍጠር',
         'name_hint' => 'አዲስ ብቸኛ ስም ምሳ. cases.edit',
         'create_button' => 'ፍጠር',
         'cancel_button' => 'ተው',
     ],
     'edit' => [
-        'title' => 'ፈቃድ አስተካክል',
+        'title' => 'መብት አስተካክል',
         'save_button' => 'አስቀምጥ',
         'back_button' => 'ተመለስ',
     ],

@@ -510,7 +510,7 @@ return [
         'court_status' => ['pending' => 'በመጠባበቅ ላይ', 'active' => 'በሂደት ላይ', 'adjourned' => 'የተራዘመ', 'dismissed' => 'ውድቅ የተደረገ', 'closed' => 'የተዘጋ'],
         'vacancy_application_status' => ['submitted' => 'የቀረበ', 'withdrawn' => 'የተነሳ', 'screened' => 'የተጣራ', 'shortlisted' => 'በአጭር ዝርዝር ያለ', 'selected' => 'የተመረጠ', 'rejected' => 'ውድቅ የተደረገ', 'transferred' => 'የተዛወረ'],
         'transfer_stage' => ['review' => 'በግምገማ ላይ', 'approval' => 'ፈቃድ የሚጠብቅ', 'approved' => 'የጸደቀ', 'failed' => 'አፈጻጸም ያልተሳካ', 'closed' => 'የተዘጋ'],
-        'id_card_status' => ['pending_print' => 'ህትመት የሚጠብቅ', 'printed' => 'የታተመ', 'issued' => 'የተሰጠ', 'active' => 'ንቁ', 'lost' => 'የጠፋ', 'damaged' => 'የተበላሸ', 'suspended' => 'የታገደ', 'revoked' => 'የተሰረዘ', 'expired' => 'ጊዜው ያለፈበት', 'replaced' => 'የተተካ'],
+        'id_card_status' => ['pending_print' => 'ሕትመት የሚጠብቅ', 'printed' => 'የታተመ', 'issued' => 'የተሰጠ', 'active' => 'ንቁ', 'lost' => 'የጠፋ', 'damaged' => 'የተበላሸ', 'suspended' => 'የታገደ', 'revoked' => 'የተሰረዘ', 'expired' => 'ጊዜው ያለፈበት', 'replaced' => 'የተተካ'],
         'card_request_status' => ['submitted' => 'የቀረበ', 'verified' => 'የተረጋገጠ', 'approved' => 'የጸደቀ', 'rejected' => 'ውድቅ የተደረገ', 'cancelled' => 'የተሰረዘ'],
         'visit_status' => ['checked_in' => 'የገቡ', 'in_service' => 'በአገልግሎት ላይ', 'completed' => 'የተጠናቀቀ', 'no_show' => 'ያልተገኙ', 'cancelled' => 'የተሰረዘ'],
         'appointment_status' => ['scheduled' => 'የተያዘ', 'rescheduled' => 'የተቀየረ', 'checked_in' => 'የገቡ', 'cancelled' => 'የተሰረዘ', 'no_show' => 'ያልተገኙ'],

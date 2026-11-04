@@ -23,7 +23,7 @@ return [
         'assigned_at' => 'የተመደበበት ቀን:',
         'unassigned' => 'አልተመደበም',
         'back' => 'ተመለስ',
-        'permission_warning' => 'የ`cases.assign.team` ፍቃድ የሎትም፣ ስለዚህ ምደባዎች በንቁ የቡድን አባላትዎ ብቻ የተገደቡ ናቸው።',
+        'permission_warning' => 'የ`cases.assign.team` መብት የሎትም፣ ስለዚህ ምደባዎች በንቁ የቡድን አባላትዎ ብቻ የተገደቡ ናቸው።',
         'leader_context' => 'የ:team መሪ ሆነው እየመደቡ ነው፤ ፋይሎችን ለቡድን አባላትዎ ብቻ ማስተላለፍ ይችላሉ።',
         'admin_context' => 'አድሚኖች ፋይሎችን ለተዘረዘሩት የቡድን መሪዎች ይመድባሉ፤ የቡድን መሪ ደግሞ ለቡድን አባላቱ እንደገና መመደብ ይችላል።',
         'assign_to' => 'ለዚህ ይመድቡ',
@@ -56,15 +56,15 @@ return [
     'chat' => [
         'title' => 'የክስ ቻት',
         'select_case' => 'ቻት ለማግኘት ክስ ይምረጡ።',
-        'search_placeholder' => 'በቁጥር፣ ርዕስ፣ አይነት ወይም ተጠያቂ ይፈልጉ',
+        'search_placeholder' => 'በቁጥር፣ ርዕስ፣ ዓይነት ወይም ተጠያቂ ይፈልጉ',
         'no_cases' => 'ማንኛውም የሚደርስዎ ክስ አልተገኘም።',
-        'case_type' => 'አይነት:',
+        'case_type' => 'ዓይነት:',
         'assignee' => 'ተጠያቂ:',
         'applicant' => 'እርዳታ ፈላጊ:',
         'messages_heading' => 'ውይይት',
         'messages_label' => 'መልዕክቶች',
         'cases_label' => 'ክሶች',
-        'message_restricted' => 'በዚህ ክስ ውስጥ የቻት መልዕክት ማስተላለፊያ ፈቃድ የለዎትም።',
+        'message_restricted' => 'በዚህ ክስ ውስጥ የቻት መልዕክት ማስተላለፊያ መብት የለዎትም።',
     ],
     'confirm' => [
         'remove_document' => 'ይህን ሰነድ ልቀስ?',
@@ -72,7 +72,7 @@ return [
     ],
     'copied' => 'ተቀድቷል!',
     'copy' => 'ቅዳ',
-    'court_staff' => 'የ ፍርድ ቤት ሰራተኛ',
+    'court_staff' => 'የ ፍርድ ቤት ሠራተኛ',
     'deleted_successfully' => 'በተሳካ ሁኔታ ተሰርዟል',
     'details' => [
         'case_details' => 'የ መዝገቡ ዝርዝር ሁኔታ',
@@ -84,7 +84,7 @@ return [
     'document_title_placeholder' => 'የሰነድ ርዕስ',
     'documents' => [
         'submitted_documents' => 'የቀረቡ ሰነዶች',
-        'items' => 'አይነት',
+        'items' => 'ዓይነት',
         'no_documents' => 'ምንም የቀረበ ሰነድ የለም።',
         'uploaded_with_case' => 'ከ መዝገቡ ጋር ተያይዟል',
         'view' => 'ሰነድ ተመልከት',
@@ -161,7 +161,7 @@ return [
     'labels' => [
         'title' => 'ርዕስ',
         'filing_date' => 'የማቅረብ ቀን',
-        'case_type' => 'የክስ አይነት',
+        'case_type' => 'የክስ ዓይነት',
         'description' => 'ዝርዝር መግለጫ',
         'relief_requested' => 'የምጠይቀው ዳኝነት / ፍርድ',
         'respondent_name' => 'ክስ ተከሳሽ / ተከሳሽ',
@@ -206,7 +206,7 @@ return [
         'write_message_placeholder' => 'መልዕክት ይጻፉ…',
         'send_message' => 'መልዕክት ላክ',
         'court_staff' => 'የፍርድ ቤቱ ሠራተኛ',
-        'system' => 'ስርዓት',
+        'system' => 'ሥርዓት',
         'subtitle' => ':count መልዕክቶች',
     ],
     'my_cases' => 'የኔ መዝገብ',
@@ -324,7 +324,7 @@ return [
         'no_letters_logged' => 'እስካሁን ምንም ደብዳቤ አልተመዘገበም።',
         'back_to_list' => 'ወደ ዝርዝር ተመለስ',
         'view_lawyer_document' => 'የጥብቅና ማረጋገጫ ተመልከት',
-        'lawyer_document' => 'የጠበቃ/አቃቢ ህግ ሰነድ',
+        'lawyer_document' => 'የጠበቃ/አቃቢ ሕግ ሰነድ',
         'open_new_tab' => 'በአዲስ ትር ክፈት',
         'letters_table' => [
             'reference' => 'ማመሳከሪያ',
@@ -448,7 +448,7 @@ return [
         'generated_electronically_by' => 'ይህ ደረሰኝ በኤሌክትሮኒክ በ :app ተፈጥሯል።',
     ],
     'types' => [
-        'empty' => 'ምንም የመዝገብ አይነት አልተገኘም።',
+        'empty' => 'ምንም የመዝገብ ዓይነት አልተገኘም።',
         'adjust_search_hint' => 'የፍለጋዎን መስፈርት በማስተካከል ይሞክሩ።',
     ],
     'messages_flash' => [

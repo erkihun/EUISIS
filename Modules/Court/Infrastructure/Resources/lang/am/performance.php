@@ -49,12 +49,12 @@ return [
 
     'fields' => [
         'member' => 'አባል',
-        'staff_member' => 'የሰራተኛ አባል',
+        'staff_member' => 'የሠራተኛ አባል',
         'period' => 'ጊዜ',
-        'period_type' => 'የጊዜ አይነት',
+        'period_type' => 'የጊዜ ዓይነት',
         'period_start' => 'የጊዜ መጀመሪያ',
         'period_end' => 'የጊዜ መጨረሻ',
-        'type' => 'አይነት',
+        'type' => 'ዓይነት',
         'score' => 'ውጤት',
         'status' => 'ሁኔታ',
         'evaluator' => 'ገምጋሚ',
@@ -212,8 +212,8 @@ return [
 
     'validation' => [
         'attributes' => [
-            'evaluated_user_id' => 'የሰራተኛ አባል',
-            'period_type' => 'የጊዜ አይነት',
+            'evaluated_user_id' => 'የሠራተኛ አባል',
+            'period_type' => 'የጊዜ ዓይነት',
             'period_start' => 'የጊዜ መጀመሪያ',
             'period_end' => 'የጊዜ መጨረሻ',
             'notes' => 'አጠቃላይ ማስታወሻዎች',

@@ -10,7 +10,7 @@ const access = {
     am: {
         removeCurrent: 'አሁን ያለውን ምስል አስወግድ',
         noUsersAvailable: 'ሊመደቡ የሚችሉ ተጠቃሚዎች የሉም።',
-        noPermissionsDefined: 'እስካሁን የተገለጸ ፈቃድ የለም።',
+        noPermissionsDefined: 'እስካሁን የተገለጸ መብት የለም።',
         selectedCount: ':count ተመርጠዋል',
     },
 } satisfies Record<'en' | 'am', Record<string, string>>;

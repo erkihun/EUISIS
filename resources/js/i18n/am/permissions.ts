@@ -13,7 +13,7 @@ const permissions = {
     module: 'ሞጁል',
     modules: 'ሞጁሎች',
     allModules: 'ሁሉም ሞጁሎች',
-    moduleOverviewHint: 'የአንድን ሞጁል ፈቃዶች በሙሉ በዘርፍ ተከፋፍለው ለማየት ሞጁሉን ይምረጡ።',
+    moduleOverviewHint: 'የአንድን ሞጁል መብቶች በሙሉ በዘርፍ ተከፋፍለው ለማየት ሞጁሉን ይምረጡ።',
     groupsInModule: ':count ቡድኖች',
     scope: 'ወሰን',
     scopeHint: 'ወሰን ፈቃዱን የያዘውን የሚና ዓይነት ያሳያል፦ ወሰን ያላቸው ሚናዎች በተመደበላቸው ተቋም ወሰን ውስጥ ብቻ፣ አጠቃላይ ሚናዎች ደግሞ በከተማ አቀፍ ደረጃ ይሠራሉ።',
