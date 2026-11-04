@@ -20,7 +20,7 @@ written; this page only points at them.
 
 | Situation | Document |
 | --- | --- |
-| Deploy and roll back a release | [../runbook/deployment-and-rollback.md](../runbook/deployment-and-rollback.md), [../production-runbook.md](../production-runbook.md) |
+| Deploy and roll back a release | [../runbooks/deployment-and-rollback.md](../runbooks/deployment-and-rollback.md), [../production-runbook.md](../production-runbook.md) |
 | Go-live | [../go-live/go-live-runbook.md](../go-live/go-live-runbook.md), [../go-live-checklist.md](../go-live-checklist.md) |
 | Go-live rollback | [../go-live/rollback-runbook.md](../go-live/rollback-runbook.md) |
 | Core data move or restore window | [../architecture/core-cutover-runbook.md](../architecture/core-cutover-runbook.md), [../architecture/core-rollback-runbook.md](../architecture/core-rollback-runbook.md) |

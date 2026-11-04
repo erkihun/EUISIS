@@ -12,7 +12,7 @@
 Supersedes [production-readiness-score.md](production-readiness-score.md) (June, 71/100).
 Companion documents: [production-flow-map.md](production-flow-map.md),
 [go-live-checklist.md](go-live-checklist.md),
-[runbook/deployment-and-rollback.md](runbook/deployment-and-rollback.md).
+[runbooks/deployment-and-rollback.md](runbooks/deployment-and-rollback.md).
 
 ## 1. Summary
 
@@ -123,7 +123,7 @@ trusted proxies, health check, audit commands, card approval race, QR
 validator cases, capacity, dashboard feed, strategic goals and locale.
 
 Documents: this assessment, `production-flow-map.md`, `go-live-checklist.md`,
-`runbook/deployment-and-rollback.md`, `scripts/smoke-test.sh`.
+`runbooks/deployment-and-rollback.md`, `scripts/smoke-test.sh`.
 
 Not changed: the owner's pending migration; any data; any seeders; card UUIDs,
 employee numbers, position codes, transactions or published hierarchy.

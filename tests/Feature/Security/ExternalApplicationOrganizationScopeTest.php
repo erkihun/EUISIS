@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
  * An external application is gated on status, IP, endpoint assignment, scope
  * and rate limit — but nothing binds it to an organization. These tests state
  * the observed behaviour rather than the desired one, so the decision recorded
- * in docs/security-assessment-phase2.md is backed by evidence.
+ * in docs/archive/security-assessment-phase2.md is backed by evidence.
  */
 beforeEach(function (): void {
     app(ApiEndpointCatalogService::class)->sync();

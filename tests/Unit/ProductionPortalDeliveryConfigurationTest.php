@@ -6,7 +6,7 @@ it('ships a production template suitable for the employee portal', function (): 
     $root = dirname(__DIR__, 2);
     // The production values live in the deployment runbook: real .env files hold secrets
     // and are never committed (SBH-006), so a test cannot read one from a clean checkout.
-    $environment = file_get_contents($root.'/docs/runbook/deployment-and-rollback.md');
+    $environment = file_get_contents($root.'/docs/runbooks/deployment-and-rollback.md');
     $readiness = file_get_contents($root.'/app/Console/Commands/ProductionReadiness.php');
     $infrastructure = file_get_contents($root.'/docs/infrastructure-security.md');
 

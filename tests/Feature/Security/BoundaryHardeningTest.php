@@ -26,7 +26,7 @@ use Inertia\Testing\AssertableInertia;
 |--------------------------------------------------------------------------
 | Security boundary hardening — regression tests
 |--------------------------------------------------------------------------
-| See docs/security-boundary-hardening-report.md. Each test names the
+| See docs/archive/security-boundary-hardening-report.md. Each test names the
 | finding it guards.
 */
 

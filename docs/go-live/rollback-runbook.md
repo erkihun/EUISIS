@@ -14,7 +14,7 @@ Migrations after the baseline are additive (`MigrationSafetyTest`), so the
 previous release runs on the new schema.
 
 1. `php artisan down`.
-2. Redeploy the previous release per [../runbook/deployment-and-rollback.md](../runbook/deployment-and-rollback.md); do **not** run `migrate:rollback`.
+2. Redeploy the previous release per [../runbooks/deployment-and-rollback.md](../runbooks/deployment-and-rollback.md); do **not** run `migrate:rollback`.
 3. `config:cache`, `route:cache`, restart workers.
 4. `php artisan core:snapshot --compare=golive-before.json` and `backbone:audit-integrity --strict`.
 5. `php artisan up`; verify sign-in and one card.

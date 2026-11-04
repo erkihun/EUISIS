@@ -140,5 +140,5 @@ php artisan intelligence:record-deployment --release=v1.9.0 --commit=$(git rev-p
 ```
 
 Run it from the release script after the symlink switch
-(`docs/runbook/deployment-and-rollback.md`), or set `APP_RELEASE` /
+(`docs/runbooks/deployment-and-rollback.md`), or set `APP_RELEASE` /
 `APP_COMMIT` and call it without options. Nothing is read from the filesystem.

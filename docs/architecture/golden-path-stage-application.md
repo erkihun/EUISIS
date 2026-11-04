@@ -48,7 +48,7 @@ QR token, business rule, existing URL or deployment topology was changed.
 
 No new Laravel class was needed, so no `artisan make:*` command or migration is
 required for this increment. The pre-existing untracked
-`docs/runbook/create-production-super-admin.sql` is unrelated to these stages.
+`docs/runbooks/create-production-super-admin.sql` is unrelated to these stages.
 
 ## Verification
 

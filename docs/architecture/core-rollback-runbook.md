@@ -41,4 +41,4 @@ Changes made on the target after the switch must not be lost.
 - No deleted audit rows or integration events.
 - No secrets in tickets, chat or this document.
 
-Database restore procedures: [../runbooks/disaster-recovery.md](../runbooks/disaster-recovery.md), [../runbooks/postgresql-pitr.md](../runbooks/postgresql-pitr.md), [../runbooks/restore-validation.md](../runbooks/restore-validation.md). Application deployment rollback: [../runbook/deployment-and-rollback.md](../runbook/deployment-and-rollback.md).
+Database restore procedures: [../runbooks/disaster-recovery.md](../runbooks/disaster-recovery.md), [../runbooks/postgresql-pitr.md](../runbooks/postgresql-pitr.md), [../runbooks/restore-validation.md](../runbooks/restore-validation.md). Application deployment rollback: [../runbooks/deployment-and-rollback.md](../runbooks/deployment-and-rollback.md).

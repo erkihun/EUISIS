@@ -58,6 +58,19 @@ return [
             'ignore_exceptions' => false,
         ],
 
+        // Error tracker (GlitchTip / self-hosted Sentry): add it to LOG_STACK
+        // ("daily,error_tracker") and set ERROR_TRACKER_DSN. Without a DSN the
+        // channel is inert. See docs/production-monitoring.md.
+        'error_tracker' => [
+            'driver' => 'monolog',
+            'level' => env('ERROR_TRACKER_LEVEL', 'error'),
+            'handler' => App\Logging\ErrorTrackerHandler::class,
+            'with' => [
+                'dsn' => env('ERROR_TRACKER_DSN'),
+                'timeout' => (float) env('ERROR_TRACKER_TIMEOUT', 3),
+            ],
+        ],
+
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),

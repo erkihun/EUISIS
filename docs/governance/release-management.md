@@ -2,7 +2,7 @@
 
 Builds on [../change-management-policy.md](../change-management-policy.md)
 (change categories, approval, freeze) and
-[../runbook/deployment-and-rollback.md](../runbook/deployment-and-rollback.md).
+[../runbooks/deployment-and-rollback.md](../runbooks/deployment-and-rollback.md).
 Owner: Release Manager ([roles-register.md](roles-register.md)).
 
 ## Branches

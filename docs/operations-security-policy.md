@@ -43,7 +43,7 @@ In the event of a security incident:
 
 | Procedure | Document | Location |
 |---|---|---|
-| Local development setup | `docs/runbook/local-development.md` | Repo |
+| Local development setup | `docs/runbooks/local-development.md` | Repo |
 | Production deployment | `docs/runbook/deployment.md` | (To be created) |
 | Database backup and restore | `docs/backup-and-disaster-recovery.md` | Repo |
 | Certificate renewal | Hosting provider runbook | (To be obtained) |
@@ -112,7 +112,7 @@ In the event of a security incident:
 1. Run `composer audit` — document any findings
 2. Run `npm audit` — document any findings
 3. Review `docs/insa-secure-website-management-audit.md` — update status
-4. Review open risks in `docs/security-hardening-plan.md`
+4. Review open risks in `docs/archive/security-hardening-plan.md`
 5. Review access list — identify stale/excess permissions
 6. Review audit logs for anomalies from the past quarter
 7. Update this document if any procedures have changed

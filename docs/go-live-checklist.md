@@ -77,8 +77,8 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] The `2026_10_10_3000xx` integrity and index migrations reviewed: they build indexes `CONCURRENTLY` outside a transaction and stop with NEEDS_DATA_REVIEW on duplicates instead of changing data (docs/database-scale.md)
 - [ ] The 2026_10_11_100200 migration re-hashed national IDs with the keyed hash (`production:readiness`: "National-ID lookup hashes are keyed" PASS); it needs the environment's real APP_KEY
 - [ ] `php artisan db:seed` is never run on production (`DatabaseSeeder` refuses in production; reference seeders are run individually)
-- [ ] Pre-deploy recovery evidence recorded: verified pgBackRest backup labels in both repositories and a current isolated restore test (runbook/deployment-and-rollback.md §1)
-- [ ] Rollback owner named; runbook read (runbook/deployment-and-rollback.md)
+- [ ] Pre-deploy recovery evidence recorded: verified pgBackRest backup labels in both repositories and a current isolated restore test (runbooks/deployment-and-rollback.md §1)
+- [ ] Rollback owner named; runbook read (runbooks/deployment-and-rollback.md)
 
 ## E. Master data and access
 

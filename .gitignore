@@ -36,3 +36,6 @@ yarn-error.log
 /employeeId_db
 /sec-routes.json
 /sec-audit.json
+
+# Word lock files left behind by an open document
+~$*

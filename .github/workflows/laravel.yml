@@ -7,23 +7,17 @@ on:
     branches: [ "main" ]
 
 jobs:
-  laravel-tests:
+  # Audits, style and translation checks run once; they do not depend on the
+  # PHP version or on which tests are in a shard.
+  checks:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
       with:
-        # Laravel 13 needs PHP >= 8.3; the lock also installs on 8.4 and 8.5 (live hosts).
         php-version: '8.4'
-        # bcmath: Daily Work performance calculation (bccomp/bcdiv).
         extensions: bcmath, pdo_sqlite, intl, gd, zip, mbstring, opcache
-        # Every test boots a fresh application and re-includes config and
-        # route files; without the CLI opcache each re-compile is kept until
-        # the process ends and the suite outgrows phpunit's memory_limit.
-        ini-values: opcache.enable_cli=1
-        # No coverage driver: setup-php loads Xdebug by default, which disables
-        # the JIT and makes the suite several times slower than it is locally.
         coverage: none
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -43,42 +37,42 @@ jobs:
         npm audit --audit-level=high
     - name: Code style (Pint)
       run: vendor/bin/pint --test app Modules config database routes tests
-    - name: Build frontend assets
-      # Inertia pages, including error pages, need the Vite manifest.
-      run: |
-        npm ci --no-audit --no-fund
-        npm run build
+    - name: Install frontend dependencies
+      run: npm ci --no-audit --no-fund
     - name: Translation audit (English and Amharic)
       # Blocks missing keys, English left in Amharic, raw status codes and
       # deprecated Amharic terms (docs/amharic-terminology-guide.md).
       run: npm run i18n:audit
-    - name: Generate key
-      run: php artisan key:generate
-    - name: Directory Permissions
-      run: chmod -R 777 storage bootstrap/cache
-    - name: Create Database
-      run: |
-        mkdir -p database
-        touch database/database.sqlite
-    - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
-      env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: database/database.sqlite
-      run: php artisan test
 
-  # The same tests on PHP 8.5, the version the live web hosts run. The
-  # audits, style and translation checks above do not depend on PHP and
-  # are not repeated.
-  laravel-tests-php85:
+  # The suite is ~4,700 tests and outgrew a single runner (16+ minutes). It runs
+  # as four shards (phpunit.xml.dist, docs/testing.md) on PHP 8.4 and on 8.5,
+  # the version the live web hosts run. Shard4 catches every directory not
+  # named in Shard1-3, so a new test directory is never silently skipped.
+  tests:
 
     runs-on: ubuntu-latest
+    name: tests (PHP ${{ matrix.php }}, shard ${{ matrix.shard }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+        shard: ['1', '2', '3', '4']
 
     steps:
     - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
       with:
-        php-version: '8.5'
+        # Laravel 13 needs PHP >= 8.3; the lock also installs on 8.4 and 8.5 (live hosts).
+        php-version: ${{ matrix.php }}
+        # bcmath: Daily Work performance calculation (bccomp/bcdiv).
         extensions: bcmath, pdo_sqlite, intl, gd, zip, mbstring, opcache
+        # Every test boots a fresh application and re-includes config and
+        # route files; without the CLI opcache each re-compile is kept until
+        # the process ends and the suite outgrows phpunit's memory_limit.
         ini-values: opcache.enable_cli=1
+        # No coverage driver: setup-php loads Xdebug by default, which disables
+        # the JIT and makes the suite several times slower than it is locally.
+        coverage: none
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
@@ -89,6 +83,7 @@ jobs:
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
     - name: Build frontend assets
+      # Inertia pages, including error pages, need the Vite manifest.
       run: |
         npm ci --no-audit --no-fund
         npm run build
@@ -100,8 +95,8 @@ jobs:
       run: |
         mkdir -p database
         touch database/database.sqlite
-    - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
+    - name: Execute tests (shard ${{ matrix.shard }}) via PHPUnit/Pest
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
-      run: php artisan test
+      run: php artisan test --testsuite=Shard${{ matrix.shard }}

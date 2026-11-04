@@ -11,6 +11,66 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!--
+            CI shards (docs/testing.md). Four roughly equal slices of the whole suite,
+            run as parallel jobs. Shard4 is the catch-all: any new directory lands there
+            automatically, so nothing is ever left out. Rebalance by moving a directory
+            from Shard4's excludes into Shard1-3.
+        -->
+        <testsuite name="Shard1">
+            <directory>tests/Feature/Court</directory>
+            <directory>tests/Feature/Auth</directory>
+            <directory>tests/Feature/Api</directory>
+            <directory>tests/Feature/Backbone</directory>
+            <directory>tests/Feature/Architecture</directory>
+            <directory>tests/Feature/Infrastructure</directory>
+        </testsuite>
+        <testsuite name="Shard2">
+            <directory>tests/Feature/Security</directory>
+            <directory>tests/Feature/PublicFeedback</directory>
+            <directory>tests/Feature/OrganizationDesign</directory>
+            <directory>tests/Feature/IdCards</directory>
+            <directory>tests/Feature/Nfc</directory>
+            <directory>tests/Feature/Branding</directory>
+        </testsuite>
+        <testsuite name="Shard3">
+            <directory>tests/Feature/Grievances</directory>
+            <directory>tests/Feature/Intelligence</directory>
+            <directory>tests/Feature/Performance</directory>
+            <directory>tests/Feature/Cafeteria</directory>
+            <directory>tests/Feature/Transport</directory>
+            <directory>tests/Feature/ServiceMonitoring</directory>
+            <directory>tests/Feature/Organizations</directory>
+            <directory>tests/Feature/Integration</directory>
+            <directory>tests/Feature/Assistant</directory>
+            <directory>tests/Feature/PublicAssistant</directory>
+        </testsuite>
+        <testsuite name="Shard4">
+            <directory>tests/Unit</directory>
+            <directory>tests/Feature</directory>
+            <exclude>tests/Feature/Court</exclude>
+            <exclude>tests/Feature/Auth</exclude>
+            <exclude>tests/Feature/Api</exclude>
+            <exclude>tests/Feature/Backbone</exclude>
+            <exclude>tests/Feature/Architecture</exclude>
+            <exclude>tests/Feature/Infrastructure</exclude>
+            <exclude>tests/Feature/Security</exclude>
+            <exclude>tests/Feature/PublicFeedback</exclude>
+            <exclude>tests/Feature/OrganizationDesign</exclude>
+            <exclude>tests/Feature/IdCards</exclude>
+            <exclude>tests/Feature/Nfc</exclude>
+            <exclude>tests/Feature/Branding</exclude>
+            <exclude>tests/Feature/Grievances</exclude>
+            <exclude>tests/Feature/Intelligence</exclude>
+            <exclude>tests/Feature/Performance</exclude>
+            <exclude>tests/Feature/Cafeteria</exclude>
+            <exclude>tests/Feature/Transport</exclude>
+            <exclude>tests/Feature/ServiceMonitoring</exclude>
+            <exclude>tests/Feature/Organizations</exclude>
+            <exclude>tests/Feature/Integration</exclude>
+            <exclude>tests/Feature/Assistant</exclude>
+            <exclude>tests/Feature/PublicAssistant</exclude>
+        </testsuite>
     </testsuites>
     <source>
         <include>

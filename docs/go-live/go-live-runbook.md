@@ -26,7 +26,7 @@ this runbook adds the Core steps. Nobody on the call shares secrets in chat.
 | --- | --- | --- |
 | 1 | Maintenance notice on | `php artisan down --render=errors::503` (or the load balancer page) |
 | 2 | Snapshot | `php artisan core:snapshot --output=golive-before.json` |
-| 3 | Deploy release | per [../runbook/deployment-and-rollback.md](../runbook/deployment-and-rollback.md) |
+| 3 | Deploy release | per [../runbooks/deployment-and-rollback.md](../runbooks/deployment-and-rollback.md) |
 | 4 | Migrate | `php artisan migrate --force` (additive only) |
 | 5 | Cache | `config:cache`, `route:cache`, `view:cache`, `event:cache` |
 | 6 | Workers and scheduler | restart queue workers; confirm cron runs `schedule:run` |

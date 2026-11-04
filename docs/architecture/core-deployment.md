@@ -1,7 +1,7 @@
 # Core deployment
 
 Core ships inside the EUISIS application today, so it is deployed by the
-existing process: [../runbook/deployment-and-rollback.md](../runbook/deployment-and-rollback.md),
+existing process: [../runbooks/deployment-and-rollback.md](../runbooks/deployment-and-rollback.md),
 [../production-runbook.md](../production-runbook.md) and the production branch
 built by `scripts/release/build-production-branch.sh`. This page lists what is specific
 to Core.
