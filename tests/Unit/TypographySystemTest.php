@@ -101,7 +101,13 @@ it('maps Tailwind font-sans and the semantic sizes to the tokens', function (): 
 
 it('leaves no hard-coded font family in the frontend', function (): void {
     // Token definitions and the capture helper are the only places allowed to name fonts.
-    $allowed = ['resources/css/app.css', 'resources/css/fonts.css', 'resources/js/lib/typography.ts'];
+    $allowed = [
+        'resources/css/app.css', 'resources/css/fonts.css', 'resources/js/lib/typography.ts',
+        // The court's printed case record embeds its own document face for the PDF (ADR 0020),
+        // and its ported stylesheets keep a monospace stack for code blocks until step 2 of the
+        // port moves them onto the tokens (docs/governance/technical-debt.md).
+        'resources/js/Pages/Court/Cases/Show/printCaseOverview.ts', 'resources/css/court.css', 'resources/css/court-public.css',
+    ];
     $conflicting = '/\b(Figtree|Arial|Roboto|Helvetica|Times New Roman|Georgia|Tahoma|Verdana|Abyssinica|Nyala|DejaVu)\b/';
     $offenders = [];
 

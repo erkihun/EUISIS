@@ -116,7 +116,8 @@ test('02 organizations, structure, positions and employees follow the code rules
 
     foreach (DemoDataset::businessOrganizationKeys() as $key) {
         $organization = DemoDataset::requireOrganization($key);
-        expect($organization->code)->toStartWith('ORG-')
+        // The Proclamation 94/2019 bodies carry their own code prefixes (BUREAU-01 ...), not the generic ORG-.
+        expect($organization->code)->toMatch('/^[A-Z]+-\d+$/')
             ->and($organization->name_am)->not->toBeEmpty()
             ->and(OrganizationUnit::query()->where('organization_id', $organization->id)->count())->toBeGreaterThanOrEqual(5)
             ->and(Position::query()->where('organization_id', $organization->id)->count())->toBeGreaterThanOrEqual(5)

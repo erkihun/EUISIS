@@ -281,10 +281,15 @@ test('every My Portal menu entry opens for an employee-only account', function (
     $user = User::factory()->create(['email' => 'menu.check@example.test', 'status' => 'active']);
     $user->assignRole(DailyActivityRoles::EMPLOYEE_ROLE);
     portalEmployee('menu.check@example.test');
-    preg_match_all("/routeName: '([^']+)'/", portalMenuSource(), $routes);
+    preg_match_all("/\{[^{}]*routeName: '([^']+)'[^{}]*\}/", portalMenuSource(), $entries);
 
-    expect($routes[1])->toContain('employee.portal', 'employee.performance.index', 'employee.grievances.index');
-    foreach ($routes[1] as $name) {
+    expect($entries[1])->toContain('employee.portal', 'employee.performance.index', 'employee.grievances.index');
+    foreach ($entries[1] as $index => $name) {
+        // An entry shown only with a permission (My Team: reporting-lines.view_team) is hidden from
+        // this account and its page refuses it; the unconditional entries must all open.
+        if (preg_match('/\b(?:any)?[pP]ermission:/', $entries[0][$index]) === 1) {
+            continue;
+        }
         $this->actingAs($user->fresh())->get(route($name))->assertOk();
     }
     $this->actingAs($user->fresh())->get(route('employee.portal'))->assertInertia(fn (Assert $page) => $page->where('is_employee_user', true));
