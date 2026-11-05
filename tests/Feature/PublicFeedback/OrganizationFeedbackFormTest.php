@@ -253,8 +253,8 @@ it('refuses a work unit that is not public-selectable on this QR right now, and 
     'a draft unit' => [['status' => 'draft']],
     'an inactive unit' => [['status' => 'inactive']],
     'an archived unit' => [['status' => 'archived']],
-    'a unit not yet in force' => [['effective_from' => now()->addDay()->toDateString()]],
-    'a unit whose effective window ended' => [['effective_to' => now()->subDay()->toDateString()]],
+    'a unit not yet in force' => [fn () => ['effective_from' => now()->addDay()->toDateString()]],
+    'a unit whose effective window ended' => [fn () => ['effective_to' => now()->subDay()->toDateString()]],
     'a unit kept off the public form' => [['is_public_feedback_selectable' => false]],
     'another institution\'s unit' => [fn () => ['organization_id' => test()->otherOrganization->id]],
 ]);

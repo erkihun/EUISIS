@@ -102,4 +102,18 @@ jobs:
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
-      run: php artisan test --testsuite=Shard${{ matrix.shard }}
+      shell: bash
+      # PHP itself has crashed mid-suite (signal 11) with every test before it
+      # passing, on one PHP version and not the other. Cause not found yet. Only
+      # that crash gets one more run, and it leaves a warning on the run; a test
+      # failure is never retried.
+      run: |
+        set +e
+        php artisan test --testsuite=Shard${{ matrix.shard }} 2>&1 | tee test-output.log
+        status=${PIPESTATUS[0]}
+        if [ "$status" -ne 0 ] && grep -q 'signaled with signal "11"' test-output.log; then
+          echo "::warning::PHP crashed with signal 11 in shard ${{ matrix.shard }}; running the shard once more."
+          php artisan test --testsuite=Shard${{ matrix.shard }}
+          status=$?
+        fi
+        exit "$status"

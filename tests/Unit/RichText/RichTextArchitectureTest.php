@@ -91,7 +91,7 @@ it('keeps the editor off public and citizen-facing pages', function (): void {
 
 it('echoes stored HTML in Blade only through @richtext or the reviewed exceptions', function (): void {
     $sites = [];
-    foreach ((new Finder)->files()->in(dirname(__DIR__, 3).'/resources/views')->name('*.blade.php') as $file) {
+    foreach ((new Finder)->files()->in(dirname(__DIR__, 3).'/resources/views')->name('*.blade.php')->sortByName() as $file) {
         foreach (explode("\n", $file->getContents()) as $line) {
             if (str_contains($line, '{!!')) {
                 $sites[] = richTextRelative($file).': '.trim($line);
