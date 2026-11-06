@@ -43,15 +43,9 @@ export interface EditorProps {
     limits: BuilderLimits;
 }
 
-type Data = { code: string; name_am: string; name_en: string; description: string; organization_type_ids: string[]; content: TemplateContentData };
+type Data = { name_am: string; name_en: string; description: string; organization_type_ids: string[]; content: TemplateContentData };
 
 const SECTIONS: BuiltInSection[] = ['1', '2', '3', '4'];
-
-/** Notes are edited one per line; an empty box keeps the official notes. */
-function notesFromText(text: string): string[] | null {
-    const notes = text.split('\n').map((line) => line.trim()).filter(Boolean);
-    return notes.length === 0 ? null : notes;
-}
 
 /** Merges a stored template over the blank one, so templates saved before a setting existed still edit. */
 function normalize(content: TemplateContentData | undefined, blank: TemplateContentData): TemplateContentData {
@@ -74,7 +68,6 @@ export default function TemplateEditor({ template, organizationTypes, official, 
     const tt = (key: string) => t(`serviceMonitoring.templates.${key}`);
     const editing = template !== undefined;
     const form = useForm<Data>({
-        code: template?.code ?? '',
         name_am: template?.name_am ?? '',
         name_en: template?.name_en ?? '',
         description: template?.description ?? '',
@@ -99,95 +92,99 @@ export default function TemplateEditor({ template, organizationTypes, official, 
     }
 
     return (
-        <form onSubmit={submit} className="space-y-6">
+        <form onSubmit={submit} className="space-y-5">
             {Object.keys(errors).length > 0 && <Alert tone="danger">{tt('errorsSummary')}</Alert>}
 
-            <Card className="space-y-4 p-4">
-                <CardHeader className="p-0"><CardTitle>{tt('details')}</CardTitle></CardHeader>
+            <section className="border-s-4 border-(--color-primary) bg-(--app-surface-muted) px-4 py-3">
+                <p className="text-sm font-semibold text-(--app-foreground)">{tt('digitalFirstTitle')}</p>
+                <p className="mt-1 max-w-3xl text-sm text-(--app-muted-foreground)">{tt('digitalFirstHelp')}</p>
+            </section>
+
+            <Card className="p-5">
+                <CardHeader className="mb-4 p-0">
+                    <CardTitle>{tt('details')}</CardTitle>
+                    <CardDescription>{tt('detailsHelp')}</CardDescription>
+                </CardHeader>
                 <div className="grid gap-4 md:grid-cols-2">
-                    <FormField label={tt('code')} required={!editing} description={tt('codeHelp')} error={errors.code}>
-                        {({ id }) => <Input id={id} className="w-full" maxLength={64} value={data.code} disabled={editing} onChange={(e) => setData('code', e.target.value.toUpperCase())} />}
-                    </FormField>
                     <FormField label={tt('nameAm')} required error={errors.name_am}>
                         {({ id }) => <Input id={id} className="w-full" maxLength={255} value={data.name_am} onChange={(e) => setData('name_am', e.target.value)} />}
                     </FormField>
                     <FormField label={tt('nameEn')} error={errors.name_en}>
                         {({ id }) => <Input id={id} className="w-full" maxLength={255} value={data.name_en} onChange={(e) => setData('name_en', e.target.value)} />}
                     </FormField>
-                    <FormField label={tt('descriptionLabel')} error={errors.description} className="md:col-span-2">
-                        {({ id }) => <Textarea id={id} className="w-full" maxLength={5000} value={data.description} onChange={(e) => setData('description', e.target.value)} />}
+                    <FormField label={tt('descriptionLabel')} description={tt('descriptionHelp')} error={errors.description} className="md:col-span-2">
+                        {({ id }) => <Textarea id={id} className="w-full" rows={2} maxLength={5000} value={data.description} onChange={(e) => setData('description', e.target.value)} />}
                     </FormField>
                 </div>
-                <fieldset className="space-y-2">
-                    <legend className="text-sm font-medium text-(--app-foreground)">{tt('organizationTypes')}</legend>
+            </Card>
+
+            <Card className="p-5">
+                <CardHeader className="mb-4 p-0">
+                    <CardTitle>{tt('organizationTypes')}</CardTitle>
                     <CardDescription>{tt('organizationTypesHelp')}</CardDescription>
-                    <div className="grid gap-x-4 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-                        {organizationTypes.map((type) => (
-                            <label key={type.id} className="inline-flex items-center gap-2 text-sm text-(--app-foreground)">
-                                <input type="checkbox" className="h-4 w-4 accent-(--color-primary)" checked={data.organization_type_ids.includes(type.id)} onChange={(e) => toggleType(type.id, e.target.checked)} />
-                                {nameOf(type, locale)}
-                            </label>
-                        ))}
+                </CardHeader>
+                <fieldset>
+                    <legend className="sr-only">{tt('organizationTypes')}</legend>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {organizationTypes.map((type) => {
+                            const selected = data.organization_type_ids.includes(type.id);
+                            return (
+                                <label key={type.id} className={`flex cursor-pointer items-center gap-3 border px-3 py-2.5 text-sm transition-colors ${selected ? 'border-(--color-primary) bg-(--app-surface-muted) font-medium' : 'border-(--app-border) hover:border-(--app-border-strong)'}`}>
+                                    <input type="checkbox" className="h-4 w-4 accent-(--color-primary)" checked={selected} onChange={(e) => toggleType(type.id, e.target.checked)} />
+                                    <span>{nameOf(type, locale)}</span>
+                                </label>
+                            );
+                        })}
                     </div>
                     {(errors.organization_type_ids || errors['organization_type_ids.0']) && <FieldError>{errors.organization_type_ids ?? errors['organization_type_ids.0']}</FieldError>}
                 </fieldset>
             </Card>
 
-            <Card className="space-y-4 p-4">
-                <CardHeader className="p-0">
-                    <CardTitle>{tt('wording')}</CardTitle>
-                    <CardDescription>{tt('wordingHelp')}</CardDescription>
-                </CardHeader>
-                <FormField label={tt('formTitle')} error={errors['content.title']}>
-                    {({ id }) => <Input id={id} className="w-full" maxLength={500} placeholder={official.title} value={content.title ?? ''} onChange={(e) => setContent({ title: e.target.value === '' ? null : e.target.value })} />}
-                </FormField>
-                <FormField label={tt('generalNotes')} description={tt('notesHelp')} error={errors['content.general_notes']}>
-                    {({ id }) => <Textarea id={id} className="w-full" placeholder={official.general_notes.join('\n')} value={(content.general_notes ?? []).join('\n')}
-                        onChange={(e) => setContent({ general_notes: notesFromText(e.target.value) })} />}
-                </FormField>
-            </Card>
-
-            <Card className="space-y-4 p-4">
-                <CardHeader className="p-0">
+            <Card className="p-5">
+                <CardHeader className="mb-4 p-0">
                     <CardTitle>{tt('officialSections')}</CardTitle>
-                    <CardDescription>{tt('officialSectionsHelp')}</CardDescription>
+                    <CardDescription>{tt('officialSectionsSimpleHelp')}</CardDescription>
                 </CardHeader>
                 {errors['content.sections'] && <FieldError>{errors['content.sections']}</FieldError>}
-                {SECTIONS.map((n) => {
-                    const section = content.sections[n];
-                    return (
-                        <div key={n} className="space-y-3 rounded-card border border-(--app-border) bg-(--app-surface-muted) p-3">
-                            <label className="inline-flex items-center gap-2 text-sm font-semibold text-(--app-foreground)">
-                                <input type="checkbox" className="h-4 w-4 accent-(--color-primary)" checked={section.enabled} onChange={(e) => setSection(n, { enabled: e.target.checked })} />
-                                {official.sections[n].title}
-                            </label>
-                            {section.enabled && (
-                                <div className="grid gap-3 md:grid-cols-2">
-                                    <FormField label={tt('sectionTitle')} error={errors[`content.sections.${n}.title`]}>
-                                        {({ id }) => <Input id={id} className="w-full" maxLength={500} placeholder={official.sections[n].title} value={section.title ?? ''} onChange={(e) => setSection(n, { title: e.target.value === '' ? null : e.target.value })} />}
-                                    </FormField>
-                                    <FormField label={tt('sectionNotes')} description={tt('notesHelp')} error={errors[`content.sections.${n}.notes`]}>
-                                        {({ id }) => <Textarea id={id} className="w-full" placeholder={official.sections[n].notes.join('\n')} value={(section.notes ?? []).join('\n')}
-                                            onChange={(e) => setSection(n, { notes: notesFromText(e.target.value) })} />}
-                                    </FormField>
+                <div className="divide-y divide-(--app-border) border-y border-(--app-border)">
+                    {SECTIONS.map((n) => {
+                        const section = content.sections[n];
+                        return (
+                            <div key={n} className="grid gap-3 py-4 sm:grid-cols-[auto_1fr]">
+                                <input id={`official-section-${n}`} type="checkbox" className="mt-1 h-4 w-4 accent-(--color-primary)" checked={section.enabled} onChange={(e) => setSection(n, { enabled: e.target.checked })} />
+                                <div className="min-w-0">
+                                    <label htmlFor={`official-section-${n}`} className="cursor-pointer text-sm font-semibold text-(--app-foreground)">{official.sections[n].title}</label>
+                                    <p className="text-xs text-(--app-muted-foreground)">{section.enabled ? tt('includedAutomatically') : tt('notCollected')}</p>
+                                    {section.enabled && (
+                                        <div className="mt-3 max-w-2xl">
+                                            <FormField label={tt('sectionName')} description={tt('sectionNameHelp')} error={errors[`content.sections.${n}.title`]}>
+                                                {({ id }) => <Input id={id} className="w-full" maxLength={500} placeholder={official.sections[n].title} value={section.title ?? ''} onChange={(e) => setSection(n, { title: e.target.value === '' ? null : e.target.value })} />}
+                                            </FormField>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    );
-                })}
+                            </div>
+                        );
+                    })}
+                </div>
             </Card>
 
-            <div className="space-y-2">
-                <div>
-                    <h2 className="text-base font-semibold text-(--app-foreground)">{tt('customSections')}</h2>
-                    <p className="text-sm text-(--app-muted-foreground)">{tt('customSectionsHelp')}</p>
+            <details className="border border-(--app-border) bg-(--app-surface)" open={content.custom.sections.length > 0 || undefined}>
+                <summary className="cursor-pointer list-none px-5 py-4 marker:hidden">
+                    <span className="block text-sm font-semibold text-(--app-foreground)">{tt('optionalQuestions')}</span>
+                    <span className="mt-1 block text-sm text-(--app-muted-foreground)">{tt('optionalQuestionsHelp')}</span>
+                </summary>
+                <div className="border-t border-(--app-border) p-5">
+                    <FormBuilder schema={content.custom} onChange={(custom) => setContent({ custom })} errors={errors} limits={limits} errorPrefix="content.custom" />
                 </div>
-                <FormBuilder schema={content.custom} onChange={(custom) => setContent({ custom })} errors={errors} limits={limits} errorPrefix="content.custom" />
-            </div>
+            </details>
 
-            <div className="flex flex-wrap justify-end gap-2 border-t border-(--app-border) pt-4">
-                <Button as={Link} href={editing ? route('service-monitoring.forms.show', template.id) : route('service-monitoring.forms.index')} variant="outline">{tt('actions.cancel')}</Button>
-                <Button type="submit" variant="primary" loading={processing}>{tt('actions.save')}</Button>
+            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-(--app-border) bg-(--app-background)/95 py-3 backdrop-blur">
+                <p className="text-xs text-(--app-muted-foreground)">{tt('automaticCode')}</p>
+                <div className="flex gap-2">
+                    <Button as={Link} href={editing ? route('service-monitoring.forms.show', template.id) : route('service-monitoring.forms.index')} variant="outline">{tt('actions.cancel')}</Button>
+                    <Button type="submit" variant="primary" loading={processing}>{tt('actions.save')}</Button>
+                </div>
             </div>
         </form>
     );

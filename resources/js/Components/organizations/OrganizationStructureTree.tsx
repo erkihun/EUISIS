@@ -1,5 +1,6 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
+import UserAvatar from '@/Components/UserAvatar';
 import { localizedName } from '@/utils/localizedName';
 import { useMemo, useState } from 'react';
 
@@ -32,11 +33,14 @@ export default function OrganizationStructureTree({ tree, t, locale }: { tree: O
     const PositionNode = ({ position }: { position: Position }) => {
         const id = `position-${position.id}`;
         if (query && !matchesPosition(position, query)) return null;
+        const assignee = position.assignment?.employee ?? null;
+        const assigneeName = assignee ? localizedName(assignee.full_name, assignee.name_en, locale) : '';
         return <div className="ml-6 border-l border-(--app-border) pl-4">
             <button type="button" onClick={() => toggle(id)} className="flex w-full items-center gap-2 py-2 text-left">
                 <span>{isOpen(id) ? '▾' : '▸'}</span><span className="font-mono text-xs">{position.code}</span>
                 <span className="font-medium">{localizedName(position.name_en, position.name_am, locale)}</span>
                 <StatusBadge status={position.occupancy} label={t(`organizations.${position.occupancy}`)} />
+                {assignee && <UserAvatar src={assignee.photo_url} name={assigneeName} size={24} className="shrink-0 ring-1 ring-(--app-border)" />}
             </button>
             {isOpen(id) && <div className="mb-2 ml-6 rounded-lg bg-(--app-surface-muted) p-3 text-xs">
                 <div className="flex flex-wrap gap-x-5 gap-y-1 text-(--app-muted-foreground)">
@@ -44,9 +48,12 @@ export default function OrganizationStructureTree({ tree, t, locale }: { tree: O
                     {position.bpr_name && <span>{t('positions.bprName')}: {position.bpr_name}</span>}
                     <span>{t('positions.gradeLevel')}: {position.grade_level ?? '—'}</span>
                 </div>
-                {position.assignment ? <div className="mt-3 border-t border-(--app-border) pt-3">
-                    <div className="flex items-center gap-2 font-semibold">{position.assignment.employee.employee_number} · {localizedName(position.assignment.employee.full_name, position.assignment.employee.name_en, locale)} <StatusBadge status={position.assignment.employee.status} /></div>
-                    <div className="mt-1 flex flex-wrap gap-4"><span>{t('organizations.activeAssignment')}</span><span>{t('organizations.assignmentStartDate')}: <LocalizedDateDisplay value={position.assignment.effective_from} /></span><span>{t('organizations.activeIdCard')}: {position.assignment.employee.has_active_id_card ? t('common.yes') : t('common.no')}</span></div>
+                {position.assignment && assignee ? <div className="mt-3 flex items-start gap-3 border-t border-(--app-border) pt-3">
+                    <UserAvatar src={assignee.photo_url} name={assigneeName} size={48} className="shrink-0 ring-1 ring-(--app-border)" />
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 font-semibold">{assignee.employee_number} · {assigneeName} <StatusBadge status={assignee.status} /></div>
+                        <div className="mt-1 flex flex-wrap gap-4"><span>{t('organizations.activeAssignment')}</span><span>{t('organizations.assignmentStartDate')}: <LocalizedDateDisplay value={position.assignment.effective_from} /></span><span>{t('organizations.activeIdCard')}: {assignee.has_active_id_card ? t('common.yes') : t('common.no')}</span></div>
+                    </div>
                 </div> : <div className="mt-3 text-(--app-muted-foreground)">{t('organizations.noAssignedEmployees')}</div>}
             </div>}
         </div>;

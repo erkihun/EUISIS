@@ -138,10 +138,6 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
                     </section>
                 ))}
 
-                <details className={`${panelCls} p-3 text-sm`}>
-                    <summary className="cursor-pointer font-semibold">{definition.title}</summary>
-                    <ol className="mt-2 list-decimal space-y-1 ps-5 text-(--app-muted-foreground)">{definition.general_notes.map((note, i) => <li key={i}>{note}</li>)}</ol>
-                </details>
             </div>
 
             <Modal show={attesting} onClose={() => setAttesting(false)} maxWidth="lg">

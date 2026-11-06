@@ -36,7 +36,7 @@ final class SaveFormTemplateRequest extends FormRequest
 
         return [
             'code' => $creating
-                ? ['required', 'string', 'max:64', 'regex:/^[A-Z0-9_\-]+$/', Rule::unique('service_monitoring_form_templates', 'code')]
+                ? ['nullable', 'string', 'max:64', 'regex:/^[A-Z0-9_\-]+$/', Rule::unique('service_monitoring_form_templates', 'code')]
                 : ['prohibited'],
             'name_am' => ['required', 'string', 'max:255'],
             'name_en' => ['nullable', 'string', 'max:255'],
