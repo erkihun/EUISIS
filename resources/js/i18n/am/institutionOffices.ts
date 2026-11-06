@@ -44,7 +44,7 @@ const institutionOffices = {
     shortNameAm: 'አጭር ስም (አማርኛ)',
     assignedScopeType: 'የተመደበ ወሰን ዓይነት',
     scopeSelf: 'ራሱ ብቻ',
-    scopeSubtree: 'ንዑስ አደረጃጀት (ራሱ + ልጆች)',
+    scopeSubtree: 'ንዑስ አደረጃጀት (ራሱ + ንዑሶቹ)',
     isHeadOffice: 'ዋና ጽሕፈት ቤት ነው',
     addOffice: 'ጽሕፈት ቤት ይጨምሩ',
     noOffices: 'ምንም ጽሕፈት ቤት አልተገኘም',
