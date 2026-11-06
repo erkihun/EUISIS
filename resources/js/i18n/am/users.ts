@@ -91,6 +91,8 @@ const users = {
     scopedRole: 'በተቋም የተወሰነ ሚና',
     globalRole: 'ከተማ አቀፍ ሚና',
     cannotDeactivateSelf: 'የራስዎን መለያ ማቦዘን አይችሉም።',
+    ownPasswordInProfile: 'የራስዎን የይለፍ ቃል የአሁኑ የይለፍ ቃልዎ በሚረጋገጥበት በመገለጫዎ ውስጥ ይቀይሩ።',
+    openMyProfile: 'መገለጫዬን ይክፈቱ',
     cannotDeleteLastSuperAdmin: 'የመጨረሻው ሱፐር አስተዳዳሪ መለያ መሰረዝ አይቻልም።',
     cannotRemoveLastSuperAdmin: 'የመጨረሻውን ሱፐር አስተዳዳሪ ማስወገድ አይችሉም።',
     lastSuperAdminProtected: 'የመጨረሻው ሱፐር አስተዳዳሪ የተጠበቀ ነው።',

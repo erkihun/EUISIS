@@ -1,20 +1,21 @@
-import { useState } from 'react';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import FormSection from '@/Components/FormSection';
 import UserAvatar from '@/Components/UserAvatar';
 import OrganizationScopesCard from '@/Components/Users/OrganizationScopesCard';
 import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
+import RolePicker, { type PickableRole } from '@/Components/Users/RolePicker';
 import { useLocale } from '@/hooks/useLocale';
+import { toast } from '@/lib/toast';
 import type { PageProps } from '@/types';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
-type Role = { id: number; name: string; scope: 'organization' | 'global' };
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 
 type OrganizationScope = {
     id: string;
-    organization: { id: string; name_en: string; name_am?: string } | null;
+    organization: { id: string; name_en: string; name_am?: string | null; status?: string } | null;
     scope_type: 'self' | 'subtree' | 'citywide' | 'service_provider';
     effective_from: string | null;
     effective_to: string | null;
@@ -31,24 +32,22 @@ type OrgOption = {
 };
 
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
-function Field({
-    label,
-    error,
-    children,
-    className,
-}: {
+/** A labelled field; the label is tied to the control by `id`. */
+function Field({ id, label, hint, error, children, className }: {
+    id: string;
     label: string;
+    hint?: string;
     error?: string;
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
 }) {
     return (
         <div className={className}>
-            <label className={labelCls}>{label}</label>
+            <label htmlFor={id} className="block text-xs font-medium text-(--app-muted-foreground)">{label}</label>
             <div className="mt-1">{children}</div>
-            {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+            {hint && !error && <p id={`${id}-hint`} className="mt-1 text-xs text-(--app-muted-foreground)">{hint}</p>}
+            {error && <p id={`${id}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
         </div>
     );
 }
@@ -77,7 +76,7 @@ export default function EditUser({
         profile_photo_url?: string | null;
         organization_scopes?: OrganizationScope[];
     };
-    roles: Role[];
+    roles: PickableRole[];
     userRoles: string[];
     organizations?: OrgOption[] | null;
     can?: { assignOrganizationScopes?: boolean };
@@ -126,12 +125,12 @@ export default function EditUser({
         gender: user.gender ?? '',
     });
 
-    function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
+    function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+        const file = event.target.files?.[0];
         if (!file) return;
         form.setData('profile_photo', file);
         const reader = new FileReader();
-        reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+        reader.onload = (loaded) => setPhotoPreview(loaded.target?.result as string);
         reader.readAsDataURL(file);
     }
 
@@ -140,36 +139,80 @@ export default function EditUser({
         setPhotoPreview(null);
     }
 
-    function toggleRole(name: string) {
+    /*
+     * The picker works with role ids and the form with role names (that is
+     * what the server takes). A role the user holds that this administrator
+     * may not assign is not in the picker; it stays on the user untouched.
+     */
+    const selectedRoleIds = roles.filter((role) => form.data.roles.includes(role.name)).map((role) => role.id);
+    const pickableNames = roles.map((role) => role.name);
+
+    function toggleRole(id: number) {
+        const role = roles.find((candidate) => candidate.id === id);
+        if (!role) return;
         const current = form.data.roles;
-        form.setData(
-            'roles',
-            current.includes(name) ? current.filter((r) => r !== name) : [...current, name],
-        );
+        form.setData('roles', current.includes(role.name) ? current.filter((name) => name !== role.name) : [...current, role.name]);
     }
 
-    function submit(e: React.FormEvent) {
-        e.preventDefault();
-        // Use router.post with _method=PATCH so file uploads work (multipart requires POST)
-        const fd = new FormData();
-        fd.append('_method', 'PATCH');
-        fd.append('name', form.data.name);
-        fd.append('email', form.data.email);
-        if (form.data.generate_temporary_password) {
-            fd.append('generate_temporary_password', '1');
-        } else {
-            fd.append('password', form.data.password);
-            fd.append('password_confirmation', form.data.password_confirmation);
-        }
-        fd.append('status', form.data.status);
-        form.data.roles.forEach((r) => fd.append('roles[]', r));
-        fd.append('national_id', form.data.national_id);
-        fd.append('phone_number', form.data.phone_number);
-        fd.append('gender', form.data.gender);
-        if (form.data.profile_photo) {
-            fd.append('profile_photo', form.data.profile_photo);
-        }
-        router.post(route('users.update', user.id), fd, { preserveScroll: true });
+    function clearRoles() {
+        form.setData('roles', form.data.roles.filter((name) => !pickableNames.includes(name)));
+    }
+
+    /*
+     * Send the person to the field that failed: the page is four sections
+     * tall and the save button is pinned to the bottom, so a refused save
+     * could otherwise pass unnoticed.
+     */
+    function focusFirstError(errors: Record<string, string>) {
+        const [firstKey] = Object.keys(errors);
+        if (firstKey === undefined) return;
+
+        toast.error(errors[firstKey]);
+
+        // Controls are id'd user-<field>; the roles section carries user-roles.
+        const field = document.getElementById(firstKey === 'national_id_hash' ? 'user-national_id' : `user-${firstKey}`);
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        field?.focus({ preventScroll: true });
+    }
+
+    function submit(event: FormEvent) {
+        event.preventDefault();
+        if (form.processing) return;
+
+        // Sent as a POST with _method=PATCH: a photo needs a multipart body,
+        // and multipart only travels by POST. roles_submitted tells the server
+        // that an absent roles[] means "no roles", which multipart cannot say.
+        form.transform((data) => {
+            const payload: Record<string, unknown> = {
+                _method: 'PATCH',
+                name: data.name,
+                email: data.email,
+                status: data.status,
+                roles: data.roles,
+                roles_submitted: '1',
+                national_id: data.national_id,
+                phone_number: data.phone_number,
+                gender: data.gender,
+            };
+            if (!isSelf) {
+                if (data.generate_temporary_password) {
+                    payload.generate_temporary_password = '1';
+                } else {
+                    payload.password = data.password;
+                    payload.password_confirmation = data.password_confirmation;
+                }
+            }
+            if (data.profile_photo) {
+                payload.profile_photo = data.profile_photo;
+            }
+
+            return payload;
+        });
+        form.post(route('users.update', user.id), {
+            forceFormData: true,
+            preserveScroll: true,
+            onError: focusFirstError,
+        });
     }
 
     const currentPhoto = photoPreview ?? user.profile_photo_url;
@@ -191,6 +234,7 @@ export default function EditUser({
                 <form
                     id="user-edit-form"
                     onSubmit={submit}
+                    noValidate
                     className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 >
                     <div className="space-y-6">
@@ -203,7 +247,7 @@ export default function EditUser({
                             <div className="flex items-center gap-4">
                                 <UserAvatar src={currentPhoto} name={form.data.name || user.name} size={56} />
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="cursor-pointer rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
+                                    <label className={cx(buttonClassName({ variant: 'outline', size: 'xs' }), 'cursor-pointer focus-within:ring-2 focus-within:ring-primary')}>
                                         {user.profile_photo_url ? t('users.changePhoto') : t('users.uploadPhoto')}
                                         <input
                                             type="file"
@@ -227,11 +271,14 @@ export default function EditUser({
                                 <p className="text-xs text-red-600 dark:text-red-400">{form.errors.profile_photo}</p>
                             )}
 
-                            <Field label={t('users.name')} error={form.errors.name}>
+                            <Field id="user-name" label={t('users.name')} error={form.errors.name}>
                                 <input
+                                    id="user-name"
                                     className={inputCls}
+                                    required
+                                    aria-invalid={!!form.errors.name}
                                     value={form.data.name}
-                                    onChange={(e) => form.setData('name', e.target.value)}
+                                    onChange={(event) => form.setData('name', event.target.value)}
                                 />
                             </Field>
                         </FormSection>
@@ -241,75 +288,96 @@ export default function EditUser({
                             title={t('users.sectionAccount')}
                             description={t('users.sectionAccountHelp')}
                         >
-                            <Field label={t('users.email')} error={form.errors.email}>
+                            <Field id="user-email" label={t('users.email')} error={form.errors.email}>
                                 <input
+                                    id="user-email"
                                     type="email"
                                     className={inputCls}
+                                    required
+                                    aria-invalid={!!form.errors.email}
                                     value={form.data.email}
-                                    onChange={(e) => form.setData('email', e.target.value)}
+                                    onChange={(event) => form.setData('email', event.target.value)}
                                 />
                             </Field>
 
-                            <Field label={t('users.status')} error={form.errors.status}>
+                            {/* Your own account stays active: the server refuses the change, so the field says so instead. */}
+                            <Field id="user-status" label={t('users.status')} error={form.errors.status} hint={isSelf ? t('users.cannotDeactivateSelf') : undefined}>
                                 <select
+                                    id="user-status"
                                     className={inputCls}
+                                    disabled={isSelf}
+                                    aria-invalid={!!form.errors.status}
                                     value={form.data.status}
-                                    onChange={(e) => form.setData('status', e.target.value)}
+                                    onChange={(event) => form.setData('status', event.target.value)}
                                 >
                                     <option value="active">{t('users.active')}</option>
                                     <option value="inactive">{t('users.inactive')}</option>
                                 </select>
                             </Field>
 
-                            {/* Password is optional on edit — leaving it blank keeps the current one. */}
-                            <div className="rounded-lg border border-(--app-border) p-3 md:col-span-2">
-                                <p className="mb-2 text-[10px] font-semibold text-(--app-muted-foreground)">
-                                    {t('users.changePasswordNote')}
+                            {isSelf ? (
+                                // Your own password changes only where the current one is confirmed.
+                                <p className="rounded-lg border border-dashed border-(--app-border) bg-(--app-surface-muted) px-3 py-2 text-xs text-(--app-muted-foreground) md:col-span-2">
+                                    {t('users.ownPasswordInProfile')}{' '}
+                                    <Link href={route('profile.edit')} className={actionLinkClassName()}>{t('users.openMyProfile')}</Link>
                                 </p>
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <Field label={t('users.newPassword')} error={form.errors.password}>
+                            ) : (
+                                // Password is optional on edit — leaving it blank keeps the current one.
+                                <div className="rounded-lg border border-(--app-border) p-3 md:col-span-2">
+                                    <p className="mb-2 text-[10px] font-semibold text-(--app-muted-foreground)">
+                                        {t('users.changePasswordNote')}
+                                    </p>
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <Field id="user-password" label={t('users.newPassword')} error={form.errors.password}>
+                                            <input
+                                                id="user-password"
+                                                type="password"
+                                                className={inputCls}
+                                                autoComplete="new-password"
+                                                aria-invalid={!!form.errors.password}
+                                                disabled={form.data.generate_temporary_password}
+                                                placeholder={t('users.newPasswordPlaceholder')}
+                                                value={form.data.password}
+                                                onChange={(event) => form.setData('password', event.target.value)}
+                                            />
+                                        </Field>
+                                        <Field
+                                            id="user-password_confirmation"
+                                            label={t('users.confirmNewPassword')}
+                                            error={form.errors.password_confirmation}
+                                        >
+                                            <input
+                                                id="user-password_confirmation"
+                                                type="password"
+                                                className={inputCls}
+                                                autoComplete="new-password"
+                                                aria-invalid={!!form.errors.password_confirmation}
+                                                disabled={form.data.generate_temporary_password}
+                                                placeholder={t('users.repeatNewPasswordPlaceholder')}
+                                                value={form.data.password_confirmation}
+                                                onChange={(event) => form.setData('password_confirmation', event.target.value)}
+                                            />
+                                        </Field>
+                                    </div>
+                                    <label className="mt-3 flex items-center gap-2 text-xs text-(--app-foreground)">
                                         <input
-                                            type="password"
-                                            className={inputCls}
-                                            autoComplete="new-password"
-                                            disabled={form.data.generate_temporary_password}
-                                            placeholder={t('users.newPasswordPlaceholder')}
-                                            value={form.data.password}
-                                            onChange={(e) => form.setData('password', e.target.value)}
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
+                                            checked={form.data.generate_temporary_password}
+                                            onChange={(event) => form.setData((data) => ({ ...data, generate_temporary_password: event.target.checked, password: '', password_confirmation: '' }))}
                                         />
-                                    </Field>
-                                    <Field
-                                        label={t('users.confirmNewPassword')}
-                                        error={form.errors.password_confirmation}
-                                    >
-                                        <input
-                                            type="password"
-                                            className={inputCls}
-                                            autoComplete="new-password"
-                                            disabled={form.data.generate_temporary_password}
-                                            placeholder={t('users.repeatNewPasswordPlaceholder')}
-                                            value={form.data.password_confirmation}
-                                            onChange={(e) => form.setData('password_confirmation', e.target.value)}
+                                        {t('auth.passwordPolicy.generateTemporary')}
+                                    </label>
+                                    {!form.data.generate_temporary_password && form.data.password !== '' && (
+                                        <PasswordPolicyChecklist
+                                            className="mt-3"
+                                            password={form.data.password}
+                                            confirmation={form.data.password_confirmation}
+                                            personal={[form.data.name, form.data.email, form.data.phone_number]}
                                         />
-                                    </Field>
+                                    )}
                                 </div>
-                                <label className="mt-3 flex items-center gap-2 text-xs text-(--app-foreground)">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.data.generate_temporary_password}
-                                        onChange={(e) => form.setData((data) => ({ ...data, generate_temporary_password: e.target.checked, password: '', password_confirmation: '' }))}
-                                    />
-                                    {t('auth.passwordPolicy.generateTemporary')}
-                                </label>
-                                {!form.data.generate_temporary_password && form.data.password !== '' && (
-                                    <PasswordPolicyChecklist
-                                        className="mt-3"
-                                        password={form.data.password}
-                                        confirmation={form.data.password_confirmation}
-                                        personal={[form.data.name, form.data.email, form.data.phone_number]}
-                                    />
-                                )}
-                            </div>
+                            )}
                         </FormSection>
 
                         {/* ── Personal Details ──────────────────────────── */}
@@ -317,47 +385,57 @@ export default function EditUser({
                             title={t('users.sectionPersonal')}
                             description={t('users.sectionPersonalHelp')}
                         >
-                            <Field label={t('users.nationalId')} error={form.errors.national_id}>
+                            {/* A duplicate is reported against the hash the uniqueness is checked on. */}
+                            <Field id="user-national_id" label={t('users.nationalId')} error={form.errors.national_id ?? (form.errors as Record<string, string | undefined>).national_id_hash}>
                                 <input
-                                    className={inputCls}
+                                    id="user-national_id"
+                                    className={cx(inputCls, 'font-mono tracking-wide')}
+                                    inputMode="numeric"
                                     placeholder={t('users.nationalIdPlaceholder')}
                                     value={nationalIdDisplay}
                                     maxLength={19}
-                                    onChange={(e) => {
-                                        const formatted = formatNationalId(e.target.value);
+                                    aria-invalid={!!form.errors.national_id}
+                                    onChange={(event) => {
+                                        const formatted = formatNationalId(event.target.value);
                                         setNationalIdDisplay(formatted);
                                         form.setData('national_id', formatted.replace(/\s/g, ''));
                                     }}
                                 />
                             </Field>
 
-                            <Field label={t('users.phoneNumber')} error={form.errors.phone_number}>
+                            <Field id="user-phone_number" label={t('users.phoneNumber')} error={form.errors.phone_number}>
                                 <div className="flex">
                                     <span className="inline-flex items-center rounded-l-lg border border-r-0 border-(--app-border-strong) bg-(--app-surface-muted) px-3 text-sm text-(--app-muted-foreground)">
                                         +251
                                     </span>
                                     <input
-                                        className={cx(inputClassName, 'w-full')}
+                                        id="user-phone_number"
+                                        type="tel"
+                                        inputMode="numeric"
+                                        className={cx(inputClassName, 'w-full rounded-l-none')}
                                         placeholder={t('users.phonePlaceholder')}
                                         maxLength={9}
+                                        aria-invalid={!!form.errors.phone_number}
                                         value={form.data.phone_number.replace(/^\+251/, '')}
-                                        onChange={(e) => {
-                                            const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                        onChange={(event) => {
+                                            const digits = event.target.value.replace(/\D/g, '').slice(0, 9);
                                             form.setData('phone_number', digits ? '+251' + digits : '');
                                         }}
                                     />
                                 </div>
                             </Field>
 
-                            <Field label={t('users.gender')} error={form.errors.gender}>
+                            <Field id="user-gender" label={t('users.gender')} error={form.errors.gender}>
                                 <select
+                                    id="user-gender"
                                     className={inputCls}
+                                    aria-invalid={!!form.errors.gender}
                                     value={form.data.gender}
-                                    onChange={(e) => form.setData('gender', e.target.value)}
+                                    onChange={(event) => form.setData('gender', event.target.value)}
                                 >
-                                    {genderOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
+                                    {genderOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
                                         </option>
                                     ))}
                                 </select>
@@ -366,55 +444,24 @@ export default function EditUser({
 
                         {/* ── Roles ─────────────────────────────────────── */}
                         <FormSection
+                            id="user-roles"
                             title={t('users.sectionRoles')}
                             description={t('users.sectionRolesHelp')}
                             grid={false}
                         >
-                            {roles.length === 0 ? (
-                                <p className="rounded-lg border border-dashed border-(--app-border) px-3 py-4 text-center text-sm text-(--app-muted-foreground)">
-                                    {t('users.noRoles')}
-                                </p>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                    {roles.map((role) => (
-                                        <label
-                                            key={role.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-lg border border-(--app-border) px-3 py-2 transition-colors hover:bg-(--app-surface-muted)"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
-                                                checked={form.data.roles.includes(role.name)}
-                                                onChange={() => toggleRole(role.name)}
-                                            />
-                                              <span className="min-w-0 flex-1 text-sm text-(--app-foreground)">
-                                                 {role.name}
-                                              </span>
-                                              <span className={badgeClassName('info')}>
-                                                  {role.scope === 'organization' ? t('users.scopedRole') : t('users.globalRole')}
-                                              </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            )}
-                            {form.errors.roles && (
-                                <p className="text-xs text-red-600 dark:text-red-400">{form.errors.roles}</p>
-                            )}
+                            <RolePicker
+                                roles={roles}
+                                selected={selectedRoleIds}
+                                onToggle={toggleRole}
+                                onClear={clearRoles}
+                                error={form.errors.roles}
+                            />
                         </FormSection>
                     </div>
 
                     {/* Sticky action bar */}
                     <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur-sm">
-                        {/* Self-edit guard: hide deactivate for own account */}
-                        {isSelf && (
-                            <p className="mr-auto text-xs text-amber-600 dark:text-amber-400">
-                                {t('users.cannotDeleteSelf')}
-                            </p>
-                        )}
-                        <Link
-                            href={route('users.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
-                        >
+                        <Link href={route('users.index')} className={buttonClassName({ variant: 'ghost' })}>
                             {t('common.cancel')}
                         </Link>
                         <button

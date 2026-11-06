@@ -3,12 +3,14 @@ import { router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { badgeClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrganizationScope = {
     id: string;
-    organization: { id: string; name_en: string; name_am?: string } | null;
+    /** `status` is anything but 'active' for an inactive or archived organization. */
+    organization: { id: string; name_en: string; name_am?: string | null; status?: string } | null;
     scope_type: 'self' | 'subtree' | 'citywide' | 'service_provider';
     effective_from: string | null;
     effective_to: string | null;
@@ -58,6 +60,9 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<FormState>(emptyForm());
     const [orgSearch, setOrgSearch] = useState('');
+    /** What the server refused on the last save, by field. */
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [saving, setSaving] = useState(false);
 
     function scopeTypeLabel(st: OrganizationScope['scope_type']): string {
         return t(`users.userOrganizationScopes.scopeTypes.${st}`);
@@ -95,6 +100,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
     function openAdd() {
         setForm(emptyForm());
         setOrgSearch('');
+        setErrors({});
         setEditingId(null);
         setShowForm(true);
     }
@@ -110,6 +116,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
         // Keep the search box empty so the full list stays browsable; the current
         // organization is highlighted as selected in the list instead.
         setOrgSearch('');
+        setErrors({});
         setEditingId(scope.id);
         setShowForm(true);
     }
@@ -119,6 +126,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
         setEditingId(null);
         setForm(emptyForm());
         setOrgSearch('');
+        setErrors({});
     }
 
     function submitForm() {
@@ -134,18 +142,30 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                 ? { ...base, organization_id: form.organization_id }
                 : base;
 
+        // A refused save used to look like nothing happened: the form stayed
+        // open with no message. The reasons are now shown under their fields.
+        const options = {
+            preserveScroll: true,
+            onStart: () => { setSaving(true); setErrors({}); },
+            onSuccess: cancelForm,
+            onError: (refused: Record<string, string>) => setErrors(refused),
+            onFinish: () => setSaving(false),
+        };
+
         if (editingId) {
-            router.put(route('users.organization-scopes.update', { user: userId, scope: editingId }), payload, {
-                preserveScroll: true,
-                onSuccess: cancelForm,
-            });
+            router.put(route('users.organization-scopes.update', { user: userId, scope: editingId }), payload, options);
         } else {
-            router.post(route('users.organization-scopes.store', { user: userId }), payload, {
-                preserveScroll: true,
-                onSuccess: cancelForm,
-            });
+            router.post(route('users.organization-scopes.store', { user: userId }), payload, options);
         }
     }
+
+    const fieldError = (field: string) => errors[field]
+        ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors[field]}</p>
+        : null;
+    // Anything the server refused that has no field of its own on this form.
+    const otherErrors = Object.entries(errors)
+        .filter(([field]) => !['organization_id', 'scope_type', 'effective_from', 'effective_to', 'is_active'].includes(field))
+        .map(([, message]) => message);
 
     async function removeScope(scopeId: string) {
         const result = await confirm({ title: t('users.userOrganizationScopes.confirmRemove'), variant: 'danger' });
@@ -182,73 +202,77 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                 </p>
             )}
 
+            {/* One block per scope, not a table: six columns do not fit this
+                narrow column, and the Edit and Remove actions were pushed out
+                of sight. */}
             {scopes.length > 0 && (
-                <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'text-left')}>
-                        <thead className={tableHeadClassName}>
-                            <tr>
-                                <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.organization')}</th>
-                                <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.scopeType')}</th>
-                                <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.effectiveFrom')}</th>
-                                <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.effectiveTo')}</th>
-                                <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.isActive')}</th>
-                                {canManage && <th className={`${labelCls} pb-2`}></th>}
-                            </tr>
-                        </thead>
-                        <tbody className={tableBodyClassName}>
-                            {scopes.map((scope) => (
-                                <tr
-                                    key={scope.id}
-                                    className={tableRowClassName}
-                                >
-                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
-                                        {scope.scope_type === 'citywide'
-                                            ? '—'
-                                            : orgName(scope.organization)}
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
-                                        {scopeTypeLabel(scope.scope_type)}
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
-                                        {scope.effective_from ?? '—'}
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
-                                        {scope.effective_to ?? '—'}
-                                    </td>
-                                    <td className={tableCellClassName}>
-                                        <span
-                                            className={
-                                                scope.is_active
-                                                    ? 'rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs text-(--app-muted-foreground)'
-                                            }
-                                        >
-                                            {scope.is_active ? t('common.active') : t('common.inactive')}
+                <ul className="divide-y divide-(--app-border) rounded-lg border border-(--app-border)">
+                    {scopes.map((scope) => {
+                        const organizationInactive = scope.scope_type !== 'citywide'
+                            && scope.organization != null
+                            && (scope.organization.status ?? 'active') !== 'active';
+
+                        return (
+                            <li key={scope.id} className={cx('px-3 py-3', editingId === scope.id && 'bg-(--app-surface-muted)')}>
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="min-w-0">
+                                        <p className="break-words text-sm font-medium text-(--app-foreground)">
+                                            {scope.scope_type === 'citywide'
+                                                ? scopeTypeLabel(scope.scope_type)
+                                                : orgName(scope.organization)}
+                                        </p>
+                                        {scope.scope_type !== 'citywide' && (
+                                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
+                                                {scopeTypeLabel(scope.scope_type)}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <span className={cx(badgeClassName(scope.is_active ? 'success' : 'neutral'), 'shrink-0')}>
+                                        {scope.is_active ? t('common.active') : t('common.inactive')}
+                                    </span>
+                                </div>
+
+                                {organizationInactive && (
+                                    <p className="mt-1.5">
+                                        <span className={badgeClassName('warning')}>
+                                            {t('users.userOrganizationScopes.inactiveOrganization')}
                                         </span>
-                                    </td>
-                                    {canManage && (
-                                        <td className={cx(tableCellClassName, 'text-right')}>
-                                            <button
-                                                type="button"
-                                                onClick={() => openEdit(scope)}
-                                                className="mr-2 text-xs text-primary hover:underline dark:text-primary"
-                                            >
-                                                {t('common.edit')}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeScope(scope.id)}
-                                                className="text-xs text-red-600 hover:underline dark:text-red-400"
-                                            >
-                                                {t('users.userOrganizationScopes.remove')}
-                                            </button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    </p>
+                                )}
+
+                                <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <dt className="text-(--app-muted-foreground)">{t('users.userOrganizationScopes.effectiveFrom')}</dt>
+                                        <dd className="mt-0.5 text-(--app-foreground)"><LocalizedDateDisplay value={scope.effective_from} /></dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-(--app-muted-foreground)">{t('users.userOrganizationScopes.effectiveTo')}</dt>
+                                        <dd className="mt-0.5 text-(--app-foreground)"><LocalizedDateDisplay value={scope.effective_to} /></dd>
+                                    </div>
+                                </dl>
+
+                                {canManage && (
+                                    <div className="mt-2 flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => openEdit(scope)}
+                                            className={actionLinkClassName()}
+                                        >
+                                            {t('common.edit')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeScope(scope.id)}
+                                            className={actionLinkClassName({ tone: 'danger' })}
+                                        >
+                                            {t('users.userOrganizationScopes.remove')}
+                                        </button>
+                                    </div>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
             )}
                 </div>
 
@@ -281,6 +305,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                     ))}
                                 </select>
                             </div>
+                            {fieldError('scope_type')}
                         </div>
 
                         {form.scope_type !== 'citywide' && (
@@ -373,6 +398,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                     </div>
                                 )}
 
+                                {fieldError('organization_id')}
                                 {form.scope_type === 'self' && (
                                     <p className="mt-1 text-xs text-(--app-muted-foreground)">
                                         {t('users.userOrganizationScopes.selfHelperText')}
@@ -391,6 +417,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                         onChange={(iso) => setForm((f) => ({ ...f, effective_from: iso }))}
                                     />
                                 </div>
+                                {fieldError('effective_from')}
                             </div>
                             <div>
                                 <label className={labelCls}>{t('users.userOrganizationScopes.effectiveTo')}</label>
@@ -401,6 +428,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                         onChange={(iso) => setForm((f) => ({ ...f, effective_to: iso }))}
                                     />
                                 </div>
+                                {fieldError('effective_to')}
                             </div>
                         </div>
 
@@ -416,6 +444,13 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                 {t('users.userOrganizationScopes.isActive')}
                             </label>
                         </div>
+                        {fieldError('is_active')}
+
+                        {otherErrors.length > 0 && (
+                            <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+                                {otherErrors.map((message) => <p key={message}>{message}</p>)}
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-4 flex items-center justify-end gap-3">
@@ -429,10 +464,10 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                         <button
                             type="button"
                             onClick={submitForm}
-                            disabled={form.scope_type !== 'citywide' && form.organization_id === ''}
+                            disabled={saving || (form.scope_type !== 'citywide' && form.organization_id === '')}
                             className={buttonClassName({ variant: 'primary', size: 'sm' })}
                         >
-                            {t('users.userOrganizationScopes.save')}
+                            {saving ? t('common.saving') : t('users.userOrganizationScopes.save')}
                         </button>
                     </div>
                 </div>

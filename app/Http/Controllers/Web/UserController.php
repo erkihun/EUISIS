@@ -205,7 +205,9 @@ class UserController extends Controller
                     $query->whereIn('organization_id', $this->organizationScopeService->allowedOrganizationIds($actor));
                 }
             },
-            'organizationScopes.organization',
+            // An archived organization is soft-deleted; its scopes remain and
+            // must still say which organization they were for.
+            'organizationScopes.organization' => fn ($query) => $query->withTrashed(),
         ]);
 
         return Inertia::render('Users/Edit', [
@@ -219,6 +221,9 @@ class UserController extends Controller
                             'id' => $s->organization->id,
                             'name_en' => $s->organization->name_en,
                             'name_am' => $s->organization->name_am,
+                            'status' => $s->organization->status instanceof \BackedEnum
+                                ? $s->organization->status->value
+                                : (string) $s->organization->status,
                         ] : null,
                         'scope_type' => $s->scope_type?->value ?? $s->scope_type,
                         'effective_from' => $s->effective_from?->toDateString(),
@@ -259,6 +264,9 @@ class UserController extends Controller
         $actor = Auth::user();
 
         return Organization::query()
+            // Archived organizations are soft-deleted; one this user is already
+            // scoped to is still listed (see below), never offered as active.
+            ->withTrashed()
             ->with('type:id,name_en,name_am')
             // A scoped actor (e.g. Organizational Admin) may only delegate
             // organizations inside their own accessible set. Already-assigned
@@ -269,7 +277,9 @@ class UserController extends Controller
                 fn ($query) => $query->whereIn('id', $this->organizationScopeService->allowedOrganizationIds($actor)),
             )
             ->where(function ($query) use ($alreadyScopedIds): void {
-                $query->where('status', OrganizationStatus::Active->value);
+                $query->where(fn ($active) => $active
+                    ->where('status', OrganizationStatus::Active->value)
+                    ->whereNull('deleted_at'));
 
                 if ($alreadyScopedIds !== []) {
                     $query->orWhereIn('id', $alreadyScopedIds);
