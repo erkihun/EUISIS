@@ -161,6 +161,30 @@ export default function EmployeesCreate({
         [positions, form.data.organization_id, form.data.organization_unit_id],
     );
 
+    /*
+     * Positions are listed by title only, like the units. A title that several
+     * listed positions share (ten "Driver" seats, or the same post in two
+     * units) keeps its code, because nothing else tells those seats apart.
+     */
+    const positionOptions = useMemo<SearchableSelectOption[]>(() => {
+        const titleOf = (position: Option) => localizedName(position.title_en, position.title_am, locale);
+        const timesListed = new Map<string, number>();
+        for (const position of filteredPositions) {
+            timesListed.set(titleOf(position), (timesListed.get(titleOf(position)) ?? 0) + 1);
+        }
+
+        return filteredPositions.map((position) => {
+            const title = titleOf(position);
+            const shared = (timesListed.get(title) ?? 0) > 1;
+
+            return {
+                value: position.id,
+                label: shared && position.job_position_code ? `${title} (${position.job_position_code})` : title,
+                keywords: `${position.title_en ?? ''} ${position.title_am ?? ''}`,
+            };
+        });
+    }, [filteredPositions, locale]);
+
     function handleNationalIdChange(raw: string) {
         const digits = raw.replace(/\D/g, '').slice(0, 16);
         form.setData('national_id', digits);
@@ -426,21 +450,15 @@ export default function EmployeesCreate({
                                                 : `${t('employees.onlyVacantPositionsShown')} - ${t('employees.organizationAutoFilledFromPosition')} - ${t('employees.selectVacantPositionFirst')}`
                                     }
                                 >
-                                    <select
+                                    <SearchableSelect
                                         id="position_id"
-                                        className={inputCls}
                                         value={form.data.position_id}
-                                        onChange={(e) => changePosition(e.target.value)}
+                                        options={positionOptions}
+                                        onChange={changePosition}
+                                        placeholder={t('employees.selectPosition')}
+                                        searchPlaceholder={t('employees.searchPosition')}
                                         disabled={!form.data.organization_id || filteredPositions.length === 0}
-                                    >
-                                        <option value="">{t('employees.selectPosition')}</option>
-                                        {filteredPositions.map((position) => (
-                                            <option key={position.id} value={position.id}>
-                                                {position.job_position_code ? `${position.job_position_code} - ` : ''}
-                                                {localizedName(position.title_en, position.title_am, locale)}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    />
                                 </Field>
                             </>
                         )}

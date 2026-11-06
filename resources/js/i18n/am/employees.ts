@@ -324,6 +324,7 @@ const employees = {
     selectOrganization: 'ተቋም ይምረጡ',
     selectOrganizationUnit: 'የሥራ ክፍል ይምረጡ',
     searchOrganizationUnit: 'በስም ይፈልጉ',
+    searchPosition: 'በስም ይፈልጉ',
     selectGender: 'ጾታ ይምረጡ',
     positionAlreadyOccupied: 'የሥራ መደቡ አስቀድሞ ተይዟል',
     noUnitsForOrganization: 'ለዚህ ተቋም ንቁ የሥራ ክፍሎች የሉም።',

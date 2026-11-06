@@ -334,6 +334,7 @@ const employees = {
     selectOrganization: 'Select Organization',
     selectOrganizationUnit: 'Select Organization Unit',
     searchOrganizationUnit: 'Search by name',
+    searchPosition: 'Search by name',
     selectGender: 'Select Gender',
     positionAlreadyOccupied: 'Position already occupied',
     noUnitsForOrganization: 'No active organization units for this organization.',

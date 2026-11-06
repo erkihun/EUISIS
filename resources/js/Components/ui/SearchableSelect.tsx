@@ -48,7 +48,8 @@ export default function SearchableSelect({
     const [position, setPosition] = useState<CSSProperties>({});
     const [query, setQuery] = useState('');
     const [open, setOpen] = useState(false);
-    const [active, setActive] = useState(-1);
+    /** The row the user moved the highlight to; null while it is still where the list put it. */
+    const [moved, setMoved] = useState<number | null>(null);
 
     const selected = options.find((option) => option.value === value) ?? null;
 
@@ -68,14 +69,16 @@ export default function SearchableSelect({
         ...matches.map((option) => ({ value: option.value, label: option.label, clear: false })),
     ];
 
-    // Start on the current choice, or on the first match once the user types.
-    useEffect(() => {
-        if (!open) return;
-        const offset = value ? 1 : 0;
-        const current = query.trim() === '' ? matches.findIndex((option) => option.value === value) : -1;
-
-        setActive(current >= 0 ? current + offset : matches.length > 0 ? offset : value ? 0 : -1);
-    }, [open, query, matches, value]);
+    /*
+     * The highlighted row. Until the user moves it, it is the current choice,
+     * or the first match once they type. It is worked out while rendering, not
+     * in an effect, so Enter pressed straight after the last keystroke already
+     * picks the row the list shows as highlighted.
+     */
+    const offset = value ? 1 : 0;
+    const current = query.trim() === '' ? matches.findIndex((option) => option.value === value) : -1;
+    const startingRow = current >= 0 ? current + offset : matches.length > 0 ? offset : value ? 0 : -1;
+    const active = moved !== null && moved < rows.length ? moved : startingRow;
 
     useEffect(() => {
         if (!open || active < 0) return;
@@ -123,6 +126,7 @@ export default function SearchableSelect({
     function openList() {
         if (open) return;
         setQuery('');
+        setMoved(null);
         setOpen(true);
     }
 
@@ -130,16 +134,17 @@ export default function SearchableSelect({
         onChange(row.value);
         setOpen(false);
         setQuery('');
+        setMoved(null);
     }
 
     function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             if (!open) openList();
-            else setActive((index) => Math.min(rows.length - 1, index + 1));
+            else setMoved(Math.min(rows.length - 1, active + 1));
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setActive((index) => Math.max(0, index - 1));
+            if (open) setMoved(Math.max(0, active - 1));
         } else if (e.key === 'Enter') {
             // Never submit the surrounding form from the search box.
             e.preventDefault();
@@ -174,7 +179,7 @@ export default function SearchableSelect({
                 onClick={openList}
                 onBlur={() => setOpen(false)}
                 onKeyDown={onKeyDown}
-                onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+                onChange={(e) => { setQuery(e.target.value); setMoved(null); setOpen(true); }}
             />
             <svg
                 aria-hidden="true"
@@ -214,7 +219,7 @@ export default function SearchableSelect({
                             onMouseDown={(e) => e.preventDefault()}
                             // Movement, not entry: a list scrolling under a still
                             // pointer must not steal the keyboard highlight.
-                            onMouseMove={() => { if (index !== active) setActive(index); }}
+                            onMouseMove={() => { if (index !== active) setMoved(index); }}
                             onClick={() => pick(row)}
                         >
                             {row.label}
