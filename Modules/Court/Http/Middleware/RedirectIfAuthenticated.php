@@ -20,13 +20,15 @@ class RedirectIfAuthenticated
                 // Applicant guard: redirect to applicant/respondent dashboard
                 if ($guard === 'applicant') {
                     if ($request->query('login_as') === 'respondent') {
-                        if (!$request->session()->get('acting_as_respondent')) {
+                        if (! $request->session()->get('acting_as_respondent')) {
                             $request->session()->regenerate();
                         }
                         $request->session()->put('acting_as_respondent', true);
+
                         return redirect()->route('court.respondent.dashboard');
                     }
                     $request->session()->forget('acting_as_respondent');
+
                     return redirect()->route('court.applicant.dashboard');
                 }
 

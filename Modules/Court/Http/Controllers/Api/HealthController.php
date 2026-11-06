@@ -2,8 +2,8 @@
 
 namespace Modules\Court\Http\Controllers\Api;
 
-use Modules\Court\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Modules\Court\Http\Controllers\Controller;
 
 class HealthController extends Controller
 {

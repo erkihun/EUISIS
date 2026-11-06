@@ -12,8 +12,10 @@ class SafeHtml
      */
     public static function clean(?string $html): string
     {
-        $html = (string)($html ?? '');
-        if ($html === '') return '';
+        $html = (string) ($html ?? '');
+        if ($html === '') {
+            return '';
+        }
 
         // If the content is entity-encoded (&lt;p&gt;...), decode it first
         if (str_contains($html, '&lt;') || str_contains($html, '&gt;')) {
@@ -21,9 +23,9 @@ class SafeHtml
         }
 
         // Wrap to help DOMDocument parse fragments
-        $wrapped = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>' . $html . '</body></html>';
+        $wrapped = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>'.$html.'</body></html>';
 
-        $dom = new DOMDocument();
+        $dom = new DOMDocument;
         // suppress warnings on malformed html
         @$dom->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
@@ -53,7 +55,7 @@ class SafeHtml
             'tr',
             'th',
             'td',
-            'a'
+            'a',
         ];
 
         // Remove disallowed nodes entirely
@@ -67,6 +69,7 @@ class SafeHtml
         foreach ($body->childNodes as $node) {
             $out .= $dom->saveHTML($node);
         }
+
         return $out;
     }
 
@@ -75,7 +78,7 @@ class SafeHtml
         $disallowed = [];
         foreach ($root->getElementsByTagName('*') as $el) {
             $tag = strtolower($el->tagName);
-            if (!in_array($tag, $allowed, true)) {
+            if (! in_array($tag, $allowed, true)) {
                 $disallowed[] = $el;
             }
         }

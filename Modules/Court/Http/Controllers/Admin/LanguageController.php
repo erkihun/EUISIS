@@ -2,12 +2,11 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Http\Middleware\SetLocale;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cookie;
+use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Middleware\SetLocale;
 
 class LanguageController extends Controller
 {
@@ -16,7 +15,7 @@ class LanguageController extends Controller
         $allowed = config('court.locales', ['en', 'am']);
         $allowed = array_unique(array_merge($allowed, ['am_ET']));
 
-        if (!in_array($locale, $allowed, true)) {
+        if (! in_array($locale, $allowed, true)) {
             $locale = config('app.fallback_locale', 'en');
         }
 

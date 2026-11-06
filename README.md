@@ -30,8 +30,20 @@ Tests: `vendor/bin/pest` (SQLite in memory; see [docs/testing.md](docs/testing.m
 Production gates: `php artisan production:readiness` and
 `php artisan security:production-check`.
 
+## Where the product stands
+
+The pilot release is tagged `v1.0.0-pilot` ([CHANGELOG.md](CHANGELOG.md)). A
+**scope freeze** is in force until the pilot ends: no new module, only defects,
+hardening, wording and user documentation ([docs/ROADMAP.md](docs/ROADMAP.md)).
+The pilot is measured with `php artisan pilot:baseline`
+([docs/pilot-measurement.md](docs/pilot-measurement.md)).
+
 ## Documentation
 
+- [docs/user-guide/am/](docs/user-guide/am/README.md) — የተጠቃሚ መመሪያ (Amharic user guides, one per module)
+- [docs/ROADMAP.md](docs/ROADMAP.md) — scope freeze and the post-pilot order
+- [docs/production-monitoring.md](docs/production-monitoring.md) — health probes, error tracker, logs
+- [docs/security/README.md](docs/security/README.md) — the living security documents (reports are in docs/archive)
 - [docs/production-golden-path.md](docs/production-golden-path.md) — deployment, from a clean host to go-live
 - [docs/branding.md](docs/branding.md) — product identity and brand policy
 - [docs/public-feedback.md](docs/public-feedback.md) — public feedback, suggestions and complaints

@@ -2,12 +2,12 @@
 
 namespace Modules\Court\Http\Requests\Auth;
 
-use Modules\Court\Application\Support\LoginThrottle;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Application\Support\LoginThrottle;
 
 class LoginRequest extends FormRequest
 {

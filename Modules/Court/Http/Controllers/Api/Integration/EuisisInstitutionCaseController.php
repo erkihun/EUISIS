@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Api\Integration;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Application\Services\AppealRecordBundle;
-use Modules\Court\Application\Services\AppealRecords;
-use Modules\Court\Application\Services\CaseParties;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Services\AppealRecordBundle;
+use Modules\Court\Application\Services\AppealRecords;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Models\Decision;
+use Modules\Court\Http\Controllers\Controller;
 use Symfony\Component\HttpFoundation\Response;
 
 /**

@@ -9,9 +9,9 @@ use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use Modules\Communication\Domain\Enums\AccessRequestStatus;
-use Modules\Communication\Domain\Enums\AnnouncementPriority;
-use Modules\Communication\Domain\Enums\AnnouncementStatus;
+use Modules\Communication\Contracts\Data\AccessRequestStatus;
+use Modules\Communication\Contracts\Data\AnnouncementPriority;
+use Modules\Communication\Contracts\Data\AnnouncementStatus;
 
 /**
  * Internal communication: the announcements institutions in scope published,
@@ -78,20 +78,20 @@ final class CommunicationAnalytics extends SituationAnalytics
 
         return SituationPanel::kpis('communication_kpis', $this->title('communication_kpis'), self::SOURCE, [
             $this->kpi('announcements_published', $this->publishedInPeriod($context)->count()),
-            $this->kpi('announcements_active', $this->announcements($context)->where('a.status', AnnouncementStatus::Published->value)->where(fn (Builder $q) => $q->whereNull('a.expires_at')->orWhere('a.expires_at', '>', now()))->count()),
+            $this->kpi('announcements_active', $this->announcements($context)->where('a.status', AnnouncementStatus::PUBLISHED)->where(fn (Builder $q) => $q->whereNull('a.expires_at')->orWhere('a.expires_at', '>', now()))->count()),
             $this->kpi('announcement_reach', (int) $this->publishedInPeriod($context)->sum('a.target_count')),
             $this->kpi('announcement_view_rate', $this->percent($viewed, $delivered), ['unit' => '%']),
             $this->kpi('announcement_ack_rate', $this->percent($acknowledged, $ackDelivered), ['unit' => '%']),
             $this->kpi('messages_sent', $this->inPeriod($this->messages($context), 'm.created_at', $period)->where('m.type', 'TEXT')->count()),
             $this->kpi('conversations_active', $this->inPeriod($this->conversations($context), 'c.last_message_at', $period)->count()),
-            $this->kpi('access_requests_pending', $accessRequests->where('ar.status', AccessRequestStatus::Requested->value)->count()),
+            $this->kpi('access_requests_pending', $accessRequests->where('ar.status', AccessRequestStatus::REQUESTED)->count()),
         ]);
     }
 
     private function byPriority(SituationContext $context): SituationPanel
     {
         $counts = $this->countBy($this->publishedInPeriod($context), 'a.priority');
-        $buckets = array_column(AnnouncementPriority::cases(), 'value');
+        $buckets = AnnouncementPriority::ALL;
 
         return $this->chart('announcements_by_priority', 'donut', self::SOURCE, $this->valueLabels('announcement_priority', $buckets), [
             ['key' => 'announcements', 'label' => SituationLabel::key('situationRoom.series.announcements'), 'values' => array_map(fn (string $b): int => $counts[$b] ?? 0, $buckets)],

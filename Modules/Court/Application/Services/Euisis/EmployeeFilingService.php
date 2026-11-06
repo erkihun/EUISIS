@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\Applicant;
 
 /**
  * Flow 5 (docs/euisis-integration.md): a case an employee files from the EUISIS

@@ -4,15 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Lawyer;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CaseType;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Services\Euisis\CaseDocuments;
-use Modules\Court\Application\Services\Euisis\CaseNumbers;
-use Modules\Court\Application\Services\Euisis\EuisisClient;
-use Modules\Court\Application\Services\Euisis\EuisisException;
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +11,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\Euisis\CaseDocuments;
+use Modules\Court\Application\Services\Euisis\CaseNumbers;
+use Modules\Court\Application\Services\Euisis\EuisisClient;
+use Modules\Court\Application\Services\Euisis\EuisisException;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * A lawyer files a case for a client (EUISIS ADR 0013 #13). The client is an
@@ -118,8 +119,8 @@ class LawyerCaseController extends Controller
                 'respondent_name' => (string) $respondent->name_en,
                 'respondent_address' => filled($data['respondent_address'] ?? null) ? trim(strip_tags((string) $data['respondent_address'])) : null,
                 'respondent_organization_uuid' => $respondent->uuid,
-                'description' => \Modules\Court\Application\Support\Purifier::clean((string) $data['description'], 'cases'),
-                'relief_requested' => filled($data['relief_requested'] ?? null) ? \Modules\Court\Application\Support\Purifier::clean((string) $data['relief_requested'], 'cases') : null,
+                'description' => Purifier::clean((string) $data['description'], 'cases'),
+                'relief_requested' => filled($data['relief_requested'] ?? null) ? Purifier::clean((string) $data['relief_requested'], 'cases') : null,
                 'case_type_id' => (int) $data['case_type_id'],
                 'filing_date' => now()->toDateString(),
                 'status' => 'pending',

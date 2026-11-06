@@ -15,6 +15,8 @@ return new class extends Migration
         // A first MySQL run stopped on an over-long index name after creating
         // reception_queue_tickets without all of its keys. Nothing can have
         // written to it, so rebuild it rather than patch the missing keys.
+        // migration-safety: reviewed, the drop only hits a half-created table that no
+        // row ever reached (the index check proves the first run stopped early).
         if (Schema::hasTable('reception_queue_tickets')
             && ! Schema::hasIndex('reception_queue_tickets', 'reception_queue_tickets_reception_counter_id_status_index')) {
             Schema::drop('reception_queue_tickets');

@@ -9,6 +9,7 @@ use App\Models\CardPrintBatchItem;
 use App\Models\User;
 use App\Services\IdCards\IdCardPrintSnapshotService;
 use DomainException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -57,7 +58,7 @@ final readonly class PreparePrintBatchAction
      * Pending items with no snapshot yet, one already used for a print, or
      * one too old to confirm.
      *
-     * @return \Illuminate\Database\Eloquent\Builder<CardPrintBatchItem>
+     * @return Builder<CardPrintBatchItem>
      */
     public function stale(CardPrintBatch $batch)
     {

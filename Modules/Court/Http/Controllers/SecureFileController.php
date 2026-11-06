@@ -2,16 +2,17 @@
 
 namespace Modules\Court\Http\Controllers;
 
-use Modules\Court\Domain\Models\ApplicantResponseReply;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Application\Support\CaseScope;
-use Modules\Court\Application\Services\CaseParties;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Support\CaseScope;
+use Modules\Court\Application\Support\CourtPermissions;
+use Modules\Court\Domain\Models\ApplicantResponseReply;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SecureFileController extends Controller
@@ -25,7 +26,7 @@ class SecureFileController extends Controller
             ->where('case_id', $caseId)
             ->first();
 
-        abort_if(!$doc, 404, 'Document not found.');
+        abort_if(! $doc, 404, 'Document not found.');
 
         return $this->downloadFile(
             $doc->file_path ?? $doc->path ?? null,
@@ -43,7 +44,7 @@ class SecureFileController extends Controller
             ->where('case_id', $caseId)
             ->first();
 
-        abort_if(!$row, 404, 'File not found.');
+        abort_if(! $row, 404, 'File not found.');
 
         return $this->downloadFile(
             $row->path ?? null,
@@ -91,11 +92,12 @@ class SecureFileController extends Controller
 
         if ($ownsCase) {
             abort_if(($response->review_status ?? null) !== 'accepted', 403);
+
             return $this->downloadFile($response->pdf_path, basename((string) $response->pdf_path), null, $inline);
         }
 
         $respondentId = Respondent::where('email', $applicant->email)->value('id');
-        abort_if(!$respondentId || (int) $response->respondent_id !== (int) $respondentId, 403);
+        abort_if(! $respondentId || (int) $response->respondent_id !== (int) $respondentId, 403);
 
         return $this->downloadFile($response->pdf_path, basename((string) $response->pdf_path), null, $inline);
     }
@@ -169,7 +171,7 @@ class SecureFileController extends Controller
         abort_unless($applicant, 403);
 
         $respondentId = Respondent::where('email', $applicant->email)->value('id');
-        abort_if(!$respondentId, 403);
+        abort_if(! $respondentId, 403);
 
         $respondentAuthorized = DB::table('court_applicant_response_replies as arr')
             ->join('court_respondent_responses as rr', 'rr.id', '=', 'arr.respondent_response_id')
@@ -189,7 +191,7 @@ class SecureFileController extends Controller
 
     public function appealDocument(int $appealId, int $docId): StreamedResponse
     {
-        if (!$this->staffCan('appeals.view') && !$this->staffCan('appeals.edit') && !$this->staffCan('appeals.decide')) {
+        if (! $this->staffCan('appeals.view') && ! $this->staffCan('appeals.edit') && ! $this->staffCan('appeals.decide')) {
             abort(403);
         }
 
@@ -198,7 +200,7 @@ class SecureFileController extends Controller
             ->where('appeal_id', $appealId)
             ->first();
 
-        abort_if(!$doc, 404, 'Document not found.');
+        abort_if(! $doc, 404, 'Document not found.');
 
         return $this->downloadFile(
             $doc->path ?? null,
@@ -236,7 +238,7 @@ class SecureFileController extends Controller
     private function applicantOwnsCase(int $caseId): bool
     {
         $aid = auth('applicant')->id();
-        if (!$aid) {
+        if (! $aid) {
             return false;
         }
 
@@ -246,12 +248,12 @@ class SecureFileController extends Controller
     private function respondentHasViewedCase(int $caseId): bool
     {
         $respondentId = $this->actingRespondentId();
-        if (!$respondentId) {
+        if (! $respondentId) {
             return false;
         }
 
         $access = session('respondent_case_access', []);
-        if (!is_array($access)) {
+        if (! is_array($access)) {
             return false;
         }
 
@@ -266,12 +268,12 @@ class SecureFileController extends Controller
 
     private function actingRespondentId(): ?int
     {
-        if (!session('acting_as_respondent')) {
+        if (! session('acting_as_respondent')) {
             return null;
         }
 
         $applicant = auth('applicant')->user();
-        if (!$applicant) {
+        if (! $applicant) {
             return null;
         }
 
@@ -281,7 +283,7 @@ class SecureFileController extends Controller
     private function staffCan(string $perm): bool
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -297,7 +299,7 @@ class SecureFileController extends Controller
             return true;
         }
 
-        if (\Modules\Court\Application\Support\CourtPermissions::check($perm)) {
+        if (CourtPermissions::check($perm)) {
             return true;
         }
 
@@ -309,9 +311,9 @@ class SecureFileController extends Controller
         abort_if(empty($path), 404, 'File missing.');
 
         $disk = Storage::disk('court_private');
-        if (!$disk->exists($path)) {
+        if (! $disk->exists($path)) {
             $fallback = Storage::disk('court_public');
-            abort_if(!$fallback->exists($path), 404, 'File missing.');
+            abort_if(! $fallback->exists($path), 404, 'File missing.');
             $disk = $fallback;
         }
 
@@ -352,8 +354,8 @@ class SecureFileController extends Controller
         }
 
         $ext = pathinfo($pathBasename, PATHINFO_EXTENSION);
-        if ($ext !== '' && !Str::endsWith(Str::lower($name), '.' . Str::lower($ext))) {
-            $name .= '.' . $ext;
+        if ($ext !== '' && ! Str::endsWith(Str::lower($name), '.'.Str::lower($ext))) {
+            $name .= '.'.$ext;
         }
 
         return $name;

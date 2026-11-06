@@ -9,13 +9,14 @@ use App\Support\Auth\ActsThroughPlatformAccount;
 use Database\Factories\Court\CourtStaffMemberFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
-use Modules\Court\Domain\Models\Concerns\AuditableContract as AuditableContract;
 use Modules\Court\Domain\Models\Concerns\Auditable;
+use Modules\Court\Domain\Models\Concerns\AuditableContract;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 
 /**
  * A platform account that works in the court (ADR 0020): its court roles, teams,
@@ -23,10 +24,10 @@ use Modules\Court\Domain\Models\Concerns\Auditable;
  * in, changes its password and confirms MFA in EUISIS, so none of that is here.
  * Court routes resolve it on the `court` guard (CourtServiceProvider).
  */
-class CourtStaffMember extends Authenticatable implements AuditableContract, ActsThroughPlatformAccount
+class CourtStaffMember extends Authenticatable implements ActsThroughPlatformAccount, AuditableContract
 {
     // API tokens of the court's mobile API (court-ms issued them to staff too).
-    use HasApiTokens, HasFactory, Notifiable, Auditable;
+    use Auditable, HasApiTokens, HasFactory, Notifiable;
 
     public const string ACTIVE_ROLE_SESSION_KEY = 'active_admin_role_id';
 
@@ -71,7 +72,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
         return [
             'email_verified_at' => 'datetime',
             'must_change_password' => 'boolean',
-            'date_of_birth'     => 'date:Y-m-d',
+            'date_of_birth' => 'date:Y-m-d',
             'euisis_linked_at' => 'datetime',
             'euisis_suspended_at' => 'datetime',
         ];
@@ -116,7 +117,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
     public function roles(): BelongsToMany
     {
         // pivot: role_user (role_id, user_id)
-        return $this->belongsToMany(\Modules\Court\Domain\Models\Role::class, 'court_role_user')->withTimestamps();
+        return $this->belongsToMany(Role::class, 'court_role_user')->withTimestamps();
     }
 
     public function permissions(): BelongsToMany
@@ -124,7 +125,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
         // permissions via roles (pivot: permission_role)
         // keys: permission_role (permission_id, role_id)
         return $this->belongsToMany(
-            \Modules\Court\Domain\Models\Permission::class,
+            Permission::class,
             'court_permission_role',
             'role_id',
             'permission_id'
@@ -189,7 +190,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
     {
         try {
             return $account->hasPermissionTo($permission, 'web');
-        } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist) {
+        } catch (PermissionDoesNotExist) {
             return false;
         }
     }
@@ -214,7 +215,7 @@ class CourtStaffMember extends Authenticatable implements AuditableContract, Act
         }
 
         return $this->roles()
-            ->whereHas('permissions', fn($q) => $q->where('name', $perm))
+            ->whereHas('permissions', fn ($q) => $q->where('name', $perm))
             ->exists();
     }
 

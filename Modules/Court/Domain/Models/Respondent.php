@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Domain\Models\RespondentCaseView;
 use Laravel\Sanctum\HasApiTokens;
 
 class Respondent extends Authenticatable
@@ -58,7 +56,7 @@ class Respondent extends Authenticatable
             'respondent_id',
             'case_id'
         )
-        ->withPivot('viewed_at')
-        ->withTimestamps();
+            ->withPivot('viewed_at')
+            ->withTimestamps();
     }
 }

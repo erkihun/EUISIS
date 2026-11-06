@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Middleware;
 
-use Modules\Court\Application\Actions\RecordSystemAuditAction;
 use Closure;
 use Illuminate\Http\Request;
+use Modules\Court\Application\Actions\RecordSystemAuditAction;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 

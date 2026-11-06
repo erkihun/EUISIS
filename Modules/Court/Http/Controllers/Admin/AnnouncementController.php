@@ -2,10 +2,11 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Announcement;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\Announcement;
+use Modules\Court\Http\Controllers\Controller;
 
 class AnnouncementController extends Controller
 {
@@ -91,7 +92,7 @@ class AnnouncementController extends Controller
     /** The profile the signage board shows announcements with (PublicSignageController). */
     private function cleanContent(string $html): string
     {
-        return trim((string) \Modules\Court\Application\Support\Purifier::clean($html, 'default'));
+        return trim((string) Purifier::clean($html, 'default'));
     }
 
     public function destroy(Announcement $announcement)

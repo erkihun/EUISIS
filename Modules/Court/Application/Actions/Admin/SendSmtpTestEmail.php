@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Actions\Admin;
 
-use Modules\Court\Application\Mail\SmtpDiagnosticMail;
 use Illuminate\Contracts\Mail\Factory;
+use Modules\Court\Application\Mail\SmtpDiagnosticMail;
 
 final readonly class SendSmtpTestEmail
 {

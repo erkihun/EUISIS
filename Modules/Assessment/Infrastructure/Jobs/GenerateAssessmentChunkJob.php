@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Infrastructure\Jobs;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
 use App\Models\User;
-use Modules\Assessment\Application\Services\Execution\AssessmentAssignmentService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Modules\Assessment\Application\Services\Execution\AssessmentAssignmentService;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
 
 /**
  * Creates the records and resolvable evaluator assignments for up to 500

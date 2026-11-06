@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Api;
 
-use Modules\Court\Http\Controllers\Api\Concerns\HandlesCaseAuthorization;
-use Modules\Court\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Services\ResponseNotificationService;
 use Modules\Court\Domain\Models\Applicant;
 use Modules\Court\Domain\Models\CourtCase;
 use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Services\ResponseNotificationService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Modules\Court\Http\Controllers\Api\Concerns\HandlesCaseAuthorization;
+use Modules\Court\Http\Controllers\Controller;
 
 class CaseMessageController extends Controller
 {

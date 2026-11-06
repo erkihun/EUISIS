@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Modules\Court\Http\Controllers\Api\AuthController;
 use Modules\Court\Http\Controllers\Api\CaseController;
 use Modules\Court\Http\Controllers\Api\CaseMessageController;
@@ -12,34 +13,33 @@ use Modules\Court\Http\Controllers\Api\Integration\EuisisPeopleController;
 use Modules\Court\Http\Controllers\Api\Integration\EuisisReferralController;
 use Modules\Court\Http\Controllers\Api\LookupController;
 use Modules\Court\Http\Controllers\Api\RespondentResponseController;
-use Illuminate\Support\Facades\Route;
 
 Route::get('/health', HealthController::class);
 
 Route::prefix('v1')
     ->middleware('throttle:court-api-ip-hourly')
     ->group(function () {
-    Route::post('/auth/login', [AuthController::class, 'login'])
-        ->middleware('throttle:5,1');
+        Route::post('/auth/login', [AuthController::class, 'login'])
+            ->middleware('throttle:5,1');
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', [AuthController::class, 'me']);
-        Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::get('/me', [AuthController::class, 'me']);
+            Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-        Route::get('/case-types', [LookupController::class, 'caseTypes']);
+            Route::get('/case-types', [LookupController::class, 'caseTypes']);
 
-        Route::get('/cases', [CaseController::class, 'index']);
-        Route::post('/cases', [CaseController::class, 'store']);
-        Route::get('/cases/{case}', [CaseController::class, 'show'])->whereNumber('case');
+            Route::get('/cases', [CaseController::class, 'index']);
+            Route::post('/cases', [CaseController::class, 'store']);
+            Route::get('/cases/{case}', [CaseController::class, 'show'])->whereNumber('case');
 
-        Route::get('/cases/{case}/messages', [CaseMessageController::class, 'index'])->whereNumber('case');
-        Route::post('/cases/{case}/messages', [CaseMessageController::class, 'store'])->whereNumber('case');
+            Route::get('/cases/{case}/messages', [CaseMessageController::class, 'index'])->whereNumber('case');
+            Route::post('/cases/{case}/messages', [CaseMessageController::class, 'store'])->whereNumber('case');
 
-        Route::get('/responses', [RespondentResponseController::class, 'index']);
-        Route::get('/responses/{response}', [RespondentResponseController::class, 'show'])->whereNumber('response');
-        Route::post('/responses', [RespondentResponseController::class, 'store']);
+            Route::get('/responses', [RespondentResponseController::class, 'index']);
+            Route::get('/responses/{response}', [RespondentResponseController::class, 'show'])->whereNumber('response');
+            Route::post('/responses', [RespondentResponseController::class, 'store']);
+        });
     });
-});
 
 // EUISIS integration (docs/euisis-integration.md): machine tokens from
 // `php artisan euisis:integration-token`, never a person's Sanctum token.

@@ -26,6 +26,7 @@ import {
 } from '@/Components/employees/EmployeeFormLayout';
 
 import { buttonClassName } from '@/Components/ui';
+import SearchableSelect, { type SearchableSelectOption } from '@/Components/ui/SearchableSelect';
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 
 type Option = {
@@ -137,6 +138,16 @@ export default function EmployeesCreate({
     const filteredOrganizationUnits = useMemo(
         () => organizationUnits.filter((unit) => unit.organization_id === form.data.organization_id),
         [organizationUnits, form.data.organization_id],
+    );
+
+    // The search matches the code and the name in both languages, whichever one is displayed.
+    const organizationUnitOptions = useMemo<SearchableSelectOption[]>(
+        () => filteredOrganizationUnits.map((unit) => ({
+            value: unit.id,
+            label: `${unit.code ? `${unit.code} - ` : ''}${localizedName(unit.name_en, unit.name_am, locale)}`,
+            keywords: `${unit.name_en ?? ''} ${unit.name_am ?? ''}`,
+        })),
+        [filteredOrganizationUnits, locale],
     );
 
     const filteredPositions = useMemo(
@@ -391,21 +402,15 @@ export default function EmployeesCreate({
                                                 : undefined
                                     }
                                 >
-                                    <select
+                                    <SearchableSelect
                                         id="organization_unit_id"
-                                        className={inputCls}
                                         value={form.data.organization_unit_id}
-                                        onChange={(e) => changeOrganizationUnit(e.target.value)}
+                                        options={organizationUnitOptions}
+                                        onChange={changeOrganizationUnit}
+                                        placeholder={t('employees.selectOrganizationUnit')}
+                                        searchPlaceholder={t('employees.searchOrganizationUnit')}
                                         disabled={!form.data.organization_id || filteredOrganizationUnits.length === 0}
-                                    >
-                                        <option value="">{t('employees.selectOrganizationUnit')}</option>
-                                        {filteredOrganizationUnits.map((unit) => (
-                                            <option key={unit.id} value={unit.id}>
-                                                {unit.code ? `${unit.code} - ` : ''}
-                                                {localizedName(unit.name_en, unit.name_am, locale)}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    />
                                 </Field>
 
                                 <Field

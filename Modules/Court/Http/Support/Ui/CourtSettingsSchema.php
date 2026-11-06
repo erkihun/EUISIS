@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Support\Ui;
 
+use Illuminate\Http\Request;
 use Modules\Court\Domain\Models\Role;
 use Modules\Court\Domain\Models\SystemSetting;
-use Illuminate\Http\Request;
 
 /**
  * court-ms's system settings in the shape of the EUISIS settings page

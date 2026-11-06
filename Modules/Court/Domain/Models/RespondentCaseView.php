@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class RespondentCaseView extends Model
 {
     protected $table = 'court_respondent_case_views';
+
     protected $guarded = [];
 
     protected $casts = [

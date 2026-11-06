@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Respondent;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {
@@ -25,8 +25,8 @@ class DashboardController extends Controller
         $notifications = $this->unseenNotifications((int) $respondent->id);
 
         $stats = [
-            'cases'        => DB::table('court_respondent_case_views')->where('respondent_id', $respondent->id)->count(),
-            'responses'    => DB::table('court_respondent_responses')->where('respondent_id', $respondent->id)->count(),
+            'cases' => DB::table('court_respondent_case_views')->where('respondent_id', $respondent->id)->count(),
+            'responses' => DB::table('court_respondent_responses')->where('respondent_id', $respondent->id)->count(),
             'response_replies' => DB::table('court_applicant_response_replies as arr')
                 ->join('court_respondent_responses as rr', 'rr.id', '=', 'arr.respondent_response_id')
                 ->join('court_respondent_case_views as rcv', function ($join) use ($respondent) {
@@ -206,29 +206,29 @@ class DashboardController extends Controller
     private function resolveActingRespondent($applicant): Respondent
     {
         $respondent = Respondent::where('email', $applicant->email)->first();
-        if (!$respondent) {
-            $phone = $applicant->phone ?? 'resp_' . substr(md5((string) microtime(true)), 0, 12);
+        if (! $respondent) {
+            $phone = $applicant->phone ?? 'resp_'.substr(md5((string) microtime(true)), 0, 12);
             if (Respondent::where('phone', $phone)->where('email', '!=', $applicant->email)->exists()) {
-                $phone = 'resp_' . substr(md5(uniqid('', true)), 0, 12);
+                $phone = 'resp_'.substr(md5(uniqid('', true)), 0, 12);
             }
 
             $respondent = Respondent::create([
-                'first_name'        => $applicant->first_name ?? '',
-                'middle_name'       => $applicant->middle_name ?? '',
-                'last_name'         => $applicant->last_name ?? '',
-                'gender'            => $applicant->gender ?? null,
-                'position'          => $applicant->position ?? '',
+                'first_name' => $applicant->first_name ?? '',
+                'middle_name' => $applicant->middle_name ?? '',
+                'last_name' => $applicant->last_name ?? '',
+                'gender' => $applicant->gender ?? null,
+                'position' => $applicant->position ?? '',
                 'organization_name' => $applicant->organization_name ?? '',
-                'address'           => $applicant->address ?? '',
-                'national_id'       => $this->applicantNationalId($applicant),
-                'phone'             => $phone,
-                'email'             => $applicant->email,
-                'password'          => $applicant->password,
+                'address' => $applicant->address ?? '',
+                'national_id' => $this->applicantNationalId($applicant),
+                'phone' => $phone,
+                'email' => $applicant->email,
+                'password' => $applicant->password,
             ]);
         } else {
             $dirty = false;
             $maybeNationalId = $this->applicantNationalId($applicant);
-            if (!$respondent->national_id && $maybeNationalId) {
+            if (! $respondent->national_id && $maybeNationalId) {
                 $respondent->national_id = $maybeNationalId;
                 $dirty = true;
             }
@@ -246,6 +246,7 @@ class DashboardController extends Controller
         if ($digits === '') {
             return null;
         }
+
         return substr($digits, 0, 16);
     }
 }

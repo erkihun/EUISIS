@@ -36,9 +36,20 @@ const strict = args.includes('--strict');
 // ---------------------------------------------------------------- load trees
 async function loadFrontend() {
     const esbuild = createRequire(path.join(root, 'package.json'))('esbuild');
-    // The dictionaries are one chunk per language (resources/js/i18n/bundles); the
-    // audit merges them exactly as the registry serves them to useLocale.
-    const source = "import en from './bundles/en';\nimport am from './bundles/am';\nexport const translations = { en, am };\n";
+    // The dictionaries are one chunk per language (resources/js/i18n/bundles) plus the
+    // court module's own chunk (`court.*` and `cm.*`, ADR 0020); the audit merges them
+    // exactly as the registry serves them to useLocale (registry.ts withCourt).
+    const source = [
+        "import en from './bundles/en';",
+        "import am from './bundles/am';",
+        "import courtEn from '@/court/i18n/en';",
+        "import courtAm from '@/court/i18n/am';",
+        'export const translations = {',
+        '    en: { ...en, court: courtEn.court, cm: courtEn.cm },',
+        '    am: { ...am, court: courtAm.court, cm: courtAm.cm },',
+        '};',
+        '',
+    ].join('\n');
     const out = await esbuild.build({
         stdin: { contents: source, resolveDir: path.join(root, 'resources/js/i18n'), loader: 'ts', sourcefile: 'i18n-audit-entry.ts' },
         bundle: true, format: 'esm', platform: 'node', write: false, logLevel: 'silent',
@@ -155,7 +166,13 @@ const ALLOWED_LATIN_VALUE_KEYS = [
     /^settings\.emailInEffect\.connections\.starttls$/, /^settings\.options\.mail_mailer\.(sendmail|ses)$/, // protocol and product names
     /^backup\.archiveMode$/, // the PostgreSQL setting name an operator looks up
     /^employee-portal\.languages\.en$/, // a language switcher names each language in itself
+    /\.(url|icon)$/, // the court's public footer links: anchors and icon class names, not text
+    /^cm\.auth\.national_id_placeholder$/, /^cm\.decision_templates\.form\.placeholders_placeholder$/, // input masks and template variable names
+    /^cm\.settings\.rest_api$/, // a protocol name
 ];
+
+// Hints that name configuration keys on purpose (an operator looks them up by that name).
+const CONFIG_NAME_KEYS = [/^cm\.euisis_staff\.roster\.disabled$/, /^cm\.settings\.bot_token_hint$/];
 
 // Keys whose Amharic value names format tokens without braces (code-rule syntax users type).
 const ALLOWED_CODE_KEYS = [/^code-rules\.custom_tokens_cannot_include_sequence$/];
@@ -166,6 +183,8 @@ const ALLOWED_AM_IN_EN = [
     // Public QR landing: the three submission types are labelled in both languages on purpose, so a
     // visitor who cannot read the selected language still finds the right form (docs/public-feedback.md §1).
     /^serviceFeedback\.type(Feedback|Suggestion|Complaint)$/,
+    // court-ms's JSON dictionary is keyed by its bilingual source strings ("Case Number / የክስ ቁጥር").
+    /^cm\.json\./,
 ];
 
 // Spelling pairs watched for the orthography policy (informational).
@@ -221,7 +240,9 @@ for (const { source, en, am } of sets) {
         if (pe.join(',') !== pa.join(',')) { m.flagged++; add('block', 'placeholder_mismatch', source, key, { en: pe, am: pa }); }
 
         if (!ALLOWED_CODE_KEYS.some((re) => re.test(key))) {
-            for (const token of bareCodes(a)) { m.flagged++; add('block', 'raw_enum_in_text', source, key, token); }
+            if (!CONFIG_NAME_KEYS.some((re) => re.test(key))) {
+                for (const token of bareCodes(a)) { m.flagged++; add('block', 'raw_enum_in_text', source, key, token); }
+            }
         }
 
         // A system permission is የመዳረሻ መብት (prose: መብት); ፈቃድ is leave. A browser's camera or

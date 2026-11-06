@@ -17,7 +17,7 @@ type Props = {
 
 /** 32, 40, 44 and 72 px: message rows, chat header, conversation list, details panel. */
 const SIZES: Record<Size, string> = { sm: 'h-8 w-8 text-[11px]', md: 'h-10 w-10 text-[13px]', lg: 'h-11 w-11 text-sm', xl: 'h-18 w-18 text-[22px]' };
-const CHANNEL_RADIUS: Record<Size, string> = { sm: 'rounded-[9px]', md: 'rounded-[11px]', lg: 'rounded-xl', xl: 'rounded-[18px]' };
+const CHANNEL_RADIUS: Record<Size, string> = { sm: 'rounded-[9px]', md: 'rounded-[11px]', lg: 'rounded-[12px]', xl: 'rounded-[18px]' };
 const DOTS: Record<Size, string> = {
     sm: '-bottom-px -inset-e-px h-2.5 w-2.5 ring-2',
     md: '-bottom-px -inset-e-px h-3 w-3 ring-2',

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\EuisisReferral;
-use Modules\Court\Application\Services\Euisis\EuisisClient;
-use Modules\Court\Application\Services\Euisis\EuisisException;
-use Modules\Court\Application\Services\Euisis\EuisisSync;
-use Modules\Court\Application\Support\CaseScope;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Court\Application\Services\Euisis\EuisisClient;
+use Modules\Court\Application\Services\Euisis\EuisisException;
+use Modules\Court\Application\Services\Euisis\EuisisSync;
+use Modules\Court\Application\Support\CaseScope;
+use Modules\Court\Domain\Models\EuisisReferral;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * Links a case's respondent organization and its applicant (or referred

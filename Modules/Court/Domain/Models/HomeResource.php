@@ -2,8 +2,8 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 
 class HomeResource extends Model
 {
@@ -18,15 +18,15 @@ class HomeResource extends Model
     ];
 
     protected $casts = [
-        'is_active'    => 'boolean',
-        'is_featured'  => 'boolean',
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
         'published_at' => 'datetime',
     ];
 
     public function scopeActive($query)
     {
         return $query->where('is_active', true)
-            ->where(fn($q) => $q->whereNull('published_at')->orWhere('published_at', '<=', now()))
+            ->where(fn ($q) => $q->whereNull('published_at')->orWhere('published_at', '<=', now()))
             ->orderBy('sort_order');
     }
 

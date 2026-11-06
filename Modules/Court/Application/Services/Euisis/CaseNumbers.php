@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Domain\Models\CaseType;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Support\Sql;
+use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Domain\Support\AggregateLock;
 
 /**
  * Case number and public code for a referred case, by the same rules as a
@@ -25,8 +27,8 @@ final class CaseNumbers
 
         $maxSeq = DB::table('court_cases')
             ->where('case_number', 'LIKE', "{$prefix}/%/{$year}")
-            ->tap(fn ($q) => \Modules\Court\Domain\Support\AggregateLock::apply($q, 'court_cases'))
-            ->selectRaw("MAX(".\Modules\Court\Application\Support\Sql::middleSegmentNumber('case_number').") as max_seq")
+            ->tap(fn ($q) => AggregateLock::apply($q, 'court_cases'))
+            ->selectRaw('MAX('.Sql::middleSegmentNumber('case_number').') as max_seq')
             ->value('max_seq');
 
         return $prefix.'/'.str_pad((string) (((int) $maxSeq) + 1), 5, '0', STR_PAD_LEFT).'/'.$year;

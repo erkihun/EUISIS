@@ -37,7 +37,7 @@ return [
         'rejected_letters' => 'ውድቅ የተደረጉ ደብዳቤዎች',
         'rejected_letters_hint' => 'ውድቅ የተደረጉ ደብዳቤዎች',
         'letter_categories' => 'የደብዳቤ ምድቦች',
-        'max_letter_type_count' => 'ከፍተኛ የደብዳቤ አይነት ብዛት',
+        'max_letter_type_count' => 'ከፍተኛ የደብዳቤ ዓይነት ብዛት',
         'letters_count_suffix' => 'ደብዳቤዎች',
         'top_category' => 'ከፍተኛ: :category',
         'empty_top_category' => 'እስካሁን ምድብ የለም',

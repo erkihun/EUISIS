@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Support;
 
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
 
 /**
  * Which cases a staff member may act on, the rule the case list applies: team

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Security;
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Support\ClientHints;
-use Modules\Court\Application\Support\SessionRows;
-use Modules\Court\Application\Support\UserAgent;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Support\ClientHints;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Application\Support\UserAgent;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 /**
  * An admin's live sessions for the profile's Devices tab, in the EUISIS
@@ -89,9 +90,9 @@ final class UserSessionRegistry
      * The staff sessions among the rows: the table is shared with the applicant portal and
      * user_id is only unique per guard, so rows of the applicant and respondent guards are left out.
      *
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
-    private function staffRows(Builder $query): \Illuminate\Support\Collection
+    private function staffRows(Builder $query): Collection
     {
         return $query->get(['id', 'ip_address', 'user_agent', 'last_activity', 'payload'])
             ->reject(fn (object $row): bool => SessionRows::isPortal((string) $row->payload))

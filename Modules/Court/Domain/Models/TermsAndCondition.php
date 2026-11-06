@@ -30,7 +30,7 @@ class TermsAndCondition extends Model
     {
         static::creating(function (TermsAndCondition $term) {
             if (empty($term->slug)) {
-                $term->slug = Str::slug($term->title . '-' . Str::random(4));
+                $term->slug = Str::slug($term->title.'-'.Str::random(4));
             }
         });
     }

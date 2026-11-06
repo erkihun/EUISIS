@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services\Execution;
 
+use Modules\Assessment\Application\Services\AssessmentScoringService;
 use Modules\Assessment\Domain\Enums\ScoringMethod;
 use Modules\Assessment\Domain\Models\AssessmentRecord;
 use Modules\Assessment\Domain\Models\AssessmentResponse;
-use Modules\Assessment\Application\Services\AssessmentScoringService;
 
 /**
  * Turns independent evaluator components into the record result

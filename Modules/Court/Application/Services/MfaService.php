@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services;
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use PragmaRX\Google2FAQRCode\Google2FA;
 
 final readonly class MfaService

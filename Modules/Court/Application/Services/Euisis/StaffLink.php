@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
+use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Modules\Court\Domain\Models\EuisisEmployee;
 use Modules\Court\Domain\Models\EuisisOrganization;
 use Modules\Court\Domain\Models\EuisisOrganizationUnit;
 use Modules\Court\Domain\Models\EuisisPosition;
 use Modules\Court\Domain\Models\EuisisStaffNotice;
 use Modules\Court\Domain\Models\EuisisStaffUnit;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * Court staff accounts linked to their EUISIS employee records

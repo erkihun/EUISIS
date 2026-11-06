@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Modules\Court\Application\Services\Notifications\AdminNotificationFeed;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Court\Application\Services\Notifications\AdminNotificationFeed;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Http\Controllers\Controller;
 
 /** The header bell of the React screens (EUISIS NotificationBell). */
 class NotificationFeedController extends Controller

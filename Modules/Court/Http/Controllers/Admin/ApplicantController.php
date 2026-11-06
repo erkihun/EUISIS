@@ -2,10 +2,10 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantController extends Controller
 {

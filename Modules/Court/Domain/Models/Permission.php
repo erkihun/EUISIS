@@ -1,4 +1,5 @@
 <?php
+
 // app/Models/Permission.php
 
 namespace Modules\Court\Domain\Models;
@@ -38,13 +39,13 @@ class Permission extends Model
         $translations = $this->{"{$attribute}_translations"} ?? [];
         $locale = app()->getLocale();
 
-        if (!empty($translations[$locale])) {
+        if (! empty($translations[$locale])) {
             return $translations[$locale];
         }
 
         $primaryLocale = config('app.locale', 'en');
 
-        if (!empty($translations[$primaryLocale])) {
+        if (! empty($translations[$primaryLocale])) {
             return $translations[$primaryLocale];
         }
 

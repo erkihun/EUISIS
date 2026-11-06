@@ -865,6 +865,7 @@ const lang: Record<string, unknown> = {
         "verify_email_subtitle": "We've sent a verification link to your email address. Please click the link to continue.",
         "verify_email_title": "Verify your email",
         "yes": "Yes",
+        "failed": "These credentials do not match our records.",
         "throttle": "Too many login attempts. Please try again in :seconds seconds.",
         "too_many_attempts": "Too many login attempts. Please try again in :minutes minute(s).",
         "stage_new": "New",
@@ -1475,13 +1476,16 @@ const lang: Record<string, unknown> = {
             "receipt_email_failed": "Could not send the receipt email right now.",
             "receipt_email_sent": "Receipt PDF emailed to :email."
         },
+        "not_available": "Not available",
         "placeholders": {
             "select": "-- Select --",
             "document_title": "Document title",
             "full_name": "Full name",
             "phone": "Phone",
             "email": "Email",
-            "address": "Address"
+            "address": "Address",
+            "summary": "Summary",
+            "not_available": "Not available"
         },
         "please_fix_errors": "Please fix the following:",
         "print": "Print",
@@ -1614,6 +1618,7 @@ const lang: Record<string, unknown> = {
         },
         "system": "system",
         "table": {
+            "delete": "Delete",
             "number": "#",
             "case_number": "Case #",
             "title": "Title",
@@ -1906,17 +1911,17 @@ const lang: Record<string, unknown> = {
             "name": "Name",
             "case": "Case",
             "select_case": "Select a case",
-            "case_file_number": "Case File Number (መዝገብ ቁጥር)",
+            "case_file_number": "Case File Number",
             "case_file_number_placeholder": "Auto-fills after selecting a case",
             "applicant_name": "Applicant name",
             "respondent_name": "Respondent name",
-            "applicant_label": "Name of Applicant/Appellant (አመልካች)",
-            "respondent_label": "Name of Respondent (መልስ ሰጭ)",
+            "applicant_label": "Name of Applicant/Appellant",
+            "respondent_label": "Name of Respondent",
             "decision_date": "Decision date",
             "reviewers": "Reviewers",
             "multi_select_hint": "Use Ctrl/Cmd+click to pick more than one reviewer.",
             "decision_content": "Decision content",
-            "final_decision": "Final Decision / ውሳኔ",
+            "final_decision": "Final Decision",
             "content_required": "Please write a decision content before saving.",
             "description": "Description",
             "status": "Status",
@@ -3453,7 +3458,7 @@ const lang: Record<string, unknown> = {
             "appeal_pdf": "Appeal record"
         },
         "descriptions": {
-            "index_intro": "",
+            "index_intro": "Open a case to view or download its consolidated record (PDF).",
             "applicant_pdf_loading": "Loading applicant PDF...",
             "applicant_pdf_missing": "Applicant PDF is unavailable."
         },
@@ -4123,7 +4128,7 @@ const lang: Record<string, unknown> = {
         "empty": "No teams defined yet.",
         "meta": {
             "unassigned": "Unassigned",
-            "unknown_email": ""
+            "unknown_email": "Unknown email"
         },
         "errors": {
             "parent_cycle": "A team cannot report to itself or to one of its sub-teams.",

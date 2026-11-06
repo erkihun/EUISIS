@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\Court\Domain\Models\CaseInspectionFinding;
 use Modules\Court\Domain\Models\CaseInspectionRequest;
 use Modules\Court\Domain\Models\CourtCase;
 use Modules\Court\Domain\Models\CourtStaffMember as User;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
+use Modules\Court\Http\Controllers\Controller;
 
 class CaseInspectionRequestController extends Controller
 {
@@ -29,7 +29,7 @@ class CaseInspectionRequestController extends Controller
         $canAssign = $user?->hasPermission('assign.inspections') ?? false;
         $canManage = $user?->hasPermission('inspection-requests.manage') ?? false;
 
-        if (!$canAssign && !$canManage) {
+        if (! $canAssign && ! $canManage) {
             $query->where(function ($q) use ($user) {
                 $q->where('assigned_inspector_user_id', $user?->id)
                     ->orWhere('requested_by_user_id', $user?->id);
@@ -243,7 +243,7 @@ class CaseInspectionRequestController extends Controller
     {
         return User::query()
             ->where('status', 'active')
-            ->whereHas('roles.permissions', fn($q) => $q->where('name', 'inspection-findings.manage'))
+            ->whereHas('roles.permissions', fn ($q) => $q->where('name', 'inspection-findings.manage'))
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (User $user): array => ['id' => (int) $user->id, 'name' => (string) $user->name])

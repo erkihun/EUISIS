@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services\Oversight;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\Assessment\Contracts\Data\AssessmentCoverageValues;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
 
 /**
  * The one place that defines the oversight numbers (docs/assessment-coverage.md).

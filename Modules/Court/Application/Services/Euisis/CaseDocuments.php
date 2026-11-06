@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Court\Application\Services\SecureUploadService;
 
 /** A PDF that came from EUISIS, kept as a case's evidence document (as an applicant's evidence PDF). */
 final class CaseDocuments

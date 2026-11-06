@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Notifications;
 
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
 
 /**
  * An admin's notifications as one feed, for the header bell of the React
@@ -24,9 +24,7 @@ final class AdminNotificationFeed
 {
     public const TYPES = ['message', 'case', 'hearing', 'respondent_view', 'staff_account', 'lawyer_application'];
 
-    public function __construct(private readonly User $user)
-    {
-    }
+    public function __construct(private readonly User $user) {}
 
     /** @return array{unread_count: int, items: list<array<string, mixed>>, page: int, last_page: int} */
     public function feed(int $page, int $perPage = 10): array

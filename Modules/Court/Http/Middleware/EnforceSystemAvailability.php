@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Middleware;
 
-use Modules\Court\Domain\Models\SystemSetting;
 use Closure;
 use Illuminate\Http\Request;
+use Modules\Court\Domain\Models\SystemSetting;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnforceSystemAvailability

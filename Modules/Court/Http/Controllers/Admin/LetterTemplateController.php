@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\LetterCategory;
-use Modules\Court\Domain\Models\LetterTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\LetterCategory;
+use Modules\Court\Domain\Models\LetterTemplate;
+use Modules\Court\Http\Controllers\Controller;
 
 class LetterTemplateController extends Controller
 {
@@ -53,7 +53,7 @@ class LetterTemplateController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateTemplate($request);
-        $data = $this->handleUploads($request, new LetterTemplate(), $data);
+        $data = $this->handleUploads($request, new LetterTemplate, $data);
 
         LetterTemplate::create($data);
 
@@ -126,12 +126,12 @@ class LetterTemplateController extends Controller
     private function validateTemplate(Request $request): array
     {
         $data = $request->validate([
-            'title'               => ['required', 'string', 'max:255'],
-            'category'            => ['nullable', 'string', 'max:120'],
-            'placeholders'        => ['nullable', 'string', 'max:2000'],
-            'body'                => ['required', 'string'],
-            'header_image'        => ['nullable', 'image', 'max:3072'],
-            'footer_image'        => ['nullable', 'image', 'max:3072'],
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['nullable', 'string', 'max:120'],
+            'placeholders' => ['nullable', 'string', 'max:2000'],
+            'body' => ['required', 'string'],
+            'header_image' => ['nullable', 'image', 'max:3072'],
+            'footer_image' => ['nullable', 'image', 'max:3072'],
             'remove_header_image' => ['nullable', 'boolean'],
             'remove_footer_image' => ['nullable', 'boolean'],
         ]);
@@ -141,7 +141,7 @@ class LetterTemplateController extends Controller
 
         // Sanitize the user-supplied HTML body before storing, with the profile a
         // letter written from it is saved with ({{ placeholder }} tokens are text).
-        $data['body'] = \Modules\Court\Application\Support\Purifier::clean((string) $data['body'], 'default');
+        $data['body'] = Purifier::clean((string) $data['body'], 'default');
 
         return $data;
     }

@@ -6,12 +6,12 @@ namespace App\Services\SituationRoom\Analytics;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
-use Modules\Assessment\Contracts\Data\AssessmentCoverageValues;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationMemo;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Modules\Assessment\Contracts\Data\AssessmentCoverageValues;
 
 /**
  * The workforce base queries, shared by the Workforce, Structure, Overview,

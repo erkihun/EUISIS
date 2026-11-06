@@ -71,7 +71,7 @@ export default {
             searchPlaceholder: 'ተግባር፣ የጥያቄ መለያ፣ አይፒ…',
             source: 'ምንጭ',
             outcome: 'ውጤት',
-            actorType: 'የፈጻሚ አይነት',
+            actorType: 'የፈጻሚ ዓይነት',
             method: 'ዘዴ',
             dateFrom: 'ከቀን',
             dateTo: 'እስከ ቀን',
@@ -154,7 +154,7 @@ export default {
             },
             channels: {
                 mail: 'ኢሜይል',
-                sms: 'ኤስኤምኤስ',
+                sms: 'SMS',
                 telegram: 'ቴሌግራም',
                 in_app: 'በሲስተሙ ውስጥ',
             },

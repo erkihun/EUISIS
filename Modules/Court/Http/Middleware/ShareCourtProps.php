@@ -7,6 +7,7 @@ namespace Modules\Court\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\Court\Application\Services\CaseParties;
 use Modules\Court\Application\Support\EuisisParties;
 use Modules\Court\Http\Support\Ui\PortalNavigation;
 use Symfony\Component\HttpFoundation\Response;
@@ -69,7 +70,7 @@ final class ShareCourtProps
                 'profile_photo_url' => null,
                 'initials' => mb_strtoupper(implode('', array_map(fn (string $part): string => mb_substr($part, 0, 1), array_slice(preg_split('/\s+/u', trim((string) $user->full_name)) ?: [], 0, 2)))),
                 'is_lawyer' => (bool) $user->is_lawyer,
-                'can_file_for_client' => \Modules\Court\Application\Services\CaseParties::isVerifiedLawyer($user),
+                'can_file_for_client' => CaseParties::isVerifiedLawyer($user),
             ] : null,
             'roles' => [],
             'activeRoleId' => null,

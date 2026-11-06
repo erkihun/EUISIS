@@ -66,7 +66,7 @@ return [
 
     'meta' => [
         'unassigned' => 'ያልተመደበ',
-        'unknown_email' => '',
+        'unknown_email' => 'ያልታወቀ ኢሜይል',
     ],
 
     'errors' => [

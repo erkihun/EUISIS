@@ -30,7 +30,7 @@ return [
         'middle_name' => 'የአባት ስም',
         'last_name' => 'የአያት ስም',
         'gender' => 'ፆታ',
-        'position' => 'የስራ ድርሻ',
+        'position' => 'የሥራ ድርሻ',
         'organization_name' => 'የተቋም ስም',
         'phone' => 'ስልክ ቁጥር',
         'email' => 'ኢሜይል',

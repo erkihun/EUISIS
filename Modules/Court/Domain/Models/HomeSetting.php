@@ -9,7 +9,9 @@ class HomeSetting extends Model
     protected $table = 'court_home_settings';
 
     protected $primaryKey = 'key';
+
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = ['key', 'value'];
@@ -17,6 +19,7 @@ class HomeSetting extends Model
     public static function get(string $key, mixed $default = null): mixed
     {
         $row = static::find($key);
+
         return $row ? $row->value : $default;
     }
 
@@ -28,6 +31,7 @@ class HomeSetting extends Model
     public static function getJson(string $key, array $default = []): array
     {
         $raw = static::get($key);
+
         return $raw ? (json_decode($raw, true) ?? $default) : $default;
     }
 

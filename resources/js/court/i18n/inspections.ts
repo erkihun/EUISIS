@@ -38,7 +38,7 @@ const inspectionPages = {
         back: 'ተመለስ',
         filter: 'አጣራ',
         reset: 'አጽዳ',
-        forbidden: 'የችሎት ውሎ ማስታወሻዎችን ለማየት ፈቃድ የለዎትም።',
+        forbidden: 'የችሎት ውሎ ማስታወሻዎችን ለማየት መብት የለዎትም።',
         requests_and_findings: 'ጥያቄዎች እና ግኝቶች',
         request_details: 'የጥያቄ ዝርዝር',
         finding_details: 'የግኝት ዝርዝር',

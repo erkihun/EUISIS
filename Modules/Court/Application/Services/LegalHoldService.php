@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services;
 
-use Modules\Court\Domain\Models\FileSecurityRecord;
-use Modules\Court\Domain\Models\LegalHold;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Domain\Models\FileSecurityRecord;
+use Modules\Court\Domain\Models\LegalHold;
 
 final readonly class LegalHoldService
 {

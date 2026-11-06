@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Domain\Models\EuisisCaseUpdate;
-use Modules\Court\Domain\Models\EuisisReferral;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Court\Domain\Models\EuisisCaseUpdate;
+use Modules\Court\Domain\Models\EuisisReferral;
 
 /**
  * Turns changes of referred cases into rows of euisis_case_updates, the list

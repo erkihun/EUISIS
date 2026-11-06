@@ -2,11 +2,12 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\AboutPage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\AboutPage;
+use Modules\Court\Http\Controllers\Controller;
 
 class AboutController extends Controller
 {
@@ -82,7 +83,7 @@ class AboutController extends Controller
     {
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
-            'slug' => ['nullable', 'string', 'max:200', 'alpha_dash', 'unique:court_about_pages,slug,' . $about->id],
+            'slug' => ['nullable', 'string', 'max:200', 'alpha_dash', 'unique:court_about_pages,slug,'.$about->id],
             'body' => ['required', 'string'],
             'is_published' => ['sometimes', 'boolean'],
         ]);
@@ -115,7 +116,7 @@ class AboutController extends Controller
      */
     private function cleanBody(string $html): string
     {
-        return trim((string) \Modules\Court\Application\Support\Purifier::clean($html, 'cases'));
+        return trim((string) Purifier::clean($html, 'cases'));
     }
 
     private function uniqueSlug(string $slug, ?int $ignoreId = null): string
@@ -126,11 +127,11 @@ class AboutController extends Controller
 
         while (
             AboutPage::query()
-                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
                 ->where('slug', $candidate)
                 ->exists()
         ) {
-            $candidate = $base . '-' . $i;
+            $candidate = $base.'-'.$i;
             $i++;
         }
 

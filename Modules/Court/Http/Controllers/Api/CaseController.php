@@ -2,20 +2,23 @@
 
 namespace Modules\Court\Http\Controllers\Api;
 
-use Modules\Court\Http\Controllers\Api\Concerns\HandlesCaseAuthorization;
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Http\Resources\CourtCaseResource;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CaseType;
-use Modules\Court\Domain\Models\CourtCase;
-use Modules\Court\Application\Services\ResponseNotificationService;
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\ResponseNotificationService;
+use Modules\Court\Application\Services\SecureUploadService;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Application\Support\Sql;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CaseType;
+use Modules\Court\Domain\Models\CourtCase;
+use Modules\Court\Domain\Support\AggregateLock;
+use Modules\Court\Http\Controllers\Api\Concerns\HandlesCaseAuthorization;
+use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Resources\CourtCaseResource;
 
 class CaseController extends Controller
 {
@@ -36,18 +39,18 @@ class CaseController extends Controller
         $search = trim((string) $request->input('search', ''));
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('case_number', 'like', '%' . $search . '%')
-                    ->orWhere('title', 'like', '%' . $search . '%');
+                $q->where('case_number', 'like', '%'.$search.'%')
+                    ->orWhere('title', 'like', '%'.$search.'%');
             });
         }
 
         $statusFilter = $request->input('status');
-        if (!is_null($statusFilter)) {
+        if (! is_null($statusFilter)) {
             $statuses = is_array($statusFilter)
                 ? $statusFilter
                 : array_filter(array_map('trim', explode(',', (string) $statusFilter)));
 
-            if (!empty($statuses)) {
+            if (! empty($statuses)) {
                 $query->whereIn('status', $statuses);
             }
         }
@@ -119,7 +122,7 @@ class CaseController extends Controller
 
             $this->storeStatusLog($case->id, 'pending');
             // The applicant is the case's lead party (Modules\Court\Application\Services\CaseParties).
-            app(\Modules\Court\Application\Services\CaseParties::class)->ensureLead((int) $case->id);
+            app(CaseParties::class)->ensureLead((int) $case->id);
             $this->storeEvidence($case->id, $request, (int) $actor->id);
             $this->storeWitnesses($case->id, $request);
 
@@ -174,8 +177,8 @@ class CaseController extends Controller
 
         $maxSeq = DB::table('court_cases')
             ->where('case_number', 'LIKE', "{$prefix}/%/{$year}")
-            ->tap(fn ($q) => \Modules\Court\Domain\Support\AggregateLock::apply($q, 'court_cases'))
-            ->selectRaw("MAX(".\Modules\Court\Application\Support\Sql::middleSegmentNumber('case_number').") as max_seq")
+            ->tap(fn ($q) => AggregateLock::apply($q, 'court_cases'))
+            ->selectRaw('MAX('.Sql::middleSegmentNumber('case_number').') as max_seq')
             ->value('max_seq');
 
         $nextNumber = ((int) $maxSeq) + 1;
@@ -208,14 +211,14 @@ class CaseController extends Controller
 
     private function storeEvidence(int $caseId, Request $request, int $applicantId): void
     {
-        if (!$request->hasFile('evidence_files')) {
+        if (! $request->hasFile('evidence_files')) {
             return;
         }
 
         $titles = $request->input('evidence_titles', []);
 
         foreach ($request->file('evidence_files') as $i => $file) {
-            if (!$file instanceof UploadedFile) {
+            if (! $file instanceof UploadedFile) {
                 continue;
             }
 
@@ -239,7 +242,7 @@ class CaseController extends Controller
             }
 
             if (Schema::hasColumn('court_case_evidences', 'title')) {
-                $insert['title'] = $titles[$i] ?? ('Document ' . ($i + 1));
+                $insert['title'] = $titles[$i] ?? ('Document '.($i + 1));
             }
             if (Schema::hasColumn('court_case_evidences', 'description')) {
                 $insert['description'] = null;
@@ -303,7 +306,7 @@ class CaseController extends Controller
             $s = htmlspecialchars_decode($s, ENT_QUOTES);
         }
 
-        return \Modules\Court\Application\Support\Purifier::clean($s, 'cases');
+        return Purifier::clean($s, 'cases');
     }
 
     private function wordCount(string $html): int

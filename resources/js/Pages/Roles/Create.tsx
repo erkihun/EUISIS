@@ -34,6 +34,7 @@ export default function CreateRole({
 
     return (
         <AuthenticatedLayout
+            contentWidth="form"
             header={<PageHeader title={t('roles.createTitle')} description={t('roles.createDescription')} />}
         >
             <Head title={t('roles.createTitle')} />

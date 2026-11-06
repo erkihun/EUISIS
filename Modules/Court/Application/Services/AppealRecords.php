@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services;
 
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Decision;
 
 /**
  * Appeals to the appellate court (EUISIS ADR 0013 #14). The appellate court is

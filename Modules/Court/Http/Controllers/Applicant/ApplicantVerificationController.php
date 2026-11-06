@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Notifications\ApplicantEmailOtp;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Modules\Court\Application\Notifications\ApplicantEmailOtp;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantVerificationController extends Controller
 {

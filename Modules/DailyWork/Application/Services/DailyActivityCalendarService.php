@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Application\Services;
 
 use App\Contracts\EmployeeLeaveProvider;
-use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Enums\EmployeeStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use App\Services\Calendar\WorkCalendarService;
 use App\Services\Employees\EmployeeWorkContextResolver;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * Calculates the state of every day for one or many employees.

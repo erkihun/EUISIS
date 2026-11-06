@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Assessment\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Employee;
 
 class AssessmentCycleEligibility extends Model
 {

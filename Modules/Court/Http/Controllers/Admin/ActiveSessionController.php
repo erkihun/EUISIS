@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Application\Services\Security\UserSessionRegistry;
-use Modules\Court\Application\Support\SessionRows;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Court\Application\Services\Security\UserSessionRegistry;
+use Modules\Court\Application\Support\SessionRows;
+use Modules\Court\Http\Controllers\Controller;
 
 final class ActiveSessionController extends Controller
 {

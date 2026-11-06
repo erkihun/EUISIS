@@ -2,11 +2,11 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Casts\EncryptedOrPlain;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Modules\Court\Domain\Casts\EncryptedOrPlain;
 use Modules\Court\Domain\Models\Concerns\Auditable;
-use Modules\Court\Domain\Models\Concerns\AuditableContract as AuditableContract;
+use Modules\Court\Domain\Models\Concerns\AuditableContract;
 
 class SystemSetting extends Model implements AuditableContract
 {

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services\Oversight;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
 
 /**
  * Data-quality rules for a cycle (docs/assessment-data-quality.md).

@@ -2,12 +2,12 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\DecisionTemplate;
-use Modules\Court\Application\Support\SafeHtml;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\SafeHtml;
+use Modules\Court\Domain\Models\DecisionTemplate;
+use Modules\Court\Http\Controllers\Controller;
 
 class DecisionTemplateController extends Controller
 {
@@ -63,7 +63,7 @@ class DecisionTemplateController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateTemplate($request);
-        $data = $this->handleUploads($request, new DecisionTemplate(), $data);
+        $data = $this->handleUploads($request, new DecisionTemplate, $data);
 
         $template = DecisionTemplate::create($data);
         $this->syncDefault($template);
@@ -127,13 +127,13 @@ class DecisionTemplateController extends Controller
     private function validateTemplate(Request $request): array
     {
         $data = $request->validate([
-            'title'               => ['required', 'string', 'max:255'],
-            'category'            => ['nullable', 'string', 'max:120'],
-            'is_default'          => ['nullable', 'boolean'],
-            'placeholders'        => ['nullable', 'string', 'max:2000'],
-            'body'                => ['required', 'string'],
-            'header_image'        => ['nullable', 'image', 'max:3072'],
-            'footer_image'        => ['nullable', 'image', 'max:3072'],
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['nullable', 'string', 'max:120'],
+            'is_default' => ['nullable', 'boolean'],
+            'placeholders' => ['nullable', 'string', 'max:2000'],
+            'body' => ['required', 'string'],
+            'header_image' => ['nullable', 'image', 'max:3072'],
+            'footer_image' => ['nullable', 'image', 'max:3072'],
             'remove_header_image' => ['nullable', 'boolean'],
             'remove_footer_image' => ['nullable', 'boolean'],
         ]);

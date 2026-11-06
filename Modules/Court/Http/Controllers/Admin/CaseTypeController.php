@@ -2,13 +2,13 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\CourtPermissions;
+use Modules\Court\Http\Controllers\Controller;
 
 class CaseTypeController extends Controller
 {
@@ -23,7 +23,7 @@ class CaseTypeController extends Controller
         $hasPrefix = Schema::hasColumn('court_case_types', 'prefix');
 
         $query = DB::table('court_case_types as ct')
-            ->when($q !== '', fn($w) => $w->where('ct.name', 'like', "%{$q}%"))
+            ->when($q !== '', fn ($w) => $w->where('ct.name', 'like', "%{$q}%"))
             ->leftJoin('court_cases as c', 'c.case_type_id', '=', 'ct.id')
             ->groupBy('ct.id', 'ct.name')
             ->select('ct.id', 'ct.name', DB::raw('COUNT(c.id) as cases_count'))
@@ -79,8 +79,12 @@ class CaseTypeController extends Controller
             $row['prefix'] = $data['prefix'] ?? null;
         }
 
-        if (Schema::hasColumn('court_case_types', 'created_at')) $row['created_at'] = now();
-        if (Schema::hasColumn('court_case_types', 'updated_at')) $row['updated_at'] = now();
+        if (Schema::hasColumn('court_case_types', 'created_at')) {
+            $row['created_at'] = now();
+        }
+        if (Schema::hasColumn('court_case_types', 'updated_at')) {
+            $row['updated_at'] = now();
+        }
 
         DB::table('court_case_types')->insert($row);
 
@@ -98,7 +102,7 @@ class CaseTypeController extends Controller
         $this->authorizeTypes();
 
         $type = DB::table('court_case_types')->where('id', $id)->first();
-        abort_if(!$type, 404);
+        abort_if(! $type, 404);
         $hasPrefix = Schema::hasColumn('court_case_types', 'prefix');
 
         return Inertia::render('Court/CaseTypes/Form', [
@@ -115,7 +119,7 @@ class CaseTypeController extends Controller
         $this->authorizeTypes();
 
         $type = DB::table('court_case_types')->where('id', $id)->first();
-        abort_if(!$type, 404);
+        abort_if(! $type, 404);
 
         $hasPrefix = Schema::hasColumn('court_case_types', 'prefix');
         $data = $request->validate(array_filter([
@@ -135,7 +139,9 @@ class CaseTypeController extends Controller
         if ($hasPrefix) {
             $row['prefix'] = $data['prefix'] ?? null;
         }
-        if (Schema::hasColumn('court_case_types', 'updated_at')) $row['updated_at'] = now();
+        if (Schema::hasColumn('court_case_types', 'updated_at')) {
+            $row['updated_at'] = now();
+        }
 
         DB::table('court_case_types')->where('id', $id)->update($row);
 
@@ -153,7 +159,7 @@ class CaseTypeController extends Controller
         $this->authorizeTypes();
 
         $type = DB::table('court_case_types')->where('id', $id)->first();
-        abort_if(!$type, 404);
+        abort_if(! $type, 404);
 
         $inUse = DB::table('court_cases')->where('case_type_id', $id)->count();
         if ($inUse > 0) {
@@ -177,7 +183,7 @@ class CaseTypeController extends Controller
      */
     private function authorizeTypes(): void
     {
-        if (!\Modules\Court\Application\Support\CourtPermissions::check('cases.types')) {
+        if (! CourtPermissions::check('cases.types')) {
             abort(403, 'You do not have permission: cases.types');
         }
     }

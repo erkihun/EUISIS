@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Domain\Models;
 
-use Modules\Assessment\Domain\Enums\EvaluatorType;
-use Modules\Assessment\Domain\Enums\SelectionMethod;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Assessment\Domain\Enums\EvaluatorType;
+use Modules\Assessment\Domain\Enums\SelectionMethod;
 
 /**
  * Who evaluates under a form version, how many, and with what weight.

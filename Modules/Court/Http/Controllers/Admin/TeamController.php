@@ -2,14 +2,14 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Team;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Team;
+use Modules\Court\Http\Controllers\Controller;
 
 class TeamController extends Controller
 {
@@ -107,7 +107,7 @@ class TeamController extends Controller
 
         $team = Team::create($data);
 
-        if (!empty($data['team_leader_id'])) {
+        if (! empty($data['team_leader_id'])) {
             $this->ensureSingleTeamForUser($data['team_leader_id'], $team->id);
             $team->users()->syncWithoutDetaching([$data['team_leader_id']]);
         }
@@ -135,7 +135,7 @@ class TeamController extends Controller
 
         $team->update($data);
 
-        if (!empty($data['team_leader_id'])) {
+        if (! empty($data['team_leader_id'])) {
             $this->ensureSingleTeamForUser($data['team_leader_id'], $team->id);
             $team->users()->syncWithoutDetaching([$data['team_leader_id']]);
         }
@@ -170,13 +170,13 @@ class TeamController extends Controller
             ->all();
 
         $leaderAdded = false;
-        if ($team->team_leader_id && !in_array($team->team_leader_id, $userIds, true)) {
+        if ($team->team_leader_id && ! in_array($team->team_leader_id, $userIds, true)) {
             $userIds[] = $team->team_leader_id;
             $leaderAdded = true;
         }
 
         DB::transaction(function () use ($team, $userIds) {
-            if (!empty($userIds)) {
+            if (! empty($userIds)) {
                 DB::table('court_team_user')
                     ->whereIn('user_id', $userIds)
                     ->where('team_id', '!=', $team->id)
@@ -235,7 +235,7 @@ class TeamController extends Controller
     private function availableUsers(?Team $team = null)
     {
         $assigned = DB::table('court_team_user')
-            ->when($team, fn($q) => $q->where('team_id', '!=', $team->id))
+            ->when($team, fn ($q) => $q->where('team_id', '!=', $team->id))
             ->pluck('user_id');
 
         return User::whereNotIn('id', $assigned)

@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Grants one user review authority over the daily activity of an

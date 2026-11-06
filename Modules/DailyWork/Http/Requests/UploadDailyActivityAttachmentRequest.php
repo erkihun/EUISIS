@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Http\Requests;
 
-use Modules\DailyWork\Application\Services\DailyActivitySettings;
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\DailyWork\Application\Services\DailyActivitySettings;
 
 /**
  * Evidence upload. Documents, spreadsheets and images only: the `mimes` rule

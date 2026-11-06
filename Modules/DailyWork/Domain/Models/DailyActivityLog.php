@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Modules\DailyWork\Domain\Models;
 
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
 
 /**
  * One employee's daily activity header for one work date.

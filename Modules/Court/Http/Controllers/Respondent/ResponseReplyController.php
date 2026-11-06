@@ -2,13 +2,13 @@
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Respondent;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
 
 class ResponseReplyController extends Controller
 {
@@ -90,7 +90,7 @@ class ResponseReplyController extends Controller
             ->where('arr.review_status', 'accepted')
             ->first();
 
-        abort_if(!$reply, 404);
+        abort_if(! $reply, 404);
 
         // One accepted reply (React, Court/Respondent/ResponseReplies/Show); its file stays behind the download route.
         return Inertia::render('Court/Respondent/ResponseReplies/Show', [
@@ -110,24 +110,24 @@ class ResponseReplyController extends Controller
         abort_unless($applicant, 403);
 
         $respondent = Respondent::where('email', $applicant->email)->first();
-        if (!$respondent) {
-            $phone = $applicant->phone ?? 'resp_' . substr(md5((string) microtime(true)), 0, 12);
+        if (! $respondent) {
+            $phone = $applicant->phone ?? 'resp_'.substr(md5((string) microtime(true)), 0, 12);
             if (Respondent::where('phone', $phone)->where('email', '!=', $applicant->email)->exists()) {
-                $phone = 'resp_' . substr(md5(uniqid('', true)), 0, 12);
+                $phone = 'resp_'.substr(md5(uniqid('', true)), 0, 12);
             }
 
             $respondent = Respondent::create([
-                'first_name'        => $applicant->first_name ?? '',
-                'middle_name'       => $applicant->middle_name ?? '',
-                'last_name'         => $applicant->last_name ?? '',
-                'gender'            => $applicant->gender ?? null,
-                'position'          => $applicant->position ?? '',
+                'first_name' => $applicant->first_name ?? '',
+                'middle_name' => $applicant->middle_name ?? '',
+                'last_name' => $applicant->last_name ?? '',
+                'gender' => $applicant->gender ?? null,
+                'position' => $applicant->position ?? '',
                 'organization_name' => $applicant->organization_name ?? '',
-                'address'           => $applicant->address ?? '',
-                'national_id'       => $this->applicantNationalId($applicant),
-                'phone'             => $phone,
-                'email'             => $applicant->email,
-                'password'          => $applicant->password,
+                'address' => $applicant->address ?? '',
+                'national_id' => $this->applicantNationalId($applicant),
+                'phone' => $phone,
+                'email' => $applicant->email,
+                'password' => $applicant->password,
             ]);
         }
 

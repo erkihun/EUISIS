@@ -2,11 +2,6 @@
 
 namespace Modules\Court\Http\Controllers;
 
-use Modules\Court\Domain\Models\Announcement;
-use Modules\Court\Domain\Models\CaseApplicant;
-use Modules\Court\Application\Support\EthiopianDate;
-use Modules\Court\Application\Support\EuisisParties;
-use Modules\Court\Http\Support\Ui\PublicSiteChrome;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -17,7 +12,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\EthiopianDate;
+use Modules\Court\Application\Support\EuisisParties;
 use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\Announcement;
+use Modules\Court\Domain\Models\CaseApplicant;
+use Modules\Court\Http\Support\Ui\PublicSiteChrome;
 use Throwable;
 
 class PublicSignageController extends Controller
@@ -49,10 +49,11 @@ class PublicSignageController extends Controller
      */
     public function show()
     {
-        $tz = config('app.timezone', 'UTC');
+        // The court sits in Addis Ababa and its hearing times are stored as that wall clock, so
+        // "today" is bounded there (config court.timezone) whatever the application's time zone:
+        // bounded in UTC, a window lost everything after 21:00 in Addis Ababa.
+        $tz = (string) config('court.timezone', config('app.timezone', 'UTC'));
         $now = Carbon::now($tz);
-        // Timestamps are stored in the app's time zone, so days are bounded there too: converted
-        // to UTC, a window lost everything after 21:00 in Addis Ababa.
         $today = $now->copy()->startOfDay();
 
         $nextDay = DB::table('court_case_hearings')
@@ -309,7 +310,7 @@ class PublicSignageController extends Controller
     /** A notice's HTML as plain text: cleaned, tags dropped with a space each, whitespace folded, shortened. */
     private function plainText(string $html, int $limit): string
     {
-        $clean = (string) \Modules\Court\Application\Support\Purifier::clean($html, 'default');
+        $clean = (string) Purifier::clean($html, 'default');
         $text = html_entity_decode(strip_tags(str_replace('<', ' <', $clean)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         return Str::limit(trim((string) preg_replace('/\s+/u', ' ', $text)), $limit);

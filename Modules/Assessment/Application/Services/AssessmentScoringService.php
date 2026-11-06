@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Application\Services;
 
+use InvalidArgumentException;
 use Modules\Assessment\Domain\Enums\ScoringMethod;
 use Modules\Assessment\Domain\Enums\TargetType;
 use Modules\Assessment\Domain\Models\AssessmentCriterion;
 use Modules\Assessment\Domain\Models\AssessmentFormSection;
 use Modules\Assessment\Domain\Models\AssessmentFormVersion;
-use InvalidArgumentException;
 
 /**
  * Scoring for assessment form versions (docs/assessment-scoring.md).

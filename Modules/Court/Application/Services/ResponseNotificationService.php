@@ -2,19 +2,19 @@
 
 namespace Modules\Court\Application\Services;
 
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\ApplicantResponseReply;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Domain\Models\RespondentResponse;
-use Modules\Court\Domain\Models\SystemSetting;
-use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Modules\Court\Application\Notifications\ApplicantResponseReplyReviewed;
 use Modules\Court\Application\Notifications\ApplicantResponseReplySubmitted;
 use Modules\Court\Application\Notifications\RespondentResponseReviewed;
 use Modules\Court\Application\Notifications\RespondentResponseSubmitted;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\ApplicantResponseReply;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Domain\Models\RespondentResponse;
+use Modules\Court\Domain\Models\SystemSetting;
 
 class ResponseNotificationService
 {

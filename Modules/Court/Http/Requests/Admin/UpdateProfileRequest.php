@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Court\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -67,14 +68,9 @@ class UpdateProfileRequest extends FormRequest
     }
 
     /** @return array<string, string> */
-    protected function passedValidation(): void
-    {
-    }
+    protected function passedValidation(): void {}
 
-    /**
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
-     */
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator): void
+    protected function failedValidation(Validator $validator): void
     {
         $messages = $validator->errors();
         if ($messages->has('phone') && ! $messages->has('phone_number')) {

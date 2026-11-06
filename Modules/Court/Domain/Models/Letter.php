@@ -2,19 +2,18 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Court\Domain\Models\Concerns\AuditableContract as AuditableContract;
 use Modules\Court\Domain\Models\Concerns\Auditable;
+use Modules\Court\Domain\Models\Concerns\AuditableContract;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 class Letter extends Model implements AuditableContract
 {
     protected $table = 'court_letters';
 
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'letter_template_id',
@@ -35,7 +34,7 @@ class Letter extends Model implements AuditableContract
     ];
 
     protected $casts = [
-        'send_to_applicant'  => 'boolean',
+        'send_to_applicant' => 'boolean',
         'send_to_respondent' => 'boolean',
     ];
 

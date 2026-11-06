@@ -523,7 +523,7 @@ const navGroups: NavGroup[] = [
             // Reporting hierarchy (ADR 0025): who reports to whom, acting appointments and delegations; each page re-checks scope.
             { routeName: 'reporting-lines.overview', labelKey: 'nav.reportingHierarchy', icon: BranchingUpIcon, permission: 'reporting-lines.view_any' },
             { routeName: 'reporting-lines.acting.index', labelKey: 'nav.actingAppointments', icon: UserIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
-            { routeName: 'reporting-lines.delegations.index', labelKey: 'nav.supervisorDelegations', icon: FileSendIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
+            { routeName: 'reporting-lines.delegations.index', labelKey: 'nav.supervisorDelegations', icon: UserHandsIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
         ],
     },
     {

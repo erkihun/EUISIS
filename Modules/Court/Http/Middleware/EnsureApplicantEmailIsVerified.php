@@ -11,12 +11,12 @@ class EnsureApplicantEmailIsVerified
     {
         $user = auth('applicant')->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('court.applicant.login');
         }
 
         // works because Applicant implements MustVerifyEmail
-        if (!$user->hasVerifiedEmail()) {
+        if (! $user->hasVerifiedEmail()) {
             return redirect()->route('court.applicant.verification.notice');
         }
 

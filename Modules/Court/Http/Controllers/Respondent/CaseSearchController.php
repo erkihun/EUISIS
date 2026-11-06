@@ -2,12 +2,6 @@
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Application\Mail\RespondentViewedCaseMail;
-use Modules\Court\Domain\Models\Decision;
-use Modules\Court\Domain\Models\Respondent;
-use Modules\Court\Application\Services\ResponseNotificationService;
-use Modules\Court\Application\Support\DecisionPdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -18,7 +12,15 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Modules\Court\Application\Mail\RespondentViewedCaseMail;
+use Modules\Court\Application\Services\ResponseNotificationService;
+use Modules\Court\Application\Support\DecisionPdf;
+use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\Decision;
+use Modules\Court\Domain\Models\Respondent;
+use Modules\Court\Http\Controllers\Controller;
 
 class CaseSearchController extends Controller
 {
@@ -128,7 +130,7 @@ class CaseSearchController extends Controller
     {
         $html = (string) ($html ?? '');
 
-        return $html === '' ? null : (string) \Modules\Court\Application\Support\Purifier::clean($html, 'cases');
+        return $html === '' ? null : (string) Purifier::clean($html, 'cases');
     }
 
     public function show(string $caseNumber)
@@ -151,9 +153,9 @@ class CaseSearchController extends Controller
             ->where('c.case_number', trim($caseNumber))
             ->first();
 
-        abort_if(!$case, 404);
+        abort_if(! $case, 404);
 
-        if (!$this->hasCaseAccess($case->id)) {
+        if (! $this->hasCaseAccess($case->id)) {
             $hasDbAccess = false;
             if (auth('applicant')->check()) {
                 $applicant = auth('applicant')->user();
@@ -165,8 +167,8 @@ class CaseSearchController extends Controller
                         ->exists();
                 }
             }
-            if (!$hasDbAccess) {
-                abort_if(!$this->caseCodeMatches($case, $caseCode), 404);
+            if (! $hasDbAccess) {
+                abort_if(! $this->caseCodeMatches($case, $caseCode), 404);
             }
             $this->grantCaseAccess($case->id);
         }
@@ -293,7 +295,7 @@ class CaseSearchController extends Controller
     {
         $caseId = DB::table('court_cases')->where('case_number', $decision->case_number)->value('id');
 
-        abort_if(!$caseId, 404);
+        abort_if(! $caseId, 404);
         abort_unless($this->hasCaseAccess((int) $caseId), 403);
         abort_unless($decision->isDownloadableByParties(), 403);
 
@@ -303,7 +305,7 @@ class CaseSearchController extends Controller
     private function handleRespondentCaseView(object $case): void
     {
         $respondent = $this->resolveActingRespondent();
-        if (!$respondent) {
+        if (! $respondent) {
             return;
         }
 
@@ -322,7 +324,7 @@ class CaseSearchController extends Controller
 
     private function recordRespondentCaseView(int $caseId, ?int $respondentId, ?string $caseNumber): void
     {
-        if (!$respondentId) {
+        if (! $respondentId) {
             return;
         }
 
@@ -359,7 +361,7 @@ class CaseSearchController extends Controller
         }
 
         $adminEmail = null;
-        if (!empty($case->assigned_user_id)) {
+        if (! empty($case->assigned_user_id)) {
             $adminEmail = DB::table('court_staff')->where('id', $case->assigned_user_id)->value('email');
         }
         $adminEmail = $adminEmail ?: config('mail.from.address');
@@ -407,8 +409,9 @@ class CaseSearchController extends Controller
     {
         $name = trim($respondent->full_name ?? '');
         if ($name === '') {
-            $name = trim(($respondent->first_name ?? '') . ' ' . ($respondent->last_name ?? ''));
+            $name = trim(($respondent->first_name ?? '').' '.($respondent->last_name ?? ''));
         }
+
         return $name !== '' ? $name : ($respondent->email ?? 'Respondent');
     }
 
@@ -445,34 +448,34 @@ class CaseSearchController extends Controller
     private function resolveActingRespondent(): ?Respondent
     {
         $applicant = Auth::guard('applicant')->user();
-        if (!$applicant) {
+        if (! $applicant) {
             return null;
         }
 
         $respondent = Respondent::where('email', $applicant->email)->first();
-        if (!$respondent) {
-            $phone = $applicant->phone ?? 'resp_' . substr(md5((string) microtime(true)), 0, 12);
+        if (! $respondent) {
+            $phone = $applicant->phone ?? 'resp_'.substr(md5((string) microtime(true)), 0, 12);
             if (Respondent::where('phone', $phone)->where('email', '!=', $applicant->email)->exists()) {
-                $phone = 'resp_' . substr(md5(uniqid('', true)), 0, 12);
+                $phone = 'resp_'.substr(md5(uniqid('', true)), 0, 12);
             }
 
             $respondent = Respondent::create([
-                'first_name'        => $applicant->first_name ?? '',
-                'middle_name'       => $applicant->middle_name ?? '',
-                'last_name'         => $applicant->last_name ?? '',
-                'gender'            => $applicant->gender ?? null,
-                'position'          => $applicant->position ?? '',
+                'first_name' => $applicant->first_name ?? '',
+                'middle_name' => $applicant->middle_name ?? '',
+                'last_name' => $applicant->last_name ?? '',
+                'gender' => $applicant->gender ?? null,
+                'position' => $applicant->position ?? '',
                 'organization_name' => $applicant->organization_name ?? '',
-                'address'           => $applicant->address ?? '',
-                'national_id'       => $this->applicantNationalId($applicant),
-                'phone'             => $phone,
-                'email'             => $applicant->email,
-                'password'          => \Illuminate\Support\Str::random(32),
+                'address' => $applicant->address ?? '',
+                'national_id' => $this->applicantNationalId($applicant),
+                'phone' => $phone,
+                'email' => $applicant->email,
+                'password' => Str::random(32),
             ]);
         } else {
             $dirty = false;
             $maybeNationalId = $this->applicantNationalId($applicant);
-            if (!$respondent->national_id && $maybeNationalId) {
+            if (! $respondent->national_id && $maybeNationalId) {
                 $respondent->national_id = $maybeNationalId;
                 $dirty = true;
             }
@@ -491,6 +494,7 @@ class CaseSearchController extends Controller
         if ($digits === '') {
             return null;
         }
+
         return substr($digits, 0, 16);
     }
 
@@ -576,7 +580,7 @@ class CaseSearchController extends Controller
     private function hasCaseAccess(int $caseId): bool
     {
         $access = session('respondent_case_access', []);
-        if (!is_array($access)) {
+        if (! is_array($access)) {
             return false;
         }
 

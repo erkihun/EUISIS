@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Assessment\Infrastructure\Jobs;
 
-use Modules\Assessment\Domain\Models\AssessmentCycle;
 use App\Models\User;
-use Modules\Assessment\Application\Services\Oversight\AssessmentEligibilityService;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Modules\Assessment\Application\Services\Oversight\AssessmentEligibilityService;
+use Modules\Assessment\Domain\Models\AssessmentCycle;
 
 /**
  * Builds a cycle's eligibility snapshot in bounded steps (risk register

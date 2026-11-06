@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Infrastructure\Console;
 
+use Illuminate\Console\Command;
 use Modules\Court\Application\Services\Euisis\CaseUpdateRecorder;
 use Modules\Court\Application\Services\Euisis\EuisisClient;
 use Modules\Court\Application\Services\Euisis\EuisisException;
 use Modules\Court\Application\Services\Euisis\EuisisSync;
 use Modules\Court\Application\Services\Euisis\StaffLink;
-use Illuminate\Console\Command;
 
 /**
  * Pulls EUISIS master data into the court-ms cache and records changes of

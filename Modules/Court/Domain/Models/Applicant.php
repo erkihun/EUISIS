@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Court\Domain\Models\Concerns\ApplicantMessages;
 
 class Applicant extends Authenticatable implements MustVerifyEmailContract
 {
     protected $table = 'court_applicants';
 
-    use HasApiTokens, Notifiable, MustVerifyEmailTrait;
+    use HasApiTokens, MustVerifyEmailTrait, Notifiable;
 
     protected $fillable = [
         'first_name',
@@ -53,8 +54,8 @@ class Applicant extends Authenticatable implements MustVerifyEmailContract
     protected function nationalIdNumber(): Attribute
     {
         return Attribute::make(
-            set: fn($value) => preg_replace('/\D/', '', (string) $value), // keep digits only
-            get: fn($value) => $value
+            set: fn ($value) => preg_replace('/\D/', '', (string) $value), // keep digits only
+            get: fn ($value) => $value
                 ? trim(chunk_split(preg_replace('/\D/', '', (string) $value), 4, ' '))
                 : ''
         );
@@ -68,12 +69,12 @@ class Applicant extends Authenticatable implements MustVerifyEmailContract
     /** Send custom verification email. */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(app(\Modules\Court\Domain\Models\Concerns\ApplicantMessages::class)->verifyEmail());
+        $this->notify(app(ApplicantMessages::class)->verifyEmail());
     }
 
     /** Send custom password reset email. */
     public function sendPasswordResetNotification($token): void
     {
-        $this->notify(app(\Modules\Court\Domain\Models\Concerns\ApplicantMessages::class)->resetPassword((string) $token));
+        $this->notify(app(ApplicantMessages::class)->resetPassword((string) $token));
     }
 }

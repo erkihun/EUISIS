@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\DailyWork\Application\Services;
 
 use App\Enums\AssignmentStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -18,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Modules\DailyWork\Contracts\Data\DailyActivityCoverage;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
 
 /**
  * Builds every management-side query in the module from one place, so the

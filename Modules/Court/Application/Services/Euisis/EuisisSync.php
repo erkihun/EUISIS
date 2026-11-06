@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Court\Domain\Models\EuisisEmployee;
 use Modules\Court\Domain\Models\EuisisOrganization;
 use Modules\Court\Domain\Models\EuisisOrganizationUnit;
 use Modules\Court\Domain\Models\EuisisPosition;
 use Modules\Court\Domain\Models\EuisisReferral;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Keeps the court-ms cache of EUISIS master data current

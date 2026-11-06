@@ -2,8 +2,8 @@
 
 namespace Database\Seeders\Court;
 
-use Modules\Court\Domain\Models\DecisionTemplate;
 use Illuminate\Database\Seeder;
+use Modules\Court\Domain\Models\DecisionTemplate;
 
 class DecisionTemplateSeeder extends Seeder
 {

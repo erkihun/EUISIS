@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Api\Integration;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Letter;
-use Modules\Court\Application\Services\Euisis\LetterDeliveries;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Modules\Court\Application\Services\Euisis\LetterDeliveries;
+use Modules\Court\Domain\Models\Letter;
+use Modules\Court\Http\Controllers\Controller;
 
 /** Flow 5: the letters EUISIS delivers to its institutions, after a cursor, and each one's PDF. */
 class EuisisLetterController extends Controller

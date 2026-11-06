@@ -2,15 +2,15 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Http\Requests\Admin\UpdateProfileRequest;
-use Modules\Court\Application\Services\Security\UserSessionRegistry;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Services\Security\UserSessionRegistry;
+use Modules\Court\Http\Controllers\Controller;
+use Modules\Court\Http\Requests\Admin\UpdateProfileRequest;
 use Throwable;
 
 class ProfileController extends Controller

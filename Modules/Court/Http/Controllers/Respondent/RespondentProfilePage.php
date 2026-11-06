@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Respondent;
 
-use Modules\Court\Domain\Models\Applicant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -12,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ViewErrorBag;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Domain\Models\Applicant;
 
 /**
  * The respondent portal's profile (React, Court/Respondent/Profile): the account form, the password form and the

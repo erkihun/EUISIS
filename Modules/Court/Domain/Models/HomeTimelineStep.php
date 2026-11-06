@@ -2,8 +2,8 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Court\Domain\Models\Concerns\HasAmharicText;
 
 class HomeTimelineStep extends Model
 {

@@ -1457,7 +1457,7 @@ return new class extends Migration
     }
 
     /** MySQL keeps the tables a failed run made: a retry skips them and goes on. */
-    private function create(string $table, \Closure $definition): void
+    private function create(string $table, Closure $definition): void
     {
         if (! Schema::hasTable($table)) {
             Schema::create($table, $definition);

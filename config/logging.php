@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\ErrorTrackerHandler;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -56,6 +57,19 @@ return [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,
+        ],
+
+        // Error tracker (GlitchTip / self-hosted Sentry): add it to LOG_STACK
+        // ("daily,error_tracker") and set ERROR_TRACKER_DSN. Without a DSN the
+        // channel is inert. See docs/production-monitoring.md.
+        'error_tracker' => [
+            'driver' => 'monolog',
+            'level' => env('ERROR_TRACKER_LEVEL', 'error'),
+            'handler' => ErrorTrackerHandler::class,
+            'with' => [
+                'dsn' => env('ERROR_TRACKER_DSN'),
+                'timeout' => (float) env('ERROR_TRACKER_TIMEOUT', 3),
+            ],
         ],
 
         'single' => [

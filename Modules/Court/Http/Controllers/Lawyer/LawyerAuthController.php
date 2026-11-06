@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Lawyer;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Services\SecureUploadService;
-use Modules\Court\Application\Support\LoginThrottle;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +15,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Application\Support\LoginThrottle;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * The lawyers' sign-in (EUISIS ADR 0013 #13). Employees work on their cases in

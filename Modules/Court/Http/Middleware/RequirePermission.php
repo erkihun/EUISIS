@@ -11,7 +11,7 @@ class RequirePermission
     {
         $user = $request->user();
 
-        if (!$user || !method_exists($user, 'hasPermission')) {
+        if (! $user || ! method_exists($user, 'hasPermission')) {
             return redirect()->route('court.dashboard')
                 ->with('error', 'You are not allowed to access that page.');
         }
@@ -21,7 +21,7 @@ class RequirePermission
             return $next($request);
         }
 
-        if (!$user->hasPermission($permission)) {
+        if (! $user->hasPermission($permission)) {
             return redirect()->route('court.dashboard')
                 ->with('error', 'You are not allowed to access that page.');
         }

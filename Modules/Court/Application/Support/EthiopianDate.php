@@ -4,6 +4,7 @@ namespace Modules\Court\Application\Support;
 
 use Carbon\Carbon;
 use DateTimeInterface;
+use Illuminate\Support\Facades\App;
 
 class EthiopianDate
 {
@@ -34,25 +35,25 @@ class EthiopianDate
         string $separator = ' '
     ): string {
         $date = static::toCarbon($value);
-        if (!$date) {
+        if (! $date) {
             return $fallback;
         }
 
         $ethiopian = static::toEthiopianParts($date);
-        if (!$ethiopian) {
+        if (! $ethiopian) {
             return $fallback;
         }
 
         $month = static::$months[$ethiopian['month'] - 1] ?? (string) $ethiopian['month'];
         $dateString = sprintf('%s-%d-%04d ዓ.ም', $month, $ethiopian['day'], $ethiopian['year']);
 
-        if (!$withTime) {
+        if (! $withTime) {
             return $dateString;
         }
 
         $timeString = static::formatEthiopianTime($date, $timeFormat);
 
-        return trim($dateString . ($separator ?? ' ') . $timeString);
+        return trim($dateString.($separator ?? ' ').$timeString);
     }
 
     public static function formatDate(DateTimeInterface|string|null $value, string $fallback = ''): string
@@ -70,18 +71,18 @@ class EthiopianDate
         string $timeFormat = 'h:i A',
         string $gregFormat = 'd M Y'
     ): string {
-        if (\Illuminate\Support\Facades\App::getLocale() === 'am') {
+        if (App::getLocale() === 'am') {
             return static::format($value, $withTime, $fallback, $timeFormat);
         }
 
         $date = static::toCarbon($value);
-        if (!$date) {
+        if (! $date) {
             return $fallback;
         }
 
         $out = $date->format($gregFormat);
         if ($withTime) {
-            $out .= ' ' . $date->format('h:i A');
+            $out .= ' '.$date->format('h:i A');
         }
 
         return $out;
@@ -96,11 +97,11 @@ class EthiopianDate
         string $fallback = '—'
     ): string {
         $date = static::toCarbon($value);
-        if (!$date) {
+        if (! $date) {
             return $fallback;
         }
 
-        if (\Illuminate\Support\Facades\App::getLocale() === 'am') {
+        if (App::getLocale() === 'am') {
             return static::format($value, false, $fallback);
         }
 
@@ -119,7 +120,7 @@ class EthiopianDate
     public static function formatTime(DateTimeInterface|string|null $value, string $fallback = '', string $timeFormat = 'h:i A'): string
     {
         $date = static::toCarbon($value);
-        if (!$date) {
+        if (! $date) {
             return $fallback;
         }
 
@@ -160,7 +161,8 @@ class EthiopianDate
         if (str_contains($timeFormat, 'A') || str_contains($timeFormat, 'a')) {
             $meridiem = $date->format('A');
             $localizedMeridiem = static::localizeMeridiem($meridiem);
-            return trim($baseTime . ' ' . $localizedMeridiem);
+
+            return trim($baseTime.' '.$localizedMeridiem);
         }
 
         return $baseTime;

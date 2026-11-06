@@ -2,10 +2,9 @@
 
 namespace Modules\Court\Domain\Models;
 
-use Modules\Court\Domain\Models\CourtStaffMember as User;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Modules\Court\Domain\Models\CourtStaffMember as User;
 
 class Role extends Model
 {

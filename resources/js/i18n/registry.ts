@@ -15,7 +15,7 @@ export type TranslationTree = Record<string, unknown>;
  * The court module's dictionary (ADR 0020) joins as two namespaces of its own:
  * `court.*` (its screens' text) and `cm.*` (its lang files, exported by
  * `php artisan court:client-lang`). It is a chunk of its own, loaded beside the
- * language bundle; nothing else of it reaches EUISIS keys.
+ * language bundle; nothing else of it reaches the platform's keys.
  */
 function withCourt(base: Promise<{ default: TranslationTree }>, court: Promise<{ default: TranslationTree }>): Promise<{ default: TranslationTree }> {
     return Promise.all([base, court]).then(([{ default: tree }, { default: courtTree }]) => ({

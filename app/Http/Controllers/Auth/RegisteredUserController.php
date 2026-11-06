@@ -12,7 +12,6 @@ use App\Models\EmployeeRegistrationOtp;
 use App\Models\User;
 use App\Notifications\EmployeeRegistrationOtpNotification;
 use App\Security\Passwords\PasswordPolicy;
-use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +26,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Spatie\Permission\Models\Role;
 use Throwable;
 

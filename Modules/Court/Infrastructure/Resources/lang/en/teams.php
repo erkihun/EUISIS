@@ -66,7 +66,7 @@ return [
 
     'meta' => [
         'unassigned' => 'Unassigned',
-        'unknown_email' => '',
+        'unknown_email' => 'Unknown email',
     ],
 
     'errors' => [

@@ -40,13 +40,17 @@ class UserPolicy
     public function update(User $actor, User $target): bool
     {
         // Allow self-edit
-        if ($actor->id === $target->id) return true;
+        if ($actor->id === $target->id) {
+            return true;
+        }
 
-        if (! $actor->hasPermission('users.manage')) return false;
+        if (! $actor->hasPermission('users.manage')) {
+            return false;
+        }
 
         // Only admins can modify other admins (optional guardrail)
         $targetIsAdmin = $target->roles()->where('name', 'admin')->exists();
-        $actorIsAdmin  = $actor->hasRole('admin');
+        $actorIsAdmin = $actor->hasRole('admin');
 
         return ! $targetIsAdmin || $actorIsAdmin;
     }
@@ -55,9 +59,13 @@ class UserPolicy
     public function delete(User $actor, User $target): bool
     {
         // Never allow self-delete
-        if ($actor->id === $target->id) return false;
+        if ($actor->id === $target->id) {
+            return false;
+        }
 
-        if (! $actor->hasPermission('users.manage')) return false;
+        if (! $actor->hasPermission('users.manage')) {
+            return false;
+        }
 
         // Same guardrail as update(): only admins can remove admin accounts
         // (admins pass through before()).

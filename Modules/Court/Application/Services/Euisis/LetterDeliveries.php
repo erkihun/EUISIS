@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Court\Application\Services\Euisis;
 
-use Modules\Court\Domain\Models\Letter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Domain\Models\Letter;
 
 /**
  * Flow 5 (docs/euisis-integration.md): letters the court sends to an EUISIS

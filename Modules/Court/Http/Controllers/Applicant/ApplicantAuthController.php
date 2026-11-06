@@ -2,15 +2,17 @@
 
 namespace Modules\Court\Http\Controllers\Applicant;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\AboutPage;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Application\Support\LoginThrottle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Application\Support\LoginThrottle;
+use Modules\Court\Application\Support\Purifier;
+use Modules\Court\Domain\Models\AboutPage;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Http\Controllers\Controller;
 
 class ApplicantAuthController extends Controller
 {
@@ -104,7 +106,7 @@ class ApplicantAuthController extends Controller
             'about' => $aboutPage ? [
                 'title' => (string) $aboutPage->title,
                 // Sanitised as the Blade page printed it.
-                'body' => (string) \Modules\Court\Application\Support\Purifier::clean($aboutPage->body ?? '', 'cases'),
+                'body' => (string) Purifier::clean($aboutPage->body ?? '', 'cases'),
             ] : null,
         ])
             ->toResponse($request)
@@ -206,6 +208,6 @@ class ApplicantAuthController extends Controller
         $request->session()->regenerateToken();
 
         // With the portal in EUISIS only lawyers sign in here, at /lawyer/login.
-        return redirect()->route(\Modules\Court\Application\Support\EuisisParties::portalClosed() ? 'court.lawyer.login' : 'court.applicant.login');
+        return redirect()->route(EuisisParties::portalClosed() ? 'court.lawyer.login' : 'court.applicant.login');
     }
 }

@@ -202,6 +202,7 @@ return [
     'verify_email_subtitle' => 'We\'ve sent a verification link to your email address. Please click the link to continue.',
     'verify_email_title' => 'Verify your email',
     'yes' => 'Yes',
+    'failed' => 'These credentials do not match our records.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
     'too_many_attempts' => 'Too many login attempts. Please try again in :minutes minute(s).',
     'stage_new' => 'New',

@@ -2,11 +2,11 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\LetterCategory;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Domain\Models\LetterCategory;
+use Modules\Court\Http\Controllers\Controller;
 
 class LetterCategoryController extends Controller
 {

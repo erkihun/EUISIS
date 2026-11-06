@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Api\Integration;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\CaseApplicant;
-use Modules\Court\Application\Services\CaseParties;
-use Modules\Court\Application\Services\Euisis\EmployeeCourtAccess;
-use Modules\Court\Application\Services\Euisis\EmployeeCourtAccessException;
-use Modules\Court\Application\Services\SecureUploadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Services\CaseParties;
+use Modules\Court\Application\Services\Euisis\EmployeeCourtAccess;
+use Modules\Court\Application\Services\Euisis\EmployeeCourtAccessException;
+use Modules\Court\Application\Services\SecureUploadService;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\CaseApplicant;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * Flow 6, several parties (docs/euisis-integration.md, EUISIS ADR 0013 #13): what

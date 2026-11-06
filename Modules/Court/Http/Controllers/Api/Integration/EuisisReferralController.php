@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Api\Integration;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\EuisisCaseUpdate;
-use Modules\Court\Domain\Models\EuisisReferral;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Application\Services\Euisis\CaseUpdateRecorder;
-use Modules\Court\Application\Services\Euisis\ReferralService;
-use Modules\Court\Application\Support\EuisisParties;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Court\Application\Services\Euisis\CaseUpdateRecorder;
+use Modules\Court\Application\Services\Euisis\ReferralService;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Domain\Models\EuisisCaseUpdate;
+use Modules\Court\Domain\Models\EuisisReferral;
+use Modules\Court\Domain\Models\IntegrationClient;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * The machine API EUISIS calls (docs/euisis-integration.md, Flows 2 and 3):

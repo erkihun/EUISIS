@@ -11,6 +11,7 @@ class ApplicantReceiptMail extends Mailable
     use Queueable, SerializesModels;
 
     public $case;
+
     protected $pdfBinary;
 
     public function __construct($case, string $pdfBinary)
@@ -21,7 +22,7 @@ class ApplicantReceiptMail extends Mailable
 
     public function build()
     {
-        $filename = 'receipt-' . ($this->case->case_number ?? 'case') . '.pdf';
+        $filename = 'receipt-'.($this->case->case_number ?? 'case').'.pdf';
 
         return $this->subject(__('court::notifications.mail.filing_receipt_subject', [
             'case' => $this->case->case_number ?? '',

@@ -2,12 +2,12 @@
 
 namespace Modules\Court\Http\Controllers\Admin;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\LetterTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Court\Domain\Models\LetterTemplate;
+use Modules\Court\Http\Controllers\Controller;
 
 class LetterComposerController extends Controller
 {

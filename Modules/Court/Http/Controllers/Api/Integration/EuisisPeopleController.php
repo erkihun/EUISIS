@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Modules\Court\Http\Controllers\Api\Integration;
 
-use Modules\Court\Http\Controllers\Controller;
-use Modules\Court\Domain\Models\Applicant;
-use Modules\Court\Domain\Models\IntegrationClient;
-use Modules\Court\Application\Services\Euisis\EmployeeCourtAccess;
-use Modules\Court\Application\Services\Euisis\EmployeeCourtAccessException;
-use Modules\Court\Application\Services\Euisis\EmployeeFilingService;
-use Modules\Court\Application\Support\EuisisParties;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Court\Application\Services\Euisis\EmployeeCourtAccess;
+use Modules\Court\Application\Services\Euisis\EmployeeCourtAccessException;
+use Modules\Court\Application\Services\Euisis\EmployeeFilingService;
+use Modules\Court\Application\Support\EuisisParties;
+use Modules\Court\Domain\Models\Applicant;
+use Modules\Court\Domain\Models\IntegrationClient;
+use Modules\Court\Http\Controllers\Controller;
 
 /**
  * Flow 4 (docs/euisis-integration.md): the EUISIS employee portal's court
