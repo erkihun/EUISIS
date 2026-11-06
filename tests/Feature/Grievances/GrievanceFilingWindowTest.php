@@ -110,3 +110,26 @@ it('accepts a late grievance on a force-majeure ground only through a person at 
         ->and($g->late_reviewed_by)->toBe($this->s->intake->id)
         ->and($g->late_decision_reason)->toBe('Hospital record supports the ground.');
 });
+
+it('tells the form by when the grievance must be sent, on the same calendar the filing is judged by', function (): void {
+    // Presented on Monday 2026-10-12 → day 10 is Monday 2026-10-26; today is Monday 2026-10-19, five working days left.
+    $this->actingAs($this->s->complainant)
+        ->getJson(route('employee.grievances.filing-deadline', ['raised_at' => '2026-10-12']))
+        ->assertOk()
+        ->assertJson(['due_at' => '2026-10-26', 'late' => false, 'working_days_left' => 5, 'force_majeure_due_at' => null, 'force_majeure_open' => false]);
+
+    // Out of time, and a cause that ended on 2026-10-14 keeps the late route open until 2026-10-28.
+    $this->actingAs($this->s->complainant)
+        ->getJson(route('employee.grievances.filing-deadline', ['raised_at' => '2026-09-01', 'cause_ended_at' => '2026-10-14']))
+        ->assertOk()
+        ->assertJson(['due_at' => '2026-09-15', 'late' => true, 'working_days_left' => 0, 'force_majeure_due_at' => '2026-10-28', 'force_majeure_open' => true]);
+
+    $this->actingAs($this->s->complainant)
+        ->getJson(route('employee.grievances.filing-deadline', ['raised_at' => '2030-01-01']))
+        ->assertUnprocessable();
+
+    // The page carries the rule it explains.
+    $this->actingAs($this->s->complainant)->get(route('employee.grievances.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where('filing.working_days', 10)->where('filing.article', 'Art. 33(1)')->where('writtenIssueRequired', true));
+});

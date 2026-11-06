@@ -129,11 +129,26 @@ export type PortalFormProps = {
         /** Set when intake returned the grievance for correction. */
         intake_reason_code: string | null;
         intake_notes: string | null;
+        /** Evidence already on the case (managed on the case page). */
+        attached_files: { id: string; title: string; evidence_type: string | null }[];
     };
     categories: CategoryOption[];
     evidenceTypes: string[];
     allowedExtensions: string[];
     maxFileKb: number;
+    /** Whether the matter must first have been raised in writing with the supervisor (config). */
+    writtenIssueRequired: boolean;
+    /** The Art. 33 window the form explains. */
+    filing: { article: string; working_days: number; late_article: string; late_working_days: number };
+};
+
+/** employee.grievances.filing-deadline: the window for a given written-presentation date. */
+export type FilingDeadline = {
+    due_at: string;
+    late: boolean;
+    working_days_left: number;
+    force_majeure_due_at: string | null;
+    force_majeure_open: boolean;
 };
 
 export type PortalShowProps = {

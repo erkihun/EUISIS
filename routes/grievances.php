@@ -36,6 +36,7 @@ Route::middleware(['auth', 'force.password', 'admin.access'])
     ->group(function (): void {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/filing-deadline', 'filingDeadline')->middleware('throttle:60,1')->name('filing-deadline');
         Route::post('/', 'store')->middleware('throttle:20,1')->name('store');
         Route::get('/{grievance}', 'show')->name('show');
         Route::get('/{grievance}/edit', 'edit')->name('edit');

@@ -6,8 +6,12 @@ namespace Modules\Grievance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Rules\RichTextContent;
+use App\Services\Legal\StatutoryDeadlineService;
+use App\Support\Legal\Regulation201;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -89,6 +93,53 @@ class GrievancePortalController extends Controller
         ]);
     }
 
+    /**
+     * The Art. 33 filing window for the date the matter was presented in
+     * writing, so the form can say by when the grievance must be sent — with
+     * the same calendar (work week and public holidays) the submission is
+     * judged by. Read-only; nothing is stored.
+     */
+    public function filingDeadline(Request $request, StatutoryDeadlineService $deadlines): JsonResponse
+    {
+        abort_unless($request->user()->can('grievances.create') || $request->user()->can('grievances.update_draft'), 403);
+        $data = $request->validate([
+            'raised_at' => ['required', 'date', 'before_or_equal:today'],
+            'cause_ended_at' => ['nullable', 'date', 'before_or_equal:today'],
+        ]);
+
+        $raisedAt = Carbon::parse($data['raised_at'])->startOfDay();
+        $due = $deadlines->dueAt(Regulation201::GRIEVANCE_COMMITTEE_FILING, $raisedAt);
+        $late = now()->greaterThan($due);
+
+        $forceMajeureDue = null;
+        if ($late && ! empty($data['cause_ended_at'])) {
+            $causeEnded = Carbon::parse($data['cause_ended_at'])->startOfDay();
+            $forceMajeureDue = $causeEnded->lt($raisedAt) ? null : $deadlines->dueAt(Regulation201::GRIEVANCE_FORCE_MAJEURE_FILING, $causeEnded);
+        }
+
+        return response()->json([
+            'due_at' => $due->toDateString(),
+            'late' => $late,
+            // Working days still open, as the rule counts them; 0 on the last day.
+            'working_days_left' => $late ? 0 : $this->workingDaysBetween(now()->startOfDay(), $due, $deadlines),
+            'force_majeure_due_at' => $forceMajeureDue?->toDateString(),
+            'force_majeure_open' => $forceMajeureDue !== null && now()->lessThanOrEqualTo($forceMajeureDue),
+        ]);
+    }
+
+    private function workingDaysBetween(Carbon $from, Carbon $to, StatutoryDeadlineService $deadlines): int
+    {
+        $workWeek = $deadlines->workWeekDays();
+        $days = 0;
+        for ($day = $from->copy()->addDay(); $day->lte($to); $day->addDay()) {
+            if (in_array($day->dayOfWeekIso, $workWeek, true)) {
+                $days++;
+            }
+        }
+
+        return $days;
+    }
+
     public function store(Request $request, GrievanceEvidenceService $evidence): RedirectResponse
     {
         $data = $this->validateForm($request);
@@ -155,6 +206,10 @@ class GrievancePortalController extends Controller
                 'cause_ended_at' => $grievance->cause_ended_at?->toDateString(),
                 'intake_reason_code' => $grievance->intake_reason_code,
                 'intake_notes' => $grievance->intake_notes,
+                // Already on the case; new files are added, these are managed on the case page.
+                'attached_files' => $grievance->evidence()->orderBy('created_at')->get()
+                    ->map(fn ($item) => ['id' => $item->getKey(), 'title' => $item->title, 'evidence_type' => $item->evidence_type?->value ?? $item->evidence_type])
+                    ->values()->all(),
             ],
             ...$this->formOptions(),
         ]);
@@ -268,11 +323,22 @@ class GrievancePortalController extends Controller
     /** @return array<string, mixed> */
     private function formOptions(): array
     {
+        $filing = Regulation201::rule(Regulation201::GRIEVANCE_COMMITTEE_FILING);
+        $lateFiling = Regulation201::rule(Regulation201::GRIEVANCE_FORCE_MAJEURE_FILING);
+
         return [
             'categories' => GrievanceCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am', 'description_en', 'description_am']),
             'evidenceTypes' => GrievanceEvidenceType::values(),
             'allowedExtensions' => ['pdf'],
             'maxFileKb' => self::FORM_FILE_MAX_KB,
+            'writtenIssueRequired' => $this->writtenIssueRequired(),
+            // The statutory window the form explains (Art. 33(1) and (2)).
+            'filing' => [
+                'article' => $filing['article'],
+                'working_days' => $filing['amount'],
+                'late_article' => $lateFiling['article'],
+                'late_working_days' => $lateFiling['amount'],
+            ],
         ];
     }
 
