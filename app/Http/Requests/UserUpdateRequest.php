@@ -22,6 +22,14 @@ class UserUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        // The edit form is sent as multipart (it may carry a photo), and a
+        // multipart body cannot hold an empty list: with every role unchecked
+        // no roles[] arrives and the roles would be left as they were. The form
+        // says it sent the role list, so "none" is read as none.
+        if ($this->boolean('roles_submitted') && ! $this->has('roles')) {
+            $this->merge(['roles' => []]);
+        }
+
         if ($this->has('national_id')) {
             $nid = trim((string) $this->input('national_id', '')) ?: null;
             $this->merge([

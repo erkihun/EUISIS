@@ -91,6 +91,8 @@ const users = {
     scopedRole: 'Scoped Role',
     globalRole: 'Global Role',
     cannotDeactivateSelf: 'You cannot deactivate your own account.',
+    ownPasswordInProfile: 'Change your own password from your profile, where your current password is confirmed.',
+    openMyProfile: 'Open my profile',
     cannotDeleteLastSuperAdmin: 'The last Super Admin account cannot be deleted.',
     cannotRemoveLastSuperAdmin: 'You cannot remove the last Super Admin.',
     lastSuperAdminProtected: 'Last Super Admin is protected.',

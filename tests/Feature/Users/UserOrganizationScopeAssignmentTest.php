@@ -179,6 +179,30 @@ it('still shows an already-scoped organization that has since become inactive, m
         );
 });
 
+it('still names the organization of a scope whose organization has been archived', function (): void {
+    $org = uosOrg('UOS-ARCHIVED');
+    $target = User::factory()->create();
+    uosScope($target, $org);
+
+    // Archiving soft-deletes the organization; the scope row stays.
+    $org->update(['status' => OrganizationStatus::Archived->value]);
+    $org->delete();
+
+    $this->actingAs(uosManager())
+        ->get(route('users.edit', $target))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            // The scope names its organization instead of showing a blank …
+            ->where('user.organization_scopes.0.organization.id', $org->id)
+            ->where('user.organization_scopes.0.organization.name_en', 'Org UOS-ARCHIVED')
+            ->where('user.organization_scopes.0.organization.status', 'archived')
+            // … and the organization is listed, not active, so the scope can be opened.
+            ->has('organizations', 1)
+            ->where('organizations.0.id', $org->id)
+            ->where('organizations.0.status', 'archived')
+        );
+});
+
 it('rejects newly assigning an inactive organization as a scope', function (): void {
     $inactive = uosOrg('UOS-3', OrganizationStatus::Inactive->value);
     $target = User::factory()->create();

@@ -289,6 +289,44 @@ test('users with update permission can update profile fields photo and roles', f
     Storage::disk('public')->assertExists($target->profile_photo_path);
 });
 
+test('unchecking every role on the edit form removes them', function (): void {
+    $target = makeTargetUser();
+    Role::findOrCreate('Supervisor', 'web');
+    DB::table('roles')->where('name', 'Supervisor')->update(['scope_type' => 'global']);
+    $target->assignRole('Supervisor');
+
+    // A multipart form cannot carry an empty list, so the edit form sends no
+    // roles[] at all and says so with roles_submitted.
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => $target->name,
+            'email' => $target->email,
+            'status' => 'active',
+            'roles_submitted' => '1',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('users.index'));
+
+    expect($target->fresh()->getRoleNames()->all())->toBe([]);
+});
+
+test('an update that does not mention roles leaves them alone', function (): void {
+    $target = makeTargetUser();
+    Role::findOrCreate('Supervisor', 'web');
+    DB::table('roles')->where('name', 'Supervisor')->update(['scope_type' => 'global']);
+    $target->assignRole('Supervisor');
+
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => 'Renamed Only',
+            'email' => $target->email,
+            'status' => 'active',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($target->fresh()->hasRole('Supervisor'))->toBeTrue();
+});
+
 test('blank password on edit does not change the existing password', function (): void {
     $target = makeTargetUser();
     $originalHash = $target->password;
