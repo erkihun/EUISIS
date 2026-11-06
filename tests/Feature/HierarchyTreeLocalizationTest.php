@@ -113,7 +113,7 @@ test('tree node label is English when locale is en', function (): void {
 
     $version = locTestVersion();
     $parent = locTestOrg($this->orgType, 'LOC-E1', 'English Bureau', 'ቢሮ');
-    $child = locTestOrg($this->orgType, 'LOC-E2', 'Child Bureau', 'ልጅ ቢሮ');
+    $child = locTestOrg($this->orgType, 'LOC-E2', 'Child Bureau', 'ንዑስ ቢሮ');
     locTestEdge($version, $parent, $child);
 
     $tree = app(HierarchyTreeService::class)->buildFullTree($version);
@@ -141,7 +141,7 @@ test('tree node type label is Amharic for organization type when locale is am', 
 
     $version = locTestVersion();
     $parent = locTestOrg($this->orgType, 'LOC-OT1', 'Typed Bureau', 'ቢሮ');
-    $child = locTestOrg($this->orgType, 'LOC-OT2', 'Typed Child', 'ልጅ');
+    $child = locTestOrg($this->orgType, 'LOC-OT2', 'Typed Child', 'ንዑስ');
     locTestEdge($version, $parent, $child);
 
     $tree = app(HierarchyTreeService::class)->buildFullTree($version);
@@ -155,7 +155,7 @@ test('tree node type label is Amharic for organization unit type when locale is 
 
     $version = locTestVersion();
     $org = locTestOrg($this->orgType, 'LOC-UT1', 'Bureau For Unit', 'ቢሮ');
-    $child = locTestOrg($this->orgType, 'LOC-UT2', 'Child Bureau', 'ልጅ');
+    $child = locTestOrg($this->orgType, 'LOC-UT2', 'Child Bureau', 'ንዑስ');
     locTestEdge($version, $org, $child);
 
     locTestUnit($org, $this->unitType, 'DIR-LOC', 'HR Directorate', 'ሰው ሀብት ዳይሬክቶሬት');
@@ -175,7 +175,7 @@ test('tree node status_label is translated and not the raw enum value', function
 
     $version = locTestVersion();
     $parent = locTestOrg($this->orgType, 'LOC-SL1', 'Status Bureau', 'ቢሮ');
-    $child = locTestOrg($this->orgType, 'LOC-SL2', 'Status Child', 'ልጅ');
+    $child = locTestOrg($this->orgType, 'LOC-SL2', 'Status Child', 'ንዑስ');
     locTestEdge($version, $parent, $child);
 
     $tree = app(HierarchyTreeService::class)->buildFullTree($version);
