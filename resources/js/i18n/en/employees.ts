@@ -333,7 +333,7 @@ const employees = {
     // Create page — dependent selects
     selectOrganization: 'Select Organization',
     selectOrganizationUnit: 'Select Organization Unit',
-    searchOrganizationUnit: 'Search by code or name',
+    searchOrganizationUnit: 'Search by name',
     selectGender: 'Select Gender',
     positionAlreadyOccupied: 'Position already occupied',
     noUnitsForOrganization: 'No active organization units for this organization.',

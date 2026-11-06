@@ -140,11 +140,12 @@ export default function EmployeesCreate({
         [organizationUnits, form.data.organization_id],
     );
 
-    // The search matches the code and the name in both languages, whichever one is displayed.
+    // Units are listed by name only. The search matches the name in both
+    // languages, whichever one is displayed.
     const organizationUnitOptions = useMemo<SearchableSelectOption[]>(
         () => filteredOrganizationUnits.map((unit) => ({
             value: unit.id,
-            label: `${unit.code ? `${unit.code} - ` : ''}${localizedName(unit.name_en, unit.name_am, locale)}`,
+            label: localizedName(unit.name_en, unit.name_am, locale),
             keywords: `${unit.name_en ?? ''} ${unit.name_am ?? ''}`,
         })),
         [filteredOrganizationUnits, locale],

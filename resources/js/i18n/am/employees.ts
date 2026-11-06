@@ -323,7 +323,7 @@ const employees = {
     // Create page — dependent selects
     selectOrganization: 'ተቋም ይምረጡ',
     selectOrganizationUnit: 'የሥራ ክፍል ይምረጡ',
-    searchOrganizationUnit: 'በኮድ ወይም በስም ይፈልጉ',
+    searchOrganizationUnit: 'በስም ይፈልጉ',
     selectGender: 'ጾታ ይምረጡ',
     positionAlreadyOccupied: 'የሥራ መደቡ አስቀድሞ ተይዟል',
     noUnitsForOrganization: 'ለዚህ ተቋም ንቁ የሥራ ክፍሎች የሉም።',
