@@ -151,6 +151,20 @@ final class BrandingService
             return $path;
         }
 
-        return Storage::disk('public')->url($path);
+        $url = Storage::disk('public')->url($path);
+
+        // Files on the application's own public disk are served by this host,
+        // whatever APP_URL says. An absolute APP_URL (a LAN address, a stale
+        // domain) would send the favicon and logos to another origin, which the
+        // Content Security Policy (img-src 'self') rightly blocks. Object storage
+        // keeps its absolute URL.
+        if ((string) config('filesystems.disks.public.driver') === 'local') {
+            $relative = parse_url($url, PHP_URL_PATH);
+            if (is_string($relative) && $relative !== '') {
+                return $relative;
+            }
+        }
+
+        return $url;
     }
 }

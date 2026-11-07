@@ -12,6 +12,8 @@ use App\Services\Branding\BrandingService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /*
@@ -140,4 +142,21 @@ it('keeps the global brand when an institution has its own name and logo', funct
     $this->actingAs($this->admin)->get('/dashboard')->assertInertia(fn (Assert $page) => $page
         ->where('branding.brandName', 'Agelgay')
         ->where('branding.logoUrl', null));
+});
+
+it('serves favicon and logos from the request host when they live on the local public disk', function (): void {
+    DB::table('system_settings')->updateOrInsert(['group' => 'general', 'key' => 'favicon'], [
+        'id' => (string) Str::uuid(), 'value' => 'system-assets/general/favicon-test.png', 'type' => 'file',
+        'label_en' => 'Favicon', 'is_public' => true, 'is_system' => true, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    app(SystemSettingsService::class)->clearCache();
+
+    // APP_URL points at another host (a LAN address); the browser must still fetch the icon from 'self'.
+    config(['filesystems.disks.public.driver' => 'local', 'filesystems.disks.public.url' => 'http://192.0.2.10:8000/storage']);
+    expect(app(BrandingService::class)->faviconUrl())->toBe('/storage/system-assets/general/favicon-test.png');
+
+    // Object storage keeps its absolute URL (the CSP allows that origin separately).
+    config(['filesystems.disks.public.driver' => 's3', 'filesystems.disks.public.url' => 'https://assets.example.gov.et/public', 'filesystems.disks.public.bucket' => 'assets', 'filesystems.disks.public.region' => 'us-east-1', 'filesystems.disks.public.root' => '']);
+    Storage::forgetDisk('public');
+    expect(app(BrandingService::class)->faviconUrl())->toBe('https://assets.example.gov.et/public/system-assets/general/favicon-test.png');
 });

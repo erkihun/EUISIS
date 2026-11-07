@@ -129,3 +129,14 @@ test('the map tile host is the only outside image source', function (): void {
         ->and(SecurityHeaders::tileOrigin('javascript:alert(1)'))->toBe('')
         ->and(SecurityHeaders::tileOrigin(''))->toBe('');
 });
+
+test('the public object store is an allowed image source only when it is not this application', function (): void {
+    config(['filesystems.disks.public.driver' => 'local', 'filesystems.disks.public.url' => 'http://192.0.2.10:8000/storage']);
+    expect(SecurityHeaders::publicStorageOrigin())->toBe('');
+
+    config(['filesystems.disks.public.driver' => 's3', 'filesystems.disks.public.url' => 'https://assets.example.gov.et/public']);
+    $csp = (string) $this->actingAs(User::factory()->create())->get('/profile')->headers->get('Content-Security-Policy');
+
+    expect($csp)->toContain('https://assets.example.gov.et')
+        ->and(SecurityHeaders::publicStorageOrigin())->toBe('https://assets.example.gov.et');
+});

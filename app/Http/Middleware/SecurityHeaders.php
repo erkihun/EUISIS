@@ -98,8 +98,9 @@ class SecurityHeaders
             ? "font-src 'self' data: {$viteHttp}"
             : "font-src 'self' data:";
 
-        // Map tiles (config/maps.php) are the one outside image source.
-        $imgSrc = trim("img-src 'self' data: blob: ".self::tileOrigin((string) config('maps.tile_url', '')));
+        // Map tiles (config/maps.php) are the one outside image source — plus the
+        // public object store when logos and favicons live there (S3 driver).
+        $imgSrc = trim("img-src 'self' data: blob: ".self::tileOrigin((string) config('maps.tile_url', '')).' '.self::publicStorageOrigin());
 
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",
@@ -143,5 +144,19 @@ class SecurityHeaders
         $host = $wildcard ? '*.'.substr($parts['host'], 4) : $parts['host'];
 
         return $parts['scheme'].'://'.$host.(isset($parts['port']) ? ':'.$parts['port'] : '');
+    }
+
+    /**
+     * The origin of the public object store (logos, favicons, public uploads)
+     * when it is not this application: the `local` public disk is served from
+     * 'self', so it adds nothing.
+     */
+    public static function publicStorageOrigin(): string
+    {
+        if ((string) config('filesystems.disks.public.driver') === 'local') {
+            return '';
+        }
+
+        return self::tileOrigin((string) config('filesystems.disks.public.url', ''));
     }
 }
