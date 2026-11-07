@@ -147,6 +147,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
                 Route::post('/{committee}/approve', 'approve')->name('approve');
                 Route::post('/{committee}/members', 'addMember')->name('members.store');
                 Route::post('/{committee}/members/{member}/end', 'endMember')->name('members.end');
+                Route::get('/{committee}/members/{member}/signature', 'memberSignature')->name('members.signature');
             });
 
             // Routing graph and SLA policies

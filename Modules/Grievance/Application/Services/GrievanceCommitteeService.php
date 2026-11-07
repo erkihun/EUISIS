@@ -10,8 +10,12 @@ use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Carbon\CarbonInterface;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Grievance\Contracts\Data\CommitteeType;
 use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
@@ -114,6 +118,10 @@ final class GrievanceCommitteeService
             foreach (app(StatutoryCommitteeRules::class)->compositionProblems($committee) as $code) {
                 $problems[] = 'grievances.committee_rules.'.$code;
             }
+            // ADR 0028: every serving member's signature is on file before the committee is approved.
+            if ($this->membersWithoutSignature($committee)->isNotEmpty()) {
+                $problems[] = 'grievances.errors.committee_signatures_missing';
+            }
         }
 
         $problems = array_values(array_unique($problems));
@@ -143,6 +151,12 @@ final class GrievanceCommitteeService
             if ($employee === null || ($employee->status?->value ?? $employee->status) !== 'active') {
                 throw ValidationException::withMessages(['employee_id' => __('grievances.errors.employee_not_active')]);
             }
+            // Members are chosen from the institution's own staff: the current
+            // assignment must be in the committee's organization (the form only
+            // offers those, but a direct request must not get past it).
+            if ($employee->currentAssignment?->organization_id !== $committee->organization_id) {
+                throw ValidationException::withMessages(['employee_id' => __('grievances.errors.member_outside_organization')]);
+            }
             // Regulation 201/2018 Art. 6(2): no one disciplined in the last two years sits on the committee.
             if (app(StatutoryCommitteeRules::class)->employeeEligibility((string) $employee->getKey(), $from)['problems'] !== []) {
                 throw ValidationException::withMessages(['employee_id' => __('grievances.errors.member_disciplined')]);
@@ -162,6 +176,10 @@ final class GrievanceCommitteeService
                 throw ValidationException::withMessages(['role' => __('grievances.errors.committee_already_has_writer')]);
             }
 
+            // ADR 0028: a member is registered together with their signature image.
+            $signaturePath = $this->storeSignature($employee, $data['signature'] ?? null, $data['signature_path'] ?? null);
+            $disk = Storage::disk('local');
+
             $member = GrievanceCommitteeMember::query()->create([
                 'committee_id' => $committee->getKey(),
                 'employee_id' => $employee->getKey(),
@@ -173,8 +191,12 @@ final class GrievanceCommitteeService
                 'appointment_reference' => $data['appointment_reference'] ?? null,
                 'selection_source' => $data['selection_source'] ?? null,
                 'term_number' => $data['term_number'] ?? 1,
+                'signature_path' => $signaturePath,
+                'signature_sha256' => $disk->exists($signaturePath) ? hash('sha256', (string) $disk->get($signaturePath)) : null,
+                'signature_recorded_at' => now(),
+                'signature_recorded_by' => $actor->getKey(),
             ]);
-            $this->audit->record(AuditEventType::GrievanceCommitteeMemberAdded, $actor, $committee, ['employee_id' => $employee->getKey(), 'role' => $role->value, 'effective_from' => $from->toDateString()]);
+            $this->audit->record(AuditEventType::GrievanceCommitteeMemberAdded, $actor, $committee, ['employee_id' => $employee->getKey(), 'role' => $role->value, 'effective_from' => $from->toDateString(), 'signature_sha256' => $member->signature_sha256]);
 
             $this->routing->syncOpenPanels($committee, $actor);
 
@@ -314,6 +336,11 @@ final class GrievanceCommitteeService
             || in_array($employee->getKey(), [$stage->grievance->employee_id, $stage->grievance->respondent_employee_id, $stage->grievance->immediate_supervisor_employee_id], true)) {
             throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.replacement_not_eligible')]);
         }
+        // A replacement is drawn from the same institution as the committee it sits in for.
+        $committeeOrganizationId = $stage->committee?->organization_id;
+        if ($committeeOrganizationId !== null && $employee->currentAssignment?->organization_id !== $committeeOrganizationId) {
+            throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.member_outside_organization')]);
+        }
         if (app(StatutoryCommitteeRules::class)->employeeEligibility((string) $employee->getKey())['problems'] !== []) {
             throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.member_disciplined')]);
         }
@@ -366,6 +393,50 @@ final class GrievanceCommitteeService
         };
 
         return ['rule' => $rule, 'required' => $required, 'present' => $present, 'met' => $present >= $required];
+    }
+
+    /**
+     * Serving members with no signature on file (neither captured at
+     * appointment nor on the employee record). Empty for an approvable committee.
+     *
+     * @return Collection<int, GrievanceCommitteeMember>
+     */
+    public function membersWithoutSignature(GrievanceCommittee $committee): Collection
+    {
+        return $committee->members()->servingOn(now())->with('employee:id,signature_path')->get()
+            ->reject(fn (GrievanceCommitteeMember $m) => $m->hasSignature())->values();
+    }
+
+    /**
+     * The signature image registered with a term: an uploaded image is stored
+     * on the private disk and becomes the employee's signature (the one letters
+     * are signed with); an already-stored path (seeders, imports) or the
+     * employee's existing signature is accepted instead. Without any, the
+     * member is not registered.
+     */
+    private function storeSignature(Employee $employee, mixed $upload, ?string $storedPath): string
+    {
+        if ($upload instanceof UploadedFile) {
+            $extension = strtolower($upload->getClientOriginalExtension() ?: ($upload->extension() ?: 'png'));
+            $extension = $extension === 'jpeg' ? 'jpg' : $extension;
+            $path = 'employee-signatures/'.Str::uuid().'.'.$extension;
+            Storage::disk('local')->put($path, (string) file_get_contents($upload->getRealPath()));
+            $employee->forceFill(['signature_path' => $path])->save();
+
+            return $path;
+        }
+        if (is_string($storedPath) && $storedPath !== '') {
+            if (! $employee->signature_path) {
+                $employee->forceFill(['signature_path' => $storedPath])->save();
+            }
+
+            return $storedPath;
+        }
+        if ($employee->signature_path) {
+            return $employee->signature_path;
+        }
+
+        throw ValidationException::withMessages(['signature' => __('grievances.errors.committee_member_signature_required')]);
     }
 
     private function assertManage(User $actor, ?string $organizationId): void

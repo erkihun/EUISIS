@@ -35,6 +35,10 @@ class GrievanceCommitteeMember extends Model
         'appointed_by',
         'appointment_reference',
         'end_reason',
+        'signature_path',
+        'signature_sha256',
+        'signature_recorded_at',
+        'signature_recorded_by',
     ];
 
     protected function casts(): array
@@ -42,7 +46,22 @@ class GrievanceCommitteeMember extends Model
         return [
             'effective_from' => 'date:Y-m-d',
             'effective_to' => 'date:Y-m-d',
+            'signature_recorded_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The signature on file for this term: the image captured at appointment,
+     * or the employee's signature image when the term predates that rule.
+     */
+    public function signaturePath(): ?string
+    {
+        return $this->signature_path ?: ($this->employee?->signature_path ?: null);
+    }
+
+    public function hasSignature(): bool
+    {
+        return $this->signaturePath() !== null;
     }
 
     public function committee(): BelongsTo
