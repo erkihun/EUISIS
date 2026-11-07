@@ -11,13 +11,23 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { PageProps } from '@/types';
-import type { RoutingIndexProps, RouteRow } from '@/types/grievances';
+import type { HandlerRef, RoutingIndexProps, RouteRow } from '@/types/grievances';
 
 /**
  * Grievance routing. Each route is an explicit move between handlers. A Team or
  * Directorate target is picked from the designated units (ADR 0029), and every
  * row says whether that unit can take cases (designated, head named).
  */
+/** In the form, a unit is a Grievance Team or the Grievance Directorate (both organization units underneath). */
+function formType(type: string, kind: string | null | undefined): string {
+    return type === 'organization_unit' && kind ? kind : type;
+}
+
+/** Shown with its Team / Directorate label instead of the generic unit label. */
+function withKind(handler: HandlerRef, kind: string | null | undefined): HandlerRef {
+    return handler.type === 'organization_unit' && kind ? { ...handler, type: kind as HandlerRef['type'] } : handler;
+}
+
 export default function Index({ routes, filters, options, summary, can }: RoutingIndexProps) {
     const { t, locale } = useLocale();
     const label = useEnumLabel();
@@ -29,14 +39,16 @@ export default function Index({ routes, filters, options, summary, can }: Routin
     const row = typeof editing === 'object' ? editing : null;
     const close = () => setEditing(null);
     const fields: AdminField[] = [
-        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'source_', title: t('grievanceAdmin.source'), options, locale, required: true, allowOrganization: true, initial: row?.source }),
+        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'source_', title: t('grievanceAdmin.source'), options, locale, required: true, allowOrganization: true, initial: row?.source, allLabels: { organization: r('allOrganizations'), committee: r('allCommittees'), team: r('allTeams') } }),
         { key: 'include_descendants', type: 'boolean', visible: data => data.source_handler_type === 'organization' },
-        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'target_', title: t('grievanceAdmin.target'), options, locale, required: true, initial: row?.target }),
+        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'target_', title: t('grievanceAdmin.target'), options, locale, required: true, initial: row?.target, allLabels: { committee: r('ownCommittee') } }),
         { key: 'movement_type', type: 'select', required: true, options: choices(options.movement_types), enumGroup: 'movement_type', help: t('grievanceAdmin.initialSourceHelp') },
         { key: 'category_id', type: 'select', options: options.categories.map(value => ({ value: value.id!, label: nameOf(value, locale) })) },
         { key: 'sla_profile_id', type: 'select', options: options.sla_profiles.map(value => ({ value: value.id!, label: nameOf(value, locale) })) },
         { key: 'priority', type: 'number', required: true, min: 1, max: 1000 }, { key: 'effective_from', type: 'date', required: true }, { key: 'effective_to', type: 'date' }, { key: 'notes', type: 'textarea' },
     ];
+    // Filter by Grievance Team and Grievance Directorate separately.
+    const filterTypes = options.handler_types.flatMap(type => (type === 'organization_unit' ? ['team', 'directorate'] : [type]));
     const state = (item: RouteRow) => !item.is_active ? 'inactive' : item.approved_at ? 'active' : 'pending_approval';
 
     return <AuthenticatedLayout header={<PageHeader title={t('grievanceAdmin.routing')} description={t('grievanceAdmin.routingHelp')}
@@ -52,19 +64,19 @@ export default function Index({ routes, filters, options, summary, can }: Routin
 
             {summary.unit_gaps > 0 && <div role="status" className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 sm:flex-row sm:items-center dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
                 <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden /><p className="flex-1">{r('gapsAlert')}</p>
-                <Link href={route('grievances.units.index')} className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline">{r('openUnits')}<ChevronRight className="h-4 w-4" aria-hidden /></Link>
+                <Link href={route('grievances.teams.index')} className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline">{r('openUnits')}<ChevronRight className="h-4 w-4" aria-hidden /></Link>
             </div>}
 
             <FilterPanel onSubmit={() => router.get(route('grievances.routes.index'), query, { preserveState: true })} onReset={() => router.get(route('grievances.routes.index'))} hasActiveFilters={Object.values(filters).some(Boolean)}>
-                {(['movement_type', 'source_handler_type', 'target_handler_type', 'state'] as const).map(key => <FilterField key={key} label={t(`grievanceAdmin.fields.${key}`)}><select className={inputCls} value={query[key]} onChange={event => setQuery({ ...query, [key]: event.target.value })}><option value="">{t('grievances.common.all')}</option>{(key === 'state' ? ['active', 'pending', 'inactive'] : key === 'movement_type' ? options.movement_types : options.handler_types).map(value => <option value={value} key={value}>{label(key === 'state' ? 'committee_status' : key === 'movement_type' ? key : 'handler_type', value === 'pending' ? 'pending_approval' : value)}</option>)}</select></FilterField>)}
+                {(['movement_type', 'source_handler_type', 'target_handler_type', 'state'] as const).map(key => <FilterField key={key} label={t(`grievanceAdmin.fields.${key}`)}><select className={inputCls} value={query[key]} onChange={event => setQuery({ ...query, [key]: event.target.value })}><option value="">{t('grievances.common.all')}</option>{(key === 'state' ? ['active', 'pending', 'inactive'] : key === 'movement_type' ? options.movement_types : filterTypes).map(value => <option value={value} key={value}>{label(key === 'state' ? 'committee_status' : key === 'movement_type' ? key : 'handler_type', value === 'pending' ? 'pending_approval' : value)}</option>)}</select></FilterField>)}
             </FilterPanel>
             {Object.values(action.errors).map((error, index) => <p role="alert" key={index} className="text-sm text-red-600">{error}</p>)}
 
             <Section title={t('grievanceAdmin.routing')} flush>{routes.data.length ? <Table head={<>{['source', 'target', 'movement_type', 'priority', 'status', 'effective_from', 'actions'].map(key => <th key={key} className={thCls}>{t(`grievanceAdmin.fields.${key}`)}</th>)}</>}>{routes.data.map(item => <tr key={item.id} className={item.is_active ? '' : 'opacity-60'}>
-                <td className={tdCls}><HandlerName handler={item.source} showType />{item.include_descendants && <p className="text-xs text-(--app-muted-foreground)">{t('grievanceAdmin.fields.include_descendants')}</p>}</td>
+                <td className={tdCls}>{item.source_all ? <span className="font-medium text-(--app-foreground)">{item.source_kind === "team" ? r("allTeams") : item.source_kind === "directorate" ? r("theDirectorate") : item.source.type === "organization" ? r("allOrganizations") : r("allCommittees")}<span className="block text-xs font-normal text-(--app-muted-foreground)">{label("handler_type", item.source_kind ?? item.source.type)}</span></span> : <HandlerName handler={withKind(item.source, item.source_kind)} showType />}{item.include_descendants && <p className="text-xs text-(--app-muted-foreground)">{t('grievanceAdmin.fields.include_descendants')}</p>}</td>
                 <td className={tdCls}>
                     <div className="flex items-start gap-2"><ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden /><div className="min-w-0">
-                        <HandlerName handler={item.target} showType />
+                        {item.target_all ? <span className="font-medium text-(--app-foreground)">{r('ownCommittee')}<span className="block text-xs font-normal text-(--app-muted-foreground)">{label('handler_type', 'committee')}</span></span> : <HandlerName handler={withKind(item.target, item.target_kind)} showType />}
                         {item.target_unit && <UnitReadiness unit={item.target_unit} />}
                         {item.cross_organization && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t('grievanceAdmin.crossOrganization')}</p>}
                     </div></div>
@@ -86,7 +98,7 @@ export default function Index({ routes, filters, options, summary, can }: Routin
                 <h2 className="text-lg font-semibold text-(--app-foreground)">{t(row ? 'grievanceAdmin.editRoute' : 'grievanceAdmin.newRoute')}</h2>
                 <p className="mt-1 text-sm text-(--app-muted-foreground)">{r('unitsOnly')}</p>
                 <div className="mt-5">
-                    <AdminForm key={row?.id ?? 'new'} initial={{ source_handler_type: row?.source.type ?? 'organization', source_handler_id: row?.source.id ?? '', source_lookup_organization_id: '', target_handler_type: row?.target.type ?? 'committee', target_handler_id: row?.target.id ?? '', target_lookup_organization_id: '', include_descendants: row?.include_descendants ?? false, movement_type: row?.movement_type ?? 'initial_assignment', category_id: row?.category?.id ?? '', sla_profile_id: row?.sla_profile?.id ?? '', priority: row?.priority ?? 100, effective_from: row?.effective_from ?? today(), effective_to: row?.effective_to ?? '', notes: row?.notes ?? '' }}
+                    <AdminForm key={row?.id ?? 'new'} initial={{ source_handler_type: row ? formType(row.source.type, row.source_kind) : 'organization', source_handler_id: row ? (row.source_all ? 'all' : row.source.id ?? '') : '', source_lookup_organization_id: '', target_handler_type: row ? formType(row.target.type, row.target_kind) : 'committee', target_handler_id: row ? (row.target_all ? 'all' : row.target.id ?? '') : '', target_lookup_organization_id: '', include_descendants: row?.include_descendants ?? false, movement_type: row?.movement_type ?? 'initial_assignment', category_id: row?.category?.id ?? '', sla_profile_id: row?.sla_profile?.id ?? '', priority: row?.priority ?? 100, effective_from: row?.effective_from ?? today(), effective_to: row?.effective_to ?? '', notes: row?.notes ?? '' }}
                         fields={fields} url={row ? route('grievances.routes.update', row.id) : route('grievances.routes.store')} method={row ? 'patch' : 'post'} onCancel={close} onSaved={close} />
                 </div>
             </div>}

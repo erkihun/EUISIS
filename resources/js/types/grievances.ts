@@ -25,7 +25,7 @@ export type Paginated<T> = {
 export type EmployeeRef = { id: string; name: string | null; name_en: string | null; employee_number: string | null; unit?: Bilingual | null; position?: Bilingual | null; photo_url?: string | null };
 
 export type HandlerRef = {
-    type: 'committee' | 'organization_unit' | 'external_authority' | 'organization' | '';
+    type: 'committee' | 'organization_unit' | 'team' | 'directorate' | 'external_authority' | 'organization' | '';
     id: string | null;
     name_en: string;
     name_am: string | null;
@@ -361,17 +361,19 @@ export type CommitteesIndexProps = {
     can: { create: boolean };
 };
 export type HandlerUnitMember = {
-    id: string; employee: EmployeeRef | null; responsibility: 'head' | 'investigator' | 'secretary';
+    id: string; employee: EmployeeRef | null; responsibility: 'head' | 'expert';
     effective_from: string | null; effective_to: string | null; appointment_reference: string | null; signature: boolean; signature_url: string | null;
+    placed: boolean;
 };
 export type HandlerUnitItem = {
     id: string; kind: 'team' | 'directorate'; status: 'active' | 'inactive'; description_en: string | null; description_am: string | null;
     organization: Bilingual | null; unit: Bilingual | null; problems: string[]; members: HandlerUnitMember[]; can_update: boolean; can_manage_members: boolean;
 };
 export type HandlerUnitsIndexProps = {
+    kind: 'team' | 'directorate'; directorate_exists: boolean;
     units: Paginated<HandlerUnitItem>;
-    filters: { organization_id?: string; kind?: string; status?: string; search?: string };
-    options: { organizations: Bilingual[]; kinds: string[]; responsibilities: string[] };
+    filters: { organization_id?: string; status?: string; search?: string };
+    options: { organizations: Bilingual[]; kinds: string[]; responsibilities: string[]; end_reasons: string[] };
     summary: { teams: number; directorates: number; members: number; unsigned: number };
     can: { designate: boolean };
 };
@@ -393,6 +395,7 @@ export type RouteRow = {
     notes: string | null; cross_organization: boolean;
     /** ADR 0029: readiness of a Team/Directorate target. */
     target_unit: { designated: boolean; kind: string | null; members: number; head: string | null; ready: boolean } | null;
+    source_kind: string | null; target_kind: string | null; source_all: boolean; target_all: boolean;
 };
 export type HandlerOptions = {
     movement_types: string[]; handler_types: string[]; organizations: Bilingual[];

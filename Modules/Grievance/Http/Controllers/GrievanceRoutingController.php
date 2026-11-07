@@ -52,9 +52,20 @@ class GrievanceRoutingController extends Controller
         abort_unless($user->can('grievance_routes.view'), 403);
 
         $query = GrievanceRoute::query()->with(['category:id,name_en,name_am', 'slaProfile:id,name_en,name_am', 'creator:id,name', 'approver:id,name']);
-        foreach (['movement_type', 'source_handler_type', 'target_handler_type'] as $filter) {
-            if ($request->filled($filter)) {
-                $query->where($filter, (string) $request->string($filter));
+        if ($request->filled('movement_type')) {
+            $query->where('movement_type', (string) $request->string('movement_type'));
+        }
+        foreach (['source', 'target'] as $side) {
+            $type = (string) $request->string("{$side}_handler_type");
+            if ($type === '') {
+                continue;
+            }
+            // Team and Directorate filter by the designated units of that kind.
+            if (in_array($type, GrievanceHandlerUnit::KINDS, true)) {
+                $query->where("{$side}_handler_type", GrievanceHandlerType::OrganizationUnit->value)
+                    ->whereIn("{$side}_handler_id", GrievanceHandlerUnit::query()->where('kind', $type)->select('organization_unit_id'));
+            } else {
+                $query->where("{$side}_handler_type", $type);
             }
         }
         if ($request->filled('state')) {
@@ -73,6 +84,12 @@ class GrievanceRoutingController extends Controller
             'include_descendants' => $r->include_descendants,
             'target' => $this->presenter->handler($r->target_handler_type->value, $r->target_handler_id),
             'target_unit' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit ? $this->unitReadiness((string) $r->target_handler_id) : null,
+            // Shown and edited as Grievance Team / Grievance Directorate.
+            'source_kind' => $r->source_handler_type === GrievanceHandlerType::OrganizationUnit
+                ? ($r->source_all ? $r->source_unit_kind : $this->unitReadiness((string) $r->source_handler_id)['kind']) : null,
+            'source_all' => (bool) $r->source_all,
+            'target_all' => (bool) $r->target_all,
+            'target_kind' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit ? $this->unitReadiness((string) $r->target_handler_id)['kind'] : null,
             'movement_type' => $r->movement_type->value,
             'category' => $r->category?->only(['id', 'name_en', 'name_am']),
             'sla_profile' => $r->slaProfile?->only(['id', 'name_en', 'name_am']),
@@ -218,12 +235,25 @@ class GrievanceRoutingController extends Controller
     /** @return array<string, mixed> */
     private function validateRoute(Request $request): array
     {
+        $this->mapUnitKinds($request, ['source_', 'target_']);
+
+        // "All" as the source: every institution, every committee, every team (or the directorate), not one handler.
+        $sourceAll = $request->input('source_handler_id') === 'all';
+        if ($sourceAll) {
+            $request->merge(['source_handler_id' => null]);
+        }
+        // "All committees" as the target: scoped, i.e. the grievance's own institution's committee.
+        $targetAll = $request->input('target_handler_id') === 'all';
+        if ($targetAll) {
+            $request->merge(['target_handler_id' => null]);
+        }
+
         $data = $request->validate([
             'source_handler_type' => ['required', Rule::in(GrievanceHandlerType::values())],
-            'source_handler_id' => ['required', 'uuid'],
+            'source_handler_id' => [$sourceAll ? 'nullable' : 'required', 'nullable', 'uuid'],
             'include_descendants' => ['nullable', 'boolean'],
             'target_handler_type' => ['required', Rule::in([GrievanceHandlerType::Committee->value, GrievanceHandlerType::OrganizationUnit->value, GrievanceHandlerType::ExternalAuthority->value])],
-            'target_handler_id' => ['required', 'uuid', 'different:source_handler_id'],
+            'target_handler_id' => [$targetAll ? 'nullable' : 'required', 'nullable', 'uuid', 'different:source_handler_id'],
             'movement_type' => ['required', Rule::in(GrievanceMovementType::values())],
             'category_id' => ['nullable', 'uuid', 'exists:grievance_categories,id'],
             'sla_profile_id' => ['nullable', 'uuid', 'exists:grievance_sla_profiles,id'],
@@ -234,18 +264,27 @@ class GrievanceRoutingController extends Controller
         ]);
 
         $sourceType = GrievanceHandlerType::from($data['source_handler_type']);
-        if ($this->handlers->find($sourceType, $data['source_handler_id']) === null
-            || $this->handlers->find(GrievanceHandlerType::from($data['target_handler_type']), $data['target_handler_id']) === null) {
+        $data['source_all'] = $sourceAll;
+        $data['source_unit_kind'] = $sourceAll && $sourceType === GrievanceHandlerType::OrganizationUnit ? ($this->sourceKind ?? 'team') : null;
+        if ($sourceAll && ! in_array($sourceType, [GrievanceHandlerType::Organization, GrievanceHandlerType::Committee, GrievanceHandlerType::OrganizationUnit], true)) {
+            throw ValidationException::withMessages(['source_handler_id' => __('grievances.errors.all_source_not_allowed')]);
+        }
+        $data['target_all'] = $targetAll;
+        if ($targetAll && ($data['target_handler_type'] !== GrievanceHandlerType::Committee->value || $sourceType !== GrievanceHandlerType::Organization)) {
+            throw ValidationException::withMessages(['target_handler_id' => __('grievances.errors.all_target_not_allowed')]);
+        }
+        if ((! $sourceAll && $this->handlers->find($sourceType, $data['source_handler_id']) === null)
+            || (! $targetAll && $this->handlers->find(GrievanceHandlerType::from($data['target_handler_type']), $data['target_handler_id']) === null)) {
             throw ValidationException::withMessages(['target_handler_id' => __('grievances.errors.handler_missing')]);
         }
         // ADR 0030: a route to the court (an external authority) starts from the Grievance Directorate only.
-        if ($data['target_handler_type'] === GrievanceHandlerType::ExternalAuthority->value
-            && ! $this->handlers->isGrievanceDirectorate($sourceType, $data['source_handler_id'])) {
+        $fromDirectorate = $sourceAll ? $data['source_unit_kind'] === 'directorate' : $this->handlers->isGrievanceDirectorate($sourceType, $data['source_handler_id']);
+        if ($data['target_handler_type'] === GrievanceHandlerType::ExternalAuthority->value && ! $fromDirectorate) {
             throw ValidationException::withMessages(['source_handler_id' => __('grievances.errors.court_only_from_directorate')]);
         }
-        // ADR 0029: a Team/Directorate in a route is a designated unit (Teams & Directorates page).
+        // ADR 0029: a Team/Directorate in a route is a designated unit (Teams / Directorate pages).
         foreach (['source', 'target'] as $side) {
-            if ($data["{$side}_handler_type"] === GrievanceHandlerType::OrganizationUnit->value
+            if ($data["{$side}_handler_type"] === GrievanceHandlerType::OrganizationUnit->value && $data["{$side}_handler_id"] !== null
                 && ! GrievanceHandlerUnit::query()->where('organization_unit_id', $data["{$side}_handler_id"])->where('status', 'active')->exists()) {
                 throw ValidationException::withMessages(["{$side}_handler_id" => __('grievances.errors.unit_not_designated')]);
             }
@@ -253,7 +292,7 @@ class GrievanceRoutingController extends Controller
         if (($sourceType === GrievanceHandlerType::Organization) !== ($data['movement_type'] === GrievanceMovementType::InitialAssignment->value)) {
             throw ValidationException::withMessages(['movement_type' => __('grievances.errors.initial_route_source')]);
         }
-        $data['include_descendants'] = (bool) ($data['include_descendants'] ?? false) && $sourceType === GrievanceHandlerType::Organization;
+        $data['include_descendants'] = (bool) ($data['include_descendants'] ?? false) && $sourceType === GrievanceHandlerType::Organization && ! $sourceAll;
 
         return $data;
     }
@@ -261,6 +300,9 @@ class GrievanceRoutingController extends Controller
     /** @return array<string, mixed> */
     private function validateSla(Request $request): array
     {
+        if ($request->filled('handler_id')) {
+            $this->mapUnitKinds($request, ['']);
+        }
         $data = $request->validate([
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['nullable', 'string', 'max:255'],
@@ -317,6 +359,37 @@ class GrievanceRoutingController extends Controller
             // Units are loaded per organization through the lookup endpoint.
         ];
     }
+
+    /**
+     * The forms offer Grievance Team and Grievance Directorate as separate handler
+     * choices; both are organization units underneath. Map them back, and check the
+     * chosen unit is designated as that kind.
+     *
+     * @param  list<string>  $prefixes  field prefixes, e.g. ['source_', 'target_'] or ['']
+     */
+    private function mapUnitKinds(Request $request, array $prefixes): void
+    {
+        $this->sourceKind = null;
+        foreach ($prefixes as $prefix) {
+            $kind = (string) $request->input("{$prefix}handler_type");
+            if (! in_array($kind, GrievanceHandlerUnit::KINDS, true)) {
+                continue;
+            }
+            $request->merge(["{$prefix}handler_type" => GrievanceHandlerType::OrganizationUnit->value]);
+            if ($prefix === 'source_') {
+                $this->sourceKind = $kind;
+            }
+            if ($request->input("{$prefix}handler_id") === 'all') {
+                continue; // "All teams" / "the directorate": checked against the kind, not one unit.
+            }
+            if (! GrievanceHandlerUnit::query()->where('organization_unit_id', (string) $request->input("{$prefix}handler_id"))->where('kind', $kind)->where('status', 'active')->exists()) {
+                throw ValidationException::withMessages(["{$prefix}handler_id" => __('grievances.errors.unit_not_designated')]);
+            }
+        }
+    }
+
+    /** Kind (team/directorate) the route form chose for its source, set by mapUnitKinds(). */
+    private ?string $sourceKind = null;
 
     /** @var array<string, array{designated: bool, kind: string|null, members: int, head: string|null, ready: bool}> */
     private array $readiness = [];

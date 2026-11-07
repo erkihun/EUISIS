@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
 use Modules\Grievance\Application\Services\GrievanceHandlerUnitService;
+use Modules\Grievance\Domain\Enums\GrievanceUnitEndReason;
 use Modules\Grievance\Domain\Enums\GrievanceUnitResponsibility;
 use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
 use Modules\Grievance\Domain\Models\GrievanceHandlerUnitMember;
@@ -25,11 +27,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class GrievanceHandlerUnitController extends Controller
 {
-    private const RESPONSIBILITY_ORDER = ['head' => 0, 'secretary' => 1, 'investigator' => 2];
+    private const RESPONSIBILITY_ORDER = ['head' => 0, 'expert' => 1];
 
     public function __construct(
         private readonly GrievanceHandlerUnitService $units,
         private readonly OrganizationScopeService $scope,
+        private readonly GrievanceHandlerRegistry $handlers,
     ) {}
 
     public function index(Request $request): Response
@@ -37,12 +40,15 @@ class GrievanceHandlerUnitController extends Controller
         $user = $request->user();
         abort_unless($user->can('grievance_committees.view'), 403);
 
-        $base = fn () => $this->scope->applyOrganizationScope(GrievanceHandlerUnit::query(), $user);
+        // Teams and the Grievance Directorate are separate pages (route default `kind`).
+        $kind = in_array($request->route('kind'), GrievanceHandlerUnit::KINDS, true) ? (string) $request->route('kind') : 'team';
+        $all = fn () => $this->scope->applyOrganizationScope(GrievanceHandlerUnit::query(), $user);
+        $base = fn () => $all()->where('kind', $kind);
         $query = $base()->with([
             'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am',
             'members' => fn ($q) => $q->servingOn(now())->with(['employee.currentAssignment.organizationUnit:id,name_en,name_am', 'employee.currentAssignment.position:id,title_en,title_am']),
         ]);
-        foreach (['organization_id', 'kind', 'status'] as $filter) {
+        foreach (['organization_id', 'status'] as $filter) {
             if ($request->filled($filter)) {
                 $query->where($filter, (string) $request->string($filter));
             }
@@ -72,6 +78,8 @@ class GrievanceHandlerUnitController extends Controller
                     'effective_to' => $m->effective_to?->toDateString(),
                     'appointment_reference' => $m->appointment_reference,
                     'signature' => $m->hasSignature(),
+                    // Moved to another unit or institution (or no longer active): the term should be ended.
+                    'placed' => $m->employee !== null && $this->handlers->isPlacedIn($m->employee, (string) $d->organization_unit_id),
                     'signature_url' => $m->hasSignature() ? route('grievances.units.members.signature', [$d, $m]) : null,
                 ])->values(),
             'can_update' => $user->can('grievance_committees.manage') && $this->scope->canExercisePermission($user, 'grievance_committees.manage', $d->organization_id),
@@ -81,16 +89,20 @@ class GrievanceHandlerUnitController extends Controller
         $designations = $base()->pluck('id');
 
         return Inertia::render('Grievances/Units/Index', [
+            'kind' => $kind,
+            // One Grievance Directorate in the system (ADR 0030): its page offers no second designation.
+            'directorate_exists' => GrievanceHandlerUnit::query()->where('kind', 'directorate')->where('status', 'active')->exists(),
             'units' => $page,
-            'filters' => $request->only(['organization_id', 'kind', 'status', 'search']),
+            'filters' => $request->only(['organization_id', 'status', 'search']),
             'options' => [
                 'organizations' => $this->scope->applyOrganizationScope(Organization::query(), $user, 'id')->where('status', 'active')->orderBy('name_en')->limit(1000)->get(['id', 'name_en', 'name_am']),
                 'kinds' => GrievanceHandlerUnit::KINDS,
                 'responsibilities' => GrievanceUnitResponsibility::values(),
+                'end_reasons' => GrievanceUnitEndReason::values(),
             ],
             'summary' => [
-                'teams' => $base()->where('kind', 'team')->count(),
-                'directorates' => $base()->where('kind', 'directorate')->count(),
+                'teams' => $all()->where('kind', 'team')->count(),
+                'directorates' => $all()->where('kind', 'directorate')->count(),
                 'members' => GrievanceHandlerUnitMember::query()->servingOn(now())->whereIn('handler_unit_id', $designations)->count(),
                 'unsigned' => GrievanceHandlerUnitMember::query()->servingOn(now())->whereIn('handler_unit_id', $designations)->with('employee:id,signature_path')->get()
                     ->reject(fn (GrievanceHandlerUnitMember $m) => $m->hasSignature())->count(),
@@ -157,8 +169,12 @@ class GrievanceHandlerUnitController extends Controller
 
     public function endMember(Request $request, GrievanceHandlerUnit $unit, GrievanceHandlerUnitMember $member): RedirectResponse
     {
-        $data = $request->validate(['reason' => ['required', 'string', 'max:1000'], 'effective_to' => ['nullable', 'date']]);
-        $this->units->endMember($unit, $member, $request->user(), $data['reason'], $data['effective_to'] ?? null);
+        $data = $request->validate([
+            'end_reason_code' => ['required', Rule::in(GrievanceUnitEndReason::values())],
+            'reason' => ['nullable', 'string', 'max:1000'],
+            'effective_to' => ['nullable', 'date'],
+        ]);
+        $this->units->endMember($unit, $member, $request->user(), GrievanceUnitEndReason::from($data['end_reason_code']), $data['reason'] ?? null, $data['effective_to'] ?? null);
 
         return back()->with('flash', ['message' => __('grievances.memberRemoved'), 'type' => 'success']);
     }

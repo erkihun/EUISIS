@@ -87,8 +87,10 @@ returned_for_correction → complainant corrects (amendment recorded) → resubm
 
 - Handler types: `committee`, `organization_unit` (Team/Directorate), `external_authority`
   (e.g. the Administrative Tribunal; routing there keeps the existing tribunal register in step).
-- **Teams and Directorates (ADR 0029).** Grievance Management → Teams & Directorates
-  (`grievances.units.*`) designates an *existing* organization unit as a Grievance Team or
+- **Teams and Directorates (ADR 0029).** Grievance Management → Grievance Teams
+  (`grievances.teams.index`) and Grievance Directorate (`grievances.directorate.index`, the one
+  directorate of ADR 0030; writes go through `grievances.units.*`) designate an *existing*
+  organization unit as a Grievance Team or
   Directorate (`grievance_handler_units`; nothing is created) and names its own staff
   (`grievance_handler_unit_members`) with a Regulation 201/2018 responsibility — `head`
   (Team leader / Director), `investigator`, `secretary` — and a signature image captured

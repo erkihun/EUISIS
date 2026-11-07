@@ -31,9 +31,10 @@ signature was attached, unlike committee members (ADR 0028).
    - `head` (Team leader / Director): receives the cases routed to the unit,
      distributes them, leads the review and signs and submits the report and
      recommendation to the deciding authority (Regulation 201/2018 Arts. 34(3), 35(1));
-   - `investigator`: examines the application and evidence and drafts the findings (Art. 34);
-   - `secretary`: registers the application and its documents, keeps the minutes
-     and prepares the written decision for delivery (Arts. 32(2), 35(2)).
+   - `expert`: examines the application and evidence and drafts the findings for the head (Art. 34).
+   (Owner correction, 2026-11-07: a team has a team leader and experts, the directorate a
+   director and experts; there is no secretary. Earlier `investigator`/`secretary` terms
+   were converted to `expert`.)
    Exactly one serving `head` per unit. Terms are ended, never deleted, and can be
    corrected in place while serving (same rules as committee terms).
 3. **Signature at appointment (same as ADR 0028).** A member is registered
@@ -51,7 +52,16 @@ signature was attached, unlike committee members (ADR 0028).
    case officers are chosen among them. A unit that is not designated, or has no
    serving member yet, keeps the earlier HR-placement rule, so existing routes and
    open cases keep working while units are being set up.
-6. **Routes use designated units only.** A new or edited route whose source or
+5a. **Ending a term records why** (owner request 2026-11-07): transferred to another
+   institution, transferred to another work unit, retired, dismissed, or other (with a
+   note). A serving member whose current assignment is no longer in the unit (or who is no
+   longer active) is flagged on the page and stops handling the unit's cases at once,
+   before the term is formally ended.
+6. **Routes use designated units only.** The route form offers Grievance Team and Grievance
+   Directorate as separate choices, and a source may be "All institutions", "All committees" or "All teams"
+   (`source_all`, `source_unit_kind`); a route from one specific handler is preferred over
+   an "all" route. A route from institutions may target "All committees", which is scoped
+   (`target_all`): each grievance goes to its own institution's committee, never another's. A new or edited route whose source or
    target is a Team/Directorate is refused unless that unit is an active
    designation; the route form offers the designated units directly. Each route
    row shows whether its Team/Directorate target is ready (designated, head named),

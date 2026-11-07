@@ -178,20 +178,28 @@ function Thresholds({ value, onChange, min, max, disabled }: { value: number[]; 
 export const choices = (values: string[]): Choice[] => values.map(value => ({ value, label: value }));
 export const today = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
 
-export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial }: {
+export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial, allLabels }: {
     prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations' | 'handler_units'> & { committees: Bilingual[]; external_authorities: Bilingual[] };
     locale: string; title: string; organizationLabel: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
+    /** Offer an "All" choice (every institution / committee / team) — for a route's source. */
+    allLabels?: { organization?: string; committee?: string; team?: string };
 }): AdminField[] {
     const typeKey = `${prefix}handler_type`, idKey = `${prefix}handler_id`, orgKey = `${prefix}lookup_organization_id`;
     const list = (rows: Bilingual[]) => rows.map(row => ({ value: row.id!, label: nameOf(row, locale) }));
-    const result: AdminField[] = [{ key: typeKey, label: title, type: 'select', options: choices(options.handler_types.filter(type => allowOrganization || type !== 'organization')), enumGroup: 'handler_type', required, clearOnChange: [idKey, orgKey] }];
-    for (const [type, rows] of [['organization', options.organizations], ['committee', options.committees], ['external_authority', options.external_authorities]] as const) {
-        result.push({ key: idKey, label: title, type: 'select', required, options: list(rows), visible: data => data[typeKey] === type });
+    const units = options.handler_units;
+    // With designated units listed, Team and Directorate are separate choices (both are units underneath).
+    const types = options.handler_types.filter(type => (allowOrganization || type !== 'organization') && !(units && type === 'organization_unit'));
+    if (units) types.splice(Math.max(types.indexOf('committee') + 1, 0), 0, 'team', 'directorate');
+    const result: AdminField[] = [{ key: typeKey, label: title, type: 'select', options: choices(types), enumGroup: 'handler_type', required, clearOnChange: [idKey, orgKey] }];
+    const all = (label: string | undefined) => (label ? [{ value: 'all', label }] : []);
+    for (const [type, rows, allLabel] of [['organization', options.organizations, allLabels?.organization], ['committee', options.committees, allLabels?.committee], ['external_authority', options.external_authorities, undefined]] as const) {
+        result.push({ key: idKey, label: title, type: 'select', required, options: [...all(allLabel), ...list(rows)], visible: data => data[typeKey] === type });
     }
-    // ADR 0029: when the page lists the designated Teams/Directorates, pick from them directly.
-    if (options.handler_units) {
-        result.push({ key: idKey, label: title, type: 'select', required, visible: data => data[typeKey] === 'organization_unit',
-            options: options.handler_units.map(unit => ({ value: unit.id!, label: `${nameOf(unit, locale)} — ${nameOf(unit.organization, locale)}` })) });
+    // ADR 0029/0030: pick designated Teams, or the one Grievance Directorate, directly.
+    if (units) {
+        const unitList = (kind: string) => units.filter(unit => unit.kind === kind).map(unit => ({ value: unit.id!, label: `${nameOf(unit, locale)} — ${nameOf(unit.organization, locale)}` }));
+        result.push({ key: idKey, label: title, type: 'select', required, options: [...all(allLabels?.team), ...unitList('team')], visible: data => data[typeKey] === 'team' });
+        result.push({ key: idKey, label: title, type: 'select', required, options: unitList('directorate'), visible: data => data[typeKey] === 'directorate' });
         return result;
     }
     result.push({ key: orgKey, label: organizationLabel, type: 'select', options: list(options.organizations), visible: data => data[typeKey] === 'organization_unit', clearOnChange: [idKey] });

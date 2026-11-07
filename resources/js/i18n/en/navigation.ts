@@ -149,6 +149,8 @@ const navigation = {
     myGrievances: 'My Grievances',
     grievanceCommittees: 'Committees',
     grievanceUnits: 'Teams & Directorates',
+    grievanceTeams: 'Grievance Teams',
+    grievanceDirectorate: 'Grievance Directorate',
     grievanceCategories: 'Categories',
     grievanceSlaRules: 'SLA Rules',
     grievanceDashboard: 'Dashboard',

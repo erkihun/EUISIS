@@ -29,48 +29,55 @@ type Dialog =
 
 const AVATAR: Record<string, string> = {
     head: 'bg-primary text-white',
-    secretary: 'bg-amber-500 text-white dark:bg-amber-600',
-    investigator: 'bg-(--app-surface-muted) text-(--app-foreground) ring-1 ring-(--app-border-strong)',
+    expert: 'bg-(--app-surface-muted) text-(--app-foreground) ring-1 ring-(--app-border-strong)',
 };
 
-export default function Index({ units, filters, options, summary, can }: HandlerUnitsIndexProps) {
+export default function Index({ kind, directorate_exists, units, filters, options, summary, can }: HandlerUnitsIndexProps) {
     const { t, locale } = useLocale();
     const label = useEnumLabel();
     const u = (key: string) => t(`grievanceAdmin.unitBoard.${key}`);
-    const [query, setQuery] = useState({ search: filters.search ?? '', organization_id: filters.organization_id ?? '', kind: filters.kind ?? '', status: filters.status ?? '' });
+    // Two pages: the Grievance Teams, and the one Grievance Directorate (ADR 0030).
+    const isTeams = kind === 'team';
+    const listRoute = isTeams ? 'grievances.teams.index' : 'grievances.directorate.index';
+    const title = u(isTeams ? 'teamsTitle' : 'directorateTitle');
+    const designateLabel = u(isTeams ? 'designateTeam' : 'designateDirectorate');
+    const canDesignate = can.designate && (isTeams || !directorate_exists);
+    const [query, setQuery] = useState({ search: filters.search ?? '', organization_id: filters.organization_id ?? '', status: filters.status ?? '' });
     const [dialog, setDialog] = useState<Dialog | null>(null);
     const [bulk, setBulk] = useState<{ open: boolean; n: number } | null>(null);
     const close = () => setDialog(null);
     const organizations = options.organizations.map(org => ({ value: org.id!, label: nameOf(org, locale) }));
     const filtered = Object.values(filters).some(Boolean);
-    const responsibilityField = { key: 'responsibility', type: 'select' as const, options: choices(options.responsibilities), enumGroup: 'unit_responsibility', required: true };
+    // The head is the Team leader on the Teams page and the Director on the Directorate page.
+    const roleGroup = isTeams ? 'unit_responsibility_team' : 'unit_responsibility_directorate';
+    const responsibilityField = { key: 'responsibility', type: 'select' as const, options: choices(options.responsibilities), enumGroup: roleGroup, required: true };
 
-    return <AuthenticatedLayout header={<PageHeader title={u('title')} description={u('help')}
-        actions={can.designate && <button type="button" className={`${primaryBtn} gap-2`} onClick={() => setDialog({ kind: 'designate' })}><Plus className="h-4 w-4" aria-hidden />{u('designate')}</button>} />}>
-        <Head title={u('title')} />
+    return <AuthenticatedLayout header={<PageHeader title={title} description={u(isTeams ? 'teamsHelp2' : 'directorateHelp2')}
+        actions={canDesignate && <button type="button" className={`${primaryBtn} gap-2`} onClick={() => setDialog({ kind: 'designate' })}><Plus className="h-4 w-4" aria-hidden />{designateLabel}</button>} />}>
+        <Head title={title} />
         <div className={pageCls}>
-            <section aria-label={u('title')} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-                <AppMetricCard label={u('teams')} value={summary.teams} detail={u('teamsHelp')} variant="primary" icon={<Building2 className="h-5 w-5" />} />
-                <AppMetricCard label={u('directorates')} value={summary.directorates} detail={u('directoratesHelp')} variant="accent" icon={<Building2 className="h-5 w-5" />} />
+            <section aria-label={title} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
+                {isTeams
+                    ? <AppMetricCard label={u('teams')} value={summary.teams} detail={u('teamsHelp')} variant="primary" icon={<Building2 className="h-5 w-5" />} />
+                    : <AppMetricCard label={u('directorates')} value={summary.directorates} detail={u('directoratesHelp')} variant="accent" icon={<Building2 className="h-5 w-5" />} />}
                 <AppMetricCard label={u('members')} value={summary.members} detail={u('membersHelp')} variant="success" icon={<UserPlusIcon className="h-5 w-5" />} />
                 <AppMetricCard label={u('unsigned')} value={summary.unsigned} detail={u('unsignedHelp')} variant={summary.unsigned > 0 ? 'warning' : 'neutral'} icon={<AlertTriangle className="h-5 w-5" />} />
             </section>
 
-            <ResponsibilityGuide />
+            <ResponsibilityGuide roleGroup={roleGroup} />
 
-            <FilterPanel onSubmit={() => router.get(route('grievances.units.index'), query, { preserveState: true })} onReset={() => router.get(route('grievances.units.index'))} hasActiveFilters={filtered}>
+            {isTeams && <FilterPanel onSubmit={() => router.get(route(listRoute), query, { preserveState: true })} onReset={() => router.get(route(listRoute))} hasActiveFilters={filtered}>
                 <FilterField label={t('grievances.common.search')} wide><input type="search" className={inputCls} value={query.search} onChange={event => setQuery({ ...query, search: event.target.value })} /></FilterField>
                 <FilterField label={t('grievanceAdmin.fields.organization_id')}><select className={inputCls} value={query.organization_id} onChange={event => setQuery({ ...query, organization_id: event.target.value })}><option value="">{t('grievances.common.all')}</option>{organizations.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></FilterField>
-                <FilterField label={u('kindField')}><select className={inputCls} value={query.kind} onChange={event => setQuery({ ...query, kind: event.target.value })}><option value="">{t('grievances.common.all')}</option>{options.kinds.map(k => <option key={k} value={k}>{label('unit_kind', k)}</option>)}</select></FilterField>
                 <FilterField label={t('grievanceAdmin.fields.status')}><select className={inputCls} value={query.status} onChange={event => setQuery({ ...query, status: event.target.value })}><option value="">{t('grievances.common.all')}</option>{["active", "inactive"].map(s => <option key={s} value={s}>{label("committee_status", s)}</option>)}</select></FilterField>
-            </FilterPanel>
+            </FilterPanel>}
 
             {units.data.length === 0
                 ? <div className="flex flex-col items-center rounded-xl border border-dashed border-(--app-border-strong) bg-(--app-surface) px-6 py-14 text-center">
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Building2 className="h-6 w-6" /></span>
-                    <h2 className="mt-4 text-base font-semibold text-(--app-foreground)">{filtered ? u('noMatches') : u('noUnits')}</h2>
-                    {!filtered && <p className="mt-1 max-w-md text-sm text-(--app-muted-foreground)">{u('noUnitsHelp')}</p>}
-                    {!filtered && can.designate && <button type="button" className={`${primaryBtn} mt-5 gap-2`} onClick={() => setDialog({ kind: 'designate' })}><Plus className="h-4 w-4" aria-hidden />{u('designate')}</button>}
+                    <h2 className="mt-4 text-base font-semibold text-(--app-foreground)">{filtered ? u('noMatches') : u(isTeams ? 'noTeams' : 'noDirectorate')}</h2>
+                    {!filtered && <p className="mt-1 max-w-md text-sm text-(--app-muted-foreground)">{u(isTeams ? 'noTeamsHelp' : 'noDirectorateHelp')}</p>}
+                    {!filtered && canDesignate && <button type="button" className={`${primaryBtn} mt-5 gap-2`} onClick={() => setDialog({ kind: 'designate' })}><Plus className="h-4 w-4" aria-hidden />{designateLabel}</button>}
                 </div>
                 : <div className="space-y-4">
                     <div className="flex justify-end gap-2">
@@ -84,18 +91,19 @@ export default function Index({ units, filters, options, summary, can }: Handler
         </div>
 
         <Modal show={dialog !== null} onClose={close} maxWidth="2xl">
-            {dialog?.kind === 'designate' && <DialogShell title={u('designate')} help={u('designateHelp')}>
-                <AdminForm key="designate" initial={{ organization_id: organizations.length === 1 ? organizations[0].value : '', organization_unit_id: '', kind: 'team', description_en: '', description_am: '' }}
-                    fields={[{ key: 'organization_id', type: 'select', required: true, options: organizations, clearOnChange: ['organization_unit_id'] }, { key: 'organization_unit_id', label: u('unitField'), type: 'lookup', lookup: 'units', organizationKey: 'organization_id', required: true }, { key: 'kind', type: 'select', options: choices(options.kinds), enumGroup: 'unit_kind', required: true }, { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
+            {dialog?.kind === 'designate' && <DialogShell title={designateLabel} help={u(isTeams ? 'designateTeamHelp' : 'designateDirectorateHelp')}>
+                {/* The kind is fixed by the page: a team here, or the one directorate. */}
+                <AdminForm key={`designate-${kind}`} initial={{ organization_id: organizations.length === 1 ? organizations[0].value : '', organization_unit_id: '', kind, description_en: '', description_am: '' }}
+                    fields={[{ key: 'organization_id', type: 'select', required: true, options: organizations, clearOnChange: ['organization_unit_id'] }, { key: 'organization_unit_id', label: u('unitField'), type: 'lookup', lookup: 'units', organizationKey: 'organization_id', required: true }, { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
                     url={route('grievances.units.store')} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'edit' && <DialogShell title={`${u('editDesignation')}: ${nameOf(dialog.unit.unit, locale)}`}>
-                <AdminForm key={`edit-${dialog.unit.id}`} method="patch" initial={{ kind: dialog.unit.kind, description_en: dialog.unit.description_en ?? '', description_am: dialog.unit.description_am ?? '' }}
-                    fields={[{ key: 'kind', type: 'select', options: choices(options.kinds), enumGroup: 'unit_kind', required: true }, { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
+                <AdminForm key={`edit-${dialog.unit.id}`} method="patch" initial={{ description_en: dialog.unit.description_en ?? '', description_am: dialog.unit.description_am ?? '' }}
+                    fields={[{ key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
                     url={route('grievances.units.update', dialog.unit.id)} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'register' && <DialogShell title={`${u('registerMember')}: ${nameOf(dialog.unit.unit, locale)}`} help={u('registerMemberHelp')}>
-                <AdminForm key={`register-${dialog.unit.id}`} initial={{ employee_id: '', responsibility: 'investigator', effective_from: today(), effective_to: '', appointment_reference: '', signature: null, organization_id: dialog.unit.organization?.id ?? '', unit_id: dialog.unit.unit?.id ?? '' }}
+                <AdminForm key={`register-${dialog.unit.id}`} initial={{ employee_id: '', responsibility: 'expert', effective_from: today(), effective_to: '', appointment_reference: '', signature: null, organization_id: dialog.unit.organization?.id ?? '', unit_id: dialog.unit.unit?.id ?? '' }}
                     fields={[{ key: 'employee_id', type: 'lookup', lookup: 'employees', organizationKey: 'organization_id', unitKey: 'unit_id', lookupParams: { exclude_handler_unit_id: dialog.unit.id }, required: true }, responsibilityField, { key: 'effective_from', type: 'date', required: true }, { key: 'effective_to', type: 'date' }, { key: 'appointment_reference' }, { key: 'signature', type: 'file', accept: 'image/png,image/jpeg,image/webp', required: true, help: t('grievanceAdmin.signatureHelp') }]}
                     url={route('grievances.units.members.store', dialog.unit.id)} onSaved={close} onCancel={close} />
             </DialogShell>}
@@ -105,7 +113,9 @@ export default function Index({ units, filters, options, summary, can }: Handler
                     url={route('grievances.units.members.update', [dialog.unit.id, dialog.member.id])} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'endMember' && <DialogShell title={`${t('grievanceAdmin.endMembership')}: ${employeeName(dialog.member.employee, locale)}`} help={t('grievanceAdmin.committeeBoard.endMemberHelp')}>
-                <AdminForm key={`end-${dialog.member.id}`} initial={{ reason: '', effective_to: today() }} fields={[{ key: 'reason', type: 'textarea', required: true, maxLength: 1000 }, { key: 'effective_to', type: 'date' }]}
+                <AdminForm key={`end-${dialog.member.id}`} initial={{ end_reason_code: '', reason: '', effective_to: today() }}
+                    fields={[{ key: 'end_reason_code', label: u('endReasonField'), type: 'select', required: true, options: choices(options.end_reasons), enumGroup: 'unit_end_reason' },
+                        { key: 'reason', label: u('endNoteField'), type: 'textarea', maxLength: 1000, required: false, visible: data => data.end_reason_code === 'other' }, { key: 'effective_to', type: 'date' }]}
                     url={route('grievances.units.members.end', [dialog.unit.id, dialog.member.id])} onSaved={close} onCancel={close} />
             </DialogShell>}
         </Modal>
@@ -121,7 +131,7 @@ function DialogShell({ title, help, children }: { title: string; help?: string; 
 }
 
 /** What each responsibility means, folded by default. */
-function ResponsibilityGuide() {
+function ResponsibilityGuide({ roleGroup }: { roleGroup: string }) {
     const { t } = useLocale();
     const label = useEnumLabel();
     const u = (key: string) => t(`grievanceAdmin.unitBoard.${key}`);
@@ -129,9 +139,9 @@ function ResponsibilityGuide() {
         <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-3 font-medium text-(--app-foreground) [&::-webkit-details-marker]:hidden">
             <ChevronRight className="h-4 w-4 text-(--app-muted-foreground) transition-transform group-open:rotate-90" aria-hidden />{u('responsibilities')}
         </summary>
-        <dl className="grid gap-4 border-t border-(--app-border) px-5 py-4 md:grid-cols-3">
-            {(['head', 'investigator', 'secretary'] as const).map(r => <div key={r}>
-                <dt className="flex items-center gap-2 font-semibold text-(--app-foreground)"><span className={`h-2.5 w-2.5 rounded-full ${AVATAR[r]}`} aria-hidden />{label('unit_responsibility', r)}</dt>
+        <dl className="grid gap-4 border-t border-(--app-border) px-5 py-4 md:grid-cols-2">
+            {(['head', 'expert'] as const).map(r => <div key={r}>
+                <dt className="flex items-center gap-2 font-semibold text-(--app-foreground)"><span className={`h-2.5 w-2.5 rounded-full ${AVATAR[r]}`} aria-hidden />{label(roleGroup, r)}</dt>
                 <dd className="mt-1 text-(--app-muted-foreground)">{u(`${r}Duty`)}</dd>
             </div>)}
         </dl>
@@ -216,9 +226,10 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlerUnitItem; onOpen: (dial
                 : <ul className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-3">{unit.members.map(member => {
                     const name = employeeName(member.employee, locale);
                     return <li key={member.id} className="flex min-w-0 items-start gap-3 rounded-lg border border-(--app-border) bg-(--app-surface) p-3">
-                        <MemberAvatar name={name} photoUrl={member.employee?.photo_url} tier={member.responsibility === 'head' ? 'lead' : member.responsibility === 'secretary' ? 'second' : 'member'} />
+                        <MemberAvatar name={name} photoUrl={member.employee?.photo_url} tier={member.responsibility === 'head' ? 'lead' : 'member'} />
                         <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2"><span className="truncate font-medium text-(--app-foreground)">{name}</span><GPill group="unit_responsibility" value={member.responsibility} /></div>
+                            <div className="flex flex-wrap items-center gap-2"><span className="truncate font-medium text-(--app-foreground)">{name}</span><GPill group={unit.kind === 'team' ? 'unit_responsibility_team' : 'unit_responsibility_directorate'} value={member.responsibility} /></div>
+                            {!member.placed && <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-red-700 dark:text-red-400"><AlertTriangle className="h-3.5 w-3.5" aria-hidden />{u('movedOut')}</p>}
                             {member.employee?.position && <p className="mt-0.5 truncate text-sm text-(--app-foreground)">{nameOf(member.employee.position, locale)}</p>}
                             {member.employee?.unit && <p className="mt-0.5 truncate text-xs text-(--app-muted-foreground)">{nameOf(member.employee.unit, locale)}</p>}
                             {/* The signature image itself is not shown on the list; only a missing one is flagged. */}

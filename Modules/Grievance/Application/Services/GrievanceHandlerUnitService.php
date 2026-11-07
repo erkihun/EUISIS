@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Domain\Enums\GrievanceUnitEndReason;
 use Modules\Grievance\Domain\Enums\GrievanceUnitResponsibility;
 use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
 use Modules\Grievance\Domain\Models\GrievanceHandlerUnitMember;
@@ -196,15 +197,22 @@ final class GrievanceHandlerUnitService
         });
     }
 
-    public function endMember(GrievanceHandlerUnit $designation, GrievanceHandlerUnitMember $member, User $actor, string $reason, ?string $on = null): GrievanceHandlerUnitMember
+    /**
+     * End a term with its reason: moved to another institution or unit,
+     * retired, dismissed, or other (a note is then required).
+     */
+    public function endMember(GrievanceHandlerUnit $designation, GrievanceHandlerUnitMember $member, User $actor, GrievanceUnitEndReason $reason, ?string $note = null, ?string $on = null): GrievanceHandlerUnitMember
     {
         $this->assertManageMembers($actor, $designation);
         if ($member->handler_unit_id !== $designation->getKey()) {
             $this->access->authorize(false);
         }
+        if ($reason === GrievanceUnitEndReason::Other && trim((string) $note) === '') {
+            throw ValidationException::withMessages(['reason' => __('grievances.errors.reason_required')]);
+        }
         $end = Carbon::parse($on ?? now())->startOfDay();
-        $member->forceFill(['status' => 'inactive', 'effective_to' => $end->toDateString(), 'end_reason' => $reason])->save();
-        $this->audit->record(AuditEventType::GrievanceHandlerUnitMemberEnded, $actor, $designation, ['employee_id' => $member->employee_id, 'effective_to' => $end->toDateString()], null, $reason);
+        $member->forceFill(['status' => 'inactive', 'effective_to' => $end->toDateString(), 'end_reason_code' => $reason->value, 'end_reason' => $note ?: null])->save();
+        $this->audit->record(AuditEventType::GrievanceHandlerUnitMemberEnded, $actor, $designation, ['employee_id' => $member->employee_id, 'effective_to' => $end->toDateString(), 'end_reason_code' => $reason->value], null, $note);
 
         return $member;
     }
@@ -221,7 +229,7 @@ final class GrievanceHandlerUnitService
         if (! $designation->isActive()) {
             return ['grievances.errors.unit_designation_inactive'];
         }
-        $serving = $designation->members()->servingOn(now())->with('employee:id,signature_path')->get();
+        $serving = $designation->members()->servingOn(now())->with('employee')->get();
         $problems = [];
         if ($serving->isEmpty()) {
             $problems[] = 'grievances.errors.unit_has_no_members';
@@ -231,6 +239,10 @@ final class GrievanceHandlerUnitService
         }
         if ($serving->contains(fn (GrievanceHandlerUnitMember $m) => ! $m->hasSignature())) {
             $problems[] = 'grievances.errors.unit_signatures_missing';
+        }
+        $unitId = (string) $designation->organization_unit_id;
+        if ($serving->contains(fn (GrievanceHandlerUnitMember $m) => $m->employee === null || ! $this->handlers->isPlacedIn($m->employee, $unitId))) {
+            $problems[] = 'grievances.errors.unit_member_moved';
         }
 
         return $problems;

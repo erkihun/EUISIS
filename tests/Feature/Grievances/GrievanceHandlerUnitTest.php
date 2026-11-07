@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\EmployeeAssignment;
 use App\Models\OrganizationUnit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -14,9 +15,14 @@ use Modules\Grievance\Application\Services\GrievanceCaseService;
 use Modules\Grievance\Application\Services\GrievanceEscalationService;
 use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
 use Modules\Grievance\Application\Services\GrievanceHandlerUnitService;
+use Modules\Grievance\Application\Services\GrievanceRoutingService;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
 use Modules\Grievance\Domain\Enums\GrievanceCaseOfficerRole;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Enums\GrievanceUnitEndReason;
 use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Tests\Support\GrievanceScenario;
 
 /*
@@ -66,9 +72,9 @@ it('names only the unit’s own staff, one head, with a signature', function ():
     expect($head->signature_path)->not->toBeNull();
 
     // Without a signature the member is not registered at all.
-    expect(fn () => $this->units->addMember($designation, $this->admin, ['employee_id' => $officer->id, 'responsibility' => 'investigator', 'effective_from' => '2026-10-05']))
+    expect(fn () => $this->units->addMember($designation, $this->admin, ['employee_id' => $officer->id, 'responsibility' => 'expert', 'effective_from' => '2026-10-05']))
         ->toThrow(ValidationException::class, __('grievances.errors.committee_member_signature_required'));
-    $investigator = $this->units->addMember($designation, $this->admin, ['employee_id' => $officer->id, 'responsibility' => 'investigator', 'effective_from' => '2026-10-05', 'signature' => UploadedFile::fake()->image('sig.png', 200, 60)]);
+    $investigator = $this->units->addMember($designation, $this->admin, ['employee_id' => $officer->id, 'responsibility' => 'expert', 'effective_from' => '2026-10-05', 'signature' => UploadedFile::fake()->image('sig.png', 200, 60)]);
     expect($investigator->signature_sha256)->toHaveLength(64);
 
     // A second head is refused while the first serves.
@@ -77,7 +83,7 @@ it('names only the unit’s own staff, one head, with a signature', function ():
 
     // Staff of another unit are refused.
     $outsider = GrievanceScenario::employee($this->s->subcity, GrievanceScenario::unit($this->s->subcity, 'directorate', 'Finance'));
-    expect(fn () => $this->units->addMember($designation, $this->admin, ['employee_id' => $outsider->id, 'responsibility' => 'investigator', 'effective_from' => '2026-10-05']))
+    expect(fn () => $this->units->addMember($designation, $this->admin, ['employee_id' => $outsider->id, 'responsibility' => 'expert', 'effective_from' => '2026-10-05']))
         ->toThrow(ValidationException::class, __('grievances.errors.member_outside_unit'));
 
     expect($this->units->problems($designation))->toBe([]);
@@ -96,7 +102,7 @@ it('lets only named members handle a designated unit’s cases', function (): vo
 
     $designation = $this->units->designate($this->admin, ['organization_unit_id' => $this->s->team->id, 'kind' => 'team']);
     $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamLead->employee_id, 'responsibility' => 'head', 'effective_from' => '2026-10-05']);
-    $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamOfficer->employee_id, 'responsibility' => 'investigator', 'effective_from' => '2026-10-05']);
+    $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamOfficer->employee_id, 'responsibility' => 'expert', 'effective_from' => '2026-10-05']);
     $fresh = fn (): GrievanceCaseAccessService => app()->make(GrievanceCaseAccessService::class);
     app()->forgetInstance(GrievanceHandlerRegistry::class);
 
@@ -109,25 +115,31 @@ it('lets only named members handle a designated unit’s cases', function (): vo
         ->toThrow(ValidationException::class);
 });
 
-it('serves the Teams & Directorates page and designates through it', function (): void {
-    $this->actingAs($this->admin)->get(route('grievances.units.index'))->assertOk()
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('Grievances/Units/Index')->where('summary.teams', 0));
+it('serves the Teams and the Directorate as separate pages and designates through them', function (): void {
+    $this->actingAs($this->admin)->get(route('grievances.teams.index'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('Grievances/Units/Index')->where('kind', 'team')->where('summary.teams', 0));
+    // The old combined address now leads to the Teams page.
+    $this->actingAs($this->admin)->get(route('grievances.units.index'))->assertRedirect('/grievances/teams');
 
     // A unit of another institution is refused for this one.
-    $this->actingAs($this->admin)->from(route('grievances.units.index'))
+    $this->actingAs($this->admin)->from(route('grievances.directorate.index'))
         ->post(route('grievances.units.store'), ['organization_id' => $this->s->subcity->id, 'organization_unit_id' => $this->s->directorate->id, 'kind' => 'directorate'])
         ->assertSessionHasErrors('organization_unit_id');
 
     $local = GrievanceScenario::unit($this->s->subcity, 'directorate', 'Sub-city Grievance Directorate');
-    $this->actingAs($this->admin)->from(route('grievances.units.index'))
+    $this->actingAs($this->admin)->from(route('grievances.directorate.index'))
         ->post(route('grievances.units.store'), ['organization_id' => $this->s->subcity->id, 'organization_unit_id' => $local->id, 'kind' => 'directorate'])
-        ->assertRedirect(route('grievances.units.index'))->assertSessionHasNoErrors();
+        ->assertRedirect(route('grievances.directorate.index'))->assertSessionHasNoErrors();
 
-    $this->actingAs($this->admin)->get(route('grievances.units.index'))
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('summary.directorates', 1)->where('units.data.0.kind', 'directorate'));
+    // The directorate shows on its own page only, and no second one is offered.
+    $this->actingAs($this->admin)->get(route('grievances.directorate.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('kind', 'directorate')->where('directorate_exists', true)->where('units.data.0.kind', 'directorate'));
+    $this->actingAs($this->admin)->get(route('grievances.teams.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('units.total', 0));
 
-    // Someone without the configuration permission cannot open it.
-    $this->actingAs($this->s->complainant)->get(route('grievances.units.index'))->assertForbidden();
+    // Someone without the configuration permission cannot open either page.
+    $this->actingAs($this->s->complainant)->get(route('grievances.teams.index'))->assertForbidden();
+    $this->actingAs($this->s->complainant)->get(route('grievances.directorate.index'))->assertForbidden();
 });
 
 it('leaves already-serving members out of the member search', function (): void {
@@ -150,17 +162,17 @@ it('shows a member’s photo and position to unit viewers only', function (): vo
     $path = Storage::disk('local')->files('employee-photos')[0];
     $this->s->teamLead->employee->forceFill(['photo_path' => $path])->saveQuietly();
 
-    $this->actingAs($this->admin)->get(route('grievances.units.index'))
+    $this->actingAs($this->admin)->get(route('grievances.teams.index'))
         ->assertInertia(fn (AssertableInertia $page) => $page->where('units.data.0.members.0.employee.photo_url', route('grievances.units.members.photo', [$designation, $member])));
     $this->actingAs($this->admin)->get(route('grievances.units.members.photo', [$designation, $member]))->assertOk();
     $this->actingAs($this->s->complainant)->get(route('grievances.units.members.photo', [$designation, $member]))->assertNotFound();
 });
 
 it('routes a case end to end to a designated team handled by its named members', function (): void {
-    // Designate the scenario's team and name a head and an investigator.
+    // Designate the scenario's team and name a head and an expert.
     $designation = $this->units->designate($this->admin, ['organization_unit_id' => $this->s->team->id, 'kind' => 'team']);
     $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamLead->employee_id, 'responsibility' => 'head', 'effective_from' => '2026-10-05']);
-    $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamOfficer->employee_id, 'responsibility' => 'investigator', 'effective_from' => '2026-10-05']);
+    $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamOfficer->employee_id, 'responsibility' => 'expert', 'effective_from' => '2026-10-05']);
     app()->forgetInstance(GrievanceHandlerRegistry::class);
 
     // The routes page offers the team as a target and counts only the scenario's
@@ -181,8 +193,114 @@ it('routes a case end to end to a designated team handled by its named members',
     $queue = fn ($user) => $access->constrainAssigned(Grievance::query(), $user)->pluck('id')->all();
     expect($queue($this->s->teamLead))->toContain($g->id);
 
-    // The head assigns the investigator, who can then draft the unit's findings.
+    // The head assigns the expert, who can then draft the unit's findings.
     app(GrievanceCaseService::class)->assignOfficer($g, $this->s->teamLead, $this->s->teamOfficer, GrievanceCaseOfficerRole::Officer);
     expect($access->canDraftDecision($this->s->teamOfficer, $g->refresh()))->toBeTrue()
         ->and($queue($this->s->teamOfficer))->toContain($g->id);
+});
+
+it('ends a term with its reason and flags members who moved out of the unit', function (): void {
+    $designation = $this->units->designate($this->admin, ['organization_unit_id' => $this->s->team->id, 'kind' => 'team']);
+    $head = $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamLead->employee_id, 'responsibility' => 'head', 'effective_from' => '2026-10-05']);
+    $expert = $this->units->addMember($designation, $this->admin, ['employee_id' => $this->s->teamOfficer->employee_id, 'responsibility' => 'expert', 'effective_from' => '2026-10-05']);
+    $registry = fn () => app()->make(GrievanceHandlerRegistry::class);
+
+    // The expert is transferred to another unit by HR: flagged, and no longer the team's staff.
+    $elsewhere = GrievanceScenario::unit($this->s->subcity, 'directorate', 'Finance');
+    EmployeeAssignment::query()->whereKey($this->s->teamOfficer->employee->current_assignment_id)->update(['organization_unit_id' => $elsewhere->id]);
+    expect($this->units->problems($designation->refresh()))->toContain('grievances.errors.unit_member_moved')
+        ->and($registry()->designatedStaff($this->s->team->id))->toHaveKey($this->s->teamLead->employee_id)
+        ->and($registry()->designatedStaff($this->s->team->id))->not->toHaveKey($this->s->teamOfficer->employee_id);
+
+    // "Other" needs a note; a listed reason does not.
+    expect(fn () => $this->units->endMember($designation, $expert, $this->admin, GrievanceUnitEndReason::Other))
+        ->toThrow(ValidationException::class);
+    $this->actingAs($this->admin)->post(route('grievances.units.members.end', [$designation, $expert]), ['end_reason_code' => 'transferred_unit'])
+        ->assertSessionHasNoErrors();
+    expect($expert->refresh()->end_reason_code)->toBe('transferred_unit')->and($expert->status)->toBe('inactive')
+        ->and($this->units->problems($designation->refresh()))->not->toContain('grievances.errors.unit_member_moved')
+        ->and($head->refresh()->status)->toBe('active');
+});
+
+it('saves routes with Team / Directorate choices and an "all teams" source, preferring a specific route', function (): void {
+    $units = $this->units;
+    $team = $units->designate($this->admin, ['organization_unit_id' => $this->s->team->id, 'kind' => 'team']);
+    $bureauAdmin = GrievanceScenario::user(GrievanceScenario::employee($this->s->bureau, null), GrievanceRoles::ADMINISTRATOR_PERMISSIONS);
+    $units->designate($bureauAdmin, ['organization_unit_id' => $this->s->directorate->id, 'kind' => 'directorate']);
+    $routes = fn () => GrievanceRoute::query();
+    $routes()->delete();
+    $base = ['movement_type' => 'timeout_escalation', 'priority' => 10, 'effective_from' => '2026-10-01'];
+
+    // A team cannot be saved as the directorate.
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_type' => 'directorate', 'source_handler_id' => $this->s->team->id, 'target_handler_type' => 'committee', 'target_handler_id' => $this->s->committee->id])
+        ->assertSessionHasErrors('source_handler_id');
+
+    // All teams → the directorate.
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_type' => 'team', 'source_handler_id' => 'all', 'target_handler_type' => 'directorate', 'target_handler_id' => $this->s->directorate->id])
+        ->assertSessionHasNoErrors();
+    $all = $routes()->sole();
+    expect($all->source_all)->toBeTrue()->and($all->source_handler_id)->toBeNull()->and($all->source_unit_kind)->toBe('team');
+    $all->forceFill(['approved_at' => now()])->save();
+
+    $stage = new GrievanceCaseStage(['handler_type' => 'organization_unit', 'handler_id' => $this->s->team->id]);
+    $routing = app(GrievanceRoutingService::class);
+    expect($routing->nextHandlers($stage, GrievanceMovementType::TimeoutEscalation, null)[0]['id'])->toBe($this->s->directorate->id);
+
+    // A route from this very team wins over the "all teams" route.
+    $other = GrievanceScenario::unit($this->s->subcity, 'team', 'Other team');
+    $units->designate($this->admin, ['organization_unit_id' => $other->id, 'kind' => 'team']);
+    $specific = GrievanceScenario::route('organization_unit', $this->s->team->id, 'organization_unit', $other->id, 'timeout_escalation');
+    expect($routing->nextHandlers($stage, GrievanceMovementType::TimeoutEscalation, null)[0]['route']->id)->toBe($specific->id);
+
+    // A committee cannot use "all" towards the court.
+    expect($team->kind)->toBe('team');
+});
+
+it('saves an "all institutions" initial route that a specific institution route still overrides', function (): void {
+    GrievanceRoute::query()->delete();
+    $base = ['movement_type' => 'initial_assignment', 'priority' => 10, 'effective_from' => '2026-10-01'];
+
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_type' => 'organization', 'source_handler_id' => 'all', 'include_descendants' => true, 'target_handler_type' => 'committee', 'target_handler_id' => $this->s->committee->id])
+        ->assertSessionHasNoErrors();
+    $all = GrievanceRoute::query()->sole();
+    expect($all->source_all)->toBeTrue()->and($all->source_handler_id)->toBeNull()
+        ->and($all->include_descendants)->toBeFalse()->and($all->source_unit_kind)->toBeNull();
+    $all->forceFill(['approved_at' => now()])->save();
+
+    $routing = app(GrievanceRoutingService::class);
+    $from = fn (string $organizationId) => $routing->resolveInitialHandler(new Grievance(['organization_id' => $organizationId]));
+    expect($from($this->s->woreda->id)['route']->id)->toBe($all->id)
+        ->and($from($this->s->bureau->id)['route']->id)->toBe($all->id);
+
+    // A route from this very institution wins over the "all institutions" route.
+    $specific = GrievanceScenario::route('organization', $this->s->woreda->id, 'committee', $this->s->committee->id, 'initial_assignment');
+    expect($from($this->s->woreda->id)['route']->id)->toBe($specific->id);
+
+    // "All" is refused for an external authority source.
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'movement_type' => 'timeout_escalation', 'source_handler_type' => 'external_authority', 'source_handler_id' => 'all', 'target_handler_type' => 'committee', 'target_handler_id' => $this->s->committee->id])
+        ->assertSessionHasErrors('source_handler_id');
+});
+
+it('sends "all institutions → all committees" to each institution\'s own committee only', function (): void {
+    GrievanceRoute::query()->delete();
+    $base = ['movement_type' => 'initial_assignment', 'priority' => 10, 'effective_from' => '2026-10-01', 'source_handler_type' => 'organization', 'target_handler_type' => 'committee'];
+
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_id' => 'all', 'target_handler_id' => 'all'])
+        ->assertSessionHasNoErrors();
+    $route = GrievanceRoute::query()->sole();
+    expect($route->source_all)->toBeTrue()->and($route->target_all)->toBeTrue()->and($route->target_handler_id)->toBeNull();
+    $route->forceFill(['approved_at' => now()])->save();
+
+    $routing = app(GrievanceRoutingService::class);
+    $from = fn (string $organizationId) => $routing->resolveInitialHandler(new Grievance(['organization_id' => $organizationId]));
+    $woreda = $from($this->s->woreda->id);
+    expect($woreda['id'])->toBe($this->s->committee->id)->and($woreda['route']->id)->toBe($route->id)
+        // The bureau has no committee of its own: never another institution's committee.
+        ->and($from($this->s->bureau->id))->toBeNull();
+
+    // "All committees" is a target only for routes from institutions.
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'movement_type' => 'timeout_escalation', 'source_handler_type' => 'committee', 'source_handler_id' => $this->s->committee->id, 'target_handler_id' => 'all'])
+        ->assertSessionHasErrors('target_handler_id');
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_id' => 'all', 'target_handler_type' => 'directorate', 'target_handler_id' => 'all'])
+        ->assertSessionHasErrors('target_handler_id');
 });

@@ -157,7 +157,7 @@ const grievances = {
             returned_for_correction: 'ለማስተካከያ ተመልሷል', resolved: 'ተፈቷል', escalated: 'ከፍ ብሏል', appealed: 'ይግባኝ ቀርቧል',
             referred: 'ተመርቷል', reassigned: 'እንደገና ተመድቧል', closed: 'ተዘግቷል',
         },
-        handler_type: { committee: 'ኮሚቴ', organization_unit: 'ቡድን / ዳይሬክቶሬት', external_authority: 'የውጭ አካል', organization: 'ተቋም (መነሻ)' },
+        handler_type: { committee: 'ኮሚቴ', organization_unit: 'ቡድን / ዳይሬክቶሬት', team: 'የቅሬታ ቡድን', directorate: 'የቅሬታ ዳይሬክቶሬት', external_authority: 'የውጭ አካል (ፍርድ ቤት)', organization: 'ተቋም (መነሻ)' },
         movement_type: {
             initial_assignment: 'የመጀመሪያ ምደባ', timeout_escalation: 'በጊዜ ማለፍ በራሱ ከፍ ማለት', employee_appeal: 'የሠራተኛ ይግባኝ',
             referred: 'ሪፈራል', returned: 'መመለስ', reassigned: 'እንደገና መመደብ', manual_escalation: 'በእጅ ከፍ ማድረግ', other: 'ሌላ',
@@ -209,7 +209,10 @@ const grievances = {
         information_status: { open: 'ክፍት', responded: 'ምላሽ ተሰጥቷል', closed: 'ተዘግቷል', cancelled: 'ተሰርዟል' },
         committee_role: { chairperson: 'ሰብሳቢ', writer: 'ጸሐፊ', member: 'አባል' },
         unit_kind: { team: 'የቅሬታ ቡድን', directorate: 'የቅሬታ ዳይሬክቶሬት' },
-        unit_responsibility: { head: 'ኃላፊ (ቡድን መሪ / ዳይሬክተር)', investigator: 'መርማሪ ባለሙያ', secretary: 'ጸሐፊ' },
+        unit_responsibility: { head: 'ኃላፊ (ቡድን መሪ / ዳይሬክተር)', expert: 'ባለሙያ' },
+        unit_responsibility_team: { head: 'ቡድን መሪ', expert: 'ባለሙያ' },
+        unit_responsibility_directorate: { head: 'ዳይሬክተር', expert: 'ባለሙያ' },
+        unit_end_reason: { transferred_organization: 'ወደ ሌላ ተቋም ተዛውሯል', transferred_unit: 'ወደ ሌላ የሥራ ክፍል ተዛውሯል', retired: 'በጡረታ ተገልሏል', dismissed: 'ከሥራ ተሰናብቷል', other: 'ሌላ' },
         committee_source: { appointed: 'በበላይ ኃላፊ የተመደበ', elected: 'በሠራተኞች የተመረጠ', hr_representative: 'የሰው ሀብት ተወካይ' },
         committee_type: {
             grievance: 'የቅሬታ ኮሚቴ', disciplinary: 'የዲሲፕሊን ኮሚቴ', tribunal: 'የፍርድ ቤት ፓነል',

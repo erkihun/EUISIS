@@ -251,9 +251,20 @@ final class GrievanceHandlerRegistry
             return $this->designatedStaffCache[$unitId];
         }
         $designation = GrievanceHandlerUnit::query()->where('organization_unit_id', $unitId)->where('status', 'active')->first();
-        $staff = $designation === null ? [] : $designation->members()->servingOn(now())->pluck('responsibility', 'employee_id')->all();
+        // A member who has since moved to another unit or institution, retired or left no
+        // longer handles the unit's cases, even before the term is formally ended.
+        $staff = $designation === null ? [] : $designation->members()->servingOn(now())->with('employee')->get()
+            ->filter(fn (GrievanceHandlerUnitMember $m) => $m->employee !== null && $this->isPlacedIn($m->employee, $unitId))
+            ->mapWithKeys(fn (GrievanceHandlerUnitMember $m) => [(string) $m->employee_id => (string) $m->responsibility])->all();
 
-        return $this->designatedStaffCache[$unitId] = $staff === [] ? null : array_map('strval', $staff);
+        return $this->designatedStaffCache[$unitId] = $staff === [] ? null : $staff;
+    }
+
+    /** Whether an active employee's current assignment is in the unit or a unit beneath it. */
+    public function isPlacedIn(Employee $employee, string $unitId): bool
+    {
+        return ($employee->status?->value ?? $employee->status) === 'active'
+            && in_array($unitId, $this->placementOf($employee)['unit_ids'], true);
     }
 
     /**
@@ -286,7 +297,10 @@ final class GrievanceHandlerRegistry
             ->whereHas('handlerUnit', fn ($q) => $q->where('status', 'active'))
             ->with('handlerUnit:id,organization_unit_id')->get();
         foreach ($serving as $member) {
-            $ids[] = (string) $member->handlerUnit->organization_unit_id;
+            // Moved out of the unit (another unit or institution): no longer its staff.
+            if ($this->isPlacedIn($employee, (string) $member->handlerUnit->organization_unit_id)) {
+                $ids[] = (string) $member->handlerUnit->organization_unit_id;
+            }
         }
 
         return array_values(array_unique($ids));

@@ -149,6 +149,8 @@ const navigation = {
     myGrievances: 'የእኔ ቅሬታዎች',
     grievanceCommittees: 'ኮሚቴዎች',
     grievanceUnits: 'ቡድኖችና ዳይሬክቶሬቶች',
+    grievanceTeams: 'የቅሬታ ቡድኖች',
+    grievanceDirectorate: 'የቅሬታ ዳይሬክቶሬት',
     grievanceCategories: 'ምድቦች',
     grievanceSlaRules: 'የጊዜ ገደብ ደንቦች (SLA)',
     grievanceDashboard: 'ዳሽቦርድ',

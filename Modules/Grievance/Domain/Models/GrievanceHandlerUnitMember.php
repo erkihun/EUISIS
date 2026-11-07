@@ -32,6 +32,7 @@ class GrievanceHandlerUnitMember extends Model
         'appointment_reference',
         'appointed_by',
         'end_reason',
+        'end_reason_code',
         'signature_path',
         'signature_sha256',
         'signature_recorded_at',
@@ -64,7 +65,7 @@ class GrievanceHandlerUnitMember extends Model
 
     public function responsibilityEnum(): GrievanceUnitResponsibility
     {
-        return GrievanceUnitResponsibility::tryFrom((string) $this->responsibility) ?? GrievanceUnitResponsibility::Investigator;
+        return GrievanceUnitResponsibility::tryFrom((string) $this->responsibility) ?? GrievanceUnitResponsibility::Expert;
     }
 
     public function signaturePath(): ?string

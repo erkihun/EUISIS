@@ -159,7 +159,7 @@ const grievances = {
             returned_for_correction: 'Returned for correction', resolved: 'Resolved', escalated: 'Escalated', appealed: 'Appealed',
             referred: 'Referred', reassigned: 'Reassigned', closed: 'Closed',
         },
-        handler_type: { committee: 'Committee', organization_unit: 'Team / Directorate', external_authority: 'External authority', organization: 'Organization (entry point)' },
+        handler_type: { committee: 'Committee', organization_unit: 'Team / Directorate', team: 'Grievance Team', directorate: 'Grievance Directorate', external_authority: 'External authority (court)', organization: 'Organization (entry point)' },
         movement_type: {
             initial_assignment: 'Initial assignment', timeout_escalation: 'Automatic escalation (deadline passed)', employee_appeal: 'Employee appeal',
             referred: 'Referral', returned: 'Returned', reassigned: 'Reassignment', manual_escalation: 'Manual escalation', other: 'Other',
@@ -211,7 +211,10 @@ const grievances = {
         information_status: { open: 'Open', responded: 'Responded', closed: 'Closed', cancelled: 'Cancelled' },
         committee_role: { chairperson: 'Chairperson', writer: 'Writer', member: 'Member' },
         unit_kind: { team: 'Grievance Team', directorate: 'Grievance Directorate' },
-        unit_responsibility: { head: 'Head (Team leader / Director)', investigator: 'Investigator', secretary: 'Secretary' },
+        unit_responsibility: { head: 'Head (Team leader / Director)', expert: 'Expert' },
+        unit_responsibility_team: { head: 'Team leader', expert: 'Expert' },
+        unit_responsibility_directorate: { head: 'Director', expert: 'Expert' },
+        unit_end_reason: { transferred_organization: 'Transferred to another institution', transferred_unit: 'Transferred to another work unit', retired: 'Retired', dismissed: 'Dismissed', other: 'Other' },
         committee_source: { appointed: 'Appointed by the head', elected: 'Elected by employees', hr_representative: 'HR representative' },
         committee_type: {
             grievance: 'Grievance committee', disciplinary: 'Disciplinary committee', tribunal: 'Tribunal panel',

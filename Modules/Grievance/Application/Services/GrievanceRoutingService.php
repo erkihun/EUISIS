@@ -21,6 +21,7 @@ use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceCaseStage;
 use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
 use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Modules\Grievance\Domain\Models\GrievanceStageMember;
 
@@ -61,10 +62,25 @@ final class GrievanceRoutingService
     public function routesFrom(GrievanceHandlerType $sourceType, array $sourceIds, GrievanceMovementType $movement, ?string $categoryId): Collection
     {
         $day = now()->toDateString();
+        // A route may start from "all" institutions / committees / teams / the directorate (source_all).
+        $allowAll = $sourceType !== GrievanceHandlerType::ExternalAuthority;
+        $unitKinds = $sourceType === GrievanceHandlerType::OrganizationUnit
+            ? GrievanceHandlerUnit::query()->whereIn('organization_unit_id', $sourceIds)->where('status', 'active')->pluck('kind')->unique()->values()->all()
+            : [];
 
         return GrievanceRoute::query()
             ->where('source_handler_type', $sourceType->value)
-            ->whereIn('source_handler_id', $sourceIds)
+            ->where(function ($q) use ($sourceIds, $allowAll, $sourceType, $unitKinds): void {
+                $q->whereIn('source_handler_id', $sourceIds);
+                if ($allowAll) {
+                    $q->orWhere(function ($all) use ($sourceType, $unitKinds): void {
+                        $all->where('source_all', true);
+                        if ($sourceType === GrievanceHandlerType::OrganizationUnit) {
+                            $all->whereIn('source_unit_kind', $unitKinds);
+                        }
+                    });
+                }
+            })
             ->where('movement_type', $movement->value)
             ->where('is_active', true)
             ->whereNotNull('approved_at')
@@ -74,7 +90,8 @@ final class GrievanceRoutingService
             ->get()
             ->sortBy(fn (GrievanceRoute $r) => [
                 $r->category_id !== null ? 0 : 1,
-                array_search($r->source_handler_id, $sourceIds, true),
+                // A route from this very handler before one from "all" of its kind.
+                $r->source_all ? count($sourceIds) : (int) array_search($r->source_handler_id, $sourceIds, true),
                 $r->priority,
             ])
             ->values();
@@ -92,14 +109,31 @@ final class GrievanceRoutingService
     {
         $organizations = $this->handlers->organizationWithAncestors($grievance->organization_id);
         $routes = $this->routesFrom(GrievanceHandlerType::Organization, $organizations, GrievanceMovementType::InitialAssignment, $grievance->category_id)
-            ->filter(fn (GrievanceRoute $r) => $r->source_handler_id === $grievance->organization_id || $r->include_descendants);
+            ->filter(fn (GrievanceRoute $r) => $r->source_all || $r->source_handler_id === $grievance->organization_id || $r->include_descendants);
 
         foreach ($routes as $route) {
+            // "All committees" (scoped): the complainant institution's own committee, never another's.
+            if ($route->target_all) {
+                $own = $this->ownCommitteeId($grievance);
+                if ($own !== null) {
+                    return ['type' => GrievanceHandlerType::Committee, 'id' => $own, 'route' => $route];
+                }
+
+                continue;
+            }
             if ($this->handlers->availabilityProblems($route->target_handler_type, $route->target_handler_id) === []) {
                 return ['type' => $route->target_handler_type, 'id' => $route->target_handler_id, 'route' => $route];
             }
         }
 
+        $own = $this->ownCommitteeId($grievance);
+
+        return $own !== null ? ['type' => GrievanceHandlerType::Committee, 'id' => $own, 'route' => null] : null;
+    }
+
+    /** The grievance's own institution's one usable grievance committee (matched to its work unit when several). */
+    private function ownCommitteeId(Grievance $grievance): ?string
+    {
         $committees = GrievanceCommittee::query()
             ->where('organization_id', $grievance->organization_id)
             ->where('committee_type', CommitteeType::Grievance->value)
@@ -112,9 +146,7 @@ final class GrievanceRoutingService
             $committees = $unitMatch->isNotEmpty() ? $unitMatch : $committees->whereNull('organization_unit_id');
         }
 
-        return $committees->count() === 1
-            ? ['type' => GrievanceHandlerType::Committee, 'id' => $committees->first()->getKey(), 'route' => null]
-            : null;
+        return $committees->count() === 1 ? (string) $committees->first()->getKey() : null;
     }
 
     /**
@@ -135,7 +167,7 @@ final class GrievanceRoutingService
         $fromDirectorate = $this->handlers->isGrievanceDirectorate($stage->handler_type, (string) $stage->handler_id);
         $options = [];
         foreach ($routes as $route) {
-            if ($route->target_handler_type === GrievanceHandlerType::ExternalAuthority && ! $fromDirectorate) {
+            if ($route->target_all || ($route->target_handler_type === GrievanceHandlerType::ExternalAuthority && ! $fromDirectorate)) {
                 continue;
             }
             if ($this->handlers->availabilityProblems($route->target_handler_type, $route->target_handler_id) === []) {

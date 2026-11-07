@@ -155,8 +155,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             });
 
             // Grievance Teams and Directorates: designated units and their named members (ADR 0029)
+            // Two pages over the same designations: the Grievance Teams, and the one Grievance Directorate (ADR 0030).
+            Route::get('/teams', [GrievanceHandlerUnitController::class, 'index'])->defaults('kind', 'team')->name('teams.index');
+            Route::get('/directorate', [GrievanceHandlerUnitController::class, 'index'])->defaults('kind', 'directorate')->name('directorate.index');
             Route::controller(GrievanceHandlerUnitController::class)->prefix('units')->name('units.')->group(function (): void {
-                Route::get('/', 'index')->name('index');
+                Route::redirect('/', '/grievances/teams')->name('index');
                 Route::post('/', 'store')->name('store');
                 Route::patch('/{unit}', 'update')->name('update');
                 Route::post('/{unit}/members', 'addMember')->name('members.store');
