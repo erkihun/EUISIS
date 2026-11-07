@@ -25,6 +25,7 @@ use Modules\Feedback\Contracts\Data\PublicIntakeChannel;
 use Modules\Feedback\Contracts\Data\PublicTipType;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
 use Modules\Feedback\Domain\Enums\PublicServiceTimeBand;
 use Modules\Feedback\Domain\Enums\SubmitterIdentityMode;
@@ -32,17 +33,24 @@ use Modules\Feedback\Domain\Enums\SubmitterIdentityMode;
 /**
  * One public submission — feedback, suggestion or complaint — about exactly
  * one target: the employee whose card QR was scanned, or the organization
- * whose feedback QR was scanned. The table name predates organization
- * targets; the rows do not.
+ * whose feedback QR was scanned.
+ *
+ * Since ADR 0032 each type's rows live in the table its own module owns
+ * (Service feedback, Tip-offs, Public complaints). `employee_service_feedback`
+ * is a read-only view over the three, so reads across types keep one shape;
+ * a row is written to its type's table, which the type's module registers
+ * (PublicSubmissionTypes). The case-handling records (assignments, history,
+ * attachments, answers, subjects, referrals) are this module's and go with
+ * the submission when it is deleted.
  */
 class EmployeeServiceFeedback extends Model
 {
     use HasUuidPrimaryKey;
 
-    protected $table = 'employee_service_feedback';
+    /** The read-only view over the three type tables (ADR 0032). */
+    public const VIEW = 'employee_service_feedback';
 
-    /** Kinds of service feedback (owner's sample form): constructive advice, an idea to improve the institution, thanks. */
-    public const FEEDBACK_KINDS = ['constructive', 'improvement', 'appreciation'];
+    protected $table = self::VIEW;
 
     protected $fillable = [
         'employee_id',
@@ -156,6 +164,40 @@ class EmployeeServiceFeedback extends Model
             $submission->assertTipTypeIntegrity();
             $submission->assertServiceContextIntegrity();
         });
+        // A row always knows its type, so its later saves find its table (the column's default is feedback).
+        static::creating(function (self $submission): void {
+            $submission->type ??= ServiceFeedbackType::Feedback;
+        });
+        // The view cannot cascade: the case-handling records go with the submission.
+        static::deleting(function (self $submission): void {
+            foreach (['answers', 'statusHistory', 'assignments', 'subjects', 'referrals', 'attachments'] as $relation) {
+                $submission->{$relation}()->delete();
+            }
+        });
+    }
+
+    /**
+     * Where this row is written: its type's own table (registered by the type's
+     * module). A query begins on a model without attributes and so reads the view.
+     */
+    public function getTable(): string
+    {
+        $type = $this->attributes['type'] ?? null;
+        if ($type === null && $this->attributes !== [] && ! $this->exists) {
+            // A new row without a type is feedback, as the column's default says.
+            $type = ServiceFeedbackType::Feedback->value;
+        }
+        if ($type instanceof ServiceFeedbackType) {
+            $type = $type->value;
+        }
+        if (is_string($type) && app()->bound(PublicSubmissionTypes::class)) {
+            $types = app(PublicSubmissionTypes::class);
+            if ($types->has($type)) {
+                return $types->for($type)->table();
+            }
+        }
+
+        return parent::getTable();
     }
 
     /**

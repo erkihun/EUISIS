@@ -90,7 +90,11 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // 2026-10-30: 40 and 4, not new coupling: the moves into Modules/ gave the grievance
         // and discipline models `use App\Models\Employee/Organization/...` lines for relations
         // they always had (119 and 14 such lines in the move commits).
-        'grievance' => 40,
+        // 2026-11-07: 44. The Grievance Team / Directorate designations (ADR 0029) are new
+        // models whose relations name the Core unit, organization and employee they designate
+        // (GrievanceHandlerUnit, GrievanceHandlerUnitMember), and their service and page
+        // read the unit's staff placement; reviewed, the same kind as the 40 above.
+        'grievance' => 44,
         'discipline' => 4,
         // 2026-10-31: 30, not new coupling. The move to Modules/Performance gave 12 models
         // `use App\Models\Employee/Organization/...` lines for relations they always had (in

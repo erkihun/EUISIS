@@ -39,7 +39,7 @@ it('reports findings, repairs only deterministic ones and leaves ambiguous rows 
         'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Complaint,
         'comment' => 'Legacy', 'status' => ServiceFeedbackStatus::Pending,
     ]);
-    DB::table('employee_service_feedback')->where('id', $legacy->id)->update(['submitted_at' => null]);
+    DB::table('public_complaints')->where('id', $legacy->id)->update(['submitted_at' => null]);
     // A rule whose handler is gone.
     $ghost = User::factory()->create();
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $this->a->organization->id, 'handler_type' => 'user', 'handler_id' => (string) $ghost->id, 'priority' => 1, 'is_active' => true, 'created_by' => $this->superAdmin->id]);

@@ -10,7 +10,6 @@ use Illuminate\Validation\Validator;
 use Modules\Feedback\Application\Services\PublicFeedbackTargetResolver;
 use Modules\Feedback\Application\Services\PublicServiceFeedbackService;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
-use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Http\Requests\Concerns\ValidatesOrganizationFormContext;
 use Modules\Feedback\Http\Requests\Concerns\ValidatesPublicSubmitter;
 
@@ -40,7 +39,7 @@ class StoreServiceFeedbackRequest extends FormRequest
         $employeeTarget = $this->routeIs('service-feedback.*');
         $requirements = $this->requirements(ServiceFeedbackType::Feedback);
 
-        return [
+        return $this->withTypeRules(ServiceFeedbackType::Feedback, [
             'form_token' => ['nullable', 'string', 'size:32'],
             // A service belongs to an employee's position; an organization has none.
             'position_service_id' => $employeeTarget ? [
@@ -53,15 +52,12 @@ class StoreServiceFeedbackRequest extends FormRequest
                 // service is checked in the controller, which knows the token.
                 Rule::exists('position_services', 'id')->whereNull('deleted_at'),
             ] : ['prohibited'],
-            'rating' => ['required', 'integer', 'between:1,5'],
-            // Owner's sample form: the kind of feedback and the work unit or window served at (both optional).
-            'feedback_kind' => ['nullable', Rule::in(EmployeeServiceFeedback::FEEDBACK_KINDS)],
-            'service_point' => ['nullable', 'string', 'max:120'],
+            // The rating, its kind and the window served at are the Service feedback module's fields.
             'comment' => [$requirements->narrativeRequired ? 'required' : 'nullable', 'string', 'max:2000'],
             ...$this->submitterRules($requirements),
             ...$this->evidenceRules($requirements),
             ...$this->organizationContextRules(ServiceFeedbackType::Feedback),
-        ];
+        ]);
     }
 
     /**
@@ -110,6 +106,6 @@ class StoreServiceFeedbackRequest extends FormRequest
     /** @return array<string, string> */
     public function attributes(): array
     {
-        return $this->organizationContextAttributes(ServiceFeedbackType::Feedback);
+        return $this->organizationContextAttributes(ServiceFeedbackType::Feedback) + $this->typeAttributes(ServiceFeedbackType::Feedback);
     }
 }

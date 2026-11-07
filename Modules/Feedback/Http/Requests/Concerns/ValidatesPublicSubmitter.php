@@ -15,6 +15,7 @@ use Modules\Feedback\Application\Services\PublicSubmissionPolicy;
 use Modules\Feedback\Application\Services\SubmissionRequirements;
 use Modules\Feedback\Contracts\Data\PublicTipType;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 use Modules\Feedback\Http\Rules\PublicEvidenceFile;
 
 /**
@@ -29,6 +30,40 @@ trait ValidatesPublicSubmitter
     protected function requirements(ServiceFeedbackType $type): SubmissionRequirements
     {
         return app(PublicSubmissionPolicy::class)->for($type, app(PublicFeedbackSettings::class)->allowAttachments());
+    }
+
+    /**
+     * The intake's rules with the type's own form fields (its module, ADR 0032)
+     * on top; a field only another type has is refused, so a forged field is
+     * not silently stored.
+     *
+     * @param  array<string, mixed>  $base
+     * @return array<string, mixed>
+     */
+    protected function withTypeRules(ServiceFeedbackType $type, array $base): array
+    {
+        $types = app(PublicSubmissionTypes::class);
+        $own = $types->for($type)->rules();
+        $foreign = [];
+        foreach ($types->all() as $other) {
+            if ($other->type() === $type) {
+                continue;
+            }
+            foreach (array_keys($other->rules()) as $key) {
+                $top = explode('.', $key)[0];
+                if (! array_key_exists($top, $base) && ! array_key_exists($top, $own)) {
+                    $foreign[$top] = ['prohibited'];
+                }
+            }
+        }
+
+        return [...$base, ...$foreign, ...$own];
+    }
+
+    /** @return array<string, string> */
+    protected function typeAttributes(ServiceFeedbackType $type): array
+    {
+        return app(PublicSubmissionTypes::class)->for($type)->attributes();
     }
 
     /** @return array<string, array<int, mixed>> */

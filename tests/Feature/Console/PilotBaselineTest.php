@@ -53,7 +53,8 @@ function pilotGrievance(Organization $organization, string $reference, ?string $
 
 function pilotFeedback(Organization $organization, Employee $employee, string $submittedAt, ?int $rating): void
 {
-    DB::table('employee_service_feedback')->insert([
+    // ADR 0032: feedback rows live in the Service feedback module's table.
+    DB::table('public_service_feedback')->insert([
         'id' => (string) Str::uuid(), 'employee_id' => $employee->id, 'organization_id' => $organization->id,
         'target_type' => 'employee', 'source_type' => 'employee_card_qr', 'type' => 'feedback', 'comment' => 'Baseline',
         'rating' => $rating, 'status' => 'pending', 'submitted_at' => $submittedAt, 'created_at' => $submittedAt, 'updated_at' => $submittedAt,

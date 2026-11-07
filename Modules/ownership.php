@@ -440,6 +440,26 @@ return [
             'Modules\Discipline\Domain\Models\DisciplinaryWitness',
         ],
     ],
+    // ADR 0032: each public submission type owns its table; the intake and case
+    // handling (Feedback) write the shared columns through the type's registration.
+    'ServiceFeedback' => [
+        'home' => 'Modules/ServiceFeedback',
+        'models' => [
+            'Modules\ServiceFeedback\Domain\Models\ServiceFeedbackSubmission',
+        ],
+    ],
+    'TipOffs' => [
+        'home' => 'Modules/TipOffs',
+        'models' => [
+            'Modules\TipOffs\Domain\Models\TipOff',
+        ],
+    ],
+    'PublicComplaints' => [
+        'home' => 'Modules/PublicComplaints',
+        'models' => [
+            'Modules\PublicComplaints\Domain\Models\PublicComplaint',
+        ],
+    ],
     'Feedback' => [
         'home' => 'Modules/Feedback',
         // Public and service feedback: submissions, questionnaires, routing, referrals, employee and institution QR codes.

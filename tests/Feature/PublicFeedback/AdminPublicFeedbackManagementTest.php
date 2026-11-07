@@ -40,7 +40,7 @@ beforeEach(function (): void {
         Permission::findOrCreate($permission, 'web');
     }
     // Only the rows this test makes: the scenario's own complaints are left out of every count below.
-    EmployeeServiceFeedback::query()->delete();
+    EmployeeServiceFeedback::query()->get()->each->delete();
 
     $this->rows = [];
     foreach (['feedback', 'suggestion', 'complaint'] as $type) {

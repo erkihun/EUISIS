@@ -30,10 +30,6 @@ final readonly class SubmissionRequirements
         public bool $involvedParties,
         public bool $submitterAddress,
         public bool $submitterOrganization,
-        /** The full public complaint form (PublicComplaintForm): identity document, representation, prior handling, remedy, declaration. */
-        public bool $complaintForm = false,
-        /** The Tip-off form's extra parts (PublicTipForm): confidentiality, the person suspected, violations, evidence. */
-        public bool $tipForm = false,
     ) {}
 
     /** The identity policy recorded on the row, so a later policy change cannot reinterpret it. */
@@ -58,8 +54,6 @@ final readonly class SubmissionRequirements
             'involved_parties' => $this->involvedParties,
             'submitter_address' => $this->submitterAddress,
             'submitter_organization' => $this->submitterOrganization,
-            'complaint_form' => $this->complaintForm,
-            'tip_form' => $this->tipForm,
         ];
     }
 }

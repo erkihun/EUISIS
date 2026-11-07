@@ -743,7 +743,7 @@ export default {
         servicePoint: 'የተገለገሉበት የሥራ ክፍል / መስኮት',
         servicePointHint: 'ለምሳሌ "መስኮት 3" ወይም "የመዝገብ ቡድን"',
         kind: 'የአስተያየቱ ዓይነት',
-        kinds: { constructive: 'ገንቢ አስተያየት / ምክር', improvement: 'የተቋሙን አሰራር ለማሻሻል የሚረዳ ሀሳብ', appreciation: 'ምስጋና / አድናቆት' },
+        kinds: { constructive: 'ገንቢ አስተያየት / ምክር', improvement: 'የተቋሙን አሠራር ለማሻሻል የሚረዳ ሐሳብ', appreciation: 'ምስጋና / አድናቆት' },
         notGiven: 'አልተገለጸም',
     },
     // የጥቆማ መቀበያ ቅጽ (TipFormSections)።
@@ -757,7 +757,7 @@ export default {
         suspectUnit: 'የሥራ ክፍሉ / የኃላፊነት ደረጃው',
         suspectLocation: 'ክፍለ ከተማ / ወረዳ',
         violationsTitle: 'የጥሰቱ ዓይነት',
-        violations: { bribery: 'ጉቦ / ያልተገባ ጥቅም መጠየቅ', abuse_of_power: 'የስልጣን አላግባብ መጠቀም', document_fraud: 'የሰነድ ማጭበርበር', waste_of_public_property: 'የህዝብ / የመንግሥት ንብረት ማባከን', other: 'ሌላ' },
+        violations: { bribery: 'ጉቦ / ያልተገባ ጥቅም መጠየቅ', abuse_of_power: 'የሥልጣን አላግባብ መጠቀም', document_fraud: 'የሰነድ ማጭበርበር', waste_of_public_property: 'የህዝብ / የመንግሥት ንብረት ማባከን', other: 'ሌላ' },
         violationOther: 'ሌላ (ይግለጹ)',
         evidenceDescription: 'ያሉ ደጋፊ ማስረጃዎች',
         evidenceHint: 'ያለዎትን ማስረጃ ይግለጹ (ሰነድ፣ ምስክር፣ ፎቶ)፤ ከቻሉ ፋይሉን ከላይ ያያይዙ።',

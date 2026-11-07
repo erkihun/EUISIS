@@ -151,7 +151,7 @@ it('keeps the Tip-off form\'s suspect, violations and confidentiality request, a
     // Nothing of the form is required.
     $this->post($url, ['message' => 'Bare tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
     expect(EmployeeServiceFeedback::query()->sole()->tip_details)->toBeNull();
-    EmployeeServiceFeedback::query()->delete();
+    EmployeeServiceFeedback::query()->get()->each->delete();
 
     // "Other" needs words; an unknown violation or confidentiality value is refused.
     $this->post($url, ['message' => 'Tip.', 'tip_type' => 'CORRUPTION', 'tip_form' => ['violation_types' => ['other', 'theft'], 'confidentiality' => 'maybe']])

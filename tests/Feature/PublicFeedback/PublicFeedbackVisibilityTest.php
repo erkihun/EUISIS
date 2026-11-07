@@ -125,7 +125,7 @@ it('encrypts the submitter contact at rest and still reads rows written before e
     expect($raw)->not->toBe('0911223344')
         ->and($row->client_contact)->toBe('0911223344');
 
-    DB::table('employee_service_feedback')->insert([
+    DB::table('public_tip_offs')->insert([
         'id' => (string) Str::uuid(), 'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id,
         'target_type' => 'employee', 'source_type' => 'employee_card_qr', 'type' => 'suggestion', 'comment' => 'Legacy row',
         'client_contact' => '0922334455', 'status' => 'pending', 'submitted_at' => now(), 'created_at' => now(), 'updated_at' => now(),

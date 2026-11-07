@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import RichTextEditor from '@/Components/forms/RichTextEditor';
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import DatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { AlertTriangle, CheckCircle, ClockIcon, InfoIcon, TrashIcon, Upload, XCircle } from '@/Components/Icons';
@@ -403,7 +404,7 @@ export default function Form({ grievance: g, categories, evidenceTypes, allowedE
                             <Section title={t('grievances.common.description')} actions={<button type="button" className={secondaryBtn} onClick={() => goTo('matter')}>{t('grievancePortal.edit_step')}</button>}>
                                 {stripHtml(d.description) === ''
                                     ? <p className="text-sm text-(--app-muted-foreground)">{t('grievancePortal.not_provided')}</p>
-                                    : <div className="prose prose-sm max-w-none text-(--app-foreground) dark:prose-invert" dangerouslySetInnerHTML={{ __html: d.description }} />}
+                                    : <RichTextViewer html={d.description} className="prose prose-sm max-w-none text-(--app-foreground) dark:prose-invert" />}
                             </Section>
                             {reviewRow('before', [
                                 [t('grievancePortal.immediate_supervisor_name'), d.immediate_supervisor_name],

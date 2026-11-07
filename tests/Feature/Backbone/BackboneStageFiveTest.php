@@ -22,9 +22,11 @@ use Modules\Entitlements\Application\Services\ServiceProviderCodeLookup;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceType;
 use Modules\Feedback\Application\Services\EmployeeFeedbackLinkAdapter;
-use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\PublicComplaints\Domain\Models\PublicComplaint;
+use Modules\ServiceFeedback\Domain\Models\ServiceFeedbackSubmission;
+use Modules\TipOffs\Domain\Models\TipOff;
 use Modules\Transfer\Domain\Models\TransferApplication;
 
 /*
@@ -60,9 +62,10 @@ it('keeps every collision check the generator had, now registered by the owning 
         // Service-module entity types, registered by ServiceModuleServiceProvider.
         'service_provider' => [ServiceProvider::class, 'code', false],
         'transfer_application' => [TransferApplication::class, 'application_number', true],
-        'public_service_complaint' => [EmployeeServiceFeedback::class, 'reference_number', false],
-        'public_tip_off' => [EmployeeServiceFeedback::class, 'reference_number', false],
-        'public_service_feedback' => [EmployeeServiceFeedback::class, 'reference_number', false],
+        // ADR 0032: each public submission type checks its own module's table.
+        'public_service_complaint' => [PublicComplaint::class, 'reference_number', false],
+        'public_tip_off' => [TipOff::class, 'reference_number', false],
+        'public_service_feedback' => [ServiceFeedbackSubmission::class, 'reference_number', false],
         'disciplinary_case' => ['Modules\Discipline\Domain\Models\DisciplinaryCase', 'case_number', false],
         // Grievance numbers were listed in the wrong match and never checked (fixed here).
         'grievance_case' => [Grievance::class, 'reference_number', true],

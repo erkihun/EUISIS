@@ -86,7 +86,7 @@ it('enforces target integrity at the database on PostgreSQL', function (): void 
     ];
 
     // Both targets named.
-    expect(fn () => DB::table('employee_service_feedback')->insert($row + [
+    expect(fn () => DB::table('public_service_feedback')->insert($row + [
         'target_type' => 'employee',
         'source_type' => 'employee_card_qr',
         'employee_id' => $this->scenario->employee->id,
@@ -94,14 +94,14 @@ it('enforces target integrity at the database on PostgreSQL', function (): void 
     ]))->toThrow(QueryException::class);
 
     // Organization target through the employee card source.
-    expect(fn () => DB::table('employee_service_feedback')->insert($row + [
+    expect(fn () => DB::table('public_service_feedback')->insert($row + [
         'id' => (string) Str::uuid(),
         'target_type' => 'organization',
         'source_type' => 'employee_card_qr',
         'organization_target_id' => $this->scenario->organization->id,
     ]))->toThrow(QueryException::class);
 
-    expect(DB::table('employee_service_feedback')->count())->toBe(0);
+    expect(DB::table('public_service_feedback')->count())->toBe(0);
 });
 
 it('keeps the employee target when the employee later transfers', function (): void {

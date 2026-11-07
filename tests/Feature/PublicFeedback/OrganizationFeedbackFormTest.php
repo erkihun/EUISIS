@@ -776,7 +776,7 @@ it('aggregates ratings and choices by question for the Situation Room, leaving h
     $this->post(offUrl('feedback'), offFeedback(['comment' => 'Second.', 'answers' => ['staff_courtesy' => 3, 'channels' => ['website'], 'service_obtained' => 'no']]))->assertSessionHasNoErrors();
     RateLimiter::clear('sf-submit:'.$this->token.'|127.0.0.1');
     $this->post(offUrl('feedback'), offFeedback(['comment' => 'Hidden one.', 'answers' => ['staff_courtesy' => 1]]))->assertSessionHasNoErrors();
-    EmployeeServiceFeedback::query()->where('comment', 'Hidden one.')->update(['status' => 'hidden']);
+    EmployeeServiceFeedback::query()->where('comment', 'Hidden one.')->get()->each(fn ($row) => $row->forceFill(['status' => 'hidden'])->save());
 
     $statistics = app(PublicFeedbackAnswerStatistics::class);
     $summary = collect($statistics->ratingSummary(['organization_target_id' => $this->organization->id, 'service_id' => $this->service->id]))->keyBy('code');

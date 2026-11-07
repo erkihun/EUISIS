@@ -116,7 +116,7 @@ function DialogShell({ title, help, children }: { title: string; help?: string; 
 function EmptyBoard({ filtered, canCreate }: { filtered: boolean; canCreate: boolean }) {
     const { t } = useLocale();
     const { cr } = useCommitteeRoutes();
-    return <div className="flex flex-col items-center rounded-xl border border-dashed border-(--app-border-strong) bg-(--app-surface) px-6 py-14 text-center">
+    return <div className="flex flex-col items-center rounded-card border border-dashed border-(--app-border-strong) bg-(--app-surface) px-6 py-14 text-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><UsersTwoIcon className="h-6 w-6" /></span>
         <h2 className="mt-4 text-base font-semibold text-(--app-foreground)">{filtered ? t('grievanceAdmin.committeeBoard.noMatches') : t('grievanceAdmin.committeeBoard.noCommittees')}</h2>
         {!filtered && <p className="mt-1 max-w-md text-sm text-(--app-muted-foreground)">{t('grievanceAdmin.committeeBoard.noCommitteesHelp')}</p>}
@@ -155,7 +155,7 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
     const bodyId = `committee-${committee.id}-body`;
 
     if (!open) {
-        return <article className="overflow-hidden rounded-xl border border-(--app-border) bg-(--app-surface) shadow-xs">
+        return <article className="overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface) shadow-xs">
             <h2 className="m-0">
                 <button type="button" aria-expanded={false} aria-controls={bodyId} onClick={() => setOpen(true)}
                     className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
@@ -168,7 +168,7 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
         </article>;
     }
 
-    return <article id={bodyId} className="relative overflow-hidden rounded-xl border border-(--app-border) bg-(--app-surface) shadow-xs" aria-labelledby={`committee-${committee.id}`}>
+    return <article id={bodyId} className="relative overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface) shadow-xs" aria-labelledby={`committee-${committee.id}`}>
         <header className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 gap-4 pr-10 lg:pr-0">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden><UsersTwoIcon className="h-6 w-6" /></span>
@@ -264,7 +264,7 @@ function MemberTile({ member, canManage, onEdit, onEnd }: { member: CommitteeLis
         </div>
         <div className="shrink-0">
             <AppActionMenu label={`${t('common.actions')}: ${name}`} items={[
-                { label: t('grievanceAdmin.editMember'), icon: <PencilIcon className="h-4 w-4" />, onClick: onEdit, show: canManage },
+                { label: t('common.edit'), icon: <PencilIcon className="h-4 w-4" />, onClick: onEdit, show: canManage },
                 { label: t('grievanceAdmin.endMembership'), icon: <XCircle className="h-4 w-4" />, onClick: onEnd, variant: 'danger', show: canManage, separatorBefore: true },
             ]} />
         </div>

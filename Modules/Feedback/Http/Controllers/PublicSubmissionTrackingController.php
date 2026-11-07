@@ -12,7 +12,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
-use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\Extensions\PublicSubmissionType;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 
 /**
@@ -26,6 +27,8 @@ use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
  */
 class PublicSubmissionTrackingController extends Controller
 {
+    public function __construct(private readonly PublicSubmissionTypes $types) {}
+
     public function show(Request $request): Response
     {
         return Inertia::render('Public/TrackSubmission', [
@@ -41,12 +44,14 @@ class PublicSubmissionTrackingController extends Controller
             'phone' => ['nullable', 'string', 'max:40'],
         ]);
         $reference = strtoupper(trim($data['reference']));
+        // Each type's module says whether the public may track it, and with what (ADR 0032).
+        $tracking = collect($this->types->all())->mapWithKeys(fn (PublicSubmissionType $type) => [$type->type()->value => $type->tracking()])->filter();
         $entry = EmployeeServiceFeedback::query()
             ->where('reference_number', $reference)
-            ->whereIn('type', [ServiceFeedbackType::Suggestion->value, ServiceFeedbackType::Complaint->value])
+            ->whereIn('type', $tracking->keys()->all())
             ->first();
 
-        if ($entry === null || ($entry->type === ServiceFeedbackType::Complaint && ! $this->samePhone($entry->client_contact, $data['phone'] ?? null))) {
+        if ($entry === null || ($tracking[$entry->type->value] === 'reference_and_phone' && ! $this->samePhone($entry->client_contact, $data['phone'] ?? null))) {
             throw ValidationException::withMessages(['reference' => __('service-feedback.tracking.not_found')]);
         }
 

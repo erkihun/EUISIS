@@ -139,7 +139,10 @@ it('hides small disciplinary counts behind "fewer than k"', function (): void {
 it('counts nothing for an attention rule until a threshold is configured', function (): void {
     expect(srRun('critical_attention')['attention_complaint_open_days']['reason'])->toBe('CONFIGURATION_REQUIRED');
 
-    DB::table('employee_service_feedback')->where('organization_id', $this->s->org['woreda_b1']->id)->update(['submitted_at' => now()->subDays(20)]);
+    // ADR 0032: rows are written to their type's table; the old name is a read-only view.
+    foreach (['public_service_feedback', 'public_tip_offs', 'public_complaints'] as $table) {
+        DB::table($table)->where('organization_id', $this->s->org['woreda_b1']->id)->update(['submitted_at' => now()->subDays(20)]);
+    }
     app(SystemSettingsService::class)->clearCache();
     SystemSetting::query()->create(['group' => 'situation_room', 'key' => 'complaint_open_days', 'value' => '14', 'type' => 'integer']);
     app(SystemSettingsService::class)->clearCache();

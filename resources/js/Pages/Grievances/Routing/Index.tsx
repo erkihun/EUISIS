@@ -62,7 +62,7 @@ export default function Index({ routes, filters, options, summary, can }: Routin
                 <AppMetricCard label={r('gaps')} value={summary.unit_gaps} detail={r('gapsHelp')} variant={summary.unit_gaps > 0 ? 'danger' : 'neutral'} icon={<AlertTriangle className="h-5 w-5" />} />
             </section>
 
-            {summary.unit_gaps > 0 && <div role="status" className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 sm:flex-row sm:items-center dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+            {summary.unit_gaps > 0 && <div role="status" className="flex flex-col gap-3 rounded-card border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 sm:flex-row sm:items-center dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
                 <AlertTriangle className="h-5 w-5 shrink-0" aria-hidden /><p className="flex-1">{r('gapsAlert')}</p>
                 <Link href={route('grievances.teams.index')} className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline">{r('openUnits')}<ChevronRight className="h-4 w-4" aria-hidden /></Link>
             </div>}

@@ -132,7 +132,8 @@ it('breaks organization submissions down by the relevant work unit named, with G
 
     $metrics = app(PublicFeedbackMetrics::class);
     $units = collect($metrics->exportRows($metrics->query($this->superAdmin), $this->superAdmin, 'en'))->pluck('organization_unit')->countBy()->all();
-    expect($units)->toBe(['Permits office' => 2, 'General / Not sure' => 1, 'Licensing Unit' => 1]);
+    // Counts per unit; rows submitted in the same second have no fixed order.
+    expect($units)->toEqual(['Permits office' => 2, 'General / Not sure' => 1, 'Licensing Unit' => 1]);
     $am = collect($metrics->exportRows($metrics->query($this->superAdmin), $this->superAdmin, 'am'))->pluck('organization_unit')->all();
     expect($am)->toContain('የፈቃድ ጽሕፈት ቤት')->toContain('አጠቃላይ / አላውቅም');
 });

@@ -138,7 +138,13 @@ final class PublicFeedbackDataQuality implements FeedbackDataQuality
         $done = ['missing_submitted_at' => 0, 'missing_initial_history' => 0, 'unrouted_legacy_submissions' => 0];
 
         DB::transaction(function () use (&$done): void {
-            $done['missing_submitted_at'] = DB::table('employee_service_feedback')->whereNull('submitted_at')->update(['submitted_at' => DB::raw('created_at')]);
+            // Row by row: the view cannot be updated, each row is saved to its type's table (ADR 0032).
+            EmployeeServiceFeedback::query()->whereNull('submitted_at')->orderBy('created_at')->chunkById(200, function ($rows) use (&$done): void {
+                foreach ($rows as $row) {
+                    $row->forceFill(['submitted_at' => $row->created_at])->saveQuietly();
+                    $done['missing_submitted_at']++;
+                }
+            });
 
             EmployeeServiceFeedback::query()
                 ->whereDoesntHave('statusHistory')

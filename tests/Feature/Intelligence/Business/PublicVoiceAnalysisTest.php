@@ -64,7 +64,7 @@ it('detects a complaint spike with its evidence, for the affected subtree only',
 
 it('reports a complaint drop without a technical claim unless the technical domain knows of failures', function (): void {
     // Six complaints a week for the six weeks before this one, none this week (the fixture's own complaints are removed so the date of the run cannot matter).
-    EmployeeServiceFeedback::query()->delete();
+    EmployeeServiceFeedback::query()->get()->each->delete();
     $weekStart = CarbonImmutable::now()->subDays(6)->startOfDay();
     for ($w = 1; $w <= 6; $w++) {
         for ($i = 0; $i < 6; $i++) {

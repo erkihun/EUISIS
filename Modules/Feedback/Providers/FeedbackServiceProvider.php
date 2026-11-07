@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Modules\Feedback\Providers;
 
 use App\Backbone\Contracts\EmployeeFeedbackLinks;
-use App\Enums\CodeRuleEntityType;
-use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Support\NotificationPresenter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -23,12 +21,14 @@ use Modules\Feedback\Application\Queries\FeedbackReportExportCommands;
 use Modules\Feedback\Application\Queries\PublicFeedbackTargetsQuery;
 use Modules\Feedback\Application\Services\EmployeeFeedbackLinkAdapter;
 use Modules\Feedback\Application\Services\OrganizationFeedbackQrAccess;
+use Modules\Feedback\Application\Services\PublicCaseDashboardService;
 use Modules\Feedback\Application\Services\PublicFeedbackAnswerStatistics;
 use Modules\Feedback\Application\Services\PublicFeedbackDataQuality;
 use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaire;
 use Modules\Feedback\Application\Services\PublicFeedbackSettings;
 use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 use Modules\Feedback\Application\Services\PublicOrganizationServiceContext;
+use Modules\Feedback\Application\Services\PublicSubmissionTypeRegistry;
 use Modules\Feedback\Contracts\EmployeeFeedbackQr;
 use Modules\Feedback\Contracts\FeedbackAnswerStatistics;
 use Modules\Feedback\Contracts\FeedbackDataQuality;
@@ -36,8 +36,10 @@ use Modules\Feedback\Contracts\FeedbackReportExports;
 use Modules\Feedback\Contracts\FeedbackSettings;
 use Modules\Feedback\Contracts\FeedbackVisibility;
 use Modules\Feedback\Contracts\OrganizationFeedbackQrPermissions;
+use Modules\Feedback\Contracts\PublicCaseDashboard;
 use Modules\Feedback\Contracts\PublicFeedbackTargets;
 use Modules\Feedback\Contracts\PublicOrganizationServices;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 use Modules\Feedback\Contracts\ReadModels\FeedbackReportExportRecord;
 use Modules\Feedback\Domain\Models\EmployeeFeedbackToken;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
@@ -81,6 +83,9 @@ final class FeedbackServiceProvider extends ServiceProvider
         $this->app->bind(PublicFeedbackTargets::class, PublicFeedbackTargetsQuery::class);
         $this->app->bind(PublicOrganizationServices::class, PublicOrganizationServiceContext::class);
         $this->app->bind(EmployeeFeedbackQr::class, EmployeeFeedbackQrQuery::class);
+        // ADR 0032: the type modules (Service feedback, Tip-offs, Public complaints) register here.
+        $this->app->singleton(PublicSubmissionTypes::class, PublicSubmissionTypeRegistry::class);
+        $this->app->bind(PublicCaseDashboard::class, PublicCaseDashboardService::class);
         $this->app->bind(OrganizationFeedbackQrPermissions::class, OrganizationFeedbackQrAccess::class);
     }
 
@@ -110,10 +115,6 @@ final class FeedbackServiceProvider extends ServiceProvider
         Gate::policy(FeedbackReportExportRecord::class, PublicFeedbackReportExportPolicy::class);
 
         NotificationPresenter::registerRenderer('public_feedback', PublicFeedbackNotification::class);
-
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceComplaint, EmployeeServiceFeedback::class, 'reference_number');
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicTipOff, EmployeeServiceFeedback::class, 'reference_number');
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceFeedback, EmployeeServiceFeedback::class, 'reference_number');
 
         $this->rateLimiters();
 

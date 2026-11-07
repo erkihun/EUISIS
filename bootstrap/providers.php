@@ -16,10 +16,13 @@ use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Grievance\Providers\GrievanceServiceProvider;
 use Modules\Performance\Providers\PerformanceServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
+use Modules\PublicComplaints\Providers\PublicComplaintsServiceProvider;
 use Modules\PublicSite\Providers\PublicSiteServiceProvider;
 use Modules\Reception\Providers\ReceptionServiceProvider;
 use Modules\Recruitment\Providers\RecruitmentServiceProvider;
+use Modules\ServiceFeedback\Providers\ServiceFeedbackServiceProvider;
 use Modules\ServiceMonitoring\Providers\ServiceMonitoringServiceProvider;
+use Modules\TipOffs\Providers\TipOffsServiceProvider;
 use Modules\Transfer\Providers\TransferServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
@@ -44,6 +47,10 @@ return [
     ServiceMonitoringServiceProvider::class,
     ReceptionServiceProvider::class,
     FeedbackServiceProvider::class,
+    // ADR 0032: the three public submission types, each its own module.
+    ServiceFeedbackServiceProvider::class,
+    TipOffsServiceProvider::class,
+    PublicComplaintsServiceProvider::class,
     PublicSiteServiceProvider::class,
     RecruitmentServiceProvider::class,
     TransferServiceProvider::class,

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Modules\Feedback\Application\Services\EmployeeFeedbackTokenService;
 use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 
 /**
  * Synthetic, PII-free public feedback data for a scale database built by
@@ -271,7 +272,10 @@ class SeedPublicFeedbackScale extends Command
             }
 
             DB::transaction(function () use ($rows, $history, $assignments): void {
-                DB::table('employee_service_feedback')->insert($rows);
+                // Each type's rows go to its module's table (ADR 0032).
+                foreach (collect($rows)->groupBy(fn (array $row) => $row['type'] ?? 'feedback') as $type => $group) {
+                    DB::table(app(PublicSubmissionTypes::class)->for((string) $type)->table())->insert($group->all());
+                }
                 foreach (array_chunk($history, 1000) as $part) {
                     DB::table('public_feedback_status_history')->insert($part);
                 }

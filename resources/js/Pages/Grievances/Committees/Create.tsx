@@ -22,7 +22,7 @@ export default function Create({ options }: CommitteeCreateProps) {
         { key: 'effective_from', type: 'date' }, { key: 'effective_to', type: 'date' },
         { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' },
     ];
-    return <AuthenticatedLayout header={<PageHeader title={t('grievanceAdmin.newCommittee')} description={t(discipline ? 'grievanceAdmin.disciplineCommitteesHelp' : 'grievanceAdmin.committeesHelp')} backHref={cr('index')} />}>
+    return <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('grievanceAdmin.newCommittee')} description={t(discipline ? 'grievanceAdmin.disciplineCommitteesHelp' : 'grievanceAdmin.committeesHelp')} backHref={cr('index')} />}>
         <Head title={t('grievanceAdmin.newCommittee')} /><div className={pageCls}>
             <Section title={t('grievanceAdmin.newCommittee')}>
                 <AdminForm initial={{ name_en: '', name_am: '', organization_id: '', organization_unit_id: '', effective_from: today(), effective_to: '', description_en: '', description_am: '' }} fields={fields}

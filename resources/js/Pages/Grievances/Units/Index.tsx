@@ -73,7 +73,7 @@ export default function Index({ kind, directorate_exists, units, filters, option
             </FilterPanel>}
 
             {units.data.length === 0
-                ? <div className="flex flex-col items-center rounded-xl border border-dashed border-(--app-border-strong) bg-(--app-surface) px-6 py-14 text-center">
+                ? <div className="flex flex-col items-center rounded-card border border-dashed border-(--app-border-strong) bg-(--app-surface) px-6 py-14 text-center">
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Building2 className="h-6 w-6" /></span>
                     <h2 className="mt-4 text-base font-semibold text-(--app-foreground)">{filtered ? u('noMatches') : u(isTeams ? 'noTeams' : 'noDirectorate')}</h2>
                     {!filtered && <p className="mt-1 max-w-md text-sm text-(--app-muted-foreground)">{u(isTeams ? 'noTeamsHelp' : 'noDirectorateHelp')}</p>}
@@ -135,7 +135,7 @@ function ResponsibilityGuide({ roleGroup }: { roleGroup: string }) {
     const { t } = useLocale();
     const label = useEnumLabel();
     const u = (key: string) => t(`grievanceAdmin.unitBoard.${key}`);
-    return <details className="group rounded-xl border border-(--app-border) bg-(--app-surface) text-sm">
+    return <details className="group rounded-card border border-(--app-border) bg-(--app-surface) text-sm">
         <summary className="flex cursor-pointer list-none items-center gap-2 px-5 py-3 font-medium text-(--app-foreground) [&::-webkit-details-marker]:hidden">
             <ChevronRight className="h-4 w-4 text-(--app-muted-foreground) transition-transform group-open:rotate-90" aria-hidden />{u('responsibilities')}
         </summary>
@@ -165,7 +165,7 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlerUnitItem; onOpen: (dial
     </span>;
 
     if (!open) {
-        return <article className="overflow-hidden rounded-xl border border-(--app-border) bg-(--app-surface) shadow-xs">
+        return <article className="overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface) shadow-xs">
             <h2 className="m-0">
                 <button type="button" aria-expanded={false} aria-controls={bodyId} onClick={() => setOpen(true)}
                     className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
@@ -186,7 +186,7 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlerUnitItem; onOpen: (dial
         </article>;
     }
 
-    return <article id={bodyId} className="relative overflow-hidden rounded-xl border border-(--app-border) bg-(--app-surface) shadow-xs" aria-labelledby={`unit-${unit.id}`}>
+    return <article id={bodyId} className="relative overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface) shadow-xs" aria-labelledby={`unit-${unit.id}`}>
         <header className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex min-w-0 gap-4 pr-20 lg:pr-0">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden><Building2 className="h-6 w-6" /></span>
@@ -240,7 +240,7 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlerUnitItem; onOpen: (dial
                         </div>
                         <div className="shrink-0">
                             <AppActionMenu label={`${t('common.actions')}: ${name}`} items={[
-                                { label: t('grievanceAdmin.editMember'), icon: <PencilIcon className="h-4 w-4" />, onClick: () => onOpen({ kind: 'editMember', unit, member }), show: unit.can_manage_members },
+                                { label: t('common.edit'), icon: <PencilIcon className="h-4 w-4" />, onClick: () => onOpen({ kind: 'editMember', unit, member }), show: unit.can_manage_members },
                                 { label: t('grievanceAdmin.endMembership'), icon: <XCircle className="h-4 w-4" />, onClick: () => onOpen({ kind: 'endMember', unit, member }), variant: 'danger', show: unit.can_manage_members, separatorBefore: true },
                             ]} />
                         </div>

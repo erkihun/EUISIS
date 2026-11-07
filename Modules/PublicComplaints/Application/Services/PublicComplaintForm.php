@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Feedback\Application\Services;
+namespace Modules\PublicComplaints\Application\Services;
 
 use App\Rules\PublicPhoneNumber;
 use Illuminate\Validation\Rule;

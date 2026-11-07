@@ -6,8 +6,6 @@ namespace Modules\Feedback\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Modules\Feedback\Application\Services\PublicComplaintForm;
-use Modules\Feedback\Application\Services\PublicTipForm;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
 use Modules\Feedback\Http\Requests\Concerns\ValidatesOrganizationFormContext;
 use Modules\Feedback\Http\Requests\Concerns\ValidatesPublicSubmitter;
@@ -38,7 +36,7 @@ class StorePublicServiceEntryRequest extends FormRequest
         $requirements = $this->requirements($type);
         $employeeTarget = $this->routeIs('service-feedback.*');
 
-        return [
+        return $this->withTypeRules($type, [
             'form_token' => ['nullable', 'string', 'size:32'],
             'category_id' => ['nullable', 'uuid'],
             // Optional context only: a Tip-off never needs a service to have been received.
@@ -53,11 +51,7 @@ class StorePublicServiceEntryRequest extends FormRequest
             'incident_location' => $requirements->incidentContext ? ['nullable', 'string', 'max:255'] : ['prohibited'],
             ...$this->evidenceRules($requirements),
             ...$this->organizationContextRules($type),
-            // The complaint form's sections (owner's template); replaces the optional address rules above.
-            ...($requirements->complaintForm ? PublicComplaintForm::rules() : ['complaint_form' => ['prohibited']]),
-            // The Tip-off form's optional parts (owner's sample).
-            ...($requirements->tipForm ? PublicTipForm::rules() : ['tip_form' => ['prohibited']]),
-        ];
+        ]);
     }
 
     /** @return array<string, string> */
@@ -74,18 +68,8 @@ class StorePublicServiceEntryRequest extends FormRequest
     /** @return array<string, string> */
     public function attributes(): array
     {
-        $attributes = $this->organizationContextAttributes($this->route('type') === 'complaint' ? ServiceFeedbackType::Complaint : ServiceFeedbackType::Suggestion);
-        foreach (['gender', 'id_type', 'id_number', 'alt_phone', 'principal_name', 'poa_reference', 'poa_date', 'remedy_sought', 'declaration', 'prior_woreda_date', 'prior_sub_city_date', 'other_pages'] as $field) {
-            $attributes["complaint_form.{$field}"] = __("service-feedback.complaint_form.{$field}");
-        }
+        $type = $this->route('type') === 'complaint' ? ServiceFeedbackType::Complaint : ServiceFeedbackType::Suggestion;
 
-        foreach (['suspect_name', 'suspect_unit', 'suspect_location', 'violation_other', 'evidence_description'] as $field) {
-            $attributes["tip_form.{$field}"] = __("service-feedback.tip_form.{$field}");
-        }
-
-        return $attributes + [
-            'submitter_address.sub_city' => __('service-feedback.complaint_form.sub_city'),
-            'submitter_address.woreda' => __('service-feedback.complaint_form.woreda'),
-        ];
+        return $this->organizationContextAttributes($type) + $this->typeAttributes($type);
     }
 }

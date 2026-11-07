@@ -7,7 +7,6 @@ namespace Modules\Feedback\Application\Services;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
-use App\Enums\CodeRuleEntityType;
 use App\Models\OrganizationUnit;
 use App\Models\PositionService;
 use App\Models\Service;
@@ -23,6 +22,7 @@ use Modules\Feedback\Contracts\Data\PublicIntakeChannel;
 use Modules\Feedback\Contracts\Data\PublicTipType;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 
 /**
@@ -52,6 +52,7 @@ class PublicFeedbackSubmissionService
         private readonly PublicFeedbackNotifier $notifier,
         private readonly PublicSubmissionPolicy $policy,
         private readonly PublicFeedbackQuestionnaire $questionnaire,
+        private readonly PublicSubmissionTypes $types,
     ) {}
 
     /**
@@ -90,12 +91,13 @@ class PublicFeedbackSubmissionService
             ? PositionService::query()->find($data['position_service_id'])
             : null;
         $requirements = $this->policy->for($type, $this->settings->allowAttachments());
+        $submissionType = $this->types->for($type);
         $tipType = $requirements->tipTypeRequired ? PublicTipType::from((string) $data['tip_type']) : null;
         $organizationForm = $this->organizationForm($target, $type, $data);
         $storedPaths = [];
 
         try {
-            return DB::transaction(function () use ($target, $type, $data, $request, $service, $requirements, $tipType, $organizationForm, &$storedPaths): EmployeeServiceFeedback {
+            return DB::transaction(function () use ($target, $type, $data, $request, $service, $requirements, $submissionType, $tipType, $organizationForm, &$storedPaths): EmployeeServiceFeedback {
                 $entry = EmployeeServiceFeedback::query()->create([
                     // Target and source: only ever from the resolved context.
                     'target_type' => $target->targetType,
@@ -124,9 +126,6 @@ class PublicFeedbackSubmissionService
                     'service_date' => $organizationForm['service_date'] ?? null,
                     'service_time_band' => $organizationForm['service_time_band'] ?? null,
                     'question_set_id' => $organizationForm['question_set_id'] ?? null,
-                    'rating' => $type === ServiceFeedbackType::Feedback ? (int) $data['rating'] : null,
-                    'feedback_kind' => $type === ServiceFeedbackType::Feedback && in_array($data['feedback_kind'] ?? null, EmployeeServiceFeedback::FEEDBACK_KINDS, true) ? $data['feedback_kind'] : null,
-                    'service_point' => $type === ServiceFeedbackType::Feedback ? $this->trimmedOrNull($data['service_point'] ?? null) : null,
                     'comment' => $type === ServiceFeedbackType::Feedback
                         ? $this->trimmedOrNull($data['comment'] ?? null)
                         : trim((string) ($data['message'] ?? '')),
@@ -137,8 +136,6 @@ class PublicFeedbackSubmissionService
                     'client_email' => $this->trimmedOrNull($data['client_email'] ?? null),
                     'submitter_organization' => $requirements->submitterOrganization ? $this->trimmedOrNull($data['submitter_organization'] ?? null) : null,
                     'submitter_address' => $requirements->submitterAddress ? $this->address($data['submitter_address'] ?? null) : null,
-                    'tip_details' => $requirements->tipForm ? PublicTipForm::details(is_array($data['tip_form'] ?? null) ? $data['tip_form'] : []) : null,
-                    'complaint_details' => $requirements->complaintForm ? PublicComplaintForm::details(is_array($data['complaint_form'] ?? null) ? $data['complaint_form'] : []) : null,
                     'submitter_identity_mode' => $requirements->identityMode(),
                     'tip_type' => $tipType,
                     'involved_parties' => $requirements->involvedParties ? $this->trimmedOrNull($data['involved_parties'] ?? null) : null,
@@ -150,16 +147,14 @@ class PublicFeedbackSubmissionService
                     'user_agent' => Str::limit((string) $request->userAgent(), 500, ''),
                     'status' => ServiceFeedbackStatus::Pending,
                     'submitted_at' => now(),
+                    // The type's own fields (its module, ADR 0032): rating, the complaint or Tip-off form.
+                    ...$submissionType->storedAttributes($data),
                 ]);
 
                 // Every type has its own reference from a Code Rule (PSF / PTO / PSC by default).
                 $entry->forceFill([
                     'reference_number' => $this->codes->execute(
-                        match ($type) {
-                            ServiceFeedbackType::Complaint => CodeRuleEntityType::PublicServiceComplaint,
-                            ServiceFeedbackType::Suggestion => CodeRuleEntityType::PublicTipOff,
-                            ServiceFeedbackType::Feedback => CodeRuleEntityType::PublicServiceFeedback,
-                        },
+                        $submissionType->codeRule(),
                         ['organization_id' => $target->contextOrganizationId],
                         null,
                         null,

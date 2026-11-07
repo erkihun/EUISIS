@@ -33,6 +33,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Modules\Feedback\Contracts\PublicSubmissionTypes;
 use RuntimeException;
 
 /**
@@ -1098,8 +1099,11 @@ class DemoIntelligenceSeeder extends DemoSeeder
             $rows[] = $this->submission(++$n, 'complaint', $this->officeMoment($this->now->subDays(9), $this->now), $admin, $orgWeights, $organizationsById, $assignments, $units, $qrCodes, $services);
         }
 
-        foreach (array_chunk($rows, 250) as $chunk) {
-            DB::table('employee_service_feedback')->insert($chunk);
+        // Each type's rows go to its module's table (ADR 0032); the old name is a read-only view.
+        foreach (collect($rows)->groupBy(fn (array $row) => $row['type'] ?? 'feedback') as $type => $group) {
+            foreach ($group->chunk(250) as $chunk) {
+                DB::table(app(PublicSubmissionTypes::class)->for((string) $type)->table())->insert($chunk->values()->all());
+            }
         }
 
         return count($rows);

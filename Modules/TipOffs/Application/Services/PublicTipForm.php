@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Feedback\Application\Services;
+namespace Modules\TipOffs\Application\Services;
 
 use Illuminate\Validation\Rule;
 
