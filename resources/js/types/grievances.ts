@@ -22,7 +22,7 @@ export type Paginated<T> = {
     next_page_url: string | null;
 };
 
-export type EmployeeRef = { id: string; name: string | null; name_en: string | null; employee_number: string | null; unit?: Bilingual | null };
+export type EmployeeRef = { id: string; name: string | null; name_en: string | null; employee_number: string | null; unit?: Bilingual | null; position?: Bilingual | null; photo_url?: string | null };
 
 export type HandlerRef = {
     type: 'committee' | 'organization_unit' | 'external_authority' | 'organization' | '';
@@ -360,7 +360,22 @@ export type CommitteesIndexProps = {
     policy: { min: number; max: number; require_writer: boolean };
     can: { create: boolean };
 };
-export type CommitteeCreateProps = { options: { organizations: Bilingual[]; types: string[] } };
+export type HandlerUnitMember = {
+    id: string; employee: EmployeeRef | null; responsibility: 'head' | 'investigator' | 'secretary';
+    effective_from: string | null; effective_to: string | null; appointment_reference: string | null; signature: boolean; signature_url: string | null;
+};
+export type HandlerUnitItem = {
+    id: string; kind: 'team' | 'directorate'; status: 'active' | 'inactive'; description_en: string | null; description_am: string | null;
+    organization: Bilingual | null; unit: Bilingual | null; problems: string[]; members: HandlerUnitMember[]; can_update: boolean; can_manage_members: boolean;
+};
+export type HandlerUnitsIndexProps = {
+    units: Paginated<HandlerUnitItem>;
+    filters: { organization_id?: string; kind?: string; status?: string; search?: string };
+    options: { organizations: Bilingual[]; kinds: string[]; responsibilities: string[] };
+    summary: { teams: number; directorates: number; members: number; unsigned: number };
+    can: { designate: boolean };
+};
+export type CommitteeCreateProps ={ options: { organizations: Bilingual[]; types: string[] } };
 export type CommitteeShowProps = {
     committee: CommitteeRow & { description_en: string | null; description_am: string | null; approved_at: string | null; created_by: number | null };
     members: { id: string; employee: EmployeeRef | null; role: 'chairperson' | 'writer' | 'member'; selection_source: string | null; term_number: number | null; effective_from: string | null; effective_to: string | null; status: string; is_active: boolean; appointment_reference: string | null; appointed_by: string | null; end_reason: string | null; signature: boolean; signature_url: string | null; signature_recorded_at: string | null }[];
@@ -376,14 +391,19 @@ export type RouteRow = {
     category: Bilingual | null; sla_profile: Bilingual | null; priority: number; effective_from: string | null; effective_to: string | null;
     is_active: boolean; approved_at: string | null; approved_by: string | null; created_by: string | null; created_by_id: number | null;
     notes: string | null; cross_organization: boolean;
+    /** ADR 0029: readiness of a Team/Directorate target. */
+    target_unit: { designated: boolean; kind: string | null; members: number; head: string | null; ready: boolean } | null;
 };
 export type HandlerOptions = {
     movement_types: string[]; handler_types: string[]; organizations: Bilingual[];
     committees: (Bilingual & { organization_id: string; status: string; organization: Bilingual | null })[];
     external_authorities: Bilingual[]; categories: Bilingual[]; sla_profiles: Bilingual[];
+    /** Designated Teams/Directorates (ADR 0029); id is the organization unit's. */
+    handler_units?: (Bilingual & { kind: string; organization: Bilingual | null })[];
 };
 export type RoutingIndexProps = {
     routes: Paginated<RouteRow>;
+    summary: { active: number; pending: number; inactive: number; unit_gaps: number };
     filters: { movement_type?: string; source_handler_type?: string; target_handler_type?: string; state?: string };
     options: HandlerOptions;
     can: { manage: boolean; approve: boolean };

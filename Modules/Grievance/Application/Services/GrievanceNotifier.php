@@ -76,7 +76,7 @@ final class GrievanceNotifier
             $officerIds = $stage->activeOfficers()->pluck('user_id')->all();
             $users = $officerIds !== []
                 ? User::query()->whereIn('id', $officerIds)->where('status', 'active')->get()->all()
-                : $this->handlers->unitUsersWithPermission((string) $stage->handler_id, 'grievances.assign');
+                : $this->handlers->unitUsersWithPermission((string) $stage->handler_id, 'grievances.assign', true);
         } elseif ($stage->handler_type === GrievanceHandlerType::ExternalAuthority) {
             $users = User::permission('grievances.tribunal')->where('status', 'active')->get()->all();
         }

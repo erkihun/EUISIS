@@ -158,7 +158,11 @@ final class GrievanceCorrespondenceService
                 'approved_by_name' => $approver?->employee instanceof Employee ? ($am ? $approver->employee->full_name : ($approver->employee->name_en ?: $approver->employee->full_name)) : $approver?->name,
                 'approved_by_position' => $decision->approver_position_id ? $this->positionTitle(Position::query()->find($decision->approver_position_id), $am) : null,
             ];
-            $values['appeal_notice'] = (string) __('grievances.letters.appeal_notice', [], $am ? 'am' : 'en');
+            // ADR 0030: only a Grievance Directorate decision points to the Administrative Court;
+            // a committee or team decision is appealed to the next level inside the system.
+            $fromDirectorate = $decision->stage !== null
+                && $this->handlers->isGrievanceDirectorate($decision->stage->handler_type, (string) $decision->stage->handler_id);
+            $values['appeal_notice'] = (string) __($fromDirectorate ? 'grievances.letters.appeal_notice' : 'grievances.letters.appeal_notice_internal', [], $am ? 'am' : 'en');
         }
         $hearing = $context['hearing'] ?? null;
         if ($hearing instanceof GrievanceHearing) {

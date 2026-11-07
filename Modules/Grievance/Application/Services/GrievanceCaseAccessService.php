@@ -106,13 +106,17 @@ final class GrievanceCaseAccessService
         return $stage !== null && $stage->activeOfficers()->where('user_id', $user->getKey())->exists();
     }
 
-    /** Placed in the handling unit (or beneath it) with grievances.assign. */
+    /**
+     * The unit's assigning officer with grievances.assign: the named head of a
+     * designated Team/Directorate (ADR 0029), or — for an undesignated unit —
+     * anyone placed in it or beneath it.
+     */
     public function isUnitAssigner(User $user, ?GrievanceCaseStage $stage): bool
     {
         return $stage !== null
             && $stage->handler_type === GrievanceHandlerType::OrganizationUnit
             && $user->can('grievances.assign')
-            && in_array((string) $stage->handler_id, $this->unitIdsOf($user), true);
+            && in_array((string) $stage->handler_id, $this->unitIdsOf($user, true), true);
     }
 
     private function isUnitStaff(User $user, ?GrievanceCaseStage $stage): bool
@@ -453,7 +457,10 @@ final class GrievanceCaseAccessService
         $employeeId = $user->employee_id;
         $canView = $user->can('grievances.view_assigned');
         $canAssign = $user->can('grievances.assign');
-        $unitIds = ($canAssign || ($canView && $this->settings->unitStaffSeeAllCases())) ? $this->unitIdsOf($user) : [];
+        $unitIds = array_values(array_unique([
+            ...($canAssign ? $this->unitIdsOf($user, true) : []),
+            ...(($canView && $this->settings->unitStaffSeeAllCases()) ? $this->unitIdsOf($user) : []),
+        ]));
         $tribunal = $user->can('grievances.tribunal');
         $tribunalOrganizationIds = $tribunal && ! $this->scope->isUnrestricted($user)
             ? $this->scope->accessibleOrganizationIds($user)->all()
@@ -579,9 +586,9 @@ final class GrievanceCaseAccessService
     }
 
     /** @return list<string> */
-    public function unitIdsOf(User $user): array
+    public function unitIdsOf(User $user, bool $headOnly = false): array
     {
-        return $this->handlers->placementOf($this->employeeOf($user))['unit_ids'];
+        return $this->handlers->handlingUnitIdsOf($this->employeeOf($user), $headOnly);
     }
 
     private function canDraftDecisionLike(User $user, Grievance $grievance, string $permission): bool

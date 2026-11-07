@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import Modal from '@/Components/Modal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { AdminForm, choices, today } from '@/Components/grievances/AdminForm';
+import MemberAvatar from '@/Components/grievances/MemberAvatar';
 import { Pager, GPill, nameOf, employeeName, fmt, pageCls, inputCls, primaryBtn, useEnumLabel } from '@/Components/grievances/ui';
 import { AppActionMenu, AppMetricCard, FilterField, FilterPanel } from '@/Components/ui';
 import { AlertTriangle, CheckCircle, ChevronRight, PencilIcon, Plus, UserPlusIcon, XCircle } from '@/Components/Icons';
@@ -80,7 +81,7 @@ export default function Index({ committees, filters, options, summary, policy, c
         <Modal show={dialog !== null} onClose={close} maxWidth="2xl">
             {dialog?.kind === 'register' && <DialogShell title={`${t('grievanceAdmin.registerMember')}: ${nameOf(dialog.committee, locale)}`} help={t('grievanceAdmin.addMemberHelp')}>
                 <AdminForm key={`register-${dialog.committee.id}`} initial={{ employee_id: '', role: 'member', selection_source: '', term_number: '1', effective_from: today(), effective_to: '', appointment_reference: '', signature: null, organization_id: dialog.committee.organization?.id ?? '' }}
-                    fields={[{ key: 'employee_id', type: 'lookup', lookup: 'employees', organizationKey: 'organization_id', required: true }, { key: 'role', type: 'select', options: choices(options.roles), enumGroup: 'committee_role', required: true }, { key: 'selection_source', type: 'select', options: choices(SOURCES), enumGroup: 'committee_source' }, { key: 'term_number', type: 'select', options: choices(['1', '2']) }, { key: 'effective_from', type: 'date', required: true }, { key: 'effective_to', type: 'date' }, { key: 'appointment_reference' }, { key: 'signature', type: 'file', accept: 'image/png,image/jpeg,image/webp', required: true, help: t('grievanceAdmin.signatureHelp') }]}
+                    fields={[{ key: 'employee_id', type: 'lookup', lookup: 'employees', organizationKey: 'organization_id', lookupParams: { exclude_committee_id: dialog.committee.id }, required: true }, { key: 'role', type: 'select', options: choices(options.roles), enumGroup: 'committee_role', required: true }, { key: 'selection_source', type: 'select', options: choices(SOURCES), enumGroup: 'committee_source' }, { key: 'term_number', type: 'select', options: choices(['1', '2']) }, { key: 'effective_from', type: 'date', required: true }, { key: 'effective_to', type: 'date' }, { key: 'appointment_reference' }, { key: 'signature', type: 'file', accept: 'image/png,image/jpeg,image/webp', required: true, help: t('grievanceAdmin.signatureHelp') }]}
                     url={route('grievances.committees.members.store', dialog.committee.id)} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'editMember' && <DialogShell title={`${t('grievanceAdmin.editMember')}: ${employeeName(dialog.member.employee, locale)}`} help={t('grievanceAdmin.editMemberHelp')}>
@@ -240,17 +241,17 @@ function MemberTile({ member, canManage, onEdit, onEnd }: { member: CommitteeLis
     const { t, locale } = useLocale();
     const name = employeeName(member.employee, locale);
     return <li className="flex min-w-0 items-start gap-3 rounded-lg border border-(--app-border) bg-(--app-surface) p-3">
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${ROLE_ORDER[member.role] ?? ROLE_ORDER.member}`} aria-hidden>{initials(name)}</span>
+        <MemberAvatar name={name} photoUrl={member.employee?.photo_url} tier={member.role === 'chairperson' ? 'lead' : member.role === 'writer' ? 'second' : 'member'} />
         <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
                 <span className="truncate font-medium text-(--app-foreground)">{name}</span>
                 <GPill group="committee_role" value={member.role} />
             </div>
-            <p className="mt-0.5 truncate text-xs text-(--app-muted-foreground)">{member.employee?.employee_number}{member.employee?.unit ? ` · ${nameOf(member.employee.unit, locale)}` : ''}</p>
+            {member.employee?.position && <p className="mt-0.5 truncate text-sm text-(--app-foreground)">{nameOf(member.employee.position, locale)}</p>}
+            {member.employee?.unit && <p className="mt-0.5 truncate text-xs text-(--app-muted-foreground)">{nameOf(member.employee.unit, locale)}</p>}
+            {/* The signature image itself is not shown on the list; only a missing one is flagged. */}
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-(--app-muted-foreground)">
-                {member.signature_url
-                    ? <img src={member.signature_url} alt={`${t('grievanceAdmin.signatureOnFile')}: ${name}`} className="h-7 max-w-24 rounded-sm border border-(--app-border) bg-white object-contain px-1" loading="lazy" />
-                    : <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400"><AlertTriangle className="h-3.5 w-3.5" aria-hidden />{t('grievanceAdmin.signatureMissing')}</span>}
+                {!member.signature && <span className="inline-flex items-center gap-1 font-medium text-amber-700 dark:text-amber-400"><AlertTriangle className="h-3.5 w-3.5" aria-hidden />{t('grievanceAdmin.signatureMissing')}</span>}
                 <span className="inline-flex items-center gap-1"><LocalizedDateDisplay value={member.effective_from} /></span>
             </div>
         </div>

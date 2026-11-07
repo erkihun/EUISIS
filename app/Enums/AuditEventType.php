@@ -525,6 +525,11 @@ enum AuditEventType: string
     case GrievanceCommitteeMemberAdded = 'grievance.committee_member_added';
     case GrievanceCommitteeMemberEnded = 'grievance.committee_member_ended';
     case GrievanceCommitteeMemberUpdated = 'grievance.committee_member_updated';
+    case GrievanceHandlerUnitDesignated = 'grievance.handler_unit_designated';
+    case GrievanceHandlerUnitUpdated = 'grievance.handler_unit_updated';
+    case GrievanceHandlerUnitMemberAdded = 'grievance.handler_unit_member_added';
+    case GrievanceHandlerUnitMemberUpdated = 'grievance.handler_unit_member_updated';
+    case GrievanceHandlerUnitMemberEnded = 'grievance.handler_unit_member_ended';
     case GrievanceRouteSaved = 'grievance.route_saved';
     case GrievanceRouteApproved = 'grievance.route_approved';
     case GrievanceConfigurationChanged = 'grievance.configuration_changed';

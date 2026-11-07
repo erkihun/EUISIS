@@ -6,6 +6,22 @@ const grievanceAdmin = {
     registerMember: 'Register member', noMembersYet: 'No members registered yet.', memberRegistered: 'Member registered.',
     editMember: 'Edit member', editMemberHelp: 'Corrects the current term in place; the history row is kept. An ended term cannot be reopened: register a new term instead.',
     signatureReplaceHelp: 'Leave empty to keep the signature on file; upload a new image only to replace it.',
+    unitBoard: {
+        title: 'Grievance Teams & Directorates',
+        help: 'Existing units are designated as a Grievance Team or Directorate — nothing is created. Name the unit’s own staff, each with a Regulation 201/2018 responsibility and a signature.',
+        designate: 'Designate a unit', designateHelp: 'Choose an existing work unit of the institution and say whether it is a Grievance Team or a Grievance Directorate. There is one Grievance Directorate in the system, and only it can send a case to the Administrative Court.',
+        teams: 'Teams', directorates: 'Directorates', members: 'Named members', unsigned: 'Without signature',
+        teamsHelp: 'Designated Grievance Teams', directoratesHelp: 'Designated Grievance Directorates', membersHelp: 'Serving across all units', unsignedHelp: 'Serving members without a signature on file',
+        registerMember: 'Name a member', registerMemberHelp: 'Search the unit’s own staff (the unit and the units beneath it). Each member is registered with a responsibility and a signature image.',
+        editDesignation: 'Edit designation', deactivate: 'Deactivate', reactivate: 'Reactivate', responsibilities: 'Responsibilities under Regulation 201/2018',
+        headDuty: 'Receives the cases routed to the unit, distributes them, leads the review and signs and submits the report and recommendation (Arts. 34(3), 35(1)).',
+        investigatorDuty: 'Examines the application and the evidence, hears the parties and drafts the findings (Art. 34).',
+        secretaryDuty: 'Registers the application and its documents, keeps the minutes and prepares the written decision for delivery (Arts. 32(2), 35(2)).',
+        noUnits: 'No Team or Directorate is designated yet', noUnitsHelp: 'Designate the institution’s existing grievance unit, then name its members.',
+        noMatches: 'No unit matches these filters.', noMembers: 'No member is named yet; until then anyone placed in the unit handles its cases.',
+        ready: 'Ready', needsAttention: 'Needs attention', head: 'Head', expand: 'Expand', collapse: 'Collapse',
+        unitField: 'Work unit', kindField: 'Designated as', responsibilityField: 'Responsibility',
+    },
     committeeBoard: {
         totalCommittees: 'Committees', activeCommittees: 'Active', pendingCommittees: 'Awaiting approval', servingMembers: 'Serving members',
         totalHelp: 'Every committee you can see', activeHelp: 'Approved and handling cases', pendingHelp: 'Waiting for a second user to approve', membersHelp: 'Across all committees',
@@ -30,6 +46,13 @@ const grievanceAdmin = {
     routingHelp: 'Administrative hierarchy is not the grievance route. Every route is explicit, may cross organizations, and is used for new cases only after a different user approves it.',
     newRoute: 'New route', editRoute: 'Edit route (needs approval again)', source: 'From', target: 'To', crossOrganization: 'Cross-organization',
     initialSourceHelp: 'Initial-assignment routes always start from the complainant’s organization.',
+    routeBoard: {
+        active: 'Active routes', pending: 'Awaiting approval', inactive: 'Inactive', gaps: 'Unready units',
+        activeHelp: 'Approved and used for new movements', pendingHelp: 'A different user must approve them', inactiveHelp: 'Kept for history', gapsHelp: 'Team/Directorate targets not designated or without a head',
+        gapsAlert: 'Some routes send cases to a Team or Directorate that is not designated or has no head yet. Set them up in Teams & Directorates so the case reaches named people.',
+        openUnits: 'Open Teams & Directorates', notDesignated: 'Not designated', noHead: 'No head named', headIs: 'Head: :name', members: ':count members',
+        approve: 'Approve', edit: 'Edit', deactivate: 'Deactivate', unitsOnly: 'Teams and Directorates are chosen from the designated units.',
+    },
 
     sla: 'SLA policies',
     slaHelp: 'Deadlines per handler level, in working or calendar days, from a configurable start point. Stages keep the deadline they were given.',
@@ -175,7 +198,7 @@ const grievanceAdmin = {
 
     fields: {
         name: 'Name', name_en: 'Name (English)', name_am: 'Name (Amharic)', description_en: 'Description (English)', description_am: 'Description (Amharic)',
-        organization: 'Organization', organization_id: 'Organization', organization_unit_id: 'Unit', committee_type: 'Type', status: 'Status', members: 'Members',
+        organization: 'Organization', organization_id: 'Organization', organization_unit_id: 'Unit', kind: 'Designated as', responsibility: 'Responsibility', committee_type: 'Type', status: 'Status', members: 'Members',
         openCases: 'Open cases', effective_from: 'Effective from', effective_to: 'Effective to', employee_id: 'Employee', role: 'Committee role',
         appointment_reference: 'Appointment reference', selection_source: 'Selected as', term_number: 'Term', signature: 'Signature', actions: 'Actions', source: 'From', target: 'To', movement_type: 'Movement', priority: 'Priority',
         source_handler_type: 'Source type', target_handler_type: 'Target type', state: 'State', include_descendants: 'Also for sub-organizations',

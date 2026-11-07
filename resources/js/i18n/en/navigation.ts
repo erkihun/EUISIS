@@ -148,6 +148,7 @@ const navigation = {
     grievances: 'All Grievances',
     myGrievances: 'My Grievances',
     grievanceCommittees: 'Committees',
+    grievanceUnits: 'Teams & Directorates',
     grievanceCategories: 'Categories',
     grievanceSlaRules: 'SLA Rules',
     grievanceDashboard: 'Dashboard',

@@ -389,6 +389,8 @@ return [
             'Modules\Grievance\Domain\Models\GrievanceCommittee',
             'Modules\Grievance\Domain\Models\GrievanceCommitteeMember',
             'Modules\Grievance\Domain\Models\GrievanceCorrectiveAction',
+            'Modules\Grievance\Domain\Models\GrievanceHandlerUnit',
+            'Modules\Grievance\Domain\Models\GrievanceHandlerUnitMember',
             'Modules\Grievance\Domain\Models\GrievanceDecision',
             'Modules\Grievance\Domain\Models\GrievanceDecisionApproval',
             'Modules\Grievance\Domain\Models\GrievanceDecisionLetter',

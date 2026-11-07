@@ -25,6 +25,7 @@ use Modules\Grievance\Domain\Enums\GrievanceSlaStartPoint;
 use Modules\Grievance\Domain\Models\GrievanceCategory;
 use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
 use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 
@@ -71,6 +72,7 @@ class GrievanceRoutingController extends Controller
             'source' => $this->presenter->handler($r->source_handler_type->value, $r->source_handler_id),
             'include_descendants' => $r->include_descendants,
             'target' => $this->presenter->handler($r->target_handler_type->value, $r->target_handler_id),
+            'target_unit' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit ? $this->unitReadiness((string) $r->target_handler_id) : null,
             'movement_type' => $r->movement_type->value,
             'category' => $r->category?->only(['id', 'name_en', 'name_am']),
             'sla_profile' => $r->slaProfile?->only(['id', 'name_en', 'name_am']),
@@ -86,7 +88,18 @@ class GrievanceRoutingController extends Controller
             'cross_organization' => $this->isCrossOrganization($r),
         ]);
 
+        $all = GrievanceRoute::query();
+        $summary = [
+            'active' => (clone $all)->whereNotNull('approved_at')->where('is_active', true)->count(),
+            'pending' => (clone $all)->whereNull('approved_at')->where('is_active', true)->count(),
+            'inactive' => (clone $all)->where('is_active', false)->count(),
+            // Active routes into a Team/Directorate that is not designated or has nobody named yet.
+            'unit_gaps' => (clone $all)->where('is_active', true)->where('target_handler_type', GrievanceHandlerType::OrganizationUnit->value)
+                ->pluck('target_handler_id')->unique()->filter(fn ($id) => ! $this->unitReadiness((string) $id)['ready'])->count(),
+        ];
+
         return Inertia::render('Grievances/Routing/Index', [
+            'summary' => $summary,
             'routes' => $page,
             'filters' => $request->only(['movement_type', 'source_handler_type', 'target_handler_type', 'state']),
             'options' => $this->handlerOptions($request),
@@ -225,6 +238,18 @@ class GrievanceRoutingController extends Controller
             || $this->handlers->find(GrievanceHandlerType::from($data['target_handler_type']), $data['target_handler_id']) === null) {
             throw ValidationException::withMessages(['target_handler_id' => __('grievances.errors.handler_missing')]);
         }
+        // ADR 0030: a route to the court (an external authority) starts from the Grievance Directorate only.
+        if ($data['target_handler_type'] === GrievanceHandlerType::ExternalAuthority->value
+            && ! $this->handlers->isGrievanceDirectorate($sourceType, $data['source_handler_id'])) {
+            throw ValidationException::withMessages(['source_handler_id' => __('grievances.errors.court_only_from_directorate')]);
+        }
+        // ADR 0029: a Team/Directorate in a route is a designated unit (Teams & Directorates page).
+        foreach (['source', 'target'] as $side) {
+            if ($data["{$side}_handler_type"] === GrievanceHandlerType::OrganizationUnit->value
+                && ! GrievanceHandlerUnit::query()->where('organization_unit_id', $data["{$side}_handler_id"])->where('status', 'active')->exists()) {
+                throw ValidationException::withMessages(["{$side}_handler_id" => __('grievances.errors.unit_not_designated')]);
+            }
+        }
         if (($sourceType === GrievanceHandlerType::Organization) !== ($data['movement_type'] === GrievanceMovementType::InitialAssignment->value)) {
             throw ValidationException::withMessages(['movement_type' => __('grievances.errors.initial_route_source')]);
         }
@@ -280,9 +305,43 @@ class GrievanceRoutingController extends Controller
             'committees' => GrievanceCommittee::query()->whereIn('committee_type', GrievanceHandlerRegistry::grievanceCommitteeTypes())
                 ->where('status', '!=', 'inactive')->with('organization:id,name_en,name_am')->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'organization_id', 'status']),
             'external_authorities' => GrievanceExternalAuthority::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
+            // ADR 0029: Teams/Directorates are offered from their designations; the id is the unit's.
+            'handler_units' => GrievanceHandlerUnit::query()->where('status', 'active')->with(['organizationUnit:id,name_en,name_am', 'organization:id,name_en,name_am'])->get()
+                ->filter(fn (GrievanceHandlerUnit $u) => $u->organizationUnit !== null)
+                ->map(fn (GrievanceHandlerUnit $u) => [
+                    'id' => $u->organization_unit_id, 'name_en' => $u->organizationUnit->name_en, 'name_am' => $u->organizationUnit->name_am,
+                    'kind' => $u->kind, 'organization' => $u->organization?->only(['id', 'name_en', 'name_am']),
+                ])->sortBy('name_en')->values(),
             'categories' => GrievanceCategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
             'sla_profiles' => GrievanceSlaProfile::query()->where('is_active', true)->where('purpose', 'resolution')->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
             // Units are loaded per organization through the lookup endpoint.
+        ];
+    }
+
+    /** @var array<string, array{designated: bool, kind: string|null, members: int, head: string|null, ready: bool}> */
+    private array $readiness = [];
+
+    /**
+     * ADR 0029: whether a Team/Directorate target can take cases — designated,
+     * with named serving members and a head.
+     *
+     * @return array{designated: bool, kind: string|null, members: int, head: string|null, ready: bool}
+     */
+    private function unitReadiness(string $unitId): array
+    {
+        if (isset($this->readiness[$unitId])) {
+            return $this->readiness[$unitId];
+        }
+        $designation = GrievanceHandlerUnit::query()->where('organization_unit_id', $unitId)->where('status', 'active')->first();
+        $serving = $designation?->members()->servingOn(now())->with('employee:id,full_name')->get() ?? collect();
+        $head = $serving->firstWhere('responsibility', 'head');
+
+        return $this->readiness[$unitId] = [
+            'designated' => $designation !== null,
+            'kind' => $designation?->kind,
+            'members' => $serving->count(),
+            'head' => $head?->employee?->full_name,
+            'ready' => $designation !== null && $head !== null,
         ];
     }
 

@@ -208,6 +208,8 @@ const grievances = {
         information_target: { employee: 'ቅሬታ አቅራቢ', hr: 'የሰው ሀብት', organization_unit: 'የሥራ ክፍል', organization: 'ተቋም', external: 'ሌላ ተቋም' },
         information_status: { open: 'ክፍት', responded: 'ምላሽ ተሰጥቷል', closed: 'ተዘግቷል', cancelled: 'ተሰርዟል' },
         committee_role: { chairperson: 'ሰብሳቢ', writer: 'ጸሐፊ', member: 'አባል' },
+        unit_kind: { team: 'የቅሬታ ቡድን', directorate: 'የቅሬታ ዳይሬክቶሬት' },
+        unit_responsibility: { head: 'ኃላፊ (ቡድን መሪ / ዳይሬክተር)', investigator: 'መርማሪ ባለሙያ', secretary: 'ጸሐፊ' },
         committee_source: { appointed: 'በበላይ ኃላፊ የተመደበ', elected: 'በሠራተኞች የተመረጠ', hr_representative: 'የሰው ሀብት ተወካይ' },
         committee_type: {
             grievance: 'የቅሬታ ኮሚቴ', disciplinary: 'የዲሲፕሊን ኮሚቴ', tribunal: 'የፍርድ ቤት ፓነል',

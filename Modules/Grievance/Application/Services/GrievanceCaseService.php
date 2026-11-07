@@ -661,10 +661,10 @@ final class GrievanceCaseService
             $grievance = $this->lock($grievance);
             $stage = $this->lockedCurrentStage($grievance);
 
-            // The officer must be placed in the handling unit, hold the
-            // permission, and not be conflicted on this case.
-            $placement = $this->handlers->placementOf($this->access->employeeOf($officer));
-            if (! in_array((string) $stage->handler_id, $placement['unit_ids'], true) || ! $officer->can('grievances.view_assigned') || $this->access->isConflicted($officer, $grievance)) {
+            // The officer must staff the handling unit (a named member of a
+            // designated Team/Directorate, ADR 0029, or placed in an undesignated
+            // unit), hold the permission, and not be conflicted on this case.
+            if (! in_array((string) $stage->handler_id, $this->access->unitIdsOf($officer), true) || ! $officer->can('grievances.view_assigned') || $this->access->isConflicted($officer, $grievance)) {
                 throw ValidationException::withMessages(['user_id' => __('grievances.errors.officer_not_eligible')]);
             }
 
