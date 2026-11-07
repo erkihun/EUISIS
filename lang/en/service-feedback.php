@@ -140,6 +140,35 @@ return [
         'no_tracking' => 'This message confirms receipt only; the institution will act on it internally.',
     ],
 
+    'complaint_form' => [
+        'gender' => 'sex',
+        'id_type' => 'identity document type',
+        'id_number' => 'identity document number',
+        'alt_phone' => 'other phone number',
+        'principal_name' => 'full name of the person you represent',
+        'poa_reference' => 'power of attorney number',
+        'poa_date' => 'power of attorney date',
+        'remedy_sought' => 'decision or remedy you ask for',
+        'declaration' => 'declaration',
+        'prior_woreda_date' => 'date heard at woreda level',
+        'prior_sub_city_date' => 'date heard at sub-city level',
+        'other_pages' => 'number of pages of other documents',
+        'sub_city' => 'sub-city',
+        'woreda' => 'woreda',
+    ],
+
+    'tip_form' => [
+        'suspect_name' => 'name of the person suspected',
+        'suspect_unit' => 'work unit or level of responsibility',
+        'suspect_location' => 'sub-city / woreda',
+        'violation_other' => 'other violation',
+        'evidence_description' => 'supporting evidence',
+    ],
+
+    'tracking' => [
+        'not_found' => 'No Tip-off or complaint matches this reference and phone number. Check them and try again.',
+    ],
+
     'validation' => [
         'service_required' => 'Please choose the service you received.',
         'rating_required' => 'Please choose a satisfaction rating.',

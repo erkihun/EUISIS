@@ -129,6 +129,7 @@ use Modules\Feedback\Http\Controllers\PublicFeedbackSettingsController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackSubjectController;
 use Modules\Feedback\Http\Controllers\PublicServiceFeedbackController;
 use Modules\Feedback\Http\Controllers\PublicSubmissionListController;
+use Modules\Feedback\Http\Controllers\PublicSubmissionTrackingController;
 use Modules\Feedback\Http\Controllers\ServiceFeedbackController;
 use Modules\Feedback\Http\Controllers\ServiceSubmissionController;
 use Modules\Feedback\Http\Middleware\ThrottlePublicSubmissions;
@@ -575,6 +576,14 @@ Route::post('/id-checker/{cardUuid}/verify-otp', [PublicIdCheckerController::cla
  * is tight and keyed on both token and IP so neither one client nor one desk
  * can be flooded with fabricated ratings.
  */
+// Public tracking of a Tip-off or complaint by its reference (no sign-in; status and dates only).
+Route::get('/track', [PublicSubmissionTrackingController::class, 'show'])
+    ->middleware(['qr.private', 'throttle:30,1'])
+    ->name('public-submissions.track');
+Route::post('/track', [PublicSubmissionTrackingController::class, 'lookup'])
+    ->middleware(['qr.private', 'throttle:10,1'])
+    ->name('public-submissions.track.lookup');
+
 Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'show'])
     ->middleware(['qr.private', 'throttle:30,1'])
     ->name('service-feedback.show');
@@ -1662,6 +1671,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/service-submissions/unrouted', [PublicSubmissionListController::class, 'unrouted'])->name('service-submissions.unrouted');
     Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
     Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
+    // Each type's own dashboard (feedback has service-feedback.admin.dashboard).
+    Route::get('/service-suggestions/dashboard', [ServiceSubmissionController::class, 'suggestionsDashboard'])->name('service-submissions.suggestions.dashboard');
+    Route::get('/service-complaints/dashboard', [ServiceSubmissionController::class, 'complaintsDashboard'])->name('service-submissions.complaints.dashboard');
     Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.show');
     Route::post('/service-submissions/{type}/{submission}/transition', [ServiceSubmissionController::class, 'transition'])

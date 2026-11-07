@@ -233,16 +233,24 @@ it('accepts an optional client name and contact', function (): void {
         ->and($feedback->client_contact)->toBe('0911000000');
 });
 
-it('refuses anonymous feedback: a name and a phone number are required', function (): void {
+it('accepts anonymous feedback: name and phone are optional (owner sample form, 2026-11-08)', function (): void {
     $this->post('/service-feedback/'.$this->token->token, [
         'position_service_id' => $this->positionService->id,
         'rating' => 2,
         'comment' => 'Slow.',
         'client_name' => '',
         'client_contact' => '',
-    ])->assertSessionHasErrors(['client_name', 'client_contact']);
+        'feedback_kind' => 'improvement',
+        'service_point' => 'Window 3',
+    ])->assertSessionHasNoErrors();
 
-    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+    $row = EmployeeServiceFeedback::query()->sole();
+    expect($row->client_name)->toBeNull()->and($row->client_contact)->toBeNull()
+        ->and($row->feedback_kind)->toBe('improvement')->and($row->service_point)->toBe('Window 3');
+
+    // An unknown kind is refused.
+    $this->post('/service-feedback/'.$this->token->token, ['position_service_id' => $this->positionService->id, 'rating' => 4, 'comment' => 'Fine.', 'feedback_kind' => 'complaint'])
+        ->assertSessionHasErrors('feedback_kind');
 });
 
 it('rejects a rating outside 1 to 5', function (int $rating): void {
@@ -332,7 +340,7 @@ it('does not spend the submission ceiling on refused attempts', function (): voi
 
     // As many refusals as the ceiling allows stored submissions: a citizen fixing mistakes is not locked out.
     for ($i = 0; $i < PublicFeedbackSettings::DEFAULT_RATE_LIMIT_PER_SOURCE; $i++) {
-        $this->post($url, array_diff_key($valid, ['client_name' => true]))->assertSessionHasErrors('client_name');
+        $this->post($url, array_diff_key($valid, ['comment' => true]))->assertSessionHasErrors('comment');
     }
 
     $this->post($url, $valid)->assertRedirect()->assertSessionHasNoErrors();

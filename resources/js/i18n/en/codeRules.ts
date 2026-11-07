@@ -90,6 +90,7 @@ const codeRules = {
         grievance_letter: 'Grievance Letter Reference Number',
         public_service_complaint: 'Public Service Complaint Reference',
         public_tip_off: 'Public Tip-off Reference',
+        public_service_feedback: 'Public Service Feedback Reference',
         disciplinary_case: 'Disciplinary Case Number',
         organization_unit: 'Organization Unit Code',
         institution_mandate: 'Institution Mandate Code',

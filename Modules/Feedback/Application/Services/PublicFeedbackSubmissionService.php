@@ -125,6 +125,8 @@ class PublicFeedbackSubmissionService
                     'service_time_band' => $organizationForm['service_time_band'] ?? null,
                     'question_set_id' => $organizationForm['question_set_id'] ?? null,
                     'rating' => $type === ServiceFeedbackType::Feedback ? (int) $data['rating'] : null,
+                    'feedback_kind' => $type === ServiceFeedbackType::Feedback && in_array($data['feedback_kind'] ?? null, EmployeeServiceFeedback::FEEDBACK_KINDS, true) ? $data['feedback_kind'] : null,
+                    'service_point' => $type === ServiceFeedbackType::Feedback ? $this->trimmedOrNull($data['service_point'] ?? null) : null,
                     'comment' => $type === ServiceFeedbackType::Feedback
                         ? $this->trimmedOrNull($data['comment'] ?? null)
                         : trim((string) ($data['message'] ?? '')),
@@ -135,6 +137,8 @@ class PublicFeedbackSubmissionService
                     'client_email' => $this->trimmedOrNull($data['client_email'] ?? null),
                     'submitter_organization' => $requirements->submitterOrganization ? $this->trimmedOrNull($data['submitter_organization'] ?? null) : null,
                     'submitter_address' => $requirements->submitterAddress ? $this->address($data['submitter_address'] ?? null) : null,
+                    'tip_details' => $requirements->tipForm ? PublicTipForm::details(is_array($data['tip_form'] ?? null) ? $data['tip_form'] : []) : null,
+                    'complaint_details' => $requirements->complaintForm ? PublicComplaintForm::details(is_array($data['complaint_form'] ?? null) ? $data['complaint_form'] : []) : null,
                     'submitter_identity_mode' => $requirements->identityMode(),
                     'tip_type' => $tipType,
                     'involved_parties' => $requirements->involvedParties ? $this->trimmedOrNull($data['involved_parties'] ?? null) : null,
@@ -148,18 +152,21 @@ class PublicFeedbackSubmissionService
                     'submitted_at' => now(),
                 ]);
 
-                if ($type !== ServiceFeedbackType::Feedback) {
-                    $entry->forceFill([
-                        'reference_number' => $this->codes->execute(
-                            $type === ServiceFeedbackType::Complaint ? CodeRuleEntityType::PublicServiceComplaint : CodeRuleEntityType::PublicTipOff,
-                            ['organization_id' => $target->contextOrganizationId],
-                            null,
-                            null,
-                            'reference_number',
-                            $entry->getKey(),
-                        ),
-                    ])->save();
-                }
+                // Every type has its own reference from a Code Rule (PSF / PTO / PSC by default).
+                $entry->forceFill([
+                    'reference_number' => $this->codes->execute(
+                        match ($type) {
+                            ServiceFeedbackType::Complaint => CodeRuleEntityType::PublicServiceComplaint,
+                            ServiceFeedbackType::Suggestion => CodeRuleEntityType::PublicTipOff,
+                            ServiceFeedbackType::Feedback => CodeRuleEntityType::PublicServiceFeedback,
+                        },
+                        ['organization_id' => $target->contextOrganizationId],
+                        null,
+                        null,
+                        'reference_number',
+                        $entry->getKey(),
+                    ),
+                ])->save();
 
                 // Structured answers, one typed row each, against the version the visitor answered.
                 $this->questionnaire->persist($entry, $organizationForm['answers'] ?? []);
@@ -324,7 +331,7 @@ class PublicFeedbackSubmissionService
         }
 
         $parts = [];
-        foreach (['city', 'sub_city', 'woreda', 'detail'] as $key) {
+        foreach (['city', 'sub_city', 'woreda', 'house_number', 'detail'] as $key) {
             $part = $this->trimmedOrNull(is_string($value[$key] ?? null) ? $value[$key] : null);
             if ($part !== null) {
                 $parts[$key] = $part;

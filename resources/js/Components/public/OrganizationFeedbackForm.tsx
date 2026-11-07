@@ -10,6 +10,9 @@ import {
     areaClass, cardClass, errorClass, evidenceError, fieldClass, labelClass, mutedClass, privacyNoteKey, sendButtonClass, useSubmissionOutcome,
     type Links, type TargetDisplay,
 } from '@/Components/public/feedbackFormParts';
+import { FeedbackKindChooser, ServicePointField, type FeedbackKind } from '@/Components/public/FeedbackFormFields';
+import { TipConfidentialityChoice, TipLegalNotice, TipSuspectAndViolationFields, emptyTipForm, type TipFormData } from '@/Components/public/TipFormSections';
+import { ComplainantFields, ComplaintMatterFields, DeclarationField, missingComplaintFields, emptyComplaintForm, type ComplaintFormData } from '@/Components/public/ComplaintFormSections';
 import { FeedbackActionBar } from '@/Layouts/FeedbackAppLayout';
 import { useLocale } from '@/hooks/useLocale';
 import type { EvidenceLimits, SubmissionKind, SubmissionRequirements, TipType } from '@/types/publicSubmissions';
@@ -99,17 +102,24 @@ interface OrganizationFormData {
     service_time_band: string;
     answers: Record<string, AnswerValue>;
     rating: string;
+    /** Owner's sample form: the kind of feedback and the unit or window served at (both optional). */
+    feedback_kind: FeedbackKind;
+    service_point: string;
     comment: string;
     message: string;
     tip_type: TipType | '';
     incident_date: string;
     incident_location: string;
     involved_parties: string;
+    /** The Tip-off form's optional parts (TipFormSections); sent with a Tip-off only. */
+    tip_form: TipFormData;
     client_name: string;
     client_contact: string;
     client_email: string;
     submitter_organization: string;
-    submitter_address: { city: string; sub_city: string; woreda: string; detail: string };
+    submitter_address: { city: string; sub_city: string; woreda: string; house_number: string; detail: string };
+    /** The complaint form's sections (ComplaintFormSections); sent with a complaint only. */
+    complaint_form: ComplaintFormData;
     attachments: File[];
 }
 
@@ -117,9 +127,11 @@ const TIME_BANDS = ['morning', 'afternoon', 'evening'] as const;
 const OTHER_SERVICE = '__other';
 // The first step asks WHERE (unit), then when; an error on any of them reopens it.
 const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band'];
+/** The complaint form's fields asked on the last step with the name and phone; the rest go with the details. */
+const COMPLAINANT_FIELDS = ['gender', 'id_type', 'id_number', 'alt_phone', 'represented', 'principal_name', 'poa_reference', 'poa_date', 'declaration'];
 const SUBMITTER_FIELDS = ['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address', 'form_token', 'questionnaire_version'];
 /** What a draft keeps for this tab: never the visitor's identity, never files, never a Tip-off. */
-const DRAFT_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'answers', 'rating', 'comment', 'message', 'incident_location'] as const;
+const DRAFT_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'answers', 'rating', 'feedback_kind', 'service_point', 'comment', 'message', 'incident_location'] as const;
 
 const STEP_TITLE: Record<StepId, Record<SubmissionKind, string>> = {
     service: { feedback: 'stepService', complaint: 'stepService', suggestion: 'stepServiceOptional' },
@@ -525,17 +537,21 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
         service_time_band: '',
         answers: {},
         rating: '',
+        feedback_kind: '',
+        service_point: '',
         comment: '',
         message: '',
         tip_type: '',
         incident_date: '',
         incident_location: '',
         involved_parties: '',
+        tip_form: emptyTipForm(),
         client_name: '',
         client_contact: '',
         client_email: '',
         submitter_organization: '',
-        submitter_address: { city: '', sub_city: '', woreda: '', detail: '' },
+        submitter_address: { city: '', sub_city: '', woreda: '', house_number: '', detail: '' },
+        complaint_form: emptyComplaintForm(),
         attachments: [],
     });
     const { data, setData, errors, processing, progress, clearErrors, setError } = form;
@@ -585,6 +601,8 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
             const question = questions.find((candidate) => candidate.code === code);
             return question ? (question.section === 'experience' ? 'experience' : 'details') : 'submit';
         }
+        if (base === 'complaint_form') return COMPLAINANT_FIELDS.includes(code) ? 'submit' : 'details';
+        if (base === 'tip_form') return code === 'confidentiality' ? 'submit' : 'details';
         if (SERVICE_FIELDS.includes(base)) return 'service';
         if (base === 'rating') return 'experience';
         if (SUBMITTER_FIELDS.includes(base)) return 'submit';
@@ -607,11 +625,13 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
             if (kind === 'feedback' && requirements.narrative_required && data.comment.trim() === '') missing.comment = required;
             if (kind !== 'feedback' && data.message.trim() === '') missing.message = required;
             if (kind === 'suggestion' && data.tip_type === '') missing.tip_type = t('serviceFeedback.chooseTipType');
+            if (kind === 'complaint') Object.assign(missing, missingComplaintFields(data.complaint_form, data.submitter_address, required, 'matter'));
             unanswered(detailQuestions);
         }
         if (id === 'submit') {
             if (requirements.name_required && data.client_name.trim().length < 2) missing.client_name = required;
             if (requirements.phone_required && data.client_contact.trim() === '') missing.client_contact = required;
+            if (kind === 'complaint') Object.assign(missing, missingComplaintFields(data.complaint_form, data.submitter_address, required, 'complainant'));
         }
 
         return missing;
@@ -653,12 +673,12 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
         };
 
         if (kind === 'feedback') {
-            return { ...common, service_date: current.service_date, service_time_band: current.service_time_band, rating: current.rating, comment: current.comment, submitter_organization: current.submitter_organization };
+            return { ...common, service_date: current.service_date, service_time_band: current.service_time_band, rating: current.rating, feedback_kind: current.feedback_kind, service_point: current.service_point, comment: current.comment, submitter_organization: current.submitter_organization };
         }
         if (kind === 'complaint') {
-            return { ...common, service_date: current.service_date, service_time_band: current.service_time_band, message: current.message, incident_location: current.incident_location, submitter_organization: current.submitter_organization, attachments: current.attachments };
+            return { ...common, service_date: current.service_date, service_time_band: current.service_time_band, message: current.message, incident_location: current.incident_location, submitter_organization: current.submitter_organization, submitter_address: current.submitter_address, complaint_form: current.complaint_form, attachments: current.attachments };
         }
-        return { ...common, tip_type: current.tip_type, message: current.message, incident_date: current.incident_date, incident_location: current.incident_location, involved_parties: current.involved_parties, submitter_address: current.submitter_address, attachments: current.attachments };
+        return { ...common, tip_type: current.tip_type, message: current.message, incident_date: current.incident_date, incident_location: current.incident_location, involved_parties: current.involved_parties, submitter_address: current.submitter_address, tip_form: current.tip_form, attachments: current.attachments };
     };
 
     const submit = (event: FormEvent) => {
@@ -696,6 +716,16 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
     const setAnswer = (code: string, value: AnswerValue) => {
         setData('answers', { ...data.answers, [code]: value });
         clearErrors(`answers.${code}` as keyof OrganizationFormData);
+    };
+    /** Set one Tip-off form field and clear its error. */
+    const setTip = <K extends keyof TipFormData>(field: K, value: TipFormData[K]) => {
+        setData('tip_form', { ...data.tip_form, [field]: value });
+        clearErrors(`tip_form.${String(field)}` as keyof OrganizationFormData);
+    };
+    /** Set one complaint-form field and clear its error. */
+    const setComplaint = <K extends keyof ComplaintFormData>(field: K, value: ComplaintFormData[K]) => {
+        setData('complaint_form', { ...data.complaint_form, [field]: value });
+        clearErrors(`complaint_form.${String(field)}` as keyof OrganizationFormData);
     };
     /** Set one text field and clear its error the moment the visitor changes it. */
     const set = (field: TextField, value: string) => {
@@ -802,6 +832,11 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                 {step === 'details' && (
                     <section aria-labelledby="details-step-title" className="space-y-4">
                         <p id="details-step-title" className="px-1 text-base font-bold text-(--app-foreground)">{stepTitle('details')}</p>
+                        {kind === 'feedback' && <>
+                            <FeedbackKindChooser value={data.feedback_kind} onChange={(value) => { setData('feedback_kind', value); clearErrors('feedback_kind'); }} error={fieldErrors.feedback_kind} />
+                            <ServicePointField value={data.service_point} onChange={(value) => set('service_point', value)} error={fieldErrors.service_point} />
+                        </>}
+                        {kind === 'suggestion' && <TipLegalNotice />}
                         {kind === 'suggestion' && (
                             <TipTypeChooser tipTypes={tipTypes} value={data.tip_type} onChange={(value) => set('tip_type', value)} error={fieldErrors.tip_type} />
                         )}
@@ -856,6 +891,8 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                             )}
                             {detailQuestions.map(renderQuestion)}
                         </div>
+                        {kind === 'complaint' && <ComplaintMatterFields form={data.complaint_form} set={setComplaint} errors={fieldErrors} askServiceType={false} />}
+                        {kind === 'suggestion' && <TipSuspectAndViolationFields form={data.tip_form} set={setTip} errors={fieldErrors} />}
                         {kind !== 'feedback' && requirements.evidence_allowed && (
                             <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
                         )}
@@ -872,6 +909,7 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                                     <p className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.tipsterHint')}</p>
                                 </div>
                                 <IdentityFields requirements={requirements} data={{ client_name: data.client_name, client_contact: data.client_contact, client_email: data.client_email }} set={(field, value) => set(field, value)} errors={fieldErrors} />
+                                <TipConfidentialityChoice value={data.tip_form.confidentiality} onChange={(value) => setTip('confidentiality', value)} error={fieldErrors['tip_form.confidentiality']} />
                                 <details className="group rounded-xl border border-(--app-border) p-3">
                                     <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                                         {t('serviceFeedback.tipsterAddressToggle')}
@@ -891,6 +929,10 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                         ) : (
                             <AboutYou requirements={requirements} data={{ client_name: data.client_name, client_contact: data.client_contact, client_email: data.client_email, submitter_organization: data.submitter_organization }} set={(field, value) => set(field, value)} errors={fieldErrors} />
                         )}
+                        {kind === 'complaint' && <>
+                            <ComplainantFields form={data.complaint_form} set={setComplaint} address={data.submitter_address} setAddress={(address) => { setData('submitter_address', address); clearErrors(); }} errors={fieldErrors} />
+                            <DeclarationField checked={data.complaint_form.declaration} onChange={(value) => setComplaint('declaration', value)} error={fieldErrors['complaint_form.declaration']} />
+                        </>}
 
                         <div className={cardClass}>
                             <p className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.reviewTitle')}</p>

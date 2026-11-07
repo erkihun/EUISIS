@@ -11,6 +11,9 @@ import {
 } from '@/Components/public/feedbackFormParts';
 import { AlertTriangle, Building2, ChevronRight, UserIcon } from '@/Components/NavIcons';
 import { Link, useForm } from '@inertiajs/react';
+import { FeedbackKindChooser, ServicePointField, type FeedbackKind } from '@/Components/public/FeedbackFormFields';
+import { TipConfidentialityChoice, TipLegalNotice, TipSuspectAndViolationFields, emptyTipForm, type TipFormData } from '@/Components/public/TipFormSections';
+import { ComplainantFields, ComplaintMatterFields, DeclarationField, emptyComplainantAddress, emptyComplaintForm, type ComplaintFormData } from '@/Components/public/ComplaintFormSections';
 import FeedbackAppLayout, { FeedbackActionBar } from '@/Layouts/FeedbackAppLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
@@ -291,10 +294,16 @@ function TipOffForm({ target, serviceTypes, links, formToken, requirements, evid
         client_email: '',
         submitter_address: { city: '', sub_city: '', woreda: '', detail: '' },
         attachments: [] as File[],
+        // The Tip-off form's optional parts (TipFormSections): confidentiality, suspect, violations, evidence.
+        tip_form: emptyTipForm(),
     });
     // Each field's error is cleared the moment the visitor changes it, so a fixed field never stays red.
     const fieldErrors = errors as Record<string, string | undefined>;
     useFreshFormToken(formToken, setData);
+    const setTip = <K extends keyof TipFormData>(field: K, value: TipFormData[K]) => {
+        setData('tip_form', { ...data.tip_form, [field]: value });
+        clearErrors(`tip_form.${String(field)}` as 'tip_form');
+    };
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -305,6 +314,7 @@ function TipOffForm({ target, serviceTypes, links, formToken, requirements, evid
         <FormScreen formRef={formRef} onSubmit={submit} requirements={requirements} processing={processing} progress={progress?.percentage ?? null} submitLabel={t('serviceFeedback.submitSuggestion')}>
             <FormNotice message={errors.form_token} />
             <TargetCard target={target} />
+            <TipLegalNotice />
 
             <TipTypeChooser tipTypes={tipTypes} value={data.tip_type} onChange={(value) => { setData('tip_type', value); clearErrors('tip_type'); }} error={errors.tip_type} />
 
@@ -358,6 +368,8 @@ function TipOffForm({ target, serviceTypes, links, formToken, requirements, evid
                 </details>
             </div>
 
+            <TipSuspectAndViolationFields form={data.tip_form} set={setTip} errors={fieldErrors} />
+
             {requirements.evidence_allowed && (
                 <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
             )}
@@ -368,6 +380,7 @@ function TipOffForm({ target, serviceTypes, links, formToken, requirements, evid
                     <p className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.tipsterHint')}</p>
                 </div>
                 <IdentityFields requirements={requirements} data={data} set={(field, value) => { setData(field as 'client_name', value); clearErrors(field as 'client_name'); }} errors={errors} />
+                <TipConfidentialityChoice value={data.tip_form.confidentiality} onChange={(value) => setTip('confidentiality', value)} error={fieldErrors['tip_form.confidentiality']} />
                 <details className="group rounded-xl border border-(--app-border) p-3">
                     <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                         {t('serviceFeedback.tipsterAddressToggle')}
@@ -398,8 +411,16 @@ function ComplaintForm({ target, serviceTypes, links, formToken, requirements, e
         position_service_id: '', message: '',
         client_name: '', client_contact: '', client_email: '', submitter_organization: '',
         incident_date: '', incident_location: '', attachments: [] as File[],
+        // The complaint form's sections (ComplaintFormSections): address, identity, matter, declaration.
+        submitter_address: emptyComplainantAddress(),
+        complaint_form: emptyComplaintForm(),
     });
     useFreshFormToken(formToken, setData);
+    const fieldErrors = errors as Record<string, string | undefined>;
+    const setComplaint = <K extends keyof ComplaintFormData>(field: K, value: ComplaintFormData[K]) => {
+        setData('complaint_form', { ...data.complaint_form, [field]: value });
+        clearErrors(`complaint_form.${String(field)}` as 'complaint_form');
+    };
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -425,6 +446,8 @@ function ComplaintForm({ target, serviceTypes, links, formToken, requirements, e
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional />
             )}
 
+            <ComplaintMatterFields form={data.complaint_form} set={setComplaint} errors={fieldErrors} />
+
             <div role="group" aria-labelledby="when-where-title" className={`${cardClass} space-y-4`}>
                 <p id="when-where-title" className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.sectionWhenWhere')}</p>
                 <div data-field>
@@ -444,6 +467,8 @@ function ComplaintForm({ target, serviceTypes, links, formToken, requirements, e
             )}
 
             <AboutYou requirements={requirements} data={data} set={(field, value) => { setData(field as 'client_name', value); clearErrors(field); }} errors={errors} />
+            <ComplainantFields form={data.complaint_form} set={setComplaint} address={data.submitter_address} setAddress={(address) => setData('submitter_address', address)} errors={fieldErrors} />
+            <DeclarationField checked={data.complaint_form.declaration} onChange={(value) => setComplaint('declaration', value)} error={fieldErrors['complaint_form.declaration']} />
         </FormScreen>
     );
 }
@@ -472,6 +497,8 @@ function RatingForm({ target, serviceTypes, links, formToken, requirements }: Om
         form_token: formToken ?? '',
         position_service_id: '',
         rating: 0,
+        feedback_kind: '' as FeedbackKind,
+        service_point: '',
         comment: '',
         client_name: '',
         client_contact: '',
@@ -527,6 +554,9 @@ function RatingForm({ target, serviceTypes, links, formToken, requirements }: Om
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={!requirements.service_required} />
             )}
+
+            <ServicePointField value={data.service_point} onChange={(value) => setData('service_point', value)} error={errors.service_point} />
+            <FeedbackKindChooser value={data.feedback_kind} onChange={(value) => setData('feedback_kind', value)} error={errors.feedback_kind} />
 
             <div className={cardClass} data-field>
                 <label htmlFor="comment" className={labelClass}>
@@ -628,6 +658,11 @@ function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
 
                 <div className="mt-8 w-full space-y-3">
                     {receipt?.reference && <ReferenceCard reference={receipt.reference} />}
+                    {receipt?.reference && kind !== 'feedback' && (
+                        <Link href={route('public-submissions.track', { reference: receipt.reference })} className="block text-center text-sm font-semibold text-primary underline underline-offset-4">
+                            {t('serviceFeedback.tracking.trackThis')}
+                        </Link>
+                    )}
                     {/* The receipt (brief §42): what, about whom, the reference, and when. */}
                     <dl className={`${cardClass} space-y-3 text-left text-sm`}>
                         {receipt?.tip_type && (

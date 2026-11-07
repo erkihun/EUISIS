@@ -113,6 +113,7 @@ final class FeedbackServiceProvider extends ServiceProvider
 
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceComplaint, EmployeeServiceFeedback::class, 'reference_number');
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicTipOff, EmployeeServiceFeedback::class, 'reference_number');
+        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceFeedback, EmployeeServiceFeedback::class, 'reference_number');
 
         $this->rateLimiters();
 

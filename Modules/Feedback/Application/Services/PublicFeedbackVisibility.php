@@ -132,12 +132,12 @@ final class PublicFeedbackVisibility implements FeedbackVisibility
      * aggregate views, the dashboard or a public page, only here and in an
      * export, both behind the identity grant (and audited by the caller).
      *
-     * @return array{client_name: ?string, client_contact: ?string, client_email: ?string, submitter_organization: ?string, submitter_address: ?array<string, string>, identity_hidden: bool}
+     * @return array{client_name: ?string, client_contact: ?string, client_email: ?string, submitter_organization: ?string, submitter_address: ?array<string, string>, complainant_details: ?array<string, mixed>, identity_hidden: bool}
      */
     public function identity(User $user, EmployeeServiceFeedback $submission): array
     {
         if (! $this->canSeeIdentity($user)) {
-            return ['client_name' => null, 'client_contact' => null, 'client_email' => null, 'submitter_organization' => null, 'submitter_address' => null, 'identity_hidden' => true];
+            return ['client_name' => null, 'client_contact' => null, 'client_email' => null, 'submitter_organization' => null, 'submitter_address' => null, 'complainant_details' => null, 'identity_hidden' => true];
         }
 
         return [
@@ -146,6 +146,8 @@ final class PublicFeedbackVisibility implements FeedbackVisibility
             'client_email' => $submission->client_email,
             'submitter_organization' => $submission->submitter_organization,
             'submitter_address' => $submission->submitter_address,
+            // The complaint form's complainant part: sex, identity document, other phone, representation.
+            'complainant_details' => $submission->complaint_details['complainant'] ?? null,
             'identity_hidden' => false,
         ];
     }

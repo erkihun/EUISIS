@@ -140,6 +140,35 @@ return [
         'no_tracking' => 'ይህ መልዕክት መድረሱን ብቻ ያረጋግጣል፤ ተቋሙ በውስጥ ይሠራበታል።',
     ],
 
+    'complaint_form' => [
+        'gender' => 'ጾታ',
+        'id_type' => 'የመታወቂያ ዓይነት',
+        'id_number' => 'የመታወቂያ ቁጥር',
+        'alt_phone' => 'ተለዋጭ ስልክ',
+        'principal_name' => 'የወካይ ሙሉ ስም',
+        'poa_reference' => 'የውክልና ማስረጃ ቁጥር',
+        'poa_date' => 'የውክልና ማስረጃ ቀን',
+        'remedy_sought' => 'የሚፈለገው ውሳኔ / መፍትሔ',
+        'declaration' => 'ቃል ኪዳንና ማረጋገጫ',
+        'prior_woreda_date' => 'በወረዳ ደረጃ የታየበት ቀን',
+        'prior_sub_city_date' => 'በክፍለ ከተማ ደረጃ የታየበት ቀን',
+        'other_pages' => 'የሌሎች ደጋፊ ሰነዶች ገጽ ብዛት',
+        'sub_city' => 'ክፍለ ከተማ',
+        'woreda' => 'ወረዳ',
+    ],
+
+    'tip_form' => [
+        'suspect_name' => 'የተጠረጠረው ግለሰብ/ኃላፊ ስም',
+        'suspect_unit' => 'የሥራ ክፍሉ / የኃላፊነት ደረጃው',
+        'suspect_location' => 'ክፍለ ከተማ / ወረዳ',
+        'violation_other' => 'ሌላ የጥሰት ዓይነት',
+        'evidence_description' => 'ያሉ ደጋፊ ማስረጃዎች',
+    ],
+
+    'tracking' => [
+        'not_found' => 'ከዚህ መለያ ቁጥርና ስልክ ቁጥር ጋር የሚዛመድ ጥቆማ ወይም ቅሬታ አልተገኘም። ያረጋግጡና እንደገና ይሞክሩ።',
+    ],
+
     'validation' => [
         'service_required' => 'እባክዎ ያገኙትን አገልግሎት ይምረጡ።',
         'rating_required' => 'እባክዎ የእርካታ ደረጃ ይምረጡ።',

@@ -39,6 +39,7 @@ enum CodeRuleEntityType: string
     case GrievanceCase = 'grievance_case';
     case PublicServiceComplaint = 'public_service_complaint';
     case PublicTipOff = 'public_tip_off';
+    case PublicServiceFeedback = 'public_service_feedback';
     case GrievanceDecision = 'grievance_decision';
     case GrievanceLetter = 'grievance_letter';
     case DisciplinaryCase = 'disciplinary_case';

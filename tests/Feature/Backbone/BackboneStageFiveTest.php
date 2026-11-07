@@ -62,6 +62,7 @@ it('keeps every collision check the generator had, now registered by the owning 
         'transfer_application' => [TransferApplication::class, 'application_number', true],
         'public_service_complaint' => [EmployeeServiceFeedback::class, 'reference_number', false],
         'public_tip_off' => [EmployeeServiceFeedback::class, 'reference_number', false],
+        'public_service_feedback' => [EmployeeServiceFeedback::class, 'reference_number', false],
         'disciplinary_case' => ['Modules\Discipline\Domain\Models\DisciplinaryCase', 'case_number', false],
         // Grievance numbers were listed in the wrong match and never checked (fixed here).
         'grievance_case' => [Grievance::class, 'reference_number', true],

@@ -11,7 +11,7 @@ use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
  *
  * | Type                 | Full name | Phone    | Anonymous | Tip type | Service received   |
  * |----------------------|-----------|----------|-----------|----------|--------------------|
- * | Feedback             | required  | required | no        | —        | required (employee)|
+ * | Feedback             | optional  | optional | allowed   | —        | required (employee)|
  * | Tip-off (suggestion) | optional  | optional | allowed   | required | not required       |
  * | Complaint            | required  | required | no        | —        | optional           |
  *
@@ -30,11 +30,12 @@ final class PublicSubmissionPolicy
     public function for(ServiceFeedbackType $type, bool $attachmentsEnabled = true): SubmissionRequirements
     {
         return match ($type) {
+            // Owner's feedback form sample (2026-11-08): name and phone are optional.
             ServiceFeedbackType::Feedback => new SubmissionRequirements(
                 type: $type,
-                nameRequired: true,
-                phoneRequired: true,
-                anonymousAllowed: false,
+                nameRequired: false,
+                phoneRequired: false,
+                anonymousAllowed: true,
                 tipTypeRequired: false,
                 serviceRequired: true,
                 narrativeRequired: true,
@@ -57,6 +58,7 @@ final class PublicSubmissionPolicy
                 involvedParties: true,
                 submitterAddress: true,
                 submitterOrganization: false,
+                tipForm: true,
             ),
             ServiceFeedbackType::Complaint => new SubmissionRequirements(
                 type: $type,
@@ -69,8 +71,10 @@ final class PublicSubmissionPolicy
                 evidenceAllowed: $attachmentsEnabled,
                 incidentContext: true,
                 involvedParties: false,
-                submitterAddress: false,
+                // The complaint form asks where the complainant lives (sub-city, woreda, house number).
+                submitterAddress: true,
                 submitterOrganization: true,
+                complaintForm: true,
             ),
         };
     }

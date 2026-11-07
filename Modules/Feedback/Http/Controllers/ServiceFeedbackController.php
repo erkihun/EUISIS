@@ -174,6 +174,8 @@ class ServiceFeedbackController extends Controller
         return Inertia::render('ServiceFeedback/Show', [
             'feedback' => array_merge($this->summarise($serviceFeedback), [
                 'review_note' => $serviceFeedback->review_note,
+                'feedback_kind' => $serviceFeedback->feedback_kind,
+                'service_point' => $serviceFeedback->service_point,
                 'reviewed_at' => $serviceFeedback->reviewed_at?->toIso8601String(),
                 'reviewed_by' => $serviceFeedback->reviewer?->name,
                 'target_logo_url' => $serviceFeedback->organizationTarget?->logo_url,

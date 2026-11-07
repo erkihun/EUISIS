@@ -41,6 +41,9 @@ class EmployeeServiceFeedback extends Model
 
     protected $table = 'employee_service_feedback';
 
+    /** Kinds of service feedback (owner's sample form): constructive advice, an idea to improve the institution, thanks. */
+    public const FEEDBACK_KINDS = ['constructive', 'improvement', 'appreciation'];
+
     protected $fillable = [
         'employee_id',
         'organization_target_id',
@@ -74,12 +77,16 @@ class EmployeeServiceFeedback extends Model
         'service_date',
         'service_time_band',
         'rating',
+        'feedback_kind',
+        'service_point',
         'comment',
         'client_name',
         'client_contact',
         'client_email',
         'submitter_organization',
         'submitter_address',
+        'complaint_details',
+        'tip_details',
         'tip_type',
         'intake_channel',
         'involved_parties',
@@ -105,6 +112,10 @@ class EmployeeServiceFeedback extends Model
         'client_email',
         'submitter_organization',
         'submitter_address',
+        // The complaint form: its complainant part is identity; screens add each part explicitly.
+        'complaint_details',
+        // The Tip-off form: names a suspect; screens add it explicitly.
+        'tip_details',
     ];
 
     protected function casts(): array
@@ -120,6 +131,8 @@ class EmployeeServiceFeedback extends Model
             // Tipster/submitter details added with Tip-offs: encrypted from the first row.
             'client_email' => 'encrypted',
             'submitter_address' => 'encrypted:array',
+            'complaint_details' => 'encrypted:array',
+            'tip_details' => 'encrypted:array',
             'tip_type' => PublicTipType::class,
             'intake_channel' => PublicIntakeChannel::class,
             'rating' => 'integer',

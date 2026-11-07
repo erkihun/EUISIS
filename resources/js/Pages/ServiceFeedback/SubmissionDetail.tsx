@@ -21,10 +21,94 @@ type Entry = {
     tip_type: TipType | null; involved_parties: string | null; intake_channel: string | null;
     attachment_count: number; attachments_hidden: boolean;
     incident_date: string | null; incident_location: string | null;
+    /** The complaint form: the complainant's own part (identity grant only) and the matter. */
+    complainant_details?: ComplainantDetails | null;
+    complaint_matter?: ComplaintMatter | null; declared_at?: string | null;
+    /** The Tip-off form: confidentiality request, the person suspected, violations, evidence described. */
+    tip_details?: TipDetails | null;
     review_note: string | null;
     acknowledged_at: string | null; assigned_at: string | null; resolved_at: string | null; closed_at: string | null;
     attachments: { id: string; name: string; size: number; kind: 'photo' | 'video' | 'audio' | 'document' | null; scan_status: string }[];
 };
+
+type ComplainantDetails = { gender?: string; id_type?: string; id_number?: string; alt_phone?: string; represented?: boolean; principal_name?: string; poa_reference?: string; poa_date?: string };
+type ComplaintMatter = {
+    unit_or_staff?: string; service_type?: string; remedy_sought?: string; attached?: string[]; other_pages?: number;
+    prior_woreda?: { date?: string; decision?: string }; prior_sub_city?: { date?: string; decision?: string };
+};
+
+/** The complaint form's details (PublicComplaintForm): who complains (identity grant only) and the matter. */
+function ComplaintFormPanel({ entry }: { entry: Entry }) {
+    const { t } = useLocale();
+    const c = (key: string) => t(`serviceFeedback.complaintForm.${key}`);
+    const who = entry.complainant_details;
+    const matter = entry.complaint_matter ?? {};
+    const prior = (value: { date?: string; decision?: string } | undefined) => value
+        ? <span>{value.date && <LocalizedDateDisplay value={value.date} />}{value.date && value.decision ? ' — ' : ''}{value.decision}</span>
+        : '—';
+    return (
+        <section className={`${PANEL} space-y-3`}>
+            <h2 className="font-semibold">{c('detailTitle')}</h2>
+            <dl className="grid gap-3 sm:grid-cols-2">
+                {entry.identity_hidden ? (
+                    <Field label={c('complainant')}>{t('serviceFeedback.identityHidden')}</Field>
+                ) : who && <>
+                    {who.gender && <Field label={c('gender')}>{c(who.gender)}</Field>}
+                    {who.id_type && <Field label={c('idType')}>{c(`idTypes.${who.id_type}`)}{who.id_number ? ` · ${who.id_number}` : ''}</Field>}
+                    {who.alt_phone && <Field label={c('altPhone')}>{who.alt_phone}</Field>}
+                    {who.represented && <Field label={c('representedBy')}>{who.principal_name ?? '—'}</Field>}
+                    {who.represented && <Field label={c('poa')}>{who.poa_reference ?? '—'}{who.poa_date ? <> · <LocalizedDateDisplay value={who.poa_date} /></> : null}</Field>}
+                </>}
+                <Field label={c('unitOrStaff')}>{matter.unit_or_staff ?? '—'}</Field>
+                <Field label={c('serviceType')}>{matter.service_type ?? '—'}</Field>
+                <Field label={c('priorWoreda')}>{prior(matter.prior_woreda)}</Field>
+                <Field label={c('priorSubCity')}>{prior(matter.prior_sub_city)}</Field>
+                <Field label={c('attachedTitle')}>
+                    {(matter.attached ?? []).length === 0 && !matter.other_pages ? c('none') : <ul className="list-disc ps-5">
+                        {(matter.attached ?? []).map((item) => <li key={item}>{c(`attachedTypes.${item}`)}</li>)}
+                        {matter.other_pages ? <li>{c('otherPagesCount').replace('{n}', String(matter.other_pages))}</li> : null}
+                    </ul>}
+                </Field>
+                {entry.declared_at && <Field label={c('declaredAt')}><LocalizedDateDisplay value={entry.declared_at} /></Field>}
+            </dl>
+            <div className="border-t border-(--app-border) pt-3">
+                <h3 className="text-sm font-semibold">{c('remedySought')}</h3>
+                <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm">{matter.remedy_sought ?? '—'}</p>
+            </div>
+        </section>
+    );
+}
+
+type TipDetails = { confidentiality?: 'confidential' | 'not_needed'; suspect_name?: string; suspect_unit?: string; suspect_location?: string; violation_types?: string[]; violation_other?: string; evidence_description?: string };
+
+/** The Tip-off form's details (PublicTipForm), for those handling the Tip-off. */
+function TipFormPanel({ details }: { details: TipDetails }) {
+    const { t } = useLocale();
+    const k = (key: string) => t(`serviceFeedback.tipForm.${key}`);
+    const violations = (details.violation_types ?? []).map((v) => v === 'other' && details.violation_other ? `${k('violations.other')}: ${details.violation_other}` : k(`violations.${v}`));
+    return (
+        <section className={`${PANEL} space-y-3`}>
+            <h2 className="font-semibold">{k('detailTitle')}</h2>
+            {details.confidentiality && (
+                <p className={`rounded-control px-3 py-2 text-sm font-medium ${details.confidentiality === 'confidential' ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200' : 'bg-(--app-surface-muted)'}`}>
+                    {k(details.confidentiality === 'confidential' ? 'confidentialityRequested' : 'confidentialityNotNeeded')}
+                </p>
+            )}
+            <dl className="grid gap-3 sm:grid-cols-2">
+                <Field label={k('suspectName')}>{details.suspect_name ?? k('notGiven')}</Field>
+                <Field label={k('suspectUnit')}>{details.suspect_unit ?? k('notGiven')}</Field>
+                <Field label={k('suspectLocation')}>{details.suspect_location ?? k('notGiven')}</Field>
+                <Field label={k('violationsTitle')}>{violations.length ? violations.join('; ') : k('notGiven')}</Field>
+            </dl>
+            {details.evidence_description && (
+                <div className="border-t border-(--app-border) pt-3">
+                    <h3 className="text-sm font-semibold">{k('evidenceDescription')}</h3>
+                    <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm">{details.evidence_description}</p>
+                </div>
+            )}
+        </section>
+    );
+}
 
 const TIP_TYPE_LABEL: Record<TipType, string> = { CORRUPTION: 'serviceFeedback.tipTypeCorruption', IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice' };
 const EVIDENCE_LABEL = { photo: 'serviceFeedback.evidencePhoto', video: 'serviceFeedback.evidenceVideo', audio: 'serviceFeedback.evidenceAudio', document: 'serviceFeedback.evidenceDocument' } as const;
@@ -117,6 +201,9 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                             </div>
                         )}
                     </section>
+
+                    {type === 'complaint' && (entry.complaint_matter || entry.complainant_details) && <ComplaintFormPanel entry={entry} />}
+                    {type === 'suggestion' && entry.tip_details && <TipFormPanel details={entry.tip_details} />}
 
                     {organizationForm && <OrganizationFormDetails details={organizationForm} />}
 

@@ -742,6 +742,7 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupServiceSuggestions',
         icon: LightbulbIcon,
         items: [
+            { routeName: 'service-submissions.suggestions.dashboard', labelKey: 'nav.serviceSuggestionsDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: LightbulbIcon, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.unrouted', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, permission: 'service_feedback.view' },
             { routeName: 'service-feedback.routing-rules.index', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
@@ -754,6 +755,7 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupServiceComplaints',
         icon: ComplaintIcon,
         items: [
+            { routeName: 'service-submissions.complaints.dashboard', labelKey: 'nav.serviceComplaintsDashboard', icon: LayoutDashboard, permission: 'service_feedback.complaints.view' },
             { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: ComplaintIcon, permission: 'service_feedback.complaints.view' },
             { routeName: 'service-submissions.unrouted', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, permission: 'service_feedback.complaints.view' },
             { routeName: 'service-feedback.routing-rules.index', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },

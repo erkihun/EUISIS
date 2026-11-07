@@ -189,3 +189,19 @@ it('limits the inbox and the detail page to the target types the user may view',
     $this->actingAs($this->reviewer)->get(route('service-feedback.admin.index'))
         ->assertInertia(fn (Assert $page) => $page->where('feedback.total', 2));
 });
+
+it('shows the complaint form\'s complainant part only with the identity grant, and its matter to every viewer', function (): void {
+    $complaint = visComplaint(['complaint_details' => [
+        'complainant' => ['gender' => 'male', 'id_type' => 'national_id', 'id_number' => 'FAN-77', 'represented' => false],
+        'matter' => ['remedy_sought' => 'Issue the permit.', 'prior_woreda' => ['decision' => 'No answer.']],
+        'declared_at' => now()->toIso8601String(),
+    ]]);
+    $show = route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]);
+
+    $this->actingAs($this->reviewer)->get($show)->assertInertia(fn (Assert $page) => $page
+        ->where('entry.complainant_details', null)
+        ->where('entry.complaint_matter.remedy_sought', 'Issue the permit.')
+        ->where('entry.declared_at', fn ($value) => is_string($value)));
+    $this->actingAs($this->identityReviewer)->get($show)->assertInertia(fn (Assert $page) => $page
+        ->where('entry.complainant_details.id_number', 'FAN-77'));
+});

@@ -20,6 +20,7 @@ use Modules\Feedback\Application\Services\PublicFeedbackSettings;
 use Modules\Feedback\Domain\Enums\SubmitterIdentityMode;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
+use Tests\Support\PublicSubmissionPayload;
 
 /*
  * Public feedback settings (brief §93): one city-wide policy group — master
@@ -123,11 +124,12 @@ it('refuses Tip-off and complaint evidence when it is not allowed', function ():
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
-it('requires a name and a phone on every Feedback and Complaint: neither is ever anonymous', function (): void {
+it('requires a name and a phone on every Complaint, never anonymous; Feedback may be anonymous', function (): void {
     $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'No identity.'])
         ->assertSessionHasErrors(['client_name', 'client_contact']);
-    $this->post('/service-feedback/'.$this->a->token->token.'/feedback', ['rating' => 4, 'comment' => 'Fine.', 'position_service_id' => $this->a->positionService->id])
-        ->assertSessionHasErrors(['client_name', 'client_contact']);
+    // Owner's sample feedback form (2026-11-08): name and phone are optional on Feedback, but a given phone must be one.
+    $this->post('/service-feedback/'.$this->a->token->token.'/feedback', ['rating' => 4, 'comment' => 'Fine.', 'position_service_id' => $this->a->positionService->id, 'client_contact' => 'not-a-phone'])
+        ->assertSessionHasErrors('client_contact');
     $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Bad phone.', 'client_name' => 'Abebe', 'client_contact' => 'not-a-phone'])
         ->assertSessionHasErrors('client_contact');
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
@@ -135,6 +137,7 @@ it('requires a name and a phone on every Feedback and Complaint: neither is ever
     // The throttle counts every POST to one code, failed ones included; the accepted case uses the institution's code.
     $this->post('/feedback/'.$this->orgToken.'/complaint', [
         'message' => 'Named.', 'client_name' => 'Abebe', 'client_contact' => '+251 911 000000', 'client_email' => 'abebe@example.com', 'submitter_organization' => 'Bole Traders',
+        ...PublicSubmissionPayload::complaintForm(),
     ])->assertRedirect()->assertSessionHasNoErrors();
 
     $row = EmployeeServiceFeedback::query()->sole();
@@ -170,7 +173,7 @@ it('lets a city-level account with the settings permission update the policy and
             ->missing('feedbackSettings.identity_mode')
             // The fixed identity matrix is shown read-only.
             ->where('identityPolicy.0.type', 'feedback')
-            ->where('identityPolicy.0.anonymous_allowed', false)
+            ->where('identityPolicy.0.anonymous_allowed', true)
             ->where('identityPolicy.1.type', 'suggestion')
             ->where('identityPolicy.1.anonymous_allowed', true)
             ->where('identityPolicy.2.type', 'complaint')

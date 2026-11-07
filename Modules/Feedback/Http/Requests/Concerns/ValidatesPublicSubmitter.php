@@ -42,7 +42,7 @@ trait ValidatesPublicSubmitter
             'client_contact' => [$requirements->phoneRequired ? 'required' : 'nullable', 'string', 'max:40', new PublicPhoneNumber],
             'client_email' => ['nullable', 'string', 'max:190', 'email:rfc'],
             'submitter_organization' => $requirements->submitterOrganization ? ['nullable', 'string', 'max:200'] : ['prohibited'],
-            'submitter_address' => $requirements->submitterAddress ? ['nullable', 'array:city,sub_city,woreda,detail'] : ['prohibited'],
+            'submitter_address' => $requirements->submitterAddress ? ['nullable', 'array:city,sub_city,woreda,detail,house_number'] : ['prohibited'],
             'tip_type' => $requirements->tipTypeRequired
                 ? ['required', 'string', Rule::enum(PublicTipType::class)]
                 : ['prohibited'],

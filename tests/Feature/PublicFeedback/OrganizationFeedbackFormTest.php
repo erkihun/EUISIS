@@ -28,6 +28,7 @@ use Modules\Feedback\Domain\Models\PublicFeedbackAnswer;
 use Modules\Feedback\Domain\Models\PublicFeedbackQuestionSet;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\PublicFeedbackScenario;
+use Tests\Support\PublicSubmissionPayload;
 
 /*
  * The organization public feedback form (docs/organization-public-feedback-form.md):
@@ -216,6 +217,7 @@ it('records General / Not sure without creating a fake organizational unit', fun
         'message' => 'The office closed early.',
         'client_name' => 'Abebe Kebede',
         'client_contact' => '+251911000000',
+        ...PublicSubmissionPayload::complaintForm(),
     ])->assertSessionHasNoErrors();
 
     $entry = EmployeeServiceFeedback::query()->sole();
@@ -235,6 +237,7 @@ function offComplaint(array $overrides = []): array
         'message' => 'The office closed early.',
         'client_name' => 'Abebe Kebede',
         'client_contact' => '+251911000000',
+        ...PublicSubmissionPayload::complaintForm(),
     ], $overrides);
 }
 
@@ -491,7 +494,8 @@ it('does not ask a Feedback for any Complaint or Tip-off field', function (): vo
     $this->post(offUrl('feedback'), offFeedback())->assertSessionHasNoErrors();
 
     $row = EmployeeServiceFeedback::query()->sole();
-    expect($row->reference_number)->toBeNull()
+    // Feedback has its own Code Rule reference since 2026-11-08.
+    expect($row->reference_number)->toStartWith('PSF-')
         ->and($row->incident_date)->toBeNull()
         ->and($row->tip_type)->toBeNull()
         ->and($row->attachments()->count())->toBe(0);
@@ -517,6 +521,7 @@ it('stores a Complaint with its own answers and evidence, without the Feedback r
         'answers' => ['service_obtained' => 'no', 'desired_resolution' => 'Serve me at one window.'],
         'client_name' => 'Abebe Kebede',
         'client_contact' => '+251911000000',
+        ...PublicSubmissionPayload::complaintForm(),
         'attachments' => [UploadedFile::fake()->image('queue.png', 80, 80)],
     ])->assertSessionHasNoErrors();
 
@@ -852,10 +857,11 @@ it('ignores workflow, reference and version fields a browser adds to the payload
 
     $row = EmployeeServiceFeedback::query()->sole();
     expect($row->status)->toBe(ServiceFeedbackStatus::Pending)
-        ->and($row->reference_number)->toBeNull()
+        ->and($row->reference_number)->toStartWith('PSF-')
         ->and($row->question_set_id)->toBe($this->questionnaire->id)
         ->and($row->intake_channel->value)->toBe('WEB_QR')
-        ->and($row->submitter_identity_mode)->toBe(SubmitterIdentityMode::Identified)
+        // Feedback may be anonymous since the owner's sample form (2026-11-08); the policy is recorded on the row.
+        ->and($row->submitter_identity_mode)->toBe(SubmitterIdentityMode::Optional)
         ->and($row->source_organization_qr_id)->toBe($this->qr->id)
         ->and($row->organization_target_id)->toBe($this->organization->id)
         ->and($row->organization_id)->toBe($this->organization->id)
@@ -896,6 +902,7 @@ it('gives the receipt only the type, the institution, the reference and the time
         'message' => 'I was asked for an unofficial fee at the counter.',
         'client_name' => 'Abebe Kebede',
         'client_contact' => '+251911000000',
+        ...PublicSubmissionPayload::complaintForm(),
     ])->assertSessionHasNoErrors();
 
     $row = EmployeeServiceFeedback::query()->sole();

@@ -21,12 +21,14 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Feedback\Application\Services\PublicEvidencePolicy;
 use Modules\Feedback\Application\Services\PublicFeedbackAssignmentService;
+use Modules\Feedback\Application\Services\PublicFeedbackMetrics;
 use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaire;
 use Modules\Feedback\Application\Services\PublicFeedbackReferralService;
 use Modules\Feedback\Application\Services\PublicFeedbackRoutingService;
 use Modules\Feedback\Application\Services\PublicFeedbackTransitionException;
 use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 use Modules\Feedback\Application\Services\PublicFeedbackWorkflow;
+use Modules\Feedback\Application\Services\PublicTipForm;
 use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
 use Modules\Feedback\Contracts\Data\PublicTipType;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
@@ -69,6 +71,93 @@ class ServiceSubmissionController extends Controller
     public function complaints(Request $request): Response
     {
         return $this->index($request, 'complaint');
+    }
+
+    /** The Tip-off group's own dashboard. */
+    public function suggestionsDashboard(): Response
+    {
+        return $this->dashboard('suggestion');
+    }
+
+    /** The Complaints group's own dashboard. */
+    public function complaintsDashboard(): Response
+    {
+        return $this->dashboard('complaint');
+    }
+
+    /**
+     * One type's dashboard (owner request 2026-11-08): where the open ones
+     * stand, what waits for a handler, the last six months, the institutions
+     * with most, the kinds alleged (Tip-offs) and the latest arrivals. Same
+     * scope and grants as the type's list.
+     */
+    private function dashboard(string $type): Response
+    {
+        $kind = $this->kind($type);
+        $user = $this->user();
+        abort_unless($user->hasAnyPermission([$this->viewPermission($kind)]), 403);
+        $base = fn (): Builder => $this->scoped($user, $kind);
+        $locale = app()->getLocale();
+
+        $counts = $base()->selectRaw('status, COUNT(*) AS total')->groupBy('status')->pluck('total', 'status')->map(fn ($n) => (int) $n);
+        $sum = fn (array $statuses): int => (int) collect($statuses)->sum(fn (string $s) => $counts[$s] ?? 0);
+        $openStatuses = array_values(array_filter(ServiceFeedbackStatus::values(), fn (string $s) => ServiceFeedbackStatus::from($s)->isOpen()));
+        $waiting = [ServiceFeedbackStatus::Pending->value, ServiceFeedbackStatus::Unrouted->value];
+
+        // Last six months, counted in PHP so the query stays the same on every database.
+        $since = now()->subMonths(5)->startOfMonth();
+        $months = collect(range(5, 0))->mapWithKeys(fn (int $back) => [now()->subMonths($back)->format('Y-m') => 0])->all();
+        foreach ($base()->where('created_at', '>=', $since)->pluck('created_at') as $at) {
+            $key = $at->format('Y-m');
+            if (array_key_exists($key, $months)) {
+                $months[$key]++;
+            }
+        }
+
+        $byOrganization = $base()->whereNotNull('organization_id')->selectRaw('organization_id, COUNT(*) AS total')->groupBy('organization_id')->orderByDesc('total')->limit(8)->pluck('total', 'organization_id');
+        $names = $base()->whereIn('organization_id', $byOrganization->keys()->all())->with('organization:id,name_en,name_am')->get(['id', 'organization_id'])
+            ->unique('organization_id')->mapWithKeys(fn (EmployeeServiceFeedback $e) => [$e->organization_id => $locale === 'am' ? ($e->organization?->name_am ?: $e->organization?->name_en) : $e->organization?->name_en]);
+
+        // Tip-offs: the violations alleged on the Tip-off form, over the last six months.
+        $violations = null;
+        if ($kind === ServiceFeedbackType::Suggestion) {
+            $violations = array_fill_keys(PublicTipForm::VIOLATIONS, 0);
+            foreach ($base()->where('created_at', '>=', $since)->whereNotNull('tip_details')->get(['id', 'tip_details']) as $row) {
+                foreach ((array) ($row->tip_details['violation_types'] ?? []) as $violation) {
+                    if (array_key_exists($violation, $violations)) {
+                        $violations[$violation]++;
+                    }
+                }
+            }
+        }
+
+        return Inertia::render('ServiceFeedback/SubmissionDashboard', [
+            'type' => $kind->value,
+            'figures' => [
+                'total' => (int) $counts->sum(),
+                'open' => $sum($openStatuses),
+                'waiting' => $sum($waiting),
+                'unrouted' => $sum([ServiceFeedbackStatus::Unrouted->value]),
+                'in_progress' => $sum([ServiceFeedbackStatus::Assigned->value, ServiceFeedbackStatus::UnderReview->value, ServiceFeedbackStatus::Reviewed->value]),
+                'outcome' => $sum([ServiceFeedbackStatus::Resolved->value, ServiceFeedbackStatus::Accepted->value, ServiceFeedbackStatus::NotAdopted->value]),
+                'closed' => $sum([ServiceFeedbackStatus::Closed->value]),
+                'mine' => $base()->whereIn('status', $openStatuses)->whereHas('currentAssignment', fn (Builder $q) => $this->handledBy($q, $user))->count(),
+                'older_than_30_days' => $base()->whereIn('status', $openStatuses)->where('created_at', '<', now()->subDays(30))->count(),
+            ],
+            'byStatus' => collect(self::STATUS_ORDER[$kind->value])->mapWithKeys(fn (string $s) => [$s => (int) ($counts[$s] ?? 0)])->all(),
+            'byTipType' => $kind === ServiceFeedbackType::Suggestion ? $this->metrics()->tipOffs($base()) : null,
+            'violations' => $violations,
+            'months' => $months,
+            'byOrganization' => $byOrganization->map(fn ($total, $id) => ['id' => $id, 'name' => $names[$id] ?? '—', 'total' => (int) $total])->values(),
+            'recent' => $base()->with(['employee:id,full_name,employee_number', 'organization:id,name_en,name_am', 'organizationTarget:id,code,name_en,name_am', 'currentAssignment'])
+                ->latest('created_at')->limit(8)->get()->map(fn (EmployeeServiceFeedback $entry): array => $this->summary($entry))->values(),
+            'canManageRouting' => $user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]),
+        ]);
+    }
+
+    private function metrics(): PublicFeedbackMetrics
+    {
+        return app(PublicFeedbackMetrics::class);
     }
 
     private function index(Request $request, string $type): Response
@@ -164,6 +253,11 @@ class ServiceSubmissionController extends Controller
                 'intake_channel' => $submission->intake_channel?->value,
                 'incident_date' => $submission->incident_date?->toDateString(),
                 'incident_location' => $submission->incident_location,
+                // The complaint form's matter (prior handling, remedy, attached documents) and when it was declared true.
+                'complaint_matter' => $submission->complaint_details['matter'] ?? null,
+                // The Tip-off form: confidentiality request, the person suspected, violations, evidence described.
+                'tip_details' => $submission->tip_details,
+                'declared_at' => $submission->complaint_details['declared_at'] ?? null,
                 // The relevant work unit as recorded at submission; the live unit only for rows older than the snapshot.
                 'organization_unit' => $submission->relevantUnitName($locale)
                     ?? ($locale === 'am' ? ($submission->organizationUnit?->name_am ?? $submission->organizationUnit?->name_en) : $submission->organizationUnit?->name_en),

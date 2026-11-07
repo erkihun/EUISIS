@@ -19,6 +19,9 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState, type JSX, type ReactNode } from 'react';
 
 type Feedback = FeedbackSummary & {
+    /** Owner's sample form: the kind of feedback and the unit or window served at (both optional). */
+    feedback_kind?: 'constructive' | 'improvement' | 'appreciation' | null;
+    service_point?: string | null;
     reviewed_at: string | null;
     reviewed_by: string | null;
     review_note: string | null;
@@ -153,6 +156,13 @@ export default function ServiceFeedbackShow({ feedback, organizationForm = null,
                                     <p className={cx('text-base font-semibold', tone.text)}>{t(`serviceFeedback.rating${feedback.rating}`)}</p>
                                 </div>
                             </div>
+
+                            {(feedback.feedback_kind || feedback.service_point) && (
+                                <dl className="flex flex-wrap gap-x-8 gap-y-2 px-5 pb-4 text-[13px] sm:px-6">
+                                    <div><dt className="text-(--app-muted-foreground)">{t('serviceFeedback.feedbackForm.kind')}</dt><dd className="font-medium">{feedback.feedback_kind ? t(`serviceFeedback.feedbackForm.kinds.${feedback.feedback_kind}`) : t('serviceFeedback.feedbackForm.notGiven')}</dd></div>
+                                    <div><dt className="text-(--app-muted-foreground)">{t('serviceFeedback.feedbackForm.servicePoint')}</dt><dd className="font-medium">{feedback.service_point ?? t('serviceFeedback.feedbackForm.notGiven')}</dd></div>
+                                </dl>
+                            )}
 
                             <div className="px-5 pb-5 sm:px-6 sm:pb-6">
                                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.06em] text-(--app-muted-foreground)">{t('serviceFeedback.comment')}</h3>

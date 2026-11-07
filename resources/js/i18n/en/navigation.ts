@@ -124,6 +124,8 @@ const navigation = {
     serviceSuggestions: 'Tip-offs',
     serviceComplaints: 'Complaints',
     serviceFeedbackReports: 'Feedback Reports',
+    serviceSuggestionsDashboard: 'Tip-off dashboard',
+    serviceComplaintsDashboard: 'Complaint dashboard',
     groupServiceSuggestions: 'Public suggestions',
     groupServiceComplaints: 'Public complaints',
     groupPublicFeedback: 'Public Feedback Management',

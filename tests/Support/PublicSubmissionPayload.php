@@ -24,10 +24,25 @@ final class PublicSubmissionPayload
     {
         $required = match ($type) {
             'feedback' => ['client_name' => 'Test Visitor', 'client_contact' => '+251911000000', 'comment' => 'Helpful service.'],
-            'complaint' => ['client_name' => 'Test Visitor', 'client_contact' => '+251911000000'],
+            // The complaint form (PublicComplaintForm): address, identity document, remedy and the declaration.
+            'complaint' => ['client_name' => 'Test Visitor', 'client_contact' => '+251911000000', ...self::complaintForm()],
             'suggestion' => ['tip_type' => 'IMPROPER_PRACTICE'],
         };
 
         return $payload + $required;
+    }
+
+    /**
+     * The complaint form's required parts (PublicComplaintForm): address,
+     * sex, identity document, the remedy sought and the declaration.
+     *
+     * @return array<string, mixed>
+     */
+    public static function complaintForm(): array
+    {
+        return [
+            'submitter_address' => ['sub_city' => 'Bole', 'woreda' => '03'],
+            'complaint_form' => ['gender' => 'female', 'id_type' => 'residence_id', 'id_number' => 'AA-123456', 'remedy_sought' => 'Serve the request.', 'declaration' => '1'],
+        ];
     }
 }

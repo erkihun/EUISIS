@@ -19,6 +19,7 @@ use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
 use Tests\Support\PublicFeedbackScenario;
+use Tests\Support\PublicSubmissionPayload;
 
 /*
  * QA brief §15: one explicit end-to-end proof per target × type combination.
@@ -77,7 +78,7 @@ function matrixCase(string $target, string $type): array
     $payload = match ($type) {
         'feedback' => ['rating' => 4, 'comment' => 'Matrix feedback '.$target] + $identity + ($employee ? ['position_service_id' => test()->a->positionService->id] : []),
         'suggestion' => ['message' => 'Matrix tip-off '.$target, 'tip_type' => 'IMPROPER_PRACTICE'],
-        'complaint' => ['message' => 'Matrix complaint '.$target, 'incident_location' => 'Counter 2'] + $identity,
+        'complaint' => ['message' => 'Matrix complaint '.$target, 'incident_location' => 'Counter 2'] + $identity + PublicSubmissionPayload::complaintForm(),
     };
 
     return [
@@ -123,7 +124,7 @@ it('works end to end for', function (string $target, string $type) {
         expect($row->status)->toBe(ServiceFeedbackStatus::Pending)
             ->and($row->currentAssignment)->toBeNull()
             ->and($row->statusHistory()->pluck('to_status')->all())->toBe(['pending'])
-            ->and($row->reference_number)->toBeNull()
+            ->and($row->reference_number)->toStartWith('PSF-')
             ->and($row->rating)->toBe(4);
     } else {
         expect($row->status)->toBe(ServiceFeedbackStatus::Assigned)
