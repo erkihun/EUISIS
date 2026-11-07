@@ -169,6 +169,8 @@ const navigation = {
     groupTribunalCourt: 'የአስተዳደር ፍርድ ቤት',
     courtCases: 'የፍርድ ቤት ጉዳዮች',
     groupDiscipline: 'የሠራተኞች ዲሲፕሊን',
+    disciplineDashboard: 'ዳሽቦርድ',
+    disciplineCommittees: 'የዲሲፕሊን ኮሚቴዎች',
     disciplineCases: 'የዲሲፕሊን ጉዳዮች',
     myDisciplinaryCases: 'የእኔ የዲሲፕሊን ጉዳዮች',
     groupTransport: 'ትራንስፖርት',

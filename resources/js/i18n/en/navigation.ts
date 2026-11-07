@@ -169,6 +169,8 @@ const navigation = {
     groupTribunalCourt: 'Tribunal Court',
     courtCases: 'Court Cases',
     groupDiscipline: 'Employee Discipline',
+    disciplineDashboard: 'Dashboard',
+    disciplineCommittees: 'Disciplinary committees',
     disciplineCases: 'Disciplinary Cases',
     myDisciplinaryCases: 'My Disciplinary Cases',
     groupTransport: 'Transport',

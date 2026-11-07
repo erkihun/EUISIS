@@ -30,7 +30,7 @@ type Penalty = { value: string; severity: string; unit: string | null; max: numb
 type Props = {
     disciplinaryCase: StaffCase;
     abilities: Abilities;
-    committees: { id: string; name: string; problems: string[] }[];
+    committees: { id: string; name: string; unit: string | null; problems: string[]; suggested: boolean }[];
     votingMembers: { id: string; employee: EmployeeRef; role: string }[];
     options: { penalties: Penalty[]; objectionGrounds: string[]; headActions: string[]; sides: string[] };
 };
@@ -253,7 +253,9 @@ function AddChargeForm({ caseId }: { caseId: string }): JSX.Element {
 
 function PanelForm({ caseId, track, committees }: { caseId: string; track: string; committees: Props['committees'] }): JSX.Element {
     const { t } = useLocale();
-    const form = useForm({ committee_id: '', investigators: '' });
+    // Pre-selected: the committee serving the accused's work unit, else the one serving all staff.
+    const suggested = committees.find((x) => x.suggested);
+    const form = useForm({ committee_id: suggested?.id ?? '', investigators: '' });
     const chosen = committees.find((x) => x.id === form.data.committee_id);
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -267,8 +269,9 @@ function PanelForm({ caseId, track, committees }: { caseId: string; track: strin
                 <Field id="committee" label={t('discipline.panel.committee')} error={form.errors.committee_id}>
                     <select id="committee" className={inputCls} value={form.data.committee_id} onChange={(e) => form.setData('committee_id', e.target.value)} required>
                         <option value="">{t('discipline.panel.chooseCommittee')}</option>
-                        {committees.map((x) => <option key={x.id} value={x.id}>{x.name}{x.problems.length ? ' ⚠' : ''}</option>)}
+                        {committees.map((x) => <option key={x.id} value={x.id}>{x.name} · {x.unit ?? t('discipline.panel.allStaff')}{x.problems.length ? ' ⚠' : ''}</option>)}
                     </select>
+                    {suggested && form.data.committee_id === suggested.id && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('discipline.panel.suggested')}</p>}
                     {chosen && chosen.problems.length > 0 && (
                         <ul className="mt-2 list-disc ps-5 text-xs text-red-700 dark:text-red-400">
                             <li className="list-none -ms-5 font-medium">{t('discipline.panel.compositionProblems')}</li>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\CommitteePermissions;
 use Modules\Grievance\Application\Services\GrievanceCommitteeService;
 use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
 use Modules\Grievance\Application\Services\GrievanceSettings;
@@ -25,9 +27,10 @@ use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Grievance committees and their membership history. Also lists the EPMS
- * panels that reuse the same model (filtered by type) so there is one place
- * to see who sits where.
+ * Committees and their membership history. Served twice (ADR 0031): under
+ * Grievance Management for every committee type except disciplinary, and
+ * under Discipline Management (`discipline.committees.*`) for disciplinary
+ * committees only, each with its own module's permissions.
  */
 class GrievanceCommitteeController extends Controller
 {
@@ -41,9 +44,9 @@ class GrievanceCommitteeController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-        abort_unless($user->can('grievance_committees.view'), 403);
+        abort_unless($user->can($this->perm($request, 'view')), 403);
 
-        $query = $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)
+        $query = $this->ofDomain($request, $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user))
             ->with([
                 'organizationUnit:id,name_en,name_am',
                 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am',
@@ -64,13 +67,13 @@ class GrievanceCommitteeController extends Controller
         }
 
         // Counts for the summary row: everything the viewer may see, before filters.
-        $summary = $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)
+        $summary = $this->ofDomain($request, $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user))
             ->selectRaw('count(*) as total')
             ->selectRaw("sum(case when status = 'active' then 1 else 0 end) as active")
             ->selectRaw("sum(case when status = 'pending_approval' then 1 else 0 end) as pending")
             ->first();
         $servingMembers = GrievanceCommitteeMember::query()->servingOn(now())
-            ->whereIn('committee_id', $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)->select('id'))->count();
+            ->whereIn('committee_id', $this->ofDomain($request, $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user))->select('id'))->count();
 
         $page = $query->orderBy('name_en')->paginate(12)->withQueryString();
         $page->through(fn (GrievanceCommittee $c) => [
@@ -84,7 +87,7 @@ class GrievanceCommitteeController extends Controller
                 ? array_map(fn ($p) => __($p), $this->handlers->committeeProblems($c)) : [],
             'members' => $c->members->sortBy(fn (GrievanceCommitteeMember $m) => [$m->roleEnum()->value === 'chairperson' ? 0 : ($m->roleEnum()->value === 'writer' ? 1 : 2), $m->effective_from?->timestamp])->map(fn (GrievanceCommitteeMember $m) => [
                 'id' => $m->getKey(),
-                'employee' => self::employeeRef($m->employee, $m->employee?->photo_path ? route('grievances.committees.members.photo', [$c, $m]) : null),
+                'employee' => self::employeeRef($m->employee, $m->employee?->photo_path ? route($this->routePrefix($request).'.members.photo', [$c, $m]) : null),
                 'role' => $m->roleEnum()->value,
                 'selection_source' => $m->selection_source,
                 'term_number' => $m->term_number,
@@ -92,18 +95,20 @@ class GrievanceCommitteeController extends Controller
                 'effective_to' => $m->effective_to?->toDateString(),
                 'appointment_reference' => $m->appointment_reference,
                 'signature' => $m->hasSignature(),
-                'signature_url' => $m->hasSignature() ? route('grievances.committees.members.signature', [$c, $m]) : null,
+                'signature_url' => $m->hasSignature() ? route($this->routePrefix($request).'.members.signature', [$c, $m]) : null,
             ])->values(),
-            'can_update' => $user->can('grievance_committees.manage') && $this->scope->canExercisePermission($user, 'grievance_committees.manage', $c->organization_id),
-            'can_manage_members' => $user->can('grievance_committee_members.manage') && $this->scope->canExercisePermission($user, 'grievance_committee_members.manage', $c->organization_id),
+            'can_update' => $this->allowed($request, 'manage', $c->organization_id),
+            'can_manage_members' => $this->allowed($request, 'members', $c->organization_id),
         ]);
 
         return Inertia::render('Grievances/Committees/Index', [
             'committees' => $page,
             'filters' => $request->only(['organization_id', 'committee_type', 'status', 'search']),
+            ...$this->domainProps($request),
             'options' => [
                 'organizations' => $this->organizations($request),
-                'types' => array_column(CommitteeType::cases(), 'value'),
+                'types' => $this->isDiscipline($request) ? [CommitteeType::Disciplinary->value]
+                    : array_values(array_diff(array_column(CommitteeType::cases(), 'value'), [CommitteeType::Disciplinary->value])),
                 'statuses' => ['pending_approval', 'active', 'inactive'],
                 'roles' => GrievanceCommitteeRole::values(),
             ],
@@ -118,16 +123,17 @@ class GrievanceCommitteeController extends Controller
                 'max' => $this->settings->committeeMaxMembers(),
                 'require_writer' => $this->settings->committeeRequiresWriter(),
             ],
-            'can' => ['create' => $user->can('grievance_committees.manage')],
+            'can' => ['create' => $user->can($this->perm($request, 'manage'))],
         ]);
     }
 
     /** Registration has its own page; the list stays a list. */
     public function create(Request $request): Response
     {
-        abort_unless($request->user()->can('grievance_committees.manage'), 403);
+        abort_unless($request->user()->can($this->perm($request, 'manage')), 403);
 
         return Inertia::render('Grievances/Committees/Create', [
+            ...$this->domainProps($request),
             'options' => [
                 'organizations' => $this->organizations($request),
             ],
@@ -136,21 +142,23 @@ class GrievanceCommitteeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        // This page registers grievance committees only (owner decision 2026-11-07).
-        $data = [...$request->validate($this->rules($request)), 'committee_type' => CommitteeType::Grievance->value];
+        // Each page registers its own kind: grievance committees, or disciplinary ones (owner decisions 2026-11-07).
+        $data = [...$request->validate($this->rules($request)), 'committee_type' => ($this->isDiscipline($request) ? CommitteeType::Disciplinary : CommitteeType::Grievance)->value];
         $committee = $this->committees->create($request->user(), $data);
 
-        return to_route('grievances.committees.show', $committee)->with('flash', ['message' => __('grievances.committeeCreated'), 'type' => 'success']);
+        return to_route($this->routePrefix($request).'.show', $committee)->with('flash', ['message' => __('grievances.committeeCreated'), 'type' => 'success']);
     }
 
     public function show(Request $request, GrievanceCommittee $committee): Response
     {
         $user = $request->user();
-        abort_unless($user->can('grievance_committees.view') && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
+        $this->guard($request, $committee);
+        abort_unless($user->can($this->perm($request, 'view')) && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
 
         $committee->load(['organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'members.employee.currentAssignment.organizationUnit:id,name_en,name_am', 'members.employee.currentAssignment.position:id,title_en,title_am', 'members.appointedBy:id,name']);
 
         return Inertia::render('Grievances/Committees/Show', [
+            ...$this->domainProps($request),
             'committee' => [
                 ...$this->row($committee),
                 'description_en' => $committee->description_en,
@@ -160,7 +168,7 @@ class GrievanceCommitteeController extends Controller
             ],
             'members' => $committee->members->sortByDesc(fn ($m) => [$m->isActive(), $m->effective_from?->timestamp])->map(fn (GrievanceCommitteeMember $m) => [
                 'id' => $m->getKey(),
-                'employee' => self::employeeRef($m->employee, $m->employee?->photo_path ? route('grievances.committees.members.photo', [$committee, $m]) : null),
+                'employee' => self::employeeRef($m->employee, $m->employee?->photo_path ? route($this->routePrefix($request).'.members.photo', [$committee, $m]) : null),
                 'role' => $m->roleEnum()->value,
                 'selection_source' => $m->selection_source,
                 'term_number' => $m->term_number,
@@ -172,7 +180,7 @@ class GrievanceCommitteeController extends Controller
                 'appointed_by' => $m->appointedBy?->name,
                 'end_reason' => $m->end_reason,
                 'signature' => $m->hasSignature(),
-                'signature_url' => $m->hasSignature() ? route('grievances.committees.members.signature', [$committee, $m]) : null,
+                'signature_url' => $m->hasSignature() ? route($this->routePrefix($request).'.members.signature', [$committee, $m]) : null,
                 'signature_recorded_at' => $m->signature_recorded_at?->toIso8601String(),
             ])->values(),
             'problems' => in_array($committee->committee_type?->value, GrievanceHandlerRegistry::grievanceCommitteeTypes(), true)
@@ -189,15 +197,16 @@ class GrievanceCommitteeController extends Controller
             ],
             'roles' => GrievanceCommitteeRole::values(),
             'can' => [
-                'update' => $user->can('grievance_committees.manage') && $this->scope->canExercisePermission($user, 'grievance_committees.manage', $committee->organization_id),
-                'approve' => $committee->status === 'pending_approval' && $user->can('grievance_committees.approve') && (int) $committee->created_by !== (int) $user->getKey(),
-                'manage_members' => $user->can('grievance_committee_members.manage') && $this->scope->canExercisePermission($user, 'grievance_committee_members.manage', $committee->organization_id),
+                'update' => $this->allowed($request, 'manage', $committee->organization_id),
+                'approve' => $committee->status === 'pending_approval' && $user->can($this->perm($request, 'approve')) && (int) $committee->created_by !== (int) $user->getKey(),
+                'manage_members' => $this->allowed($request, 'members', $committee->organization_id),
             ],
         ]);
     }
 
     public function update(Request $request, GrievanceCommittee $committee): RedirectResponse
     {
+        $this->guard($request, $committee);
         $data = $request->validate([
             'name_en' => ['sometimes', 'required', 'string', 'max:255'],
             'name_am' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -214,6 +223,7 @@ class GrievanceCommitteeController extends Controller
 
     public function approve(Request $request, GrievanceCommittee $committee): RedirectResponse
     {
+        $this->guard($request, $committee);
         $this->committees->approve($committee, $request->user());
 
         return back()->with('flash', ['message' => __('grievances.flash.committee_approved'), 'type' => 'success']);
@@ -221,6 +231,7 @@ class GrievanceCommitteeController extends Controller
 
     public function addMember(Request $request, GrievanceCommittee $committee): RedirectResponse
     {
+        $this->guard($request, $committee);
         $data = $request->validate([
             'employee_id' => ['required', 'uuid', 'exists:employees,id'],
             'role' => ['required', Rule::in(GrievanceCommitteeRole::values())],
@@ -241,6 +252,7 @@ class GrievanceCommitteeController extends Controller
     /** Correct the current term (role, selection, dates, reference, replacement signature); history is kept. */
     public function updateMember(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): RedirectResponse
     {
+        $this->guard($request, $committee);
         $data = $request->validate([
             'role' => ['required', Rule::in(GrievanceCommitteeRole::values())],
             'effective_from' => ['required', 'date'],
@@ -264,7 +276,8 @@ class GrievanceCommitteeController extends Controller
     public function memberPhoto(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): StreamedResponse
     {
         $user = $request->user();
-        abort_unless($user->can('grievance_committees.view') && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
+        $this->guard($request, $committee);
+        abort_unless($user->can($this->perm($request, 'view')) && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
         abort_unless($member->committee_id === $committee->getKey(), 404);
 
         return self::photoResponse($member->employee?->photo_path);
@@ -304,7 +317,8 @@ class GrievanceCommitteeController extends Controller
     public function memberSignature(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): StreamedResponse
     {
         $user = $request->user();
-        abort_unless($user->can('grievance_committees.view') && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
+        $this->guard($request, $committee);
+        abort_unless($user->can($this->perm($request, 'view')) && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
         abort_unless($member->committee_id === $committee->getKey(), 404);
         $path = $member->signaturePath();
         abort_unless($path !== null && preg_match('#^employee-signatures/[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp)$#D', $path) && Storage::disk('local')->exists($path), 404);
@@ -314,6 +328,7 @@ class GrievanceCommitteeController extends Controller
 
     public function endMember(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): RedirectResponse
     {
+        $this->guard($request, $committee);
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000'], 'effective_to' => ['nullable', 'date']]);
         $this->committees->endMember($committee, $member, $request->user(), $data['reason'], isset($data['effective_to']) ? Carbon::parse($data['effective_to']) : null);
 
@@ -334,6 +349,52 @@ class GrievanceCommitteeController extends Controller
             'effective_from' => $c->effective_from?->toDateString(),
             'effective_to' => $c->effective_to?->toDateString(),
         ];
+    }
+
+    /** Discipline Management's committee pages (`discipline.committees.*`), else Grievance Management's. */
+    private function isDiscipline(Request $request): bool
+    {
+        return str_starts_with((string) $request->route()?->getName(), 'discipline.');
+    }
+
+    private function routePrefix(Request $request): string
+    {
+        return $this->isDiscipline($request) ? 'discipline.committees' : 'grievances.committees';
+    }
+
+    private function perm(Request $request, string $ability): string
+    {
+        return CommitteePermissions::for($this->isDiscipline($request) ? CommitteeType::Disciplinary : CommitteeType::Grievance)[$ability];
+    }
+
+    private function allowed(Request $request, string $ability, ?string $organizationId): bool
+    {
+        $permission = $this->perm($request, $ability);
+
+        return $request->user()->can($permission) && $this->scope->canExercisePermission($request->user(), $permission, $organizationId);
+    }
+
+    /**
+     * @param  Builder<GrievanceCommittee>  $query
+     * @return Builder<GrievanceCommittee>
+     */
+    private function ofDomain(Request $request, $query)
+    {
+        return $this->isDiscipline($request)
+            ? $query->where('committee_type', CommitteeType::Disciplinary->value)
+            : $query->where('committee_type', '!=', CommitteeType::Disciplinary->value);
+    }
+
+    /** A committee opens only through its own module's pages. */
+    private function guard(Request $request, GrievanceCommittee $committee): void
+    {
+        abort_unless(($committee->committee_type === CommitteeType::Disciplinary) === $this->isDiscipline($request), 404);
+    }
+
+    /** @return array{domain: string, route_prefix: string} */
+    private function domainProps(Request $request): array
+    {
+        return ['domain' => $this->isDiscipline($request) ? 'discipline' : 'grievance', 'route_prefix' => $this->routePrefix($request)];
     }
 
     /** @return array<string, mixed> */

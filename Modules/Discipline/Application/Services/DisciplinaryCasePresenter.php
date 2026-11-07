@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Modules\Discipline\Application\Services;
 
 use App\Models\Employee;
+use App\Models\OrganizationUnit;
 use App\Models\StatutoryDeadline;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Support\Legal\Regulation201;
+use Illuminate\Support\Collection;
 use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
 use Modules\Discipline\Domain\Enums\DisciplinaryCaseRole;
 use Modules\Discipline\Domain\Enums\DisciplinaryTrack;
@@ -222,23 +224,48 @@ final class DisciplinaryCasePresenter
     }
 
     /**
-     * Committees an officer may seat on a formal case, with any Art. 5 problems.
+     * Committees an officer may seat on a formal case, with any Art. 5 problems
+     * and the work unit each serves (none = all staff). One may be marked
+     * `suggested`: the complete committee serving the accused's work unit, else
+     * the complete one serving all staff. The officer still chooses (Art. 5).
      *
      * @return list<array<string, mixed>>
      */
     public function committeeOptions(DisciplinaryCase $case, string $locale): array
     {
-        return GrievanceCommitteeRecord::query()
+        $committees = GrievanceCommitteeRecord::query()
             ->where('committee_type', CommitteeType::Disciplinary->value)
             ->where('organization_id', $case->organization_id)
             ->where('status', 'active')
             ->orderBy('name_en')
-            ->get()
+            ->get();
+        $problems = $committees->mapWithKeys(fn (GrievanceCommitteeRecord $c) => [$c->getKey() => $this->committees->compositionProblems($c)]);
+        $units = OrganizationUnit::query()->whereKey($committees->pluck('organization_unit_id')->filter()->unique()->all())->get(['id', 'name_en', 'name_am'])->keyBy('id');
+        $suggested = $this->suggestedCommitteeId($case, $committees->filter(fn (GrievanceCommitteeRecord $c) => $problems[$c->getKey()] === []));
+
+        return $committees
             ->map(fn (GrievanceCommitteeRecord $c): array => [
                 'id' => $c->getKey(),
                 'name' => $this->name($c, $locale),
-                'problems' => $this->committees->compositionProblems($c),
-            ])->values()->all();
+                'unit' => $c->organization_unit_id !== null && isset($units[$c->organization_unit_id]) ? $this->name($units[$c->organization_unit_id], $locale) : null,
+                'problems' => $problems[$c->getKey()],
+                'suggested' => $c->getKey() === $suggested,
+            ])
+            ->sortByDesc('suggested')->values()->all();
+    }
+
+    /**
+     * The committee for the accused's work unit (e.g. a school's teachers), else
+     * the one serving all staff; none when that is not a single committee.
+     *
+     * @param  Collection<int, GrievanceCommitteeRecord>  $usable
+     */
+    private function suggestedCommitteeId(DisciplinaryCase $case, $usable): ?string
+    {
+        $unitMatch = $case->organization_unit_id !== null ? $usable->where('organization_unit_id', $case->organization_unit_id) : collect();
+        $pick = $unitMatch->isNotEmpty() ? $unitMatch : $usable->whereNull('organization_unit_id');
+
+        return $pick->count() === 1 ? (string) $pick->first()->getKey() : null;
     }
 
     /** @return list<array{id: string, employee: array<string, mixed>|null, role: string}> */

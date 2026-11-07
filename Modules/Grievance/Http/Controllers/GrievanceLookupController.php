@@ -27,6 +27,8 @@ class GrievanceLookupController extends Controller
         'grievance_committee_members.manage', 'grievance_committees.manage', 'grievance_routes.manage', 'grievance_sla.manage',
         'grievance_settings.update', 'grievance_settings.manage_delegations', 'grievances.review', 'grievances.decide_recusal',
         'grievance_hearings.manage', 'grievance_correspondence.create',
+        // ADR 0031: disciplinary committees are set up from Discipline Management.
+        'discipline.manage',
     ];
 
     public function __construct(private readonly OrganizationScopeService $scope) {}

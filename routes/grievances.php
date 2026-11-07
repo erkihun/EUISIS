@@ -56,6 +56,22 @@ Route::middleware(['auth', 'force.password', 'admin.access'])
 
 // ── Staff area ───────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
+    // ADR 0031: disciplinary committees are managed from Discipline Management, on the same board.
+    Route::controller(GrievanceCommitteeController::class)->prefix('discipline/committees')->name('discipline.committees.')
+        ->whereUuid(['committee', 'member'])->group(function (): void {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::get('/create', 'create')->name('create');
+            Route::get('/{committee}', 'show')->name('show');
+            Route::patch('/{committee}', 'update')->name('update');
+            Route::post('/{committee}/approve', 'approve')->name('approve');
+            Route::post('/{committee}/members', 'addMember')->name('members.store');
+            Route::post('/{committee}/members/{member}/end', 'endMember')->name('members.end');
+            Route::post('/{committee}/members/{member}', 'updateMember')->name('members.update');
+            Route::get('/{committee}/members/{member}/signature', 'memberSignature')->name('members.signature');
+            Route::get('/{committee}/members/{member}/photo', 'memberPhoto')->name('members.photo');
+        });
+
     // Old links from the first grievance module.
     Route::redirect('/grievances/my', '/my-portal/grievances');
     Route::redirect('/grievances/create', '/my-portal/grievances/create');

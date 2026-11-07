@@ -54,8 +54,8 @@ final class GrievanceCommitteeService
     /** @param  array<string, mixed>  $data */
     public function create(User $actor, array $data): GrievanceCommittee
     {
-        $this->assertManage($actor, $data['organization_id']);
         $type = CommitteeType::from($data['committee_type']);
+        $this->assertManage($actor, $data['organization_id'], $type);
 
         $committee = GrievanceCommittee::query()->create([
             'organization_id' => $data['organization_id'],
@@ -80,7 +80,7 @@ final class GrievanceCommitteeService
     /** @param  array<string, mixed>  $data */
     public function update(GrievanceCommittee $committee, User $actor, array $data): GrievanceCommittee
     {
-        $this->assertManage($actor, $committee->organization_id);
+        $this->assertManage($actor, $committee->organization_id, $committee->committee_type);
         $fields = array_intersect_key($data, array_flip(['name_en', 'name_am', 'description_en', 'description_am', 'effective_to', 'organization_unit_id']));
         $committee->fill($fields)->save();
 
@@ -98,7 +98,8 @@ final class GrievanceCommitteeService
     /** A different user than the creator approves; composition must be valid. */
     public function approve(GrievanceCommittee $committee, User $actor): GrievanceCommittee
     {
-        if (! $actor->can('grievance_committees.approve') || ! $this->scope->canExercisePermission($actor, 'grievance_committees.approve', $committee->organization_id)) {
+        $approve = CommitteePermissions::for($committee->committee_type)['approve'];
+        if (! $actor->can($approve) || ! $this->scope->canExercisePermission($actor, $approve, $committee->organization_id)) {
             $this->access->authorize(false);
         }
         if ((int) $committee->created_by === (int) $actor->getKey() && ! $actor->isSuperAdmin()) {
@@ -512,13 +513,15 @@ final class GrievanceCommitteeService
         throw ValidationException::withMessages(['signature' => __('grievances.errors.committee_member_signature_required')]);
     }
 
-    private function assertManage(User $actor, ?string $organizationId): void
+    private function assertManage(User $actor, ?string $organizationId, CommitteeType|string|null $type): void
     {
-        $this->access->authorize($actor->can('grievance_committees.manage') && $this->scope->canExercisePermission($actor, 'grievance_committees.manage', $organizationId));
+        $permission = CommitteePermissions::for($type)['manage'];
+        $this->access->authorize($actor->can($permission) && $this->scope->canExercisePermission($actor, $permission, $organizationId));
     }
 
     private function assertManageMembers(User $actor, GrievanceCommittee $committee): void
     {
-        $this->access->authorize($actor->can('grievance_committee_members.manage') && $this->scope->canExercisePermission($actor, 'grievance_committee_members.manage', $committee->organization_id));
+        $permission = CommitteePermissions::for($committee->committee_type)['members'];
+        $this->access->authorize($actor->can($permission) && $this->scope->canExercisePermission($actor, $permission, $committee->organization_id));
     }
 }

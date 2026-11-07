@@ -626,7 +626,10 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupDiscipline',
         icon: ShieldWarningIcon,
         items: [
+            { routeName: 'discipline.dashboard', labelKey: 'nav.disciplineDashboard', icon: LayoutDashboard, anyPermission: ['discipline.view', 'discipline.investigate', 'discipline.decide'] },
             { routeName: 'discipline.cases.index', labelKey: 'nav.disciplineCases', icon: FolderFilesIcon, anyPermission: ['discipline.view', 'discipline.investigate', 'discipline.decide'] },
+            // ADR 0031: disciplinary committees are set up here, not under Grievance Management.
+            { routeName: 'discipline.committees.index', labelKey: 'nav.disciplineCommittees', icon: UsersTwoIcon, permission: 'discipline.view' },
             { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: InboxOutIcon, permission: 'discipline.view_own', employeeOnly: true },
         ],
     },

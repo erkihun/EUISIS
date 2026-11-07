@@ -6,6 +6,8 @@ const grievanceAdmin = {
     registerMember: 'Register member', noMembersYet: 'No members registered yet.', memberRegistered: 'Member registered.',
     editMember: 'Edit member', editMemberHelp: 'Corrects the current term in place; the history row is kept. An ended term cannot be reopened: register a new term instead.',
     signatureReplaceHelp: 'Leave empty to keep the signature on file; upload a new image only to replace it.',
+    disciplineCommittees: 'Disciplinary committees',
+    disciplineCommitteesHelp: 'Committees that examine disciplinary charges under Regulation 201/2018. They are set up here, in Discipline Management; grievance committees are managed under Grievance Management.',
     committeeUnit: 'Staff served (work unit)',
     committeeUnitHelp: 'Leave empty to serve all staff of the institution. Pick a work unit (e.g. Teachers) to serve only its staff; a second committee left empty then serves everyone else.',
     unitBoard: {

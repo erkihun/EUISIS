@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Modules\Discipline\Http\Controllers\DisciplinaryCaseController;
 use Modules\Discipline\Http\Controllers\DisciplinaryPortalController;
+use Modules\Discipline\Http\Controllers\DisciplineDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,11 @@ Route::middleware(['auth', 'force.password', 'admin.access'])
     });
 
 // ── Staff area ───────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
+    Route::redirect('/discipline', '/discipline/dashboard');
+    Route::get('/discipline/dashboard', DisciplineDashboardController::class)->name('discipline.dashboard');
+});
+
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->prefix('discipline/cases')->name('discipline.cases.')
     ->whereUuid(['case', 'evidence', 'member'])

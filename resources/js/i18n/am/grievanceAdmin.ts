@@ -6,6 +6,8 @@ const grievanceAdmin = {
     registerMember: 'አባል መዝግብ', noMembersYet: 'እስካሁን የተመዘገበ አባል የለም።', memberRegistered: 'አባሉ ተመዝግቧል።',
     editMember: 'አባል አርትዕ', editMemberHelp: 'የአሁኑን የሥራ ዘመን እዚያው ያስተካክላል፤ የታሪክ መዝገቡ ይጠበቃል። ያበቃ የሥራ ዘመን እንደገና አይከፈትም፤ በምትኩ አዲስ የሥራ ዘመን ይመዝግቡ።',
     signatureReplaceHelp: 'የተመዘገበውን ፊርማ ለማቆየት ባዶ ይተዉት፤ ለመተካት ብቻ አዲስ ምስል ይጫኑ።',
+    disciplineCommittees: 'የዲሲፕሊን ኮሚቴዎች',
+    disciplineCommitteesHelp: 'በደንብ 201/2018 መሠረት የዲሲፕሊን ክሶችን የሚመረምሩ ኮሚቴዎች። የሚዋቀሩት እዚህ በዲሲፕሊን አስተዳደር ነው፤ የቅሬታ ኮሚቴዎች በቅሬታ አስተዳደር ይተዳደራሉ።',
     committeeUnit: 'የሚያገለግለው የሥራ ክፍል',
     committeeUnitHelp: 'ባዶ ከተተወ የተቋሙን ሠራተኞች በሙሉ ያገለግላል። የሥራ ክፍል (ለምሳሌ መምህራን) ከተመረጠ የዚያን ክፍል ሠራተኞች ብቻ ያገለግላል፤ ባዶ የተተወው ሁለተኛ ኮሚቴ ቀሪዎቹን ሠራተኞች ያገለግላል።',
     unitBoard: {

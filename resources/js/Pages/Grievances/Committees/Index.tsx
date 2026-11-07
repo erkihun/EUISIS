@@ -4,6 +4,7 @@ import Modal from '@/Components/Modal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { AdminForm, choices, today } from '@/Components/grievances/AdminForm';
 import MemberAvatar from '@/Components/grievances/MemberAvatar';
+import { useCommitteeRoutes } from '@/Components/grievances/committeeRoutes';
 import { Pager, GPill, nameOf, employeeName, fmt, pageCls, inputCls, primaryBtn, useEnumLabel } from '@/Components/grievances/ui';
 import { AppActionMenu, AppMetricCard, FilterField, FilterPanel } from '@/Components/ui';
 import { AlertTriangle, CheckCircle, ChevronRight, PencilIcon, Plus, UserPlusIcon, XCircle } from '@/Components/Icons';
@@ -48,21 +49,23 @@ export default function Index({ committees, filters, options, summary, policy, c
     const organizations = options.organizations.map(org => ({ value: org.id!, label: nameOf(org, locale) }));
     const filtered = Object.values(filters).some(Boolean);
     const b = (key: string) => t(`grievanceAdmin.committeeBoard.${key}`);
+    const { cr, discipline } = useCommitteeRoutes();
+    const title = t(discipline ? 'grievanceAdmin.disciplineCommittees' : 'grievanceAdmin.committees');
 
-    return <AuthenticatedLayout header={<PageHeader title={t('grievanceAdmin.committees')} description={t('grievanceAdmin.committeesHelp')}
-        actions={can.create && <Link className={`${primaryBtn} gap-2`} href={route('grievances.committees.create')}><Plus className="h-4 w-4" aria-hidden />{t('grievanceAdmin.newCommittee')}</Link>} />}>
-        <Head title={t('grievanceAdmin.committees')} />
+    return <AuthenticatedLayout header={<PageHeader title={title} description={t(discipline ? 'grievanceAdmin.disciplineCommitteesHelp' : 'grievanceAdmin.committeesHelp')}
+        actions={can.create && <Link className={`${primaryBtn} gap-2`} href={cr('create')}><Plus className="h-4 w-4" aria-hidden />{t('grievanceAdmin.newCommittee')}</Link>} />}>
+        <Head title={title} />
         <div className={pageCls}>
-            <section aria-label={t('grievanceAdmin.committees')} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+            <section aria-label={title} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <AppMetricCard label={b('totalCommittees')} value={summary.total} detail={b('totalHelp')} variant="primary" icon={<UsersTwoIcon className="h-5 w-5" />} />
                 <AppMetricCard label={b('activeCommittees')} value={summary.active} detail={b('activeHelp')} variant="success" icon={<CheckCircle className="h-5 w-5" />} />
                 <AppMetricCard label={b('pendingCommittees')} value={summary.pending} detail={b('pendingHelp')} variant="warning" icon={<AlertTriangle className="h-5 w-5" />} />
                 <AppMetricCard label={b('servingMembers')} value={summary.members} detail={b('membersHelp')} variant="neutral" icon={<UserPlusIcon className="h-5 w-5" />} />
             </section>
 
-            <FilterPanel onSubmit={() => router.get(route('grievances.committees.index'), query, { preserveState: true })} onReset={() => router.get(route('grievances.committees.index'))} hasActiveFilters={filtered}>
+            <FilterPanel onSubmit={() => router.get(cr('index'), query, { preserveState: true })} onReset={() => router.get(cr('index'))} hasActiveFilters={filtered}>
                 <FilterField label={t('grievances.common.search')} wide><input type="search" className={inputCls} value={query.search} onChange={event => setQuery({ ...query, search: event.target.value })} /></FilterField>
-                {(['organization_id', 'committee_type', 'status'] as const).map(key => <FilterField key={key} label={t(`grievanceAdmin.fields.${key}`)}><select className={inputCls} value={query[key]} onChange={event => setQuery({ ...query, [key]: event.target.value })}><option value="">{t('grievances.common.all')}</option>{(key === 'organization_id' ? organizations : choices(key === 'status' ? options.statuses : options.types)).map(option => <option key={option.value} value={option.value}>{key === 'organization_id' ? option.label : label(key === 'status' ? 'committee_status' : key, option.value)}</option>)}</select></FilterField>)}
+                {(discipline ? ['organization_id', 'status'] as const : ['organization_id', 'committee_type', 'status'] as const).map(key => <FilterField key={key} label={t(`grievanceAdmin.fields.${key}`)}><select className={inputCls} value={query[key]} onChange={event => setQuery({ ...query, [key]: event.target.value })}><option value="">{t('grievances.common.all')}</option>{(key === 'organization_id' ? organizations : choices(key === 'status' ? options.statuses : options.types)).map(option => <option key={option.value} value={option.value}>{key === 'organization_id' ? option.label : label(key === 'status' ? 'committee_status' : key, option.value)}</option>)}</select></FilterField>)}
             </FilterPanel>
 
             {committees.data.length === 0
@@ -82,21 +85,21 @@ export default function Index({ committees, filters, options, summary, policy, c
             {dialog?.kind === 'register' && <DialogShell title={`${t('grievanceAdmin.registerMember')}: ${nameOf(dialog.committee, locale)}`} help={t('grievanceAdmin.addMemberHelp')}>
                 <AdminForm key={`register-${dialog.committee.id}`} initial={{ employee_id: '', role: 'member', selection_source: '', term_number: '1', effective_from: today(), effective_to: '', appointment_reference: '', signature: null, organization_id: dialog.committee.organization?.id ?? '' }}
                     fields={[{ key: 'employee_id', type: 'lookup', lookup: 'employees', organizationKey: 'organization_id', lookupParams: { exclude_committee_id: dialog.committee.id }, required: true }, { key: 'role', type: 'select', options: choices(options.roles), enumGroup: 'committee_role', required: true }, { key: 'selection_source', type: 'select', options: choices(SOURCES), enumGroup: 'committee_source' }, { key: 'term_number', type: 'select', options: choices(['1', '2']) }, { key: 'effective_from', type: 'date', required: true }, { key: 'effective_to', type: 'date' }, { key: 'appointment_reference' }, { key: 'signature', type: 'file', accept: 'image/png,image/jpeg,image/webp', required: true, help: t('grievanceAdmin.signatureHelp') }]}
-                    url={route('grievances.committees.members.store', dialog.committee.id)} onSaved={close} onCancel={close} />
+                    url={cr('members.store', dialog.committee.id)} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'editMember' && <DialogShell title={`${t('grievanceAdmin.editMember')}: ${employeeName(dialog.member.employee, locale)}`} help={t('grievanceAdmin.editMemberHelp')}>
                 <AdminForm key={`edit-${dialog.member.id}`} initial={{ role: dialog.member.role, selection_source: dialog.member.selection_source ?? '', term_number: String(dialog.member.term_number ?? 1), effective_from: dialog.member.effective_from ?? today(), effective_to: dialog.member.effective_to ?? '', appointment_reference: dialog.member.appointment_reference ?? '', signature: null }}
                     fields={[{ key: 'role', type: 'select', options: choices(options.roles), enumGroup: 'committee_role', required: true }, { key: 'selection_source', type: 'select', options: choices(SOURCES), enumGroup: 'committee_source' }, { key: 'term_number', type: 'select', options: choices(['1', '2']) }, { key: 'effective_from', type: 'date', required: true }, { key: 'effective_to', type: 'date' }, { key: 'appointment_reference' }, { key: 'signature', type: 'file', accept: 'image/png,image/jpeg,image/webp', help: t('grievanceAdmin.signatureReplaceHelp') }]}
-                    url={route('grievances.committees.members.update', [dialog.committee.id, dialog.member.id])} onSaved={close} onCancel={close} />
+                    url={cr('members.update', [dialog.committee.id, dialog.member.id])} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'endMember' && <DialogShell title={`${t('grievanceAdmin.endMembership')}: ${employeeName(dialog.member.employee, locale)}`} help={b('endMemberHelp')}>
                 <AdminForm key={`end-${dialog.member.id}`} initial={{ reason: '', effective_to: today() }} fields={[{ key: 'reason', type: 'textarea', required: true, maxLength: 1000 }, { key: 'effective_to', type: 'date' }]}
-                    url={route('grievances.committees.members.end', [dialog.committee.id, dialog.member.id])} onSaved={close} onCancel={close} />
+                    url={cr('members.end', [dialog.committee.id, dialog.member.id])} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'editCommittee' && <DialogShell title={`${b('editCommittee')}: ${nameOf(dialog.committee, locale)}`}>
                 <AdminForm key={`committee-${dialog.committee.id}`} method="patch" initial={{ name_en: dialog.committee.name_en, name_am: dialog.committee.name_am ?? '', organization_id: dialog.committee.organization?.id ?? '', organization_unit_id: dialog.committee.organization_unit?.id ?? '', effective_to: dialog.committee.effective_to ?? '', description_en: dialog.committee.description_en ?? '', description_am: dialog.committee.description_am ?? '' }}
                     fields={[{ key: 'name_en', required: true }, { key: 'name_am' }, { key: 'organization_unit_id', label: t('grievanceAdmin.committeeUnit'), type: 'lookup', lookup: 'units', organizationKey: 'organization_id', initialLabel: dialog.committee.organization_unit ? nameOf(dialog.committee.organization_unit, locale) : undefined, emptyLabel: b('allStaff'), help: t('grievanceAdmin.committeeUnitHelp') }, { key: 'effective_to', type: 'date' }, { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
-                    url={route('grievances.committees.update', dialog.committee.id)} onSaved={close} onCancel={close} />
+                    url={cr('update', dialog.committee.id)} onSaved={close} onCancel={close} />
             </DialogShell>}
         </Modal>
     </AuthenticatedLayout>;
@@ -112,11 +115,12 @@ function DialogShell({ title, help, children }: { title: string; help?: string; 
 
 function EmptyBoard({ filtered, canCreate }: { filtered: boolean; canCreate: boolean }) {
     const { t } = useLocale();
+    const { cr } = useCommitteeRoutes();
     return <div className="flex flex-col items-center rounded-xl border border-dashed border-(--app-border-strong) bg-(--app-surface) px-6 py-14 text-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><UsersTwoIcon className="h-6 w-6" /></span>
         <h2 className="mt-4 text-base font-semibold text-(--app-foreground)">{filtered ? t('grievanceAdmin.committeeBoard.noMatches') : t('grievanceAdmin.committeeBoard.noCommittees')}</h2>
         {!filtered && <p className="mt-1 max-w-md text-sm text-(--app-muted-foreground)">{t('grievanceAdmin.committeeBoard.noCommitteesHelp')}</p>}
-        {!filtered && canCreate && <Link className={`${primaryBtn} mt-5 gap-2`} href={route('grievances.committees.create')}><Plus className="h-4 w-4" aria-hidden />{t('grievanceAdmin.newCommittee')}</Link>}
+        {!filtered && canCreate && <Link className={`${primaryBtn} mt-5 gap-2`} href={cr('create')}><Plus className="h-4 w-4" aria-hidden />{t('grievanceAdmin.newCommittee')}</Link>}
     </div>;
 }
 
@@ -133,6 +137,7 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
     const { t, locale } = useLocale();
     const label = useEnumLabel();
     const b = (key: string) => t(`grievanceAdmin.committeeBoard.${key}`);
+    const { cr } = useCommitteeRoutes();
     const members = committee.members;
     const count = members.length;
     const hasChair = members.some(member => member.role === 'chairperson');
@@ -170,7 +175,7 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 id={`committee-${committee.id}`} className="truncate text-base font-semibold text-(--app-foreground)">
-                            <Link href={route('grievances.committees.show', committee.id)} className="hover:text-primary hover:underline focus-visible:underline focus-visible:outline-none">{nameOf(committee, locale)}</Link>
+                            <Link href={cr('show', committee.id)} className="hover:text-primary hover:underline focus-visible:underline focus-visible:outline-none">{nameOf(committee, locale)}</Link>
                         </h2>
                         <GPill group="committee_status" value={committee.status} />
                         {committee.is_grievance_type && <span className={`inline-flex items-center gap-1 text-xs font-medium ${ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
@@ -194,7 +199,7 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
                 <AppActionMenu label={`${t('common.actions')}: ${nameOf(committee, locale)}`} items={[
                     { label: t('grievanceAdmin.registerMember'), icon: <UserPlusIcon className="h-4 w-4" />, onClick: () => onOpen({ kind: 'register', committee }), show: committee.can_manage_members && committee.status !== 'inactive' },
                     { label: b('editCommittee'), icon: <PencilIcon className="h-4 w-4" />, onClick: () => onOpen({ kind: 'editCommittee', committee }), show: committee.can_update },
-                    { label: b('viewCommittee'), icon: <ChevronRight className="h-4 w-4" />, href: route('grievances.committees.show', committee.id), separatorBefore: committee.can_manage_members || committee.can_update },
+                    { label: b('viewCommittee'), icon: <ChevronRight className="h-4 w-4" />, href: cr('show', committee.id), separatorBefore: committee.can_manage_members || committee.can_update },
                 ]} />
             </div>
         </header>
