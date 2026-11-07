@@ -111,6 +111,7 @@ return [
         'committee_has_open_cases' => 'The committee still has open cases.',
         'employee_not_active' => 'The employee is not active.',
         'already_member' => 'This employee is already serving.',
+        'member_outside_organization' => 'A committee member is chosen from the institution’s own employees; this employee’s current assignment is in another institution.',
         'recusal_exists' => 'A conflict of interest is already recorded for you on this stage.',
         'replacement_not_eligible' => 'The replacement cannot be the complainant, the respondent or someone already on the panel.',
         'separation_of_duties' => 'The same person cannot both prepare and approve this.',

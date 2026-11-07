@@ -151,6 +151,12 @@ final class GrievanceCommitteeService
             if ($employee === null || ($employee->status?->value ?? $employee->status) !== 'active') {
                 throw ValidationException::withMessages(['employee_id' => __('grievances.errors.employee_not_active')]);
             }
+            // Members are chosen from the institution's own staff: the current
+            // assignment must be in the committee's organization (the form only
+            // offers those, but a direct request must not get past it).
+            if ($employee->currentAssignment?->organization_id !== $committee->organization_id) {
+                throw ValidationException::withMessages(['employee_id' => __('grievances.errors.member_outside_organization')]);
+            }
             // Regulation 201/2018 Art. 6(2): no one disciplined in the last two years sits on the committee.
             if (app(StatutoryCommitteeRules::class)->employeeEligibility((string) $employee->getKey(), $from)['problems'] !== []) {
                 throw ValidationException::withMessages(['employee_id' => __('grievances.errors.member_disciplined')]);
@@ -329,6 +335,11 @@ final class GrievanceCommitteeService
         if ($employee === null || ($employee->status?->value ?? $employee->status) !== 'active'
             || in_array($employee->getKey(), [$stage->grievance->employee_id, $stage->grievance->respondent_employee_id, $stage->grievance->immediate_supervisor_employee_id], true)) {
             throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.replacement_not_eligible')]);
+        }
+        // A replacement is drawn from the same institution as the committee it sits in for.
+        $committeeOrganizationId = $stage->committee?->organization_id;
+        if ($committeeOrganizationId !== null && $employee->currentAssignment?->organization_id !== $committeeOrganizationId) {
+            throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.member_outside_organization')]);
         }
         if (app(StatutoryCommitteeRules::class)->employeeEligibility((string) $employee->getKey())['problems'] !== []) {
             throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.member_disciplined')]);

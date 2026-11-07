@@ -184,3 +184,14 @@ it('registers a member together with the signature image and serves it to commit
         ->where('members.0.signature', true)
         ->where('members.0.signature_url', route('grievances.committees.members.signature', [$committee, $member])));
 });
+
+it('refuses a member whose current assignment is in another institution', function () {
+    $s = GrievanceScenario::build(withRoutes: false, withSla: false);
+    $committee = pendingGrievanceCommittee($s);
+    $admin = committeeApprover($s);
+    $outsider = GrievanceScenario::employee($s->bureau, null);
+
+    expect(fn () => app(GrievanceCommitteeService::class)->addMember($committee, $admin, ['employee_id' => $outsider->id, 'role' => 'member', 'effective_from' => now()->toDateString()]))
+        ->toThrow(ValidationException::class, __('grievances.errors.member_outside_organization'));
+    expect(GrievanceCommitteeMember::query()->where('employee_id', $outsider->id)->exists())->toBeFalse();
+});

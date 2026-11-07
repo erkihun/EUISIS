@@ -110,6 +110,7 @@ return [
         'committee_has_open_cases' => 'ኮሚቴው አሁንም ክፍት ጉዳዮች አሉት።',
         'employee_not_active' => 'ሠራተኛው ንቁ አይደለም።',
         'already_member' => 'ይህ ሠራተኛ ቀድሞ በማገልገል ላይ ነው።',
+        'member_outside_organization' => 'የኮሚቴ አባል የሚመረጠው ከተቋሙ ሠራተኞች ውስጥ ብቻ ነው፤ የዚህ ሠራተኛ የአሁኑ ምደባ በሌላ ተቋም ነው።',
         'recusal_exists' => 'በዚህ ደረጃ ላይ የጥቅም ግጭትዎ ቀድሞ ተመዝግቧል።',
         'replacement_not_eligible' => 'ተተኪው ቅሬታ አቅራቢው፣ ቅሬታ የቀረበበት ወይም ቀድሞ በፓነሉ ያለ ሰው መሆን አይችልም።',
         'separation_of_duties' => 'ያዘጋጀው ሰው ራሱ ሊያጸድቀው አይችልም።',

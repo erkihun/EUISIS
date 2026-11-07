@@ -156,7 +156,8 @@ A permission is necessary, never sufficient. Case access comes from a relationsh
 ## 8. Committees, decisions, evidence, correspondence
 
 - **Committees**: composition from settings (default 3–5 members, exactly one Chairperson,
-  exactly one Writer). Terms are ended, never deleted. Each stage snapshots its panel;
+  exactly one Writer). Members (and case replacements) are the institution's own active employees:
+  the current assignment must be in the committee's organization. Terms are ended, never deleted. Each stage snapshots its panel;
   membership changes follow open stages. Recusal removes the member from the case panel
   (no view, vote, signature, minutes); a replacement sits on that case only.
   Quorum rule is a setting (`none` until policy defines one).
