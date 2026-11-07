@@ -195,3 +195,32 @@ it('refuses a member whose current assignment is in another institution', functi
         ->toThrow(ValidationException::class, __('grievances.errors.member_outside_organization'));
     expect(GrievanceCommitteeMember::query()->where('employee_id', $outsider->id)->exists())->toBeFalse();
 });
+
+it('corrects a serving member term in place and keeps one chairperson', function () {
+    $s = GrievanceScenario::build(withRoutes: false, withSla: false);
+    $committee = pendingGrievanceCommittee($s);
+    $admin = committeeApprover($s);
+    $committees = app(GrievanceCommitteeService::class);
+    $chair = GrievanceScenario::employee($s->woreda, $s->woredaUnit);
+    $other = GrievanceScenario::employee($s->woreda, $s->woredaUnit);
+    $committees->addMember($committee, $admin, ['employee_id' => $chair->id, 'role' => 'chairperson', 'effective_from' => now()->toDateString()]);
+    $member = $committees->addMember($committee, $admin, ['employee_id' => $other->id, 'role' => 'member', 'effective_from' => now()->toDateString()]);
+
+    // A second chairperson is refused while the first still serves.
+    expect(fn () => $committees->updateMember($committee, $member, $admin, ['role' => 'chairperson']))
+        ->toThrow(ValidationException::class, __('grievances.committeeAlreadyHasChairperson'));
+
+    // Other corrections land on the same row: no new term, no deletion.
+    $updated = $committees->updateMember($committee, $member, $admin, ['role' => 'writer', 'selection_source' => 'hr_representative', 'term_number' => 2, 'appointment_reference' => 'REF-7']);
+    expect($updated->getKey())->toBe($member->getKey())
+        ->and($updated->role)->toBe('writer')
+        ->and($updated->selection_source)->toBe('hr_representative')
+        ->and((int) $updated->term_number)->toBe(2)
+        ->and($updated->appointment_reference)->toBe('REF-7')
+        ->and($committee->members()->count())->toBe(2);
+
+    // An ended term stays history.
+    $committees->endMember($committee, $updated, $admin, 'Rotation');
+    expect(fn () => $committees->updateMember($committee, $updated->fresh(), $admin, ['role' => 'member']))
+        ->toThrow(ValidationException::class, __('grievances.errors.member_term_ended'));
+});

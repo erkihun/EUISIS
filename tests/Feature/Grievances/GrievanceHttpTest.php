@@ -276,6 +276,7 @@ it('renders every grievance page for an authorized user', function (): void {
         ['grievances.appeals.index', [], 'Grievances/Appeals/Index'],
         ['grievances.correspondence.index', [], 'Grievances/Correspondence/Index'],
         ['grievances.committees.index', [], 'Grievances/Committees/Index'],
+        ['grievances.committees.create', [], 'Grievances/Committees/Create'],
         ['grievances.committees.show', [$this->s->committee->id], 'Grievances/Committees/Show'],
         ['grievances.routes.index', [], 'Grievances/Routing/Index'],
         ['grievances.sla.index', [], 'Grievances/Sla/Index'],

@@ -22,7 +22,7 @@ export type Paginated<T> = {
     next_page_url: string | null;
 };
 
-export type EmployeeRef = { id: string; name: string | null; name_en: string | null; employee_number: string | null };
+export type EmployeeRef = { id: string; name: string | null; name_en: string | null; employee_number: string | null; unit?: Bilingual | null };
 
 export type HandlerRef = {
     type: 'committee' | 'organization_unit' | 'external_authority' | 'organization' | '';
@@ -344,12 +344,23 @@ export type CommitteeRow = {
     id: string; name_en: string; name_am: string | null; committee_type: string; status: 'pending_approval' | 'active' | 'inactive';
     organization: Bilingual | null; organization_unit: Bilingual | null; effective_from: string | null; effective_to: string | null;
 };
+export type CommitteeListMember = {
+    id: string; employee: EmployeeRef | null; role: 'chairperson' | 'writer' | 'member'; selection_source: string | null; term_number: number | null;
+    effective_from: string | null; effective_to: string | null; appointment_reference: string | null; signature: boolean; signature_url: string | null;
+};
+export type CommitteeListItem = CommitteeRow & {
+    description_en: string | null; description_am: string | null; active_members_count: number; open_cases_count: number; is_grievance_type: boolean;
+    problems: string[]; members: CommitteeListMember[]; can_update: boolean; can_manage_members: boolean;
+};
 export type CommitteesIndexProps = {
-    committees: Paginated<CommitteeRow & { active_members_count: number; open_cases_count: number; problems: string[] }>;
+    committees: Paginated<CommitteeListItem>;
     filters: { organization_id?: string; committee_type?: string; status?: string; search?: string };
-    options: { organizations: Bilingual[]; types: string[]; statuses: string[] };
+    options: { organizations: Bilingual[]; types: string[]; statuses: string[]; roles: string[] };
+    summary: { total: number; active: number; pending: number; members: number };
+    policy: { min: number; max: number; require_writer: boolean };
     can: { create: boolean };
 };
+export type CommitteeCreateProps = { options: { organizations: Bilingual[]; types: string[] } };
 export type CommitteeShowProps = {
     committee: CommitteeRow & { description_en: string | null; description_am: string | null; approved_at: string | null; created_by: number | null };
     members: { id: string; employee: EmployeeRef | null; role: 'chairperson' | 'writer' | 'member'; selection_source: string | null; term_number: number | null; effective_from: string | null; effective_to: string | null; status: string; is_active: boolean; appointment_reference: string | null; appointed_by: string | null; end_reason: string | null; signature: boolean; signature_url: string | null; signature_recorded_at: string | null }[];
@@ -357,7 +368,6 @@ export type CommitteeShowProps = {
     openCases: number;
     policy: { min: number; max: number; require_writer: boolean };
     roles: string[];
-    units: Bilingual[];
     can: { update: boolean; approve: boolean; manage_members: boolean };
 };
 

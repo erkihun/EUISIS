@@ -44,8 +44,14 @@ class GrievanceLookupController extends Controller
             $query->where(fn ($q) => $q->where('full_name', 'like', "%{$term}%")->orWhere('name_en', 'like', "%{$term}%")->orWhere('employee_number', 'like', "%{$term}%"));
         }
 
-        return response()->json($query->orderBy('full_name')->limit(25)->get(['id', 'full_name', 'name_en', 'employee_number'])
-            ->map(fn ($e) => ['id' => $e->id, 'name' => $e->full_name, 'name_en' => $e->name_en ?: $e->full_name, 'employee_number' => $e->employee_number]));
+        // The work unit is shown with each match: a committee draws its members
+        // from any unit of the institution, so the picker says where each one sits.
+        return response()->json($query->with('currentAssignment.organizationUnit:id,name_en,name_am')->orderBy('full_name')->limit(25)
+            ->get(['id', 'full_name', 'name_en', 'employee_number', 'current_assignment_id'])
+            ->map(fn ($e) => [
+                'id' => $e->id, 'name' => $e->full_name, 'name_en' => $e->name_en ?: $e->full_name, 'employee_number' => $e->employee_number,
+                'unit_en' => $e->currentAssignment?->organizationUnit?->name_en, 'unit_am' => $e->currentAssignment?->organizationUnit?->name_am,
+            ]));
     }
 
     public function units(Request $request): JsonResponse
