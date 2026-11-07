@@ -240,6 +240,79 @@ final class GrievanceCommitteeService
     }
 
     /**
+     * Correct the current term in place: role, how the member was selected,
+     * term number, dates, appointment reference, or a replacement signature
+     * image. Nothing is deleted and the term keeps its history row; an ended
+     * term is never reopened (register a new term instead). A role change
+     * re-checks the one-Chairperson / one-Writer rule and follows open panels.
+     *
+     * @param  array{role?: string, selection_source?: string|null, term_number?: int|string|null, effective_from?: string, effective_to?: string|null, appointment_reference?: string|null, signature?: mixed}  $data
+     */
+    public function updateMember(GrievanceCommittee $committee, GrievanceCommitteeMember $member, User $actor, array $data): GrievanceCommitteeMember
+    {
+        $this->assertManageMembers($actor, $committee);
+        if ($member->committee_id !== $committee->getKey()) {
+            $this->access->authorize(false);
+        }
+        if (! $member->isActive()) {
+            throw ValidationException::withMessages(['member' => __('grievances.errors.member_term_ended')]);
+        }
+
+        return DB::transaction(function () use ($committee, $member, $actor, $data): GrievanceCommitteeMember {
+            GrievanceCommittee::query()->whereKey($committee->getKey())->lockForUpdate()->first();
+            $member = GrievanceCommitteeMember::query()->whereKey($member->getKey())->lockForUpdate()->firstOrFail();
+
+            $role = isset($data['role']) ? GrievanceCommitteeRole::from((string) $data['role']) : $member->roleEnum();
+            $from = Carbon::parse((string) ($data['effective_from'] ?? $member->effective_from))->startOfDay();
+            $to = array_key_exists('effective_to', $data)
+                ? (filled($data['effective_to']) ? Carbon::parse((string) $data['effective_to'])->startOfDay() : null)
+                : ($member->effective_to ? Carbon::parse((string) $member->effective_to)->startOfDay() : null);
+            if ($to !== null && $to->lte($from)) {
+                throw ValidationException::withMessages(['effective_to' => __('validation.after', ['attribute' => 'effective_to', 'date' => $from->toDateString()])]);
+            }
+
+            $others = $committee->members()->servingOn($from)->whereKeyNot($member->getKey())->get();
+            if ($role === GrievanceCommitteeRole::Chairperson && $others->contains(fn (GrievanceCommitteeMember $m) => $m->roleEnum() === GrievanceCommitteeRole::Chairperson)) {
+                throw ValidationException::withMessages(['role' => __('grievances.committeeAlreadyHasChairperson')]);
+            }
+            if ($role === GrievanceCommitteeRole::Writer && $others->contains(fn (GrievanceCommitteeMember $m) => $m->roleEnum() === GrievanceCommitteeRole::Writer)) {
+                throw ValidationException::withMessages(['role' => __('grievances.errors.committee_already_has_writer')]);
+            }
+
+            $changes = [
+                'role' => $role->value,
+                'selection_source' => array_key_exists('selection_source', $data) ? ($data['selection_source'] ?: null) : $member->selection_source,
+                'term_number' => isset($data['term_number']) ? (int) $data['term_number'] : $member->term_number,
+                'effective_from' => $from->toDateString(),
+                'effective_to' => $to?->toDateString(),
+                'appointment_reference' => array_key_exists('appointment_reference', $data) ? ($data['appointment_reference'] ?: null) : $member->appointment_reference,
+            ];
+            $signatureReplaced = false;
+            if (($data['signature'] ?? null) instanceof UploadedFile && $member->employee !== null) {
+                // ADR 0028: the new image becomes the employee's signature and this term's snapshot.
+                $path = $this->storeSignature($member->employee, $data['signature'], null);
+                $disk = Storage::disk('local');
+                $changes += [
+                    'signature_path' => $path,
+                    'signature_sha256' => $disk->exists($path) ? hash('sha256', (string) $disk->get($path)) : null,
+                    'signature_recorded_at' => now(),
+                    'signature_recorded_by' => $actor->getKey(),
+                ];
+                $signatureReplaced = true;
+            }
+            $member->forceFill($changes)->save();
+            $this->audit->record(AuditEventType::GrievanceCommitteeMemberUpdated, $actor, $committee, [
+                'employee_id' => $member->employee_id, 'role' => $role->value, 'effective_from' => $from->toDateString(),
+                'effective_to' => $to?->toDateString(), 'signature_replaced' => $signatureReplaced,
+            ]);
+
+            $this->routing->syncOpenPanels($committee, $actor);
+
+            return $member->refresh();
+        });
+    }
+
+    /**
      * Members who served on a date (for "who sat on this case then").
      *
      * @return list<array{employee_id: string, role: string}>

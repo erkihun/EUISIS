@@ -408,7 +408,11 @@ class AppServiceProvider extends ServiceProvider
 
             date_default_timezone_set($timezone);
 
-            if ($forceHttps) {
+            // "Force HTTPS" belongs to a deployed site behind TLS. The local dev
+            // server (php artisan serve) only speaks HTTP: forcing https there
+            // rewrites every asset URL to https://127.0.0.1:8000, the browser
+            // gets ERR_CONNECTION_CLOSED and the page renders without CSS or JS.
+            if ($forceHttps && ! $this->app->environment('local', 'testing')) {
                 URL::forceScheme('https');
             }
         } catch (Throwable) {

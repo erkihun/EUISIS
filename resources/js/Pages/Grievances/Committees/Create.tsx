@@ -1,0 +1,30 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
+import { AdminForm, choices, today, type AdminField } from '@/Components/grievances/AdminForm';
+import { Section, nameOf, pageCls } from '@/Components/grievances/ui';
+import { useLocale } from '@/hooks/useLocale';
+import { Head, router } from '@inertiajs/react';
+import type { CommitteeCreateProps } from '@/types/grievances';
+
+/** Registers a committee. Saving lands on the new committee's page, where members are added. */
+export default function Create({ options }: CommitteeCreateProps) {
+    const { t, locale } = useLocale();
+    const organizations = options.organizations.map(org => ({ value: org.id!, label: nameOf(org, locale) }));
+    const fields: AdminField[] = [
+        { key: 'name_en', required: true }, { key: 'name_am' },
+        // A committee belongs to the institution, not to one work unit: its
+        // members are searched among the institution's employees from any unit.
+        { key: 'organization_id', type: 'select', required: true, options: organizations },
+        { key: 'committee_type', type: 'select', required: true, options: choices(options.types), enumGroup: 'committee_type' },
+        { key: 'effective_from', type: 'date' }, { key: 'effective_to', type: 'date' },
+        { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' },
+    ];
+    return <AuthenticatedLayout header={<PageHeader title={t('grievanceAdmin.newCommittee')} description={t('grievanceAdmin.committeesHelp')} backHref={route('grievances.committees.index')} />}>
+        <Head title={t('grievanceAdmin.newCommittee')} /><div className={pageCls}>
+            <Section title={t('grievanceAdmin.newCommittee')}>
+                <AdminForm initial={{ name_en: '', name_am: '', organization_id: '', committee_type: '', effective_from: today(), effective_to: '', description_en: '', description_am: '' }} fields={fields}
+                    url={route('grievances.committees.store')} onCancel={() => router.visit(route('grievances.committees.index'))} />
+            </Section>
+        </div>
+    </AuthenticatedLayout>;
+}

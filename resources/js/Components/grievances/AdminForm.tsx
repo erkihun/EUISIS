@@ -34,43 +34,77 @@ export function Switch({ id, checked, onChange, disabled, label, describedBy }: 
     );
 }
 
-/** Lookup results are scoped by the existing grievance endpoints; IDs are never typed. */
+/**
+ * One searchable field (combobox): type to search the existing grievance
+ * lookup endpoints, pick a suggestion, and the picked label stays in the
+ * field. IDs are never typed. Units are fetched per organization and
+ * filtered as you type; the other endpoints search server-side.
+ */
 export function AdminLookup({ endpoint, organizationId, value, initialLabel, onChange, disabled, required, id }: {
     endpoint: NonNullable<AdminField['lookup']>; organizationId?: string; value: string; initialLabel?: string;
     onChange: (value: string) => void; disabled?: boolean; required?: boolean; id?: string;
 }) {
     const { t, locale } = useLocale();
+    const listId = useId();
     const [query, setQuery] = useState('');
     const [choices, setChoices] = useState<Choice[]>([]);
     const [selected, setSelected] = useState<Choice | null>(value && initialLabel ? { value, label: initialLabel } : null);
     const [state, setState] = useState<'loading' | 'ready' | 'error'>('ready');
+    const [open, setOpen] = useState(false);
+    const [active, setActive] = useState(-1);
+    const needsOrganization = endpoint === 'units' && !organizationId;
+    const serverSearch = endpoint !== 'units';
+    // The parent reset the value (saved form, clearOnChange): drop the stale label.
+    useEffect(() => { if (!value) { setSelected(null); } }, [value]);
     useEffect(() => {
-        if (disabled || (endpoint === 'units' && !organizationId)) { setChoices([]); return; }
+        if (disabled || needsOrganization || !open) { return; }
         const controller = new AbortController();
         const timer = window.setTimeout(async () => {
             setState('loading');
             try {
-                const params = new URLSearchParams({ q: query });
+                const params = new URLSearchParams({ q: serverSearch ? query : '' });
                 if (organizationId) params.set('organization_id', organizationId);
                 const response = await fetch(`${route(`grievances.lookup.${endpoint}`)}?${params}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
                 if (!response.ok) throw new Error('Lookup failed');
                 const rows = await response.json() as Record<string, string | number | null>[];
-                setChoices(rows.map(row => ({ value: String(row.id), label: String((locale === 'am' ? row.name_am || row.title_am || row.name : row.name_en || row.title_en) || row.name || row.name_en || row.title_en || '') + (row.employee_number ? ` (${row.employee_number})` : '') })));
+                setChoices(rows.map(row => {
+                    const unit = locale === 'am' ? row.unit_am || row.unit_en : row.unit_en || row.unit_am;
+                    return { value: String(row.id), label: String((locale === 'am' ? row.name_am || row.title_am || row.name : row.name_en || row.title_en) || row.name || row.name_en || row.title_en || '') + (row.employee_number ? ` (${row.employee_number})` : '') + (unit ? ` · ${unit}` : '') };
+                }));
                 setState('ready');
             } catch { if (!controller.signal.aborted) setState('error'); }
         }, 250);
         return () => { window.clearTimeout(timer); controller.abort(); };
-    }, [endpoint, organizationId, query, locale, disabled]);
-    const all = selected && !choices.some(choice => choice.value === selected.value) ? [selected, ...choices] : choices;
-    return <div className="space-y-2">
-        {endpoint !== 'units' && !disabled && <input aria-label={t('grievanceAdmin.searchLookup')} className={inputCls} value={query} onChange={event => setQuery(event.target.value)} placeholder={t('grievanceAdmin.searchLookup')} />}
-        <select id={id} className={inputCls} value={value} required={required} disabled={disabled || (endpoint === 'units' && !organizationId)} onChange={event => { onChange(event.target.value); setSelected(all.find(choice => choice.value === event.target.value) ?? null); }}>
-            <option value="">{t('grievances.common.select')}</option>
-            {all.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
-        </select>
-        {state === 'loading' && <p role="status" className="text-xs text-(--app-muted-foreground)">{t('grievances.common.loading')}</p>}
-        {state === 'error' && <p role="alert" className="text-xs text-red-600">{t('grievanceAdmin.lookupError')}</p>}
-        {state === 'ready' && !all.length && !disabled && <p className="text-xs text-(--app-muted-foreground)">{t(endpoint === 'units' && !organizationId ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.noMatches')}</p>}
+    }, [endpoint, organizationId, query, locale, disabled, open, needsOrganization, serverSearch]);
+    const needle = query.trim().toLowerCase();
+    const visible = serverSearch || !needle ? choices : choices.filter(choice => choice.label.toLowerCase().includes(needle));
+    const pick = (choice: Choice) => { setSelected(choice); onChange(choice.value); setQuery(''); setOpen(false); setActive(-1); };
+    const clear = () => { setSelected(null); onChange(''); setQuery(''); setActive(-1); };
+    const inactive = disabled || needsOrganization;
+    const showList = open && !inactive;
+    return <div className="relative">
+        <div className="relative">
+            <input id={id} role="combobox" aria-expanded={showList} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={showList && active >= 0 ? `${listId}-${active}` : undefined}
+                autoComplete="off" className={`${inputCls} ${selected && !inactive ? 'pr-9' : ''}`} value={selected ? selected.label : query} required={required} disabled={inactive}
+                placeholder={t(needsOrganization ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.searchLookup')}
+                onChange={event => { if (selected) { setSelected(null); onChange(''); } setQuery(event.target.value); setOpen(true); setActive(-1); }}
+                onFocus={() => setOpen(true)} onClick={() => setOpen(true)} onBlur={() => { setOpen(false); setActive(-1); }}
+                onKeyDown={event => {
+                    if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActive(index => Math.min(index + 1, visible.length - 1)); }
+                    else if (event.key === 'ArrowUp') { event.preventDefault(); setActive(index => Math.max(index - 1, 0)); }
+                    else if (event.key === 'Enter' && showList && active >= 0 && visible[active]) { event.preventDefault(); pick(visible[active]); }
+                    else if (event.key === 'Escape') { setOpen(false); setActive(-1); }
+                }} />
+            {selected && !inactive && <button type="button" aria-label={t('grievanceAdmin.clearLookup')} className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-(--app-muted-foreground) hover:text-(--app-foreground)" onMouseDown={event => event.preventDefault()} onClick={clear}>×</button>}
+        </div>
+        {showList && <ul id={listId} role="listbox" className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-(--app-border) bg-(--app-surface) py-1 shadow-lg">
+            {state === 'loading' && !visible.length && <li role="status" className="px-3 py-2 text-xs text-(--app-muted-foreground)">{t('grievances.common.loading')}</li>}
+            {state === 'error' && <li role="alert" className="px-3 py-2 text-xs text-red-600">{t('grievanceAdmin.lookupError')}</li>}
+            {state === 'ready' && !visible.length && <li className="px-3 py-2 text-xs text-(--app-muted-foreground)">{t('grievanceAdmin.noMatches')}</li>}
+            {visible.map((choice, index) => <li key={choice.value} id={`${listId}-${index}`} role="option" aria-selected={choice.value === value}
+                className={`cursor-pointer px-3 py-2 text-sm text-(--app-foreground) hover:bg-(--app-surface-muted) ${index === active ? 'bg-(--app-surface-muted)' : ''}`}
+                onMouseDown={event => { event.preventDefault(); pick(choice); }} onMouseEnter={() => setActive(index)}>{choice.label}</li>)}
+        </ul>}
     </div>;
 }
 

@@ -142,11 +142,13 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             Route::controller(GrievanceCommitteeController::class)->prefix('committees')->name('committees.')->group(function (): void {
                 Route::get('/', 'index')->name('index');
                 Route::post('/', 'store')->name('store');
+                Route::get('/create', 'create')->name('create');
                 Route::get('/{committee}', 'show')->name('show');
                 Route::patch('/{committee}', 'update')->name('update');
                 Route::post('/{committee}/approve', 'approve')->name('approve');
                 Route::post('/{committee}/members', 'addMember')->name('members.store');
                 Route::post('/{committee}/members/{member}/end', 'endMember')->name('members.end');
+                Route::post('/{committee}/members/{member}', 'updateMember')->name('members.update');
                 Route::get('/{committee}/members/{member}/signature', 'memberSignature')->name('members.signature');
             });
 

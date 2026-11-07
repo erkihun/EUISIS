@@ -6,7 +6,6 @@ namespace Modules\Grievance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
-use App\Models\OrganizationUnit;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,7 +43,11 @@ class GrievanceCommitteeController extends Controller
         abort_unless($user->can('grievance_committees.view'), 403);
 
         $query = $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)
-            ->with(['organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am'])
+            ->with([
+                'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am',
+                // The serving members are listed under each committee on the list page.
+                'members' => fn ($q) => $q->servingOn(now())->with('employee.currentAssignment.organizationUnit:id,name_en,name_am'),
+            ])
             ->withCount(['members as active_members_count' => fn ($q) => $q->servingOn(now())])
             ->withCount(['stages as open_cases_count' => fn ($q) => $q->open()]);
 
@@ -58,13 +61,42 @@ class GrievanceCommitteeController extends Controller
             $query->where(fn ($q) => $q->where('name_en', 'like', "%{$term}%")->orWhere('name_am', 'like', "%{$term}%"));
         }
 
-        $page = $query->orderBy('name_en')->paginate(20)->withQueryString();
+        // Counts for the summary row: everything the viewer may see, before filters.
+        $summary = $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)
+            ->selectRaw('count(*) as total')
+            ->selectRaw("sum(case when status = 'active' then 1 else 0 end) as active")
+            ->selectRaw("sum(case when status = 'pending_approval' then 1 else 0 end) as pending")
+            ->first();
+        $servingMembers = GrievanceCommitteeMember::query()->servingOn(now())
+            ->whereIn('committee_id', $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)->select('id'))->count();
+
+        $page = $query->orderBy('name_en')->paginate(12)->withQueryString();
         $page->through(fn (GrievanceCommittee $c) => [
             ...$this->row($c),
+            'description_en' => $c->description_en,
+            'description_am' => $c->description_am,
             'active_members_count' => $c->active_members_count,
             'open_cases_count' => $c->open_cases_count,
+            'is_grievance_type' => in_array($c->committee_type?->value, GrievanceHandlerRegistry::grievanceCommitteeTypes(), true),
             'problems' => in_array($c->committee_type?->value, GrievanceHandlerRegistry::grievanceCommitteeTypes(), true)
                 ? array_map(fn ($p) => __($p), $this->handlers->committeeProblems($c)) : [],
+            'members' => $c->members->sortBy(fn (GrievanceCommitteeMember $m) => [$m->roleEnum()->value === 'chairperson' ? 0 : ($m->roleEnum()->value === 'writer' ? 1 : 2), $m->effective_from?->timestamp])->map(fn (GrievanceCommitteeMember $m) => [
+                'id' => $m->getKey(),
+                'employee' => $m->employee ? [
+                    'id' => $m->employee->getKey(), 'name' => $m->employee->full_name, 'name_en' => $m->employee->name_en ?: $m->employee->full_name, 'employee_number' => $m->employee->employee_number,
+                    'unit' => $m->employee->currentAssignment?->organizationUnit?->only(['name_en', 'name_am']),
+                ] : null,
+                'role' => $m->roleEnum()->value,
+                'selection_source' => $m->selection_source,
+                'term_number' => $m->term_number,
+                'effective_from' => $m->effective_from?->toDateString(),
+                'effective_to' => $m->effective_to?->toDateString(),
+                'appointment_reference' => $m->appointment_reference,
+                'signature' => $m->hasSignature(),
+                'signature_url' => $m->hasSignature() ? route('grievances.committees.members.signature', [$c, $m]) : null,
+            ])->values(),
+            'can_update' => $user->can('grievance_committees.manage') && $this->scope->canExercisePermission($user, 'grievance_committees.manage', $c->organization_id),
+            'can_manage_members' => $user->can('grievance_committee_members.manage') && $this->scope->canExercisePermission($user, 'grievance_committee_members.manage', $c->organization_id),
         ]);
 
         return Inertia::render('Grievances/Committees/Index', [
@@ -74,8 +106,33 @@ class GrievanceCommitteeController extends Controller
                 'organizations' => $this->organizations($request),
                 'types' => array_column(CommitteeType::cases(), 'value'),
                 'statuses' => ['pending_approval', 'active', 'inactive'],
+                'roles' => GrievanceCommitteeRole::values(),
+            ],
+            'summary' => [
+                'total' => (int) ($summary->total ?? 0),
+                'active' => (int) ($summary->active ?? 0),
+                'pending' => (int) ($summary->pending ?? 0),
+                'members' => $servingMembers,
+            ],
+            'policy' => [
+                'min' => $this->settings->committeeMinMembers(),
+                'max' => $this->settings->committeeMaxMembers(),
+                'require_writer' => $this->settings->committeeRequiresWriter(),
             ],
             'can' => ['create' => $user->can('grievance_committees.manage')],
+        ]);
+    }
+
+    /** Registration has its own page; the list stays a list. */
+    public function create(Request $request): Response
+    {
+        abort_unless($request->user()->can('grievance_committees.manage'), 403);
+
+        return Inertia::render('Grievances/Committees/Create', [
+            'options' => [
+                'organizations' => $this->organizations($request),
+                'types' => array_column(CommitteeType::cases(), 'value'),
+            ],
         ]);
     }
 
@@ -104,7 +161,10 @@ class GrievanceCommitteeController extends Controller
             ],
             'members' => $committee->members->sortByDesc(fn ($m) => [$m->isActive(), $m->effective_from?->timestamp])->map(fn (GrievanceCommitteeMember $m) => [
                 'id' => $m->getKey(),
-                'employee' => $m->employee ? ['id' => $m->employee->getKey(), 'name' => $m->employee->full_name, 'name_en' => $m->employee->name_en ?: $m->employee->full_name, 'employee_number' => $m->employee->employee_number] : null,
+                'employee' => $m->employee ? [
+                    'id' => $m->employee->getKey(), 'name' => $m->employee->full_name, 'name_en' => $m->employee->name_en ?: $m->employee->full_name, 'employee_number' => $m->employee->employee_number,
+                    'unit' => $m->employee->currentAssignment?->organizationUnit?->only(['name_en', 'name_am']),
+                ] : null,
                 'role' => $m->roleEnum()->value,
                 'selection_source' => $m->selection_source,
                 'term_number' => $m->term_number,
@@ -132,7 +192,6 @@ class GrievanceCommitteeController extends Controller
                 'require_writer' => $this->settings->committeeRequiresWriter(),
             ],
             'roles' => GrievanceCommitteeRole::values(),
-            'units' => OrganizationUnit::query()->where('organization_id', $committee->organization_id)->where('status', 'active')->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
             'can' => [
                 'update' => $user->can('grievance_committees.manage') && $this->scope->canExercisePermission($user, 'grievance_committees.manage', $committee->organization_id),
                 'approve' => $committee->status === 'pending_approval' && $user->can('grievance_committees.approve') && (int) $committee->created_by !== (int) $user->getKey(),
@@ -181,6 +240,23 @@ class GrievanceCommitteeController extends Controller
         $this->committees->addMember($committee, $request->user(), [...$data, 'signature' => $request->file('signature')]);
 
         return back()->with('flash', ['message' => __('grievances.memberAdded'), 'type' => 'success']);
+    }
+
+    /** Correct the current term (role, selection, dates, reference, replacement signature); history is kept. */
+    public function updateMember(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): RedirectResponse
+    {
+        $data = $request->validate([
+            'role' => ['required', Rule::in(GrievanceCommitteeRole::values())],
+            'effective_from' => ['required', 'date'],
+            'effective_to' => ['nullable', 'date', 'after:effective_from'],
+            'appointment_reference' => ['nullable', 'string', 'max:255'],
+            'selection_source' => ['nullable', Rule::in(['appointed', 'elected', 'hr_representative'])],
+            'term_number' => ['nullable', 'integer', 'in:1,2'],
+            'signature' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp', 'mimetypes:image/png,image/jpeg,image/webp', 'max:1024'],
+        ]);
+        $this->committees->updateMember($committee, $member, $request->user(), [...$data, 'signature' => $request->file('signature')]);
+
+        return back()->with('flash', ['message' => __('grievances.memberUpdated'), 'type' => 'success']);
     }
 
     /** The signature image registered with a member's term; private, for committee viewers only. */
