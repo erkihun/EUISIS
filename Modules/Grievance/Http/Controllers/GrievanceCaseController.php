@@ -350,8 +350,16 @@ class GrievanceCaseController extends Controller
             'return' => $this->cases->intakeReturn($grievance, $user, (string) $data['reason_code'], $data['notes'] ?? null),
             'reject' => $this->cases->intakeReject($grievance, $user, (string) $data['reason_code'], $data['notes'] ?? null),
         };
+        $flash = ['message' => __('grievances.flash.intake_'.$data['action']), 'type' => 'success'];
 
-        return back()->with('flash', ['message' => __('grievances.flash.intake_'.$data['action']), 'type' => 'success']);
+        // Intake access ends with the decision: an intake officer who is not on
+        // the first handler's panel would meet a 404 on the case page, so send
+        // them back to the intake queue instead.
+        if (! $this->access->canView($user, $grievance->refresh())) {
+            return to_route('grievances.cases.index', ['tab' => 'intake'])->with('flash', $flash);
+        }
+
+        return back()->with('flash', $flash);
     }
 
     // ── Stage work ───────────────────────────────────────────────────────────

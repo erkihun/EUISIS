@@ -48,7 +48,8 @@ export const communicationApi = {
     photoUrl: (userId: number) => r('api.directory.photo', userId),
     directory: (q: string, signal?: AbortSignal) => axios.get<{ data: Person[] }>(r('api.directory.search', { q }), { signal }).then((res) => res.data.data),
     startDirect: (userId: number) => axios.post<{ id: string }>(r('api.conversations.store'), { user_id: userId }).then((res) => res.data.id),
-    summary: () => axios.get<Totals>(r('summary')).then((res) => res.data),
+    // A background badge refresh: it must neither extend the idle session nor use up a flashed toast.
+    summary: () => axios.get<Totals>(r('summary'), { headers: { 'X-Activity': 'passive' } }).then((res) => res.data),
     heartbeat: () => axios.post(r('api.presence')),
 
     // Groups and channels

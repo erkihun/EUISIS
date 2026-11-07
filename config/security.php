@@ -184,6 +184,7 @@ return [
         'passive_routes' => [
             'session.status',
             'notifications.feed',
+            'communication.summary',
         ],
     ],
 
