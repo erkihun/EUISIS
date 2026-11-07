@@ -73,7 +73,7 @@ const grievances = {
         due: 'የጊዜ ገደብ',
         original_due: 'የመጀመሪያው የጊዜ ገደብ',
         remaining: 'የቀረው',
-        sla: 'የጊዜ ገደብ',
+        sla: 'የጊዜ ገደብ ሁኔታ',
         submitted: 'የቀረበበት',
         incident_date: 'ጉዳዩ የተፈጸመበት ቀን',
         priority: 'ቅድሚያ',

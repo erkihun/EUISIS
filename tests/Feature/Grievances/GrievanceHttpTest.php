@@ -369,3 +369,16 @@ it('attaches only PDF files of at most 2 MB to the application', function (): vo
 
     expect(GrievanceEvidence::query()->count())->toBe(1);
 });
+
+it('sends an intake officer who is not on the first panel back to the intake queue after accepting', function (): void {
+    $g = httpFile($this, accept: false);
+
+    // The woreda intake officer is not a committee member: once accepted, the case page would answer 404.
+    $this->actingAs($this->s->intake)->from(route('grievances.cases.show', $g))
+        ->post(route('grievances.cases.intake', $g), ['action' => 'accept', 'notes' => 'Complete application'])
+        ->assertRedirect(route('grievances.cases.index', ['tab' => 'intake']))
+        ->assertSessionHas('flash.message');
+
+    expect($g->refresh()->status->value)->toBe('under_review');
+    $this->actingAs($this->s->intake)->get(route('grievances.cases.show', $g))->assertNotFound();
+});
