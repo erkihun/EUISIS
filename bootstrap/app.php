@@ -12,6 +12,7 @@ use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\GuardMasterDataWrites;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PreserveFlashOnPassiveRequests;
 use App\Http\Middleware\PrivateQrPageHeaders;
 use App\Http\Middleware\RecordRequestTelemetry;
 use App\Http\Middleware\RequestCorrelationId;
@@ -84,6 +85,8 @@ return Application::configure(basePath: dirname(__DIR__))
             RedirectCafeteriaToPlatform::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
+            // A passive poll (bell, messages badge) must not use up the toast or errors flashed for the next page.
+            PreserveFlashOnPassiveRequests::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             AuthenticateSession::class,
