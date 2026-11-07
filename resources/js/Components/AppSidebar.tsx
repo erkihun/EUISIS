@@ -161,6 +161,8 @@ type NavSubItem = {
     /** Shown when the user holds any one of these (for pages that accept several). */
     anyPermission?: string[];
     tab?: string;
+    /** Query parameters the page is opened with, e.g. one submission type (`tab` is the older, single-key form). */
+    query?: Record<string, string>;
     /** Also listed in an admin group, so staff see it there and not twice. */
     listedInAdmin?: boolean;
     /** The page serves the signed-in employee's own record, so accounts without one never see it. */
@@ -710,28 +712,52 @@ const navGroups: NavGroup[] = [
     },
     {
         /*
-         * Public Feedback Management (brief §79–80): what the public said
-         * through the employee and institution QR codes, and how it is routed,
-         * handled and reported. Independent of grievances and discipline.
+         * Public service feedback, suggestions and complaints (brief §79–80) each
+         * stand on their own, like Employee Grievance: three groups, each with its
+         * own list, routing and reports (the shared pages opened with
+         * `submission_type`). Independent of grievances and discipline.
+         *
+         * 1. Service feedback: ratings and comments through the QR codes, the
+         *    questionnaire, the QR codes themselves, and the shared settings.
          */
         key: 'serviceFeedback',
         labelKey: 'nav.groupPublicFeedback',
         icon: FeedbackIcon,
         items: [
             { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
-            // Every type the user may read, and the routed ones still without a handler.
-            { routeName: 'service-submissions.index', labelKey: 'nav.serviceAllSubmissions', icon: Inbox, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
-            { routeName: 'service-submissions.unrouted', labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
             { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: StarIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: LightbulbIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: ComplaintIcon, permission: 'service_feedback.complaints.view' },
+            // Every type the user may read, on one page (overview across the three groups).
+            { routeName: 'service-submissions.index', labelKey: 'nav.serviceAllSubmissions', icon: Inbox, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
             { routeName: 'service-feedback.questionnaire.index', labelKey: 'nav.serviceFeedbackQuestionnaire', icon: QuestionnaireIcon, permission: 'service_feedback.manage_questions' },
-            { routeName: 'service-feedback.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
             { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
             { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: FileChartIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.submission-reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.submission-reports.index', query: { submission_type: 'feedback' }, labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
             // PublicFeedbackSettings::canManage also requires citywide scope; the same permission serves scoped QR and position-service work.
             { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage', citywideOnly: true },
+        ],
+    },
+    {
+        /* 2. Suggestions from the public: their list, the unrouted ones, their routing rules and reports. */
+        key: 'serviceSuggestions',
+        labelKey: 'nav.groupServiceSuggestions',
+        icon: LightbulbIcon,
+        items: [
+            { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: LightbulbIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.unrouted', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.routing-rules.index', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
+            { routeName: 'service-feedback.submission-reports.index', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
+        ],
+    },
+    {
+        /* 3. Complaints from the public (not employee grievances): their list, the unrouted ones, routing rules and reports. */
+        key: 'serviceComplaints',
+        labelKey: 'nav.groupServiceComplaints',
+        icon: ComplaintIcon,
+        items: [
+            { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: ComplaintIcon, permission: 'service_feedback.complaints.view' },
+            { routeName: 'service-submissions.unrouted', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, permission: 'service_feedback.complaints.view' },
+            { routeName: 'service-feedback.routing-rules.index', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
+            { routeName: 'service-feedback.submission-reports.index', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
         ],
     },
     {
@@ -892,7 +918,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'serviceFeedback', 'serviceSuggestions', 'serviceComplaints', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];
@@ -923,7 +949,23 @@ export type NavLocation = { groupLabelKey: string; item: NavSubItem };
  * the sidebar, so breadcrumbs and the selected item always agree. Null for home and for routes the
  * tree does not cover. Permissions are not applied here; callers decide what to link.
  */
-export function navLocation(current: string, employeePortal: boolean, tab: string | null = null): NavLocation | null {
+/** The query an item opens its page with: `tab`, or its `query` parameters. */
+export function itemQuery(item: { tab?: string; query?: Record<string, string> }): Record<string, string> {
+    return item.tab ? { tab: item.tab } : item.query ?? {};
+}
+
+/** The item's link: its route plus its query, if any. */
+export function itemHref(item: { routeName: string; tab?: string; query?: Record<string, string> }): string {
+    const query = new URLSearchParams(itemQuery(item)).toString();
+    return route(item.routeName) + (query ? '?' + query : '');
+}
+
+/** Whether the current URL's query carries every parameter the item opens with. */
+function queryMatches(item: { tab?: string; query?: Record<string, string> }, params: URLSearchParams): boolean {
+    return Object.entries(itemQuery(item)).every(([key, value]) => params.get(key) === value);
+}
+
+export function navLocation(current: string, employeePortal: boolean, params: URLSearchParams | null = null): NavLocation | null {
     const flatten = (items: NavItem[]) => items.flatMap((item) => item.children ?? [item]);
     const groups = employeePortal
         ? portalSections.flatMap((section) => section.groups.map((group) => ({ labelKey: group.labelKey, items: flatten(group.items) })))
@@ -931,12 +973,13 @@ export function navLocation(current: string, employeePortal: boolean, tab: strin
     const home = employeePortal ? portalDashboard : dashboardNav;
     const match = activeRoute([home, ...groups.flatMap((group) => group.items)], current);
     if (!match || match === home.routeName) return null;
-    for (const group of groups) {
-        const candidates = group.items.filter((item) => item.routeName === match);
-        const item = candidates.find((candidate) => (candidate.tab ?? null) === tab) ?? candidates[0];
-        if (item) return { groupLabelKey: group.labelKey, item };
-    }
-    return null;
+    // One page can sit in several groups with different queries (e.g. routing rules for suggestions and
+    // for complaints): the item whose query the URL carries wins, else the plain one, else the first.
+    const search = params ?? new URLSearchParams();
+    const candidates = groups.flatMap((group) => group.items.filter((item) => item.routeName === match).map((item) => ({ groupLabelKey: group.labelKey, item })));
+    const size = (c: NavLocation) => Object.keys(itemQuery(c.item)).length;
+    return [...candidates].sort((a, b) => size(b) - size(a)).find((c) => size(c) > 0 && queryMatches(c.item, search))
+        ?? candidates.find((c) => size(c) === 0) ?? candidates[0] ?? null;
 }
 
 export default function AppSidebar({ onClose, collapsed = false, onToggleCollapse }: Props) {
@@ -1106,14 +1149,13 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
      * onNavigate: closes a collapsed-rail flyout after choosing a page.
      */
     function renderLink(item: NavSubItem, { nested = false, compact = collapsed, onNavigate }: { nested?: boolean; compact?: boolean; onNavigate?: () => void } = {}) {
-        const selected = currentItem === item.routeName && (!item.tab
-            || new URLSearchParams(pageUrl.split('?')[1] ?? '').get('tab') === item.tab);
+        const selected = currentItem === item.routeName && queryMatches(item, new URLSearchParams(pageUrl.split('?')[1] ?? ''));
         const Icon = item.icon;
         const label = t(item.labelKey);
         return (
-            <li key={item.routeName + (item.tab ?? '')}>
+            <li key={itemHref(item)}>
                 <Link
-                    href={item.tab ? route(item.routeName) + '?tab=' + item.tab : route(item.routeName)}
+                    href={itemHref(item)}
                     onClick={() => { onClose?.(); onNavigate?.(); }}
                     aria-current={selected ? 'page' : undefined}
                     aria-label={compact ? label : undefined}

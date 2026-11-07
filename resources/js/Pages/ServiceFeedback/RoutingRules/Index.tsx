@@ -22,7 +22,7 @@ type Rule = RuleRecord & {
     can_manage: boolean;
 };
 
-type Filters = { status: string; organization_id: string };
+type Filters = { status: string; organization_id: string; submission_type: string };
 type Props = { rules: Rule[]; filters: Filters; organizations: OrganizationOption[]; canManageCityWide: boolean };
 
 const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
@@ -37,14 +37,17 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const [values, setValues] = useState<Filters>(filters);
-    const filtersActive = Object.values(filters).some(Boolean);
+    // The type comes from the menu group (Suggestions / Complaints), not from the filter bar.
+    const filtersActive = Boolean(filters.status || filters.organization_id);
+    const type = filters.submission_type;
+    const title = type ? `${t('serviceFeedback.routingRulesTitle')} — ${t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion')}` : t('serviceFeedback.routingRulesTitle');
 
     function submitFilters() {
         router.get(route('service-feedback.routing-rules.index'), values, { preserveState: true, preserveScroll: true, replace: true });
     }
 
     function resetFilters() {
-        const empty: Filters = { status: '', organization_id: '' };
+        const empty: Filters = { status: '', organization_id: '', submission_type: filters.submission_type };
         setValues(empty);
         router.get(route('service-feedback.routing-rules.index'), empty, { preserveScroll: true, replace: true });
     }
@@ -64,13 +67,13 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
         <AuthenticatedLayout
             header={
                 <PageHeader
-                    title={t('serviceFeedback.routingRulesTitle')}
+                    title={title}
                     description={t('serviceFeedback.routingRulesIntro')}
-                    actions={canCreate && <Button as={Link} href={route('service-feedback.routing-rules.create')} variant="primary">{t('serviceFeedback.addRule')}</Button>}
+                    actions={canCreate && <Button as={Link} href={route('service-feedback.routing-rules.create', type ? { submission_type: type } : {})} variant="primary">{t('serviceFeedback.addRule')}</Button>}
                 />
             }
         >
-            <Head title={t('serviceFeedback.routingRulesTitle')} />
+            <Head title={title} />
 
             <div className="space-y-4">
                 {!canManageCityWide && <Alert tone="info">{t('serviceFeedback.cityRulesNeedCityRole')}</Alert>}

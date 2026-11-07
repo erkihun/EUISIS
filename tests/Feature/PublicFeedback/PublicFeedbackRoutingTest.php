@@ -392,6 +392,30 @@ it('filters the routing rules page by status and organization like every other l
         ->assertInertia(fn ($page) => $page->has('rules', 0));
 });
 
+it('shows the Suggestions and Complaints groups their own routing rules, and starts a new rule with that type', function (): void {
+    $complaint = rtRule(['submission_type' => 'complaint', 'priority' => 10]);
+    $suggestion = rtRule(['submission_type' => 'suggestion', 'priority' => 20]);
+    $any = rtRule(['priority' => 30]);
+
+    // A complaint rule, plus the rules for every type; never a suggestion rule.
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.routing-rules.index', ['submission_type' => 'complaint']))
+        ->assertInertia(fn ($page) => $page->where('filters.submission_type', 'complaint')
+            ->where('rules', fn ($rules) => collect($rules)->pluck('id')->sort()->values()->all() === collect([$complaint->id, $any->id])->sort()->values()->all()));
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.routing-rules.index', ['submission_type' => 'suggestion']))
+        ->assertInertia(fn ($page) => $page->where('rules', fn ($rules) => ! collect($rules)->pluck('id')->contains($complaint->id) && collect($rules)->pluck('id')->contains($suggestion->id)));
+    // Any other value is ignored: every rule.
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.routing-rules.index', ['submission_type' => 'feedback']))
+        ->assertInertia(fn ($page) => $page->where('filters.submission_type', '')->has('rules', 3));
+
+    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.create', ['submission_type' => 'complaint']))
+        ->assertInertia(fn ($page) => $page->where('submissionType', 'complaint'));
+    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.create'))
+        ->assertInertia(fn ($page) => $page->where('submissionType', null));
+});
+
 it('adds and edits a rule on its own page, inside the user scope', function (): void {
     $rule = rtRule();
 

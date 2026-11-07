@@ -28,17 +28,19 @@ type HandlerOptions = { users: { id: string; name: string }[]; units: { id: stri
 
 type Props = {
     record: RuleRecord | null;
+    /** A new rule opened from the Suggestions or Complaints group starts with that type. */
+    submissionType?: 'suggestion' | 'complaint' | null;
     organizations: OrganizationOption[];
     canManageCityWide: boolean;
 };
 
 /** The one routing-rule form, used by the create and the edit page. Saving returns to the list. */
-export default function RuleForm({ record, organizations, canManageCityWide }: Props) {
+export default function RuleForm({ record, organizations, canManageCityWide, submissionType = null }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({
         organization_id: record?.organization_id ?? (canManageCityWide ? '' : organizations[0]?.id ?? ''),
         target_type: record?.target_type ?? '',
-        submission_type: record?.submission_type ?? '',
+        submission_type: record?.submission_type ?? submissionType ?? '',
         tip_type: record?.tip_type ?? '',
         organization_unit_id: record?.organization_unit_id ?? '',
         handler_type: (record?.handler_type ?? 'user') as HandlerType,

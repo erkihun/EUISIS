@@ -124,6 +124,8 @@ const navigation = {
     serviceSuggestions: 'ጥቆማዎች',
     serviceComplaints: 'የተገልጋይ ቅሬታዎች',
     serviceFeedbackReports: 'የአስተያየት ሪፖርቶች',
+    groupServiceSuggestions: 'የተገልጋይ ጥቆማ',
+    groupServiceComplaints: 'የተገልጋይ ቅሬታ',
     groupPublicFeedback: 'የተገልጋይ አስተያየት አስተዳደር',
     groupSituationRoom: 'የአመራር ሁኔታ መከታተያ ማዕከል',
     situationRoom: 'የሁኔታ መከታተያ ማዕከል',

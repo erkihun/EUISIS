@@ -43,9 +43,12 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         // The same filter bar as every other list: status and organization, kept in the query string.
         $status = $request->string('status')->toString();
+        $type = $request->string('submission_type')->toString();
         $filters = [
             'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
             'organization_id' => $request->string('organization_id')->toString(),
+            // Opened from the Suggestions or Complaints group: that type's rules and those for every type.
+            'submission_type' => in_array($type, ['suggestion', 'complaint'], true) ? $type : '',
         ];
 
         return Inertia::render('ServiceFeedback/RoutingRules/Index', [
@@ -53,6 +56,7 @@ class PublicFeedbackRoutingRuleController extends Controller
             'rules' => $this->routing->queryFor($user)
                 ->when($filters['status'] !== '', fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
                 ->when($filters['organization_id'] !== '', fn ($query) => $query->where('organization_id', $filters['organization_id']))
+                ->when($filters['submission_type'] !== '', fn ($query) => $query->where(fn ($q) => $q->whereNull('submission_type')->orWhere('submission_type', $filters['submission_type'])))
                 ->orderByRaw('CASE WHEN organization_id IS NULL THEN 0 ELSE 1 END')
                 ->orderBy('priority')->orderBy('created_at')
                 ->get()
@@ -61,15 +65,16 @@ class PublicFeedbackRoutingRuleController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $user = $this->user();
         abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
 
         $options = $this->formOptions($user);
         abort_unless($options['canManageCityWide'] || $options['organizations'] !== [], 403);
+        $type = $request->string('submission_type')->toString();
 
-        return Inertia::render('ServiceFeedback/RoutingRules/Create', $options);
+        return Inertia::render('ServiceFeedback/RoutingRules/Create', [...$options, 'submissionType' => in_array($type, ['suggestion', 'complaint'], true) ? $type : null]);
     }
 
     public function edit(PublicFeedbackRoutingRule $rule): Response

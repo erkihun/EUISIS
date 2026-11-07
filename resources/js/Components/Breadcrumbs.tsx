@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { navLocation } from '@/Components/AppSidebar';
+import { itemHref, navLocation } from '@/Components/AppSidebar';
 import { ChevronRight } from '@/Components/NavIcons';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
@@ -76,7 +76,7 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     const humanize = (segment: string) => segment.replace(/[-_]/g, ' ').replace(/^\w/, (letter) => letter.toUpperCase());
 
     let crumbs: Crumb[];
-    const location = navLocation(current, employeePortal, new URLSearchParams(query).get('tab'));
+    const location = navLocation(current, employeePortal, new URLSearchParams(query));
     if (location) {
         const { groupLabelKey, item } = location;
         const permitted = (!item.permission || can(item.permission)) && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
@@ -85,7 +85,7 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
             home,
             // Groups organise the menu; they are not pages, so they are never links.
             { label: t(groupLabelKey) },
-            { label: t(item.labelKey), href: isCurrent || !permitted ? undefined : route(item.routeName) + (item.tab ? '?tab=' + item.tab : '') },
+            { label: t(item.labelKey), href: isCurrent || !permitted ? undefined : itemHref(item) },
         ];
         if (!isCurrent) {
             // A sub-page of the module: name it by its action (create/edit/show) or by its own route segment.

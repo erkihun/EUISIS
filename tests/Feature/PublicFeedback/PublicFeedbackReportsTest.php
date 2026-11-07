@@ -241,19 +241,28 @@ it('lists institutions with their feedback QR state within the user scope', func
     $this->actingAs($plain)->get(route('service-feedback.organization-qr.index'))->assertForbidden();
 });
 
-it('keeps Public Feedback Management as one sidebar group with every management page', function (): void {
+it('gives service feedback, suggestions and complaints each their own sidebar group', function (): void {
     $sidebar = file_get_contents(base_path('resources/js/Components/AppSidebar.tsx'));
-    $start = strpos($sidebar, "key: 'serviceFeedback'");
-    $end = strpos($sidebar, "key: '", $start + 10);
-    $group = substr($sidebar, $start, $end - $start);
+    $groupOf = function (string $key) use ($sidebar): string {
+        $start = strpos($sidebar, "key: '{$key}'");
+        expect($start)->not->toBeFalse();
 
-    expect($group)->toContain("labelKey: 'nav.groupPublicFeedback'");
-    foreach ([
-        'service-feedback.admin.dashboard', 'service-feedback.admin.index', 'service-submissions.suggestions', 'service-submissions.complaints',
-        'service-feedback.routing-rules.index', 'service-feedback.organization-qr.index',
-        'service-feedback.admin.reports', 'service-feedback.submission-reports.index', 'service-feedback.settings.index',
-    ] as $routeName) {
-        expect($group)->toContain("routeName: '{$routeName}'");
+        return substr($sidebar, $start, strpos($sidebar, "key: '", $start + 10) - $start);
+    };
+
+    $feedback = $groupOf('serviceFeedback');
+    expect($feedback)->toContain("labelKey: 'nav.groupPublicFeedback'");
+    foreach (['service-feedback.admin.dashboard', 'service-feedback.admin.index', 'service-feedback.organization-qr.index', 'service-feedback.admin.reports', 'service-feedback.settings.index'] as $routeName) {
+        expect($feedback)->toContain("routeName: '{$routeName}'");
+    }
+
+    // Suggestions and complaints: each its own list, unrouted list, routing rules and reports, opened with its type.
+    foreach (['serviceSuggestions' => ['suggestion', 'service-submissions.suggestions'], 'serviceComplaints' => ['complaint', 'service-submissions.complaints']] as $key => [$type, $list]) {
+        $group = $groupOf($key);
+        expect($group)->toContain("routeName: '{$list}'")->not->toContain('service-submissions.'.($type === 'complaint' ? 'suggestions' : 'complaints'));
+        foreach (['service-submissions.unrouted', 'service-feedback.routing-rules.index', 'service-feedback.submission-reports.index'] as $routeName) {
+            expect($group)->toContain("routeName: '{$routeName}', query: { submission_type: '{$type}' }");
+        }
     }
     // Public complaints never sit under grievances or discipline (brief §80).
     foreach (["key: 'grievances'", "key: 'discipline'"] as $otherKey) {
