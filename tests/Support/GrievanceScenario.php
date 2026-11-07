@@ -259,7 +259,9 @@ final class GrievanceScenario
             'position_id' => $position?->id, 'assignment_status' => AssignmentStatus::Active,
             'effective_from' => now()->subYear()->toDateString(), 'is_current' => true,
         ]);
-        $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+        // Every test employee has a signature on file (ADR 0028); tests about the
+        // missing-signature rule clear it explicitly.
+        $employee->forceFill(['current_assignment_id' => $assignment->id, 'signature_path' => 'employee-signatures/test-'.strtolower($uid).'.png'])->save();
 
         return $employee;
     }

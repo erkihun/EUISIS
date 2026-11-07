@@ -11,6 +11,7 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,6 +22,7 @@ use Modules\Grievance\Contracts\Data\CommitteeType;
 use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
 use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Grievance committees and their membership history. Also lists the EPMS
@@ -113,9 +115,16 @@ class GrievanceCommitteeController extends Controller
                 'appointment_reference' => $m->appointment_reference,
                 'appointed_by' => $m->appointedBy?->name,
                 'end_reason' => $m->end_reason,
+                'signature' => $m->hasSignature(),
+                'signature_url' => $m->hasSignature() ? route('grievances.committees.members.signature', [$committee, $m]) : null,
+                'signature_recorded_at' => $m->signature_recorded_at?->toIso8601String(),
             ])->values(),
             'problems' => in_array($committee->committee_type?->value, GrievanceHandlerRegistry::grievanceCommitteeTypes(), true)
-                ? array_map(fn ($p) => __($p), $this->handlers->committeeProblems($committee)) : [],
+                ? array_map(fn ($p) => __($p), [
+                    ...$this->handlers->committeeProblems($committee),
+                    // ADR 0028: approval waits for every serving member's signature.
+                    ...($committee->status === 'pending_approval' && $this->committees->membersWithoutSignature($committee)->isNotEmpty() ? ['grievances.errors.committee_signatures_missing'] : []),
+                ]) : [],
             'openCases' => $committee->stages()->open()->count(),
             'policy' => [
                 'min' => $this->settings->committeeMinMembers(),
@@ -166,10 +175,24 @@ class GrievanceCommitteeController extends Controller
             // Regulation 201/2018 Arts. 5, 30: how the member took the seat, and the term number (Art. 7).
             'selection_source' => ['nullable', Rule::in(['appointed', 'elected', 'hr_representative'])],
             'term_number' => ['nullable', 'integer', 'min:1', 'max:2'],
+            // ADR 0028: the member's signature image, registered with the appointment.
+            'signature' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp', 'mimetypes:image/png,image/jpeg,image/webp', 'max:1024'],
         ]);
-        $this->committees->addMember($committee, $request->user(), $data);
+        $this->committees->addMember($committee, $request->user(), [...$data, 'signature' => $request->file('signature')]);
 
         return back()->with('flash', ['message' => __('grievances.memberAdded'), 'type' => 'success']);
+    }
+
+    /** The signature image registered with a member's term; private, for committee viewers only. */
+    public function memberSignature(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): StreamedResponse
+    {
+        $user = $request->user();
+        abort_unless($user->can('grievance_committees.view') && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
+        abort_unless($member->committee_id === $committee->getKey(), 404);
+        $path = $member->signaturePath();
+        abort_unless($path !== null && preg_match('#^employee-signatures/[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp)$#D', $path) && Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->response($path, null, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     public function endMember(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): RedirectResponse

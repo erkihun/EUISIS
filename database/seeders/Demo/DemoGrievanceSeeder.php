@@ -8,6 +8,7 @@ use App\Enums\AuditEventType;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Demo\DemoDataset;
+use Illuminate\Support\Facades\Storage;
 use Modules\Grievance\Application\Services\GrievanceAudit;
 use Modules\Grievance\Application\Services\GrievanceCaseService;
 use Modules\Grievance\Application\Services\GrievanceCommitteeService;
@@ -115,13 +116,22 @@ class DemoGrievanceSeeder extends DemoSeeder
             ['E-5-4', 'member', 'elected'],
             ['E-5-5', 'member', 'elected'],
         ];
+        // ADR 0028: a member is registered with a signature image; the demo uses a
+        // placeholder 1×1 PNG per member on the private disk.
+        $placeholderPng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', true);
         foreach ($members as [$employeeKey, $role, $selectionSource]) {
+            $employee = DemoDataset::requireEmployee($employeeKey);
+            $signaturePath = 'employee-signatures/demo-'.$employee->id.'.png';
+            if (! Storage::disk('local')->exists($signaturePath)) {
+                Storage::disk('local')->put($signaturePath, (string) $placeholderPng);
+            }
             $committees->addMember($committee, $admin, [
-                'employee_id' => DemoDataset::requireEmployee($employeeKey)->id,
+                'employee_id' => $employee->id,
                 'role' => $role,
                 'selection_source' => $selectionSource,
                 'effective_from' => $from,
                 'appointment_reference' => 'DEMO-APPOINTMENT',
+                'signature_path' => $signaturePath,
             ]);
         }
 

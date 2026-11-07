@@ -105,6 +105,8 @@ return [
         'committee_needs_one_chair' => 'ኮሚቴው በትክክል አንድ ሰብሳቢ ሊኖረው ይገባል።',
         'committee_needs_one_writer' => 'ኮሚቴው በትክክል አንድ ጸሐፊ ሊኖረው ይገባል።',
         'committee_already_has_writer' => 'ኮሚቴው ቀድሞ ጸሐፊ አለው። መጀመሪያ ያንን የሥራ ዘመን ያብቁ።',
+        'committee_member_signature_required' => 'የአባሉን የፊርማ ምስል ይጫኑ፤ የኮሚቴ አባል ከፊርማው ጋር አብሮ ይመዘገባል።',
+        'committee_signatures_missing' => 'ኮሚቴው ከመጽደቁ በፊት እያንዳንዱ የሚያገለግል አባል የተመዘገበ ፊርማ ሊኖረው ይገባል።',
         'committee_has_open_cases' => 'ኮሚቴው አሁንም ክፍት ጉዳዮች አሉት።',
         'employee_not_active' => 'ሠራተኛው ንቁ አይደለም።',
         'already_member' => 'ይህ ሠራተኛ ቀድሞ በማገልገል ላይ ነው።',

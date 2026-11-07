@@ -106,6 +106,8 @@ return [
         'committee_needs_one_chair' => 'The committee must have exactly one Chairperson.',
         'committee_needs_one_writer' => 'The committee must have exactly one Writer.',
         'committee_already_has_writer' => 'The committee already has a Writer. End that term first.',
+        'committee_member_signature_required' => 'Upload the member’s signature image: a committee member is registered together with their signature.',
+        'committee_signatures_missing' => 'Every serving member must have a signature on file before the committee is approved.',
         'committee_has_open_cases' => 'The committee still has open cases.',
         'employee_not_active' => 'The employee is not active.',
         'already_member' => 'This employee is already serving.',

@@ -99,6 +99,11 @@ returned_for_correction → complainant corrects (amendment recorded) → resubm
   configured" event.
 - Appeal and manual escalation fall back to the timeout-escalation route (the "next level")
   when no specific route is configured.
+- **Member signatures (ADR 0028).** A committee member is registered together with a
+  signature image (PNG/JPG/WebP ≤ 1 MB, private `local` disk, `employee-signatures/`).
+  It becomes the employee's `signature_path` and is snapshotted on the term row with its
+  SHA-256; a grievance committee is not approved while a serving member has none. The
+  image is served privately to committee viewers (`members.signature`).
 
 ## 6. Deadlines (SLA)
 
