@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Grievance\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\Organization;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -46,7 +47,7 @@ class GrievanceCommitteeController extends Controller
             ->with([
                 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am',
                 // The serving members are listed under each committee on the list page.
-                'members' => fn ($q) => $q->servingOn(now())->with('employee.currentAssignment.organizationUnit:id,name_en,name_am'),
+                'members' => fn ($q) => $q->servingOn(now())->with(['employee.currentAssignment.organizationUnit:id,name_en,name_am', 'employee.currentAssignment.position:id,title_en,title_am']),
             ])
             ->withCount(['members as active_members_count' => fn ($q) => $q->servingOn(now())])
             ->withCount(['stages as open_cases_count' => fn ($q) => $q->open()]);
@@ -82,10 +83,7 @@ class GrievanceCommitteeController extends Controller
                 ? array_map(fn ($p) => __($p), $this->handlers->committeeProblems($c)) : [],
             'members' => $c->members->sortBy(fn (GrievanceCommitteeMember $m) => [$m->roleEnum()->value === 'chairperson' ? 0 : ($m->roleEnum()->value === 'writer' ? 1 : 2), $m->effective_from?->timestamp])->map(fn (GrievanceCommitteeMember $m) => [
                 'id' => $m->getKey(),
-                'employee' => $m->employee ? [
-                    'id' => $m->employee->getKey(), 'name' => $m->employee->full_name, 'name_en' => $m->employee->name_en ?: $m->employee->full_name, 'employee_number' => $m->employee->employee_number,
-                    'unit' => $m->employee->currentAssignment?->organizationUnit?->only(['name_en', 'name_am']),
-                ] : null,
+                'employee' => self::employeeRef($m->employee, $m->employee?->photo_path ? route('grievances.committees.members.photo', [$c, $m]) : null),
                 'role' => $m->roleEnum()->value,
                 'selection_source' => $m->selection_source,
                 'term_number' => $m->term_number,
@@ -149,7 +147,7 @@ class GrievanceCommitteeController extends Controller
         $user = $request->user();
         abort_unless($user->can('grievance_committees.view') && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
 
-        $committee->load(['organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'members.employee', 'members.appointedBy:id,name']);
+        $committee->load(['organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'members.employee.currentAssignment.organizationUnit:id,name_en,name_am', 'members.employee.currentAssignment.position:id,title_en,title_am', 'members.appointedBy:id,name']);
 
         return Inertia::render('Grievances/Committees/Show', [
             'committee' => [
@@ -161,10 +159,7 @@ class GrievanceCommitteeController extends Controller
             ],
             'members' => $committee->members->sortByDesc(fn ($m) => [$m->isActive(), $m->effective_from?->timestamp])->map(fn (GrievanceCommitteeMember $m) => [
                 'id' => $m->getKey(),
-                'employee' => $m->employee ? [
-                    'id' => $m->employee->getKey(), 'name' => $m->employee->full_name, 'name_en' => $m->employee->name_en ?: $m->employee->full_name, 'employee_number' => $m->employee->employee_number,
-                    'unit' => $m->employee->currentAssignment?->organizationUnit?->only(['name_en', 'name_am']),
-                ] : null,
+                'employee' => self::employeeRef($m->employee, $m->employee?->photo_path ? route('grievances.committees.members.photo', [$committee, $m]) : null),
                 'role' => $m->roleEnum()->value,
                 'selection_source' => $m->selection_source,
                 'term_number' => $m->term_number,
@@ -260,6 +255,51 @@ class GrievanceCommitteeController extends Controller
     }
 
     /** The signature image registered with a member's term; private, for committee viewers only. */
+    /**
+     * A member's employee photo, for viewers of the committee. Served here (not
+     * through the HR employee-photo route) so committee viewers without HR
+     * employee rights still see who sits on it; nothing else of the record is exposed.
+     */
+    public function memberPhoto(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): StreamedResponse
+    {
+        $user = $request->user();
+        abort_unless($user->can('grievance_committees.view') && $this->scope->canAccessOrganization($user, $committee->organization_id), 404);
+        abort_unless($member->committee_id === $committee->getKey(), 404);
+
+        return self::photoResponse($member->employee?->photo_path);
+    }
+
+    /**
+     * The employee shown on a member tile: name, number, current unit and
+     * position, and a photo URL that the caller authorizes.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function employeeRef(?Employee $employee, ?string $photoUrl): ?array
+    {
+        if ($employee === null) {
+            return null;
+        }
+        $assignment = $employee->currentAssignment;
+
+        return [
+            'id' => $employee->getKey(),
+            'name' => $employee->full_name,
+            'name_en' => $employee->name_en ?: $employee->full_name,
+            'employee_number' => $employee->employee_number,
+            'unit' => $assignment?->organizationUnit?->only(['name_en', 'name_am']),
+            'position' => $assignment?->position ? ['name_en' => $assignment->position->title_en, 'name_am' => $assignment->position->title_am] : null,
+            'photo_url' => $photoUrl,
+        ];
+    }
+
+    public static function photoResponse(?string $path): StreamedResponse
+    {
+        abort_unless($path !== null && preg_match('#^employee-photos/[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp)$#D', $path) && Storage::disk('local')->exists($path), 404);
+
+        return Storage::disk('local')->response($path, null, ['Cache-Control' => 'private, max-age=300', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
     public function memberSignature(Request $request, GrievanceCommittee $committee, GrievanceCommitteeMember $member): StreamedResponse
     {
         $user = $request->user();

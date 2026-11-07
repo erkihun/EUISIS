@@ -16,16 +16,25 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Application\Services\GrievanceRoutingService;
 use Modules\Grievance\Contracts\Data\CommitteeType;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
 use Modules\Grievance\Domain\Enums\GrievanceVoteType;
+use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
 use Modules\Grievance\Domain\Models\GrievanceCategory;
 use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
 use Modules\Grievance\Domain\Models\GrievanceLetter;
 use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
@@ -157,6 +166,36 @@ final class GrievanceScenario
         }
 
         return $s;
+    }
+
+    /**
+     * ADR 0030: the court is reached from the Grievance Directorate only. Designate
+     * the scenario's directorate, move the case there, and refer it to $tribunal
+     * along a directorate → tribunal route, as the directorate officer.
+     */
+    public function referToCourtFromDirectorate(Grievance $grievance, GrievanceExternalAuthority $tribunal): Grievance
+    {
+        $this->moveToDirectorate($grievance);
+        $route = self::route('organization_unit', $this->directorate->id, 'external_authority', $tribunal->id, 'referred');
+        app(GrievanceEscalationService::class)->refer($grievance->refresh(), $this->directorateOfficer, 'Tribunal referral.', $route->id);
+
+        return $grievance->refresh();
+    }
+
+    /** Designate the scenario's directorate as the Grievance Directorate and move the case to it. */
+    public function moveToDirectorate(Grievance $grievance): Grievance
+    {
+        GrievanceHandlerUnit::query()->firstOrCreate(
+            ['organization_unit_id' => $this->directorate->id],
+            ['organization_id' => $this->bureau->id, 'kind' => 'directorate', 'status' => 'active'],
+        );
+        DB::transaction(function () use ($grievance): void {
+            $locked = Grievance::query()->whereKey($grievance->getKey())->lockForUpdate()->firstOrFail();
+            $from = GrievanceCaseStage::query()->whereKey($locked->current_stage_id)->firstOrFail();
+            app(GrievanceRoutingService::class)->createStage($locked, GrievanceHandlerType::OrganizationUnit, $this->directorate->id, GrievanceMovementType::ManualEscalation, null, $from, 'Escalated to the Grievance Directorate.');
+        });
+
+        return $grievance->refresh();
     }
 
     /** The committee's recommendation goes to the head, who approves it; the lead then finalizes. */

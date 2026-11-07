@@ -6,6 +6,29 @@ const grievanceAdmin = {
     registerMember: 'አባል መዝግብ', noMembersYet: 'እስካሁን የተመዘገበ አባል የለም።', memberRegistered: 'አባሉ ተመዝግቧል።',
     editMember: 'አባል አርትዕ', editMemberHelp: 'የአሁኑን የሥራ ዘመን እዚያው ያስተካክላል፤ የታሪክ መዝገቡ ይጠበቃል። ያበቃ የሥራ ዘመን እንደገና አይከፈትም፤ በምትኩ አዲስ የሥራ ዘመን ይመዝግቡ።',
     signatureReplaceHelp: 'የተመዘገበውን ፊርማ ለማቆየት ባዶ ይተዉት፤ ለመተካት ብቻ አዲስ ምስል ይጫኑ።',
+    unitBoard: {
+        title: 'የቅሬታ ቡድኖችና ዳይሬክቶሬቶች',
+        help: 'ነባር የሥራ ክፍሎች የቅሬታ ቡድን ወይም ዳይሬክቶሬት ተብለው ይሰየማሉ፤ አዲስ ነገር አይፈጠርም። የክፍሉን የራሱን ሠራተኞች በደንብ 201/2018 መሠረት ኃላፊነትና ፊርማ ሰጥተው ይመዝግቡ።',
+        designate: 'የሥራ ክፍል ሰይም', designateHelp: 'ከተቋሙ ነባር የሥራ ክፍሎች አንዱን ይምረጡ እና የቅሬታ ቡድን ወይም የቅሬታ ዳይሬክቶሬት መሆኑን ይግለጹ። በሲስተሙ ውስጥ አንድ የቅሬታ ዳይሬክቶሬት ብቻ ይኖራል፤ ጉዳይን ወደ አስተዳደር ፍርድ ቤት መላክ የሚችለውም እሱ ብቻ ነው።',
+        teams: 'ቡድኖች', directorates: 'ዳይሬክቶሬቶች', members: 'የተሰየሙ አባላት', unsigned: 'ፊርማ የሌላቸው',
+        teamsHelp: 'የተሰየሙ የቅሬታ ቡድኖች', directoratesHelp: 'የተሰየሙ የቅሬታ ዳይሬክቶሬቶች', membersHelp: 'በሁሉም ክፍሎች የሚያገለግሉ', unsignedHelp: 'ፊርማቸው ያልተመዘገበ የሚያገለግሉ አባላት',
+        registerMember: 'አባል ሰይም', registerMemberHelp: 'የክፍሉን የራሱን ሠራተኞች ይፈልጉ (ክፍሉና ከሥሩ ያሉ ክፍሎች)። እያንዳንዱ አባል ከኃላፊነቱና ከፊርማው ምስል ጋር ይመዘገባል።',
+        editDesignation: 'ስያሜ አርትዕ', deactivate: 'አቦዝን', reactivate: 'እንደገና አንቃ', responsibilities: 'በደንብ 201/2018 መሠረት ኃላፊነቶች',
+        headDuty: 'ወደ ክፍሉ የሚመጡ ጉዳዮችን ይቀበላል፣ ያከፋፍላል፣ ግምገማውን ይመራል፣ ሪፖርቱንና የውሳኔ ሃሳቡን ፈርሞ ያቀርባል (አንቀጽ 34(3)፣ 35(1))።',
+        investigatorDuty: 'ማመልከቻውንና ማስረጃውን ይመረምራል፣ ወገኖችን ያዳምጣል፣ የግኝቱን ረቂቅ ያዘጋጃል (አንቀጽ 34)።',
+        secretaryDuty: 'ማመልከቻውንና ሰነዶቹን ይመዘግባል፣ ቃለ ጉባኤ ይይዛል፣ የጽሑፍ ውሳኔውን ለማድረስ ያዘጋጃል (አንቀጽ 32(2)፣ 35(2))።',
+        noUnits: 'እስካሁን የተሰየመ ቡድን ወይም ዳይሬክቶሬት የለም', noUnitsHelp: 'የተቋሙን ነባር የቅሬታ ክፍል ይሰይሙ፣ ከዚያ አባላቱን ይመዝግቡ።',
+        noMatches: 'በእነዚህ ማጣሪያዎች የሚገኝ ክፍል የለም።', noMembers: 'እስካሁን የተሰየመ አባል የለም፤ እስከዚያ በክፍሉ የተመደበ ማንኛውም ሠራተኛ ጉዳዮቹን ያያል።',
+        ready: 'ዝግጁ', needsAttention: 'ትኩረት ይፈልጋል', head: 'ኃላፊ', expand: 'ዘርጋ', collapse: 'አጣጥፍ',
+        unitField: 'የሥራ ክፍል', kindField: 'የተሰየመው እንደ', responsibilityField: 'ኃላፊነት',
+    },
+    routeBoard: {
+        active: 'ንቁ መስመሮች', pending: 'ማጽደቅ የሚጠብቁ', inactive: 'ንቁ ያልሆኑ', gaps: 'ያልተዘጋጁ ክፍሎች',
+        activeHelp: 'የጸደቁና ለአዳዲስ እንቅስቃሴዎች የሚውሉ', pendingHelp: 'ሌላ ተጠቃሚ ማጽደቅ አለበት', inactiveHelp: 'ለታሪክ የተያዙ', gapsHelp: 'ያልተሰየሙ ወይም ኃላፊ የሌላቸው ቡድን/ዳይሬክቶሬት መዳረሻዎች',
+        gapsAlert: 'አንዳንድ መስመሮች ጉዳዮችን ያልተሰየመ ወይም ኃላፊ ያልተመደበለት ቡድን ወይም ዳይሬክቶሬት ይልካሉ። ጉዳዩ ለተሰየሙ ሰዎች እንዲደርስ በቡድኖችና ዳይሬክቶሬቶች ገጽ ያዘጋጁዋቸው።',
+        openUnits: 'ቡድኖችና ዳይሬክቶሬቶችን ክፈት', notDesignated: 'ያልተሰየመ', noHead: 'ኃላፊ አልተሰየመም', headIs: 'ኃላፊ፦ :name', members: ':count አባላት',
+        approve: 'አጽድቅ', edit: 'አርትዕ', deactivate: 'አቦዝን', unitsOnly: 'ቡድኖችና ዳይሬክቶሬቶች የሚመረጡት ከተሰየሙት ክፍሎች ነው።',
+    },
     committeeBoard: {
         totalCommittees: 'ኮሚቴዎች', activeCommittees: 'ንቁ', pendingCommittees: 'ማጽደቅ የሚጠብቁ', servingMembers: 'የሚያገለግሉ አባላት',
         totalHelp: 'ሊያዩዋቸው የሚችሉ ሁሉም ኮሚቴዎች', activeHelp: 'የጸደቁና ጉዳይ የሚያዩ', pendingHelp: 'ሌላ ተጠቃሚ እንዲያጸድቃቸው የሚጠብቁ', membersHelp: 'በሁሉም ኮሚቴዎች',
@@ -175,7 +198,7 @@ const grievanceAdmin = {
 
     fields: {
         name: 'ስም', name_en: 'ስም (እንግሊዝኛ)', name_am: 'ስም (አማርኛ)', description_en: 'መግለጫ (እንግሊዝኛ)', description_am: 'መግለጫ (አማርኛ)',
-        organization: 'ተቋም', organization_id: 'ተቋም', organization_unit_id: 'የሥራ ክፍል', committee_type: 'ዓይነት', status: 'ሁኔታ', members: 'አባላት',
+        organization: 'ተቋም', organization_id: 'ተቋም', organization_unit_id: 'የሥራ ክፍል', kind: 'የተሰየመው እንደ', responsibility: 'ኃላፊነት', committee_type: 'ዓይነት', status: 'ሁኔታ', members: 'አባላት',
         openCases: 'ክፍት ጉዳዮች', effective_from: 'የሚጸናበት ቀን', effective_to: 'የሚያበቃበት ቀን', employee_id: 'ሠራተኛ', role: 'የኮሚቴ ሚና',
         appointment_reference: 'የሹመት ደብዳቤ ቁጥር', selection_source: 'የተመረጠበት መንገድ', term_number: 'የአገልግሎት ዘመን', signature: 'ፊርማ', actions: 'እርምጃዎች', source: 'ከ', target: 'ወደ', movement_type: 'እንቅስቃሴ', priority: 'ቅድሚያ',
         source_handler_type: 'የመነሻ ዓይነት', target_handler_type: 'የመድረሻ ዓይነት', state: 'ሁኔታ', include_descendants: 'ለንዑስ ተቋማትም',

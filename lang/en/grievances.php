@@ -10,6 +10,8 @@ return [
     'memberAdded' => 'Member added.',
     'memberRemoved' => 'Membership ended. The history is kept.',
     'memberUpdated' => 'Member term updated.',
+    'unitDesignated' => 'The unit is designated. Name its members next.',
+    'unitUpdated' => 'Designation updated.',
     'committeeMaxMembers' => 'The committee already has the maximum number of members allowed by policy.',
     'committeeMinMembers' => 'The committee cannot fall below the minimum number of members required by policy.',
     'committeeAlreadyHasChairperson' => 'The committee already has a Chairperson. End that term first.',
@@ -20,6 +22,9 @@ return [
         'disabled' => 'The connection to the tribunal court (court-ms) is switched off.',
     ],
 
+    'appeal' => [
+        'directorate_overdue' => 'The Grievance Directorate did not decide your grievance by its due date. You may now appeal to the Administrative Court from here.',
+    ],
     'flash' => [
         'draft_saved' => 'Draft saved.',
         'draft_deleted' => 'Draft deleted.',
@@ -114,6 +119,16 @@ return [
         'already_member' => 'This employee is already serving.',
         'member_outside_organization' => 'A committee member is chosen from the institution’s own employees; this employee’s current assignment is in another institution.',
         'member_term_ended' => 'This term has already ended and is kept as history; register a new term instead.',
+        'court_only_from_directorate' => 'Only the Grievance Directorate can send a case to the Administrative Court; a committee or a team cannot.',
+        'only_one_directorate' => 'There is one Grievance Directorate in the system. Deactivate the current one before designating another.',
+        'unit_not_designated' => 'Designate this unit as a Grievance Team or Directorate first (Grievance Management → Teams & Directorates).',
+        'unit_already_designated' => 'This unit is already designated as a Grievance Team or Directorate.',
+        'member_outside_unit' => 'Members are the unit’s own staff: this employee’s current assignment is not in this unit or a unit beneath it.',
+        'unit_already_has_head' => 'The unit already has a serving head. End that term first.',
+        'unit_designation_inactive' => 'The designation is inactive.',
+        'unit_has_no_members' => 'No member is named yet; until then anyone placed in the unit handles its cases.',
+        'unit_needs_one_head' => 'Exactly one head (Team leader or Director) must be serving.',
+        'unit_signatures_missing' => 'A serving member has no signature on file.',
         'recusal_exists' => 'A conflict of interest is already recorded for you on this stage.',
         'replacement_not_eligible' => 'The replacement cannot be the complainant, the respondent or someone already on the panel.',
         'separation_of_duties' => 'The same person cannot both prepare and approve this.',
@@ -187,6 +202,7 @@ return [
 
     'letters' => [
         'appeal_notice' => 'If you are not satisfied with this decision, you may appeal to the Administrative Court within 30 days of receiving it in writing. You may ask the institution for a copy of the committee record; it must give you a sealed, certified copy within 5 consecutive working days.',
+        'appeal_notice_internal' => 'If you are not satisfied with this decision, you may appeal from My Portal; your grievance then goes to the next level (the Grievance Team or the Grievance Directorate). An appeal to the Administrative Court is made after the Grievance Directorate has decided, or if it does not decide in time.',
     ],
 
     'enums' => [

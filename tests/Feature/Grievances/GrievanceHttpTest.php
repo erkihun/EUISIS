@@ -18,7 +18,6 @@ use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Modules\Grievance\Application\Services\GrievanceCaseService;
 use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
 use Modules\Grievance\Application\Services\GrievanceDecisionService;
-use Modules\Grievance\Application\Services\GrievanceEscalationService;
 use Modules\Grievance\Application\Services\GrievanceReportService;
 use Modules\Grievance\Application\Services\GrievanceSettings;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
@@ -26,6 +25,7 @@ use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
 use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceEvidence;
 use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
 use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Tests\Support\GrievanceScenario;
 
@@ -110,8 +110,7 @@ it('keeps tribunal cases inside the tribunal officer organization scope', functi
         'is_administrative_tribunal' => true,
         'is_active' => true,
     ]);
-    $route = GrievanceScenario::route('committee', $this->s->committee->id, 'external_authority', $tribunal->id, 'referred');
-    app(GrievanceEscalationService::class)->refer($g, $this->s->chair, 'Tribunal referral.', $route->id);
+    $this->s->referToCourtFromDirectorate($g, $tribunal);
     $case = AdministrativeTribunalCase::query()->where('grievance_id', $g->id)->sole();
 
     $officer = GrievanceScenario::user(
@@ -190,12 +189,17 @@ it('lets the complainant download an issued decision letter but never a draft', 
 it('requires a different user to approve a new route', function (): void {
     $admin = GrievanceScenario::user(GrievanceScenario::employee($this->s->woreda, null), GrievanceRoles::ADMINISTRATOR_PERMISSIONS);
     $other = GrievanceScenario::user(GrievanceScenario::employee($this->s->woreda, null), GrievanceRoles::ADMINISTRATOR_PERMISSIONS);
-
-    $this->actingAs($admin)->post(route('grievances.routes.store'), [
+    $payload = [
         'source_handler_type' => 'organization_unit', 'source_handler_id' => $this->s->team->id,
         'target_handler_type' => 'committee', 'target_handler_id' => $this->s->committee->id,
         'movement_type' => 'returned', 'priority' => 10, 'effective_from' => '2026-10-01',
-    ])->assertSessionHasNoErrors();
+    ];
+
+    // ADR 0029: a Team/Directorate in a route must be designated first.
+    $this->actingAs($admin)->post(route('grievances.routes.store'), $payload)->assertSessionHasErrors('source_handler_id');
+    GrievanceHandlerUnit::query()->create(['organization_id' => $this->s->subcity->id, 'organization_unit_id' => $this->s->team->id, 'kind' => 'team', 'status' => 'active']);
+
+    $this->actingAs($admin)->post(route('grievances.routes.store'), $payload)->assertSessionHasNoErrors();
     $route = GrievanceRoute::query()->where('movement_type', 'returned')->firstOrFail();
     expect($route->approved_at)->toBeNull();
 

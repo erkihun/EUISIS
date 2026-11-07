@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Modules\Grievance\Application\Services\GrievanceCaseService;
-use Modules\Grievance\Application\Services\GrievanceEscalationService;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
 use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceCaseEvent;
@@ -54,8 +53,7 @@ function courtMsReferredCase(object $test): array
         'code' => 'TRB-'.str()->upper(str()->random(6)), 'name_en' => 'Administrative Tribunal',
         'organization_id' => $test->s->bureau->id, 'is_administrative_tribunal' => true, 'is_active' => true,
     ]);
-    $route = GrievanceScenario::route('committee', $test->s->committee->id, 'external_authority', $tribunal->id, 'referred');
-    app(GrievanceEscalationService::class)->refer($grievance->refresh(), $test->s->chair, 'Tribunal referral.', $route->id);
+    $test->s->referToCourtFromDirectorate($grievance->refresh(), $tribunal);
 
     $officer = GrievanceScenario::user(GrievanceScenario::employee($test->s->woreda, null), GrievanceRoles::TRIBUNAL_PERMISSIONS);
     GrievanceScenario::scope($officer, $test->s->woreda);

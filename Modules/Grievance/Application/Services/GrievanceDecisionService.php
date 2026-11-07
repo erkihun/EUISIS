@@ -372,12 +372,15 @@ final class GrievanceDecisionService
         ])->save();
 
         // Art. 35(2): issuing the signed decision letter is the written delivery to the applicant.
-        // That meets the delivery deadline and opens the Art. 38(1) 30-day window to appeal to the
-        // Administrative Court (rolled to the next working day per Art. 38(4)). The internal review
-        // above, if the institution offers one, never stops that statutory clock.
         $deadlines = app(StatutoryDeadlineService::class);
         $deadlines->complete($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY, now());
-        $deadlines->snapshot($grievance, Regulation201::APPEAL_FILING, now());
+        // ADR 0030 (owner decision): the case reaches the Administrative Court only from the
+        // Grievance Directorate, so only a directorate decision opens the Art. 38(1) 30-day
+        // window (rolled to the next working day per Art. 38(4)). A committee or team decision
+        // is appealed inside the system to the next level instead.
+        if (app(GrievanceHandlerRegistry::class)->isGrievanceDirectorate($stage->handler_type, (string) $stage->handler_id)) {
+            $deadlines->snapshot($grievance, Regulation201::APPEAL_FILING, now());
+        }
 
         $this->audit->record(AuditEventType::GrievanceDecisionIssued, $actor, $decision, ['decision_no' => $decision->decision_no, 'appeal_deadline_at' => $appealDeadline?->toIso8601String()]);
         $this->timeline->record($grievance, 'decision_issued', $actor, ['decision_no' => $decision->decision_no, 'appeal_deadline_at' => $appealDeadline?->toIso8601String()], $stage->getKey());

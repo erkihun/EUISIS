@@ -81,7 +81,7 @@ head decision), `GrievanceApproverResolver` (who decides) and
 | 34(3) | Committee report within 15 working days of filing | `GRIEVANCE_COMMITTEE_REPORT` from `submitted_at`; seeded SLA profile of 15 working days with no auto-escalation |
 | 35(1) | Head decides within 10 working days | `GRIEVANCE_HEAD_DECISION` |
 | 35(2) | Written decision within 5 working days, with signature and institution seal | `GRIEVANCE_DECISION_DELIVERY`; `issue` refuses a decision letter without the seal |
-| 37–38 | Appeal notice, certified record copy, 30 days to the Administrative Court | The decision letter states both; `APPEAL_FILING` snapshotted on issue |
+| 37–38 | Appeal notice, certified record copy, 30 days to the Administrative Court | Owner procedure (ADR 0030): the court is reached only from the one Grievance Directorate. Its decision letter states both and snapshots `APPEAL_FILING`; committee/team letters point to the next internal level. An overdue directorate stage lets the employee appeal to the court without a decision |
 
 The internal grievance-appeal flow and the Administrative Court record are in
 `docs/employee-appeal.md`. The service-layer initial-issue flow

@@ -131,8 +131,13 @@ final class GrievanceRoutingService
             $routes = $this->routesFrom($stage->handler_type, [(string) $stage->handler_id], GrievanceMovementType::TimeoutEscalation, $categoryId);
         }
 
+        // ADR 0030: only the Grievance Directorate may send a case to the court.
+        $fromDirectorate = $this->handlers->isGrievanceDirectorate($stage->handler_type, (string) $stage->handler_id);
         $options = [];
         foreach ($routes as $route) {
+            if ($route->target_handler_type === GrievanceHandlerType::ExternalAuthority && ! $fromDirectorate) {
+                continue;
+            }
             if ($this->handlers->availabilityProblems($route->target_handler_type, $route->target_handler_id) === []) {
                 $options[] = ['type' => $route->target_handler_type, 'id' => (string) $route->target_handler_id, 'route' => $route];
             }
@@ -180,6 +185,11 @@ final class GrievanceRoutingService
         $problems = $this->handlers->availabilityProblems($type, $handlerId);
         if ($problems !== []) {
             throw ValidationException::withMessages(['route' => __($problems[0])]);
+        }
+        // ADR 0030: the court is reached from the Grievance Directorate only, never from a committee or team.
+        if ($type === GrievanceHandlerType::ExternalAuthority
+            && ($from === null || ! $this->handlers->isGrievanceDirectorate($from->handler_type, (string) $from->handler_id))) {
+            throw ValidationException::withMessages(['route' => __('grievances.errors.court_only_from_directorate')]);
         }
 
         $now = now();

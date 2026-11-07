@@ -13,6 +13,8 @@ use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnitMember;
 
 /**
  * Small JSON lookups for grievance configuration and case pickers. Results
@@ -40,6 +42,26 @@ class GrievanceLookupController extends Controller
                 $a->where('assignment_status', AssignmentStatus::Active->value);
                 $organizationId ? $a->where('organization_id', $organizationId) : $this->scope->applyOrganizationScope($a, $request->user());
             });
+        // Team/Directorate members (ADR 0029): only staff of that unit or a unit beneath it.
+        $unitId = $request->string('unit_id')->value() ?: null;
+        if ($unitId !== null) {
+            $unitIds = [$unitId];
+            for ($frontier = [$unitId], $depth = 0; $frontier !== [] && $depth < 20; $depth++) {
+                $frontier = OrganizationUnit::query()->whereIn('parent_unit_id', $frontier)->pluck('id')->diff($unitIds)->values()->all();
+                $unitIds = [...$unitIds, ...$frontier];
+            }
+            $query->whereHas('currentAssignment', fn ($a) => $a->whereIn('organization_unit_id', $unitIds));
+        }
+        // Don't offer people who already serve: the members of the Team/Directorate
+        // or committee the picker is adding to.
+        if ($request->filled('exclude_handler_unit_id')) {
+            $query->whereNotIn('id', GrievanceHandlerUnitMember::query()->servingOn(now())
+                ->where('handler_unit_id', (string) $request->string('exclude_handler_unit_id'))->select('employee_id'));
+        }
+        if ($request->filled('exclude_committee_id')) {
+            $query->whereNotIn('id', GrievanceCommitteeMember::query()->servingOn(now())
+                ->where('committee_id', (string) $request->string('exclude_committee_id'))->select('employee_id'));
+        }
         if ($term !== '') {
             $query->where(fn ($q) => $q->where('full_name', 'like', "%{$term}%")->orWhere('name_en', 'like', "%{$term}%")->orWhere('employee_number', 'like', "%{$term}%"));
         }

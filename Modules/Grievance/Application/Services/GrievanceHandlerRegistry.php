@@ -19,6 +19,8 @@ use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
 use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnitMember;
 
 /**
  * One place that knows what a grievance handler is (docs/grievance-management.md §5):
@@ -233,14 +235,81 @@ final class GrievanceHandlerRegistry
         return User::query()->whereIn('employee_id', $employeeIds)->where('status', 'active')->get()->all();
     }
 
+    /** @var array<string, array<string, string>|null> */
+    private array $designatedStaffCache = [];
+
     /**
-     * Users placed in a unit (or beneath it) who hold a permission — e.g. the
-     * officers who assign a Team's cases.
+     * ADR 0029: the named staff of a designated Team/Directorate, as
+     * employee_id => responsibility. Null when the unit is not an active
+     * designation or has no serving member yet: then the HR-placement rule applies.
+     *
+     * @return array<string, string>|null
+     */
+    public function designatedStaff(string $unitId): ?array
+    {
+        if (array_key_exists($unitId, $this->designatedStaffCache)) {
+            return $this->designatedStaffCache[$unitId];
+        }
+        $designation = GrievanceHandlerUnit::query()->where('organization_unit_id', $unitId)->where('status', 'active')->first();
+        $staff = $designation === null ? [] : $designation->members()->servingOn(now())->pluck('responsibility', 'employee_id')->all();
+
+        return $this->designatedStaffCache[$unitId] = $staff === [] ? null : array_map('strval', $staff);
+    }
+
+    /**
+     * ADR 0030: the Grievance Directorate — the one designated directorate, the
+     * only handler from which a case may go to the Administrative Court.
+     */
+    public function isGrievanceDirectorate(GrievanceHandlerType|string|null $type, ?string $id): bool
+    {
+        $type = is_string($type) ? GrievanceHandlerType::tryFrom($type) : $type;
+
+        return $type === GrievanceHandlerType::OrganizationUnit && $id !== null
+            && GrievanceHandlerUnit::query()->where('organization_unit_id', $id)->where('kind', 'directorate')->where('status', 'active')->exists();
+    }
+
+    /**
+     * Units an employee handles as Team/Directorate staff: designated units where
+     * they serve (heads only when $headOnly), plus — under the HR-placement
+     * fallback — the undesignated units they are placed in or beneath.
+     *
+     * @return list<string>
+     */
+    public function handlingUnitIdsOf(?Employee $employee, bool $headOnly = false): array
+    {
+        if ($employee === null) {
+            return [];
+        }
+        $ids = array_values(array_filter($this->placementOf($employee)['unit_ids'], fn (string $unitId) => $this->designatedStaff($unitId) === null));
+        $serving = GrievanceHandlerUnitMember::query()->servingOn(now())->where('employee_id', $employee->getKey())
+            ->when($headOnly, fn ($q) => $q->where('responsibility', 'head'))
+            ->whereHas('handlerUnit', fn ($q) => $q->where('status', 'active'))
+            ->with('handlerUnit:id,organization_unit_id')->get();
+        foreach ($serving as $member) {
+            $ids[] = (string) $member->handlerUnit->organization_unit_id;
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Users who staff a unit and hold a permission — e.g. the officers who
+     * assign a Team's cases. A designated unit (ADR 0029) answers with its
+     * named members (its head when $headOnly); otherwise users placed in the
+     * unit or beneath it.
      *
      * @return list<User>
      */
-    public function unitUsersWithPermission(string $unitId, string $permission): array
+    public function unitUsersWithPermission(string $unitId, string $permission, bool $headOnly = false): array
     {
+        $designated = $this->designatedStaff($unitId);
+        if ($designated !== null) {
+            $employeeIds = array_keys($headOnly ? array_filter($designated, fn (string $r) => $r === 'head') : $designated);
+
+            return User::query()->whereIn('employee_id', $employeeIds)->where('status', 'active')->get()
+                ->filter(fn (User $user) => $user->can($permission))->values()->all();
+        }
+
         $unitIds = OrganizationUnit::query()->whereKey($unitId)->orWhere('parent_unit_id', $unitId)->pluck('id')->all();
         $employeeIds = EmployeeAssignment::query()
             ->whereIn('organization_unit_id', $unitIds)

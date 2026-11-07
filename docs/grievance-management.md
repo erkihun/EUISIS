@@ -87,6 +87,17 @@ returned_for_correction → complainant corrects (amendment recorded) → resubm
 
 - Handler types: `committee`, `organization_unit` (Team/Directorate), `external_authority`
   (e.g. the Administrative Tribunal; routing there keeps the existing tribunal register in step).
+- **Teams and Directorates (ADR 0029).** Grievance Management → Teams & Directorates
+  (`grievances.units.*`) designates an *existing* organization unit as a Grievance Team or
+  Directorate (`grievance_handler_units`; nothing is created) and names its own staff
+  (`grievance_handler_unit_members`) with a Regulation 201/2018 responsibility — `head`
+  (Team leader / Director), `investigator`, `secretary` — and a signature image captured
+  at appointment, as for committee members (ADR 0028). Exactly one serving head; members
+  must be placed in the unit or beneath it; Art. 6(2) applies. Once a designated unit has a
+  serving member, only its named members handle its cases (the head assigns, case officers
+  are chosen among them); an undesignated unit keeps the HR-placement rule below.
+  A route can only name a designated Team/Directorate; the routes page shows each
+  unit target's readiness (designated, head named) and counts the unready ones.
 - **Administrative hierarchy is not the grievance route.** Every move follows an explicit,
   approved, effective route (`grievance_routes`) for a movement type: initial assignment
   (source = the complainant's organization, optionally "and descendants"), timeout
@@ -135,7 +146,7 @@ A permission is necessary, never sufficient. Case access comes from a relationsh
 |---|---|
 | Complainant (`grievances.view_own`) | own case, safe timeline, issued letters, own files |
 | Active, non-recused panel member of the stage's committee | case work per committee role (writer/chair draft; chair leads, confirms minutes, submits, finalizes) |
-| Case officer / unit assigning officer (placed in the unit by HR assignment + `grievances.assign`) | unit-stage work; the assigner distributes cases |
+| Case officer / unit assigning officer (named head of a designated Team/Directorate, ADR 0029; otherwise placed in the unit by HR assignment) + `grievances.assign` | unit-stage work; the assigner distributes cases |
 | External-authority handler (`grievances.tribunal`) | tribunal stages |
 | Resolved approver (position holder or delegate + `grievance_decisions.approve`) | decisions routed to them |
 | Intake officer (`grievances.intake_review` in org scope) | cases at intake |

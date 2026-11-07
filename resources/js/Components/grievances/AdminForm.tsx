@@ -12,7 +12,9 @@ export type Choice = { value: string; label: string };
 export type AdminField = {
     key: string; label?: string; type?: 'text' | 'textarea' | 'number' | 'boolean' | 'date' | 'select' | 'lookup' | 'file' | 'numbers' | 'multiselect';
     required?: boolean; min?: number; max?: number; maxLength?: number; pattern?: string; accept?: string; help?: string;
-    options?: Choice[]; lookup?: 'employees' | 'units' | 'positions' | 'users'; organizationKey?: string; initialLabel?: string;
+    options?: Choice[]; lookup?: 'employees' | 'units' | 'positions' | 'users'; organizationKey?: string; unitKey?: string; initialLabel?: string;
+    /** Extra fixed query parameters for a lookup, e.g. who to leave out. */
+    lookupParams?: Record<string, string>;
     visible?: (data: AdminData) => boolean; clearOnChange?: string[]; enumGroup?: string;
     /** Shown but not editable, e.g. the organization a letterhead belongs to. */
     disabled?: boolean;
@@ -40,8 +42,8 @@ export function Switch({ id, checked, onChange, disabled, label, describedBy }: 
  * field. IDs are never typed. Units are fetched per organization and
  * filtered as you type; the other endpoints search server-side.
  */
-export function AdminLookup({ endpoint, organizationId, value, initialLabel, onChange, disabled, required, id }: {
-    endpoint: NonNullable<AdminField['lookup']>; organizationId?: string; value: string; initialLabel?: string;
+export function AdminLookup({ endpoint, organizationId, unitId, extraParams, value, initialLabel, onChange, disabled, required, id }: {
+    endpoint: NonNullable<AdminField['lookup']>; organizationId?: string; unitId?: string; extraParams?: Record<string, string>; value: string; initialLabel?: string;
     onChange: (value: string) => void; disabled?: boolean; required?: boolean; id?: string;
 }) {
     const { t, locale } = useLocale();
@@ -53,6 +55,8 @@ export function AdminLookup({ endpoint, organizationId, value, initialLabel, onC
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(-1);
     const needsOrganization = endpoint === 'units' && !organizationId;
+    // A stable key for the extra parameters, so a new object each render does not refetch.
+    const extraKey = JSON.stringify(extraParams ?? {});
     const serverSearch = endpoint !== 'units';
     // The parent reset the value (saved form, clearOnChange): drop the stale label.
     useEffect(() => { if (!value) { setSelected(null); } }, [value]);
@@ -64,6 +68,8 @@ export function AdminLookup({ endpoint, organizationId, value, initialLabel, onC
             try {
                 const params = new URLSearchParams({ q: serverSearch ? query : '' });
                 if (organizationId) params.set('organization_id', organizationId);
+                if (unitId) params.set('unit_id', unitId);
+                Object.entries(extraParams ?? {}).forEach(([key, val]) => params.set(key, val));
                 const response = await fetch(`${route(`grievances.lookup.${endpoint}`)}?${params}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
                 if (!response.ok) throw new Error('Lookup failed');
                 const rows = await response.json() as Record<string, string | number | null>[];
@@ -75,7 +81,7 @@ export function AdminLookup({ endpoint, organizationId, value, initialLabel, onC
             } catch { if (!controller.signal.aborted) setState('error'); }
         }, 250);
         return () => { window.clearTimeout(timer); controller.abort(); };
-    }, [endpoint, organizationId, query, locale, disabled, open, needsOrganization, serverSearch]);
+    }, [endpoint, organizationId, unitId, extraKey, query, locale, disabled, open, needsOrganization, serverSearch]);
     const needle = query.trim().toLowerCase();
     const visible = serverSearch || !needle ? choices : choices.filter(choice => choice.label.toLowerCase().includes(needle));
     const pick = (choice: Choice) => { setSelected(choice); onChange(choice.value); setQuery(''); setOpen(false); setActive(-1); };
@@ -146,7 +152,7 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
                 </div>;
             }
             if (field.type === 'date') control = <LocalizedDatePicker id={fieldId} disabled={disabled} required={field.required} className={inputCls} value={String(value ?? '')} onChange={date => change(field, date)} />;
-            else if (field.type === 'lookup') control = <AdminLookup id={fieldId} endpoint={field.lookup!} organizationId={field.organizationKey ? String(form.data[field.organizationKey] ?? '') : undefined} value={String(value ?? '')} initialLabel={field.initialLabel} disabled={disabled} required={field.required} onChange={selection => change(field, selection)} />;
+            else if (field.type === 'lookup') control = <AdminLookup id={fieldId} endpoint={field.lookup!} organizationId={field.organizationKey ? String(form.data[field.organizationKey] ?? '') : undefined} unitId={field.unitKey ? String(form.data[field.unitKey] ?? '') : undefined} extraParams={field.lookupParams} value={String(value ?? '')} initialLabel={field.initialLabel} disabled={disabled} required={field.required} onChange={selection => change(field, selection)} />;
             else if (field.type === 'textarea') control = <textarea {...common} className={textareaCls} rows={field.key === 'body_template' ? 10 : 3} maxLength={field.maxLength ?? 2000} value={String(value ?? '')} onChange={event => change(field, event.target.value)} />;
             else if (field.type === 'select' || field.type === 'multiselect') control = <select {...common} multiple={field.type === 'multiselect'} value={field.type === 'multiselect' ? (value as string[] ?? []) : String(value ?? '')} onChange={event => change(field, field.type === 'multiselect' ? Array.from(event.target.selectedOptions).map(option => option.value) : event.target.value)}>
                 {field.type !== 'multiselect' && <option value="">{t(field.required ? 'grievances.common.select' : 'grievances.common.all')}</option>}
@@ -173,7 +179,7 @@ export const choices = (values: string[]): Choice[] => values.map(value => ({ va
 export const today = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
 
 export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial }: {
-    prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations'> & { committees: Bilingual[]; external_authorities: Bilingual[] };
+    prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations' | 'handler_units'> & { committees: Bilingual[]; external_authorities: Bilingual[] };
     locale: string; title: string; organizationLabel: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
 }): AdminField[] {
     const typeKey = `${prefix}handler_type`, idKey = `${prefix}handler_id`, orgKey = `${prefix}lookup_organization_id`;
@@ -181,6 +187,12 @@ export function handlerFields({ prefix = '', options, locale, title, organizatio
     const result: AdminField[] = [{ key: typeKey, label: title, type: 'select', options: choices(options.handler_types.filter(type => allowOrganization || type !== 'organization')), enumGroup: 'handler_type', required, clearOnChange: [idKey, orgKey] }];
     for (const [type, rows] of [['organization', options.organizations], ['committee', options.committees], ['external_authority', options.external_authorities]] as const) {
         result.push({ key: idKey, label: title, type: 'select', required, options: list(rows), visible: data => data[typeKey] === type });
+    }
+    // ADR 0029: when the page lists the designated Teams/Directorates, pick from them directly.
+    if (options.handler_units) {
+        result.push({ key: idKey, label: title, type: 'select', required, visible: data => data[typeKey] === 'organization_unit',
+            options: options.handler_units.map(unit => ({ value: unit.id!, label: `${nameOf(unit, locale)} — ${nameOf(unit.organization, locale)}` })) });
+        return result;
     }
     result.push({ key: orgKey, label: organizationLabel, type: 'select', options: list(options.organizations), visible: data => data[typeKey] === 'organization_unit', clearOnChange: [idKey] });
     result.push({ key: idKey, label: title, type: 'lookup', lookup: 'units', organizationKey: orgKey, initialLabel: initial ? nameOf(initial, locale) : undefined, required, visible: data => data[typeKey] === 'organization_unit' });

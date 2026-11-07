@@ -12,6 +12,7 @@ use Modules\Grievance\Http\Controllers\GrievanceCommitteeController;
 use Modules\Grievance\Http\Controllers\GrievanceCorrespondenceController;
 use Modules\Grievance\Http\Controllers\GrievanceDecisionController;
 use Modules\Grievance\Http\Controllers\GrievanceEvidenceController;
+use Modules\Grievance\Http\Controllers\GrievanceHandlerUnitController;
 use Modules\Grievance\Http\Controllers\GrievanceLookupController;
 use Modules\Grievance\Http\Controllers\GrievancePortalController;
 use Modules\Grievance\Http\Controllers\GrievanceProceedingsController;
@@ -150,6 +151,19 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
                 Route::post('/{committee}/members/{member}/end', 'endMember')->name('members.end');
                 Route::post('/{committee}/members/{member}', 'updateMember')->name('members.update');
                 Route::get('/{committee}/members/{member}/signature', 'memberSignature')->name('members.signature');
+                Route::get('/{committee}/members/{member}/photo', 'memberPhoto')->name('members.photo');
+            });
+
+            // Grievance Teams and Directorates: designated units and their named members (ADR 0029)
+            Route::controller(GrievanceHandlerUnitController::class)->prefix('units')->name('units.')->group(function (): void {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::patch('/{unit}', 'update')->name('update');
+                Route::post('/{unit}/members', 'addMember')->name('members.store');
+                Route::post('/{unit}/members/{member}', 'updateMember')->name('members.update');
+                Route::post('/{unit}/members/{member}/end', 'endMember')->name('members.end');
+                Route::get('/{unit}/members/{member}/signature', 'memberSignature')->name('members.signature');
+                Route::get('/{unit}/members/{member}/photo', 'memberPhoto')->name('members.photo');
             });
 
             // Routing graph and SLA policies

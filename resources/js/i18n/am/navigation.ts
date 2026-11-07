@@ -148,6 +148,7 @@ const navigation = {
     grievances: 'ሁሉም የሠራተኛ ቅሬታዎች',
     myGrievances: 'የእኔ ቅሬታዎች',
     grievanceCommittees: 'ኮሚቴዎች',
+    grievanceUnits: 'ቡድኖችና ዳይሬክቶሬቶች',
     grievanceCategories: 'ምድቦች',
     grievanceSlaRules: 'የጊዜ ገደብ ደንቦች (SLA)',
     grievanceDashboard: 'ዳሽቦርድ',
