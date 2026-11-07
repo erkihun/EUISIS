@@ -94,8 +94,8 @@ export default function Index({ committees, filters, options, summary, policy, c
                     url={route('grievances.committees.members.end', [dialog.committee.id, dialog.member.id])} onSaved={close} onCancel={close} />
             </DialogShell>}
             {dialog?.kind === 'editCommittee' && <DialogShell title={`${b('editCommittee')}: ${nameOf(dialog.committee, locale)}`}>
-                <AdminForm key={`committee-${dialog.committee.id}`} method="patch" initial={{ name_en: dialog.committee.name_en, name_am: dialog.committee.name_am ?? '', effective_to: dialog.committee.effective_to ?? '', description_en: dialog.committee.description_en ?? '', description_am: dialog.committee.description_am ?? '' }}
-                    fields={[{ key: 'name_en', required: true }, { key: 'name_am' }, { key: 'effective_to', type: 'date' }, { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
+                <AdminForm key={`committee-${dialog.committee.id}`} method="patch" initial={{ name_en: dialog.committee.name_en, name_am: dialog.committee.name_am ?? '', organization_id: dialog.committee.organization?.id ?? '', organization_unit_id: dialog.committee.organization_unit?.id ?? '', effective_to: dialog.committee.effective_to ?? '', description_en: dialog.committee.description_en ?? '', description_am: dialog.committee.description_am ?? '' }}
+                    fields={[{ key: 'name_en', required: true }, { key: 'name_am' }, { key: 'organization_unit_id', label: t('grievanceAdmin.committeeUnit'), type: 'lookup', lookup: 'units', organizationKey: 'organization_id', initialLabel: dialog.committee.organization_unit ? nameOf(dialog.committee.organization_unit, locale) : undefined, emptyLabel: b('allStaff'), help: t('grievanceAdmin.committeeUnitHelp') }, { key: 'effective_to', type: 'date' }, { key: 'description_en', type: 'textarea' }, { key: 'description_am', type: 'textarea' }]}
                     url={route('grievances.committees.update', dialog.committee.id)} onSaved={close} onCancel={close} />
             </DialogShell>}
         </Modal>
@@ -144,7 +144,9 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
     // The list shows one line per committee ("Institution · Type"); expanding shows the full card.
     const [open, setOpen] = useState(false);
     useEffect(() => { if (bulk) { setOpen(bulk.open); setMembersOpen(true); } }, [bulk]);
-    const title = `${nameOf(committee.organization, locale)} · ${label('committee_type', committee.committee_type)}`;
+    // The work unit tells apart two committees of one institution (e.g. a school's teachers and its other staff).
+    const unit = committee.organization_unit ? ` · ${nameOf(committee.organization_unit, locale)}` : '';
+    const title = `${nameOf(committee.organization, locale)} · ${label('committee_type', committee.committee_type)}${unit}`;
     const bodyId = `committee-${committee.id}-body`;
 
     if (!open) {
@@ -175,7 +177,7 @@ function CommitteeCard({ committee, policy, onOpen, bulk }: { committee: Committ
                             {ready ? <CheckCircle className="h-3.5 w-3.5" aria-hidden /> : <AlertTriangle className="h-3.5 w-3.5" aria-hidden />}{ready ? b('ready') : b('needsAttention')}
                         </span>}
                     </div>
-                    <p className="mt-1 text-sm text-(--app-muted-foreground)">{nameOf(committee.organization, locale)} · {label('committee_type', committee.committee_type)}</p>
+                    <p className="mt-1 text-sm text-(--app-muted-foreground)">{nameOf(committee.organization, locale)} · {label('committee_type', committee.committee_type)} · {committee.organization_unit ? nameOf(committee.organization_unit, locale) : b('allStaff')}</p>
                     <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-(--app-muted-foreground)">
                         <span>{b('effectivePeriod')}:</span><LocalizedDateDisplay value={committee.effective_from} /><span>–</span>
                         {committee.effective_to ? <LocalizedDateDisplay value={committee.effective_to} /> : <span>{b('noEnd')}</span>}

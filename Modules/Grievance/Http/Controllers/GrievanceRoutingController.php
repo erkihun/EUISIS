@@ -83,13 +83,14 @@ class GrievanceRoutingController extends Controller
             'source' => $this->presenter->handler($r->source_handler_type->value, $r->source_handler_id),
             'include_descendants' => $r->include_descendants,
             'target' => $this->presenter->handler($r->target_handler_type->value, $r->target_handler_id),
-            'target_unit' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit ? $this->unitReadiness((string) $r->target_handler_id) : null,
+            'target_unit' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit && ! $r->target_all ? $this->unitReadiness((string) $r->target_handler_id) : null,
             // Shown and edited as Grievance Team / Grievance Directorate.
             'source_kind' => $r->source_handler_type === GrievanceHandlerType::OrganizationUnit
                 ? ($r->source_all ? $r->source_unit_kind : $this->unitReadiness((string) $r->source_handler_id)['kind']) : null,
             'source_all' => (bool) $r->source_all,
             'target_all' => (bool) $r->target_all,
-            'target_kind' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit ? $this->unitReadiness((string) $r->target_handler_id)['kind'] : null,
+            'target_kind' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit
+                ? ($r->target_all ? 'team' : $this->unitReadiness((string) $r->target_handler_id)['kind']) : null,
             'movement_type' => $r->movement_type->value,
             'category' => $r->category?->only(['id', 'name_en', 'name_am']),
             'sla_profile' => $r->slaProfile?->only(['id', 'name_en', 'name_am']),
@@ -111,7 +112,7 @@ class GrievanceRoutingController extends Controller
             'pending' => (clone $all)->whereNull('approved_at')->where('is_active', true)->count(),
             'inactive' => (clone $all)->where('is_active', false)->count(),
             // Active routes into a Team/Directorate that is not designated or has nobody named yet.
-            'unit_gaps' => (clone $all)->where('is_active', true)->where('target_handler_type', GrievanceHandlerType::OrganizationUnit->value)
+            'unit_gaps' => (clone $all)->where('is_active', true)->where('target_all', false)->where('target_handler_type', GrievanceHandlerType::OrganizationUnit->value)
                 ->pluck('target_handler_id')->unique()->filter(fn ($id) => ! $this->unitReadiness((string) $id)['ready'])->count(),
         ];
 
@@ -242,7 +243,7 @@ class GrievanceRoutingController extends Controller
         if ($sourceAll) {
             $request->merge(['source_handler_id' => null]);
         }
-        // "All committees" as the target: scoped, i.e. the grievance's own institution's committee.
+        // "All" as the target is scoped: institutions → their own committee; committees → the nearest team.
         $targetAll = $request->input('target_handler_id') === 'all';
         if ($targetAll) {
             $request->merge(['target_handler_id' => null]);
@@ -270,7 +271,9 @@ class GrievanceRoutingController extends Controller
             throw ValidationException::withMessages(['source_handler_id' => __('grievances.errors.all_source_not_allowed')]);
         }
         $data['target_all'] = $targetAll;
-        if ($targetAll && ($data['target_handler_type'] !== GrievanceHandlerType::Committee->value || $sourceType !== GrievanceHandlerType::Organization)) {
+        $scopedTarget = ($data['target_handler_type'] === GrievanceHandlerType::Committee->value && $sourceType === GrievanceHandlerType::Organization)
+            || ($data['target_handler_type'] === GrievanceHandlerType::OrganizationUnit->value && $this->targetKind === 'team' && $sourceType === GrievanceHandlerType::Committee);
+        if ($targetAll && ! $scopedTarget) {
             throw ValidationException::withMessages(['target_handler_id' => __('grievances.errors.all_target_not_allowed')]);
         }
         if ((! $sourceAll && $this->handlers->find($sourceType, $data['source_handler_id']) === null)
@@ -370,6 +373,7 @@ class GrievanceRoutingController extends Controller
     private function mapUnitKinds(Request $request, array $prefixes): void
     {
         $this->sourceKind = null;
+        $this->targetKind = null;
         foreach ($prefixes as $prefix) {
             $kind = (string) $request->input("{$prefix}handler_type");
             if (! in_array($kind, GrievanceHandlerUnit::KINDS, true)) {
@@ -378,6 +382,9 @@ class GrievanceRoutingController extends Controller
             $request->merge(["{$prefix}handler_type" => GrievanceHandlerType::OrganizationUnit->value]);
             if ($prefix === 'source_') {
                 $this->sourceKind = $kind;
+            }
+            if ($prefix === 'target_') {
+                $this->targetKind = $kind;
             }
             if ($request->input("{$prefix}handler_id") === 'all') {
                 continue; // "All teams" / "the directorate": checked against the kind, not one unit.
@@ -390,6 +397,9 @@ class GrievanceRoutingController extends Controller
 
     /** Kind (team/directorate) the route form chose for its source, set by mapUnitKinds(). */
     private ?string $sourceKind = null;
+
+    /** Kind (team/directorate) the route form chose for its target, set by mapUnitKinds(). */
+    private ?string $targetKind = null;
 
     /** @var array<string, array{designated: bool, kind: string|null, members: int, head: string|null, ready: bool}> */
     private array $readiness = [];

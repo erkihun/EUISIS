@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Enums\HierarchyVersionStatus;
 use App\Models\EmployeeAssignment;
+use App\Models\HierarchyVersion;
+use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationUnit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -22,6 +25,7 @@ use Modules\Grievance\Domain\Enums\GrievanceMovementType;
 use Modules\Grievance\Domain\Enums\GrievanceUnitEndReason;
 use Modules\Grievance\Domain\Models\Grievance;
 use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
 use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Tests\Support\GrievanceScenario;
 
@@ -303,4 +307,72 @@ it('sends "all institutions → all committees" to each institution\'s own commi
         ->assertSessionHasErrors('target_handler_id');
     $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_id' => 'all', 'target_handler_type' => 'directorate', 'target_handler_id' => 'all'])
         ->assertSessionHasErrors('target_handler_id');
+});
+
+it('sends "all committees → all teams" to the team nearest the committee\'s institution', function (): void {
+    // Bureau ⊃ Sub-city ⊃ Woreda 01 (the committee's institution).
+    $version = HierarchyVersion::query()->create([
+        'version_name' => 'GRV v1', 'status' => HierarchyVersionStatus::Published->value,
+        'approval_date' => now()->subMonth(), 'effective_from' => now()->subMonth()->toDateString(),
+    ]);
+    $s = $this->s;
+    foreach ([[$s->woreda, $s->woreda, 0], [$s->subcity, $s->subcity, 0], [$s->bureau, $s->bureau, 0], [$s->subcity, $s->woreda, 1], [$s->bureau, $s->subcity, 1], [$s->bureau, $s->woreda, 2]] as [$a, $d, $depth]) {
+        OrganizationClosurePath::query()->create(['hierarchy_version_id' => $version->id, 'ancestor_organization_id' => $a->id, 'descendant_organization_id' => $d->id, 'depth' => $depth]);
+    }
+    $this->units->designate($this->admin, ['organization_unit_id' => $s->team->id, 'kind' => 'team']);
+    GrievanceRoute::query()->delete();
+    $base = ['movement_type' => 'timeout_escalation', 'priority' => 10, 'effective_from' => '2026-10-01', 'target_handler_type' => 'team', 'target_handler_id' => 'all'];
+
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_type' => 'committee', 'source_handler_id' => 'all'])
+        ->assertSessionHasNoErrors();
+    $route = GrievanceRoute::query()->sole();
+    expect($route->source_all)->toBeTrue()->and($route->target_all)->toBeTrue()->and($route->target_handler_type->value)->toBe('organization_unit');
+    $route->forceFill(['approved_at' => now()])->save();
+
+    $routing = app(GrievanceRoutingService::class);
+    $stage = new GrievanceCaseStage(['handler_type' => 'committee', 'handler_id' => $s->committee->id]);
+    $next = $routing->nextHandlers($stage, GrievanceMovementType::TimeoutEscalation, null);
+    expect($next)->toHaveCount(1)->and($next[0]['id'])->toBe($s->team->id)->and($next[0]['route']->id)->toBe($route->id);
+
+    // A team in the committee's own institution is nearer.
+    $woredaAdmin = GrievanceScenario::user(GrievanceScenario::employee($s->woreda, null), GrievanceRoles::ADMINISTRATOR_PERMISSIONS);
+    $this->units->designate($woredaAdmin, ['organization_unit_id' => $s->woredaUnit->id, 'kind' => 'team']);
+    expect($routing->nextHandlers($stage, GrievanceMovementType::TimeoutEscalation, null)[0]['id'])->toBe($s->woredaUnit->id);
+
+    // "All teams" as a target is only for routes from committees.
+    $this->actingAs($this->admin)->post(route('grievances.routes.store'), [...$base, 'source_handler_type' => 'team', 'source_handler_id' => $s->team->id])
+        ->assertSessionHasErrors('target_handler_id');
+});
+
+it('lets one institution keep a teachers\' committee and an all-staff committee, split by work unit', function (): void {
+    $s = $this->s;
+    $woredaAdmin = GrievanceScenario::user(GrievanceScenario::employee($s->woreda, null), GrievanceRoles::ADMINISTRATOR_PERMISSIONS);
+    GrievanceScenario::scope($woredaAdmin, $s->woreda);
+    // No type is sent: the page registers grievance committees only, whatever a request asks for.
+    $form = ['organization_id' => $s->woreda->id, 'committee_type' => 'disciplinary', 'name_en' => 'Teachers Grievance Committee', 'effective_from' => '2026-10-01'];
+
+    // The work unit must belong to the committee's institution.
+    $this->actingAs($woredaAdmin)->post(route('grievances.committees.store'), [...$form, 'organization_unit_id' => $s->directorate->id])
+        ->assertSessionHasErrors('organization_unit_id');
+    $this->actingAs($woredaAdmin)->post(route('grievances.committees.store'), [...$form, 'organization_unit_id' => $s->woredaUnit->id])
+        ->assertSessionHasNoErrors();
+    $teachers = GrievanceCommittee::query()->where('name_en', 'Teachers Grievance Committee')->sole();
+    expect($teachers->organization_unit_id)->toBe($s->woredaUnit->id)->and($teachers->committee_type->value)->toBe('grievance');
+
+    // Make it usable like the all-staff committee (same composition), then route by work unit.
+    $teachers->forceFill(['status' => 'active', 'approved_at' => now()])->save();
+    foreach ($s->committee->members as $member) {
+        $member->replicate()->fill(['committee_id' => $teachers->id])->save();
+    }
+    GrievanceRoute::query()->delete();
+    $routing = app(GrievanceRoutingService::class);
+    $from = fn (?string $unitId) => $routing->resolveInitialHandler(new Grievance(['organization_id' => $s->woreda->id, 'organization_unit_id' => $unitId]))['id'] ?? null;
+    $otherUnit = GrievanceScenario::unit($s->woreda, 'team', 'Administration');
+    expect($from($s->woredaUnit->id))->toBe($teachers->id)
+        ->and($from($otherUnit->id))->toBe($s->committee->id)
+        ->and($from(null))->toBe($s->committee->id);
+
+    // The list names the unit, so the two committees are told apart.
+    $this->actingAs($woredaAdmin)->get(route('grievances.committees.index'))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('committees.data', fn ($rows) => collect($rows)->firstWhere('id', $teachers->id)['organization_unit']['id'] === $s->woredaUnit->id));
 });

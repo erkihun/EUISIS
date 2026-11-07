@@ -61,7 +61,9 @@ signature was attached, unlike committee members (ADR 0028).
    Directorate as separate choices, and a source may be "All institutions", "All committees" or "All teams"
    (`source_all`, `source_unit_kind`); a route from one specific handler is preferred over
    an "all" route. A route from institutions may target "All committees", which is scoped
-   (`target_all`): each grievance goes to its own institution's committee, never another's. A new or edited route whose source or
+   (`target_all`): each grievance goes to its own institution's committee, never another's.
+   A route from committees may target "All teams", also scoped: the designated team in the
+   committee's institution, else in the nearest parent institution (two at that level: none). A new or edited route whose source or
    target is a Team/Directorate is refused unless that unit is an active
    designation; the route form offers the designated units directly. Each route
    row shows whether its Team/Directorate target is ready (designated, head named),

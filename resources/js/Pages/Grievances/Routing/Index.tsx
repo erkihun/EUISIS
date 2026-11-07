@@ -41,7 +41,7 @@ export default function Index({ routes, filters, options, summary, can }: Routin
     const fields: AdminField[] = [
         ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'source_', title: t('grievanceAdmin.source'), options, locale, required: true, allowOrganization: true, initial: row?.source, allLabels: { organization: r('allOrganizations'), committee: r('allCommittees'), team: r('allTeams') } }),
         { key: 'include_descendants', type: 'boolean', visible: data => data.source_handler_type === 'organization' },
-        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'target_', title: t('grievanceAdmin.target'), options, locale, required: true, initial: row?.target, allLabels: { committee: r('ownCommittee') } }),
+        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'target_', title: t('grievanceAdmin.target'), options, locale, required: true, initial: row?.target, allLabels: { committee: r('ownCommittee'), team: r('nearestTeam') } }),
         { key: 'movement_type', type: 'select', required: true, options: choices(options.movement_types), enumGroup: 'movement_type', help: t('grievanceAdmin.initialSourceHelp') },
         { key: 'category_id', type: 'select', options: options.categories.map(value => ({ value: value.id!, label: nameOf(value, locale) })) },
         { key: 'sla_profile_id', type: 'select', options: options.sla_profiles.map(value => ({ value: value.id!, label: nameOf(value, locale) })) },
@@ -76,7 +76,7 @@ export default function Index({ routes, filters, options, summary, can }: Routin
                 <td className={tdCls}>{item.source_all ? <span className="font-medium text-(--app-foreground)">{item.source_kind === "team" ? r("allTeams") : item.source_kind === "directorate" ? r("theDirectorate") : item.source.type === "organization" ? r("allOrganizations") : r("allCommittees")}<span className="block text-xs font-normal text-(--app-muted-foreground)">{label("handler_type", item.source_kind ?? item.source.type)}</span></span> : <HandlerName handler={withKind(item.source, item.source_kind)} showType />}{item.include_descendants && <p className="text-xs text-(--app-muted-foreground)">{t('grievanceAdmin.fields.include_descendants')}</p>}</td>
                 <td className={tdCls}>
                     <div className="flex items-start gap-2"><ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden /><div className="min-w-0">
-                        {item.target_all ? <span className="font-medium text-(--app-foreground)">{r('ownCommittee')}<span className="block text-xs font-normal text-(--app-muted-foreground)">{label('handler_type', 'committee')}</span></span> : <HandlerName handler={withKind(item.target, item.target_kind)} showType />}
+                        {item.target_all ? <span className="font-medium text-(--app-foreground)">{item.target_kind === 'team' ? r('nearestTeam') : r('ownCommittee')}<span className="block text-xs font-normal text-(--app-muted-foreground)">{label('handler_type', item.target_kind ?? 'committee')}</span></span> : <HandlerName handler={withKind(item.target, item.target_kind)} showType />}
                         {item.target_unit && <UnitReadiness unit={item.target_unit} />}
                         {item.cross_organization && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t('grievanceAdmin.crossOrganization')}</p>}
                     </div></div>

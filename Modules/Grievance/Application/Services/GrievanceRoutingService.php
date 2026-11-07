@@ -131,6 +131,23 @@ final class GrievanceRoutingService
         return $own !== null ? ['type' => GrievanceHandlerType::Committee, 'id' => $own, 'route' => null] : null;
     }
 
+    /** The designated Grievance Team in this institution, else in the nearest parent institution that has one. */
+    private function nearestTeamId(string $organizationId): ?string
+    {
+        $organizations = $this->handlers->organizationWithAncestors($organizationId);
+        $teams = GrievanceHandlerUnit::query()->whereIn('organization_id', $organizations)
+            ->where('kind', 'team')->where('status', 'active')->get()
+            ->filter(fn (GrievanceHandlerUnit $unit) => $this->handlers->availabilityProblems(GrievanceHandlerType::OrganizationUnit, (string) $unit->organization_unit_id) === [])
+            ->sortBy(fn (GrievanceHandlerUnit $unit) => (int) array_search($unit->organization_id, $organizations, true));
+        $nearest = $teams->first();
+        // Two teams at the same nearest level would be a guess: no scoped target then.
+        if ($nearest === null || $teams->where('organization_id', $nearest->organization_id)->count() > 1) {
+            return null;
+        }
+
+        return (string) $nearest->organization_unit_id;
+    }
+
     /** The grievance's own institution's one usable grievance committee (matched to its work unit when several). */
     private function ownCommitteeId(Grievance $grievance): ?string
     {
@@ -141,8 +158,10 @@ final class GrievanceRoutingService
             ->get()
             ->filter(fn (GrievanceCommittee $c) => $this->handlers->committeeProblems($c) === []);
 
-        if ($grievance->organization_unit_id !== null && $committees->count() > 1) {
-            $unitMatch = $committees->where('organization_unit_id', $grievance->organization_unit_id);
+        // Several committees (e.g. a school's teachers' and other staff's): the one serving the
+        // complainant's work unit, else the one serving all staff (no unit set).
+        if ($committees->count() > 1) {
+            $unitMatch = $grievance->organization_unit_id !== null ? $committees->where('organization_unit_id', $grievance->organization_unit_id) : collect();
             $committees = $unitMatch->isNotEmpty() ? $unitMatch : $committees->whereNull('organization_unit_id');
         }
 
@@ -167,7 +186,17 @@ final class GrievanceRoutingService
         $fromDirectorate = $this->handlers->isGrievanceDirectorate($stage->handler_type, (string) $stage->handler_id);
         $options = [];
         foreach ($routes as $route) {
-            if ($route->target_all || ($route->target_handler_type === GrievanceHandlerType::ExternalAuthority && ! $fromDirectorate)) {
+            // "All teams" (scoped): the designated team nearest the committee's institution.
+            if ($route->target_all) {
+                $organizationId = $this->handlers->organizationIdOf($stage->handler_type, (string) $stage->handler_id);
+                $team = $route->target_handler_type === GrievanceHandlerType::OrganizationUnit && $organizationId !== null ? $this->nearestTeamId($organizationId) : null;
+                if ($team !== null) {
+                    $options[] = ['type' => GrievanceHandlerType::OrganizationUnit, 'id' => $team, 'route' => $route];
+                }
+
+                continue;
+            }
+            if ($route->target_handler_type === GrievanceHandlerType::ExternalAuthority && ! $fromDirectorate) {
                 continue;
             }
             if ($this->handlers->availabilityProblems($route->target_handler_type, $route->target_handler_id) === []) {

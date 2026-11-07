@@ -6,6 +6,8 @@ const grievanceAdmin = {
     registerMember: 'Register member', noMembersYet: 'No members registered yet.', memberRegistered: 'Member registered.',
     editMember: 'Edit member', editMemberHelp: 'Corrects the current term in place; the history row is kept. An ended term cannot be reopened: register a new term instead.',
     signatureReplaceHelp: 'Leave empty to keep the signature on file; upload a new image only to replace it.',
+    committeeUnit: 'Staff served (work unit)',
+    committeeUnitHelp: 'Leave empty to serve all staff of the institution. Pick a work unit (e.g. Teachers) to serve only its staff; a second committee left empty then serves everyone else.',
     unitBoard: {
         teamsTitle: 'Grievance Teams', directorateTitle: 'Grievance Directorate',
         teamsHelp2: 'Existing work units designated as Grievance Teams. A team takes the cases its institution’s committee escalates, and passes on to the Grievance Directorate.',
@@ -37,7 +39,7 @@ const grievanceAdmin = {
         seats: 'Members :count of :min–:max', chair: 'Chairperson', writer: 'Writer', signatures: 'Signatures :count/:total',
         present: 'in place', missing: 'missing', ready: 'Composition complete', needsAttention: 'Needs attention',
         noCommittees: 'No committees yet', noCommitteesHelp: 'Register the first committee for your institution, then add its members from this list.',
-        noMatches: 'No committee matches these filters.', effectivePeriod: 'In force', noEnd: 'no end date',
+        noMatches: 'No committee matches these filters.', effectivePeriod: 'In force', allStaff: 'All staff', noEnd: 'no end date',
         endMemberHelp: 'The term ends on the date you choose and stays in the history.', membersHeading: 'Members',
         showMembers: 'Show members', hideMembers: 'Hide members', expandAll: 'Expand all', collapseAll: 'Collapse all', expand: 'Expand', collapse: 'Collapse',
     },
@@ -60,7 +62,7 @@ const grievanceAdmin = {
         gapsAlert: 'Some routes send cases to a Team or Directorate that is not designated or has no head yet. Set them up in Teams & Directorates so the case reaches named people.',
         openUnits: 'Open Teams & Directorates', notDesignated: 'Not designated', noHead: 'No head named', headIs: 'Head: :name', members: ':count members',
         approve: 'Approve', edit: 'Edit', deactivate: 'Deactivate', unitsOnly: 'Teams and the Directorate are chosen from the designated units. "All" makes one route cover every committee or every team; a route from one specific handler still comes first.',
-        allOrganizations: 'All institutions', allCommittees: 'All committees', ownCommittee: "All committees (the complainant institution's own)", allTeams: 'All teams', theDirectorate: 'The Grievance Directorate',
+        allOrganizations: 'All institutions', allCommittees: 'All committees', ownCommittee: "All committees (the complainant institution's own)", nearestTeam: "All teams (the one nearest the committee's institution)", allTeams: 'All teams', theDirectorate: 'The Grievance Directorate',
     },
 
     sla: 'SLA policies',

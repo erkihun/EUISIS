@@ -45,6 +45,7 @@ class GrievanceCommitteeController extends Controller
 
         $query = $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)
             ->with([
+                'organizationUnit:id,name_en,name_am',
                 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am',
                 // The serving members are listed under each committee on the list page.
                 'members' => fn ($q) => $q->servingOn(now())->with(['employee.currentAssignment.organizationUnit:id,name_en,name_am', 'employee.currentAssignment.position:id,title_en,title_am']),
@@ -129,14 +130,14 @@ class GrievanceCommitteeController extends Controller
         return Inertia::render('Grievances/Committees/Create', [
             'options' => [
                 'organizations' => $this->organizations($request),
-                'types' => array_column(CommitteeType::cases(), 'value'),
             ],
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate($this->rules());
+        // This page registers grievance committees only (owner decision 2026-11-07).
+        $data = [...$request->validate($this->rules($request)), 'committee_type' => CommitteeType::Grievance->value];
         $committee = $this->committees->create($request->user(), $data);
 
         return to_route('grievances.committees.show', $committee)->with('flash', ['message' => __('grievances.committeeCreated'), 'type' => 'success']);
@@ -336,12 +337,12 @@ class GrievanceCommitteeController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function rules(): array
+    private function rules(Request $request): array
     {
         return [
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
-            'organization_unit_id' => ['nullable', 'uuid', 'exists:organization_units,id'],
-            'committee_type' => ['required', Rule::in(array_column(CommitteeType::cases(), 'value'))],
+            // Optional: the work unit whose staff this committee serves (e.g. Teachers); a unit of the same institution.
+            'organization_unit_id' => ['nullable', 'uuid', Rule::exists('organization_units', 'id')->where('organization_id', (string) $request->input('organization_id'))],
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['nullable', 'string', 'max:255'],
             'description_en' => ['nullable', 'string', 'max:2000'],

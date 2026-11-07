@@ -15,6 +15,8 @@ export type AdminField = {
     options?: Choice[]; lookup?: 'employees' | 'units' | 'positions' | 'users'; organizationKey?: string; unitKey?: string; initialLabel?: string;
     /** Extra fixed query parameters for a lookup, e.g. who to leave out. */
     lookupParams?: Record<string, string>;
+    /** A lookup whose empty value means "all" (e.g. a committee serving all staff): offered as the first choice. */
+    emptyLabel?: string;
     visible?: (data: AdminData) => boolean; clearOnChange?: string[]; enumGroup?: string;
     /** Shown but not editable, e.g. the organization a letterhead belongs to. */
     disabled?: boolean;
@@ -42,8 +44,8 @@ export function Switch({ id, checked, onChange, disabled, label, describedBy }: 
  * field. IDs are never typed. Units are fetched per organization and
  * filtered as you type; the other endpoints search server-side.
  */
-export function AdminLookup({ endpoint, organizationId, unitId, extraParams, value, initialLabel, onChange, disabled, required, id }: {
-    endpoint: NonNullable<AdminField['lookup']>; organizationId?: string; unitId?: string; extraParams?: Record<string, string>; value: string; initialLabel?: string;
+export function AdminLookup({ endpoint, organizationId, unitId, extraParams, value, initialLabel, emptyLabel, onChange, disabled, required, id }: {
+    endpoint: NonNullable<AdminField['lookup']>; organizationId?: string; unitId?: string; extraParams?: Record<string, string>; value: string; initialLabel?: string; emptyLabel?: string;
     onChange: (value: string) => void; disabled?: boolean; required?: boolean; id?: string;
 }) {
     const { t, locale } = useLocale();
@@ -83,8 +85,10 @@ export function AdminLookup({ endpoint, organizationId, unitId, extraParams, val
         return () => { window.clearTimeout(timer); controller.abort(); };
     }, [endpoint, organizationId, unitId, extraKey, query, locale, disabled, open, needsOrganization, serverSearch]);
     const needle = query.trim().toLowerCase();
-    const visible = serverSearch || !needle ? choices : choices.filter(choice => choice.label.toLowerCase().includes(needle));
-    const pick = (choice: Choice) => { setSelected(choice); onChange(choice.value); setQuery(''); setOpen(false); setActive(-1); };
+    const matches = serverSearch || !needle ? choices : choices.filter(choice => choice.label.toLowerCase().includes(needle));
+    // The "all" choice (empty value) comes first while nothing is typed.
+    const visible = emptyLabel && !needle ? [{ value: '', label: emptyLabel }, ...matches] : matches;
+    const pick = (choice: Choice) => { setSelected(choice.value ? choice : null); onChange(choice.value); setQuery(''); setOpen(false); setActive(-1); };
     const clear = () => { setSelected(null); onChange(''); setQuery(''); setActive(-1); };
     const inactive = disabled || needsOrganization;
     const showList = open && !inactive;
@@ -92,7 +96,7 @@ export function AdminLookup({ endpoint, organizationId, unitId, extraParams, val
         <div className="relative">
             <input id={id} role="combobox" aria-expanded={showList} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={showList && active >= 0 ? `${listId}-${active}` : undefined}
                 autoComplete="off" className={`${inputCls} ${selected && !inactive ? 'pr-9' : ''}`} value={selected ? selected.label : query} required={required} disabled={inactive}
-                placeholder={t(needsOrganization ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.searchLookup')}
+                placeholder={needsOrganization ? t('grievanceAdmin.chooseOrganization') : emptyLabel ?? t('grievanceAdmin.searchLookup')}
                 onChange={event => { if (selected) { setSelected(null); onChange(''); } setQuery(event.target.value); setOpen(true); setActive(-1); }}
                 onFocus={() => setOpen(true)} onClick={() => setOpen(true)} onBlur={() => { setOpen(false); setActive(-1); }}
                 onKeyDown={event => {
@@ -107,8 +111,8 @@ export function AdminLookup({ endpoint, organizationId, unitId, extraParams, val
             {state === 'loading' && !visible.length && <li role="status" className="px-3 py-2 text-xs text-(--app-muted-foreground)">{t('grievances.common.loading')}</li>}
             {state === 'error' && <li role="alert" className="px-3 py-2 text-xs text-red-600">{t('grievanceAdmin.lookupError')}</li>}
             {state === 'ready' && !visible.length && <li className="px-3 py-2 text-xs text-(--app-muted-foreground)">{t('grievanceAdmin.noMatches')}</li>}
-            {visible.map((choice, index) => <li key={choice.value} id={`${listId}-${index}`} role="option" aria-selected={choice.value === value}
-                className={`cursor-pointer px-3 py-2 text-sm text-(--app-foreground) hover:bg-(--app-surface-muted) ${index === active ? 'bg-(--app-surface-muted)' : ''}`}
+            {visible.map((choice, index) => <li key={choice.value || 'all'} id={`${listId}-${index}`} role="option" aria-selected={choice.value === value}
+                className={`cursor-pointer px-3 py-2 text-sm text-(--app-foreground) hover:bg-(--app-surface-muted) ${index === active ? 'bg-(--app-surface-muted)' : ''} ${choice.value ? '' : 'font-medium'}`}
                 onMouseDown={event => { event.preventDefault(); pick(choice); }} onMouseEnter={() => setActive(index)}>{choice.label}</li>)}
         </ul>}
     </div>;
@@ -152,7 +156,7 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
                 </div>;
             }
             if (field.type === 'date') control = <LocalizedDatePicker id={fieldId} disabled={disabled} required={field.required} className={inputCls} value={String(value ?? '')} onChange={date => change(field, date)} />;
-            else if (field.type === 'lookup') control = <AdminLookup id={fieldId} endpoint={field.lookup!} organizationId={field.organizationKey ? String(form.data[field.organizationKey] ?? '') : undefined} unitId={field.unitKey ? String(form.data[field.unitKey] ?? '') : undefined} extraParams={field.lookupParams} value={String(value ?? '')} initialLabel={field.initialLabel} disabled={disabled} required={field.required} onChange={selection => change(field, selection)} />;
+            else if (field.type === 'lookup') control = <AdminLookup id={fieldId} endpoint={field.lookup!} organizationId={field.organizationKey ? String(form.data[field.organizationKey] ?? '') : undefined} unitId={field.unitKey ? String(form.data[field.unitKey] ?? '') : undefined} extraParams={field.lookupParams} value={String(value ?? '')} initialLabel={field.initialLabel} emptyLabel={field.emptyLabel} disabled={disabled} required={field.required} onChange={selection => change(field, selection)} />;
             else if (field.type === 'textarea') control = <textarea {...common} className={textareaCls} rows={field.key === 'body_template' ? 10 : 3} maxLength={field.maxLength ?? 2000} value={String(value ?? '')} onChange={event => change(field, event.target.value)} />;
             else if (field.type === 'select' || field.type === 'multiselect') control = <select {...common} multiple={field.type === 'multiselect'} value={field.type === 'multiselect' ? (value as string[] ?? []) : String(value ?? '')} onChange={event => change(field, field.type === 'multiselect' ? Array.from(event.target.selectedOptions).map(option => option.value) : event.target.value)}>
                 {field.type !== 'multiselect' && <option value="">{t(field.required ? 'grievances.common.select' : 'grievances.common.all')}</option>}

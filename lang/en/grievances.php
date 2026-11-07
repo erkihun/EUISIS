@@ -121,7 +121,7 @@ return [
         'member_term_ended' => 'This term has already ended and is kept as history; register a new term instead.',
         'court_only_from_directorate' => 'Only the Grievance Directorate can send a case to the Administrative Court; a committee or a team cannot.',
         'only_one_directorate' => 'There is one Grievance Directorate in the system. Deactivate the current one before designating another.',
-        'all_target_not_allowed' => '"All committees" as a target is only for a route from institutions; it means each institution\'s own committee.',
+        'all_target_not_allowed' => '"All" as a target is only for institutions → all committees (each institution\'s own committee) or committees → all teams (the team nearest the committee\'s institution).',
         'all_source_not_allowed' => '"All" can start a route only from institutions, committees, teams or the directorate.',
         'unit_not_designated' => 'Designate this unit as a Grievance Team or Directorate first (Grievance Management → Teams & Directorates).',
         'unit_already_designated' => 'This unit is already designated as a Grievance Team or Directorate.',

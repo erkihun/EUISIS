@@ -6,6 +6,8 @@ const grievanceAdmin = {
     registerMember: 'አባል መዝግብ', noMembersYet: 'እስካሁን የተመዘገበ አባል የለም።', memberRegistered: 'አባሉ ተመዝግቧል።',
     editMember: 'አባል አርትዕ', editMemberHelp: 'የአሁኑን የሥራ ዘመን እዚያው ያስተካክላል፤ የታሪክ መዝገቡ ይጠበቃል። ያበቃ የሥራ ዘመን እንደገና አይከፈትም፤ በምትኩ አዲስ የሥራ ዘመን ይመዝግቡ።',
     signatureReplaceHelp: 'የተመዘገበውን ፊርማ ለማቆየት ባዶ ይተዉት፤ ለመተካት ብቻ አዲስ ምስል ይጫኑ።',
+    committeeUnit: 'የሚያገለግለው የሥራ ክፍል',
+    committeeUnitHelp: 'ባዶ ከተተወ የተቋሙን ሠራተኞች በሙሉ ያገለግላል። የሥራ ክፍል (ለምሳሌ መምህራን) ከተመረጠ የዚያን ክፍል ሠራተኞች ብቻ ያገለግላል፤ ባዶ የተተወው ሁለተኛ ኮሚቴ ቀሪዎቹን ሠራተኞች ያገለግላል።',
     unitBoard: {
         teamsTitle: 'የቅሬታ ቡድኖች', directorateTitle: 'የቅሬታ ዳይሬክቶሬት',
         teamsHelp2: 'የቅሬታ ቡድን ተብለው የተሰየሙ ነባር የሥራ ክፍሎች። ቡድኑ የተቋሙ ኮሚቴ ያሸጋገራቸውን ጉዳዮች ይቀበላል፤ ወደ የቅሬታ ዳይሬክቶሬትም ያስተላልፋል።',
@@ -36,7 +38,7 @@ const grievanceAdmin = {
         gapsAlert: 'አንዳንድ መስመሮች ጉዳዮችን ያልተሰየመ ወይም ኃላፊ ያልተመደበለት ቡድን ወይም ዳይሬክቶሬት ይልካሉ። ጉዳዩ ለተሰየሙ ሰዎች እንዲደርስ በቡድኖችና ዳይሬክቶሬቶች ገጽ ያዘጋጁዋቸው።',
         openUnits: 'ቡድኖችና ዳይሬክቶሬቶችን ክፈት', notDesignated: 'ያልተሰየመ', noHead: 'ኃላፊ አልተሰየመም', headIs: 'ኃላፊ፦ :name', members: ':count አባላት',
         approve: 'አጽድቅ', edit: 'አርትዕ', deactivate: 'አቦዝን', unitsOnly: 'ቡድኖችና ዳይሬክቶሬቱ የሚመረጡት ከተሰየሙት ክፍሎች ነው። "ሁሉም" አንድ መስመር ሁሉንም ኮሚቴዎች ወይም ሁሉንም ቡድኖች እንዲሸፍን ያደርጋል፤ ለአንድ የተወሰነ አካል የተጻፈ መስመር ግን ቀድሞ ይሠራል።',
-        allOrganizations: 'ሁሉም ተቋማት', allCommittees: 'ሁሉም ኮሚቴዎች', ownCommittee: 'ሁሉም ኮሚቴዎች (የቅሬታ አቅራቢው ተቋም ኮሚቴ)', allTeams: 'ሁሉም ቡድኖች', theDirectorate: 'የቅሬታ ዳይሬክቶሬቱ',
+        allOrganizations: 'ሁሉም ተቋማት', allCommittees: 'ሁሉም ኮሚቴዎች', ownCommittee: 'ሁሉም ኮሚቴዎች (የቅሬታ አቅራቢው ተቋም ኮሚቴ)', nearestTeam: 'ሁሉም የቅሬታ ቡድኖች (ለኮሚቴው ተቋም ቅርብ የሆነው ቡድን)', allTeams: 'ሁሉም ቡድኖች', theDirectorate: 'የቅሬታ ዳይሬክቶሬቱ',
     },
     committeeBoard: {
         totalCommittees: 'ኮሚቴዎች', activeCommittees: 'ንቁ', pendingCommittees: 'ማጽደቅ የሚጠብቁ', servingMembers: 'የሚያገለግሉ አባላት',
@@ -45,7 +47,7 @@ const grievanceAdmin = {
         seats: 'አባላት :count ከ:min–:max', chair: 'ሰብሳቢ', writer: 'ጸሐፊ', signatures: 'ፊርማዎች :count/:total',
         present: 'አለ', missing: 'የለም', ready: 'አደረጃጀቱ ተሟልቷል', needsAttention: 'ትኩረት ይፈልጋል',
         noCommittees: 'እስካሁን ኮሚቴ የለም', noCommitteesHelp: 'ለተቋምዎ የመጀመሪያውን ኮሚቴ ይመዝግቡ፣ ከዚያ አባላቱን ከዚሁ ዝርዝር ያክሉ።',
-        noMatches: 'በእነዚህ ማጣሪያዎች የሚገኝ ኮሚቴ የለም።', effectivePeriod: 'የሚጸናበት', noEnd: 'የማብቂያ ቀን የለም',
+        noMatches: 'በእነዚህ ማጣሪያዎች የሚገኝ ኮሚቴ የለም።', effectivePeriod: 'የሚጸናበት', allStaff: 'ሁሉም ሠራተኞች', noEnd: 'የማብቂያ ቀን የለም',
         endMemberHelp: 'የሥራ ዘመኑ በመረጡት ቀን ያበቃል እና በታሪክ ውስጥ ይቆያል።', membersHeading: 'አባላት',
         showMembers: 'አባላትን አሳይ', hideMembers: 'አባላትን ደብቅ', expandAll: 'ሁሉንም ዘርጋ', collapseAll: 'ሁሉንም አጣጥፍ', expand: 'ዘርጋ', collapse: 'አጣጥፍ',
     },
