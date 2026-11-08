@@ -209,8 +209,15 @@ return [
          * You may optionally indicate a specific cache driver to use for permission and
          * role caching using any of the `store` drivers listed in the cache.php config
          * file. Using 'default' here means to use the `default` set in cache.php.
+         *
+         * Not 'array': that store lives for one request, so every signed-in page
+         * rebuilt the whole catalogue (974 permissions and their roles) from the
+         * database, about 420 ms of server time per page (docs/runbooks/web-performance.md).
+         * Role and permission changes made through the models flush this cache;
+         * after a migration that writes the tables directly, run
+         * `php artisan permission:cache-reset`.
          */
 
-        'store' => env('PERMISSION_CACHE_STORE', 'array'),
+        'store' => env('PERMISSION_CACHE_STORE', 'default'),
     ],
 ];

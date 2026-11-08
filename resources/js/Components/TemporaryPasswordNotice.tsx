@@ -2,7 +2,7 @@ import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName } from '@/Components/ui';
+import { buttonClassName } from '@euisis/ui'; // kit, not the app barrel: the barrel pulls the table and virtualiser libraries into every signed-in page
 /**
  * Shows a generated one-time password to the administrator who created or
  * reset the account — once. The server flashes it for a single response and

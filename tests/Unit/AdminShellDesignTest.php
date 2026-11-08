@@ -21,11 +21,19 @@ it('draws the shell navigation with Solar icons from one adapter module', functi
     expect($imports[1])->not->toBeEmpty()
         ->and(array_filter($imports[1], fn (string $path): bool => ! str_starts_with($path, '@solar-icons/react/linear/')))->toBe([]);
 
-    foreach (['AppSidebar', 'AppHeader', 'Breadcrumbs', 'NotificationBell', 'ThemeToggle'] as $component) {
+    foreach (['AppSidebar', 'AppHeader', 'Breadcrumbs', 'NotificationBell'] as $component) {
         expect(adminShellSource("resources/js/Components/{$component}.tsx"))
             ->toContain("from '@/Components/NavIcons'")
             ->not->toContain("from '@/Components/Icons'");
     }
+
+    // The theme toggle is also on the sign-in page, which must not download the whole
+    // adapter module for two icons; it takes them from the set directly, linear weight.
+    expect(adminShellSource('resources/js/Components/ThemeToggle.tsx'))
+        ->toContain("from '@solar-icons/react/linear/sun'")
+        ->toContain("from '@solar-icons/react/linear/moon'")
+        ->not->toContain("from '@/Components/NavIcons'")
+        ->not->toContain("from '@/Components/Icons'");
 });
 
 it('gives the header a sidebar toggle and 36px controls', function (): void {

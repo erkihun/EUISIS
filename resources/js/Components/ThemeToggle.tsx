@@ -1,5 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Moon, Sun } from '@/Components/NavIcons';
+import { useEffect, useMemo, useState, type SVGProps } from 'react';
+// The two icons come straight from the set, not through NavIcons: that adapter
+// module carries every shell icon (about 180 KB), and the sign-in page, which
+// shows this toggle, would otherwise download all of them for a sun and a moon.
+// Same linear weight and stroke as NavIcons' adapt().
+import { MoonIcon } from '@solar-icons/react/linear/moon';
+import { SunIcon } from '@solar-icons/react/linear/sun';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import {
@@ -10,6 +15,9 @@ import {
 } from '@/lib/theme';
 
 const order: ThemePreference[] = ['system', 'light', 'dark'];
+
+const Sun = (props: SVGProps<SVGSVGElement>) => <SunIcon strokeWidth={1.5} {...props} />;
+const Moon = (props: SVGProps<SVGSVGElement>) => <MoonIcon strokeWidth={1.5} {...props} />;
 
 export default function ThemeToggle({ variant = 'default' }: { variant?: 'default' | 'toolbar' }) {
     const { t } = useLocale();

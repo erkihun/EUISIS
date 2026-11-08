@@ -1,6 +1,6 @@
 import { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, useRef, useState, type ErrorInfo, type ReactNode } from 'react';
 import { usePage } from '@inertiajs/react';
-import { Button } from '@/Components/ui';
+import { Button } from '@euisis/ui'; // kit, not the app barrel (see AuthenticatedLayout)
 import { AssistantIcon } from '@/Components/NavIcons';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
