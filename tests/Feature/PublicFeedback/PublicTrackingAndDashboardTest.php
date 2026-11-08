@@ -19,7 +19,7 @@ use Tests\Support\PublicFeedbackScenario;
 
 beforeEach(function (): void {
     app()->setLocale('en');
-    foreach (['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'] as $permission) {
+    foreach (['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
@@ -79,16 +79,16 @@ it('gives Tip-offs and complaints each their own dashboard under their own permi
     $this->post($this->base.'/suggestion', ['message' => 'Tip.', 'tip_type' => 'CORRUPTION', 'tip_form' => ['violation_types' => ['bribery']]])->assertSessionHasNoErrors();
     $this->post($this->base.'/complaint', pfComplete('complaint', ['message' => 'Complaint.']))->assertSessionHasNoErrors();
 
-    $this->actingAs($this->admin)->get(route('service-submissions.suggestions.dashboard'))->assertOk()
+    $this->actingAs($this->admin)->get(route('tip-offs.dashboard'))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('ServiceFeedback/SubmissionDashboard')->where('type', 'suggestion')
             ->where('figures.total', 1)->where('byTipType.CORRUPTION', 1)->where('violations.bribery', 1)->has('recent', 1));
-    $this->actingAs($this->admin)->get(route('service-submissions.complaints.dashboard'))->assertOk()
+    $this->actingAs($this->admin)->get(route('public-complaints.dashboard'))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('type', 'complaint')->where('figures.total', 1)->where('byTipType', null)
             ->where('months', fn ($months) => collect($months)->sum() === 1));
 
     // Tip-off rights do not open the complaint dashboard.
     $tipOnly = User::factory()->create();
-    $tipOnly->givePermissionTo(['service_feedback.view', 'service_feedback.view_employee_target']);
-    $this->actingAs($tipOnly)->get(route('service-submissions.suggestions.dashboard'))->assertOk();
-    $this->actingAs($tipOnly)->get(route('service-submissions.complaints.dashboard'))->assertForbidden();
+    $tipOnly->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target']);
+    $this->actingAs($tipOnly)->get(route('tip-offs.dashboard'))->assertOk();
+    $this->actingAs($tipOnly)->get(route('public-complaints.dashboard'))->assertForbidden();
 });

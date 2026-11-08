@@ -40,7 +40,7 @@ const RES_EMAIL = 'sentinel-contact@example.invalid';
 
 beforeEach(function (): void {
     app()->setLocale('en');
-    foreach (['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.export', 'service_feedback.manage_routing', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'] as $permission) {
+    foreach (['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.export', 'service_feedback.manage_routing', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
@@ -130,17 +130,17 @@ it('leaves an export queued and visible as such when no worker runs, and refuses
     Storage::fake('local');
 
     $this->actingAs($this->superAdmin)
-        ->post(route('service-submissions.reports.export'), ['format' => 'csv'])
+        ->post(route('public-complaints.reports.export'), ['format' => 'csv'])
         ->assertRedirect();
 
     Queue::assertPushed(ExportPublicFeedbackReport::class, 1);
     $export = PublicFeedbackReportExport::query()->sole();
     expect($export->status)->toBe('queued')->and($export->path)->toBeNull();
 
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.index'))
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.reports.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('exports.0.status', 'queued'));
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.download', $export))->assertNotFound();
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.reports.download', $export))->assertNotFound();
 });
 
 it('writes no narrative, contact or QR secret to the log across every public combination, and answers each request with a correlation id', function (): void {

@@ -1685,9 +1685,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             });
     }
     // The overview across every type, beside the all-types list (not any one module's page).
-    Route::get('/service-submissions/reports', [PublicFeedbackReportController::class, 'index'])->name('service-submissions.reports.index');
-    Route::post('/service-submissions/reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-submissions.reports.export');
-    Route::get('/service-submissions/reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-submissions.reports.download');
     // The shared addresses used before each module had its own.
     Route::get('/feedback-admin/routing-rules', fn (Request $request) => redirect($request->query('submission_type') === 'complaint' ? '/complaint-admin/routing-rules' : '/tip-off-admin/routing-rules'));
     // ADR 0034: each module's own unit page and its members — /feedback-admin/units (service
@@ -1720,31 +1717,39 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
 
     // Every public submission the user may read, and the queue of routed ones with no handler yet.
-    Route::get('/service-submissions', [PublicSubmissionListController::class, 'index'])->name('service-submissions.index');
-    Route::get('/service-submissions/unrouted', [PublicSubmissionListController::class, 'unrouted'])->name('service-submissions.unrouted');
-    Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
-    Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
-    // Each type's own dashboard (feedback has service-feedback.admin.dashboard).
-    Route::get('/service-suggestions/dashboard', TipOffDashboardController::class)->name('service-submissions.suggestions.dashboard');
-    Route::get('/service-complaints/dashboard', ComplaintDashboardController::class)->name('service-submissions.complaints.dashboard');
-    Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.show');
-    Route::post('/service-submissions/{type}/{submission}/transition', [ServiceSubmissionController::class, 'transition'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.transition');
-    Route::post('/service-submissions/{type}/{submission}/assign', [ServiceSubmissionController::class, 'assign'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.assign');
-    Route::post('/service-submissions/{type}/{submission}/escalate', [ServiceSubmissionController::class, 'escalate'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.escalate');
-    Route::post('/service-submissions/{type}/{submission}/subjects', [PublicFeedbackSubjectController::class, 'store'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.subjects.store');
-    Route::delete('/service-submissions/{type}/{submission}/subjects/{subject}', [PublicFeedbackSubjectController::class, 'destroy'])
-        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'subject'])->name('service-submissions.subjects.destroy');
-    Route::post('/service-submissions/{type}/{submission}/referrals', [PublicFeedbackReferralController::class, 'store'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.referrals.store');
-    Route::patch('/service-submissions/{type}/{submission}/referrals/{referral}', [PublicFeedbackReferralController::class, 'update'])
-        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'referral'])->name('service-submissions.referrals.update');
-    Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
-        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
+    // Owner rule 2026-11-08: Tip-offs and complaints are separate modules with nothing shared. Each has
+    // its own dashboard, case list, unrouted queue and case pages under its own prefix and route names
+    // (tip-offs.* under /tip-off-admin, public-complaints.* under /complaint-admin); the controllers
+    // take the module from the route default, never from the address.
+    foreach (['suggestion' => ['tip-off-admin', 'tip-offs', TipOffDashboardController::class, 'suggestions'], 'complaint' => ['complaint-admin', 'public-complaints', ComplaintDashboardController::class, 'complaints']] as $caseType => [$casePrefix, $caseName, $caseDashboard, $caseList]) {
+        Route::prefix($casePrefix)->name($caseName.'.')->group(function () use ($caseType, $caseDashboard, $caseList): void {
+            Route::get('/dashboard', $caseDashboard)->name('dashboard');
+            Route::get('/cases', [ServiceSubmissionController::class, $caseList])->name('cases.index');
+            Route::get('/unrouted', [PublicSubmissionListController::class, 'unrouted'])->defaults('submission_type', $caseType)->name('unrouted');
+            Route::prefix('/cases/{submission}')->whereUuid('submission')->name('cases.')->group(function () use ($caseType): void {
+                Route::get('/', [ServiceSubmissionController::class, 'show'])->defaults('type', $caseType)->name('show');
+                Route::post('/transition', [ServiceSubmissionController::class, 'transition'])->defaults('type', $caseType)->name('transition');
+                Route::post('/assign', [ServiceSubmissionController::class, 'assign'])->defaults('type', $caseType)->name('assign');
+                Route::post('/escalate', [ServiceSubmissionController::class, 'escalate'])->defaults('type', $caseType)->name('escalate');
+                Route::post('/subjects', [PublicFeedbackSubjectController::class, 'store'])->defaults('type', $caseType)->name('subjects.store');
+                Route::delete('/subjects/{subject}', [PublicFeedbackSubjectController::class, 'destroy'])->defaults('type', $caseType)->whereUuid('subject')->name('subjects.destroy');
+                Route::post('/referrals', [PublicFeedbackReferralController::class, 'store'])->defaults('type', $caseType)->name('referrals.store');
+                Route::patch('/referrals/{referral}', [PublicFeedbackReferralController::class, 'update'])->defaults('type', $caseType)->whereUuid('referral')->name('referrals.update');
+                Route::get('/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])->defaults('type', $caseType)->whereUuid('attachment')->name('attachments.download');
+            });
+        });
+    }
+    // Old shared addresses (bookmarks, links in earlier notifications) lead to the module's own page.
+    $caseModule = fn (?string $type): string => $type === 'suggestion' ? 'tip-offs' : 'public-complaints';
+    Route::get('/service-suggestions', fn (Request $request) => redirect()->route('tip-offs.cases.index', $request->query()));
+    Route::get('/service-complaints', fn (Request $request) => redirect()->route('public-complaints.cases.index', $request->query()));
+    Route::get('/service-suggestions/dashboard', fn () => redirect()->route('tip-offs.dashboard'));
+    Route::get('/service-complaints/dashboard', fn () => redirect()->route('public-complaints.dashboard'));
+    Route::get('/service-submissions/unrouted', fn (Request $request) => redirect()->route($caseModule($request->query('submission_type')).'.unrouted'));
+    Route::get('/service-submissions/{type}/{submission}', fn (string $type, string $submission) => redirect()->route($caseModule($type).'.cases.show', $submission))
+        ->where('type', 'suggestion|complaint')->whereUuid('submission');
+    Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', fn (string $type, string $submission, string $attachment) => redirect()->route($caseModule($type).'.cases.attachments.download', [$submission, $attachment]))
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'attachment']);
 
     // Per-employee feedback QR management.
     Route::get('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'show'])->name('employees.feedback-qr.show');

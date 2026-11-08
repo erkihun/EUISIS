@@ -375,6 +375,9 @@ class DashboardMetricService
                     ->count(),
             ];
 
+        }
+
+        if ($can['tipOffs'] ?? false) {
             /*
              * Public Tip-offs: aggregate counts only, safe for a wall display —
              * no narrative, no tipster, no employee. One grouped query; the

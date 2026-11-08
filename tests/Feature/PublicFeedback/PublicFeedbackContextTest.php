@@ -64,7 +64,7 @@ it('keeps the submission-time context after the employee is transferred, while a
         ->and($after->employee_id)->toBe($this->a->employee->id);
 
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $before]))
+        ->get(route('public-complaints.cases.show', ['submission' => $before]))
         ->assertInertia(fn (Assert $page) => $page->where('entry.organization', $this->a->organization->name_en)->where('entry.position', $this->a->position->title_en));
 });
 
@@ -123,6 +123,6 @@ it('resolves a landing page within a small query budget and paginates every list
     for ($i = 0; $i < 25; $i++) {
         EmployeeServiceFeedback::query()->create(['employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Complaint, 'comment' => "Row {$i}", 'status' => ServiceFeedbackStatus::Pending, 'submitted_at' => now()->subMinutes($i)]);
     }
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.complaints'))
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.cases.index'))
         ->assertInertia(fn (Assert $page) => $page->where('entries.per_page', 20)->where('entries.total', 25)->has('entries.data', 20));
 });

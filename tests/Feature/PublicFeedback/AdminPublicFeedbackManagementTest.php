@@ -26,7 +26,7 @@ use Tests\Support\SituationRoomScenario;
  */
 
 const ADMIN_ALL = [
-    'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_organization_target',
+    'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_organization_target',
     'service_feedback.view_employee_target', 'service_feedback.view_sensitive_attachments',
 ];
 
@@ -35,7 +35,7 @@ beforeEach(function (): void {
     app()->setLocale('en');
     $this->withHeader('X-Locale', 'en');
     $this->s = SituationRoomScenario::build();
-    foreach ([...ADMIN_ALL, 'service_feedback.view_submitter_identity', 'service_feedback.review', 'service_feedback.complaints.review',
+    foreach ([...ADMIN_ALL, 'service_feedback.view_submitter_identity', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review',
         'service_feedback.resolve', 'service_feedback.close', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.hide', 'service_feedback.export'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
@@ -69,21 +69,26 @@ function apfProps(User $user, string $url): array
     return $props;
 }
 
+/** A case route of the module the type belongs to. */
+function apfCase(string $type, string $action): string
+{
+    return ($type === 'suggestion' ? 'tip-offs' : 'public-complaints').'.cases.'.$action;
+}
+
 function apfDetailUrl(EmployeeServiceFeedback $row): string
 {
     return $row->type->value === 'feedback'
         ? route('service-feedback.admin.show', $row->id)
-        : route('service-submissions.show', ['type' => $row->type->value, 'submission' => $row->id]);
+        : route(($row->type->value === 'suggestion' ? 'tip-offs' : 'public-complaints').'.cases.show', $row->id);
 }
 
 // ── Scope: roll-up and sibling isolation ─────────────────────────────────
 
 it('shows Woreda A1\'s Feedback, Tip-off and Complaint to the woreda, its sub-city and its bureau, and to no sibling', function (string $orgKey, int $expected): void {
     $viewer = apfViewer($orgKey);
-    $props = apfProps($viewer, route('service-submissions.index'));
-
-    expect($props['entries']['total'])->toBe($expected)
-        ->and($props['overview']['total'])->toBe($expected);
+    // Each module its own queue (owner rule: nothing shared).
+    $queues = array_map(fn (string $name) => apfProps($viewer, route($name)), ['tip-offs.unrouted', 'public-complaints.unrouted']);
+    expect(array_sum(array_map(fn ($props) => $props['entries']['total'], $queues)))->toBe(intdiv($expected * 2, 3));
 
     foreach ($this->rows as $row) {
         $response = $this->actingAs($viewer)->get(apfDetailUrl($row));
@@ -104,37 +109,39 @@ it('scopes employee-targeted submissions the same way, and only for holders of t
         'employee_id' => $employee->id, 'target_name_snapshot' => 'Officer woreda_a1', 'status' => 'unrouted',
     ]);
 
-    $props = apfProps(apfViewer('subcity_a'), route('service-submissions.index', ['target_type' => 'employee']));
+    $props = apfProps(apfViewer('subcity_a'), route('public-complaints.unrouted', ['target_type' => 'employee']));
     expect($props['entries']['total'])->toBe(1)
         ->and($props['entries']['data'][0]['target_type'])->toBe('employee')
         ->and($props['entries']['data'][0]['target_name'])->toBe($employee->full_name);
 
-    expect(apfProps(apfViewer('woreda_a2'), route('service-submissions.index', ['target_type' => 'employee']))['entries']['total'])->toBe(0);
+    expect(apfProps(apfViewer('woreda_a2'), route('public-complaints.unrouted', ['target_type' => 'employee']))['entries']['total'])->toBe(0);
 
     // Without the employee-target grant the row is neither listed nor opened.
-    $orgOnly = $this->s->viewer(['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_organization_target'], 'bureau');
-    expect(apfProps($orgOnly, route('service-submissions.index'))['entries']['total'])->toBe(3);
+    $orgOnly = $this->s->viewer(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_organization_target'], 'bureau');
+    expect(apfProps($orgOnly, route('public-complaints.unrouted'))['entries']['total'])->toBe(1);
     $this->actingAs($orgOnly)->get(apfDetailUrl($row))->assertForbidden();
 });
 
-it('keeps Complaints from a user who holds the general grant but not the Complaint grant — on the list, the cards and the export', function (): void {
+it('keeps Tip-offs and Complaints from a user who holds only the service feedback grant', function (): void {
     $general = $this->s->viewer(['service_feedback.view', 'service_feedback.view_organization_target', 'service_feedback.export'], 'bureau');
 
-    $props = apfProps($general, route('service-submissions.index'));
-    expect($props['entries']['total'])->toBe(2)
-        ->and($props['overview']['by_type']['complaint'])->toBe(0)
-        ->and($props['filterOptions']['types'])->toBe(['feedback', 'suggestion']);
+    // Owner rule: three separate modules, each with its own grant.
+    $this->actingAs($general)->get(route('tip-offs.unrouted'))->assertForbidden();
+    $this->actingAs($general)->get(route('public-complaints.unrouted'))->assertForbidden();
+    $this->actingAs($general)->get(route('tip-offs.dashboard'))->assertForbidden();
+    $this->actingAs($general)->get(route('public-complaints.dashboard'))->assertForbidden();
+    $this->actingAs($general)->get(apfDetailUrl($this->rows['suggestion']))->assertForbidden();
+    $this->actingAs($general)->get(apfDetailUrl($this->rows['complaint']))->assertForbidden();
 
-    $this->actingAs($general)->post(route('service-submissions.reports.export'), ['format' => 'csv'])->assertRedirect();
+    // The service feedback report carries feedback only.
+    $this->actingAs($general)->post(route('service-feedback.submission-reports.export'), ['format' => 'csv'])->assertRedirect();
     $csv = Storage::disk('local')->get(PublicFeedbackReportExport::query()->sole()->path);
     expect($csv)->not->toContain($this->rows['complaint']->reference_number)
-        ->and($csv)->toContain($this->rows['suggestion']->reference_number);
-
-    $this->actingAs($general)->get(apfDetailUrl($this->rows['complaint']))->assertForbidden();
+        ->and($csv)->not->toContain($this->rows['suggestion']->reference_number);
 });
 
 it('returns nothing for forged organization, unit and handler filters', function (array $query): void {
-    $props = apfProps(apfViewer('subcity_a'), route('service-submissions.index', $query));
+    $props = apfProps(apfViewer('subcity_a'), route('public-complaints.unrouted', $query));
 
     expect($props['entries']['total'])->toBe(0)->and($props['overview']['total'])->toBe(0);
 })->with([
@@ -153,19 +160,19 @@ it('filters by the relevant work unit of the chosen institution only, and shows 
     $viewer = apfViewer('subcity_a');
 
     // The unit filter offers the chosen institution's units, and never those of an institution outside the scope.
-    $props = apfProps($viewer, route('service-submissions.index', ['organization_id' => $this->s->org['woreda_a1']->id]));
+    $props = apfProps($viewer, route('public-complaints.unrouted', ['organization_id' => $this->s->org['woreda_a1']->id]));
     expect(collect($props['filterOptions']['units'])->pluck('id')->all())->toBe([$permits->id]);
-    expect(apfProps($viewer, route('service-submissions.index'))['filterOptions']['units'])->toBe([])
-        ->and(apfProps($viewer, route('service-submissions.index', ['organization_id' => $this->s->org['woreda_b1']->id]))['filterOptions']['units'])->toBe([]);
+    expect(apfProps($viewer, route('public-complaints.unrouted'))['filterOptions']['units'])->toBe([])
+        ->and(apfProps($viewer, route('public-complaints.unrouted', ['organization_id' => $this->s->org['woreda_b1']->id]))['filterOptions']['units'])->toBe([]);
 
-    $props = apfProps($viewer, route('service-submissions.index', ['organization_id' => $this->s->org['woreda_a1']->id, 'organization_unit_id' => $permits->id]));
+    $props = apfProps($viewer, route('public-complaints.unrouted', ['organization_id' => $this->s->org['woreda_a1']->id, 'organization_unit_id' => $permits->id]));
     expect($props['entries']['total'])->toBe(1)
         ->and($props['entries']['data'][0]['type'])->toBe('complaint')
         // The name at submission, not the renamed unit.
         ->and($props['entries']['data'][0]['organization_unit'])->toBe('Permits office');
-    expect(apfProps($viewer, route('service-submissions.index', ['organization_unit_id' => $foreign->id]))['entries']['total'])->toBe(0);
+    expect(apfProps($viewer, route('public-complaints.unrouted', ['organization_unit_id' => $foreign->id]))['entries']['total'])->toBe(0);
 
-    $rows = collect(apfProps($viewer, route('service-submissions.index'))['entries']['data'])->keyBy('type');
+    $rows = collect(apfProps($viewer, route('tip-offs.unrouted'))['entries']['data'])->keyBy('type');
     expect($rows['suggestion']['organization_unit'])->toBeNull()
         ->and($rows['suggestion']['unit_selection_mode'])->toBe('GENERAL');
 
@@ -177,17 +184,20 @@ it('filters by the relevant work unit of the chosen institution only, and shows 
 
 // ── List, filters, counts, unrouted queue ───────────────────────────────
 
-it('lists every type with its target, organization and status, and none of the submitter or the narrative', function (): void {
-    $props = apfProps(apfViewer('bureau', ['service_feedback.view_submitter_identity']), route('service-submissions.index'));
+it('lists each module only its own cases, with target, organization and status, and none of the submitter or the narrative', function (): void {
+    $viewer = apfViewer('bureau', ['service_feedback.view_submitter_identity']);
+    $tipOffs = apfProps($viewer, route('tip-offs.unrouted'));
+    $props = apfProps($viewer, route('public-complaints.unrouted'));
     $rows = collect($props['entries']['data'])->keyBy('type');
 
-    expect($rows->keys()->sort()->values()->all())->toBe(['complaint', 'feedback', 'suggestion'])
+    expect(collect($tipOffs['entries']['data'])->pluck('type')->unique()->all())->toBe(['suggestion'])
+        ->and($tipOffs['filterOptions']['types'])->toBe(['suggestion'])
+        ->and($rows->keys()->all())->toBe(['complaint'])
         ->and($rows['complaint']['target_type'])->toBe('organization')
         ->and($rows['complaint']['target_name'])->toBe('Woreda A1')
         ->and($rows['complaint']['organization'])->toBe('Woreda A1')
         ->and($rows['complaint']['status'])->toBe('unrouted')
-        ->and($rows['complaint']['url'])->toBe(apfDetailUrl($this->rows['complaint']))
-        ->and($rows['feedback']['url'])->toBe(apfDetailUrl($this->rows['feedback']));
+        ->and($rows['complaint']['url'])->toBe(apfDetailUrl($this->rows['complaint']));
 
     // Even with the identity grant, the list carries no submitter and no narrative.
     expect(json_encode($props['entries']))->not->toContain('Private Submitter')
@@ -195,41 +205,41 @@ it('lists every type with its target, organization and status, and none of the s
         ->not->toContain('Private narrative');
 });
 
-it('filters by type, target, status and identity, and reconciles the cards with the list', function (): void {
+it('filters each module queue by target and identity, and reconciles the cards with the list', function (): void {
     $viewer = apfViewer('subcity_a');
 
-    expect(apfProps($viewer, route('service-submissions.index', ['submission_type' => 'complaint']))['entries']['total'])->toBe(1)
-        ->and(apfProps($viewer, route('service-submissions.index', ['target_type' => 'organization']))['entries']['total'])->toBe(3)
-        ->and(apfProps($viewer, route('service-submissions.index', ['status' => 'pending']))['entries']['total'])->toBe(1)
-        ->and(apfProps($viewer, route('service-submissions.index', ['identity_mode' => 'anonymous']))['entries']['data'][0]['type'])->toBe('suggestion');
+    expect(apfProps($viewer, route('public-complaints.unrouted', ['target_type' => 'organization']))['entries']['total'])->toBe(1)
+        ->and(apfProps($viewer, route('public-complaints.unrouted', ['target_type' => 'employee']))['entries']['total'])->toBe(0)
+        ->and(apfProps($viewer, route('tip-offs.unrouted', ['identity_mode' => 'anonymous']))['entries']['data'][0]['type'])->toBe('suggestion');
 
-    $props = apfProps($viewer, route('service-submissions.index', ['submission_type' => 'complaint']));
-    // The cards ignore the type filter; their parts add up to the whole, which matches the database.
-    $inScope = EmployeeServiceFeedback::query()->whereIn('organization_id', [$this->s->org['subcity_a']->id, $this->s->org['woreda_a1']->id, $this->s->org['woreda_a2']->id])->count();
+    // The cards count only the module's own cases in scope; their parts add up to the whole.
+    $props = apfProps($viewer, route('public-complaints.unrouted'));
+    $inScope = EmployeeServiceFeedback::query()->where('type', 'complaint')->whereIn('organization_id', [$this->s->org['subcity_a']->id, $this->s->org['woreda_a1']->id, $this->s->org['woreda_a2']->id])->count();
     expect(array_sum($props['overview']['by_type']))->toBe($props['overview']['total'])
-        ->and($props['overview']['total'])->toBe($inScope)
-        ->and(array_sum($props['overview']['by_target']))->toBe($inScope);
+        ->and($props['overview']['total'])->toBe($inScope);
 });
 
 it('finds a submission by its exact reference and by the institution\'s name', function (): void {
     $viewer = apfViewer('bureau');
     $reference = $this->rows['complaint']->reference_number;
 
-    expect(collect(apfProps($viewer, route('service-submissions.index', ['q' => strtolower($reference)]))['entries']['data'])->pluck('id')->all())->toBe([$this->rows['complaint']->id])
-        ->and(apfProps($viewer, route('service-submissions.index', ['q' => 'Woreda A1']))['entries']['total'])->toBe(3)
-        ->and(apfProps($viewer, route('service-submissions.index', ['q' => 'Private narrative']))['entries']['total'])->toBe(0);
+    expect(collect(apfProps($viewer, route('public-complaints.unrouted', ['q' => strtolower($reference)]))['entries']['data'])->pluck('id')->all())->toBe([$this->rows['complaint']->id])
+        ->and(apfProps($viewer, route('public-complaints.unrouted', ['q' => 'Woreda A1']))['entries']['total'])->toBe(1)
+        ->and(apfProps($viewer, route('public-complaints.unrouted', ['q' => 'Private narrative']))['entries']['total'])->toBe(0);
 });
 
 it('keeps unrouted Tip-offs and Complaints in their own queue until a handler is assigned', function (): void {
     $viewer = apfViewer('subcity_a', ['service_feedback.assign']);
-    $props = apfProps($viewer, route('service-submissions.unrouted'));
+    $props = apfProps($viewer, route('public-complaints.unrouted'));
+    $tipOffs = apfProps($viewer, route('tip-offs.unrouted'));
 
     expect($props['queue'])->toBe('unrouted')
-        ->and(collect($props['entries']['data'])->pluck('type')->sort()->values()->all())->toBe(['complaint', 'suggestion'])
-        ->and($props['overview']['by_status']['unrouted'])->toBe(2);
+        ->and(collect($props['entries']['data'])->pluck('type')->all())->toBe(['complaint'])
+        ->and(collect($tipOffs['entries']['data'])->pluck('type')->all())->toBe(['suggestion'])
+        ->and($props['overview']['by_status']['unrouted'])->toBe(1);
 
     // Assigning moves it out of the queue; the institution it is about never changes.
-    $this->actingAs($viewer)->post(route('service-submissions.assign', ['type' => 'complaint', 'submission' => $this->rows['complaint']->id]), [
+    $this->actingAs($viewer)->post(route('public-complaints.cases.assign', ['submission' => $this->rows['complaint']->id]), [
         'handler_type' => 'user', 'handler_id' => (string) $viewer->id, 'reason' => 'Taking this one',
     ])->assertSessionHasNoErrors();
 
@@ -238,7 +248,8 @@ it('keeps unrouted Tip-offs and Complaints in their own queue until a handler is
         ->and($complaint->organization_target_id)->toBe($this->s->org['woreda_a1']->id)
         ->and($complaint->organization_id)->toBe($this->s->org['woreda_a1']->id)
         ->and(PublicFeedbackAssignment::query()->where('submission_id', $complaint->id)->whereNull('ended_at')->count())->toBe(1)
-        ->and(apfProps($viewer, route('service-submissions.unrouted'))['entries']['total'])->toBe(1);
+        ->and(apfProps($viewer, route('public-complaints.unrouted'))['entries']['total'])->toBe(0)
+        ->and(apfProps($viewer, route('tip-offs.unrouted'))['entries']['total'])->toBe(1);
 });
 
 // ── Actions: scope and workflow ─────────────────────────────────────────
@@ -248,20 +259,20 @@ it('refuses a sibling every action and every file on a submission it cannot see'
     Storage::disk('local')->put('service-feedback/'.$complaint->id.'/e.png', 'png-bytes');
     $file = $complaint->attachments()->create(['disk' => 'local', 'path' => 'service-feedback/'.$complaint->id.'/e.png', 'original_name' => 'e.png',
         'mime_type' => 'image/png', 'size_bytes' => 9, 'sha256' => hash('sha256', 'png-bytes'), 'scan_status' => 'not_scanned']);
-    $sibling = apfViewer('woreda_a2', ['service_feedback.complaints.review', 'service_feedback.assign', 'service_feedback.review', 'service_feedback.hide']);
-    $params = ['type' => 'complaint', 'submission' => $complaint->id];
+    $sibling = apfViewer('woreda_a2', ['service_feedback.complaints.review', 'service_feedback.assign', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.hide']);
+    $params = ['submission' => $complaint->id];
 
-    $this->actingAs($sibling)->get(route('service-submissions.attachments.download', $params + ['attachment' => $file->id]))->assertForbidden();
-    $this->actingAs($sibling)->post(route('service-submissions.assign', $params), ['handler_type' => 'user', 'handler_id' => (string) $sibling->id])->assertForbidden();
-    $this->actingAs($sibling)->post(route('service-submissions.transition', $params), ['status' => 'assigned'])->assertForbidden();
+    $this->actingAs($sibling)->get(route('public-complaints.cases.attachments.download', $params + ['attachment' => $file->id]))->assertForbidden();
+    $this->actingAs($sibling)->post(route(apfCase($type ?? 'complaint', 'assign'), $params), ['handler_type' => 'user', 'handler_id' => (string) $sibling->id])->assertForbidden();
+    $this->actingAs($sibling)->post(route(apfCase($type ?? 'complaint', 'transition'), $params), ['status' => 'assigned'])->assertForbidden();
     $this->actingAs($sibling)->post(route('service-feedback.admin.review', $this->rows['feedback']), ['status' => 'reviewed'])->assertForbidden();
     $this->actingAs($sibling)->post(route('service-feedback.admin.hide', $this->rows['feedback']))->assertForbidden();
 
     // The parent with the evidence grant downloads it; a file of another submission, or none at all, is not found.
     $parent = apfViewer('subcity_a');
-    $this->actingAs($parent)->get(route('service-submissions.attachments.download', $params + ['attachment' => $file->id]))->assertOk();
-    $this->actingAs($parent)->get(route('service-submissions.attachments.download', ['type' => 'complaint', 'submission' => $this->rows['suggestion']->id, 'attachment' => $file->id]))->assertNotFound();
-    $this->actingAs($parent)->get(route('service-submissions.attachments.download', $params + ['attachment' => (string) Str::uuid()]))->assertNotFound();
+    $this->actingAs($parent)->get(route('public-complaints.cases.attachments.download', $params + ['attachment' => $file->id]))->assertOk();
+    $this->actingAs($parent)->get(route('public-complaints.cases.attachments.download', ['submission' => $this->rows['suggestion']->id, 'attachment' => $file->id]))->assertNotFound();
+    $this->actingAs($parent)->get(route('public-complaints.cases.attachments.download', $params + ['attachment' => (string) Str::uuid()]))->assertNotFound();
 
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::Unrouted)
         ->and($this->rows['feedback']->fresh()->status)->toBe(ServiceFeedbackStatus::Pending);
@@ -269,7 +280,7 @@ it('refuses a sibling every action and every file on a submission it cannot see'
 
 it('moves a Feedback only along its workflow, recording every step, and closes it with the close grant only', function (): void {
     $feedback = $this->rows['feedback'];
-    $reviewer = apfViewer('subcity_a', ['service_feedback.review']);
+    $reviewer = apfViewer('subcity_a', ['service_feedback.review', 'service_feedback.tip_offs.review']);
 
     $this->actingAs($reviewer)->post(route('service-feedback.admin.review', $feedback), ['status' => 'reviewed', 'review_note' => 'Read and shared with the office.'])->assertSessionHasNoErrors();
     $this->actingAs($reviewer)->post(route('service-feedback.admin.review', $feedback), ['status' => 'resolved'])->assertSessionHasNoErrors();
@@ -277,7 +288,7 @@ it('moves a Feedback only along its workflow, recording every step, and closes i
     $this->actingAs($reviewer)->post(route('service-feedback.admin.review', $feedback), ['status' => 'reviewed'])->assertSessionHasErrors('status');
     // Closing is the close grant, not the review grant.
     $this->actingAs($reviewer)->post(route('service-feedback.admin.review', $feedback), ['status' => 'closed'])->assertForbidden();
-    $this->actingAs(apfViewer('subcity_a', ['service_feedback.review', 'service_feedback.close']))
+    $this->actingAs(apfViewer('subcity_a', ['service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.close']))
         ->post(route('service-feedback.admin.review', $feedback), ['status' => 'closed'])->assertSessionHasNoErrors();
 
     $feedback->refresh();
@@ -299,7 +310,7 @@ it('moves a Feedback only along its workflow, recording every step, and closes i
 
 it('restores a hidden Feedback to the status it had, with both steps in the history', function (): void {
     $feedback = $this->rows['feedback'];
-    $moderator = apfViewer('subcity_a', ['service_feedback.review', 'service_feedback.hide']);
+    $moderator = apfViewer('subcity_a', ['service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.hide']);
     $this->actingAs($moderator)->post(route('service-feedback.admin.review', $feedback), ['status' => 'reviewed'])->assertSessionHasNoErrors();
 
     $this->actingAs($moderator)->post(route('service-feedback.admin.hide', $feedback))->assertRedirect();
@@ -313,15 +324,15 @@ it('restores a hidden Feedback to the status it had, with both steps in the hist
 
 it('runs a Complaint and a Tip-off through their workflows and refuses a skipped step', function (string $type, array $steps): void {
     $row = $this->rows[$type];
-    $handler = apfViewer('bureau', ['service_feedback.assign', 'service_feedback.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close']);
-    $params = ['type' => $type, 'submission' => $row->id];
+    $handler = apfViewer('bureau', ['service_feedback.assign', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close']);
+    $params = ['submission' => $row->id];
 
     // Skipping straight to the outcome is refused.
-    $this->actingAs($handler)->post(route('service-submissions.transition', $params), ['status' => 'closed'])->assertSessionHasErrors('status');
+    $this->actingAs($handler)->post(route(apfCase($type ?? 'complaint', 'transition'), $params), ['status' => 'closed'])->assertSessionHasErrors('status');
 
-    $this->actingAs($handler)->post(route('service-submissions.assign', $params), ['handler_type' => 'user', 'handler_id' => (string) $handler->id])->assertSessionHasNoErrors();
+    $this->actingAs($handler)->post(route(apfCase($type ?? 'complaint', 'assign'), $params), ['handler_type' => 'user', 'handler_id' => (string) $handler->id])->assertSessionHasNoErrors();
     foreach ($steps as $status) {
-        $this->actingAs($handler)->post(route('service-submissions.transition', $params), ['status' => $status, 'reason' => 'Step '.$status])->assertSessionHasNoErrors();
+        $this->actingAs($handler)->post(route(apfCase($type ?? 'complaint', 'transition'), $params), ['status' => $status, 'reason' => 'Step '.$status])->assertSessionHasNoErrors();
     }
 
     $row->refresh();
@@ -353,7 +364,7 @@ it('writes an Amharic export with Amharic labels, names and Ethiopian dates', fu
     $viewer = apfViewer('bureau', ['service_feedback.export']);
 
     $this->actingAs($viewer)->withHeader('X-Locale', 'am')
-        ->post(route('service-submissions.reports.export'), ['format' => 'csv', 'submission_type' => 'complaint'])->assertRedirect();
+        ->post(route('public-complaints.reports.export'), ['format' => 'csv'])->assertRedirect();
 
     $export = PublicFeedbackReportExport::query()->sole();
     $csv = Storage::disk('local')->get($export->path);

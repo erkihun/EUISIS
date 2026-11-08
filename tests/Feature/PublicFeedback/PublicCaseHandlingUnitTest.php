@@ -10,6 +10,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
@@ -30,7 +31,7 @@ use Tests\Support\PublicFeedbackScenario;
 beforeEach(function (): void {
     app()->setLocale('en');
     Storage::fake('local');
-    foreach (['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.review', 'service_feedback.complaints.review', 'service_feedback.manage_routing'] as $permission) {
+    foreach (['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review', 'service_feedback.manage_routing'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     $this->role = Role::findOrCreate('Super Admin', 'web');
@@ -119,9 +120,9 @@ it('assigns cases to the handling unit and reaches its members, and offers only 
     $recipients = collect(app(PublicFeedbackNotifier::class)->handlerUsers($complaint, $assignment))->pluck('id')->all();
     expect($recipients)->toBe([$this->officerUser->id]);
 
-    $this->actingAs($this->officerUser)->get(route('service-submissions.complaints.dashboard'))
+    $this->actingAs($this->officerUser)->get(route('public-complaints.dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('figures.mine', 1));
-    $this->actingAs($placedUser)->get(route('service-submissions.complaints.dashboard'))
+    $this->actingAs($placedUser)->get(route('public-complaints.dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('figures.mine', 0));
 });
 
@@ -235,12 +236,12 @@ it('lets only the unit members work its case, and its head hand the case to one 
         Permission::findOrCreate($permission, 'web');
     }
     $handler = Role::findOrCreate('Public Feedback Handler', 'web');
-    $handler->syncPermissions(['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
+    $handler->syncPermissions(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
     $org = $this->s->organization->id;
     $scoped = function (Employee $employee) use ($handler, $org): User {
         $user = User::factory()->create(['employee_id' => $employee->id]);
         $user->assignRole($handler);
-        App\Models\UserOrganizationScope::query()->create(['user_id' => $user->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
+        UserOrganizationScope::query()->create(['user_id' => $user->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
 
         return $user;
     };
@@ -248,7 +249,7 @@ it('lets only the unit members work its case, and its head hand the case to one 
     $outsiderEmployee = handlingStaff($this->s, $this->office, 'HDU-EMP-7', 'Tigist Bekele');
     $head = $this->officerUser;
     $head->syncRoles([$handler]);
-    App\Models\UserOrganizationScope::query()->create(['user_id' => $head->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
+    UserOrganizationScope::query()->create(['user_id' => $head->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
     $officer = $scoped($officerEmployee);
     $outsider = $scoped($outsiderEmployee);
 
@@ -260,29 +261,29 @@ it('lets only the unit members work its case, and its head hand the case to one 
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $org, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $this->office->id, 'priority' => 1, 'is_active' => true, 'created_by' => $this->admin->id]);
     $this->post('/service-feedback/'.$this->s->token->token.'/complaint', pfComplete('complaint', ['message' => 'Complaint.']))->assertSessionHasNoErrors();
     $complaint = EmployeeServiceFeedback::query()->where('type', 'complaint')->sole();
-    $show = route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint->id]);
-    $transition = route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint->id]);
+    $show = route('public-complaints.cases.show', ['submission' => $complaint->id]);
+    $transition = route('public-complaints.cases.transition', ['submission' => $complaint->id]);
 
     // A colleague who is not a member neither sees it in any list nor opens or works it.
-    $this->actingAs($outsider)->get(route('service-submissions.complaints'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
-    $this->actingAs($outsider)->get(route('service-submissions.complaints.dashboard'))->assertInertia(fn (Assert $page) => $page->where('figures.total', 0));
-    $this->actingAs($outsider)->get(route('service-submissions.index'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
+    $this->actingAs($outsider)->get(route('public-complaints.cases.index'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
+    $this->actingAs($outsider)->get(route('public-complaints.dashboard'))->assertInertia(fn (Assert $page) => $page->where('figures.total', 0));
+    $this->actingAs($outsider)->get(route('public-complaints.unrouted'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
     $this->actingAs($outsider)->get($show)->assertForbidden();
     $this->actingAs($outsider)->post($transition, ['status' => 'under_review'])->assertForbidden();
     // The unit's members do see it.
-    $this->actingAs($officer)->get(route('service-submissions.complaints'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 1));
+    $this->actingAs($officer)->get(route('public-complaints.cases.index'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 1));
 
     // The head sees the members to hand it to, and hands it to the officer; level and deadline stay.
     $this->actingAs($head)->get($show)->assertInertia(fn (Assert $page) => $page->where('delegateOptions', fn ($rows) => collect($rows)->pluck('id')->sort()->values()->all() === collect([(string) $head->id, (string) $officer->id])->sort()->values()->all()));
-    $assign = route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint->id]);
+    $assign = route('public-complaints.cases.assign', ['submission' => $complaint->id]);
     $this->actingAs($head)->post($assign, ['handler_type' => 'user', 'handler_id' => (string) $outsider->id])->assertForbidden();
     $this->actingAs($head)->post($assign, ['handler_type' => 'user', 'handler_id' => (string) $officer->id])->assertSessionHasNoErrors();
     $current = $complaint->currentAssignment()->sole();
     expect($current->handler_id)->toBe((string) $officer->id)->and($current->level)->toBe(1);
 
     // Handed over, it stays in the head's list and the officer's; never the outsider's.
-    $this->actingAs($head)->get(route('service-submissions.complaints'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 1));
-    $this->actingAs($officer)->get(route('service-submissions.complaints.dashboard'))->assertInertia(fn (Assert $page) => $page->where('figures.total', 1)->where('figures.mine', 1));
+    $this->actingAs($head)->get(route('public-complaints.cases.index'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 1));
+    $this->actingAs($officer)->get(route('public-complaints.dashboard'))->assertInertia(fn (Assert $page) => $page->where('figures.total', 1)->where('figures.mine', 1));
 
     // Now the officer works it; the head can still follow; the outsider cannot.
     $this->actingAs($outsider)->post($transition, ['status' => 'under_review'])->assertForbidden();

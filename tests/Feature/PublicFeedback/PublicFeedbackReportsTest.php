@@ -30,7 +30,7 @@ use Tests\Support\PublicFeedbackScenario;
  * grant (§84); institution-targeted rows stand apart (§85).
  */
 
-const PFR_VIEW = ['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.export', 'service_feedback.organization_qr.view'];
+const PFR_VIEW = ['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.export', 'service_feedback.organization_qr.view'];
 const PFR_TARGETS = ['service_feedback.view_employee_target', 'service_feedback.view_organization_target'];
 
 beforeEach(function (): void {
@@ -101,11 +101,16 @@ it('breaks organization submissions down by the relevant work unit named, with G
     rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['organization_unit_id' => $this->a->unit->id]);
     $permits->update(['name_en' => 'Renamed office']);
 
+    // Each module's own report holds only its own cases.
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.reports.index'))
+        ->get(route('public-complaints.reports.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('byUnit', fn ($rows) => collect($rows->toArray())->map(fn (array $row): array => [$row['name_en'], $row['general'], $row['total']])->all() === [['Permits office', false, 2], [null, true, 1]]));
+            ->where('byUnit', fn ($rows) => collect($rows->toArray())->map(fn (array $row): array => [$row['name_en'], $row['general'], $row['total']])->all() === [['Permits office', false, 2]]));
+    $this->actingAs($this->superAdmin)
+        ->get(route('tip-offs.reports.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('byUnit', fn ($rows) => collect($rows->toArray())->map(fn (array $row): array => [$row['name_en'], $row['general'], $row['total']])->all() === [[null, true, 1]]));
 
     $metrics = app(PublicFeedbackMetrics::class);
     $units = collect($metrics->exportRows($metrics->query($this->superAdmin), $this->superAdmin, 'en'))->pluck('organization_unit')->countBy()->all();
@@ -124,31 +129,31 @@ it('breaks submissions down by organization, status and handler with filters', f
     rptRow($this->b, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending);
 
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.reports.index'))
+        ->get(route('public-complaints.reports.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/SubmissionReports')
-            ->where('summary.total', 4)
-            ->where('byOrganization', fn ($rows) => collect($rows->toArray())->pluck('total', 'name_en')->all() === [$this->a->organization->name_en => 3, $this->b->organization->name_en => 1])
+            ->where('summary.total', 3)
+            ->where('byOrganization', fn ($rows) => collect($rows->toArray())->pluck('total', 'name_en')->all() === [$this->a->organization->name_en => 2, $this->b->organization->name_en => 1])
             ->where('byHandler', fn ($rows) => collect($rows->toArray())->pluck('total', 'name_en')->all() === [$this->orgOnly->name => 1])
             ->where('can.export', true));
 
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.reports.index', ['submission_type' => 'complaint', 'status' => 'closed']))
+        ->get(route('public-complaints.reports.index', ['status' => 'closed']))
         ->assertInertia(fn (Assert $page) => $page->where('summary.total', 1));
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.reports.index', ['target_type' => 'organization']))
+        ->get(route('tip-offs.reports.index', ['target_type' => 'organization']))
         ->assertInertia(fn (Assert $page) => $page->where('summary.total', 1)->where('summary.by_type.suggestion', 1));
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.reports.index', ['date_from' => now()->subDays(7)->toDateString()]))
-        ->assertInertia(fn (Assert $page) => $page->where('summary.total', 3));
+        ->get(route('public-complaints.reports.index', ['date_from' => now()->subDays(7)->toDateString()]))
+        ->assertInertia(fn (Assert $page) => $page->where('summary.total', 2));
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.reports.index', ['handler_type' => 'user', 'handler_id' => (string) $this->orgOnly->id]))
+        ->get(route('public-complaints.reports.index', ['handler_type' => 'user', 'handler_id' => (string) $this->orgOnly->id]))
         ->assertInertia(fn (Assert $page) => $page->where('summary.total', 1));
 
     // Scope applies to the report exactly as to the inbox.
     $this->actingAs($this->adminB)
-        ->get(route('service-submissions.reports.index'))
+        ->get(route('public-complaints.reports.index'))
         ->assertInertia(fn (Assert $page) => $page->where('summary.total', 1)->has('byOrganization', 1));
 });
 
@@ -157,7 +162,7 @@ it('exports the filtered submissions on the queue to a private, formula-safe fil
     rptRow($this->b, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::Pending);
 
     $this->actingAs($this->adminB)
-        ->post(route('service-submissions.reports.export'), ['format' => 'csv'])
+        ->post(route('tip-offs.reports.export'), ['format' => 'csv'])
         ->assertRedirect();
 
     $export = PublicFeedbackReportExport::query()->sole();
@@ -167,16 +172,16 @@ it('exports the filtered submissions on the queue to a private, formula-safe fil
         ->and(Storage::disk('local')->exists($export->path))->toBeTrue();
 
     $this->actingAs($this->adminB)
-        ->get(route('service-submissions.reports.download', $export))
+        ->get(route('tip-offs.reports.download', $export))
         ->assertOk();
     // Another scoped administrator cannot read someone else's export of another institution.
     $this->actingAs($this->orgOnly)
-        ->get(route('service-submissions.reports.download', $export))
+        ->get(route('tip-offs.reports.download', $export))
         ->assertForbidden();
 
     // City-wide export by someone who may see identity: the formula is neutralised, the contact is present.
     $this->actingAs($this->superAdmin)
-        ->post(route('service-submissions.reports.export'), ['format' => 'csv', 'submission_type' => 'complaint'])
+        ->post(route('public-complaints.reports.export'), ['format' => 'csv'])
         ->assertRedirect();
     $cityWide = PublicFeedbackReportExport::query()->where('requested_by', $this->superAdmin->id)->sole();
     $csv = Storage::disk('local')->get($cityWide->path);
@@ -188,13 +193,13 @@ it('exports the filtered submissions on the queue to a private, formula-safe fil
 
     // Without the identity grant the contact never reaches the file.
     $this->actingAs($this->orgOnly)
-        ->post(route('service-submissions.reports.export'), ['format' => 'xlsx'])
+        ->post(route('public-complaints.reports.export'), ['format' => 'xlsx'])
         ->assertRedirect();
     $masked = PublicFeedbackReportExport::query()->where('requested_by', $this->orgOnly->id)->sole();
     expect($masked->status)->toBe('ready')->and($masked->format)->toBe('xlsx');
 
     $this->actingAs($this->adminB)
-        ->post(route('service-submissions.reports.export'), ['format' => 'pdf'])
+        ->post(route('tip-offs.reports.export'), ['format' => 'pdf'])
         ->assertSessionHasErrors('format');
 });
 
@@ -240,10 +245,10 @@ it('gives service feedback, suggestions and complaints each their own sidebar gr
     expect($groupOf('serviceComplaints'))->toContain("routeName: 'public-complaints.settings.index'");
 
     // Suggestions and complaints: each its own list, unrouted list, routing rules and reports, opened with its type.
-    foreach (['serviceSuggestions' => ['suggestion', 'service-submissions.suggestions'], 'serviceComplaints' => ['complaint', 'service-submissions.complaints']] as $key => [$type, $list]) {
+    foreach (['serviceSuggestions' => ['suggestion', 'tip-offs.cases.index'], 'serviceComplaints' => ['complaint', 'public-complaints.cases.index']] as $key => [$type, $list]) {
         $group = $groupOf($key);
-        expect($group)->toContain("routeName: '{$list}'")->not->toContain('service-submissions.'.($type === 'complaint' ? 'suggestions' : 'complaints'));
-        expect($group)->toContain("routeName: 'service-submissions.unrouted', query: { submission_type: '{$type}' }");
+        expect($group)->toContain("routeName: '{$list}'")->not->toContain(($type === 'complaint' ? 'tip-offs.' : 'public-complaints.'));
+        expect($group)->toContain("routeName: '".($type === 'complaint' ? 'public-complaints' : 'tip-offs').".unrouted'");
         // Each module's own pages (/tip-off-admin, /complaint-admin), never a shared page with a type query.
         $module = $type === 'complaint' ? 'public-complaints' : 'tip-offs';
         foreach (["{$module}.routing-rules.index", "{$module}.reports.index", "{$module}.units.index"] as $routeName) {

@@ -23,7 +23,7 @@ final class TipOffDashboardController extends Controller
     public function __invoke(Request $request): Response
     {
         $user = $request->user();
-        abort_unless($user->hasAnyPermission(['service_feedback.view']), 403);
+        abort_unless($user->hasAnyPermission(['service_feedback.tip_offs.view']), 403);
         $query = fn () => $this->cases->scope(TipOff::query(), $user);
 
         // Tip-off type: the two kinds, and rows from before types existed in their own bucket.

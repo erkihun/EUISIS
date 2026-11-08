@@ -37,7 +37,7 @@ use Tests\Support\PublicFeedbackScenario;
 beforeEach(function (): void {
     app()->setLocale('en');
     Storage::fake('local');
-    $permissions = ['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.manage_routing'];
+    $permissions = ['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.manage_routing'];
     foreach ($permissions as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
@@ -52,7 +52,7 @@ beforeEach(function (): void {
 
     // A handler role without the coordinator grants, scoped to the institution.
     $handler = Role::findOrCreate('Complaint Handler', 'web');
-    $handler->syncPermissions(['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
+    $handler->syncPermissions(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
 
     $this->units = [];
     $this->users = [];
@@ -102,10 +102,10 @@ function fileComplaint(object $test): EmployeeServiceFeedback
 function decideStage(object $test, User $user, EmployeeServiceFeedback $complaint, array $data): TestResponse
 {
     if ($complaint->fresh()->status === ServiceFeedbackStatus::Assigned) {
-        $test->actingAs($user)->post(route('service-submissions.transition', ['complaint', $complaint]), ['status' => 'under_review'])->assertSessionHasNoErrors();
+        $test->actingAs($user)->post(route('public-complaints.cases.transition', [$complaint]), ['status' => 'under_review'])->assertSessionHasNoErrors();
     }
 
-    return $test->actingAs($user)->post(route('service-submissions.transition', ['complaint', $complaint]), ['status' => 'resolved', ...$data]);
+    return $test->actingAs($user)->post(route('public-complaints.cases.transition', [$complaint]), ['status' => 'resolved', ...$data]);
 }
 
 function lookUp(object $test, EmployeeServiceFeedback $complaint): void
@@ -136,7 +136,7 @@ it('sends a complaint to the committee, then an appeal to the appeal committee a
     expect($first->decision)->toBe('answered')->and($first->appeal_deadline_at->isFuture())->toBeTrue();
 
     // Staff cannot close while the appeal period runs.
-    $this->actingAs($this->admin)->post(route('service-submissions.transition', ['complaint', $complaint]), ['status' => 'closed'])->assertSessionHasErrors('status');
+    $this->actingAs($this->admin)->post(route('public-complaints.cases.transition', [$complaint]), ['status' => 'closed'])->assertSessionHasErrors('status');
 
     // The complainant sees the response, never who decided, and appeals.
     lookUp($this, $complaint);
@@ -166,10 +166,10 @@ it('sends a complaint to the committee, then an appeal to the appeal committee a
     $this->get(route('public-submissions.track', ['reference' => $complaint->reference_number]))
         ->assertInertia(fn (Assert $page) => $page->has('result.hearing.stages', 3)->where('result.hearing.can_appeal', false)->where('result.hearing.can_accept', false));
     // Final: staff may now close it.
-    $this->actingAs($this->users['head_office'])->post(route('service-submissions.transition', ['complaint', $complaint]), ['status' => 'closed'])->assertSessionHasNoErrors();
+    $this->actingAs($this->users['head_office'])->post(route('public-complaints.cases.transition', [$complaint]), ['status' => 'closed'])->assertSessionHasNoErrors();
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::Closed);
 
-    $this->actingAs($this->admin)->get(route('service-submissions.show', ['complaint', $complaint]))
+    $this->actingAs($this->admin)->get(route('public-complaints.cases.show', [$complaint]))
         ->assertInertia(fn (Assert $page) => $page->has('hearing.stages', 3)->where('hearing.stages.1.decision', 'overturned'));
 });
 
@@ -211,7 +211,7 @@ it('keeps whoever decided the first answer off the appeal', function (): void {
     lookUp($this, $complaint);
     $this->post(route('public-submissions.track.respond'), ['reference' => $complaint->reference_number, 'action' => 'appeal', 'reason' => 'It was not served at all.'])->assertSessionHasNoErrors();
 
-    $this->actingAs($this->users['first_instance'])->post(route('service-submissions.transition', ['complaint', $complaint]), ['status' => 'under_review'])->assertForbidden();
+    $this->actingAs($this->users['first_instance'])->post(route('public-complaints.cases.transition', [$complaint]), ['status' => 'under_review'])->assertForbidden();
     expect(app(PublicComplaintStageService::class)->decidedEarlier($this->users['first_instance'], $complaint->fresh()))->toBeTrue();
 });
 
@@ -261,6 +261,6 @@ it('draws committee members from any unit of the institution, and only from it',
     expect($complaint->currentAssignment()->sole()->handler_type->value)->toBe('committee');
     $recipients = collect(app(PublicFeedbackNotifier::class)->handlerUsers($complaint, $complaint->currentAssignment()->sole()))->pluck('id')->sort()->values()->all();
     expect($recipients)->toBe(collect($this->users)->pluck('id')->sort()->values()->all());
-    $this->actingAs($this->users['appeal'])->get(route('service-submissions.complaints.dashboard'))
+    $this->actingAs($this->users['appeal'])->get(route('public-complaints.dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('figures.mine', 1));
 });

@@ -55,6 +55,9 @@ type Named = { id: string; name_en: string; name_am: string | null };
 
 type Props = {
     queue: 'all' | 'unrouted';
+    /** The one module this queue belongs to, and its own route (owner rule: nothing shared). */
+    module?: 'suggestion' | 'complaint';
+    routeName?: string;
     entries: LaravelPageMeta & { data: Entry[] };
     overview: {
         total: number;
@@ -84,11 +87,10 @@ const TYPE_LABEL: Record<string, string> = {
 
 const filled = (value: string | undefined): value is string => value !== undefined && value !== '';
 
-export default function AllSubmissions({ queue, entries, overview, filters, filterOptions, hasAny }: Props): JSX.Element {
+export default function AllSubmissions({ queue, entries, overview, filters, filterOptions, hasAny, routeName = 'public-complaints.unrouted' }: Props): JSX.Element {
     const { t, locale } = useLocale();
     const am = locale === 'am';
     const [query, setQuery] = useState(filters.q ?? '');
-    const routeName = queue === 'unrouted' ? 'service-submissions.unrouted' : 'service-submissions.index';
 
     useEffect(() => setQuery(filters.q ?? ''), [filters.q]);
 
@@ -142,7 +144,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                         const cls = cx('rounded-card border bg-(--app-surface) p-3 text-left',
                             card.attention ? 'border-amber-300 dark:border-amber-700' : 'border-(--app-border)');
                         if (card.id === 'unrouted' && queue !== 'unrouted') {
-                            return <Link key={card.id} href={route('service-submissions.unrouted')} className={cx(cls, 'hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:outline-primary')}>{body}</Link>;
+                            return <Link key={card.id} href={route(routeName)} className={cx(cls, 'hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:outline-primary')}>{body}</Link>;
                         }
                         return card.change && queue === 'all'
                             ? <button key={card.id} type="button" onClick={() => apply(card.change!)} className={cx(cls, 'hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:outline-primary')}>{body}</button>

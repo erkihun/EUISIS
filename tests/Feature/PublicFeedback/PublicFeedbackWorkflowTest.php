@@ -27,7 +27,7 @@ beforeEach(function (): void {
     app()->setLocale('en');
 
     foreach ([
-        'service_feedback.view', 'service_feedback.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
         'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.manage_routing',
         'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ] as $permission) {
@@ -35,7 +35,7 @@ beforeEach(function (): void {
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
     Role::findOrCreate('Organizational Admin', 'web')->syncPermissions([
-        'service_feedback.view', 'service_feedback.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
         'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ]);
     Role::findOrCreate('Reviewer', 'web')->syncPermissions(['service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
@@ -115,13 +115,13 @@ it('moves a complaint through assignment, review, resolution and closure with hi
     $complaint = wfSubmission(ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Assigned);
 
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'under_review', 'reason' => 'Starting the review.'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'under_review', 'reason' => 'Starting the review.'])
         ->assertRedirect();
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved', 'reason' => 'Counter reopened and the client was called back.'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'resolved', 'reason' => 'Counter reopened and the client was called back.'])
         ->assertRedirect();
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'closed'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'closed'])
         ->assertRedirect();
 
     $complaint->refresh();
@@ -141,10 +141,10 @@ it('rejects a transition the type does not allow', function (): void {
 
     // A complaint is never closed from pending, and never "accepted" like a suggestion.
     $this->actingAs($this->superAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'closed'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'closed'])
         ->assertSessionHasErrors('status');
     $this->actingAs($this->superAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'accepted'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'accepted'])
         ->assertSessionHasErrors('status');
 
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::Pending)
@@ -155,10 +155,10 @@ it('lets a suggestion end as accepted or not adopted', function (): void {
     $suggestion = wfSubmission(ServiceFeedbackType::Suggestion);
 
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'suggestion', 'submission' => $suggestion]), ['status' => 'under_review'])
+        ->post(route('tip-offs.cases.transition', ['submission' => $suggestion]), ['status' => 'under_review'])
         ->assertRedirect();
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'suggestion', 'submission' => $suggestion]), ['status' => 'not_adopted', 'reason' => 'Already covered by the queue system.'])
+        ->post(route('tip-offs.cases.transition', ['submission' => $suggestion]), ['status' => 'not_adopted', 'reason' => 'Already covered by the queue system.'])
         ->assertRedirect();
 
     expect($suggestion->fresh()->status)->toBe(ServiceFeedbackStatus::NotAdopted)
@@ -170,13 +170,13 @@ it('requires the matching permission for each transition', function (): void {
 
     // The reviewer may review but holds neither resolve nor close.
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'resolved'])
         ->assertForbidden();
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::UnderReview);
 
     $assigned = wfSubmission(ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Assigned);
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $assigned]), ['status' => 'under_review'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $assigned]), ['status' => 'under_review'])
         ->assertRedirect();
     expect($assigned->fresh()->status)->toBe(ServiceFeedbackStatus::UnderReview);
 });
@@ -186,10 +186,10 @@ it('never lets the target employee transition or assign their own complaint', fu
     $this->superAdmin->forceFill(['employee_id' => $this->a->employee->id])->save();
 
     $this->actingAs($this->superAdmin)
-        ->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved'])
+        ->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'resolved'])
         ->assertForbidden();
     $this->actingAs($this->superAdmin)
-        ->post(route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint]), ['handler_type' => 'user', 'handler_id' => (string) $this->orgAdmin->id])
+        ->post(route('public-complaints.cases.assign', ['submission' => $complaint]), ['handler_type' => 'user', 'handler_id' => (string) $this->orgAdmin->id])
         ->assertForbidden();
 
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::UnderReview)
@@ -212,7 +212,7 @@ it('shows the history, the allowed transitions and the handler on the detail pag
     app(PublicFeedbackWorkflow::class)->transition($complaint, ServiceFeedbackStatus::UnderReview, $this->orgAdmin, 'Start');
 
     $this->actingAs($this->orgAdmin)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/SubmissionDetail')
@@ -227,7 +227,7 @@ it('shows the history, the allowed transitions and the handler on the detail pag
 
     // The reviewer sees the row but only the transition they may make, and cannot assign.
     $this->actingAs($this->reviewer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('allowedTransitions', [])
@@ -240,7 +240,7 @@ it('filters the inbox by the new statuses and counts them', function (): void {
     wfSubmission(ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed);
 
     $this->actingAs($this->superAdmin)
-        ->get(route('service-submissions.complaints', ['status' => 'unrouted']))
+        ->get(route('public-complaints.cases.index', ['status' => 'unrouted']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('entries.total', 1)

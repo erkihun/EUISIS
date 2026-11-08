@@ -44,6 +44,8 @@ final class AssistantPageRegistry
         'court-cases.' => 'discipline',
         'service-feedback.' => 'service_feedback',
         'service-submissions.' => 'service_feedback',
+        'tip-offs.' => 'service_feedback',
+        'public-complaints.' => 'service_feedback',
         'public-feedback.' => 'service_feedback',
         'id-cards.' => 'id_cards',
         'card-requests.' => 'id_cards',

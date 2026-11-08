@@ -9,6 +9,7 @@ import { AppDialog, Alert, Button, Card, FormField, Select, Textarea } from '@eu
 import { Head, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import type { TipType } from '@/types/publicSubmissions';
+import { caseRoute } from '@/Components/ServiceFeedback/caseRoutes';
 
 type Entry = {
     id: string; reference: string | null; status: string; message: string; subject: string | null;
@@ -155,7 +156,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
     const [delegating, setDelegating] = useState(false);
     const [escalating, setEscalating] = useState(false);
 
-    return <AuthenticatedLayout header={<PageHeader title={title} backHref={route(type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions')} />}>
+    return <AuthenticatedLayout header={<PageHeader title={title} backHref={caseRoute(type, 'cases.index')} />}>
         <Head title={entry.reference ? `${title} ${entry.reference}` : title} />
         <div className="space-y-5">
             <header className="flex flex-wrap items-start justify-between gap-3">
@@ -224,7 +225,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         <h2 className="font-semibold">{t('serviceFeedback.submittedEvidence')}</h2>
                         <ul className="space-y-2">{entry.attachments.map((file) => (
                             <li key={file.id} className="text-sm">
-                                <a href={route('service-submissions.attachments.download', { type, submission: entry.id, attachment: file.id })} className="font-medium text-primary underline underline-offset-4">{file.name}</a>
+                                <a href={caseRoute(type, 'cases.attachments.download', { submission: entry.id, attachment: file.id })} className="font-medium text-primary underline underline-offset-4">{file.name}</a>
                                 <span className="ml-2 text-(--app-muted-foreground)">
                                     {file.kind ? t(EVIDENCE_LABEL[file.kind]) : ''} · {Math.ceil(file.size / 1024)} KB
                                     {file.scan_status === 'not_scanned' && <> · {t('serviceFeedback.evidenceNotScanned')}</>}
@@ -307,7 +308,7 @@ function TransitionForm({ type, submissionId, allowedTransitions, decisionRequir
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-submissions.transition', { type, submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset('reason') });
+        form.post(caseRoute(type, 'cases.transition', { submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset('reason') });
     }
 
     return <form onSubmit={submit} className={PANEL}>
@@ -338,7 +339,7 @@ function EscalateDialog({ type, submissionId, onClose }: { type: 'suggestion' | 
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-submissions.escalate', { type, submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
+        form.post(caseRoute(type, 'cases.escalate', { submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
     }
 
     return <AppDialog open onClose={onClose} title={t('serviceFeedback.escalate')} description={t('serviceFeedback.escalateHint')} maxWidth="lg"
@@ -369,7 +370,7 @@ function AssignDialog({ type, submissionId, options, reassign, locale, onClose, 
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-submissions.assign', { type, submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
+        form.post(caseRoute(type, 'cases.assign', { submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
     }
 
     return <AppDialog open onClose={onClose} title={t(membersOnly ? 'serviceFeedback.delegate' : reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')} description={t(membersOnly ? 'serviceFeedback.delegateHint' : 'serviceFeedback.assignHint')} maxWidth="lg"

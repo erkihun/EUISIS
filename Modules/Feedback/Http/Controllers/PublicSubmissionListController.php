@@ -45,12 +45,10 @@ class PublicSubmissionListController extends Controller
         private readonly PublicFeedbackVisibility $visibility,
     ) {}
 
-    public function index(Request $request): Response
-    {
-        return $this->render($request, null);
-    }
-
-    /** Routed types with no handler yet: the review queue nothing may fall out of. */
+    /**
+     * One module's cases with no handler yet (route default `submission_type`):
+     * the review queue nothing may fall out of. Owner rule: each module its own.
+     */
     public function unrouted(Request $request): Response
     {
         return $this->render($request, 'unrouted');
@@ -60,10 +58,12 @@ class PublicSubmissionListController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $types = $this->visibility->visibleTypes($user);
-        abort_if($types === [], 403);
+        $module = (string) $request->route('submission_type');
+        abort_unless(in_array($module, ['suggestion', 'complaint'], true), 404);
+        abort_unless(in_array($module, $this->visibility->visibleTypes($user), true), 403);
+        $types = [$module];
 
-        $filters = $this->metrics->filters($request->query());
+        $filters = $this->metrics->filters(['submission_type' => $module] + $request->query());
         if ($queue !== null) {
             $filters['status'] = $queue;
         }
@@ -72,7 +72,7 @@ class PublicSubmissionListController extends Controller
 
         $list = $this->narrow($this->metrics->query($user, $filters), $extra, $user);
         // The cards split the same slice by type and status, so they ignore those two filters (and the queue).
-        $cards = $this->narrow($this->metrics->query($user, array_diff_key($filters, array_flip(['submission_type', 'tip_type', 'status']))), $extra, $user);
+        $cards = $this->narrow($this->metrics->query($user, array_diff_key($filters, array_flip(['tip_type', 'status']))), $extra, $user);
         $locale = app()->getLocale();
 
         $entries = $this->sorted($list, $sort)
@@ -91,6 +91,8 @@ class PublicSubmissionListController extends Controller
 
         return Inertia::render('ServiceFeedback/AllSubmissions', [
             'queue' => $queue ?? 'all',
+            'module' => $module,
+            'routeName' => ($module === 'suggestion' ? 'tip-offs' : 'public-complaints').'.unrouted',
             'entries' => $entries,
             'overview' => $this->metrics->overview($cards),
             'filters' => $filters + $extra + ['sort' => $sort],
@@ -244,7 +246,7 @@ class PublicSubmissionListController extends Controller
             'identity_mode' => $entry->submitter_identity_mode?->value,
             'url' => $entry->type === ServiceFeedbackType::Feedback
                 ? route('service-feedback.admin.show', $entry->id)
-                : route('service-submissions.show', ['type' => $entry->type->value, 'submission' => $entry->id]),
+                : route(($entry->type->value === 'suggestion' ? 'tip-offs' : 'public-complaints').'.cases.show', $entry->id),
         ];
     }
 }

@@ -93,7 +93,7 @@ it('names investigation subjects on an institution complaint without changing it
     $complaint = refComplaint();
 
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.subjects.store', ['type' => 'complaint', 'submission' => $complaint]), ['employee_id' => $this->colleague->id, 'subject_role' => 'Counter officer on duty'])
+        ->post(route('public-complaints.cases.subjects.store', ['submission' => $complaint]), ['employee_id' => $this->colleague->id, 'subject_role' => 'Counter officer on duty'])
         ->assertRedirect();
 
     $subject = PublicFeedbackSubjectEmployee::query()->sole();
@@ -108,25 +108,25 @@ it('names investigation subjects on an institution complaint without changing it
 
     // Not twice, not an employee of another institution, not on a suggestion.
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.subjects.store', ['type' => 'complaint', 'submission' => $complaint]), ['employee_id' => $this->colleague->id])
+        ->post(route('public-complaints.cases.subjects.store', ['submission' => $complaint]), ['employee_id' => $this->colleague->id])
         ->assertSessionHasErrors('employee_id');
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.subjects.store', ['type' => 'complaint', 'submission' => $complaint]), ['employee_id' => $this->b->employee->id])
+        ->post(route('public-complaints.cases.subjects.store', ['submission' => $complaint]), ['employee_id' => $this->b->employee->id])
         ->assertSessionHasErrors('employee_id');
     $suggestion = refComplaint(['type' => ServiceFeedbackType::Suggestion, 'reference_number' => null]);
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.subjects.store', ['type' => 'suggestion', 'submission' => $suggestion]), ['employee_id' => $this->colleague->id])
+        ->post(route('tip-offs.cases.subjects.store', ['submission' => $suggestion]), ['employee_id' => $this->colleague->id])
         ->assertNotFound();
 
     $this->actingAs($this->reviewer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertInertia(fn (Assert $page) => $page
             ->has('subjects', 1)
             ->where('subjects.0.employee.full_name', 'Kebede Alemu')
             ->where('can.subjects', true));
 
     $this->actingAs($this->reviewer)
-        ->delete(route('service-submissions.subjects.destroy', ['type' => 'complaint', 'submission' => $complaint, 'subject' => $subject]))
+        ->delete(route('public-complaints.cases.subjects.destroy', ['submission' => $complaint, 'subject' => $subject]))
         ->assertRedirect();
     expect(PublicFeedbackSubjectEmployee::query()->count())->toBe(0)
         ->and(AuditLog::query()->whereIn('event_type', [AuditEventType::ServiceFeedbackSubjectAdded->value, AuditEventType::ServiceFeedbackSubjectRemoved->value])->count())->toBe(2);
@@ -137,11 +137,11 @@ it('records a controlled referral request that creates no discipline case, griev
     $complaint = refComplaint();
 
     $this->actingAs($this->reviewer)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $complaint]), ['notes' => 'Facts may justify a discipline process.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $complaint]), ['notes' => 'Facts may justify a discipline process.'])
         ->assertForbidden();
 
     $this->actingAs($this->referrer)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $complaint]), ['notes' => 'Facts may justify a discipline process.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $complaint]), ['notes' => 'Facts may justify a discipline process.'])
         ->assertRedirect();
 
     $referral = PublicFeedbackReferral::query()->sole();
@@ -161,15 +161,15 @@ it('records a controlled referral request that creates no discipline case, griev
 
     // One open request at a time.
     $this->actingAs($this->decider)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $complaint]), ['notes' => 'Again.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $complaint]), ['notes' => 'Again.'])
         ->assertSessionHasErrors('notes');
 
     // Decision by an authorised user other than the requester; withdrawal by the requester.
     $this->actingAs($this->reviewer)
-        ->patch(route('service-submissions.referrals.update', ['type' => 'complaint', 'submission' => $complaint, 'referral' => $referral]), ['status' => 'accepted'])
+        ->patch(route('public-complaints.cases.referrals.update', ['submission' => $complaint, 'referral' => $referral]), ['status' => 'accepted'])
         ->assertForbidden();
     $this->actingAs($this->decider)
-        ->patch(route('service-submissions.referrals.update', ['type' => 'complaint', 'submission' => $complaint, 'referral' => $referral]), ['status' => 'accepted', 'notes' => 'Forwarded to the discipline committee secretariat.'])
+        ->patch(route('public-complaints.cases.referrals.update', ['submission' => $complaint, 'referral' => $referral]), ['status' => 'accepted', 'notes' => 'Forwarded to the discipline committee secretariat.'])
         ->assertRedirect();
     $referral->refresh();
     expect($referral->status)->toBe('accepted')
@@ -178,11 +178,11 @@ it('records a controlled referral request that creates no discipline case, griev
         ->and(AuditLog::query()->where('event_type', AuditEventType::ServiceFeedbackReferralDecided->value)->exists())->toBeTrue();
 
     $this->actingAs($this->decider)
-        ->patch(route('service-submissions.referrals.update', ['type' => 'complaint', 'submission' => $complaint, 'referral' => $referral]), ['status' => 'declined'])
+        ->patch(route('public-complaints.cases.referrals.update', ['submission' => $complaint, 'referral' => $referral]), ['status' => 'declined'])
         ->assertSessionHasErrors('status');
 
     $this->actingAs($this->referrer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertInertia(fn (Assert $page) => $page
             ->has('referrals', 1)
             ->where('referrals.0.status', 'accepted')
@@ -195,7 +195,7 @@ it('refuses a referral before the complaint has been reviewed', function (): voi
     $complaint = refComplaint(['status' => ServiceFeedbackStatus::Assigned]);
 
     $this->actingAs($this->referrer)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $complaint]), ['notes' => 'Too early.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $complaint]), ['notes' => 'Too early.'])
         ->assertSessionHasErrors('notes');
 
     expect(PublicFeedbackReferral::query()->count())->toBe(0);
@@ -207,7 +207,7 @@ it('keeps the employee a complaint is about, or names as a subject, out of its r
     $targetUser = User::factory()->create(['employee_id' => $this->a->employee->id]);
     $targetUser->assignRole('Super Admin');
     $this->actingAs($targetUser)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $targeted]), ['notes' => 'About me.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $targeted]), ['notes' => 'About me.'])
         ->assertForbidden();
 
     // Institution complaint naming a subject: the subject's own account cannot request or decide.
@@ -217,23 +217,23 @@ it('keeps the employee a complaint is about, or names as a subject, out of its r
         'subject_role' => 'Officer', 'added_by' => $this->reviewer->id, 'added_at' => now(),
     ]);
     $this->actingAs($this->colleagueUser)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $complaint]), ['notes' => 'About me.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $complaint]), ['notes' => 'About me.'])
         ->assertForbidden();
 
     $this->actingAs($this->referrer)
-        ->post(route('service-submissions.referrals.store', ['type' => 'complaint', 'submission' => $complaint]), ['notes' => 'Please review.'])
+        ->post(route('public-complaints.cases.referrals.store', ['submission' => $complaint]), ['notes' => 'Please review.'])
         ->assertRedirect();
     $referral = PublicFeedbackReferral::query()->where('submission_id', $complaint->id)->sole();
     $this->actingAs($this->colleagueUser)
-        ->patch(route('service-submissions.referrals.update', ['type' => 'complaint', 'submission' => $complaint, 'referral' => $referral]), ['status' => 'declined'])
+        ->patch(route('public-complaints.cases.referrals.update', ['submission' => $complaint, 'referral' => $referral]), ['status' => 'declined'])
         ->assertForbidden();
 
     // The requester may withdraw; nobody else may "withdraw" for them.
     $this->actingAs($this->decider)
-        ->patch(route('service-submissions.referrals.update', ['type' => 'complaint', 'submission' => $complaint, 'referral' => $referral]), ['status' => 'withdrawn'])
+        ->patch(route('public-complaints.cases.referrals.update', ['submission' => $complaint, 'referral' => $referral]), ['status' => 'withdrawn'])
         ->assertForbidden();
     $this->actingAs($this->referrer)
-        ->patch(route('service-submissions.referrals.update', ['type' => 'complaint', 'submission' => $complaint, 'referral' => $referral]), ['status' => 'withdrawn'])
+        ->patch(route('public-complaints.cases.referrals.update', ['submission' => $complaint, 'referral' => $referral]), ['status' => 'withdrawn'])
         ->assertRedirect();
     expect($referral->fresh()->status)->toBe('withdrawn');
 });

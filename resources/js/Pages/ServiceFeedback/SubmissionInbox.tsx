@@ -7,6 +7,7 @@ import { Card, EmptyState, cx } from '@euisis/ui';
 import { ListPagination, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link } from '@inertiajs/react';
 import type { TipTypeBucket } from '@/types/publicSubmissions';
+import { CASE_MODULE, caseRoute } from '@/Components/ServiceFeedback/caseRoutes';
 
 type Entry = {
     id: string; reference: string | null; type: string; status: string; tip_type: TipTypeBucket | null;
@@ -39,7 +40,7 @@ const TIP_FILTER_LABEL: Record<TipTypeBucket | 'ALL', string> = {
 export default function SubmissionInbox({ type, entries, counts, statuses, filters, canManageRouting }: Props) {
     const { t } = useLocale();
     const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
-    const listRoute = type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions';
+    const listRoute = `${CASE_MODULE[type]}.cases.index`;
     const total = Object.values(counts).reduce((sum, value) => sum + Number(value), 0);
     const needsAttention = Number(counts.unrouted ?? 0);
 
@@ -106,7 +107,7 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
                 <h2 className="sr-only">{title}</h2>
                 {entries.data.length === 0 ? <Card className="border-0"><EmptyState title={t('serviceFeedback.noSubmissions')} /></Card>
                     : <ul className="divide-y divide-(--app-border)">{entries.data.map((entry) => <li key={entry.id}>
-                        <Link href={route('service-submissions.show', { type, submission: entry.id })} className="block p-4 hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
+                        <Link href={caseRoute(type, 'cases.show', { submission: entry.id })} className="block p-4 hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <span className="font-semibold">
                                     <span className="mr-2 rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium text-(--app-muted-foreground)">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}</span>{' '}

@@ -42,7 +42,7 @@ beforeEach(function (): void {
     Storage::fake('local');
 
     foreach ([
-        'service_feedback.view', 'service_feedback.review', 'service_feedback.complaints.view',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.view',
         'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
         'service_feedback.view_submitter_identity', 'service_feedback.view_sensitive_attachments',
     ] as $permission) {
@@ -219,7 +219,7 @@ it('stores a tipster\'s details encrypted and confidential, and keeps them out o
     expect(json_encode($row->toArray()))->not->toContain('Tipster Tesfaye')->not->toContain('0911 55 66 77');
 
     // Aggregates: the reports page and the dashboard show counts, never the tipster.
-    $report = $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.index'))->assertOk();
+    $report = $this->actingAs($this->superAdmin)->get(route('tip-offs.reports.index'))->assertOk();
     $dashboard = $this->actingAs($this->superAdmin)->get(route('dashboard'))->assertOk();
     foreach ([$report, $dashboard] as $response) {
         expect((string) $response->getContent())
@@ -233,13 +233,13 @@ it('hides the tipster from a reviewer without the identity grant and audits each
     $row = EmployeeServiceFeedback::query()->sole();
 
     $reviewer = User::factory()->create();
-    $reviewer->givePermissionTo(['service_feedback.view', 'service_feedback.view_employee_target']);
-    $this->actingAs($reviewer)->get(route('service-submissions.show', ['type' => 'suggestion', 'submission' => $row]))
+    $reviewer->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target']);
+    $this->actingAs($reviewer)->get(route('tip-offs.cases.show', ['submission' => $row]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('entry.identity_hidden', true)->where('entry.client_name', null)->where('entry.client_contact', null)->where('entry.tip_type', 'IMPROPER_PRACTICE'));
     expect(AuditLog::query()->where('event_type', AuditEventType::PublicSubmitterIdentityViewed->value)->count())->toBe(0);
 
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.show', ['type' => 'suggestion', 'submission' => $row]))
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.cases.show', ['submission' => $row]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('entry.client_name', 'Hidden Name')->where('entry.intake_channel', 'WEB_QR'));
     $audit = AuditLog::query()->where('event_type', AuditEventType::PublicSubmitterIdentityViewed->value)->sole();
@@ -295,16 +295,16 @@ it('lets an authorized reviewer download Tip-off evidence, audited, and refuses 
     $this->post(tipUrl('employee'), ['message' => 'Evidence.', 'tip_type' => 'CORRUPTION', 'attachments' => [tipMedia('jpeg', 'photo.jpg')]])->assertRedirect();
     $row = EmployeeServiceFeedback::query()->sole();
     $file = $row->attachments()->sole();
-    $url = route('service-submissions.attachments.download', ['type' => 'suggestion', 'submission' => $row, 'attachment' => $file]);
+    $url = route('tip-offs.cases.attachments.download', ['submission' => $row, 'attachment' => $file]);
 
     $this->actingAs($this->superAdmin)->get($url)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
     expect(AuditLog::query()->where('event_type', AuditEventType::ServiceTipOffAttachmentDownloaded->value)->count())->toBe(1);
 
     $reviewer = User::factory()->create();
-    $reviewer->givePermissionTo(['service_feedback.view', 'service_feedback.view_employee_target']);
+    $reviewer->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target']);
     $this->actingAs($reviewer)->get($url)->assertForbidden();
     // A complaint URL cannot reach a Tip-off's file.
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.attachments.download', ['type' => 'complaint', 'submission' => $row, 'attachment' => $file]))->assertNotFound();
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.cases.attachments.download', ['submission' => $row, 'attachment' => $file]))->assertNotFound();
 });
 
 // ── 59, 108: the scanned target is fixed ─────────────────────────────────────
@@ -345,7 +345,7 @@ it('never starts discipline, a referral or a score change from a Tip-off', funct
 
 it('routes a corruption Tip-off only through a rule that names corruption, and keeps it unrouted otherwise', function (): void {
     $officer = User::factory()->create();
-    $officer->givePermissionTo(['service_feedback.view', 'service_feedback.view_employee_target']);
+    $officer->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target']);
     UserOrganizationScope::query()->create(['user_id' => $officer->id, 'organization_id' => $this->a->organization->id, 'scope_type' => OrganizationScopeType::Self]);
     // A generic rule written for suggestions before Tip-off types existed.
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $this->a->organization->id, 'submission_type' => 'suggestion', 'handler_type' => 'user', 'handler_id' => (string) $officer->id, 'priority' => 10, 'is_active' => true, 'created_by' => $this->superAdmin->id]);
@@ -357,7 +357,7 @@ it('routes a corruption Tip-off only through a rule that names corruption, and k
         ->and($rows['IMPROPER_PRACTICE']->status)->toBe(ServiceFeedbackStatus::Assigned);
 
     $designated = User::factory()->create();
-    $designated->givePermissionTo(['service_feedback.view', 'service_feedback.view_employee_target']);
+    $designated->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target']);
     UserOrganizationScope::query()->create(['user_id' => $designated->id, 'organization_id' => $this->a->organization->id, 'scope_type' => OrganizationScopeType::Self]);
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $this->a->organization->id, 'submission_type' => 'suggestion', 'tip_type' => 'CORRUPTION', 'handler_type' => 'user', 'handler_id' => (string) $designated->id, 'priority' => 10, 'is_active' => true, 'created_by' => $this->superAdmin->id]);
 
@@ -418,9 +418,9 @@ it('splits Tip-offs into the two types plus legacy unclassified rows, and every 
         ->where('cards.tipOffs.improperPractice', 2)
         ->where('cards.tipOffs.unclassified', 1));
 
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.index', ['tip_type' => 'CORRUPTION']))
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.reports.index', ['tip_type' => 'CORRUPTION']))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('tipOffs.total', 2)->where('summary.total', 2));
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.suggestions', ['tip_type' => 'UNCLASSIFIED_LEGACY']))
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.cases.index', ['tip_type' => 'UNCLASSIFIED_LEGACY']))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('entries.total', 1)->where('entries.data.0.tip_type', null));
 });
 

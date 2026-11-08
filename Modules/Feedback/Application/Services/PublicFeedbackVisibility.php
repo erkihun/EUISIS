@@ -27,8 +27,11 @@ final class PublicFeedbackVisibility implements FeedbackVisibility
 
     public const ORGANIZATION_TARGET = 'service_feedback.view_organization_target';
 
-    /** Feedback and Tip-offs: the general grant. */
+    /** Service feedback. */
     public const VIEW = 'service_feedback.view';
+
+    /** Tip-offs: their own grant (owner rule 2026-11-08: separate modules, nothing shared). */
+    public const TIP_OFFS_VIEW = 'service_feedback.tip_offs.view';
 
     /** Complaints: a narrower grant held by selected service-quality roles. */
     public const COMPLAINTS_VIEW = 'service_feedback.complaints.view';
@@ -45,6 +48,8 @@ final class PublicFeedbackVisibility implements FeedbackVisibility
         $types = [];
         if ($user->hasAnyPermission([self::VIEW])) {
             $types[] = ServiceFeedbackType::Feedback->value;
+        }
+        if ($user->hasAnyPermission([self::TIP_OFFS_VIEW])) {
             $types[] = ServiceFeedbackType::Suggestion->value;
         }
         if ($user->hasAnyPermission([self::COMPLAINTS_VIEW])) {

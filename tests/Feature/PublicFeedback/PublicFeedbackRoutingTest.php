@@ -34,7 +34,7 @@ beforeEach(function (): void {
     app()->setLocale('en');
 
     foreach ([
-        'service_feedback.view', 'service_feedback.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
         'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.manage_routing',
         'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ] as $permission) {
@@ -42,7 +42,7 @@ beforeEach(function (): void {
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
     Role::findOrCreate('Organizational Admin', 'web')->syncPermissions([
-        'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
         'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.manage_routing', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ]);
     Role::findOrCreate('Service Quality Team', 'web')->syncPermissions(['service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
@@ -167,7 +167,7 @@ it('assigns an unrouted complaint by hand and reassigns it without losing the fi
     ]);
 
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint]), [
+        ->post(route('public-complaints.cases.assign', ['submission' => $complaint]), [
             'handler_type' => 'user', 'handler_id' => (string) $this->handler->id, 'reason' => 'Quality team takes counter complaints.',
         ])->assertRedirect();
 
@@ -175,7 +175,7 @@ it('assigns an unrouted complaint by hand and reassigns it without losing the fi
     expect($complaint->status)->toBe(ServiceFeedbackStatus::Assigned)->and($complaint->assigned_at)->not->toBeNull();
 
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint]), [
+        ->post(route('public-complaints.cases.assign', ['submission' => $complaint]), [
             'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id, 'reason' => 'Officer on leave.',
         ])->assertRedirect();
 
@@ -200,7 +200,7 @@ it('refuses a handler outside the submission organization', function (): void {
     ]);
 
     $this->actingAs($this->orgAdmin)
-        ->post(route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint]), ['handler_type' => 'organization_unit', 'handler_id' => $foreignUnit->id])
+        ->post(route('public-complaints.cases.assign', ['submission' => $complaint]), ['handler_type' => 'organization_unit', 'handler_id' => $foreignUnit->id])
         ->assertSessionHasErrors('handler_id');
 
     expect(PublicFeedbackAssignment::query()->count())->toBe(0)
@@ -259,14 +259,14 @@ it('shows the assigned handler in the inbox and filters to my queue', function (
     ]);
 
     $this->actingAs($this->handler)
-        ->get(route('service-submissions.complaints', ['mine' => 1]))
+        ->get(route('public-complaints.cases.index', ['mine' => 1]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('entries.total', 1)
             ->where('entries.data.0.handler', 'Quality Officer'));
 
     $this->actingAs($this->handler)
-        ->get(route('service-submissions.complaints'))
+        ->get(route('public-complaints.cases.index'))
         ->assertInertia(fn (Assert $page) => $page->where('entries.total', 2));
 });
 

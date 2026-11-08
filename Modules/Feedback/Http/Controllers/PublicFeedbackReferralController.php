@@ -24,8 +24,10 @@ class PublicFeedbackReferralController extends Controller
 {
     public function __construct(private readonly PublicFeedbackReferralService $referrals) {}
 
-    public function store(Request $request, string $type, EmployeeServiceFeedback $submission): RedirectResponse
+    public function store(Request $request, EmployeeServiceFeedback $submission): RedirectResponse
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         abort_unless($type === 'complaint' && $submission->type === ServiceFeedbackType::Complaint, 404);
         $this->authorize('view', $submission);
         abort_unless($this->referrals->canRefer($this->user(), $submission), 403);
@@ -37,8 +39,10 @@ class PublicFeedbackReferralController extends Controller
         return back()->with('success', __('service-feedback.referral_requested'));
     }
 
-    public function update(Request $request, string $type, EmployeeServiceFeedback $submission, PublicFeedbackReferral $referral): RedirectResponse
+    public function update(Request $request, EmployeeServiceFeedback $submission, PublicFeedbackReferral $referral): RedirectResponse
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         abort_unless($type === 'complaint' && $submission->type === ServiceFeedbackType::Complaint && $referral->submission_id === $submission->getKey(), 404);
         $this->authorize('view', $submission);
         $user = $this->user();

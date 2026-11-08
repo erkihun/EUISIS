@@ -1538,6 +1538,14 @@ return [
         'description_am' => 'የመዳረሻ ነጥብ ስኮፕ፣ ሁኔታ፣ መግለጫና የሰነድ ታይነት ማሻሻል ያስችላል።'],
 
     // Client Service Feedback
+    ['name' => 'service_feedback.tip_offs.view', 'group' => 'service_feedback', 'sort_order' => 60, 'is_system' => true,
+        'label_en' => 'View Public Tip-offs', 'label_am' => 'የሕዝብ ጥቆማዎችን ይመልከቱ',
+        'description_en' => 'Allows viewing public Tip-offs within the organization scope. Separate from service feedback and complaints.',
+        'description_am' => 'በተቋሙ ወሰን ውስጥ የሕዝብ ጥቆማዎችን ማየት ያስችላል። ከተገልጋይ አስተያየትና ከቅሬታ የተለየ ነው።'],
+    ['name' => 'service_feedback.tip_offs.review', 'group' => 'service_feedback', 'sort_order' => 70, 'is_system' => true,
+        'label_en' => 'Review Public Tip-offs', 'label_am' => 'የሕዝብ ጥቆማዎችን ይገምግሙ',
+        'description_en' => 'Allows reviewing public Tip-offs assigned within the organization scope.',
+        'description_am' => 'በተቋሙ ወሰን ውስጥ የተመደቡ የሕዝብ ጥቆማዎችን መገምገም ያስችላል።'],
     ['name' => 'service_feedback.complaints.view', 'group' => 'service_feedback', 'sort_order' => 80, 'is_system' => true,
         'label_en' => 'View Public Service Complaints', 'label_am' => 'የሕዝብ አገልግሎት ቅሬታዎችን ይመልከቱ',
         'description_en' => 'Allows selected service-quality roles to view public complaints within their organization scope.',

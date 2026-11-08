@@ -231,7 +231,7 @@ export default function Dashboard({
      */
     const canStructure = can.organizations || can.positions;
     const canIdentity = can.cards || can.verification || can.nfc;
-    const canServices = can.entitlements || can.transactions || can.providers || can.serviceFeedback;
+    const canServices = can.entitlements || can.transactions || can.providers || can.serviceFeedback || can.tipOffs;
     const canSystem = can.integration;
 
     const tabs: DashboardTab[] = [
@@ -559,13 +559,13 @@ export default function Dashboard({
                         )}
 
                         {/* Tip-offs are reports received, not findings: counts only, safe on a wall display. */}
-                        {can.serviceFeedback && cards.tipOffs && (
+                        {can.tipOffs && cards.tipOffs && (
                             <StatTileGroup
                                 stats={[
-                                    { key: 'tipOffTotal', label: t('dashboard.tipOffs.total'), value: numberOrNull(cards.tipOffs.total), tone: 'neutral', href: route('service-submissions.suggestions') },
-                                    { key: 'tipOffCorruption', label: t('dashboard.tipOffs.corruption'), value: numberOrNull(cards.tipOffs.corruption), tone: 'neutral', href: route('service-submissions.suggestions', { tip_type: 'CORRUPTION' }) },
-                                    { key: 'tipOffImproper', label: t('dashboard.tipOffs.improperPractice'), value: numberOrNull(cards.tipOffs.improperPractice), tone: 'neutral', href: route('service-submissions.suggestions', { tip_type: 'IMPROPER_PRACTICE' }) },
-                                    { key: 'tipOffUnrouted', label: t('dashboard.tipOffs.awaitingRouting'), value: numberOrNull(cards.tipOffs.awaitingRouting), tone: Number(cards.tipOffs.awaitingRouting ?? 0) > 0 ? 'warning' : 'neutral', href: route('service-submissions.suggestions', { status: 'unrouted' }) },
+                                    { key: 'tipOffTotal', label: t('dashboard.tipOffs.total'), value: numberOrNull(cards.tipOffs.total), tone: 'neutral', href: route('tip-offs.cases.index') },
+                                    { key: 'tipOffCorruption', label: t('dashboard.tipOffs.corruption'), value: numberOrNull(cards.tipOffs.corruption), tone: 'neutral', href: route('tip-offs.cases.index', { tip_type: 'CORRUPTION' }) },
+                                    { key: 'tipOffImproper', label: t('dashboard.tipOffs.improperPractice'), value: numberOrNull(cards.tipOffs.improperPractice), tone: 'neutral', href: route('tip-offs.cases.index', { tip_type: 'IMPROPER_PRACTICE' }) },
+                                    { key: 'tipOffUnrouted', label: t('dashboard.tipOffs.awaitingRouting'), value: numberOrNull(cards.tipOffs.awaitingRouting), tone: Number(cards.tipOffs.awaitingRouting ?? 0) > 0 ? 'warning' : 'neutral', href: route('tip-offs.cases.index', { status: 'unrouted' }) },
                                 ] satisfies Stat[]}
                             />
                         )}

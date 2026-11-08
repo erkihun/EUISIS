@@ -161,6 +161,8 @@ class DashboardDataService
             'transactions' => $this->hasAnyPermission($user, ['service-transactions.viewAny', 'transactions.view', 'transactions.manage']),
             'providers' => $this->hasAnyPermission($user, ['providers.viewAny', 'transactions.view', 'transactions.manage']),
             'serviceFeedback' => $this->hasAnyPermission($user, ['service_feedback.view']),
+            // Tip-offs are their own module with their own grant.
+            'tipOffs' => $this->hasAnyPermission($user, ['service_feedback.tip_offs.view']),
             'transfers' => $this->hasAnyPermission($user, ['transfers.viewAny', 'transfers.view']),
             // The activity feed names who did what, so it follows the audit log
             // policy (audit.view), not the broader reports.view.

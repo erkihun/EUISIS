@@ -33,11 +33,11 @@ beforeEach(function (): void {
     app()->setLocale('en');
     Storage::fake('local');
 
-    foreach (['service_feedback.settings.manage', 'service_feedback.view', 'service_feedback.complaints.view'] as $permission) {
+    foreach (['service_feedback.settings.manage', 'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
-    Role::findOrCreate('Organizational Admin', 'web')->syncPermissions(['service_feedback.settings.manage', 'service_feedback.view']);
+    Role::findOrCreate('Organizational Admin', 'web')->syncPermissions(['service_feedback.settings.manage', 'service_feedback.view', 'service_feedback.tip_offs.view']);
 
     $this->a = PublicFeedbackScenario::employeeTarget('SET');
     RateLimiter::clear('sf-submit:'.$this->a->token->token.'|127.0.0.1');

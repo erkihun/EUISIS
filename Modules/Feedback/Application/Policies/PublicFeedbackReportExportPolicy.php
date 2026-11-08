@@ -23,12 +23,12 @@ class PublicFeedbackReportExportPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyPermission(['service_feedback.view']);
+        return $user->hasAnyPermission(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyPermission(['service_feedback.view']) && $user->hasAnyPermission(['service_feedback.export']);
+        return $user->hasAnyPermission(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view']) && $user->hasAnyPermission(['service_feedback.export']);
     }
 
     public function download(User $user, PublicFeedbackReportExport|FeedbackReportExportRecord $export): bool

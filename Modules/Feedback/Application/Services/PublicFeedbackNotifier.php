@@ -163,7 +163,11 @@ final class PublicFeedbackNotifier
 
     private function viewPermission(EmployeeServiceFeedback $submission): string
     {
-        return $submission->type === ServiceFeedbackType::Complaint ? 'service_feedback.complaints.view' : 'service_feedback.view';
+        return match ($submission->type) {
+            ServiceFeedbackType::Complaint => 'service_feedback.complaints.view',
+            ServiceFeedbackType::Suggestion => 'service_feedback.tip_offs.view',
+            default => 'service_feedback.view',
+        };
     }
 
     /**
@@ -195,7 +199,7 @@ final class PublicFeedbackNotifier
 
         $reference = $submission->reference_number ?? strtoupper(substr((string) $submission->getKey(), 0, 8));
         $type = $submission->type->value;
-        $url = route('service-submissions.show', ['type' => $type, 'submission' => $submission->getKey()], false);
+        $url = route(($type === 'suggestion' ? 'tip-offs' : 'public-complaints').'.cases.show', $submission->getKey(), false);
         $ids = array_map(fn (User $user) => $user->getKey(), $users);
 
         DB::afterCommit(function () use ($ids, $kind, $type, $reference, $url): void {

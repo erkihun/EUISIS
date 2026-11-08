@@ -20,7 +20,7 @@ use Tests\Support\PublicFeedbackScenario;
 
 beforeEach(function (): void {
     app()->setLocale('en');
-    foreach (['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.review', 'service_feedback.complaints.review'] as $permission) {
+    foreach (['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     $this->role = Role::findOrCreate('Super Admin', 'web');
@@ -56,7 +56,7 @@ it('routes a new case to level 1 with its deadline and escalates it once the dea
     expect($complaint->currentAssignment()->sole()->level)->toBe(1);
 
     $this->travel(4)->days();
-    $this->actingAs($this->admin)->get(route('service-submissions.complaints.dashboard'))
+    $this->actingAs($this->admin)->get(route('public-complaints.dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('figures.overdue', 1));
 
     $this->artisan('service-feedback:escalate-overdue')->assertSuccessful();
@@ -70,7 +70,7 @@ it('routes a new case to level 1 with its deadline and escalates it once the dea
     $this->travel(6)->days();
     $this->artisan('service-feedback:escalate-overdue')->assertSuccessful();
     expect($complaint->currentAssignment()->sole()->id)->toBe($second->id);
-    $this->actingAs($this->admin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint->id]))
+    $this->actingAs($this->admin)->get(route('public-complaints.cases.show', ['submission' => $complaint->id]))
         ->assertInertia(fn (Assert $page) => $page->where('currentAssignment.level', 2)->where('currentAssignment.overdue', true)->where('can.escalate', false));
 });
 
@@ -79,14 +79,14 @@ it('lets a reviewer escalate with a reason, and keeps the deadline through a man
     $due = $complaint->currentAssignment()->sole()->due_at;
 
     // A manual hand-over inside level 1 keeps level 1's deadline.
-    $this->actingAs($this->admin)->post(route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint->id]), ['handler_type' => 'role', 'handler_id' => (string) $this->role->id])->assertSessionHasNoErrors();
+    $this->actingAs($this->admin)->post(route('public-complaints.cases.assign', ['submission' => $complaint->id]), ['handler_type' => 'role', 'handler_id' => (string) $this->role->id])->assertSessionHasNoErrors();
     $handOver = $complaint->currentAssignment()->sole();
     expect($handOver->level)->toBe(1)->and($handOver->due_at->equalTo($due))->toBeTrue();
 
-    $this->actingAs($this->admin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint->id]))
+    $this->actingAs($this->admin)->get(route('public-complaints.cases.show', ['submission' => $complaint->id]))
         ->assertInertia(fn (Assert $page) => $page->where('can.escalate', true)->where('currentAssignment.level', 1));
 
-    $route = route('service-submissions.escalate', ['type' => 'complaint', 'submission' => $complaint->id]);
+    $route = route('public-complaints.cases.escalate', ['submission' => $complaint->id]);
     $this->actingAs($this->admin)->post($route, [])->assertSessionHasErrors('reason');
     $this->actingAs($this->admin)->post($route, ['reason' => 'Needs the directorate.'])->assertSessionHasNoErrors();
     $escalated = $complaint->currentAssignment()->sole();

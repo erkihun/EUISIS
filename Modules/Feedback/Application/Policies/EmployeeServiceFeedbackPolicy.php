@@ -37,13 +37,13 @@ class EmployeeServiceFeedbackPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyPermission(['service_feedback.view']);
+        return $user->hasAnyPermission(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view']);
     }
 
     public function view(User $user, EmployeeServiceFeedback $feedback): bool
     {
         return $user->hasAnyPermission([$feedback->type === ServiceFeedbackType::Complaint
-            ? 'service_feedback.complaints.view' : 'service_feedback.view'])
+            ? 'service_feedback.complaints.view' : ($feedback->type === ServiceFeedbackType::Suggestion ? 'service_feedback.tip_offs.view' : 'service_feedback.view')])
             && $this->withinScope($user, $feedback)
             // Owner decision 2026-11-08: the case page follows the same limit as the lists.
             && app(PublicCaseHandlingUnitService::class)->canSee($user, $feedback);
@@ -52,7 +52,7 @@ class EmployeeServiceFeedbackPolicy
     public function review(User $user, EmployeeServiceFeedback $feedback): bool
     {
         return $user->hasAnyPermission([$feedback->type === ServiceFeedbackType::Complaint
-            ? 'service_feedback.complaints.review' : 'service_feedback.review'])
+            ? 'service_feedback.complaints.review' : ($feedback->type === ServiceFeedbackType::Suggestion ? 'service_feedback.tip_offs.review' : 'service_feedback.review')])
             && $this->withinScope($user, $feedback);
     }
 
@@ -114,12 +114,20 @@ class EmployeeServiceFeedbackPolicy
 
     private function viewPermission(EmployeeServiceFeedback $feedback): string
     {
-        return $feedback->type === ServiceFeedbackType::Complaint ? 'service_feedback.complaints.view' : 'service_feedback.view';
+        return match ($feedback->type) {
+            ServiceFeedbackType::Complaint => 'service_feedback.complaints.view',
+            ServiceFeedbackType::Suggestion => 'service_feedback.tip_offs.view',
+            default => 'service_feedback.view',
+        };
     }
 
     private function reviewPermission(EmployeeServiceFeedback $feedback): string
     {
-        return $feedback->type === ServiceFeedbackType::Complaint ? 'service_feedback.complaints.review' : 'service_feedback.review';
+        return match ($feedback->type) {
+            ServiceFeedbackType::Complaint => 'service_feedback.complaints.review',
+            ServiceFeedbackType::Suggestion => 'service_feedback.tip_offs.review',
+            default => 'service_feedback.review',
+        };
     }
 
     public function hide(User $user, EmployeeServiceFeedback $feedback): bool

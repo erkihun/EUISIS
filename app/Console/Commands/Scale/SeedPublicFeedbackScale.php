@@ -36,7 +36,7 @@ class SeedPublicFeedbackScale extends Command
     protected $description = 'Add synthetic, PII-free public feedback data to a scale database (never in production).';
 
     public const HANDLER_PERMISSIONS = [
-        'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.tip_offs.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
         'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve', 'service_feedback.close',
         'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ];

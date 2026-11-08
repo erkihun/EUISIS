@@ -123,7 +123,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
                 $this->evidence('count', $weekly['current']),
                 $this->evidence('baseline_median_weekly', round((float) $stats['median'], 1)),
                 $this->evidence('baseline_window', count($weekly['history']).' weeks'),
-            ], $this->change($weekly['current'], $stats['median']), href: $this->link('service-submissions.index'), source: $this->source('public_submissions'), metric: 'complaints_received');
+            ], $this->change($weekly['current'], $stats['median']), href: $this->link('public-complaints.cases.index'), source: $this->source('public_submissions'), metric: 'complaints_received');
         } elseif ($stats['median'] !== null && $stats['median'] >= self::SPIKE_MINIMUM && $weekly['current'] <= $stats['median'] * (1 - self::DROP_PERCENT / 100)) {
             $insights[] = $this->complaintDrop($weekly, (float) $stats['median']);
         }
@@ -138,7 +138,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
                 $this->evidence('open_at_period_start', $b['open_start']),
                 $this->evidence('open_at_period_end', $b['open_end']),
                 $this->evidence('window', $period->from->toDateString().' – '.$period->to->toDateString()),
-            ], $this->change($b['open_end'], $b['open_start']), href: $this->link('service-submissions.index'), source: $this->source('public_submissions'), metric: 'complaints_open');
+            ], $this->change($b['open_end'], $b['open_start']), href: $this->link('public-complaints.cases.index'), source: $this->source('public_submissions'), metric: 'complaints_open');
         }
 
         // Routing failures: submissions nobody could be assigned to.
@@ -149,7 +149,7 @@ final class PublicVoiceAnalysis extends IntelligenceAnalysis
                 $this->evidence('unrouted', $b['unrouted']),
                 $this->evidence('routable_received', $b['routable']),
                 $this->evidence('share', $b['unrouted_share'].' %'),
-            ], href: $this->link('service-submissions.index'), source: $this->source('public_submissions'), metric: 'unrouted_share');
+            ], href: $this->link('public-complaints.cases.index'), source: $this->source('public_submissions'), metric: 'unrouted_share');
         }
 
         return $insights;

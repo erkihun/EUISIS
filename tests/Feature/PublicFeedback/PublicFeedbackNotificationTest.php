@@ -33,7 +33,7 @@ use Tests\Support\PublicFeedbackScenario;
  * submitter who left an e-mail, when the policy allows it (§89).
  */
 
-const PFN_VIEW = ['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'];
+const PFN_VIEW = ['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'];
 
 beforeEach(function (): void {
     app()->setLocale('en');

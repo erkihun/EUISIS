@@ -29,7 +29,7 @@ use Tests\Support\PublicFeedbackScenario;
  */
 
 const PFH_ALL = [
-    'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.review',
+    'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.review', 'service_feedback.tip_offs.review',
     'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.view_submitter_identity',
     'service_feedback.view_sensitive_attachments', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve',
     'service_feedback.close', 'service_feedback.refer_discipline', 'service_feedback.manage_routing',
@@ -79,16 +79,16 @@ it('answers 403 on every management route to a foreign-scope admin and to the ta
     $referral = PublicFeedbackReferral::query()->create([
         'submission_id' => $complaint->id, 'kind' => 'discipline', 'status' => 'requested', 'notes' => 'x', 'requested_by' => $this->insider->id, 'requested_at' => now(),
     ]);
-    $params = ['type' => 'complaint', 'submission' => $complaint];
+    $params = ['submission' => $complaint];
 
     $attempts = [
-        ['get', route('service-submissions.show', $params), []],
-        ['post', route('service-submissions.transition', $params), ['status' => 'resolved']],
-        ['post', route('service-submissions.assign', $params), ['handler_type' => 'user', 'handler_id' => (string) $this->insider->id]],
-        ['get', route('service-submissions.attachments.download', $params + ['attachment' => $attachment]), []],
-        ['post', route('service-submissions.subjects.store', $params), ['employee_id' => $this->b->employee->id]],
-        ['post', route('service-submissions.referrals.store', $params), ['notes' => 'Refer.']],
-        ['patch', route('service-submissions.referrals.update', $params + ['referral' => $referral]), ['status' => 'accepted']],
+        ['get', route('public-complaints.cases.show', $params), []],
+        ['post', route('public-complaints.cases.transition', $params), ['status' => 'resolved']],
+        ['post', route('public-complaints.cases.assign', $params), ['handler_type' => 'user', 'handler_id' => (string) $this->insider->id]],
+        ['get', route('public-complaints.cases.attachments.download', $params + ['attachment' => $attachment]), []],
+        ['post', route('public-complaints.cases.subjects.store', $params), ['employee_id' => $this->b->employee->id]],
+        ['post', route('public-complaints.cases.referrals.store', $params), ['notes' => 'Refer.']],
+        ['patch', route('public-complaints.cases.referrals.update', $params + ['referral' => $referral]), ['status' => 'accepted']],
     ];
 
     foreach ([$this->foreign, $this->target] as $user) {
@@ -98,7 +98,7 @@ it('answers 403 on every management route to a foreign-scope admin and to the ta
     }
 
     // The insider is allowed; the fixtures are not the problem.
-    $this->actingAs($this->insider)->get(route('service-submissions.show', $params))->assertOk();
+    $this->actingAs($this->insider)->get(route('public-complaints.cases.show', $params))->assertOk();
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::UnderReview)
         ->and($referral->fresh()->status)->toBe('requested');
 });
@@ -109,8 +109,8 @@ it('never accepts a sequential or guessed identifier on a public or management r
     $this->get('/feedback/'.str_repeat('a', 64))->assertOk()->assertInertia(fn ($page) => $page->where('available', false));
     $this->post('/service-feedback/1/complaint', pfComplete('complaint', ['message' => 'x']))->assertRedirect('/service-feedback/1');
 
-    $this->actingAs($this->superAdmin)->get('/service-submissions/complaint/1')->assertNotFound();
-    $this->actingAs($this->superAdmin)->get('/service-submissions/complaint/00000000-0000-0000-0000-000000000000')->assertNotFound();
+    $this->actingAs($this->superAdmin)->get('/complaint-admin/cases/1')->assertNotFound();
+    $this->actingAs($this->superAdmin)->get('/complaint-admin/cases/00000000-0000-0000-0000-000000000000')->assertNotFound();
     $this->actingAs($this->superAdmin)->get('/feedback-admin/submission-reports/exports/1')->assertNotFound();
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
@@ -122,9 +122,9 @@ it('escapes stored text on every page that shows it', function (): void {
     expect($complaint->comment)->toBe($payload);
 
     foreach ([
-        route('service-submissions.complaints'),
-        route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]),
-        route('service-submissions.reports.index'),
+        route('public-complaints.cases.index'),
+        route('public-complaints.cases.show', ['submission' => $complaint]),
+        route('public-complaints.reports.index'),
         route('service-feedback.admin.dashboard'),
     ] as $url) {
         $this->actingAs($this->superAdmin)->get($url)->assertOk()->assertDontSee($payload, false)->assertDontSee('<script>alert', false);

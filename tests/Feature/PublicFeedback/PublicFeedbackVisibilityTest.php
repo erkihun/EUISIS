@@ -25,14 +25,14 @@ use Tests\Support\PublicFeedbackScenario;
  * grants; contact data is encrypted at rest.
  */
 
-const PF_VIEW = ['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.export'];
+const PF_VIEW = ['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.export'];
 const PF_TARGETS = ['service_feedback.view_employee_target', 'service_feedback.view_organization_target'];
 
 beforeEach(function (): void {
     app()->setLocale('en');
     Storage::fake('local');
 
-    foreach ([...PF_VIEW, ...PF_TARGETS, 'service_feedback.view_submitter_identity', 'service_feedback.view_sensitive_attachments', 'service_feedback.review'] as $permission) {
+    foreach ([...PF_VIEW, ...PF_TARGETS, 'service_feedback.view_submitter_identity', 'service_feedback.view_sensitive_attachments', 'service_feedback.review', 'service_feedback.tip_offs.review'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
@@ -79,7 +79,7 @@ it('masks the submitter name and contact unless the user may view submitter iden
     $complaint = visComplaint();
 
     $this->actingAs($this->reviewer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('entry.client_name', null)
@@ -87,7 +87,7 @@ it('masks the submitter name and contact unless the user may view submitter iden
             ->where('entry.identity_hidden', true));
 
     $this->actingAs($this->identityReviewer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertInertia(fn (Assert $page) => $page
             ->where('entry.client_name', 'Abebe Kebede')
             ->where('entry.client_contact', '0911223344')
@@ -143,21 +143,21 @@ it('requires the sensitive attachments permission to list and download complaint
     $attachment = $complaint->attachments()->sole();
 
     $this->actingAs($this->reviewer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('entry.attachments', [])
             ->where('entry.attachment_count', 1)
             ->where('entry.attachments_hidden', true));
     $this->actingAs($this->reviewer)
-        ->get(route('service-submissions.attachments.download', ['type' => 'complaint', 'submission' => $complaint, 'attachment' => $attachment]))
+        ->get(route('public-complaints.cases.attachments.download', ['submission' => $complaint, 'attachment' => $attachment]))
         ->assertForbidden();
 
     $this->actingAs($this->identityReviewer)
-        ->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+        ->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertInertia(fn (Assert $page) => $page->has('entry.attachments', 1)->where('entry.attachments_hidden', false));
     $this->actingAs($this->identityReviewer)
-        ->get(route('service-submissions.attachments.download', ['type' => 'complaint', 'submission' => $complaint, 'attachment' => $attachment]))
+        ->get(route('public-complaints.cases.attachments.download', ['submission' => $complaint, 'attachment' => $attachment]))
         ->assertOk();
 });
 
@@ -168,17 +168,17 @@ it('limits the inbox and the detail page to the target types the user may view',
         'target_type' => 'organization', 'source_type' => 'organization_feedback_qr',
     ]);
 
-    $this->actingAs($this->reviewer)->get(route('service-submissions.complaints'))
+    $this->actingAs($this->reviewer)->get(route('public-complaints.cases.index'))
         ->assertInertia(fn (Assert $page) => $page->where('entries.total', 2));
 
-    $this->actingAs($this->employeeOnly)->get(route('service-submissions.complaints'))
+    $this->actingAs($this->employeeOnly)->get(route('public-complaints.cases.index'))
         ->assertInertia(fn (Assert $page) => $page->where('entries.total', 1)->where('entries.data.0.id', $employeeTargeted->id));
-    $this->actingAs($this->employeeOnly)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $organizationTargeted]))->assertForbidden();
-    $this->actingAs($this->employeeOnly)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $employeeTargeted]))->assertOk();
+    $this->actingAs($this->employeeOnly)->get(route('public-complaints.cases.show', ['submission' => $organizationTargeted]))->assertForbidden();
+    $this->actingAs($this->employeeOnly)->get(route('public-complaints.cases.show', ['submission' => $employeeTargeted]))->assertOk();
 
-    $this->actingAs($this->blind)->get(route('service-submissions.complaints'))
+    $this->actingAs($this->blind)->get(route('public-complaints.cases.index'))
         ->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
-    $this->actingAs($this->blind)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $employeeTargeted]))->assertForbidden();
+    $this->actingAs($this->blind)->get(route('public-complaints.cases.show', ['submission' => $employeeTargeted]))->assertForbidden();
 
     // The rating inbox counts only what the user may see as well.
     visComplaint(['type' => ServiceFeedbackType::Feedback, 'rating' => 4, 'status' => ServiceFeedbackStatus::Pending]);
@@ -196,7 +196,7 @@ it('shows the complaint form\'s complainant part only with the identity grant, a
         'matter' => ['remedy_sought' => 'Issue the permit.', 'prior_woreda' => ['decision' => 'No answer.']],
         'declared_at' => now()->toIso8601String(),
     ]]);
-    $show = route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]);
+    $show = route('public-complaints.cases.show', ['submission' => $complaint]);
 
     $this->actingAs($this->reviewer)->get($show)->assertInertia(fn (Assert $page) => $page
         ->where('entry.complainant_details', null)

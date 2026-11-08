@@ -200,7 +200,7 @@ final class PublicFeedbackAssignmentService
         $users = User::query()
             ->where('status', 'active')
             ->where(function ($query): void {
-                $query->permission(['service_feedback.review', 'service_feedback.complaints.review']);
+                $query->permission(['service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review']);
             })
             ->orderBy('name')
             ->limit(300)

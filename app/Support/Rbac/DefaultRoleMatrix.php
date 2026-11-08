@@ -109,7 +109,7 @@ final class DefaultRoleMatrix
 
     /** Reading public submissions in scope: Feedback and Tip-offs, Complaints, and both targets. */
     private const FEEDBACK_READ = [
-        'service_feedback.view', 'service_feedback.complaints.view',
+        'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view',
         'service_feedback.view_organization_target', 'service_feedback.view_employee_target',
     ];
 
@@ -156,7 +156,7 @@ final class DefaultRoleMatrix
     /** Handling public submissions assigned to the user: review, outcome, closure. */
     private const FEEDBACK_HANDLER = [
         'dashboard.view', ...self::FEEDBACK_READ,
-        'service_feedback.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close',
+        'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.close',
     ];
 
     /** @var array<string, array{description_en: string, description_am: string, scope: string, permissions: list<string>}>|null */
@@ -247,7 +247,7 @@ final class DefaultRoleMatrix
                 'user-organization-scopes.viewAny', 'user-organization-scopes.create', 'user-organization-scopes.update',
                 'user-organization-scopes.delete', 'user-organization-scopes.restore',
                 'structural-offices.view', 'structural-offices.manage', 'structural-offices.assignUsers', 'structural-offices.manageEmployees',
-                'service_feedback.view', 'service_feedback.review', 'service_feedback.hide', 'service_feedback.export', 'service_feedback.settings.manage',
+                'service_feedback.view', 'service_feedback.review', 'service_feedback.tip_offs.view', 'service_feedback.tip_offs.review', 'service_feedback.hide', 'service_feedback.export', 'service_feedback.settings.manage',
                 'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
                 ...ReportingLineRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
@@ -503,7 +503,7 @@ final class DefaultRoleMatrix
             'Situation Room Executive' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'situation_room.view', 'situation_room.wall_mode', ...self::SITUATION_ROOM_DOMAINS,
                 'situation_room.export', 'situation_room.view_detail', 'situation_room.view_employee_targeted', 'situation_room.manage_actions',
-                'service_feedback.view', 'service_feedback.view_employee_target',
+                'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target',
             ], 'Executive with drill-down: everything the viewer sees plus executive report exports, audited employee-level tables and submission text inside one institution, and the Action Register.',
                 'ዝርዝር የሚያይ ሥራ አስፈጻሚ፡ ተመልካቹ የሚያየው ሁሉ፣ የሥራ አስፈጻሚ ሪፖርት ወደ ውጭ መላክ፣ በአንድ ተቋም ውስጥ የሚመዘገቡ የሠራተኛ ደረጃ ሰንጠረዦችና የማመልከቻ ጽሑፍ፣ እና የእርምጃ መዝገብ።'),
             'Intelligence Analyst' => self::role(self::SCOPE_SCOPED, [

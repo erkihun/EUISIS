@@ -32,7 +32,7 @@ beforeEach(function (): void {
     Storage::fake('local');
     $this->withHeader('X-Locale', 'en');
 
-    foreach ([PublicFeedbackQuestionnaireAdmin::PERMISSION, 'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.view_organization_target'] as $permission) {
+    foreach ([PublicFeedbackQuestionnaireAdmin::PERMISSION, 'service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.complaints.view', 'service_feedback.view_organization_target'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
@@ -209,7 +209,7 @@ it('shows staff the service and the answers of an organization Complaint', funct
 
     $complaint = EmployeeServiceFeedback::query()->sole();
 
-    $this->actingAs($this->cityAdmin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))
+    $this->actingAs($this->cityAdmin)->get(route('public-complaints.cases.show', ['submission' => $complaint]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/SubmissionDetail')

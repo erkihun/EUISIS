@@ -109,8 +109,10 @@ class ServiceSubmissionController extends Controller
         ]);
     }
 
-    public function show(Request $request, string $type, EmployeeServiceFeedback $submission): Response
+    public function show(Request $request, EmployeeServiceFeedback $submission): Response
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         $kind = $this->kind($type);
         abort_unless($submission->type === $kind, 404);
         $user = $this->user();
@@ -245,8 +247,10 @@ class ServiceSubmissionController extends Controller
     }
 
     /** Move the submission along its type's workflow (brief §48–51). */
-    public function transition(Request $request, string $type, EmployeeServiceFeedback $submission): RedirectResponse
+    public function transition(Request $request, EmployeeServiceFeedback $submission): RedirectResponse
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         $kind = $this->kind($type);
         abort_unless($submission->type === $kind, 404);
         $user = $this->user();
@@ -291,8 +295,10 @@ class ServiceSubmissionController extends Controller
     }
 
     /** Hand the submission to a handler, or to another one (brief §53). */
-    public function assign(Request $request, string $type, EmployeeServiceFeedback $submission): RedirectResponse
+    public function assign(Request $request, EmployeeServiceFeedback $submission): RedirectResponse
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         $kind = $this->kind($type);
         abort_unless($submission->type === $kind, 404);
         $user = $this->user();
@@ -328,8 +334,10 @@ class ServiceSubmissionController extends Controller
     }
 
     /** Move the case one level up its escalation ladder (ADR 0033). */
-    public function escalate(Request $request, string $type, EmployeeServiceFeedback $submission): RedirectResponse
+    public function escalate(Request $request, EmployeeServiceFeedback $submission): RedirectResponse
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         $kind = $this->kind($type);
         abort_unless($submission->type === $kind, 404);
         $user = $this->user();
@@ -343,8 +351,10 @@ class ServiceSubmissionController extends Controller
         return back()->with('success', __('service-feedback.escalated'));
     }
 
-    public function download(Request $request, string $type, EmployeeServiceFeedback $submission, EmployeeServiceFeedbackAttachment $attachment): StreamedResponse
+    public function download(Request $request, EmployeeServiceFeedback $submission, EmployeeServiceFeedbackAttachment $attachment): StreamedResponse
     {
+        // The module comes from the route default (tip-offs.* or public-complaints.*), never from the address.
+        $type = (string) $request->route('type');
         // Evidence exists on Complaints and Tip-offs; the URL's type must be the row's own.
         $kind = $this->kind($type);
         abort_unless($submission->type === $kind
@@ -395,7 +405,7 @@ class ServiceSubmissionController extends Controller
     private function viewPermission(ServiceFeedbackType $type): string
     {
         return $type === ServiceFeedbackType::Complaint
-            ? 'service_feedback.complaints.view' : 'service_feedback.view';
+            ? 'service_feedback.complaints.view' : 'service_feedback.tip_offs.view';
     }
 
     /** View permission, organization scope, and never the submission's own target employee. */

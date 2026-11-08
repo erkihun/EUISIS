@@ -28,7 +28,7 @@ use Tests\Support\PublicSubmissionPayload;
  * permissions and scope allow can open it.
  */
 
-const PFM_HANDLER = ['service_feedback.view', 'service_feedback.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
+const PFM_HANDLER = ['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.review', 'service_feedback.tip_offs.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
     'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.resolve', 'service_feedback.close'];
 
 beforeEach(function (): void {
@@ -137,11 +137,11 @@ it('works end to end for', function (string $target, string $type) {
     // Permissions and scope: the institution's handler opens it; a foreign-scope handler does not.
     $detail = $kind === ServiceFeedbackType::Feedback
         ? route('service-feedback.admin.show', $row)
-        : route('service-submissions.show', ['type' => $type, 'submission' => $row]);
+        : route(($type === 'suggestion' ? 'tip-offs' : 'public-complaints').'.cases.show', ['submission' => $row]);
     $inbox = match ($kind) {
         ServiceFeedbackType::Feedback => route('service-feedback.admin.index'),
-        ServiceFeedbackType::Suggestion => route('service-submissions.suggestions'),
-        ServiceFeedbackType::Complaint => route('service-submissions.complaints'),
+        ServiceFeedbackType::Suggestion => route('tip-offs.cases.index'),
+        ServiceFeedbackType::Complaint => route('public-complaints.cases.index'),
     };
     $this->actingAs($this->handler)->get($detail)->assertOk();
     $this->actingAs($this->handler)->get($inbox)->assertOk()

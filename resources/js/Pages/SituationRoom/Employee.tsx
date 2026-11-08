@@ -4,6 +4,7 @@ import { Breadcrumb, fmt, useDateLabel, useNamer, viewQuery, type Filters, type 
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, Card, EmptyState, StatusBadge, buttonClassName } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
+import { caseRoute, type CaseType } from '@/Components/ServiceFeedback/caseRoutes';
 
 type Submission = {
     id: string;
@@ -37,7 +38,7 @@ const STATUS_BUCKET: Record<string, string> = { reviewed: 'under_review', accept
 function submissionHref(row: Submission): string {
     return row.type === 'feedback'
         ? route('service-feedback.admin.show', row.id)
-        : route('service-submissions.show', { type: row.type, submission: row.id });
+        : caseRoute(row.type as CaseType, 'cases.show', { submission: row.id });
 }
 
 /**

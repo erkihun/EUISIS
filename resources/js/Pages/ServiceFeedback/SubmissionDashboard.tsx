@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX, ReactNode } from 'react';
+import { caseRoute } from '@/Components/ServiceFeedback/caseRoutes';
 
 type Row = { id: string; reference: string | null; status: string; tip_type: string | null; organization?: string | null; target_name?: string | null; created_at?: string | null; submitted_at?: string | null };
 
@@ -31,7 +32,7 @@ export default function SubmissionDashboard({ type, figures, byStatus, byTipType
     const { t } = useLocale();
     const d = (key: string) => t(`serviceFeedback.typeDashboard.${key}`);
     const tipOff = type === 'suggestion';
-    const list = route(tipOff ? 'service-submissions.suggestions' : 'service-submissions.complaints');
+    const list = caseRoute(type, 'cases.index');
     const title = d(tipOff ? 'tipTitle' : 'complaintTitle');
     const maxMonth = Math.max(...Object.values(months), 1);
     const maxStatus = Math.max(...Object.values(byStatus), 1);
@@ -42,7 +43,7 @@ export default function SubmissionDashboard({ type, figures, byStatus, byTipType
             <div className="space-y-6 p-4 sm:p-6">
                 <section aria-label={title} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                     <Kpi href={list} icon={<Inbox className="h-[17px] w-[17px]" />} label={d('open')} value={figures.open} footer={`${d('total')}: ${figures.total.toLocaleString()}`} />
-                    <Kpi href={route('service-submissions.unrouted', { submission_type: type })} tone={figures.waiting > 0 ? 'warning' : undefined} icon={<ClockIcon className="h-[17px] w-[17px]" />} label={d('waiting')} value={figures.waiting} footer={`${d('unrouted')}: ${figures.unrouted.toLocaleString()}`} />
+                    <Kpi href={caseRoute(type, 'unrouted')} tone={figures.waiting > 0 ? 'warning' : undefined} icon={<ClockIcon className="h-[17px] w-[17px]" />} label={d('waiting')} value={figures.waiting} footer={`${d('unrouted')}: ${figures.unrouted.toLocaleString()}`} />
                     <Kpi href={`${list}?mine=1`} icon={<CheckCircle className="h-[17px] w-[17px]" />} label={d('mine')} value={figures.mine} footer={`${d('inProgress')}: ${figures.in_progress.toLocaleString()}`} />
                     <Kpi tone={figures.overdue > 0 ? 'danger' : undefined} icon={<AlertTriangle className="h-[17px] w-[17px]" />} label={d('overdue')} value={figures.overdue} footer={d('overdueHelp')} />
                     <Kpi tone={figures.older_than_30_days > 0 ? 'danger' : undefined} icon={<AlertTriangle className="h-[17px] w-[17px]" />} label={d('old')} value={figures.older_than_30_days} footer={`${d('outcome')}: ${figures.outcome.toLocaleString()} · ${d('closed')}: ${figures.closed.toLocaleString()}`} />
@@ -89,7 +90,7 @@ export default function SubmissionDashboard({ type, figures, byStatus, byTipType
                         <ul className={cx(panel, 'divide-y divide-(--app-border)')}>
                             {recent.map((row) => (
                                 <li key={row.id}>
-                                    <Link href={route('service-submissions.show', { type, submission: row.id })} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-(--app-surface-muted)">
+                                    <Link href={caseRoute(type, 'cases.show', { submission: row.id })} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 hover:bg-(--app-surface-muted)">
                                         <span className="font-mono text-[13px] font-semibold">{row.reference ?? '—'}</span>
                                         <span className={cx('text-xs', muted)}>{row.organization ?? row.target_name ?? ''}</span>
                                         <span className="text-xs">{t(statusLabelKey(row.status))}</span>

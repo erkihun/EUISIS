@@ -4,6 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Alert, Button, FormField, Input, SearchableSelect, Textarea, actionLinkClassName, type SearchableOption } from '@euisis/ui';
 import { router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { caseRoute } from '@/Components/ServiceFeedback/caseRoutes';
 
 export type SubjectRow = {
     id: string;
@@ -44,11 +45,11 @@ export function SubjectsPanel({ submissionId, subjects, canManage }: { submissio
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-submissions.subjects.store', { type: 'complaint', submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset() });
+        form.post(caseRoute('complaint', 'cases.subjects.store', { submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset() });
     }
 
     function remove(subject: SubjectRow) {
-        router.delete(route('service-submissions.subjects.destroy', { type: 'complaint', submission: submissionId, subject: subject.id }), { preserveScroll: true });
+        router.delete(caseRoute('complaint', 'cases.subjects.destroy', { submission: submissionId, subject: subject.id }), { preserveScroll: true });
     }
 
     return (
@@ -91,11 +92,11 @@ export function ReferralsPanel({ submissionId, referrals, canRefer, canDecide }:
 
     function request(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-submissions.referrals.store', { type: 'complaint', submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset() });
+        form.post(caseRoute('complaint', 'cases.referrals.store', { submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset() });
     }
 
     function decide(referral: ReferralRow, status: 'accepted' | 'declined' | 'withdrawn') {
-        router.patch(route('service-submissions.referrals.update', { type: 'complaint', submission: submissionId, referral: referral.id }), { status }, { preserveScroll: true });
+        router.patch(caseRoute('complaint', 'cases.referrals.update', { submission: submissionId, referral: referral.id }), { status }, { preserveScroll: true });
     }
 
     return (

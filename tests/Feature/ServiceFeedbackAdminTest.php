@@ -107,8 +107,8 @@ beforeEach(function (): void {
      * `service_feedback.delete`, which is what the deletion test asserts.
      */
     foreach ([
-        'service_feedback.view',
-        'service_feedback.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view',
+        'service_feedback.review', 'service_feedback.tip_offs.review',
         'service_feedback.hide',
         'service_feedback.delete',
         'service_feedback.export',
@@ -122,8 +122,8 @@ beforeEach(function (): void {
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
 
     Role::findOrCreate('Organizational Admin', 'web')->syncPermissions([
-        'service_feedback.view',
-        'service_feedback.review',
+        'service_feedback.view', 'service_feedback.tip_offs.view',
+        'service_feedback.review', 'service_feedback.tip_offs.review',
         'service_feedback.hide',
         'service_feedback.export',
         'service_feedback.settings.manage',
@@ -174,15 +174,15 @@ it('keeps complaints out of the rating dashboard and behind dedicated permission
 
     $this->actingAs($this->superAdmin)->get(route('service-feedback.admin.dashboard'))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('summary.total', 1));
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.complaints'))
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.cases.index'))
         ->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('ServiceFeedback/SubmissionInbox')
         ->where('entries.total', 1));
 
     $orgAdmin = User::factory()->create();
     $orgAdmin->assignRole('Organizational Admin');
-    $this->actingAs($orgAdmin)->get(route('service-submissions.complaints'))->assertForbidden();
-    $this->actingAs($orgAdmin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))->assertForbidden();
+    $this->actingAs($orgAdmin)->get(route('public-complaints.cases.index'))->assertForbidden();
+    $this->actingAs($orgAdmin)->get(route('public-complaints.cases.show', ['submission' => $complaint]))->assertForbidden();
 });
 
 it('prevents the target employee from viewing or resolving their own complaint', function (): void {
@@ -195,10 +195,10 @@ it('prevents the target employee from viewing or resolving their own complaint',
     ]);
     $this->superAdmin->forceFill(['employee_id' => $this->alpha['employee']->id])->save();
 
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.complaints'))
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.cases.index'))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
-    $this->actingAs($this->superAdmin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))->assertForbidden();
-    $this->actingAs($this->superAdmin)->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved'])->assertForbidden();
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.cases.show', ['submission' => $complaint]))->assertForbidden();
+    $this->actingAs($this->superAdmin)->post(route('public-complaints.cases.transition', ['submission' => $complaint]), ['status' => 'resolved'])->assertForbidden();
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::Pending);
 });
 
@@ -221,7 +221,7 @@ it('keeps complaint files private and authorizes every download', function (): v
         'size_bytes' => 13,
         'sha256' => hash('sha256', '%PDF-1.4 test'),
     ]);
-    $url = route('service-submissions.attachments.download', ['type' => 'complaint', 'submission' => $complaint, 'attachment' => $file]);
+    $url = route('public-complaints.cases.attachments.download', ['submission' => $complaint, 'attachment' => $file]);
 
     $this->get($url)->assertRedirect(route('login'));
 
