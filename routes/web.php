@@ -1645,8 +1645,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     });
 
     Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
-    Route::get('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'index'])->name('service-feedback.settings.index');
-    Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
+    // Each module's own settings page; nothing is shared between them.
+    foreach (['feedback' => ['feedback-admin', 'service-feedback'], 'suggestion' => ['tip-off-admin', 'tip-offs'], 'complaint' => ['complaint-admin', 'public-complaints']] as $settingsType => [$settingsPrefix, $settingsName]) {
+        Route::get("/{$settingsPrefix}/settings", [PublicFeedbackSettingsController::class, 'index'])->defaults('submission_type', $settingsType)->name("{$settingsName}.settings.index");
+        Route::put("/{$settingsPrefix}/settings", [PublicFeedbackSettingsController::class, 'update'])->defaults('submission_type', $settingsType)->name("{$settingsName}.settings.update");
+    }
     // The organization feedback questionnaire: versions, the one draft, publish and withdraw (city-level).
     Route::get('/feedback-admin/questionnaire', [PublicFeedbackQuestionnaireController::class, 'index'])->name('service-feedback.questionnaire.index');
     Route::post('/feedback-admin/questionnaire', [PublicFeedbackQuestionnaireController::class, 'store'])->name('service-feedback.questionnaire.store');

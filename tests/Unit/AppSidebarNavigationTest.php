@@ -24,7 +24,7 @@ it('lists every admin group once in workflow order', function (): void {
     expect($groups)->toBe([
         ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'],
         ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'],
-        ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints', 'publicCasesShared'],
+        ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints'],
         ['grievances', 'grievanceSetup', 'discipline', 'tribunalCourt', 'auditMonitoring'],
         ['myWork'],
     ]);

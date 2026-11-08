@@ -83,8 +83,7 @@ class ServiceFeedbackController extends Controller
         );
 
         return Inertia::render('ServiceFeedback/Dashboard', [
-            // Brief §81: every public submission type, within the same scope and period.
-            'submissions' => $this->metrics->overview($this->metrics->query($user, $this->metrics->filters(array_intersect_key($filters, array_flip(['organization_id', 'date_from', 'date_to']))))),
+            // Owner rule 2026-11-08: the feedback module's dashboard shows feedback only; Tip-offs and complaints have their own.
             'summary' => $this->feedbackQuery->summary($base),
             'ratingDistribution' => $this->feedbackQuery->ratingDistribution($base),
             'byOrganization' => $this->feedbackQuery->byOrganization($base),

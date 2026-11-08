@@ -169,21 +169,28 @@ it('lets a city-level account with the settings permission update the policy and
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/Settings')
-            ->where('feedbackSettings.complaint_enabled', true)
+            ->where('module', 'feedback')
+            ->where('feedbackSettings.feedback_enabled', true)
+            // Each module's page holds only its own settings (owner rule: nothing shared).
+            ->missing('feedbackSettings.complaint_enabled')
             ->missing('feedbackSettings.identity_mode')
-            // The fixed identity matrix is shown read-only.
+            // The fixed identity rule is shown read-only.
             ->where('identityPolicy.0.type', 'feedback')
             ->where('identityPolicy.0.anonymous_allowed', true)
-            ->where('identityPolicy.1.type', 'suggestion')
-            ->where('identityPolicy.1.anonymous_allowed', true)
-            ->where('identityPolicy.2.type', 'complaint')
-            ->where('identityPolicy.2.anonymous_allowed', false));
+            ->missing('identityPolicy.1'));
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.settings.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('module', 'suggestion')->where('identityPolicy.0.type', 'suggestion')->where('identityPolicy.0.anonymous_allowed', true)->missing('feedbackSettings.enabled'));
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.settings.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('module', 'complaint')->where('feedbackSettings.complaint_enabled', true)->where('identityPolicy.0.anonymous_allowed', false)->has('feedbackSettings.complaint_appeal_days'));
 
     $this->actingAs($this->superAdmin)
         ->put(route('service-feedback.settings.update'), [
-            'enabled' => true, 'allow_attachments' => false,
-            'feedback_enabled' => true, 'suggestion_enabled' => false, 'complaint_enabled' => true,
-        ])->assertRedirect();
+            'enabled' => true, 'allow_attachments' => false, 'feedback_enabled' => true,
+            // Another module's setting is not changed from this page.
+            'suggestion_enabled' => false,
+        ])->assertRedirect(route('service-feedback.settings.index'));
+    $this->actingAs($this->superAdmin)
+        ->put(route('tip-offs.settings.update'), ['suggestion_enabled' => false])->assertRedirect(route('tip-offs.settings.index'));
 
     $settings = app(SystemSettingsService::class);
     expect($settings->get('service_feedback', 'allow_attachments'))->toBeFalse()

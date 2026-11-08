@@ -80,38 +80,15 @@ function rptOrganizationRow(PublicFeedbackScenario $s, ServiceFeedbackType $type
     ], $overrides));
 }
 
-it('puts real scoped submission counts on the dashboard', function (): void {
+it('keeps the feedback dashboard to service feedback, with no figures across the other modules', function (): void {
     rptRow($this->a, ServiceFeedbackType::Feedback, ServiceFeedbackStatus::Pending);
-    rptRow($this->a, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::UnderReview);
     rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Unrouted);
-    rptOrganizationRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Assigned);
-    rptRow($this->b, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed);
-    rptRow($this->b, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::Accepted);
 
+    // Owner rule 2026-11-08: feedback, Tip-offs and complaints are separate modules; nothing is shared.
     $this->actingAs($this->superAdmin)
         ->get(route('service-feedback.admin.dashboard'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('submissions.total', 6)
-            ->where('submissions.by_type.feedback', 1)
-            ->where('submissions.by_type.suggestion', 2)
-            ->where('submissions.by_type.complaint', 3)
-            ->where('submissions.by_target.employee', 5)
-            ->where('submissions.by_target.organization', 1)
-            ->where('submissions.by_status.unrouted', 1)
-            ->where('submissions.by_status.assigned', 1)
-            ->where('submissions.by_status.under_review', 1)
-            ->where('submissions.by_status.resolved', 1)
-            ->where('submissions.by_status.closed', 1)
-            ->where('submissions.by_status.pending', 1));
-
-    // Scope narrows the counts; so does the target-type grant.
-    $this->actingAs($this->adminB)
-        ->get(route('service-feedback.admin.dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->where('submissions.total', 2)->where('submissions.by_target.organization', 0));
-    $this->actingAs($this->orgOnly)
-        ->get(route('service-feedback.admin.dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->where('submissions.total', 1)->where('submissions.by_target.employee', 0)->where('byEmployee', []));
+        ->assertInertia(fn (Assert $page) => $page->missing('submissions')->where('summary.total', 1));
 });
 
 it('breaks organization submissions down by the relevant work unit named, with General / Not sure as its own bucket, and exports the recorded name', function (): void {
@@ -256,11 +233,11 @@ it('gives service feedback, suggestions and complaints each their own sidebar gr
     foreach (['service-feedback.admin.dashboard', 'service-feedback.admin.index', 'service-feedback.organization-qr.index', 'service-feedback.admin.reports'] as $routeName) {
         expect($feedback)->toContain("routeName: '{$routeName}'");
     }
-    // What the three share (every case, the combined report, the policy) has its own group.
-    $shared = $groupOf('publicCasesShared');
-    foreach (['service-submissions.index', 'service-submissions.reports.index', 'service-feedback.settings.index'] as $routeName) {
-        expect($shared)->toContain("routeName: '{$routeName}'")->and($feedback)->not->toContain("routeName: '{$routeName}'");
-    }
+    // Owner rule: three separate modules, nothing shared — no cross-type group, each its own settings page.
+    expect($sidebar)->not->toContain("key: 'publicCasesShared'")->not->toContain("routeName: 'service-submissions.index'")->not->toContain("routeName: 'service-submissions.reports.index'");
+    expect($feedback)->toContain("routeName: 'service-feedback.settings.index'");
+    expect($groupOf('serviceSuggestions'))->toContain("routeName: 'tip-offs.settings.index'");
+    expect($groupOf('serviceComplaints'))->toContain("routeName: 'public-complaints.settings.index'");
 
     // Suggestions and complaints: each its own list, unrouted list, routing rules and reports, opened with its type.
     foreach (['serviceSuggestions' => ['suggestion', 'service-submissions.suggestions'], 'serviceComplaints' => ['complaint', 'service-submissions.complaints']] as $key => [$type, $list]) {

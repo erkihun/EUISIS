@@ -130,8 +130,6 @@ const navigation = {
     groupServiceSuggestions: 'የተገልጋይ ጥቆማ',
     groupServiceComplaints: 'የተገልጋይ ቅሬታ',
     groupPublicFeedback: 'የተገልጋይ አስተያየት',
-    groupPublicCasesShared: 'የጋራ ዝርዝር፣ ሪፖርትና ቅንብር',
-    serviceCombinedReports: 'የሁሉም ዓይነቶች ሪፖርት',
     groupSituationRoom: 'የአመራር ሁኔታ መከታተያ ማዕከል',
     situationRoom: 'የሁኔታ መከታተያ ማዕከል',
     situationRoomWall: 'የግድግዳ ማሳያ',

@@ -130,8 +130,6 @@ const navigation = {
     groupServiceSuggestions: 'Public suggestions',
     groupServiceComplaints: 'Public complaints',
     groupPublicFeedback: 'Public Feedback',
-    groupPublicCasesShared: 'Shared List, Reports and Settings',
-    serviceCombinedReports: 'Report Across All Types',
     groupSituationRoom: 'Executive Situation Room',
     situationRoom: 'Situation Room',
     situationRoomWall: 'Wall Mode',

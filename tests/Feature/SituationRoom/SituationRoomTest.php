@@ -437,12 +437,14 @@ it('saves the Situation Room rules, empty meaning off', function (): void {
     Permission::findOrCreate('service_feedback.settings.manage', 'web');
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
 
-    $this->actingAs($admin)->put(route('service-feedback.settings.update'), ['sla_days_complaint' => 15, 'spike_threshold_percent' => null])->assertRedirect()->assertSessionHasNoErrors();
+    // Each module's settings page saves its own rules.
+    $this->actingAs($admin)->put(route('public-complaints.settings.update'), ['sla_days_complaint' => 15])->assertRedirect()->assertSessionHasNoErrors();
+    $this->actingAs($admin)->put(route('service-feedback.settings.update'), ['spike_threshold_percent' => null])->assertRedirect()->assertSessionHasNoErrors();
     app(SystemSettingsService::class)->clearCache();
     expect(app(PublicFeedbackSettings::class)->situationRoomRules())
         ->toMatchArray(['sla_days_complaint' => 15, 'spike_threshold_percent' => null, 'sla_days_feedback' => null]);
 
-    $this->actingAs($admin)->put(route('service-feedback.settings.update'), ['sla_days_complaint' => 0])->assertSessionHasErrors('sla_days_complaint');
+    $this->actingAs($admin)->put(route('public-complaints.settings.update'), ['sla_days_complaint' => 0])->assertSessionHasErrors('sla_days_complaint');
 });
 
 it('flags an increase only past the configured threshold and never from zero', function (): void {
