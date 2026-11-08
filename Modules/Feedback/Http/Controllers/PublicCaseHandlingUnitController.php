@@ -53,12 +53,11 @@ class PublicCaseHandlingUnitController extends Controller
         if ($request->filled('organization_id')) {
             $query->where('organization_id', (string) $request->string('organization_id'));
         }
-        $caseType = in_array($request->query('case_type'), PublicCaseHandlingUnit::CASE_TYPES, true) ? (string) $request->query('case_type') : '';
-        if ($caseType !== '') {
-            $query->where('case_type', $caseType);
-        }
+        // One page per type (route default): the Tip-off Unit or the Complaint Unit.
+        $caseType = $request->route('case_type') === 'complaint' ? 'complaint' : 'suggestion';
+        $query->where('case_type', $caseType);
 
-        $rows = $query->orderBy('organization_id')->orderBy('case_type')->orderBy('created_at')->get();
+        $rows = $query->orderBy('organization_id')->orderBy('created_at')->get();
         $orgNames = $this->organizationNames($rows->pluck('organization_id')->unique()->all(), $locale);
 
         return Inertia::render('ServiceFeedback/HandlingUnits/Index', [
@@ -79,8 +78,8 @@ class PublicCaseHandlingUnitController extends Controller
                 ];
             })->values()->all(),
             'organizations' => $this->organizationOptions($user, $locale),
-            'filters' => ['organization_id' => (string) $request->query('organization_id', ''), 'case_type' => $caseType],
-            'caseTypes' => PublicCaseHandlingUnit::CASE_TYPES,
+            'filters' => ['organization_id' => (string) $request->query('organization_id', '')],
+            'caseType' => $caseType,
         ]);
     }
 
@@ -93,7 +92,7 @@ class PublicCaseHandlingUnitController extends Controller
         abort_if($organizations === [], 403);
         $caseType = in_array($request->query('case_type'), PublicCaseHandlingUnit::CASE_TYPES, true) ? (string) $request->query('case_type') : 'suggestion';
 
-        return Inertia::render('ServiceFeedback/HandlingUnits/Create', ['organizations' => $organizations, 'caseTypes' => PublicCaseHandlingUnit::CASE_TYPES, 'caseType' => $caseType]);
+        return Inertia::render('ServiceFeedback/HandlingUnits/Create', ['organizations' => $organizations, 'caseType' => $caseType]);
     }
 
     public function createMember(Request $request, PublicCaseHandlingUnit $unit): Response
@@ -139,7 +138,7 @@ class PublicCaseHandlingUnitController extends Controller
         ]);
         $this->handling->designate($this->user($request), $data);
 
-        return redirect()->route('service-feedback.handling-units.index', ['case_type' => $data['case_type']])->with('success', __('service-feedback.handling_unit_saved'));
+        return redirect()->route(self::indexRoute((string) $data['case_type']))->with('success', __('service-feedback.handling_unit_saved'));
     }
 
     public function update(Request $request, PublicCaseHandlingUnit $unit): RedirectResponse
@@ -166,7 +165,7 @@ class PublicCaseHandlingUnitController extends Controller
         ], ['signature.required' => __('service-feedback.handling_signature_required')]);
         $this->handling->addMember($unit, $this->user($request), [...$data, 'signature' => $request->file('signature')]);
 
-        return redirect()->route('service-feedback.handling-units.index', ['case_type' => $unit->case_type])->with('success', __('service-feedback.handling_member_saved'));
+        return redirect()->route(self::indexRoute((string) $unit->case_type))->with('success', __('service-feedback.handling_member_saved'));
     }
 
     public function updateMember(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): RedirectResponse
@@ -178,7 +177,7 @@ class PublicCaseHandlingUnitController extends Controller
         ]);
         $this->handling->updateMember($unit, $member, $this->user($request), [...$data, 'signature' => $request->file('signature')]);
 
-        return redirect()->route('service-feedback.handling-units.index', ['case_type' => $unit->case_type])->with('success', __('service-feedback.handling_member_saved'));
+        return redirect()->route(self::indexRoute((string) $unit->case_type))->with('success', __('service-feedback.handling_member_saved'));
     }
 
     public function endMember(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): RedirectResponse
@@ -199,6 +198,12 @@ class PublicCaseHandlingUnitController extends Controller
         abort_unless(preg_match('#^employee-signatures/[a-zA-Z0-9-]+\.(png|jpg|jpeg|webp)$#D', $path) === 1 && Storage::disk('local')->exists($path), 404);
 
         return Storage::disk('local')->response($path, null, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    /** The page of a case type: the Tip-off Unit or the Complaint Unit. */
+    public static function indexRoute(string $caseType): string
+    {
+        return $caseType === 'complaint' ? 'service-feedback.complaint-units.index' : 'service-feedback.tip-off-units.index';
     }
 
     /** @return array<string, mixed> */

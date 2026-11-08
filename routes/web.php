@@ -1655,7 +1655,10 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::delete('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'destroy'])->whereUuid('questionSet')->name('service-feedback.questionnaire.destroy');
     Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
     // ADR 0034: the work units that handle public Tip-offs and complaints, their members and signatures.
-    Route::get('/feedback-admin/handling-units', [PublicCaseHandlingUnitController::class, 'index'])->name('service-feedback.handling-units.index');
+    // ADR 0034: the Tip-off Unit and the Complaint Unit are separate pages, never one mixed list.
+    Route::get('/feedback-admin/tip-off-units', [PublicCaseHandlingUnitController::class, 'index'])->defaults('case_type', 'suggestion')->name('service-feedback.tip-off-units.index');
+    Route::get('/feedback-admin/complaint-units', [PublicCaseHandlingUnitController::class, 'index'])->defaults('case_type', 'complaint')->name('service-feedback.complaint-units.index');
+    Route::redirect('/feedback-admin/handling-units', '/feedback-admin/tip-off-units');
     Route::get('/feedback-admin/handling-units/unit-options', [PublicCaseHandlingUnitController::class, 'unitOptions'])->name('service-feedback.handling-units.unit-options');
     Route::get('/feedback-admin/handling-units/create', [PublicCaseHandlingUnitController::class, 'create'])->name('service-feedback.handling-units.create');
     Route::get('/feedback-admin/handling-units/{unit}/members/create', [PublicCaseHandlingUnitController::class, 'createMember'])->whereUuid('unit')->name('service-feedback.handling-units.members.create');

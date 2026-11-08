@@ -25,6 +25,11 @@ export type HandlingUnitRef = { id: string; unit: string | null; organization: s
 
 const SIGNATURE_ACCEPT = 'image/png,image/jpeg,image/webp';
 
+/** The Tip-off Unit and the Complaint Unit each have their own page. */
+export function unitsIndexUrl(caseType: CaseType): string {
+    return route(caseType === 'complaint' ? 'service-feedback.complaint-units.index' : 'service-feedback.tip-off-units.index');
+}
+
 function today(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -100,7 +105,7 @@ export default function MemberForm({ unit, member, responsibilities }: { unit: H
                     </FormField>
                 </div>
                 <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
-                    <Button as={Link} href={route('service-feedback.handling-units.index', { case_type: unit.case_type })} variant="outline">{t('common.cancel')}</Button>
+                    <Button as={Link} href={unitsIndexUrl(unit.case_type)} variant="outline">{t('common.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing}>{t('common.save')}</Button>
                 </div>
             </Card>

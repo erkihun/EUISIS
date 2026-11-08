@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { AppDialog, Alert, Button, FilterField, FilterPanel, FormField, Select, Textarea, actionLinkClassName, cx } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
-import type { CaseType, HandlingMember } from './MemberForm';
+import { unitsIndexUrl, type CaseType, type HandlingMember } from './MemberForm';
 
 type HandlingUnit = {
     id: string;
@@ -25,8 +25,9 @@ type HandlingUnit = {
 type Props = {
     units: HandlingUnit[];
     organizations: { id: string; name: string }[];
-    filters: { organization_id: string; case_type: '' | CaseType };
-    caseTypes: CaseType[];
+    filters: { organization_id: string };
+    /** This page's type: the Tip-off Unit (suggestion) or the Complaint Unit. */
+    caseType: CaseType;
 };
 
 const PANEL = 'rounded-panel border border-(--app-border) bg-(--app-surface)';
@@ -37,18 +38,16 @@ const PANEL = 'rounded-panel border border-(--app-border) bg-(--app-surface)';
  * given a responsibility, and each member's signature is registered. Adding
  * and editing happen on their own pages; ending a term is a confirmation.
  */
-export default function HandlingUnitsIndex({ units, organizations, filters, caseTypes }: Props) {
+export default function HandlingUnitsIndex({ units, organizations, filters, caseType }: Props) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
     const [ending, setEnding] = useState<{ unit: HandlingUnit; member: HandlingMember } | null>(null);
-    const createQuery = filters.case_type ? { case_type: filters.case_type } : {};
-    // Opened from the Tip-offs group: "Tip-off Unit"; from Complaints: "Complaint Unit".
-    const title = h(filters.case_type === 'suggestion' ? 'titleTipOff' : filters.case_type === 'complaint' ? 'titleComplaint' : 'title');
+    const title = h(caseType === 'complaint' ? 'titleComplaint' : 'titleTipOff');
 
     function filter(next: Partial<Props['filters']>) {
         const merged = { ...filters, ...next };
         const query = Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== ''));
-        router.get(route('service-feedback.handling-units.index'), query, { preserveState: true, replace: true });
+        router.get(unitsIndexUrl(caseType), query, { preserveState: true, replace: true });
     }
 
     function toggle(unit: HandlingUnit) {
@@ -56,7 +55,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={h('intro')} actions={organizations.length > 0 ? <Button as={Link} href={route('service-feedback.handling-units.create', createQuery)} variant="primary">{h('designate')}</Button> : undefined} />}>
+        <AuthenticatedLayout header={<PageHeader title={title} description={h(caseType === 'complaint' ? 'introComplaint' : 'introTipOff')} actions={organizations.length > 0 ? <Button as={Link} href={route('service-feedback.handling-units.create', { case_type: caseType })} variant="primary">{h(caseType === 'complaint' ? 'designateComplaint' : 'designateTipOff')}</Button> : undefined} />}>
             <Head title={title} />
             <div className="space-y-5 p-4 sm:p-6">
                 <FilterPanel onSubmit={(e) => e.preventDefault()}>
@@ -66,21 +65,13 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
                             {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
                         </Select>
                     </FilterField>
-                    <FilterField label={h('caseType')} htmlFor="hu-type">
-                        <Select id="hu-type" value={filters.case_type} onChange={(e) => filter({ case_type: e.target.value as Props['filters']['case_type'] })}>
-                            <option value="">{h('allCaseTypes')}</option>
-                            {caseTypes.map((type) => <option key={type} value={type}>{h(`caseTypes.${type}`)}</option>)}
-                        </Select>
-                    </FilterField>
                 </FilterPanel>
 
-                {units.length === 0 ? <EmptyState title={h('none')} description={h('noneHint')} /> : units.map((unit) => (
+                {units.length === 0 ? <EmptyState title={h(caseType === 'complaint' ? 'noneComplaint' : 'noneTipOff')} description={h(caseType === 'complaint' ? 'noneHintComplaint' : 'noneHintTipOff')} /> : units.map((unit) => (
                     <section key={unit.id} aria-labelledby={`hu-${unit.id}`} className={cx(PANEL, 'space-y-4 p-5')}>
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <h2 id={`hu-${unit.id}`} className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-(--app-foreground)">{unit.unit ?? '—'}
-                                    <span className="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold text-primary dark:bg-primary-950 dark:text-primary-200">{h(`caseTypes.${unit.case_type}`)}</span>
-                                </h2>
+                                <h2 id={`hu-${unit.id}`} className="text-[15px] font-semibold text-(--app-foreground)">{unit.unit ?? '—'}</h2>
                                 <p className="text-sm text-(--app-muted-foreground)">{unit.organization ?? '—'}</p>
                                 {unit.description && <p className="mt-1 text-sm">{unit.description}</p>}
                             </div>

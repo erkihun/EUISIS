@@ -4,15 +4,16 @@ import { useLocale } from '@/hooks/useLocale';
 import { Button, Card, FormField, Select, Textarea } from '@euisis/ui';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent } from 'react';
-import type { CaseType } from './MemberForm';
+import { unitsIndexUrl, type CaseType } from './MemberForm';
 
-type Props = { organizations: { id: string; name: string }[]; caseTypes: CaseType[]; caseType: CaseType };
+type Props = { organizations: { id: string; name: string }[]; caseType: CaseType };
 
 /** Designate one of an institution's existing work units to receive Tip-offs or complaints (ADR 0034). */
-export default function HandlingUnitsCreate({ organizations, caseTypes, caseType }: Props) {
+export default function HandlingUnitsCreate({ organizations, caseType }: Props) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
     const form = useForm({ organization_id: organizations.length === 1 ? organizations[0].id : '', case_type: caseType, organization_unit_id: '', description_en: '', description_am: '' });
+    const title = h(caseType === 'complaint' ? 'designateComplaint' : 'designateTipOff');
     const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -34,16 +35,11 @@ export default function HandlingUnitsCreate({ organizations, caseTypes, caseType
     }
 
     return (
-        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={h('designate')} description={h('designateHint')} backHref={route('service-feedback.handling-units.index', { case_type: form.data.case_type })} />}>
-            <Head title={h('designate')} />
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={h('designateHint')} backHref={unitsIndexUrl(caseType)} />}>
+            <Head title={title} />
             <form onSubmit={submit}>
                 <Card className="overflow-hidden">
                     <div className="grid gap-4 p-6">
-                        <FormField id="hu-designate-type" label={h('caseType')} description={h('caseTypeHint')} error={form.errors.case_type} required>
-                            {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.case_type} onChange={(e) => form.setData((d) => ({ ...d, case_type: e.target.value as CaseType, organization_unit_id: '' }))}>
-                                {caseTypes.map((type) => <option key={type} value={type}>{h(`caseTypes.${type}`)}</option>)}
-                            </Select>}
-                        </FormField>
                         <FormField id="hu-designate-org" label={t('serviceFeedback.filterOrganization')} error={form.errors.organization_id} required>
                             {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.organization_id} onChange={(e) => form.setData((d) => ({ ...d, organization_id: e.target.value, organization_unit_id: '' }))}>
                                 <option value="">{h('chooseOrganization')}</option>
@@ -64,7 +60,7 @@ export default function HandlingUnitsCreate({ organizations, caseTypes, caseType
                         </FormField>
                     </div>
                     <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
-                        <Button as={Link} href={route('service-feedback.handling-units.index', { case_type: form.data.case_type })} variant="outline">{t('common.cancel')}</Button>
+                        <Button as={Link} href={unitsIndexUrl(caseType)} variant="outline">{t('common.cancel')}</Button>
                         <Button type="submit" variant="primary" loading={form.processing}>{t('common.save')}</Button>
                     </div>
                 </Card>
