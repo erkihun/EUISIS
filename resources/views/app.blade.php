@@ -84,7 +84,7 @@
             }
         </style>
 
-        <script>
+        <script nonce="{{ Illuminate\Support\Facades\Vite::cspNonce() }}">
             (function () {
                 try {
                     var storedTheme = localStorage.getItem('theme');

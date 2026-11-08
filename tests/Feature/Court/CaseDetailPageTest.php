@@ -235,3 +235,23 @@ test('the audit trail reaches the page as labelled lines with names resolved', f
             ])
             ->etc());
 });
+
+test('a stored description or relief is purified before the page renders it as HTML', function (): void {
+    // Written straight to the table, as a writer that skipped the applicant form's purifier would.
+    $viewer = caseDetailUser(['cases.view']);
+    $case = caseDetailCase();
+    DB::table('court_cases')->where('id', $case->id)->update([
+        'description' => '<p>The facts.</p><script>alert(1)</script><img src="x" onerror="alert(2)">',
+        'relief_requested' => '<p>Return the land.</p><svg onload="alert(3)"></svg>',
+    ]);
+
+    $this->actingAs($viewer)->get(route('court.cases.show', $case->id))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Court/Cases/Show')
+            ->where('case.description_html', fn (string $html): bool => str_contains($html, 'The facts.')
+                && ! str_contains($html, '<script') && ! str_contains($html, 'onerror'))
+            ->where('case.relief_html', fn (string $html): bool => str_contains($html, 'Return the land.')
+                && ! str_contains($html, 'onload') && ! str_contains($html, '<svg'))
+            ->etc());
+});

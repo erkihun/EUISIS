@@ -53,6 +53,35 @@ test('Content-Security-Policy header is present', function (): void {
         ->and($csp)->toContain("form-action 'self'");
 });
 
+test('scripts run only from self or with this request\'s nonce, never unsafe-inline', function (): void {
+    foreach (['production', 'local'] as $environment) {
+        $originalEnvironment = app()->environment();
+        app()->detectEnvironment(fn (): string => $environment);
+
+        try {
+            $response = $this->get('/login');
+            $csp = (string) $response->headers->get('Content-Security-Policy');
+
+            preg_match("/script-src [^;]*'nonce-([A-Za-z0-9]+)'/", $csp, $match);
+            $scriptSrc = preg_match('/script-src [^;]*/', $csp, $directive) ? $directive[0] : '';
+
+            expect($match)->not->toBeEmpty("{$environment}: script-src carries a nonce")
+                ->and($scriptSrc)->not->toContain('unsafe-inline')
+                ->and($scriptSrc)->not->toContain('unsafe-eval')
+                // The page's own inline script carries the same nonce, so it still runs.
+                ->and($response->getContent())->toContain('<script nonce="'.$match[1].'"');
+        } finally {
+            app()->detectEnvironment(fn (): string => $originalEnvironment);
+        }
+    }
+});
+
+test('each response gets a fresh nonce', function (): void {
+    $nonce = fn (): string => preg_match("/'nonce-([A-Za-z0-9]+)'/", (string) $this->get('/login')->headers->get('Content-Security-Policy'), $m) ? $m[1] : '';
+
+    expect($nonce())->not->toBe('')->not->toBe($nonce());
+});
+
 test('local Content-Security-Policy permits Vite without invalid IPv6 sources', function (): void {
     $originalEnvironment = app()->environment();
     app()->detectEnvironment(fn (): string => 'local');

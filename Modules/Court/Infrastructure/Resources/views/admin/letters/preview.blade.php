@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ __('court::letters.titles.preview') }}</title>
-    <script src="{{ asset('vendor/html2pdf/html2pdf.bundle.min.js') }}"></script>
+    <script src="{{ asset('vendor/html2pdf/html2pdf.bundle.min.js') }}" nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}"></script>
 
     <style>
     @font-face {
@@ -420,10 +420,10 @@
         <div id="page-counter" class="text-sm font-semibold text-gray-600">{{ __('court::letters.preview.loading') }}</div>
         <div class="toolbar-actions">
             <a href="{{ route('court.letters.index') }}" class="btn">{{ __('court::letters.preview.back_to_letters') }}</a>
-            <button type="button" class="btn" onclick="printLetter()">
+            <button type="button" id="print-letter" class="btn">
                 {{ __('court::letters.preview.print_native_pdf') }}
             </button>
-            <button type="button" id="download-pdf" class="btn btn-primary" onclick="downloadDirectPdf()">
+            <button type="button" id="download-pdf" class="btn btn-primary">
                 {{ __('court::letters.preview.download_pdf') }}
             </button>
         </div>
@@ -542,7 +542,7 @@
             </div>
         </div>
     </template>
-    <script>
+    <script nonce="{{ \Illuminate\Support\Facades\Vite::cspNonce() }}">
     document.addEventListener('DOMContentLoaded', async () => {
         const previewContainer = document.getElementById('preview-container');
         const sheetTemplate = document.getElementById('sheet-template');
@@ -756,6 +756,11 @@
                 btn.disabled = false;
             });
     }
+
+    // Listeners, not onclick="": the CSP runs only nonced scripts, and an
+    // inline event handler cannot carry a nonce.
+    document.getElementById('print-letter')?.addEventListener('click', printLetter);
+    document.getElementById('download-pdf')?.addEventListener('click', downloadDirectPdf);
     </script>
 </body>
 

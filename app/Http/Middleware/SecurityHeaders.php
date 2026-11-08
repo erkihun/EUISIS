@@ -6,12 +6,18 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeaders
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // A fresh nonce per request, generated before the view renders so the
+        // tags @vite / @viteReactRefresh emit carry it, and so a Blade view can
+        // print it on its own inline script with Vite::cspNonce().
+        $nonce = Vite::useCspNonce();
+
         $response = $next($request);
 
         // ── Anti-clickjacking ────────────────────────────────────────────────
@@ -64,8 +70,10 @@ class SecurityHeaders
         // WebSocket HMR connections from that origin are explicitly allowed here so
         // the browser does not block hot-module replacement.
         //
-        // NOTE: Hardening path — replace 'unsafe-inline' in script-src with
-        // nonce-based CSP using Laravel's Vite::useCspNonce() integration.
+        // Scripts: bundled files from 'self' plus inline scripts that carry this
+        // request's nonce. No 'unsafe-inline', in any environment: an injected
+        // <script> or on*= handler does not run. Inline event handlers cannot
+        // carry a nonce, so views attach listeners from a nonced script instead.
         $isLocal = app()->environment('local');
 
         // Include the host the request actually arrived on, so a device on the
@@ -84,8 +92,8 @@ class SecurityHeaders
         $viteWs = implode(' ', array_map(static fn (string $host): string => "ws://{$host}:5173", $devHosts));
 
         $scriptSrc = $isLocal
-            ? "script-src 'self' 'unsafe-inline' {$viteHttp}"
-            : "script-src 'self' 'unsafe-inline'";
+            ? "script-src 'self' 'nonce-{$nonce}' {$viteHttp}"
+            : "script-src 'self' 'nonce-{$nonce}'";
 
         $connectSrc = $isLocal
             ? "connect-src 'self' ws: wss: {$viteWs} {$viteHttp}"

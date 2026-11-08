@@ -443,8 +443,9 @@ class CaseController extends Controller
      * Admin: show a case (with context).
      * Evidence REMOVED (we use Uploaded Files only). $docs left empty to keep the Blade happy.
      *
-     * NOTE: description/relief were already purified on applicant save/update.
-     * We expose them as *_html so Blade can render with `{!! $case->description_html !!}` safely.
+     * The page renders description and relief as HTML, so caseDetailProps()
+     * purifies both on the way out. The applicant form purifies them on save
+     * too, but the view must not depend on every writer having done so.
      */
     public function show(int $id)
     {
@@ -493,10 +494,6 @@ class CaseController extends Controller
         // A case awaiting review opens only for reviewers and its assignee, as on the record page (CourtCasePolicy::view).
         $this->authorize('view', CourtCase::query()->findOrFail($id));
         $this->ensureCaseAccess($case);
-
-        // Make HTML fields explicit for Blade raw rendering
-        $case->description_html = (string) ($case->description ?? '');
-        $case->relief_requested_html = (string) ($case->relief_requested ?? '');
 
         $timeline = Schema::hasTable('court_case_status_logs')
             ? $safeGet(function () use ($id) {
@@ -838,16 +835,11 @@ class CaseController extends Controller
             $applicantAddress = trim((string) ($case->applicant_profile_address ?? ''));
         }
 
-        $descriptionHtml = (string) ($case->description_html ?? '');
-        if ($descriptionHtml === '' && ! empty($case->description)) {
-            $descriptionHtml = Purifier::clean((string) $case->description, 'cases');
-        }
-        $reliefHtml = null;
-        if (! empty($case->relief_requested_html ?? null)) {
-            $reliefHtml = Purifier::clean($case->relief_requested_html, 'cases');
-        } elseif (! empty($case->relief_requested)) {
-            $reliefHtml = Purifier::clean($case->relief_requested, 'cases');
-        }
+        // Rendered as HTML (DocumentSheet), so always purified here, whatever was stored.
+        $descriptionHtml = Purifier::clean((string) ($case->description ?? ''), 'cases');
+        $reliefHtml = ! empty($case->relief_requested)
+            ? Purifier::clean((string) $case->relief_requested, 'cases')
+            : null;
 
         // Active Terms & Conditions, printed as a list under the respondent section.
         $termsItems = [];
