@@ -234,6 +234,8 @@ class ServiceSubmissionController extends Controller
                 'decideReferral' => $submission->referrals->contains(fn ($r) => $r->status === 'requested' && (int) $r->requested_by !== (int) $user->getKey()) && $this->referrals->canRefer($user, $submission),
             ],
             'handlerOptions' => $assignable ? $this->assignments->options($submission->organization_id, $kind->value) : null,
+            // ADR 0034: the head of the unit holding the case hands it to one of its members.
+            'delegateOptions' => ! $assignable && ($members = $this->delegationOptions($user, $submission)) !== null ? $members : null,
         ]);
     }
 
@@ -273,7 +275,6 @@ class ServiceSubmissionController extends Controller
         abort_unless($submission->type === $kind, 404);
         $user = $this->user();
         $this->assertAccess($user, $submission);
-        $this->authorize('assign', $submission);
 
         $data = $request->validate([
             'handler_type' => ['required', Rule::in(PublicFeedbackHandlerType::values())],
@@ -281,8 +282,15 @@ class ServiceSubmissionController extends Controller
             'reason' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $hasHandler = $submission->currentAssignment()->exists();
-        abort_unless($user->hasAnyPermission([$hasHandler ? 'service_feedback.reassign' : 'service_feedback.assign']), 403);
+        // ADR 0034: a unit's head hands a case of their unit to one of its members.
+        $delegation = $this->delegationOptions($user, $submission);
+        $isDelegation = $delegation !== null && $data['handler_type'] === PublicFeedbackHandlerType::User->value
+            && in_array((string) $data['handler_id'], array_column($delegation, 'id'), true);
+        if (! $isDelegation) {
+            $this->authorize('assign', $submission);
+            $hasHandler = $submission->currentAssignment()->exists();
+            abort_unless($user->hasAnyPermission([$hasHandler ? 'service_feedback.reassign' : 'service_feedback.assign']), 403);
+        }
 
         $this->assignments->assign(
             $submission,
@@ -438,6 +446,25 @@ class ServiceSubmissionController extends Controller
             'unit_selection_mode' => $entry->unit_selection_mode,
             'handler' => $entry->currentAssignment?->handlerName($locale),
         ];
+    }
+
+    /**
+     * When the case is with a designated unit this user heads: the unit's
+     * members with an account, to hand the case to. Otherwise null.
+     *
+     * @return list<array{id: string, name: string}>|null
+     */
+    private function delegationOptions(User $user, EmployeeServiceFeedback $submission): ?array
+    {
+        $current = $submission->currentAssignment()->first();
+        if ($current === null || $current->handler_type !== PublicFeedbackHandlerType::OrganizationUnit
+            || ! in_array($submission->status, [ServiceFeedbackStatus::Assigned, ServiceFeedbackStatus::UnderReview], true)) {
+            return null;
+        }
+        $handling = app(PublicCaseHandlingUnitService::class);
+        $unit = $handling->headedUnit($user, (string) $current->handler_id, $submission->type->value);
+
+        return $unit === null ? null : $handling->memberUsers($unit);
     }
 
     /** @return array<string, mixed> */

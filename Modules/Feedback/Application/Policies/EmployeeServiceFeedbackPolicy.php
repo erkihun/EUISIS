@@ -7,6 +7,7 @@ namespace Modules\Feedback\Application\Policies;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Modules\Feedback\Application\Services\PublicCaseHandlingUnitService;
 use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
@@ -70,7 +71,8 @@ class EmployeeServiceFeedbackPolicy
         return $permission !== null
             && $user->hasAnyPermission([$this->viewPermission($feedback)])
             && $user->hasAnyPermission([$permission])
-            && $this->withinScope($user, $feedback);
+            && $this->withinScope($user, $feedback)
+            && $this->worksCase($user, $feedback);
     }
 
     /** Naming investigation subjects on a complaint (§61) takes the complaint review grant. */
@@ -78,7 +80,18 @@ class EmployeeServiceFeedbackPolicy
     {
         return $feedback->type === ServiceFeedbackType::Complaint
             && $user->hasAnyPermission(['service_feedback.complaints.review'])
-            && $this->withinScope($user, $feedback);
+            && $this->withinScope($user, $feedback)
+            && $this->worksCase($user, $feedback);
+    }
+
+    /**
+     * ADR 0034: a case with a designated unit (or handed by its head to one
+     * member) is worked by those people; city-wide accounts and coordinators
+     * keep their reach.
+     */
+    private function worksCase(User $user, EmployeeServiceFeedback $feedback): bool
+    {
+        return $this->scope->isUnrestricted($user) || app(PublicCaseHandlingUnitService::class)->mayWork($user, $feedback);
     }
 
     /** Handing the submission to a handler; a first assignment or a reassignment (§53). */

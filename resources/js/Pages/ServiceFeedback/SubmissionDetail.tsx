@@ -127,6 +127,8 @@ type Props = {
     referrals: ReferralRow[];
     can: { assign: boolean; escalate?: boolean; subjects: boolean; refer: boolean; decideReferral: boolean };
     handlerOptions: HandlerOptions | null;
+    /** ADR 0034: the members a unit head can hand this case to. */
+    delegateOptions?: { id: string; name: string }[] | null;
     /** Organization form: the service received and the questionnaire answers; null otherwise. */
     organizationForm?: OrganizationFormDetailsData | null;
 };
@@ -142,10 +144,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * stands and every step it took (brief §52–53). The transition form offers
  * only the statuses this user may set from here; assignment opens a dialog.
  */
-export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, subjects = [], referrals = [], organizationForm = null }: Props) {
+export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, delegateOptions = null, subjects = [], referrals = [], organizationForm = null }: Props) {
     const { t, locale } = useLocale();
     const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
     const [assigning, setAssigning] = useState(false);
+    const [delegating, setDelegating] = useState(false);
     const [escalating, setEscalating] = useState(false);
 
     return <AuthenticatedLayout header={<PageHeader title={title} backHref={route(type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions')} />}>
@@ -249,6 +252,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                             <h2 className="font-semibold">{t('serviceFeedback.currentHandler')}</h2>
                             <div className="flex flex-wrap justify-end gap-2">
                                 {can.escalate && <Button type="button" size="sm" variant="outline" onClick={() => setEscalating(true)}>{t('serviceFeedback.escalate')}</Button>}
+                                {delegateOptions && delegateOptions.length > 0 && <Button type="button" size="sm" variant="primary" onClick={() => setDelegating(true)}>{t('serviceFeedback.delegate')}</Button>}
                                 {can.assign && <Button type="button" size="sm" variant={currentAssignment ? 'outline' : 'primary'} onClick={() => setAssigning(true)}>{t(currentAssignment ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button>}
                             </div>
                         </div>
@@ -280,6 +284,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
         </div>
 
         {escalating && <EscalateDialog type={type} submissionId={entry.id} onClose={() => setEscalating(false)} />}
+        {delegating && delegateOptions && <AssignDialog type={type} submissionId={entry.id} options={{ users: delegateOptions, units: [], roles: [] }} reassign locale={locale} onClose={() => setDelegating(false)} membersOnly />}
         {assigning && handlerOptions && <AssignDialog type={type} submissionId={entry.id} options={handlerOptions} reassign={currentAssignment !== null} locale={locale} onClose={() => setAssigning(false)} />}
     </AuthenticatedLayout>;
 }
@@ -330,8 +335,8 @@ function EscalateDialog({ type, submissionId, onClose }: { type: 'suggestion' | 
     </AppDialog>;
 }
 
-function AssignDialog({ type, submissionId, options, reassign, locale, onClose }: {
-    type: 'suggestion' | 'complaint'; submissionId: string; options: HandlerOptions; reassign: boolean; locale: string; onClose: () => void;
+function AssignDialog({ type, submissionId, options, reassign, locale, onClose, membersOnly = false }: {
+    type: 'suggestion' | 'complaint'; submissionId: string; options: HandlerOptions; reassign: boolean; locale: string; onClose: () => void; membersOnly?: boolean;
 }) {
     const { t } = useLocale();
     const form = useForm({ handler_type: 'user' as AssignmentRow['handler_type'], handler_id: options.users[0]?.id ?? '', reason: '' });
@@ -349,16 +354,16 @@ function AssignDialog({ type, submissionId, options, reassign, locale, onClose }
         form.post(route('service-submissions.assign', { type, submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
     }
 
-    return <AppDialog open onClose={onClose} title={t(reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')} description={t('serviceFeedback.assignHint')} maxWidth="lg"
-        footer={<><Button type="button" variant="outline" onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" form="assign-form" variant="primary" loading={form.processing}>{t(reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button></>}>
+    return <AppDialog open onClose={onClose} title={t(membersOnly ? 'serviceFeedback.delegate' : reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')} description={t(membersOnly ? 'serviceFeedback.delegateHint' : 'serviceFeedback.assignHint')} maxWidth="lg"
+        footer={<><Button type="button" variant="outline" onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" form="assign-form" variant="primary" loading={form.processing}>{t(membersOnly ? 'serviceFeedback.delegate' : reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button></>}>
         <form id="assign-form" onSubmit={submit} className="grid gap-4">
-            <FormField id="assign-type" label={t('serviceFeedback.handlerType')} error={form.errors.handler_type} required>
+            {!membersOnly && <FormField id="assign-type" label={t('serviceFeedback.handlerType')} error={form.errors.handler_type} required>
                 {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_type} onChange={(e) => setType(e.target.value as AssignmentRow['handler_type'])}>
                     <option value="user">{t('serviceFeedback.handlerUser')}</option>
                     <option value="organization_unit">{t('serviceFeedback.handlerUnit')}</option>
                     <option value="role">{t('serviceFeedback.handlerRole')}</option>
                 </Select>}
-            </FormField>
+            </FormField>}
             <FormField id="assign-handler" label={t('serviceFeedback.handler')} error={form.errors.handler_id} required>
                 {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_id} onChange={(e) => form.setData('handler_id', e.target.value)}>
                     {choices.length === 0 && <option value="">{t('serviceFeedback.noHandlerOptions')}</option>}

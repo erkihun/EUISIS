@@ -397,6 +397,8 @@ export default {
     chooseHandler: 'የሚያስተናግድ አካል ይምረጡ',
     viaRoutingRule: 'በማስተላለፊያ ደንብ',
     reasonNoRoutingRule: 'የሚዛመድ የማስተላለፊያ ደንብ አልተገኘም',
+    delegate: 'ለአባል ይስጡ',
+    delegateHint: 'ጉዳዩን ከክፍልዎ አባላት ለአንዱ ይስጡ። ደረጃውና ቀነ ገደቡ አይቀየሩም፤ እርስዎም መከታተል ይችላሉ።',
     assignmentHistory: 'የምደባ ታሪክ',
     statusHistory: 'የሁኔታ ታሪክ',
     noHistory: 'እስካሁን የሁኔታ ለውጥ አልተመዘገበም።',

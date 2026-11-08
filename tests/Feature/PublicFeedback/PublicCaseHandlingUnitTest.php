@@ -229,3 +229,55 @@ it('lists the selected unit staff, including units beneath it, for the add-membe
     $this->actingAs($this->admin)->get(route('public-complaints.units.staff', $unit))->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Abebe Kebede');
     $this->actingAs($this->admin)->get(route('tip-offs.units.staff', $unit))->assertNotFound();
 });
+
+it('lets only the unit members work its case, and its head hand the case to one member', function (): void {
+    foreach (['service_feedback.resolve'] as $permission) {
+        Permission::findOrCreate($permission, 'web');
+    }
+    $handler = Role::findOrCreate('Public Feedback Handler', 'web');
+    $handler->syncPermissions(['service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.resolve', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
+    $org = $this->s->organization->id;
+    $scoped = function (Employee $employee) use ($handler, $org): User {
+        $user = User::factory()->create(['employee_id' => $employee->id]);
+        $user->assignRole($handler);
+        App\Models\UserOrganizationScope::query()->create(['user_id' => $user->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
+
+        return $user;
+    };
+    $officerEmployee = handlingStaff($this->s, $this->office, 'HDU-EMP-6', 'Kebede Alemu');
+    $outsiderEmployee = handlingStaff($this->s, $this->office, 'HDU-EMP-7', 'Tigist Bekele');
+    $head = $this->officerUser;
+    $head->syncRoles([$handler]);
+    App\Models\UserOrganizationScope::query()->create(['user_id' => $head->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
+    $officer = $scoped($officerEmployee);
+    $outsider = $scoped($outsiderEmployee);
+
+    $this->actingAs($this->admin)->post(route('public-complaints.units.store'), ['organization_id' => $org, 'organization_unit_id' => $this->office->id]);
+    $unit = PublicCaseHandlingUnit::query()->sole();
+    foreach ([[$this->officer, 'head'], [$officerEmployee, 'officer']] as [$employee, $responsibility]) {
+        $this->actingAs($this->admin)->post(route('public-complaints.units.members.store', $unit), ['employee_id' => $employee->id, 'responsibility' => $responsibility, 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('s.png')])->assertSessionHasNoErrors();
+    }
+    PublicFeedbackRoutingRule::query()->create(['organization_id' => $org, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $this->office->id, 'priority' => 1, 'is_active' => true, 'created_by' => $this->admin->id]);
+    $this->post('/service-feedback/'.$this->s->token->token.'/complaint', pfComplete('complaint', ['message' => 'Complaint.']))->assertSessionHasNoErrors();
+    $complaint = EmployeeServiceFeedback::query()->where('type', 'complaint')->sole();
+    $show = route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint->id]);
+    $transition = route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint->id]);
+
+    // A colleague who is not a member may read it, but not work it.
+    $this->actingAs($outsider)->get($show)->assertOk()->assertInertia(fn (Assert $page) => $page->where('allowedTransitions', [])->where('delegateOptions', null));
+    $this->actingAs($outsider)->post($transition, ['status' => 'under_review'])->assertForbidden();
+
+    // The head sees the members to hand it to, and hands it to the officer; level and deadline stay.
+    $this->actingAs($head)->get($show)->assertInertia(fn (Assert $page) => $page->where('delegateOptions', fn ($rows) => collect($rows)->pluck('id')->sort()->values()->all() === collect([(string) $head->id, (string) $officer->id])->sort()->values()->all()));
+    $assign = route('service-submissions.assign', ['type' => 'complaint', 'submission' => $complaint->id]);
+    $this->actingAs($head)->post($assign, ['handler_type' => 'user', 'handler_id' => (string) $outsider->id])->assertForbidden();
+    $this->actingAs($head)->post($assign, ['handler_type' => 'user', 'handler_id' => (string) $officer->id])->assertSessionHasNoErrors();
+    $current = $complaint->currentAssignment()->sole();
+    expect($current->handler_id)->toBe((string) $officer->id)->and($current->level)->toBe(1);
+
+    // Now the officer works it; the head can still follow; the outsider cannot.
+    $this->actingAs($outsider)->post($transition, ['status' => 'under_review'])->assertForbidden();
+    $this->actingAs($officer)->post($transition, ['status' => 'under_review'])->assertSessionHasNoErrors();
+    $this->actingAs($head)->post($transition, ['status' => 'resolved', 'reason' => 'Done.'])->assertSessionHasNoErrors();
+    expect($complaint->fresh()->status->value)->toBe('resolved');
+});

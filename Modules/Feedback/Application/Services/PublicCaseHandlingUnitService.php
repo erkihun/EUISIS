@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
+use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnitMember;
 
@@ -250,6 +252,73 @@ final class PublicCaseHandlingUnitService
         }
 
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * Who may work a case in its current hands (ADR 0034): once a case is with
+     * a designated unit, its serving members; once the head has handed it to
+     * one member, that member and the unit's head. Coordinators (assign or
+     * reassign) always may. Cases outside the designated units keep the
+     * earlier rule: anyone with the permission in scope.
+     */
+    public function mayWork(User $user, EmployeeServiceFeedback $submission): bool
+    {
+        if ($user->hasAnyPermission(['service_feedback.assign', 'service_feedback.reassign'])) {
+            return true;
+        }
+        $assignment = $submission->currentAssignment()->first();
+        if ($assignment === null) {
+            return true;
+        }
+        $type = $submission->type->value;
+        $userId = (string) $user->getKey();
+
+        return match ($assignment->handler_type) {
+            PublicFeedbackHandlerType::OrganizationUnit => ($members = $this->servingUserIds((string) $assignment->handler_id, $type)) === null || in_array($userId, $members, true),
+            PublicFeedbackHandlerType::User => $this->activeUnitIds($submission->organization_id, $type) === []
+                || $userId === (string) $assignment->handler_id
+                || $this->isHeadOver($user, (string) $assignment->handler_id, $type),
+            PublicFeedbackHandlerType::Role => true,
+        };
+    }
+
+    /** The designated unit (for this case type) whose head this user is, when the case's unit is that one. */
+    public function headedUnit(User $user, string $organizationUnitId, string $caseType): ?PublicCaseHandlingUnit
+    {
+        if ($user->employee_id === null) {
+            return null;
+        }
+        $designation = PublicCaseHandlingUnit::query()->where('organization_unit_id', $organizationUnitId)->where('case_type', $caseType)->where('status', 'active')->first();
+
+        return $designation !== null && $designation->members()->servingOn(now())->where('responsibility', 'head')->where('employee_id', $user->employee_id)->exists()
+            ? $designation : null;
+    }
+
+    /**
+     * The unit's serving members who have an account: whom its head can hand a case to.
+     *
+     * @return list<array{id: string, name: string}>
+     */
+    public function memberUsers(PublicCaseHandlingUnit $designation): array
+    {
+        $employeeIds = $designation->members()->servingOn(now())->pluck('employee_id');
+
+        return User::query()->where('status', 'active')->whereIn('employee_id', $employeeIds)->orderBy('name')->get(['id', 'name'])
+            ->map(fn (User $u): array => ['id' => (string) $u->getKey(), 'name' => (string) $u->name])->values()->all();
+    }
+
+    /** Whether $head heads a designated unit (this case type) in which the member user serves. */
+    private function isHeadOver(User $head, string $memberUserId, string $caseType): bool
+    {
+        $member = User::query()->find($memberUserId);
+        if ($head->employee_id === null || $member?->employee_id === null) {
+            return false;
+        }
+
+        return PublicCaseHandlingUnit::query()->where('case_type', $caseType)->where('status', 'active')
+            ->whereHas('members', fn ($q) => $q->servingOn(now())->where('responsibility', 'head')->where('employee_id', $head->employee_id))
+            ->whereHas('members', fn ($q) => $q->servingOn(now())->where('employee_id', $member->employee_id))
+            ->exists();
     }
 
     public function isDesignated(string $organizationUnitId): bool

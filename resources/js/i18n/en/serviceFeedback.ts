@@ -401,6 +401,8 @@ export default {
     chooseHandler: 'Choose a handler',
     viaRoutingRule: 'by routing rule',
     reasonNoRoutingRule: 'no routing rule matched',
+    delegate: 'Give to a member',
+    delegateHint: 'Hand this case to one member of your unit. Its level and deadline stay the same; you can still follow it.',
     assignmentHistory: 'Assignment history',
     statusHistory: 'Status history',
     noHistory: 'No status changes recorded yet.',
