@@ -196,7 +196,7 @@ final class PublicCaseHandlingUnitService
         }
 
         return PublicCaseHandlingUnit::query()->where('organization_id', $organizationId)->where('status', 'active')
-            ->when($caseType !== null, fn ($q) => $q->where('case_type', $caseType))
+            ->when($caseType !== null, fn ($q) => $q->where('case_type', $caseType), fn ($q) => $q->whereIn('case_type', PublicCaseHandlingUnit::ROUTED_TYPES))
             ->distinct()->pluck('organization_unit_id')->map(fn ($id): string => (string) $id)->values()->all();
     }
 

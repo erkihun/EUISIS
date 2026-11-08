@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { AppDialog, Alert, Button, FilterField, FilterPanel, FormField, Select, Textarea, actionLinkClassName, cx } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
-import { unitsIndexUrl, type CaseType, type HandlingMember } from './MemberForm';
+import { unitRoute, unitsIndexUrl, type CaseType, type HandlingMember } from './MemberForm';
 
 type HandlingUnit = {
     id: string;
@@ -26,7 +26,7 @@ type Props = {
     units: HandlingUnit[];
     organizations: { id: string; name: string }[];
     filters: { organization_id: string };
-    /** This page's type: the Tip-off Unit (suggestion) or the Complaint Unit. */
+    /** This page's module: the Feedback, Tip-off (suggestion) or Complaint Unit. */
     caseType: CaseType;
 };
 
@@ -42,7 +42,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
     const [ending, setEnding] = useState<{ unit: HandlingUnit; member: HandlingMember } | null>(null);
-    const title = h(caseType === 'complaint' ? 'titleComplaint' : 'titleTipOff');
+    const title = h(`byType.${caseType}.title`);
 
     function filter(next: Partial<Props['filters']>) {
         const merged = { ...filters, ...next };
@@ -51,11 +51,11 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
     }
 
     function toggle(unit: HandlingUnit) {
-        router.patch(route('service-feedback.handling-units.update', unit.id), { status: unit.status === 'active' ? 'inactive' : 'active' }, { preserveScroll: true });
+        router.patch(unitRoute(caseType, 'update', unit.id), { status: unit.status === 'active' ? 'inactive' : 'active' }, { preserveScroll: true });
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={h(caseType === 'complaint' ? 'introComplaint' : 'introTipOff')} actions={organizations.length > 0 ? <Button as={Link} href={route('service-feedback.handling-units.create', { case_type: caseType })} variant="primary">{h(caseType === 'complaint' ? 'designateComplaint' : 'designateTipOff')}</Button> : undefined} />}>
+        <AuthenticatedLayout header={<PageHeader title={title} description={h(`byType.${caseType}.intro`)} actions={organizations.length > 0 ? <Button as={Link} href={unitRoute(caseType, 'create')} variant="primary">{h(`byType.${caseType}.designate`)}</Button> : undefined} />}>
             <Head title={title} />
             <div className="space-y-5 p-4 sm:p-6">
                 <FilterPanel onSubmit={(e) => e.preventDefault()}>
@@ -67,7 +67,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
                     </FilterField>
                 </FilterPanel>
 
-                {units.length === 0 ? <EmptyState title={h(caseType === 'complaint' ? 'noneComplaint' : 'noneTipOff')} description={h(caseType === 'complaint' ? 'noneHintComplaint' : 'noneHintTipOff')} /> : units.map((unit) => (
+                {units.length === 0 ? <EmptyState title={h(`byType.${caseType}.none`)} description={h(`byType.${caseType}.noneHint`)} /> : units.map((unit) => (
                     <section key={unit.id} aria-labelledby={`hu-${unit.id}`} className={cx(PANEL, 'space-y-4 p-5')}>
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
@@ -77,7 +77,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
                             </div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <StatusBadge status={unit.status} label={h(unit.status === 'active' ? 'active' : 'inactive')} />
-                                {unit.can_manage && unit.status === 'active' && <Button as={Link} href={route('service-feedback.handling-units.members.create', unit.id)} size="sm" variant="primary">{h('addMember')}</Button>}
+                                {unit.can_manage && unit.status === 'active' && <Button as={Link} href={unitRoute(caseType, 'members.create', unit.id)} size="sm" variant="primary">{h('addMember')}</Button>}
                                 {unit.can_manage && <Button type="button" size="sm" variant="outline" onClick={() => toggle(unit)}>{h(unit.status === 'active' ? 'deactivate' : 'activate')}</Button>}
                             </div>
                         </div>
@@ -105,7 +105,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
                                                 <figcaption className="mt-0.5 text-[11px] text-(--app-muted-foreground)">{h('signature')}</figcaption>
                                             </figure>
                                             {unit.can_manage && <div className="flex flex-col items-end gap-1">
-                                                <Link href={route('service-feedback.handling-units.members.edit', { unit: unit.id, member: member.id })} className={actionLinkClassName()}>{t('common.edit')}</Link>
+                                                <Link href={unitRoute(caseType, 'members.edit', { unit: unit.id, member: member.id })} className={actionLinkClassName()}>{t('common.edit')}</Link>
                                                 <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => setEnding({ unit, member })}>{h('endTerm')}</button>
                                             </div>}
                                         </div>
@@ -129,7 +129,7 @@ function EndMemberDialog({ unit, member, onClose }: { unit: HandlingUnit; member
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-feedback.handling-units.members.end', { unit: unit.id, member: member.id }), { preserveScroll: true, onSuccess: onClose });
+        form.post(unitRoute(unit.case_type, 'members.end', { unit: unit.id, member: member.id }), { preserveScroll: true, onSuccess: onClose });
     }
 
     return <AppDialog open onClose={onClose} title={h('endTerm')} description={member.name ?? undefined} maxWidth="lg"

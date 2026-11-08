@@ -4,7 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Button, Card, FormField, Select, Textarea } from '@euisis/ui';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent } from 'react';
-import { unitsIndexUrl, type CaseType } from './MemberForm';
+import { unitRoute, unitsIndexUrl, type CaseType } from './MemberForm';
 
 type Props = { organizations: { id: string; name: string }[]; caseType: CaseType };
 
@@ -13,7 +13,7 @@ export default function HandlingUnitsCreate({ organizations, caseType }: Props) 
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
     const form = useForm({ organization_id: organizations.length === 1 ? organizations[0].id : '', case_type: caseType, organization_unit_id: '', description_en: '', description_am: '' });
-    const title = h(caseType === 'complaint' ? 'designateComplaint' : 'designateTipOff');
+    const title = h(`byType.${caseType}.designate`);
     const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function HandlingUnitsCreate({ organizations, caseType }: Props) 
         if (!form.data.organization_id) { setUnits([]); return; }
         const controller = new AbortController();
         setLoading(true);
-        fetch(route('service-feedback.handling-units.unit-options', { organization_id: form.data.organization_id, case_type: form.data.case_type }), { signal: controller.signal, headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+        fetch(unitRoute(caseType, 'unit-options', { organization_id: form.data.organization_id }), { signal: controller.signal, headers: { Accept: 'application/json' }, credentials: 'same-origin' })
             .then((r) => (r.ok ? r.json() : { data: [] }))
             .then((body: { data: { id: string; name: string }[] }) => setUnits(body.data))
             .catch(() => undefined)
@@ -31,7 +31,7 @@ export default function HandlingUnitsCreate({ organizations, caseType }: Props) 
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(route('service-feedback.handling-units.store'));
+        form.post(unitRoute(caseType, 'store'));
     }
 
     return (

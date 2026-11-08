@@ -53,8 +53,8 @@ class PublicCaseHandlingUnitController extends Controller
         if ($request->filled('organization_id')) {
             $query->where('organization_id', (string) $request->string('organization_id'));
         }
-        // One page per type (route default): the Tip-off Unit or the Complaint Unit.
-        $caseType = $request->route('case_type') === 'complaint' ? 'complaint' : 'suggestion';
+        // Each module's own page (route default): Feedback, Tip-off or Complaint Unit.
+        $caseType = $this->routeType($request);
         $query->where('case_type', $caseType);
 
         $rows = $query->orderBy('organization_id')->orderBy('created_at')->get();
@@ -90,13 +90,12 @@ class PublicCaseHandlingUnitController extends Controller
         abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
         $organizations = $this->organizationOptions($user, app()->getLocale());
         abort_if($organizations === [], 403);
-        $caseType = in_array($request->query('case_type'), PublicCaseHandlingUnit::CASE_TYPES, true) ? (string) $request->query('case_type') : 'suggestion';
-
-        return Inertia::render('ServiceFeedback/HandlingUnits/Create', ['organizations' => $organizations, 'caseType' => $caseType]);
+        return Inertia::render('ServiceFeedback/HandlingUnits/Create', ['organizations' => $organizations, 'caseType' => $this->routeType($request)]);
     }
 
     public function createMember(Request $request, PublicCaseHandlingUnit $unit): Response
     {
+        $this->assertOwnModule($request, $unit);
         abort_unless($this->handling->canManage($this->user($request), (string) $unit->organization_id) && $unit->isActive(), 403);
 
         return Inertia::render('ServiceFeedback/HandlingUnits/MemberCreate', ['unit' => $this->unitRef($unit), 'responsibilities' => PublicCaseHandlingUnitMember::RESPONSIBILITIES]);
@@ -104,6 +103,7 @@ class PublicCaseHandlingUnitController extends Controller
 
     public function editMember(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): Response
     {
+        $this->assertOwnModule($request, $unit);
         abort_unless($member->handling_unit_id === $unit->getKey(), 404);
         abort_unless($this->handling->canManage($this->user($request), (string) $unit->organization_id), 403);
 
@@ -116,8 +116,7 @@ class PublicCaseHandlingUnitController extends Controller
         $user = $this->user($request);
         $organizationId = (string) $request->query('organization_id', '');
         abort_unless($organizationId !== '' && $this->handling->canManage($user, $organizationId), 403);
-        $taken = PublicCaseHandlingUnit::query()->where('organization_id', $organizationId)
-            ->when(in_array($request->query('case_type'), PublicCaseHandlingUnit::CASE_TYPES, true), fn ($q) => $q->where('case_type', (string) $request->query('case_type')))
+        $taken = PublicCaseHandlingUnit::query()->where('organization_id', $organizationId)->where('case_type', $this->routeType($request))
             ->pluck('organization_unit_id')->map(fn ($id) => (string) $id)->all();
         $locale = app()->getLocale();
 
@@ -132,17 +131,17 @@ class PublicCaseHandlingUnitController extends Controller
         $data = $request->validate([
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
             'organization_unit_id' => ['required', 'uuid', Rule::exists('organization_units', 'id')->where('organization_id', (string) $request->input('organization_id'))],
-            'case_type' => ['required', Rule::in(PublicCaseHandlingUnit::CASE_TYPES)],
             'description_en' => ['nullable', 'string', 'max:2000'],
             'description_am' => ['nullable', 'string', 'max:2000'],
         ]);
-        $this->handling->designate($this->user($request), $data);
+        $this->handling->designate($this->user($request), [...$data, 'case_type' => $this->routeType($request)]);
 
-        return redirect()->route(self::indexRoute((string) $data['case_type']))->with('success', __('service-feedback.handling_unit_saved'));
+        return redirect()->route(self::indexRoute($this->routeType($request)))->with('success', __('service-feedback.handling_unit_saved'));
     }
 
     public function update(Request $request, PublicCaseHandlingUnit $unit): RedirectResponse
     {
+        $this->assertOwnModule($request, $unit);
         $data = $request->validate([
             'status' => ['sometimes', Rule::in(['active', 'inactive'])],
             'description_en' => ['nullable', 'string', 'max:2000'],
@@ -155,6 +154,7 @@ class PublicCaseHandlingUnitController extends Controller
 
     public function addMember(Request $request, PublicCaseHandlingUnit $unit): RedirectResponse
     {
+        $this->assertOwnModule($request, $unit);
         $data = $request->validate([
             'employee_id' => ['required', 'uuid', 'exists:employees,id'],
             'responsibility' => ['required', Rule::in(PublicCaseHandlingUnitMember::RESPONSIBILITIES)],
@@ -170,6 +170,7 @@ class PublicCaseHandlingUnitController extends Controller
 
     public function updateMember(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): RedirectResponse
     {
+        $this->assertOwnModule($request, $unit);
         $data = $request->validate([
             'responsibility' => ['required', Rule::in(PublicCaseHandlingUnitMember::RESPONSIBILITIES)],
             'appointment_reference' => ['nullable', 'string', 'max:255'],
@@ -182,6 +183,7 @@ class PublicCaseHandlingUnitController extends Controller
 
     public function endMember(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): RedirectResponse
     {
+        $this->assertOwnModule($request, $unit);
         $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         $this->handling->endMember($unit, $member, $this->user($request), $data['reason']);
 
@@ -191,6 +193,7 @@ class PublicCaseHandlingUnitController extends Controller
     /** The signature registered with a member's term; private, for the unit's administrators. */
     public function signature(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): StreamedResponse
     {
+        $this->assertOwnModule($request, $unit);
         $user = $this->user($request);
         abort_unless($member->handling_unit_id === $unit->getKey() && $user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION])
             && ($this->scope->isUnrestricted($user) || $this->scope->canAccessOrganization($user, (string) $unit->organization_id)), 404);
@@ -200,10 +203,24 @@ class PublicCaseHandlingUnitController extends Controller
         return Storage::disk('local')->response($path, null, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 
-    /** The page of a case type: the Tip-off Unit or the Complaint Unit. */
+    /** The unit page of a module: Feedback, Tip-off or Complaint Unit. */
     public static function indexRoute(string $caseType): string
     {
-        return $caseType === 'complaint' ? 'service-feedback.complaint-units.index' : 'service-feedback.tip-off-units.index';
+        return (PublicCaseHandlingUnit::ROUTES[$caseType] ?? PublicCaseHandlingUnit::ROUTES['suggestion']).'.index';
+    }
+
+    /** The module this address belongs to (route default `case_type`). */
+    private function routeType(Request $request): string
+    {
+        $type = (string) $request->route('case_type');
+
+        return in_array($type, PublicCaseHandlingUnit::CASE_TYPES, true) ? $type : 'suggestion';
+    }
+
+    /** A unit is reached only through its own module's address. */
+    private function assertOwnModule(Request $request, PublicCaseHandlingUnit $unit): void
+    {
+        abort_unless($unit->case_type === $this->routeType($request), 404);
     }
 
     /** @return array<string, mixed> */
@@ -238,7 +255,7 @@ class PublicCaseHandlingUnitController extends Controller
             'appointment_reference' => $m->appointment_reference,
             'placed' => $this->handling->isPlacedIn((string) $m->employee_id, $d),
             'has_account' => User::query()->where('employee_id', $m->employee_id)->where('status', 'active')->exists(),
-            'signature_url' => route('service-feedback.handling-units.members.signature', [$d, $m]),
+            'signature_url' => route(PublicCaseHandlingUnit::ROUTES[$d->case_type].'.members.signature', [$d, $m]),
             'signature_recorded_at' => $m->signature_recorded_at?->toIso8601String(),
         ];
     }

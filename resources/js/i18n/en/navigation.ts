@@ -142,6 +142,7 @@ const navigation = {
     intelligenceKnowledge: 'Knowledge Assistant',
     intelligenceGovernance: 'AI Governance',
     serviceFeedbackRoutingRules: 'Routing Rules',
+    serviceFeedbackUnit: 'Feedback Unit',
     serviceTipOffUnit: 'Tip-off Unit',
     serviceComplaintUnit: 'Complaint Unit',
     organizationFeedbackQrCodes: 'Organization QR Codes',

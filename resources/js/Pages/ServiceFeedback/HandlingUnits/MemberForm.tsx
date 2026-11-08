@@ -3,7 +3,7 @@ import { Button, Card, FormField, Input, SearchableSelect, Select, type Searchab
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
-export type CaseType = 'suggestion' | 'complaint';
+export type CaseType = 'feedback' | 'suggestion' | 'complaint';
 export type Responsibility = 'head' | 'officer';
 
 export type HandlingMember = {
@@ -25,9 +25,15 @@ export type HandlingUnitRef = { id: string; unit: string | null; organization: s
 
 const SIGNATURE_ACCEPT = 'image/png,image/jpeg,image/webp';
 
-/** The Tip-off Unit and the Complaint Unit each have their own page. */
+/** Each module's own unit pages: /feedback-admin/units, /tip-off-admin/units, /complaint-admin/units (ADR 0034). */
+const UNIT_ROUTES: Record<CaseType, string> = { feedback: 'service-feedback.units', suggestion: 'tip-offs.units', complaint: 'public-complaints.units' };
+
+export function unitRoute(caseType: CaseType, action: string, params?: Record<string, string> | string): string {
+    return route(`${UNIT_ROUTES[caseType]}.${action}`, params as never) as string;
+}
+
 export function unitsIndexUrl(caseType: CaseType): string {
-    return route(caseType === 'complaint' ? 'service-feedback.complaint-units.index' : 'service-feedback.tip-off-units.index');
+    return unitRoute(caseType, 'index');
 }
 
 function today(): string {
@@ -62,9 +68,9 @@ export default function MemberForm({ unit, member, responsibilities }: { unit: H
     function submit(event: FormEvent) {
         event.preventDefault();
         if (member === null) {
-            form.post(route('service-feedback.handling-units.members.store', unit.id), { forceFormData: true });
+            form.post(unitRoute(unit.case_type, 'members.store', unit.id), { forceFormData: true });
         } else {
-            form.post(route('service-feedback.handling-units.members.update', { unit: unit.id, member: member.id }), { forceFormData: true });
+            form.post(unitRoute(unit.case_type, 'members.update', { unit: unit.id, member: member.id }), { forceFormData: true });
         }
     }
 

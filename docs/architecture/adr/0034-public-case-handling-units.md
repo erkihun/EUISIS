@@ -34,6 +34,18 @@
 5. The page warns when a unit has no members, not exactly one head, a member
    no longer placed in the unit, or a member without an active user account.
 
+6. Each module has its own unit page and address, never a shared one (owner
+   follow-up, same day): `/feedback-admin/units` (service feedback,
+   `service-feedback.units.*`), `/tip-off-admin/units` (Tip-offs,
+   `tip-offs.units.*`) and `/complaint-admin/units` (complaints,
+   `public-complaints.units.*`). The type comes from the address; a unit is
+   reachable only through its own module's address. The short-lived
+   `/feedback-admin/handling-units`, `/feedback-admin/tip-off-units` and
+   `/feedback-admin/complaint-units` redirect.
+7. The Feedback Unit records the unit that receives service feedback and its
+   members with signatures. Rating feedback is reviewed, not routed, so it
+   changes no assignment; Tip-off and complaint pickers never list it.
+
 ## Decisions taken as defaults
 
 - Same permission as routing rules; no new permission.

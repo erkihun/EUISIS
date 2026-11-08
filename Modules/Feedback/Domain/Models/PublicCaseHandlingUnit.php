@@ -17,8 +17,18 @@ class PublicCaseHandlingUnit extends Model
 {
     use HasUuidPrimaryKey;
 
-    /** Tip-offs (internal type `suggestion`) and complaints each have their own unit. */
-    public const CASE_TYPES = ['suggestion', 'complaint'];
+    /** Service feedback, Tip-offs (internal type `suggestion`) and complaints: each module has its own unit. */
+    public const CASE_TYPES = ['feedback', 'suggestion', 'complaint'];
+
+    /** Each module's own admin address and route names (ADR 0034): never one shared page. */
+    public const ROUTES = [
+        'feedback' => 'service-feedback.units',
+        'suggestion' => 'tip-offs.units',
+        'complaint' => 'public-complaints.units',
+    ];
+
+    /** The cases that are routed and assigned (rating feedback is reviewed, not routed). */
+    public const ROUTED_TYPES = ['suggestion', 'complaint'];
 
     protected $fillable = [
         'organization_id',

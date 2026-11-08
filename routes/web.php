@@ -124,6 +124,7 @@ use Modules\Feedback\Http\Controllers\PublicFeedbackOrganizationLogoController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackQuestionnaireController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackReferralController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackReportController;
+use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
 use Modules\Feedback\Http\Controllers\PublicCaseHandlingUnitController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackRoutingRuleController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackSettingsController;
@@ -1655,20 +1656,28 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::delete('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'destroy'])->whereUuid('questionSet')->name('service-feedback.questionnaire.destroy');
     Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
     // ADR 0034: the work units that handle public Tip-offs and complaints, their members and signatures.
-    // ADR 0034: the Tip-off Unit and the Complaint Unit are separate pages, never one mixed list.
-    Route::get('/feedback-admin/tip-off-units', [PublicCaseHandlingUnitController::class, 'index'])->defaults('case_type', 'suggestion')->name('service-feedback.tip-off-units.index');
-    Route::get('/feedback-admin/complaint-units', [PublicCaseHandlingUnitController::class, 'index'])->defaults('case_type', 'complaint')->name('service-feedback.complaint-units.index');
-    Route::redirect('/feedback-admin/handling-units', '/feedback-admin/tip-off-units');
-    Route::get('/feedback-admin/handling-units/unit-options', [PublicCaseHandlingUnitController::class, 'unitOptions'])->name('service-feedback.handling-units.unit-options');
-    Route::get('/feedback-admin/handling-units/create', [PublicCaseHandlingUnitController::class, 'create'])->name('service-feedback.handling-units.create');
-    Route::get('/feedback-admin/handling-units/{unit}/members/create', [PublicCaseHandlingUnitController::class, 'createMember'])->whereUuid('unit')->name('service-feedback.handling-units.members.create');
-    Route::get('/feedback-admin/handling-units/{unit}/members/{member}/edit', [PublicCaseHandlingUnitController::class, 'editMember'])->whereUuid(['unit', 'member'])->name('service-feedback.handling-units.members.edit');
-    Route::post('/feedback-admin/handling-units', [PublicCaseHandlingUnitController::class, 'store'])->name('service-feedback.handling-units.store');
-    Route::patch('/feedback-admin/handling-units/{unit}', [PublicCaseHandlingUnitController::class, 'update'])->whereUuid('unit')->name('service-feedback.handling-units.update');
-    Route::post('/feedback-admin/handling-units/{unit}/members', [PublicCaseHandlingUnitController::class, 'addMember'])->whereUuid('unit')->name('service-feedback.handling-units.members.store');
-    Route::post('/feedback-admin/handling-units/{unit}/members/{member}', [PublicCaseHandlingUnitController::class, 'updateMember'])->whereUuid(['unit', 'member'])->name('service-feedback.handling-units.members.update');
-    Route::post('/feedback-admin/handling-units/{unit}/members/{member}/end', [PublicCaseHandlingUnitController::class, 'endMember'])->whereUuid(['unit', 'member'])->name('service-feedback.handling-units.members.end');
-    Route::get('/feedback-admin/handling-units/{unit}/members/{member}/signature', [PublicCaseHandlingUnitController::class, 'signature'])->whereUuid(['unit', 'member'])->name('service-feedback.handling-units.members.signature');
+    // ADR 0034: each module's own unit page and its members — /feedback-admin/units (service
+    // feedback), /tip-off-admin/units (Tip-offs), /complaint-admin/units (complaints). Never one shared page.
+    foreach (['feedback' => 'feedback-admin', 'suggestion' => 'tip-off-admin', 'complaint' => 'complaint-admin'] as $caseType => $prefix) {
+        Route::prefix($prefix.'/units')->name(PublicCaseHandlingUnit::ROUTES[$caseType].'.')->controller(PublicCaseHandlingUnitController::class)
+            ->group(function () use ($caseType): void {
+                Route::get('/', 'index')->defaults('case_type', $caseType)->name('index');
+                Route::get('/unit-options', 'unitOptions')->defaults('case_type', $caseType)->name('unit-options');
+                Route::get('/create', 'create')->defaults('case_type', $caseType)->name('create');
+                Route::post('/', 'store')->defaults('case_type', $caseType)->name('store');
+                Route::patch('/{unit}', 'update')->defaults('case_type', $caseType)->whereUuid('unit')->name('update');
+                Route::get('/{unit}/members/create', 'createMember')->defaults('case_type', $caseType)->whereUuid('unit')->name('members.create');
+                Route::post('/{unit}/members', 'addMember')->defaults('case_type', $caseType)->whereUuid('unit')->name('members.store');
+                Route::get('/{unit}/members/{member}/edit', 'editMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.edit');
+                Route::post('/{unit}/members/{member}', 'updateMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.update');
+                Route::post('/{unit}/members/{member}/end', 'endMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.end');
+                Route::get('/{unit}/members/{member}/signature', 'signature')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.signature');
+            });
+    }
+    // Addresses used briefly before each module had its own.
+    Route::redirect('/feedback-admin/handling-units', '/tip-off-admin/units');
+    Route::redirect('/feedback-admin/tip-off-units', '/tip-off-admin/units');
+    Route::redirect('/feedback-admin/complaint-units', '/complaint-admin/units');
     Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
     Route::get('/feedback-admin/routing-rules/create', [PublicFeedbackRoutingRuleController::class, 'create'])->name('service-feedback.routing-rules.create');
     Route::get('/feedback-admin/routing-rules/{rule}/edit', [PublicFeedbackRoutingRuleController::class, 'edit'])->whereUuid('rule')->name('service-feedback.routing-rules.edit');
