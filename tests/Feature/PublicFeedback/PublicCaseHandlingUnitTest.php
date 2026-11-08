@@ -213,3 +213,19 @@ it('gives each module its own unit address, and a unit answers only at its own',
     $this->actingAs($this->admin)->get(route('public-complaints.routing-rules.handlers', ['organization_id' => $this->s->organization->id]))
         ->assertJsonCount(3, 'units');
 });
+
+it('lists the selected unit staff, including units beneath it, for the add-member popup', function (): void {
+    $this->actingAs($this->admin)->post(route('public-complaints.units.store'), ['organization_id' => $this->s->organization->id, 'organization_unit_id' => $this->office->id]);
+    $unit = PublicCaseHandlingUnit::query()->sole();
+    $inOffice = handlingStaff($this->s, $this->office, 'HDU-EMP-5', 'Meron Haile');
+
+    // The office's own staff and the team's beneath it; never the employee of another unit.
+    $this->actingAs($this->admin)->get(route('public-complaints.units.staff', $unit))->assertOk()
+        ->assertJsonPath('data', fn ($rows) => collect($rows)->pluck('name')->sort()->values()->all() === ['Abebe Kebede', 'Meron Haile'])
+        ->assertJsonFragment(['position' => 'Licensing Officer', 'unit' => 'Complaints Team']);
+
+    // A member is no longer offered.
+    $this->actingAs($this->admin)->post(route('public-complaints.units.members.store', $unit), ['employee_id' => $inOffice->id, 'responsibility' => 'head', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('sig.png')])->assertSessionHasNoErrors();
+    $this->actingAs($this->admin)->get(route('public-complaints.units.staff', $unit))->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Abebe Kebede');
+    $this->actingAs($this->admin)->get(route('tip-offs.units.staff', $unit))->assertNotFound();
+});

@@ -891,6 +891,8 @@ export default {
         memberHint: 'አባላት በዚህ ክፍል ወይም ከሥሩ ባለ ክፍል የተመደቡ ሠራተኞች ናቸው።',
         noMembers: 'እስካሁን በዚህ ክፍል የሚያገለግል አባል የለም።',
         employee: 'ሠራተኛ',
+        chooseEmployee: 'ከክፍሉ ሠራተኞች አንዱን ይምረጡ',
+        noStaff: 'በዚህ ክፍል ወይም ከሥሩ ባሉ ክፍሎች ያልተሰየመ ንቁ ሠራተኛ የለም።',
         responsibilityLabel: 'ኃላፊነት',
         responsibility: { head: 'ኃላፊ', officer: 'ባለሙያ' },
         from: 'የሚያገለግልበት ከ',

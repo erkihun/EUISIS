@@ -1692,6 +1692,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
                 Route::get('/unit-options', 'unitOptions')->defaults('case_type', $caseType)->name('unit-options');
                 Route::post('/', 'store')->defaults('case_type', $caseType)->name('store');
                 Route::patch('/{unit}', 'update')->defaults('case_type', $caseType)->whereUuid('unit')->name('update');
+                Route::get('/{unit}/staff', 'staff')->defaults('case_type', $caseType)->whereUuid('unit')->name('staff');
                 Route::post('/{unit}/members', 'addMember')->defaults('case_type', $caseType)->whereUuid('unit')->name('members.store');
                 Route::post('/{unit}/members/{member}', 'updateMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.update');
                 Route::post('/{unit}/members/{member}/end', 'endMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.end');

@@ -128,6 +128,28 @@ class PublicCaseHandlingUnitController extends Controller
             ->sortBy('name')->values()->all()]);
     }
 
+    /** The unit's own staff (and of the units beneath it) who are not yet members, for the add-member popup. */
+    public function staff(Request $request, PublicCaseHandlingUnit $unit): JsonResponse
+    {
+        $this->assertOwnModule($request, $unit);
+        abort_unless($this->handling->canManage($this->user($request), (string) $unit->organization_id), 403);
+        $locale = app()->getLocale();
+
+        return response()->json(['data' => array_map(function ($employee) use ($locale): array {
+            $context = $employee->currentAssignmentUuid !== null ? $this->assignments->currentFor($employee->employeeUuid) : null;
+            $position = $context?->positionUuid !== null ? $this->positions->find($context->positionUuid) : null;
+            $placed = $context?->organizationUnitUuid !== null ? $this->units->find($context->organizationUnitUuid) : null;
+
+            return [
+                'id' => $employee->employeeUuid,
+                'name' => $employee->fullName ?? $employee->nameEn ?? $employee->employeeNumber,
+                'employee_number' => $employee->employeeNumber,
+                'position' => $position === null ? null : $this->name($position->titleEn, $position->titleAm, $locale),
+                'unit' => $placed === null ? null : $this->name($placed->nameEn, $placed->nameAm, $locale),
+            ];
+        }, $this->handling->candidates($unit))]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([

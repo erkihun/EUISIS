@@ -6,7 +6,7 @@ import { AppActionMenu, AppMetricCard, FilterField, FilterPanel } from '@/Compon
 import { AlertTriangle, CheckCircle, ChevronRight, PencilIcon, Plus, UserPlusIcon, XCircle } from '@/Components/Icons';
 import { Building2 } from '@/Components/NavIcons';
 import { useLocale } from '@/hooks/useLocale';
-import { Button, FormField, Input, SearchableSelect, Select, Textarea, cx, type SearchableOption } from '@euisis/ui';
+import { Button, FormField, Input, Select, Textarea, cx } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 
@@ -379,12 +379,17 @@ function MemberForm({ unit, member, responsibilities, onDone }: { unit: Handling
         signature: null,
     });
 
-    async function searchEmployees(query: string, signal: AbortSignal): Promise<SearchableOption[]> {
-        const response = await fetch(route('lookup.employees', { q: query }), { signal, headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-        if (!response.ok) return [];
-        const body = (await response.json()) as { data: { id: string; full_name: string | null; employee_number: string | null; organization: { name_en: string | null } | null }[] };
-        return body.data.map((row) => ({ value: row.id, label: row.full_name ?? row.employee_number ?? row.id, description: [row.employee_number, row.organization?.name_en].filter(Boolean).join(' · ') }));
-    }
+    // The unit's own staff (and of the units beneath it) who are not yet members.
+    const [staff, setStaff] = useState<{ id: string; name: string | null; employee_number: string | null; position: string | null; unit: string | null }[] | null>(null);
+    useEffect(() => {
+        if (member !== null) return;
+        const controller = new AbortController();
+        fetch(unitRoute(unit.case_type, 'staff', unit.id), { signal: controller.signal, headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+            .then((r) => (r.ok ? r.json() : { data: [] }))
+            .then((body: { data: NonNullable<typeof staff> }) => setStaff(body.data))
+            .catch(() => undefined);
+        return () => controller.abort();
+    }, [unit.case_type, unit.id, member]);
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -393,8 +398,11 @@ function MemberForm({ unit, member, responsibilities, onDone }: { unit: Handling
     }
 
     return <form onSubmit={submit} className="grid gap-4">
-        {member === null && <FormField id="hu-member-employee" label={h('employee')} error={form.errors.employee_id} required>
-            {({ id }) => <SearchableSelect id={id} label={h('employee')} value={form.data.employee_id} loadOptions={searchEmployees} onChange={(value) => form.setData('employee_id', value)} placeholder={t('serviceFeedback.searchEmployee')} />}
+        {member === null && <FormField id="hu-member-employee" label={h('employee')} description={staff !== null && staff.length === 0 ? h('noStaff') : undefined} error={form.errors.employee_id} required>
+            {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.employee_id} disabled={staff === null || staff.length === 0} onChange={(e) => form.setData('employee_id', e.target.value)}>
+                <option value="">{staff === null ? t('common.loading') : h('chooseEmployee')}</option>
+                {(staff ?? []).map((row) => <option key={row.id} value={row.id}>{[row.name, row.employee_number, row.position, row.unit].filter(Boolean).join(' · ')}</option>)}
+            </Select>}
         </FormField>}
         <FormField id="hu-member-responsibility" label={h('responsibilityLabel')} error={form.errors.responsibility} required>
             {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.responsibility} onChange={(e) => form.setData('responsibility', e.target.value as Responsibility)}>

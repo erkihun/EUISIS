@@ -257,6 +257,22 @@ final class PublicCaseHandlingUnitService
         return PublicCaseHandlingUnit::query()->where('organization_unit_id', $organizationUnitId)->where('status', 'active')->exists();
     }
 
+    /**
+     * The staff who can become members: active employees placed in the unit or
+     * a unit beneath it, less those already serving in it.
+     *
+     * @return list<\App\Backbone\Data\EmployeeIdentity>
+     */
+    public function candidates(PublicCaseHandlingUnit $designation): array
+    {
+        $serving = $designation->members()->servingOn(now())->pluck('employee_id')->map(fn ($id): string => (string) $id)->all();
+
+        return array_values(array_filter(
+            $this->employees->currentlyIn($this->subtree((string) $designation->organization_id, (string) $designation->organization_unit_id)),
+            fn ($employee): bool => ! in_array($employee->employeeUuid, $serving, true),
+        ));
+    }
+
     public function isPlacedIn(string $employeeId, PublicCaseHandlingUnit $designation): bool
     {
         $context = $this->assignments->currentFor($employeeId);

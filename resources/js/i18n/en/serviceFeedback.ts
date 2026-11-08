@@ -897,6 +897,8 @@ export default {
         memberHint: 'Members are staff placed in this unit or a unit beneath it.',
         noMembers: 'No members serve in this unit yet.',
         employee: 'Employee',
+        chooseEmployee: 'Choose one of the unit\'s staff',
+        noStaff: 'No active employee in this unit or the units beneath it is left to add.',
         responsibilityLabel: 'Responsibility',
         responsibility: { head: 'Head', officer: 'Officer' },
         from: 'Serves from',

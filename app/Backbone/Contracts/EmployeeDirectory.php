@@ -16,4 +16,12 @@ interface EmployeeDirectory
 
     /** The employee, or null when unknown or outside the viewer's organization scope. */
     public function findFor(User $viewer, string $employeeUuid): ?EmployeeIdentity;
+
+    /**
+     * Active employees whose current assignment is in one of these units, by name.
+     *
+     * @param  list<string>  $unitUuids
+     * @return list<EmployeeIdentity>
+     */
+    public function currentlyIn(array $unitUuids, int $limit = 500): array;
 }
