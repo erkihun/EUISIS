@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -135,6 +136,61 @@ class PublicServiceFeedbackController extends Controller
         return response()->json(['items' => $items])->header('Cache-Control', 'no-store');
     }
 
+    /**
+     * The staff of one work unit of the scanned institution (and the units
+     * beneath it), for the Tip-off form's "person concerned" (owner request
+     * 2026-11-08): name and post only, at most 20. The token decides the
+     * institution; a unit outside it, or an unknown token, gets an empty list.
+     */
+    public function searchOrganizationStaff(Request $request, string $token): JsonResponse
+    {
+        $context = $this->settings->enabled() ? $this->resolver->resolveOrganizationToken($token) : null;
+        $unitId = is_string($request->query('unit')) ? $request->query('unit') : '';
+        $term = is_string($request->query('q')) ? mb_strtolower(trim(mb_substr($request->query('q'), 0, 60))) : '';
+
+        $items = $context?->organizationTargetId === null || $unitId === '' || ! Str::isUuid($unitId)
+            || $this->serviceContext->availableFeedbackUnit($unitId, $context->organizationTargetId) === null
+            ? []
+            : $this->serviceContext->unitStaff($context->organizationTargetId, $unitId, $term, app()->getLocale());
+
+        return response()->json(['items' => $items])->header('Cache-Control', 'no-store');
+    }
+
+    /**
+     * The Tip-off's "person concerned", checked against the scanned institution:
+     * a chosen unit must be one of its feedback units, a chosen employee must
+     * serve in that unit now; the names stored are the institution's own.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>|string the cleaned input, or the field in error
+     */
+    private function checkTipSuspect(array $validated, string $organizationId): array|string
+    {
+        $tip = is_array($validated['tip_form'] ?? null) ? $validated['tip_form'] : null;
+        if ($tip === null) {
+            return $validated;
+        }
+        $unitId = (string) ($tip['suspect_unit_id'] ?? '');
+        $employeeId = (string) ($tip['suspect_employee_id'] ?? '');
+        if ($unitId !== '') {
+            $unit = $this->serviceContext->availableFeedbackUnit($unitId, $organizationId);
+            if ($unit === null) {
+                return 'tip_form.suspect_unit_id';
+            }
+            $tip['suspect_unit'] = app()->getLocale() === 'am' && filled($unit->name_am) ? $unit->name_am : $unit->name_en;
+        }
+        if ($employeeId !== '') {
+            $match = $unitId === '' ? null : collect($this->serviceContext->unitStaff($organizationId, $unitId, '', app()->getLocale(), 2000, false))->firstWhere('id', $employeeId);
+            if ($match === null) {
+                return 'tip_form.suspect_employee_id';
+            }
+            $tip['suspect_name'] = $match['name'];
+        }
+        $validated['tip_form'] = $tip;
+
+        return $validated;
+    }
+
     // ── Shared ───────────────────────────────────────────────────────────
 
     private function render(Request $request, PublicFeedbackTargetType $kind, string $token, ?ServiceFeedbackType $type): Response
@@ -256,6 +312,14 @@ class PublicServiceFeedbackController extends Controller
 
             if (! empty($validated['organization_unit_id']) && $this->serviceContext->availableFeedbackUnit((string) $validated['organization_unit_id'], $context->organizationTargetId) === null) {
                 return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.relevant_unit_invalid')]);
+            }
+
+            if ($type === ServiceFeedbackType::Suggestion) {
+                $checked = $this->checkTipSuspect($validated, $context->organizationTargetId);
+                if (is_string($checked)) {
+                    return back()->withErrors([$checked => __('service-feedback.tip_suspect_invalid')]);
+                }
+                $validated = $checked;
             }
 
             // The current public form always sends an explicit answer. Treat
@@ -411,6 +475,7 @@ class PublicServiceFeedbackController extends Controller
             'submitSuggestion' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'suggestion']),
             'submitComplaint' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'complaint']),
             'serviceSearch' => route('public-feedback.organization.services', $token),
+            'staffSearch' => route('public-feedback.organization.staff', $token),
         ];
     }
 

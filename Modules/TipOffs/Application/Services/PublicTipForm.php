@@ -33,6 +33,9 @@ final class PublicTipForm
             'tip_form.confidentiality' => ['nullable', Rule::in(self::CONFIDENTIALITY)],
             'tip_form.suspect_name' => ['nullable', 'string', 'max:120'],
             'tip_form.suspect_unit' => ['nullable', 'string', 'max:200'],
+            // Chosen from the scanned institution's own units and staff (checked against the token's institution).
+            'tip_form.suspect_unit_id' => ['nullable', 'uuid'],
+            'tip_form.suspect_employee_id' => ['nullable', 'uuid'],
             'tip_form.suspect_location' => ['nullable', 'string', 'max:200'],
             'tip_form.violation_types' => ['nullable', 'array'],
             'tip_form.violation_types.*' => [Rule::in(self::VIOLATIONS)],
@@ -58,6 +61,8 @@ final class PublicTipForm
             'confidentiality' => in_array($input['confidentiality'] ?? null, self::CONFIDENTIALITY, true) ? $input['confidentiality'] : null,
             'suspect_name' => $text('suspect_name'),
             'suspect_unit' => $text('suspect_unit'),
+            'suspect_unit_id' => $text('suspect_unit_id'),
+            'suspect_employee_id' => $text('suspect_employee_id'),
             'suspect_location' => $text('suspect_location'),
             'violation_types' => $violations === [] ? null : $violations,
             'violation_other' => in_array('other', $violations, true) ? $text('violation_other') : null,

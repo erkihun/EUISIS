@@ -720,7 +720,8 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
     };
     /** Set one Tip-off form field and clear its error. */
     const setTip = <K extends keyof TipFormData>(field: K, value: TipFormData[K]) => {
-        setData('tip_form', { ...data.tip_form, [field]: value });
+        // Functional, so several fields set in a row (a chosen unit clears the person) all land.
+        setData((current) => ({ ...current, tip_form: { ...current.tip_form, [field]: value } }));
         clearErrors(`tip_form.${String(field)}` as keyof OrganizationFormData);
     };
     /** Set one complaint-form field and clear its error. */
@@ -894,7 +895,7 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                             {detailQuestions.map(renderQuestion)}
                         </div>
                         {kind === 'complaint' && <ComplaintMatterFields form={data.complaint_form} set={setComplaint} errors={fieldErrors} askServiceType={false} />}
-                        {kind === 'suggestion' && <TipSuspectAndViolationFields form={data.tip_form} set={setTip} errors={fieldErrors} />}
+                        {kind === 'suggestion' && <TipSuspectAndViolationFields form={data.tip_form} set={setTip} errors={fieldErrors} units={context.offices} staffUrl={links.staffSearch} defaultUnitId={data.organization_unit_id} />}
                         {kind !== 'feedback' && requirements.evidence_allowed && (
                             <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
                         )}

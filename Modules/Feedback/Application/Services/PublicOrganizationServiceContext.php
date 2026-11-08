@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Feedback\Application\Services;
 
+use App\Backbone\Contracts\AssignmentContextReader;
+use App\Backbone\Contracts\EmployeeDirectory;
+use App\Backbone\Contracts\PositionDirectory;
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\OrganizationUnit;
@@ -142,6 +145,55 @@ final class PublicOrganizationServiceContext implements PublicOrganizationServic
     public function availableFeedbackUnit(string $unitId, string $organizationId): ?OrganizationUnit
     {
         return $this->feedbackUnitsQuery($organizationId)->whereKey($unitId)->first();
+    }
+
+    /**
+     * Active staff placed in a unit of the institution or a unit beneath it:
+     * id, full name and post, for the public Tip-off form. Never an employee
+     * number or contact.
+     *
+     * @return list<array{id: string, name: string, position: string|null}>
+     */
+    public function unitStaff(string $organizationId, string $unitId, string $term, string $locale, int $limit = 20, bool $withPosition = true): array
+    {
+        $units = OrganizationUnit::query()->where('organization_id', $organizationId)->get(['id', 'parent_unit_id']);
+        $children = [];
+        foreach ($units as $unit) {
+            if ($unit->parent_unit_id !== null) {
+                $children[(string) $unit->parent_unit_id][] = (string) $unit->getKey();
+            }
+        }
+        $ids = [$unitId];
+        for ($i = 0; $i < count($ids); $i++) {
+            foreach ($children[$ids[$i]] ?? [] as $child) {
+                if (! in_array($child, $ids, true)) {
+                    $ids[] = $child;
+                }
+            }
+        }
+
+        // Through the core contracts (ADR 0017), never the employee models.
+        $assignments = app(AssignmentContextReader::class);
+        $positions = app(PositionDirectory::class);
+        $rows = [];
+        foreach (app(EmployeeDirectory::class)->currentlyIn($ids, 2000) as $employee) {
+            $name = trim((string) ($employee->fullName ?: $employee->nameEn));
+            if ($employee->status !== 'active' || $name === '' || ($term !== '' && ! str_contains(mb_strtolower($name), $term))) {
+                continue;
+            }
+            $rows[$employee->employeeUuid] = ['id' => $employee->employeeUuid, 'name' => $name, 'position' => null];
+        }
+        uasort($rows, fn (array $a, array $b): int => strcmp($a['name'], $b['name']));
+        $rows = array_slice(array_values($rows), 0, $limit);
+
+        // The post only for the few shown.
+        foreach ($withPosition ? $rows : [] as $index => $row) {
+            $context = $assignments->currentFor($row['id']);
+            $position = $context?->positionUuid !== null ? $positions->find($context->positionUuid) : null;
+            $rows[$index]['position'] = $position === null ? null : $this->localized($position->titleEn, $position->titleAm, $locale);
+        }
+
+        return $rows;
     }
 
     private function feedbackUnitsQuery(string $organizationId): Builder

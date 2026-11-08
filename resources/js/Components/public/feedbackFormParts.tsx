@@ -40,6 +40,8 @@ export interface Links {
     submitComplaint: string;
     /** Organization QR only: search of the institution's services when its catalog is large. */
     serviceSearch?: string;
+    /** The scanned institution's staff of one unit, for the Tip-off's person concerned. */
+    staffSearch?: string;
 }
 
 export interface Receipt {

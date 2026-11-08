@@ -301,7 +301,8 @@ function TipOffForm({ target, serviceTypes, links, formToken, requirements, evid
     const fieldErrors = errors as Record<string, string | undefined>;
     useFreshFormToken(formToken, setData);
     const setTip = <K extends keyof TipFormData>(field: K, value: TipFormData[K]) => {
-        setData('tip_form', { ...data.tip_form, [field]: value });
+        // Functional, so several fields set in a row (a chosen unit clears the person) all land.
+        setData((current) => ({ ...current, tip_form: { ...current.tip_form, [field]: value } }));
         clearErrors(`tip_form.${String(field)}` as 'tip_form');
     };
 
@@ -729,7 +730,8 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
                     <h2 id="choose-type" className={`px-1 text-base font-bold text-(--app-foreground) ${organization ? '' : 'text-center'}`}>
                         {t(organization ? 'serviceFeedback.chooseType' : 'serviceFeedback.employeeChoosePrompt')}
                     </h2>
-                    <ul className="mt-3 space-y-3">
+                    {/* One column on a phone; side by side on a tablet or desktop. */}
+                    <ul className="mt-3 grid gap-3 md:grid-cols-3">
                         {offered.map((kind) => {
                             const { Icon, label, hint, tone } = KINDS[kind];
 
@@ -737,7 +739,7 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
                                 <li key={kind}>
                                     <Link
                                         href={hrefs[kind]}
-                                        className="flex min-h-[84px] items-center gap-4 rounded-2xl border border-(--app-border) bg-(--app-surface) p-4 shadow-xs transition active:scale-[0.99] hover:border-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                        className="flex h-full min-h-[84px] items-center gap-4 rounded-2xl border border-(--app-border) bg-(--app-surface) p-4 shadow-xs transition active:scale-[0.99] hover:border-primary md:flex-col md:items-start md:gap-3 md:p-5 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                                     >
                                         <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tone}`} aria-hidden="true">
                                             <Icon className="h-6 w-6" />
@@ -746,7 +748,7 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
                                             <span className="block text-base font-semibold text-(--app-foreground)">{t(label)}</span>
                                             <span className={`mt-0.5 block text-sm leading-snug ${mutedClass}`}>{t(hint)}</span>
                                         </span>
-                                        <ChevronRight className={`h-5 w-5 shrink-0 ${mutedClass}`} aria-hidden="true" />
+                                        <ChevronRight className={`h-5 w-5 shrink-0 ${mutedClass} md:hidden`} aria-hidden="true" />
                                     </Link>
                                 </li>
                             );

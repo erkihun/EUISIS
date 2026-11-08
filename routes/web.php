@@ -640,6 +640,12 @@ Route::get('/feedback/{token}/logo', PublicFeedbackOrganizationLogoController::c
     ->middleware(['qr.private', 'throttle:service-feedback-photo'])
     ->name('public-feedback.organization.logo');
 
+// The staff of one of the scanned institution's work units, searched — the Tip-off form's "person concerned"
+// (owner request 2026-11-08). Names and posts only; the token decides the institution.
+Route::get('/feedback/{token}/staff', [PublicServiceFeedbackController::class, 'searchOrganizationStaff'])
+    ->middleware(['qr.private', 'throttle:30,1'])
+    ->name('public-feedback.organization.staff');
+
 // The institution's published services, searched — only for a catalog too large to send with the form.
 Route::get('/feedback/{token}/services', [PublicServiceFeedbackController::class, 'searchOrganizationServices'])
     ->middleware(['qr.private', 'throttle:30,1'])

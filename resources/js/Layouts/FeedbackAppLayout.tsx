@@ -43,7 +43,7 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
             </Head>
 
             <div className="min-h-dvh bg-(--app-surface-muted)" style={bottomSpacing(dockHeight)}>
-                <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-(--app-background) sm:border-x sm:border-(--app-border) sm:shadow-xl">
+                <div className="mx-auto flex min-h-dvh w-full max-w-md md:max-w-2xl lg:max-w-3xl flex-col bg-(--app-background) sm:border-x sm:border-(--app-border) sm:shadow-xl">
                     <header className="sticky top-0 z-30 border-b border-(--app-border) bg-(--app-surface) pt-[env(safe-area-inset-top)]">
                         <div className="flex h-14 items-center gap-1 px-2">
                             {backHref ? (
@@ -79,7 +79,7 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
                 </div>
 
                 {dock && (
-                    <div ref={dockRef} className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md">
+                    <div ref={dockRef} className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md md:max-w-2xl lg:max-w-3xl">
                         {dock}
                     </div>
                 )}
@@ -165,7 +165,7 @@ export function FeedbackActionBar({ children }: { children: ReactNode }) {
     return (
         <>
             <div className="mt-auto h-[calc(4.25rem+var(--feedback-action-bar-padding))] shrink-0" aria-hidden="true" />
-            <div ref={barRef} className="fixed inset-x-0 bottom-(--feedback-dock-height,0px) z-30 mx-auto w-full max-w-md border-t border-(--app-border) bg-(--app-surface) px-4 pb-(--feedback-action-bar-padding) pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x sm:border-(--app-border)">
+            <div ref={barRef} className="fixed inset-x-0 bottom-(--feedback-dock-height,0px) z-30 mx-auto w-full max-w-md md:max-w-2xl lg:max-w-3xl border-t border-(--app-border) bg-(--app-surface) px-4 pb-(--feedback-action-bar-padding) pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x sm:border-(--app-border)">
                 {children}
             </div>
         </>

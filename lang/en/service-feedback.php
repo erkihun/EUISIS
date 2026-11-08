@@ -185,6 +185,8 @@ return [
         'evidence_description' => 'supporting evidence',
     ],
 
+    'tip_suspect_invalid' => 'The chosen work unit or employee is not in this institution. Please choose again from the list.',
+
     'tracking' => [
         'not_found' => 'No Tip-off or complaint matches this reference and phone number. Check them and try again.',
     ],
