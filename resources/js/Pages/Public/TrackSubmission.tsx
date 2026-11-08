@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { areaClass, cardClass, errorClass, fieldClass, labelClass, mutedClass, sendButtonClass } from '@/Components/public/feedbackFormParts';
 import FeedbackAppLayout from '@/Layouts/FeedbackAppLayout';
@@ -89,7 +89,6 @@ export default function TrackSubmission({ reference = '', result = null }: { ref
 function HearingPanel({ reference, hearing }: { reference: string; hearing: Hearing }) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.hearing.${key}`);
-    const flash = (usePage().props as { flash?: { success?: string | null } }).flash;
     const [appealing, setAppealing] = useState(false);
     const form = useForm({ reference, action: 'accept' as 'accept' | 'appeal', reason: '' });
     const latest = hearing.stages[hearing.stages.length - 1];
@@ -97,7 +96,7 @@ function HearingPanel({ reference, hearing }: { reference: string; hearing: Hear
     const send = (action: 'accept' | 'appeal') => (event?: FormEvent) => {
         event?.preventDefault();
         form.transform((data) => ({ ...data, action }));
-        form.post(route('public-submissions.track.respond'), { preserveScroll: true, onSuccess: () => { setAppealing(false); form.reset('reason'); } });
+        form.post(route('public-submissions.track.respond'), { preserveScroll: true, errorBag: 'respond', onSuccess: () => { setAppealing(false); form.reset('reason'); } });
     };
 
     return (
@@ -106,7 +105,6 @@ function HearingPanel({ reference, hearing }: { reference: string; hearing: Hear
                 <h2 id="hearing-title" className="text-sm font-semibold text-(--app-foreground)">{h('publicTitle')}</h2>
                 <p className={`mt-1 text-xs ${mutedClass}`}>{h('intro')}</p>
             </div>
-            {flash?.success && <p role="status" className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">{flash.success}</p>}
             <ol className="space-y-3">
                 {hearing.stages.map((row) => (
                     <li key={row.stage} className="rounded-xl border border-(--app-border) p-3">

@@ -123,13 +123,13 @@ export function revealFirstError(form: HTMLFormElement | null): void {
 }
 
 /**
- * What the visitor is told after pressing Send, on any device, as a popup:
+ * What the visitor is told after pressing Send — each message once, never twice:
  *
- * - sent: a success popup (with the reference for a complaint), and the page
- *   opens at the top where the receipt is, instead of keeping the long form's
- *   scroll position, which left the receipt above the screen on a phone;
- * - refused or incomplete: an error popup naming the problem, and the first
- *   field error scrolled into view;
+ * - sent: the receipt screen says so (with the reference) and the page opens
+ *   at its top, instead of keeping the long form's scroll position, which
+ *   left the receipt above the screen on a phone; no popup repeats it;
+ * - refused or incomplete: the first field error is scrolled into view and
+ *   focused; a popup appears only for a problem no field on screen shows;
  * - no connection, or an error page instead of an answer (a 413 for photos
  *   too large, a 429, a 5xx from the web server): an error popup instead of
  *   silence or Inertia's raw error window.
@@ -177,21 +177,21 @@ export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HT
             // A redirect without a receipt (an expired form, a closed link) is not a success;
             // its own notice arrives as a flash popup from the layout.
             if (!props.submitted) return;
-            const reference = props.receipt?.reference;
-            toast.success(t(SUBMITTED_KEY[kind]), {
-                description: reference ? `${t('serviceFeedback.referenceNumber')}: ${reference}` : undefined,
-                duration: reference ? ERROR_TOAST_MS : 6000,
-            });
+            // The receipt screen itself confirms it; a popup would say the same thing twice.
             onSent?.();
         },
         onError: (errors: Record<string, string>) => {
             const messages = Object.values(errors).filter(Boolean);
             if (messages.length === 0) return;
             onInvalid?.(errors);
-            // One problem: say it. Several: point at the highlighted fields and name the first.
-            if (messages.length === 1) toast.error(messages[0], { duration: ERROR_TOAST_MS });
-            else toast.error(t('serviceFeedback.checkHighlightedFields'), { description: messages[0], duration: ERROR_TOAST_MS });
             revealFirstError(formRef.current);
+            // A message already shown under its field is not repeated in a popup; only one no field shows is.
+            window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+                const shown = new Set(Array.from(formRef.current?.querySelectorAll<HTMLElement>('[role="alert"]') ?? []).map((alert) => alert.textContent?.trim() ?? ''));
+                const hidden = messages.filter((message) => !shown.has(message.trim()));
+                if (hidden.length === 1) toast.error(hidden[0], { duration: ERROR_TOAST_MS });
+                else if (hidden.length > 1) toast.error(t('serviceFeedback.checkHighlightedFields'), { description: hidden[0], duration: ERROR_TOAST_MS });
+            }));
         },
     });
 }
