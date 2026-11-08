@@ -1,12 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import ServiceForm, { type ClassificationOption, type FunctionOption, type IsicOption, type Option, type ServiceFormValues } from '@/Components/organizationDesign/ServiceForm';
+import type { Option } from '@/Components/organizationDesign/ServiceForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, actionLinkClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
 import type { ServiceSummary } from './Index';
 
 type Props = {
@@ -20,32 +19,12 @@ type Props = {
     isicActivities: { id: string; isic_code: string; name_en: string; name_am: string | null; revision: string }[];
     versions: { id: string; version_no: number; status: string; effective_from: string | null; effective_to: string | null }[];
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
-    organizationFunctions: FunctionOption[];
-    organizationUnits: Option[];
-    classifications: ClassificationOption[];
-    cpcClassifications: ClassificationOption[];
-    isicOptions: IsicOption[];
-    serviceTypes: Option[];
-    beneficiaryTypes: string[];
-    deliveryChannels: string[];
     can: { update: boolean; publish: boolean; version: boolean };
 };
 
-export default function ServiceShow({ service, functions, isicActivities, versions, history, organizationFunctions, organizationUnits, classifications, cpcClassifications, isicOptions, serviceTypes, beneficiaryTypes, deliveryChannels, can }: Props) {
+export default function ServiceShow({ service, functions, isicActivities, versions, history, can }: Props) {
     const { locale, tt } = useDesignText();
     const { confirm } = useConfirm();
-    const [editing, setEditing] = useState(false);
-    const [versioning, setVersioning] = useState(false);
-
-    const values: ServiceFormValues = {
-        organization_id: service.organization_id, code: service.code, name_en: service.name_en, name_am: service.name_am ?? '',
-        description_en: service.description_en ?? '', description_am: service.description_am ?? '',
-        service_type_id: service.service_type_id ?? '', service_classification_id: service.service_classification_id ?? '', cpc_classification_id: service.cpc_classification_id ?? '',
-        beneficiary_type: service.beneficiary_type ?? '', delivery_channel: service.delivery_channel ?? '', legal_basis: service.legal_basis ?? '',
-        owner_organization_unit_id: service.owner_organization_unit_id ?? '', effective_from: service.effective_from ?? '', effective_to: service.effective_to ?? '',
-        function_ids: service.function_ids, isic_activity_ids: service.isic_activity_ids,
-    };
-    const lookups = { functions: organizationFunctions, units: organizationUnits, classifications, cpcClassifications, isicOptions, serviceTypes, beneficiaryTypes, deliveryChannels };
 
     async function publish() {
         const { confirmed } = await confirm({ title: tt('services.publish'), description: tt('services.publishConfirm'), variant: 'warning' });
@@ -72,9 +51,9 @@ export default function ServiceShow({ service, functions, isicActivities, versio
                 description={`${nameOf(service.organization, locale)} · ${tt('services.version')} ${service.version_no}`}
                 actions={(
                     <div className="flex flex-wrap gap-2">
-                        {can.update && <Button variant="outline" onClick={() => setEditing(true)}>{tt('services.edit')}</Button>}
+                        {can.update && <Button as={Link} href={route('organization-design.services.edit', service.id)} variant="outline">{tt('services.edit')}</Button>}
                         {can.update && <Button variant="destructiveOutline" onClick={cancel}>{tt('services.cancel')}</Button>}
-                        {can.version && <Button variant="outline" onClick={() => setVersioning(true)}>{tt('services.newVersion')}</Button>}
+                        {can.version && <Button as={Link} href={route('organization-design.services.versions.create', service.id)} variant="outline">{tt('services.newVersion')}</Button>}
                         {can.publish && <Button variant="primary" onClick={publish}>{tt('services.publish')}</Button>}
                     </div>
                 )}
@@ -169,9 +148,6 @@ export default function ServiceShow({ service, functions, isicActivities, versio
                     </Card>
                 </div>
             </div>
-
-            {can.update && <ServiceForm show={editing} onClose={() => setEditing(false)} title={tt('services.edit')} initial={values} url={route('organization-design.services.update', service.id)} method="put" lookups={lookups} />}
-            {can.version && <ServiceForm show={versioning} onClose={() => setVersioning(false)} title={tt('services.newVersion')} help={tt('services.newVersionHelp')} initial={{ ...values, effective_from: '', effective_to: '' }} url={route('organization-design.services.versions.store', service.id)} method="post" lookups={lookups} lockCode />}
         </AuthenticatedLayout>
     );
 }

@@ -313,9 +313,11 @@ const organizationDesign = {
     },
 
     services: {
-        title: 'Service Catalog',
-        description: 'What each institution delivers, justified by its functions. A published service is never edited; a change is a new version that supersedes it on its effective date.',
+        title: "Institutions' Services",
+        description: 'The main services each institution delivers to the public and to staff. A published service is never edited; a change is a new version that supersedes it on its effective date.',
         create: 'New service',
+        createHelp: 'Choose the institution first. Its work units and functions then load here, so the owning unit and the justifying functions are picked on this page.',
+        chooseOrganizationFirst: 'Choose the institution above to see its functions.',
         edit: 'Edit draft',
         newVersion: 'New version',
         newVersionHelp: 'The new version starts from the published content and keeps its function and ISIC links unless you change them.',

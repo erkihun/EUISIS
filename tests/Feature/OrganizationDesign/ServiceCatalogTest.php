@@ -274,3 +274,50 @@ test('a steward adds and edits classification entries on their own pages and is 
     $this->actingAs($designer)->get(route('organization-design.classifications.create'))->assertForbidden();
     $this->actingAs($designer)->get(route('organization-design.classifications.edit', $local))->assertForbidden();
 });
+
+// Pages, not dialogs ─────────────────────────────────────────────────────────
+test('a service is written on its own page: new draft, draft edit, and a new version of a published service', function (): void {
+    $organization = scOrganization('PAGE');
+    $designer = scDesignerFor($organization);
+    $function = scFunction($organization, 'FN-PAGE');
+    $approver = User::factory()->create();
+    $approver->assignRole('Service Approver');
+    UserOrganizationScope::query()->create([
+        'user_id' => $approver->id, 'organization_id' => null, 'scope_type' => OrganizationScopeType::Citywide, 'is_active' => true,
+    ]);
+
+    // A designer of one institution lands on that institution, with its functions ready to tick.
+    $this->actingAs($designer)->get(route('organization-design.services.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('OrganizationDesign/Services/Form')
+            ->where('mode', 'create')->where('service', null)->where('organizationId', $organization->id)
+            ->has('organizations', 1)->has('organizationFunctions', 1)->where('organizationFunctions.0.code', 'FN-PAGE'));
+
+    // Another institution's id is ignored: the page falls back to the designer's own institution, never to the foreign one.
+    $other = scOrganization('OTHER');
+    scFunction($other, 'FN-OTHER');
+    $this->actingAs($designer)->get(route('organization-design.services.create', ['organization_id' => $other->id]))
+        ->assertInertia(fn (Assert $page) => $page->where('organizationId', $organization->id)->has('organizationFunctions', 1)->where('organizationFunctions.0.code', 'FN-PAGE'));
+
+    $this->actingAs($designer)->post(route('organization-design.services.store'), scServicePayload($organization, ['code' => 'SRV-PAGE', 'function_ids' => [$function->id]]))->assertRedirect();
+    $service = Service::query()->where('code', 'SRV-PAGE')->firstOrFail();
+
+    // The detail page no longer carries the form's pick-lists; the edit page does.
+    $this->actingAs($designer)->get(route('organization-design.services.show', $service))
+        ->assertInertia(fn (Assert $page) => $page->component('OrganizationDesign/Services/Show')->missing('organizationFunctions')->where('can.update', true));
+    $this->actingAs($designer)->get(route('organization-design.services.edit', $service))
+        ->assertInertia(fn (Assert $page) => $page->component('OrganizationDesign/Services/Form')
+            ->where('mode', 'edit')->where('organizations', null)->where('service.code', 'SRV-PAGE')->where('service.function_ids', [$function->id])
+            ->has('organizationFunctions', 1));
+    $this->actingAs($designer)->put(route('organization-design.services.update', $service), ['name_en' => 'Renamed on its page'])
+        ->assertRedirect(route('organization-design.services.show', $service));
+    expect($service->fresh()->name_en)->toBe('Renamed on its page');
+
+    // A draft has no new-version page; a published service has no edit page.
+    $this->actingAs($designer)->get(route('organization-design.services.versions.create', $service))->assertForbidden();
+    $this->actingAs($approver)->post(route('organization-design.services.publish', $service))->assertRedirect();
+    $this->actingAs($designer)->get(route('organization-design.services.edit', $service))->assertForbidden();
+    $this->actingAs($designer)->get(route('organization-design.services.versions.create', $service))
+        ->assertInertia(fn (Assert $page) => $page->component('OrganizationDesign/Services/Form')
+            ->where('mode', 'version')->where('service.version_no', 1)->where('service.status', 'published'));
+});

@@ -41,6 +41,7 @@ const common = {
     success: 'Success',
     warning: 'Warning',
     confirm: 'Confirm',
+    reason: 'Reason',
     confirmAction: 'Confirm Action',
     cannotUndo: 'This action cannot be undone',
     noPermission: 'You do not have permission to perform this action',

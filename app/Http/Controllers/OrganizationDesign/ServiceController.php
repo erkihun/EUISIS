@@ -58,12 +58,63 @@ class ServiceController extends Controller
             'filters' => $request->only(['organization_id', 'status', 'service_classification_id', 'search']),
             'organizations' => $this->organizationOptions($user),
             'classifications' => $this->classificationOptions(ServiceClassification::SCHEME_LOCAL),
-            'cpcClassifications' => $this->classificationOptions(ServiceClassification::SCHEME_CPC),
-            'serviceTypes' => ServiceTypeRecord::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
             'statuses' => array_map(fn (OrganizationDesignStatus $s) => $s->value, OrganizationDesignStatus::cases()),
-            'beneficiaryTypes' => ServiceBeneficiaryType::values(),
-            'deliveryChannels' => ServiceDeliveryChannel::values(),
             'can' => ['create' => $user->can('create', Service::class)],
+        ]);
+    }
+
+    /**
+     * The new-service page. The institution is chosen first; once it is known
+     * (as ?organization_id, which the page reloads with) its units and
+     * functions are offered for the owning unit and the justification.
+     */
+    public function create(Request $request): Response
+    {
+        $this->authorize('create', Service::class);
+        $user = $request->user();
+        $organizationId = $request->string('organization_id')->toString() ?: null;
+        if ($organizationId !== null && ! $this->scope->canAccess($user, $organizationId)) {
+            $organizationId = null;
+        }
+        $organizations = $this->organizationOptions($user);
+        if ($organizationId === null && count($organizations) === 1) {
+            $organizationId = $organizations[0]['id'];
+        }
+
+        return Inertia::render('OrganizationDesign/Services/Form', [
+            'mode' => 'create',
+            'service' => null,
+            'organizationId' => $organizationId,
+            'organizations' => $organizations,
+            ...$this->formLookups($organizationId),
+        ]);
+    }
+
+    public function edit(Request $request, Service $service): Response
+    {
+        $this->authorize('update', $service);
+        abort_unless($service->status->isEditable(), 403, __('organization-design.service_not_draft'));
+
+        return Inertia::render('OrganizationDesign/Services/Form', [
+            'mode' => 'edit',
+            'service' => $this->formValues($service),
+            'organizationId' => $service->organization_id,
+            'organizations' => null,
+            ...$this->formLookups($service->organization_id),
+        ]);
+    }
+
+    public function createVersion(Request $request, Service $service): Response
+    {
+        $this->authorize('version', $service);
+        abort_unless($service->status === OrganizationDesignStatus::Published, 403, __('organization-design.service_version_from_published_only'));
+
+        return Inertia::render('OrganizationDesign/Services/Form', [
+            'mode' => 'version',
+            'service' => $this->formValues($service),
+            'organizationId' => $service->organization_id,
+            'organizations' => null,
+            ...$this->formLookups($service->organization_id),
         ]);
     }
 
@@ -101,15 +152,6 @@ class ServiceController extends Controller
             'history' => OrganizationDesignStatusHistory::query()->where('entity_type', $service->getMorphClass())->where('entity_id', $service->getKey())
                 ->with('actor:id,name')->orderByDesc('created_at')->get()
                 ->map(fn ($h) => ['from' => $h->from_status, 'to' => $h->to_status, 'actor' => $h->actor?->name, 'reason' => $h->reason, 'at' => $h->created_at->toISOString()]),
-            'organizationFunctions' => OrganizationFunction::query()->where('organization_id', $service->organization_id)->orderBy('path')
-                ->get(['id', 'code', 'title_en', 'title_am', 'depth'])->map->only(['id', 'code', 'title_en', 'title_am', 'depth']),
-            'organizationUnits' => OrganizationUnit::query()->where('organization_id', $service->organization_id)->orderBy('name_en')->limit(500)->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am']),
-            'classifications' => $this->classificationOptions(ServiceClassification::SCHEME_LOCAL),
-            'cpcClassifications' => $this->classificationOptions(ServiceClassification::SCHEME_CPC),
-            'isicOptions' => IsicActivity::query()->where('is_active', true)->orderBy('isic_code')->limit(1000)->get(['id', 'isic_code', 'name_en', 'name_am', 'level'])->map->only(['id', 'isic_code', 'name_en', 'name_am', 'level']),
-            'serviceTypes' => ServiceTypeRecord::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
-            'beneficiaryTypes' => ServiceBeneficiaryType::values(),
-            'deliveryChannels' => ServiceDeliveryChannel::values(),
             'can' => [
                 'update' => $user->can('update', $service) && $service->status->isEditable(),
                 'publish' => $user->can('publish', $service) && $service->status->isEditable() && (int) $service->created_by !== (int) $user->getKey(),
@@ -122,7 +164,7 @@ class ServiceController extends Controller
     {
         $this->services->updateDraft($request->user(), $service, $request->validated());
 
-        return back()->with('flash', ['message' => __('organization-design.service_updated'), 'type' => 'success']);
+        return to_route('organization-design.services.show', $service)->with('flash', ['message' => __('organization-design.service_updated'), 'type' => 'success']);
     }
 
     public function storeVersion(NewServiceVersionRequest $request, Service $service): RedirectResponse
@@ -162,6 +204,53 @@ class ServiceController extends Controller
             'owner_unit' => $s->ownerUnit ? ['id' => $s->ownerUnit->id, 'code' => $s->ownerUnit->code, 'name_en' => $s->ownerUnit->name_en, 'name_am' => $s->ownerUnit->name_am] : null,
             'functions_count' => $s->functions_count ?? $s->functions()->count(),
             'effective_from' => $s->effective_from?->toDateString(), 'effective_to' => $s->effective_to?->toDateString(),
+        ];
+    }
+
+    /**
+     * What the form page edits: the service's own fields plus its links.
+     *
+     * @return array<string, mixed>
+     */
+    private function formValues(Service $service): array
+    {
+        $service->loadMissing(['functions:id', 'isicActivities:id']);
+
+        return [
+            'id' => $service->id, 'code' => $service->code, 'version_no' => $service->version_no, 'status' => $service->status->value,
+            'organization_id' => $service->organization_id,
+            'name_en' => $service->name_en, 'name_am' => $service->name_am,
+            'description_en' => $service->description_en, 'description_am' => $service->description_am,
+            'service_type_id' => $service->service_type_id, 'service_classification_id' => $service->service_classification_id,
+            'cpc_classification_id' => $service->cpc_classification_id,
+            'beneficiary_type' => $service->beneficiary_type, 'delivery_channel' => $service->delivery_channel,
+            'legal_basis' => $service->legal_basis, 'owner_organization_unit_id' => $service->owner_organization_unit_id,
+            'effective_from' => $service->effective_from?->toDateString(), 'effective_to' => $service->effective_to?->toDateString(),
+            'function_ids' => $service->functions->pluck('id')->all(),
+            'isic_activity_ids' => $service->isicActivities->pluck('id')->all(),
+        ];
+    }
+
+    /**
+     * The pick-lists of the form page. The organization-bound ones (units,
+     * functions) are empty until the organization is known.
+     *
+     * @return array<string, mixed>
+     */
+    private function formLookups(?string $organizationId): array
+    {
+        return [
+            'organizationFunctions' => $organizationId === null ? [] : OrganizationFunction::query()->where('organization_id', $organizationId)->orderBy('path')
+                ->get(['id', 'code', 'title_en', 'title_am', 'depth'])->map->only(['id', 'code', 'title_en', 'title_am', 'depth'])->all(),
+            'organizationUnits' => $organizationId === null ? [] : OrganizationUnit::query()->where('organization_id', $organizationId)->orderBy('name_en')->limit(500)
+                ->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am'])->all(),
+            'classifications' => $this->classificationOptions(ServiceClassification::SCHEME_LOCAL),
+            'cpcClassifications' => $this->classificationOptions(ServiceClassification::SCHEME_CPC),
+            'isicOptions' => IsicActivity::query()->where('is_active', true)->orderBy('isic_code')->limit(1000)
+                ->get(['id', 'isic_code', 'name_en', 'name_am', 'level'])->map->only(['id', 'isic_code', 'name_en', 'name_am', 'level'])->all(),
+            'serviceTypes' => ServiceTypeRecord::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
+            'beneficiaryTypes' => ServiceBeneficiaryType::values(),
+            'deliveryChannels' => ServiceDeliveryChannel::values(),
         ];
     }
 

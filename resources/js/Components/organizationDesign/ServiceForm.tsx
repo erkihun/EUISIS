@@ -1,7 +1,6 @@
-import Modal from '@/Components/Modal';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
-import { Alert, Button, FieldError, FormField, Input, Select, Textarea } from '@/Components/ui';
-import { useForm } from '@inertiajs/react';
+import { Alert, Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Select, Textarea } from '@/Components/ui';
+import { Link, useForm } from '@inertiajs/react';
 import { nameOf, titleOf, useDesignText } from './ui';
 
 export type Option = { id: string; code: string; name_en: string; name_am: string | null };
@@ -36,7 +35,8 @@ export const emptyService = (organizationId = ''): ServiceFormValues => ({
 });
 
 export type ServiceFormLookups = {
-    organizations?: Option[];
+    /** Present on the new-service page only: the institutions the user may write for. */
+    organizations?: Option[] | null;
     functions: FunctionOption[];
     units: Option[];
     classifications: ClassificationOption[];
@@ -48,33 +48,39 @@ export type ServiceFormLookups = {
 };
 
 /**
- * One form for the three ways a service is written: a new draft (POST), a
- * draft edit (PUT) and a new version of a published service (POST versions),
- * where the code names the lineage and cannot change. On a new draft from
- * the index, functions and units are chosen after the organization is known,
- * so those pickers appear only when the form has an organization's lookups.
+ * One full-page form for the three ways a service is written: a new draft
+ * (POST), a draft edit (PUT) and a new version of a published service (POST
+ * versions), where the code names the lineage and cannot change. On the
+ * new-service page the institution is chosen first; the page then reloads
+ * its units and functions (onOrganizationChange), so the owning unit and the
+ * justifying functions are picked right here.
  */
-export default function ServiceForm({ show, onClose, title, help, initial, url, method, lookups, lockCode = false }: {
-    show: boolean;
-    onClose: () => void;
-    title: string;
-    help?: string;
+export default function ServiceForm({ initial, url, method, lookups, cancelHref, lockCode = false, onOrganizationChange }: {
     initial: ServiceFormValues;
     url: string;
     method: 'post' | 'put';
     lookups: ServiceFormLookups;
+    cancelHref: string;
     lockCode?: boolean;
+    onOrganizationChange?: (organizationId: string) => void;
 }) {
     const { locale, tt } = useDesignText();
     const form = useForm<ServiceFormValues>(initial);
     const errors = form.errors as Record<string, string | undefined>;
+    const organizationKnown = form.data.organization_id !== '';
 
     function submit(event: React.FormEvent) {
         event.preventDefault();
         form.transform((data) => Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === '' ? null : v])));
-        const options = { preserveScroll: true, onSuccess: () => { form.reset(); onClose(); } };
+        const options = { preserveScroll: true };
         if (method === 'put') form.put(url, options);
         else form.post(url, options);
+    }
+
+    function changeOrganization(organizationId: string) {
+        // Units and functions belong to one institution: a new choice drops the old links.
+        form.setData((data) => ({ ...data, organization_id: organizationId, owner_organization_unit_id: '', function_ids: [] }));
+        onOrganizationChange?.(organizationId);
     }
 
     const field = (key: keyof ServiceFormValues, label: string, required = false) => ({ id: `service-${key}`, label, required, error: errors[key] });
@@ -85,16 +91,14 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
     const checkbox = 'mt-0.5 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
     return (
-        <Modal show={show} onClose={onClose} maxWidth="2xl">
-            <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
-                {help && <p className="mt-1 text-sm text-(--app-muted-foreground)">{help}</p>}
-
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <form onSubmit={submit} className="space-y-4">
+            <Card>
+                <CardHeader><CardTitle>{tt('services.details')}</CardTitle></CardHeader>
+                <div className="grid gap-4 p-5 sm:grid-cols-2">
                     {lookups.organizations && (
                         <FormField {...field('organization_id', tt('fields.organization'), true)} className="sm:col-span-2">
                             {({ id }) => (
-                                <Select id={id} value={form.data.organization_id} onChange={(e) => form.setData('organization_id', e.target.value)}>
+                                <Select id={id} value={form.data.organization_id} onChange={(e) => changeOrganization(e.target.value)}>
                                     <option value="">—</option>
                                     {lookups.organizations!.map((o) => <option key={o.id} value={o.id}>{o.code} · {nameOf(o, locale)}</option>)}
                                 </Select>
@@ -106,13 +110,13 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
                     </FormField>
                     <FormField {...field('service_classification_id', tt('fields.serviceClassification'))}>
                         {({ id }) => (
-                            <Select id={id} value={form.data.service_classification_id} onChange={(e) => form.setData('service_classification_id', e.target.value)}>
+                            <Select id={id} value={form.data.service_classification_id} disabled={lookups.classifications.length === 0} onChange={(e) => form.setData('service_classification_id', e.target.value)}>
                                 <option value="">—</option>
                                 {lookups.classifications.map((c) => <option key={c.id} value={c.id}>{c.code} · {nameOf(c, locale)} ({c.revision})</option>)}
                             </Select>
                         )}
                     </FormField>
-                    {lookups.classifications.length === 0 && <Alert tone="warning" className="sm:col-span-2">{tt('services.classificationRequired')}</Alert>}
+                    {lookups.classifications.length === 0 && <p className="text-xs text-(--app-muted-foreground) sm:col-span-2">{tt('services.classificationRequired')}</p>}
                     <FormField {...field('name_en', tt('fields.nameEn'), true)}>
                         {({ id }) => <Input id={id} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} />}
                     </FormField>
@@ -135,6 +139,23 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
                             </Select>
                         )}
                     </FormField>
+                    <FormField {...field('owner_organization_unit_id', tt('fields.ownerUnit'))}>
+                        {({ id }) => (
+                            <Select id={id} value={form.data.owner_organization_unit_id} disabled={!organizationKnown || lookups.units.length === 0} onChange={(e) => form.setData('owner_organization_unit_id', e.target.value)}>
+                                <option value="">—</option>
+                                {lookups.units.map((u) => <option key={u.id} value={u.id}>{u.code} · {nameOf(u, locale)}</option>)}
+                            </Select>
+                        )}
+                    </FormField>
+                    <FormField {...field('legal_basis', tt('fields.legalBasis'))}>
+                        {({ id }) => <Input id={id} value={form.data.legal_basis} onChange={(e) => form.setData('legal_basis', e.target.value)} />}
+                    </FormField>
+                    <FormField {...field('effective_from', tt('fields.effectiveFrom'), true)}>
+                        {({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_from} onChange={(iso) => form.setData('effective_from', iso)} />}
+                    </FormField>
+                    <FormField {...field('effective_to', tt('fields.effectiveTo'))}>
+                        {({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_to} min={form.data.effective_from || undefined} onChange={(iso) => form.setData('effective_to', iso)} />}
+                    </FormField>
                     <FormField {...field('cpc_classification_id', tt('fields.cpcClassification'))}>
                         {({ id }) => (
                             <Select id={id} value={form.data.cpc_classification_id} disabled={lookups.cpcClassifications.length === 0} onChange={(e) => form.setData('cpc_classification_id', e.target.value)}>
@@ -151,79 +172,69 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
                             </Select>
                         )}
                     </FormField>
-                    {!lookups.organizations && (
-                        <FormField {...field('owner_organization_unit_id', tt('fields.ownerUnit'))}>
-                            {({ id }) => (
-                                <Select id={id} value={form.data.owner_organization_unit_id} onChange={(e) => form.setData('owner_organization_unit_id', e.target.value)}>
-                                    <option value="">—</option>
-                                    {lookups.units.map((u) => <option key={u.id} value={u.id}>{u.code} · {nameOf(u, locale)}</option>)}
-                                </Select>
-                            )}
-                        </FormField>
-                    )}
-                    <FormField {...field('legal_basis', tt('fields.legalBasis'))}>
-                        {({ id }) => <Input id={id} value={form.data.legal_basis} onChange={(e) => form.setData('legal_basis', e.target.value)} />}
-                    </FormField>
-                    <FormField {...field('effective_from', tt('fields.effectiveFrom'), true)}>
-                        {({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_from} onChange={(iso) => form.setData('effective_from', iso)} />}
-                    </FormField>
-                    <FormField {...field('effective_to', tt('fields.effectiveTo'))}>
-                        {({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_to} min={form.data.effective_from || undefined} onChange={(iso) => form.setData('effective_to', iso)} />}
-                    </FormField>
                     <FormField {...field('description_en', tt('fields.descriptionEn'))} className="sm:col-span-2">
                         {({ id }) => <Textarea id={id} value={form.data.description_en} onChange={(e) => form.setData('description_en', e.target.value)} />}
                     </FormField>
                     <FormField {...field('description_am', tt('fields.descriptionAm'))} className="sm:col-span-2">
                         {({ id }) => <Textarea id={id} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />}
                     </FormField>
-
-                    {!lookups.organizations && (
-                        <fieldset className="sm:col-span-2">
-                            <legend className="text-sm font-medium text-(--app-foreground)">{tt('services.justifiedBy')}</legend>
-                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.justifiedByHelp')}</p>
-                            {lookups.functions.length === 0 ? (
-                                <Alert tone="warning" className="mt-2">{tt('services.noFunctionsAvailable')}</Alert>
-                            ) : (
-                                <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-control border border-(--app-border) p-2">
-                                    {lookups.functions.map((f) => (
-                                        <li key={f.id}>
-                                            <label className="flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1 text-sm hover:bg-(--app-surface-muted)" style={{ paddingLeft: `${8 + f.depth * 16}px` }}>
-                                                <input type="checkbox" className={checkbox} checked={form.data.function_ids.includes(f.id)} onChange={() => toggle('function_ids', f.id)} />
-                                                <span className="min-w-0"><span className="font-mono text-xs text-(--app-muted-foreground)">{f.code}</span> {titleOf(f, locale)}</span>
-                                            </label>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            <FieldError>{errors.function_ids ?? errors['function_ids.0']}</FieldError>
-                        </fieldset>
-                    )}
-
-                    {!lookups.organizations && lookups.isicOptions.length > 0 && (
-                        <fieldset className="sm:col-span-2">
-                            <legend className="text-sm font-medium text-(--app-foreground)">{tt('services.isic')}</legend>
-                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.isicHelp')}</p>
-                            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto rounded-control border border-(--app-border) p-2">
-                                {lookups.isicOptions.map((a) => (
-                                    <li key={a.id}>
-                                        <label className="flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1 text-sm hover:bg-(--app-surface-muted)">
-                                            <input type="checkbox" className={checkbox} checked={form.data.isic_activity_ids.includes(a.id)} onChange={() => toggle('isic_activity_ids', a.id)} />
-                                            <span className="min-w-0"><span className="font-mono text-xs text-(--app-muted-foreground)">{a.isic_code}</span> {nameOf(a, locale)}</span>
-                                        </label>
-                                    </li>
-                                ))}
-                            </ul>
-                            <FieldError>{errors.isic_activity_ids ?? errors['isic_activity_ids.0']}</FieldError>
-                        </fieldset>
-                    )}
                 </div>
-                <FieldError>{errors.status}</FieldError>
+            </Card>
 
-                <div className="mt-6 flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={onClose}>{tt('actions.cancel')}</Button>
-                    <Button type="submit" variant="primary" loading={form.processing}>{tt('actions.save')}</Button>
+            <Card>
+                <CardHeader>
+                    <CardTitle>{tt('services.justifiedBy')}</CardTitle>
+                    <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.justifiedByHelp')}</p>
+                </CardHeader>
+                <div className="p-5">
+                    {!organizationKnown ? (
+                        <p className="text-sm text-(--app-muted-foreground)">{tt('services.chooseOrganizationFirst')}</p>
+                    ) : lookups.functions.length === 0 ? (
+                        <Alert tone="warning">{tt('services.noFunctionsAvailable')}</Alert>
+                    ) : (
+                        <ul className="max-h-72 space-y-1 overflow-y-auto rounded-control border border-(--app-border) p-2">
+                            {lookups.functions.map((f) => (
+                                <li key={f.id}>
+                                    <label className="flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1 text-sm hover:bg-(--app-surface-muted)" style={{ paddingLeft: `${8 + f.depth * 16}px` }}>
+                                        <input type="checkbox" className={checkbox} checked={form.data.function_ids.includes(f.id)} onChange={() => toggle('function_ids', f.id)} />
+                                        <span className="min-w-0"><span className="font-mono text-xs text-(--app-muted-foreground)">{f.code}</span> {titleOf(f, locale)}</span>
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    <FieldError>{errors.function_ids ?? errors['function_ids.0']}</FieldError>
                 </div>
-            </form>
-        </Modal>
+            </Card>
+
+            {lookups.isicOptions.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{tt('services.isic')}</CardTitle>
+                        <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.isicHelp')}</p>
+                    </CardHeader>
+                    <div className="p-5">
+                        <ul className="max-h-56 space-y-1 overflow-y-auto rounded-control border border-(--app-border) p-2">
+                            {lookups.isicOptions.map((a) => (
+                                <li key={a.id}>
+                                    <label className="flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1 text-sm hover:bg-(--app-surface-muted)">
+                                        <input type="checkbox" className={checkbox} checked={form.data.isic_activity_ids.includes(a.id)} onChange={() => toggle('isic_activity_ids', a.id)} />
+                                        <span className="min-w-0"><span className="font-mono text-xs text-(--app-muted-foreground)">{a.isic_code}</span> {nameOf(a, locale)}</span>
+                                    </label>
+                                </li>
+                            ))}
+                        </ul>
+                        <FieldError>{errors.isic_activity_ids ?? errors['isic_activity_ids.0']}</FieldError>
+                    </div>
+                </Card>
+            )}
+
+            <FieldError>{errors.status}</FieldError>
+
+            <div className="flex justify-end gap-2">
+                <Button as={Link} href={cancelHref} variant="outline">{tt('actions.cancel')}</Button>
+                <Button type="submit" variant="primary" loading={form.processing}>{tt('actions.save')}</Button>
+            </div>
+        </form>
     );
 }
