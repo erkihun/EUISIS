@@ -641,7 +641,7 @@ function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
 
     return (
         <FeedbackAppLayout
-            title={t('serviceFeedback.publicTitle')}
+            title={receipt ? t(`serviceFeedback.publicTitles.${receipt.type}`) : t('serviceFeedback.publicTitle')}
             subtitle={receipt?.target_name}
             backHref={links.landing}
             backLabel={t('serviceFeedback.backToOptions')}
@@ -687,7 +687,7 @@ function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
                 </div>
             </div>
             <FeedbackActionBar>
-                <Link href={links.landing} className={`${publicButtonSecondary} min-h-[52px] w-full rounded-xl text-base`}>{t('serviceFeedback.submitAnother')}</Link>
+                <Link href={links.landing} className={`${publicButtonSecondary} min-h-[52px] w-full rounded-xl text-base`}>{receipt ? t(`serviceFeedback.submitAnotherByType.${receipt.type}`) : t('serviceFeedback.submitAnother')}</Link>
             </FeedbackActionBar>
         </FeedbackAppLayout>
     );

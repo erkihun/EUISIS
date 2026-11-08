@@ -42,6 +42,8 @@ function opfLanding(string $token): string
 }
 
 it('opens the organization landing with the institution identity, three options and no internal data', function (): void {
+    // The logo URL is offered only for a logo file that exists.
+    Storage::fake('public')->put('organizations/logos/test.png', 'png');
     $this->organization->update(['logo_path' => 'organizations/logos/test.png']);
 
     $this->withHeader('X-Locale', 'am')

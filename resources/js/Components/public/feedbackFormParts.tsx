@@ -198,7 +198,12 @@ export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HT
 
 /** The privacy promise must match what the form asks for (PublicSubmissionPolicy). */
 export function privacyNoteKey(requirements: SubmissionRequirements): string {
-    return requirements.anonymous_allowed ? 'serviceFeedback.publicPrivacyNoteTipOff' : 'serviceFeedback.publicPrivacyNoteIdentified';
+    if (!requirements.anonymous_allowed) {
+        return 'serviceFeedback.publicPrivacyNoteIdentified';
+    }
+
+    // Each form speaks of itself only: a feedback form never mentions Tip-offs.
+    return requirements.type === 'feedback' ? 'serviceFeedback.publicPrivacyNoteFeedback' : 'serviceFeedback.publicPrivacyNoteTipOff';
 }
 
 /** "(Required)" or "(Optional)" beside a label; the input carries the real `required`. */

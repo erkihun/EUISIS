@@ -7,6 +7,7 @@ namespace Modules\Feedback\Application\Services;
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\EmployeeAssignment;
+use Illuminate\Support\Facades\Storage;
 use Modules\Feedback\Contracts\Data\PublicFeedbackTargetType;
 use Modules\Feedback\Domain\Enums\PublicFeedbackSourceType;
 use Modules\Feedback\Domain\Models\EmployeeFeedbackToken;
@@ -161,7 +162,8 @@ class PublicFeedbackTargetResolver
             extras: [
                 // Through the token (PublicFeedbackOrganizationLogoController), never /storage/…/{organization id}/….
                 // The version changes with the logo, so a replaced logo is fetched again.
-                'logo_url' => filled($organization->logo_path)
+                // Only when the file is there: a logo on record but missing on disk would show a broken image.
+                'logo_url' => filled($organization->logo_path) && Storage::disk('public')->exists((string) $organization->logo_path)
                     ? route('public-feedback.organization.logo', ['token' => $token, 'v' => substr(hash('sha256', (string) $organization->logo_path), 0, 12)], false)
                     : null,
                 'short_name' => null,

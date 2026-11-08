@@ -420,12 +420,13 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
  * parent is itself offered; a long list gets a filter box. Only the unit's
  * name is shown: no code, no staff, no manager.
  */
-function RelevantWorkUnit({ units, value, required, onChange, error }: {
+function RelevantWorkUnit({ units, value, required, onChange, error, kind }: {
     units: UnitOption[];
     value: string;
     required: boolean;
     onChange: (unitId: string) => void;
     error?: string;
+    kind?: 'feedback' | 'suggestion' | 'complaint';
 }) {
     const { t } = useLocale();
     const [filter, setFilter] = useState('');
@@ -446,7 +447,7 @@ function RelevantWorkUnit({ units, value, required, onChange, error }: {
     return (
         <div data-field>
             <label htmlFor="organization_unit_id" className={labelClass}>{t('serviceFeedback.relevantWorkUnit')}<RequirementMark required={required} /></label>
-            <p id="relevant-work-unit-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.relevantWorkUnitHint')}</p>
+            <p id="relevant-work-unit-hint" className={`mt-1 text-xs ${mutedClass}`}>{t(kind ? `serviceFeedback.relevantWorkUnitHints.${kind}` : 'serviceFeedback.relevantWorkUnitHint')}</p>
             {units.length > UNIT_FILTER_FROM && (
                 <input type="search" aria-label={t('serviceFeedback.unitFilter')} placeholder={t('serviceFeedback.unitFilter')} value={filter} onChange={(event) => setFilter(event.target.value)} className={fieldClass} autoComplete="off" />
             )}
@@ -759,7 +760,7 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                     <section aria-labelledby="service-step-title" className={`${cardClass} space-y-5`}>
                         <div>
                             <p id="service-step-title" className="text-base font-bold text-(--app-foreground)">{stepTitle('service')}</p>
-                            <p className={`mt-1 text-sm ${mutedClass}`}>{t(kind === 'suggestion' ? 'serviceFeedback.serviceStepTipOffHint' : 'serviceFeedback.serviceStepHint')}</p>
+                            <p className={`mt-1 text-sm ${mutedClass}`}>{t(kind === 'suggestion' ? 'serviceFeedback.serviceStepTipOffHint' : kind === 'complaint' && context.offices.length > 0 ? 'serviceFeedback.serviceStepComplaintHint' : 'serviceFeedback.serviceStepHint')}</p>
                         </div>
                         <ServiceReceived
                             mode={context.serviceOptions.mode}
@@ -778,6 +779,7 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                                 units={context.offices}
                                 value={data.organization_unit_id}
                                 required={kind !== 'feedback'}
+                                kind={kind}
                                 onChange={(unitId) => {
                                     setData((current) => ({ ...current, organization_unit_id: unitId, unit_selection_mode: unitId === '' ? 'GENERAL' : 'SELECTED' }));
                                     clearErrors('organization_unit_id');
@@ -817,7 +819,7 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                         <div className={`${cardClass} space-y-6`}>
                             <div>
                                 <p id="experience-step-title" className="text-base font-bold text-(--app-foreground)">{stepTitle('experience')}</p>
-                                <p className={`mt-1 text-sm ${mutedClass}`}>{t('serviceFeedback.experienceHint')}</p>
+                                <p className={`mt-1 text-sm ${mutedClass}`}>{t(experienceQuestions.length > 0 ? 'serviceFeedback.experienceHint' : 'serviceFeedback.experienceHintOverall')}</p>
                             </div>
                             {experienceQuestions.map(renderQuestion)}
                         </div>
