@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Building2, ChevronRight } from '@/Components/NavIcons';
+import { ChevronDown } from '@/Components/Icons';
 import { publicButtonSecondary } from '@/Components/public/PublicPage';
 import RatingScale from '@/Components/public/RatingScale';
 import {
@@ -86,7 +87,6 @@ function unitLabel(unit: UnitOption): string {
 }
 
 /** Above this many units the visitor gets a filter box, as for the service catalog. */
-const UNIT_FILTER_FROM = 12;
 
 type StepId = 'service' | 'experience' | 'details' | 'submit';
 /** The fields that hold one string. */
@@ -417,10 +417,10 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
 
 /**
  * The relevant work unit: which part of the institution the submission
- * concerns, from the public-selectable units the server sent for the scanned
- * QR, or "General / Not sure". Units are grouped under their parent when the
- * parent is itself offered; a long list gets a filter box. Only the unit's
- * name is shown: no code, no staff, no manager.
+ * concerns, or "General / Not sure". One field (owner request 2026-11-08):
+ * tapping it opens the list with a search box on top; typing narrows it.
+ * Each unit shows its parent unit underneath. Only the unit's name is shown:
+ * no code, no staff, no manager.
  */
 function RelevantWorkUnit({ units, value, required, onChange, error, kind }: {
     units: UnitOption[];
@@ -431,53 +431,70 @@ function RelevantWorkUnit({ units, value, required, onChange, error, kind }: {
     kind?: 'feedback' | 'suggestion' | 'complaint';
 }) {
     const { t } = useLocale();
+    const [open, setOpen] = useState(false);
     const [filter, setFilter] = useState('');
+    const box = useRef<HTMLDivElement>(null);
     const term = filter.trim().toLowerCase();
-    const filtering = term !== '';
-    const visible = filtering ? units.filter((unit) => unitLabel(unit).toLowerCase().includes(term)) : units;
-    // Children sit under their parent's name; units whose parent is not on offer are listed at the top level.
-    const offered = new Set(units.map((unit) => unit.id));
-    const roots = visible.filter((unit) => unit.parent_id === null || !offered.has(unit.parent_id));
-    const childrenOf = (parentId: string) => visible.filter((unit) => unit.parent_id === parentId);
-    const groups = roots.map((root) => ({ root, children: childrenOf(root.id) }));
-    const grouped = new Set(groups.flatMap((group) => [group.root.id, ...group.children.map((child) => child.id)]));
-    // Deeper descendants (grandchildren) are listed by their full path so nothing on offer is hidden.
-    const deeper = visible.filter((unit) => !grouped.has(unit.id));
+    const visible = term === '' ? units : units.filter((unit) => unitLabel(unit).toLowerCase().includes(term));
     const selected = units.find((unit) => unit.id === value);
     const describedBy = ['relevant-work-unit-hint', error ? 'relevant-work-unit-error' : null].filter(Boolean).join(' ');
 
+    // A tap outside, or Escape, closes the list.
+    useEffect(() => {
+        if (!open) return;
+        const outside = (event: MouseEvent | TouchEvent) => {
+            if (box.current && !box.current.contains(event.target as Node)) setOpen(false);
+        };
+        const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
+        document.addEventListener('mousedown', outside);
+        document.addEventListener('touchstart', outside);
+        document.addEventListener('keydown', escape);
+        return () => {
+            document.removeEventListener('mousedown', outside);
+            document.removeEventListener('touchstart', outside);
+            document.removeEventListener('keydown', escape);
+        };
+    }, [open]);
+
+    const choose = (unitId: string) => {
+        onChange(unitId);
+        setOpen(false);
+        setFilter('');
+    };
+    const row = (id: string, label: string, detail: string | null, active: boolean) => (
+        <li key={id || 'general'} role="option" aria-selected={active}>
+            <button type="button" onClick={() => choose(id)}
+                className={`flex min-h-12 w-full flex-col items-start justify-center px-4 py-2 text-left hover:bg-(--app-surface-muted) focus-visible:bg-(--app-surface-muted) focus-visible:outline-hidden ${active ? 'bg-primary/5' : ''}`}>
+                <span className={`text-sm text-(--app-foreground) wrap-anywhere ${active ? 'font-semibold' : 'font-medium'}`}>{label}</span>
+                {detail && <span className={`text-xs ${mutedClass}`}>{detail}</span>}
+            </button>
+        </li>
+    );
+
     return (
-        <div data-field>
+        <div data-field ref={box} className="relative">
             <label htmlFor="organization_unit_id" className={labelClass}>{t('serviceFeedback.relevantWorkUnit')}<RequirementMark required={required} /></label>
             <p id="relevant-work-unit-hint" className={`mt-1 text-xs ${mutedClass}`}>{t(kind ? `serviceFeedback.relevantWorkUnitHints.${kind}` : 'serviceFeedback.relevantWorkUnitHint')}</p>
-            {units.length > UNIT_FILTER_FROM && (
-                <input type="search" aria-label={t('serviceFeedback.unitFilter')} placeholder={t('serviceFeedback.unitFilter')} value={filter} onChange={(event) => setFilter(event.target.value)} className={fieldClass} autoComplete="off" />
+            <button id="organization_unit_id" type="button" aria-haspopup="listbox" aria-expanded={open} aria-describedby={describedBy}
+                aria-invalid={error ? true : undefined} aria-required={required || undefined} onClick={() => setOpen(!open)}
+                className={`${fieldClass} flex items-center justify-between gap-2 text-left`}>
+                <span className="min-w-0 truncate">{selected ? unitLabel(selected) : t('serviceFeedback.generalNotSure')}</span>
+                <ChevronDown className={`h-5 w-5 shrink-0 ${mutedClass} transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+            {open && (
+                <div className="mt-1 overflow-hidden rounded-xl border border-(--app-border) bg-(--app-surface) shadow-lg">
+                    <div className="border-b border-(--app-border) p-2">
+                        <input type="search" autoFocus aria-label={t('serviceFeedback.unitFilter')} placeholder={t('serviceFeedback.unitFilter')} value={filter}
+                            onChange={(event) => setFilter(event.target.value)} autoComplete="off"
+                            className="h-11 w-full rounded-lg border border-(--app-border) bg-(--app-surface) px-3 text-base text-(--app-foreground) focus:border-primary focus:outline-hidden" />
+                    </div>
+                    <ul role="listbox" aria-label={t('serviceFeedback.relevantWorkUnit')} className="max-h-72 overflow-y-auto">
+                        {term === '' && row('', t('serviceFeedback.generalNotSure'), null, value === '')}
+                        {visible.map((unit) => row(unit.id, unit.name, unit.parent ?? null, unit.id === value))}
+                        {visible.length === 0 && <li className={`px-4 py-3 text-sm ${mutedClass}`} aria-live="polite">{t('serviceFeedback.unitNoMatch')}</li>}
+                    </ul>
+                </div>
             )}
-            <select
-                id="organization_unit_id"
-                value={value}
-                onChange={(event) => onChange(event.target.value)}
-                className={fieldClass}
-                aria-describedby={describedBy}
-                aria-invalid={error ? true : undefined}
-                aria-required={required || undefined}
-            >
-                <option value="">{t('serviceFeedback.generalNotSure')}</option>
-                {/* A filtered-out selection stays in the list, so the control never shows a value it does not contain. */}
-                {selected && !visible.some((unit) => unit.id === selected.id) && <option value={selected.id}>{unitLabel(selected)}</option>}
-                {groups.map(({ root, children }) => (
-                    children.length === 0
-                        ? <option key={root.id} value={root.id}>{filtering ? unitLabel(root) : root.name}</option>
-                        : (
-                            <optgroup key={root.id} label={root.name}>
-                                <option value={root.id}>{root.name}</option>
-                                {children.map((child) => <option key={child.id} value={child.id}>{child.name}</option>)}
-                            </optgroup>
-                        )
-                ))}
-                {deeper.map((unit) => <option key={unit.id} value={unit.id}>{unitLabel(unit)}</option>)}
-            </select>
-            {filtering && visible.length === 0 && <p className={`mt-1 text-xs ${mutedClass}`} aria-live="polite">{t('serviceFeedback.unitNoMatch')}</p>}
             {error && <p id="relevant-work-unit-error" role="alert" className={errorClass}>{error}</p>}
         </div>
     );

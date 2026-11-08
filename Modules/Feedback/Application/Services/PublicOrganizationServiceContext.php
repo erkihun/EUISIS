@@ -26,12 +26,11 @@ use Modules\Feedback\Contracts\PublicOrganizationServices;
  *   service_text (SERVICE_LINKAGE_REQUIRED for that institution).
  * - A small catalog is sent with the page; a large one is searched on the
  *   server (LIST_LIMIT), so the page never carries hundreds of rows.
- * - Relevant work units are the institution's own active, in-force
- *   organization units that carry the "available for public feedback" flag
- *   (`is_public_feedback_selectable`): offices and the units that replaced
- *   its former institution offices are flagged by default, internal
- *   directorates and teams are opt-in. The flag, the status and the
- *   effective window are re-checked on submission; a unit of another
+ * - Relevant work units are all of the institution's own active, in-force
+ *   organization units (owner decision 2026-11-08: the public form lists the
+ *   institution's units; the earlier opt-in flag `is_public_feedback_selectable`
+ *   no longer narrows the list). The status and the effective window are
+ *   re-checked on submission; a unit of another
  *   institution is refused whatever the browser sent. "General / Not sure" is
  *   recorded as unit_selection_mode GENERAL with no unit row — never a fake
  *   unit.
@@ -243,7 +242,6 @@ final class PublicOrganizationServiceContext implements PublicOrganizationServic
 
         return OrganizationUnit::query()
             ->where('organization_id', $organizationId)
-            ->where('is_public_feedback_selectable', true)
             ->where('status', OrganizationUnitStatus::Active->value)
             ->where(fn (Builder $query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $today))
             ->where(fn (Builder $query) => $query->whereNull('effective_to')->orWhereDate('effective_to', '>=', $today));

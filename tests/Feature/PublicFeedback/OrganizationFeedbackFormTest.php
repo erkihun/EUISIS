@@ -177,7 +177,7 @@ function offUrl(string $type = ''): string
     return '/feedback/'.test()->token.($type === '' ? '' : '/'.$type);
 }
 
-it('accepts only effective public-selectable work units from the QR-resolved organization', function (): void {
+it('accepts any active, effective work unit of the QR-resolved organization, whatever the old public flag', function (): void {
     $publicUnit = OrganizationUnit::query()->create([
         'organization_id' => $this->organization->id,
         'code' => 'OFF-PERMIT',
@@ -205,8 +205,9 @@ it('accepts only effective public-selectable work units from the QR-resolved org
         ->and($entry->organization_unit_type_snapshot)->toBe('directorate')
         ->and($entry->unit_selection_mode)->toBe('SELECTED');
 
-    $this->post(offUrl('feedback'), offFeedback(['organization_unit_id' => $privateUnit->id, 'unit_selection_mode' => 'SELECTED']))
-        ->assertSessionHasErrors('organization_unit_id');
+    // Owner decision 2026-11-08: the institution's units are all offered; the old opt-in flag no longer narrows them.
+    $this->post(offUrl('feedback'), offFeedback(['organization_unit_id' => $privateUnit->id, 'unit_selection_mode' => 'SELECTED', 'comment' => 'Second.']))
+        ->assertSessionHasNoErrors();
 });
 
 it('records General / Not sure without creating a fake organizational unit', function (): void {
@@ -241,7 +242,7 @@ function offComplaint(array $overrides = []): array
     ], $overrides);
 }
 
-it('refuses a work unit that is not public-selectable on this QR right now, and stores nothing', function (array $attributes): void {
+it('refuses a work unit that is not active and in force at this institution right now, and stores nothing', function (array $attributes): void {
     $unit = OrganizationUnit::query()->create(array_merge([
         'organization_id' => $this->organization->id, 'code' => 'OFF-X-'.Str::random(4), 'name_en' => 'Not offered unit',
         'unit_type' => 'directorate', 'status' => 'active', 'is_public_feedback_selectable' => true,
@@ -258,7 +259,6 @@ it('refuses a work unit that is not public-selectable on this QR right now, and 
     'an archived unit' => [['status' => 'archived']],
     'a unit not yet in force' => [fn () => ['effective_from' => now()->addDay()->toDateString()]],
     'a unit whose effective window ended' => [fn () => ['effective_to' => now()->subDay()->toDateString()]],
-    'a unit kept off the public form' => [['is_public_feedback_selectable' => false]],
     'another institution\'s unit' => [fn () => ['organization_id' => test()->otherOrganization->id]],
 ]);
 
@@ -303,8 +303,8 @@ it('requires a unit or General / Not sure on a complaint and a Tip-off while uni
 
 });
 
-it('asks nothing and blocks nothing at an institution with no public-selectable unit', function (): void {
-    OrganizationUnit::query()->where('organization_id', $this->organization->id)->update(['is_public_feedback_selectable' => false]);
+it('asks nothing and blocks nothing at an institution with no active unit', function (): void {
+    OrganizationUnit::query()->where('organization_id', $this->organization->id)->update(['status' => 'inactive']);
 
     $this->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page->where('offices', []));
     $this->post(offUrl('complaint'), offComplaint(['organization_unit_id' => null, 'unit_selection_mode' => 'GENERAL']))->assertSessionHasNoErrors();
@@ -324,7 +324,7 @@ it('offers each unit with its parent unit when that parent is offered too, in th
         'organization_id' => $this->organization->id, 'code' => 'OFF-HQ-PERMITS', 'name_en' => 'Permits desk', 'name_am' => 'የፈቃድ ዴስክ',
         'unit_type' => 'team', 'status' => 'active', 'parent_unit_id' => $this->headOffice->id, 'is_public_feedback_selectable' => true,
     ]);
-    // Its parent is internal: the visitor sees the unit on its own, with no path into the internal structure.
+    // A unit under a directorate.
     $internal = OrganizationUnit::query()->create([
         'organization_id' => $this->organization->id, 'code' => 'OFF-INT', 'name_en' => 'Internal directorate', 'unit_type' => 'directorate', 'status' => 'active',
     ]);
@@ -335,9 +335,10 @@ it('offers each unit with its parent unit when that parent is offered too, in th
 
     $this->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page
         ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $desk->id) === ['id' => $desk->id, 'name' => 'Permits desk', 'type' => 'team', 'parent_id' => $this->headOffice->id, 'parent' => 'Head office'])
-        ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $orphan->id)['parent'] === null)
+        // Every active unit is offered now, so its parent is named too.
+        ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $orphan->id)['parent'] === 'Internal directorate')
         ->where('offices', fn ($offices) => collect($offices)->every(fn (array $unit): bool => array_keys($unit) === ['id', 'name', 'type', 'parent_id', 'parent']))
-        ->where('offices', fn ($offices) => ! str_contains(json_encode($offices), 'OFF-HQ') && ! collect($offices)->pluck('id')->contains($internal->id)));
+        ->where('offices', fn ($offices) => ! str_contains(json_encode($offices), 'OFF-HQ') && collect($offices)->pluck('id')->contains($internal->id)));
 
     $this->withHeader('X-Locale', 'am')->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page
         ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $desk->id)['name'] === 'የፈቃድ ዴስክ'
@@ -364,7 +365,9 @@ it('renders the institution, its published services and offices, and the questio
             ->where('serviceOptions.mode', 'list')
             // Only this institution's PUBLISHED catalog: no draft, nothing of another institution.
             ->where('serviceOptions.items', [['id' => $this->service->id, 'code' => 'TL-01', 'name' => 'Trade licence renewal']])
-            ->where('offices', fn ($offices) => collect($offices)->pluck('id')->sort()->values()->all() === collect([$this->headOffice->id, $this->branch->id])->sort()->values()->all())
+            // Every active unit of this institution, none of another.
+            ->where('offices', fn ($offices) => collect($offices)->pluck('id')->contains($this->headOffice->id) && collect($offices)->pluck('id')->contains($this->branch->id)
+                && ! collect($offices)->pluck('id')->contains($this->foreignOffice->id))
             ->where('links.serviceSearch', url('/feedback/'.$this->token.'/services')));
 });
 
@@ -384,12 +387,13 @@ it('renders the questionnaire and service names in Amharic for an Amharic visito
         ->where('serviceOptions.items.0.name', 'የንግድ ፈቃድ እድሳት'));
 });
 
-it('offers the remaining public work unit, and free text when it has no catalog', function (): void {
+it('offers the remaining active work units, and free text when it has no catalog', function (): void {
     $this->branch->update(['status' => 'inactive']);
     $this->service->update(['status' => 'superseded']);
 
     $this->get(offUrl('feedback'))->assertInertia(fn (Assert $page) => $page
-        ->where('offices', [['id' => $this->headOffice->id, 'name' => 'Head office', 'type' => 'office', 'parent_id' => null, 'parent' => null]])
+        ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $this->headOffice->id) === ['id' => $this->headOffice->id, 'name' => 'Head office', 'type' => 'office', 'parent_id' => null, 'parent' => null]
+            && ! collect($offices)->pluck('id')->contains($this->branch->id))
         ->where('serviceOptions', ['mode' => 'none', 'items' => []]));
 });
 
@@ -697,7 +701,6 @@ it('refuses a service or an office of another institution, and stores nothing', 
     'foreign service' => [fn () => ['service_id' => test()->foreignService->id], 'service_id'],
     'unpublished service' => [fn () => ['service_id' => Service::query()->where('code', 'TL-02')->value('id')], 'service_id'],
     'foreign office' => [fn () => ['organization_unit_id' => test()->foreignOffice->id], 'organization_unit_id'],
-    'internal non-office unit' => [fn () => ['organization_unit_id' => test()->scenario->unit->id], 'organization_unit_id'],
 ]);
 
 it('keeps the scanned institution as the target whatever ids the browser posts', function (): void {

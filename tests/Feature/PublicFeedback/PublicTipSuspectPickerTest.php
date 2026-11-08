@@ -73,7 +73,7 @@ it('lists every active unit of the institution for the person concerned, not onl
 
     $this->get('/feedback/'.$this->token.'/suggestion')->assertOk()
         ->assertInertia(fn ($page) => $page->where('suspectUnits', fn ($units) => collect($units)->pluck('id')->contains($this->s->unit->id))
-            ->where('offices', fn ($units) => ! collect($units)->pluck('id')->contains($this->s->unit->id)));
+            ->where('offices', fn ($units) => collect($units)->pluck('id')->contains($this->s->unit->id)));
     $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->s->unit->id)->assertOk()->assertJsonPath('items.0.id', $this->s->employee->id);
     // Another institution's unit is still refused.
     $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->other->unit->id)->assertOk()->assertJsonCount(0, 'items');
