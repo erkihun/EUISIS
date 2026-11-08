@@ -26,6 +26,7 @@ use Modules\Grievance\Application\Services\GrievanceEscalationService;
 use Modules\Grievance\Application\Services\GrievanceEvidenceService;
 use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
 use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Application\Services\GrievanceReadinessService;
 use Modules\Grievance\Application\Services\GrievanceRoutingService;
 use Modules\Grievance\Application\Services\GrievanceSettings;
 use Modules\Grievance\Application\Services\GrievanceSlaService;
@@ -116,6 +117,8 @@ class GrievanceCaseController extends Controller
                 ->map(fn (Grievance $g) => $this->presenter->listRow($g))->values(),
             'intakePending' => $intake,
             'approvalsPending' => $user->can('grievance_decisions.approve') ? app(GrievanceApprovalController::class)->pendingQuery($user)->count() : null,
+            // Owner request 2026-11-08: what each institution still needs before a grievance can run end to end.
+            'readiness' => ($readiness = app(GrievanceReadinessService::class))->canSee($user) ? $readiness->forUser($user) : null,
             'can' => $this->navCan($user),
         ]);
     }

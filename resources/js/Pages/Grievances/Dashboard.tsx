@@ -5,6 +5,7 @@ import { AlertTriangle, Briefcase, ClockIcon, Inbox } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { Workspace, CaseTable } from '@/Components/grievances/Workspace';
 import { CaseNumber, HandlerName, SlaBadge, fmt, primaryBtn, secondaryBtn, useEnumLabel } from '@/Components/grievances/ui';
+import ReadinessPanel from '@/Components/grievances/ReadinessPanel';
 import type { DashboardProps, GrievanceRow } from '@/types/grievances';
 
 const panel = 'rounded-panel border border-(--app-border) bg-(--app-surface)';
@@ -24,7 +25,7 @@ const WORKLOAD: { key: keyof DashboardProps['assigned']; bar: string }[] = [
 
 const URGENT = ['overdue', 'due_today', 'due_soon'];
 
-export default function Dashboard({ assigned, queue, intakePending, approvalsPending, can }: DashboardProps): JSX.Element {
+export default function Dashboard({ assigned, queue, intakePending, approvalsPending, readiness = null, can }: DashboardProps): JSX.Element {
     const { t } = useLocale();
     const label = useEnumLabel();
     const casesUrl = (params: Record<string, string> = {}) => route('grievances.cases.index', { tab: 'assigned', ...params });
@@ -50,6 +51,7 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
     return (
         <Workspace title={t('grievanceCases.dashboard')} description={t('grievanceCases.dash.subtitle')} actions={actions}>
             {/* Headline figures */}
+            {readiness && <ReadinessPanel readiness={readiness} />}
             <section aria-label={t('grievanceCases.dashboard')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <Kpi
                     href={casesUrl()}

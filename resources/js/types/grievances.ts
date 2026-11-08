@@ -191,6 +191,8 @@ export type DashboardProps = {
     queue: GrievanceRow[];
     intakePending: number | null;
     approvalsPending: number | null;
+    /** Setup readiness per institution, for those who set grievances up. */
+    readiness?: import('@/Components/grievances/ReadinessPanel').Readiness | null;
     can: NavCan;
 };
 
