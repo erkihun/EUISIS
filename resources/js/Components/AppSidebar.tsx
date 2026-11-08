@@ -612,12 +612,20 @@ const navGroups: NavGroup[] = [
             { routeName: 'grievances.approvals.index', labelKey: 'nav.grievanceApprovals', icon: BadgeCheckIcon, permission: 'grievance_decisions.approve' },
             { routeName: 'grievances.appeals.index', labelKey: 'nav.grievanceAppeals', icon: AppealIcon, anyPermission: ['grievances.view_assigned', 'grievances.intake_review', 'grievances.assign', 'grievances.oversight_view', 'grievances.tribunal', 'grievance_decisions.approve', 'grievance_reports.view'] },
             { routeName: 'grievances.correspondence.index', labelKey: 'nav.grievanceCorrespondence', icon: MailIcon, permission: 'grievance_correspondence.view' },
+            { routeName: 'grievances.reports.index', labelKey: 'nav.grievanceReports', icon: FileChartIcon, permission: 'grievance_reports.view' },
+        ],
+    },
+    {
+        /* Who hears employee grievances and by which rules: committees, teams, the directorate, routes, deadlines, settings. */
+        key: 'grievanceSetup',
+        labelKey: 'nav.groupGrievanceSetup',
+        icon: SettingsIcon,
+        items: [
             { routeName: 'grievances.committees.index', labelKey: 'nav.grievanceCommittees', icon: UsersTwoIcon, permission: 'grievance_committees.view' },
             { routeName: 'grievances.teams.index', labelKey: 'nav.grievanceTeams', icon: Building2, permission: 'grievance_committees.view' },
             { routeName: 'grievances.directorate.index', labelKey: 'nav.grievanceDirectorate', icon: ShieldCheck, permission: 'grievance_committees.view' },
             { routeName: 'grievances.routes.index', labelKey: 'nav.grievanceRouting', icon: SignpostIcon, permission: 'grievance_routes.view' },
             { routeName: 'grievances.sla.index', labelKey: 'nav.grievanceSla', icon: StopwatchIcon, permission: 'grievance_sla.view' },
-            { routeName: 'grievances.reports.index', labelKey: 'nav.grievanceReports', icon: FileChartIcon, permission: 'grievance_reports.view' },
             { routeName: 'grievances.settings.index', labelKey: 'nav.grievanceSettings', icon: SettingsIcon, permission: 'grievance_settings.view' },
         ],
     },
@@ -728,15 +736,11 @@ const navGroups: NavGroup[] = [
         items: [
             { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
             { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: StarIcon, permission: 'service_feedback.view' },
-            // Every type the user may read, on one page (overview across the three groups).
-            { routeName: 'service-submissions.index', labelKey: 'nav.serviceAllSubmissions', icon: Inbox, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
             { routeName: 'service-feedback.questionnaire.index', labelKey: 'nav.serviceFeedbackQuestionnaire', icon: QuestionnaireIcon, permission: 'service_feedback.manage_questions' },
             { routeName: 'service-feedback.units.index', labelKey: 'nav.serviceFeedbackUnit', icon: Building2, permission: 'service_feedback.manage_routing' },
             { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
             { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: FileChartIcon, permission: 'service_feedback.view' },
             { routeName: 'service-feedback.submission-reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
-            // PublicFeedbackSettings::canManage also requires citywide scope; the same permission serves scoped QR and position-service work.
-            { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage', citywideOnly: true },
         ],
     },
     {
@@ -765,6 +769,18 @@ const navGroups: NavGroup[] = [
             { routeName: 'public-complaints.units.index', labelKey: 'nav.serviceComplaintUnit', icon: Building2, permission: 'service_feedback.manage_routing' },
             { routeName: 'public-complaints.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
             { routeName: 'public-complaints.reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
+        ],
+    },
+    {
+        /* 4. Across feedback, Tip-offs and complaints: every case on one list, the combined report, and the shared policy. */
+        key: 'publicCasesShared',
+        labelKey: 'nav.groupPublicCasesShared',
+        icon: Inbox,
+        items: [
+            { routeName: 'service-submissions.index', labelKey: 'nav.serviceAllSubmissions', icon: Inbox, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
+            { routeName: 'service-submissions.reports.index', labelKey: 'nav.serviceCombinedReports', icon: FileChartIcon, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
+            // PublicFeedbackSettings::canManage also requires citywide scope (appeal periods, limits, switches).
+            { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage', citywideOnly: true },
         ],
     },
     {
@@ -925,8 +941,10 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'serviceFeedback', 'serviceSuggestions', 'serviceComplaints', 'providers', 'cafeteria', 'transport'] },
-    { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
+    // What the public sends in: feedback, Tip-offs and complaints, each its own module, plus what they share.
+    { labelKey: 'nav.sidebarPublicVoice', keys: ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints', 'publicCasesShared'] },
+    { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'grievanceSetup', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];
 

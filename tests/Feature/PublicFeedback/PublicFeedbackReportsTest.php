@@ -253,8 +253,13 @@ it('gives service feedback, suggestions and complaints each their own sidebar gr
 
     $feedback = $groupOf('serviceFeedback');
     expect($feedback)->toContain("labelKey: 'nav.groupPublicFeedback'");
-    foreach (['service-feedback.admin.dashboard', 'service-feedback.admin.index', 'service-feedback.organization-qr.index', 'service-feedback.admin.reports', 'service-feedback.settings.index'] as $routeName) {
+    foreach (['service-feedback.admin.dashboard', 'service-feedback.admin.index', 'service-feedback.organization-qr.index', 'service-feedback.admin.reports'] as $routeName) {
         expect($feedback)->toContain("routeName: '{$routeName}'");
+    }
+    // What the three share (every case, the combined report, the policy) has its own group.
+    $shared = $groupOf('publicCasesShared');
+    foreach (['service-submissions.index', 'service-submissions.reports.index', 'service-feedback.settings.index'] as $routeName) {
+        expect($shared)->toContain("routeName: '{$routeName}'")->and($feedback)->not->toContain("routeName: '{$routeName}'");
     }
 
     // Suggestions and complaints: each its own list, unrouted list, routing rules and reports, opened with its type.
