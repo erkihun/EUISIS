@@ -14,6 +14,7 @@ use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\FeedbackDataQuality;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
 use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
 
@@ -181,6 +182,7 @@ final class PublicFeedbackDataQuality implements FeedbackDataQuality
             PublicFeedbackHandlerType::User => User::query()->whereKey($id)->exists(),
             PublicFeedbackHandlerType::OrganizationUnit => OrganizationUnit::query()->whereKey($id)->exists(),
             PublicFeedbackHandlerType::Role => Role::query()->whereKey($id)->exists(),
+            PublicFeedbackHandlerType::Committee => PublicCaseHandlingUnit::query()->whereKey($id)->exists(),
         };
     }
 }

@@ -25,7 +25,7 @@ type Rule = RuleRecord & {
 type Filters = { status: string; organization_id: string; submission_type: string };
 type Props = { rules: Rule[]; filters: Filters; organizations: OrganizationOption[]; canManageCityWide: boolean; submissionType: 'suggestion' | 'complaint'; routeBase: string };
 
-const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
+const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole', committee: 'handlerCommittee' };
 
 /**
  * Routing rules (brief §45–47): organization × target × type × unit →

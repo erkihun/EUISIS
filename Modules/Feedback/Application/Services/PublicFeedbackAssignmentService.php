@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
 use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
 
@@ -159,6 +160,10 @@ final class PublicFeedbackAssignmentService
                     || ($organizationId !== null && $this->scope->canAccessOrganization($user, $organizationId));
             })(),
             PublicFeedbackHandlerType::Role => Role::query()->where('guard_name', 'web')->whereKey($handlerId)->exists(),
+            // ADR 0035: the institution's own active committee for this case type.
+            PublicFeedbackHandlerType::Committee => $organizationId !== null && PublicCaseHandlingUnit::query()->whereKey($handlerId)
+                ->whereNull('organization_unit_id')->where('organization_id', $organizationId)->where('status', 'active')
+                ->when($caseType !== null, fn ($q) => $q->where('case_type', $caseType))->exists(),
         };
 
         if (! $ok) {
@@ -221,6 +226,11 @@ final class PublicFeedbackAssignmentService
             ->map(fn (Role $role): array => ['id' => (string) $role->getKey(), 'name' => (string) $role->name])
             ->all();
 
-        return ['users' => $users, 'units' => $units, 'roles' => $roles];
+        // ADR 0035: the institution's complaint committees and head's office.
+        $committees = $organizationId === null || ($caseType !== null && $caseType !== 'complaint') ? [] : PublicCaseHandlingUnit::query()
+            ->where('organization_id', $organizationId)->whereNull('organization_unit_id')->where('status', 'active')->orderBy('created_at')->get()
+            ->map(fn (PublicCaseHandlingUnit $c): array => ['id' => (string) $c->getKey(), 'name' => (string) ($c->name_en ?: $c->name_am), 'name_am' => $c->name_am])->values()->all();
+
+        return ['users' => $users, 'units' => $units, 'roles' => $roles, 'committees' => $committees];
     }
 }

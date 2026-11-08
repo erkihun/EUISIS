@@ -44,6 +44,9 @@ final class PublicCaseHandlingUnitService
     /** @param  array{organization_unit_id: string, case_type: string, stage?: string|null, description_en?: string|null, description_am?: string|null}  $data */
     public function designate(User $actor, array $data): PublicCaseHandlingUnit
     {
+        if (($data['case_type'] ?? null) === 'complaint' && blank($data['organization_unit_id'] ?? null)) {
+            return $this->designateCommittee($actor, $data);
+        }
         $unit = $this->units->find((string) $data['organization_unit_id']);
         if ($unit === null || $unit->status !== 'active') {
             throw ValidationException::withMessages(['organization_unit_id' => __('service-feedback.handling_unit_inactive')]);
@@ -81,11 +84,54 @@ final class PublicCaseHandlingUnitService
         return $designation;
     }
 
-    /** @param  array{status?: string, description_en?: string|null, description_am?: string|null}  $data */
+    /**
+     * ADR 0035 (owner follow-up): a complaint committee, appeal committee or
+     * head's office is an institution body, not a work unit. Its members
+     * come from any unit of the institution.
+     *
+     * @param  array{organization_id?: string, stage?: string|null, name_en?: string|null, name_am?: string|null, description_en?: string|null, description_am?: string|null}  $data
+     */
+    private function designateCommittee(User $actor, array $data): PublicCaseHandlingUnit
+    {
+        $organizationId = (string) ($data['organization_id'] ?? '');
+        $this->assertManage($actor, $organizationId);
+        $stage = (string) ($data['stage'] ?? 'first_instance');
+        if (! in_array($stage, PublicCaseHandlingUnit::STAGES, true)) {
+            throw ValidationException::withMessages(['stage' => __('validation.in', ['attribute' => 'stage'])]);
+        }
+        if (blank($data['name_am'] ?? null) && blank($data['name_en'] ?? null)) {
+            throw ValidationException::withMessages(['name_am' => __('service-feedback.stages.committee_name_required')]);
+        }
+        if (in_array($stage, PublicCaseHandlingUnit::SINGLE_STAGES, true) && PublicCaseHandlingUnit::query()
+            ->where('organization_id', $organizationId)->where('case_type', 'complaint')->where('stage', $stage)->where('status', 'active')->exists()) {
+            throw ValidationException::withMessages(['stage' => __('service-feedback.stages.unit_stage_taken')]);
+        }
+
+        $designation = PublicCaseHandlingUnit::query()->create([
+            'organization_id' => $organizationId,
+            'organization_unit_id' => null,
+            'case_type' => 'complaint',
+            'stage' => $stage,
+            'name_en' => filled($data['name_en'] ?? null) ? trim((string) $data['name_en']) : null,
+            'name_am' => filled($data['name_am'] ?? null) ? trim((string) $data['name_am']) : null,
+            'status' => 'active',
+            'description_en' => $data['description_en'] ?? null,
+            'description_am' => $data['description_am'] ?? null,
+            'created_by' => $actor->getKey(),
+        ]);
+        $this->record(AuditEventType::ServiceFeedbackHandlingUnitSaved, $actor, $designation, ['committee' => true, 'case_type' => 'complaint', 'stage' => $stage, 'status' => 'active'], 'Public complaint committee formed');
+
+        return $designation;
+    }
+
+    /** @param  array{status?: string, name_en?: string|null, name_am?: string|null, description_en?: string|null, description_am?: string|null}  $data */
     public function update(PublicCaseHandlingUnit $designation, User $actor, array $data): PublicCaseHandlingUnit
     {
         $this->assertManage($actor, (string) $designation->organization_id);
-        $changes = array_intersect_key($data, array_flip(['status', 'description_en', 'description_am']));
+        $changes = array_intersect_key($data, array_flip($designation->isCommittee() ? ['status', 'name_en', 'name_am', 'description_en', 'description_am'] : ['status', 'description_en', 'description_am']));
+        if ($designation->isCommittee() && array_key_exists('name_am', $changes) && blank($changes['name_am']) && blank($changes['name_en'] ?? $designation->name_en)) {
+            throw ValidationException::withMessages(['name_am' => __('service-feedback.stages.committee_name_required')]);
+        }
         $designation->forceFill($changes)->save();
         $this->record(AuditEventType::ServiceFeedbackHandlingUnitSaved, $actor, $designation, $changes, 'Public case handling unit updated');
 
@@ -210,7 +256,7 @@ final class PublicCaseHandlingUnitService
             return [];
         }
 
-        return PublicCaseHandlingUnit::query()->where('organization_id', $organizationId)->where('status', 'active')
+        return PublicCaseHandlingUnit::query()->where('organization_id', $organizationId)->where('status', 'active')->whereNotNull('organization_unit_id')
             ->when($caseType !== null, fn ($q) => $q->where('case_type', $caseType), fn ($q) => $q->whereIn('case_type', PublicCaseHandlingUnit::ROUTED_TYPES))
             ->distinct()->pluck('organization_unit_id')->map(fn ($id): string => (string) $id)->values()->all();
     }
@@ -224,12 +270,41 @@ final class PublicCaseHandlingUnitService
     public function servingUserIds(string $organizationUnitId, string $caseType): ?array
     {
         $designation = PublicCaseHandlingUnit::query()->where('organization_unit_id', $organizationUnitId)->where('case_type', $caseType)->where('status', 'active')->first();
-        if ($designation === null) {
-            return null;
-        }
+
+        return $designation === null ? null : $this->servingUsersOf($designation);
+    }
+
+    /** ADR 0035: the users serving an institution committee today (none when it is inactive). */
+    public function committeeUserIds(string $committeeId): array
+    {
+        $committee = PublicCaseHandlingUnit::query()->whereNull('organization_unit_id')->where('status', 'active')->find($committeeId);
+
+        return $committee === null ? [] : $this->servingUsersOf($committee);
+    }
+
+    /** @return list<string> */
+    private function servingUsersOf(PublicCaseHandlingUnit $designation): array
+    {
         $employeeIds = $designation->members()->servingOn(now())->pluck('employee_id');
 
         return User::query()->where('status', 'active')->whereIn('employee_id', $employeeIds)->pluck('id')->map(fn ($id): string => (string) $id)->all();
+    }
+
+    /**
+     * Institution committees the user serves on today.
+     *
+     * @return list<string> committee ids
+     */
+    public function committeeIdsServedBy(User $user): array
+    {
+        if ($user->employee_id === null) {
+            return [];
+        }
+
+        return PublicCaseHandlingUnitMember::query()->servingOn(now())->where('employee_id', $user->employee_id)
+            ->join('public_case_handling_units as u', 'u.id', '=', 'public_case_handling_unit_members.handling_unit_id')
+            ->where('u.status', 'active')->whereNull('u.organization_unit_id')
+            ->pluck('u.id')->map(fn ($id): string => (string) $id)->all();
     }
 
     /**
@@ -245,7 +320,7 @@ final class PublicCaseHandlingUnitService
 
         return PublicCaseHandlingUnitMember::query()->servingOn(now())->where('employee_id', $user->employee_id)
             ->join('public_case_handling_units as u', 'u.id', '=', 'public_case_handling_unit_members.handling_unit_id')
-            ->where('u.status', 'active')
+            ->where('u.status', 'active')->whereNotNull('u.organization_unit_id')
             ->pluck('u.organization_unit_id')->map(fn ($id): string => (string) $id)->all();
     }
 
@@ -292,6 +367,7 @@ final class PublicCaseHandlingUnitService
                 || $userId === (string) $assignment->handler_id
                 || $this->isHeadOver($user, (string) $assignment->handler_id, $type),
             PublicFeedbackHandlerType::Role => true,
+            PublicFeedbackHandlerType::Committee => in_array($userId, $this->committeeUserIds((string) $assignment->handler_id), true),
         };
     }
 
@@ -346,6 +422,7 @@ final class PublicCaseHandlingUnitService
     {
         $roleIds = $user->roles->pluck('id')->map(fn ($id): string => (string) $id)->all();
         $unitIds = $this->handledUnitIdsFor($user);
+        $committeeIds = $this->committeeIdsServedBy($user);
         $userIds = [(string) $user->getKey()];
         if ($user->employee_id !== null) {
             $headed = PublicCaseHandlingUnit::query()->where('status', 'active')
@@ -356,7 +433,7 @@ final class PublicCaseHandlingUnitService
         }
 
         return PublicFeedbackAssignment::query()->whereNull('ended_at')->select('submission_id')
-            ->where(function ($q) use ($roleIds, $unitIds, $userIds): void {
+            ->where(function ($q) use ($roleIds, $unitIds, $userIds, $committeeIds): void {
                 $q->where(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::User->value)->whereIn('handler_id', array_values(array_unique($userIds))));
                 if ($roleIds !== []) {
                     $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::Role->value)->whereIn('handler_id', $roleIds));
@@ -364,7 +441,22 @@ final class PublicCaseHandlingUnitService
                 if ($unitIds !== []) {
                     $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->whereIn('handler_id', $unitIds));
                 }
+                if ($committeeIds !== []) {
+                    $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::Committee->value)->whereIn('handler_id', $committeeIds));
+                }
             });
+    }
+
+    /** ADR 0035: the committee whose head this user is, when the case is with that committee. */
+    public function headedCommittee(User $user, string $committeeId): ?PublicCaseHandlingUnit
+    {
+        if ($user->employee_id === null) {
+            return null;
+        }
+        $committee = PublicCaseHandlingUnit::query()->whereNull('organization_unit_id')->where('status', 'active')->find($committeeId);
+
+        return $committee !== null && $committee->members()->servingOn(now())->where('responsibility', 'head')->where('employee_id', $user->employee_id)->exists()
+            ? $committee : null;
     }
 
     /** The designated unit (for this case type) whose head this user is, when the case's unit is that one. */
@@ -421,8 +513,12 @@ final class PublicCaseHandlingUnitService
     {
         $serving = $designation->members()->servingOn(now())->pluck('employee_id')->map(fn ($id): string => (string) $id)->all();
 
+        $units = $designation->isCommittee()
+            ? array_map(fn ($unit): string => $unit->unitUuid, $this->units->forOrganization((string) $designation->organization_id, false))
+            : $this->subtree((string) $designation->organization_id, (string) $designation->organization_unit_id);
+
         return array_values(array_filter(
-            $this->employees->currentlyIn($this->subtree((string) $designation->organization_id, (string) $designation->organization_unit_id)),
+            $this->employees->currentlyIn($units, 2000),
             fn ($employee): bool => ! in_array($employee->employeeUuid, $serving, true),
         ));
     }
@@ -430,7 +526,14 @@ final class PublicCaseHandlingUnitService
     public function isPlacedIn(string $employeeId, PublicCaseHandlingUnit $designation): bool
     {
         $context = $this->assignments->currentFor($employeeId);
-        if ($context === null || $context->organizationUnitUuid === null || $context->organizationUuid !== $designation->organization_id) {
+        if ($context === null || $context->organizationUuid !== $designation->organization_id) {
+            return false;
+        }
+        // ADR 0035: a committee member works anywhere in the institution.
+        if ($designation->isCommittee()) {
+            return true;
+        }
+        if ($context->organizationUnitUuid === null) {
             return false;
         }
 

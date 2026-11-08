@@ -7,6 +7,7 @@ namespace Modules\Feedback\Domain\Enums;
 use App\Models\OrganizationUnit;
 use App\Models\Role;
 use App\Models\User;
+use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
 
 /**
  * Who a routed or assigned public submission goes to (brief §45). Only the
@@ -19,6 +20,8 @@ enum PublicFeedbackHandlerType: string
     case User = 'user';
     case OrganizationUnit = 'organization_unit';
     case Role = 'role';
+    /** ADR 0035: an institution's complaint committee (or head's office), not tied to a work unit; id = the committee row. */
+    case Committee = 'committee';
 
     /** @return list<string> */
     public static function values(): array
@@ -40,6 +43,8 @@ enum PublicFeedbackHandlerType: string
                 ? null : ['en' => (string) $unit->name_en, 'am' => $unit->name_am],
             self::Role => ($role = Role::query()->where('guard_name', 'web')->find($handlerId)) === null
                 ? null : ['en' => (string) $role->name, 'am' => null],
+            self::Committee => ($committee = PublicCaseHandlingUnit::query()->whereNull('organization_unit_id')->find($handlerId)) === null
+                ? null : ['en' => (string) ($committee->name_en ?: $committee->name_am), 'am' => $committee->name_am],
         };
     }
 }

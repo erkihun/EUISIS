@@ -38,6 +38,10 @@ type HandlingUnit = {
     id: string;
     case_type: CaseType;
     stage?: UnitStage;
+    /** ADR 0035: an institution committee, with its own name and no work unit. */
+    committee?: boolean;
+    name_en?: string | null;
+    name_am?: string | null;
     status: 'active' | 'inactive';
     description_en: string | null;
     description_am: string | null;
@@ -157,7 +161,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
         <Modal show={dialog !== null} onClose={close} maxWidth="2xl">
             {dialog?.kind === 'designate' && <DialogShell title={designateLabel} help={h('designateHint')}><DesignateForm caseType={caseType} organizations={organizations} onDone={close} /></DialogShell>}
             {dialog?.kind === 'edit' && <DialogShell title={`${b('editDesignation')}: ${dialog.unit.unit ?? ''}`}><EditUnitForm unit={dialog.unit} onDone={close} /></DialogShell>}
-            {dialog?.kind === 'register' && <DialogShell title={`${h('addMember')}: ${dialog.unit.unit ?? ''}`} help={h('memberHint')}><MemberForm unit={dialog.unit} member={null} responsibilities={responsibilities} onDone={close} /></DialogShell>}
+            {dialog?.kind === 'register' && <DialogShell title={`${h('addMember')}: ${dialog.unit.unit ?? ''}`} help={dialog.unit.committee ? t('serviceFeedback.hearing.committeeMemberHint') : h('memberHint')}><MemberForm unit={dialog.unit} member={null} responsibilities={responsibilities} onDone={close} /></DialogShell>}
             {dialog?.kind === 'editMember' && <DialogShell title={`${h('editMember')}: ${dialog.member.name ?? ''}`}><MemberForm unit={dialog.unit} member={dialog.member} responsibilities={responsibilities} onDone={close} /></DialogShell>}
             {dialog?.kind === 'endMember' && <DialogShell title={`${h('endTerm')}: ${dialog.member.name ?? ''}`} help={b('endHelp')}><EndForm unit={dialog.unit} member={dialog.member} onDone={close} /></DialogShell>}
         </Modal>
@@ -309,13 +313,15 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlingUnit; onOpen: (dialog:
 function DesignateForm({ caseType, organizations, onDone }: { caseType: CaseType; organizations: Props['organizations']; onDone: () => void }) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
-    const form = useForm({ organization_id: organizations.length === 1 ? organizations[0].id : '', organization_unit_id: '', stage: 'first_instance' as UnitStage, description_en: '', description_am: '' });
+    const form = useForm({ organization_id: organizations.length === 1 ? organizations[0].id : '', organization_unit_id: '', stage: 'first_instance' as UnitStage, name_am: '', name_en: '', description_en: '', description_am: '' });
     const formErrors = form.errors as Record<string, string | undefined>;
     const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
+    // ADR 0035 (owner follow-up): complaint committees are institution bodies; their members come from any unit.
+    const committee = caseType === 'complaint';
 
     useEffect(() => {
-        if (!form.data.organization_id) { setUnits([]); return; }
+        if (committee || !form.data.organization_id) { setUnits([]); return; }
         const controller = new AbortController();
         setLoading(true);
         fetch(unitRoute(caseType, 'unit-options', { organization_id: form.data.organization_id }), { signal: controller.signal, headers: { Accept: 'application/json' }, credentials: 'same-origin' })
@@ -324,7 +330,7 @@ function DesignateForm({ caseType, organizations, onDone }: { caseType: CaseType
             .catch(() => undefined)
             .finally(() => setLoading(false));
         return () => controller.abort();
-    }, [caseType, form.data.organization_id]);
+    }, [caseType, committee, form.data.organization_id]);
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -338,12 +344,20 @@ function DesignateForm({ caseType, organizations, onDone }: { caseType: CaseType
                 {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
             </Select>}
         </FormField>
-        <FormField id="hu-designate-unit" label={h('workUnit')} description={h('workUnitHint')} error={form.errors.organization_unit_id} required>
+        {committee && <>
+            <FormField id="hu-designate-name-am" label={t('serviceFeedback.hearing.committeeNameAm')} description={t('serviceFeedback.hearing.committeeNameHint')} error={formErrors.name_am} required>
+                {({ id, describedBy, invalid }) => <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} maxLength={200} value={form.data.name_am} onChange={(e) => form.setData('name_am', e.target.value)} />}
+            </FormField>
+            <FormField id="hu-designate-name-en" label={t('serviceFeedback.hearing.committeeNameEn')} error={formErrors.name_en}>
+                {({ id }) => <Input id={id} maxLength={200} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} />}
+            </FormField>
+        </>}
+        {!committee && <FormField id="hu-designate-unit" label={h('workUnit')} description={h('workUnitHint')} error={form.errors.organization_unit_id} required>
             {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.organization_unit_id} disabled={loading || !form.data.organization_id} onChange={(e) => form.setData('organization_unit_id', e.target.value)}>
                 <option value="">{loading ? t('common.loading') : h('chooseUnit')}</option>
                 {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
             </Select>}
-        </FormField>
+        </FormField>}
         {caseType === 'complaint' && <FormField id="hu-designate-stage" label={t('serviceFeedback.hearing.unitStage')} description={t(`serviceFeedback.hearing.unitStageHints.${form.data.stage}`)} error={formErrors.stage} required>
             {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.stage} onChange={(e) => form.setData('stage', e.target.value as UnitStage)}>
                 {UNIT_STAGES.map((stage) => <option key={stage} value={stage}>{t(`serviceFeedback.hearing.unitStages.${stage}`)}</option>)}
@@ -362,7 +376,8 @@ function DesignateForm({ caseType, organizations, onDone }: { caseType: CaseType
 function EditUnitForm({ unit, onDone }: { unit: HandlingUnit; onDone: () => void }) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
-    const form = useForm({ description_en: unit.description_en ?? '', description_am: unit.description_am ?? '' });
+    const form = useForm({ name_am: unit.name_am ?? '', name_en: unit.name_en ?? '', description_en: unit.description_en ?? '', description_am: unit.description_am ?? '' });
+    const formErrors = form.errors as Record<string, string | undefined>;
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -370,6 +385,14 @@ function EditUnitForm({ unit, onDone }: { unit: HandlingUnit; onDone: () => void
     }
 
     return <form onSubmit={submit} className="grid gap-4">
+        {unit.committee && <>
+            <FormField id="hu-edit-name-am" label={t('serviceFeedback.hearing.committeeNameAm')} error={formErrors.name_am} required>
+                {({ id, describedBy, invalid }) => <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} maxLength={200} value={form.data.name_am} onChange={(e) => form.setData('name_am', e.target.value)} />}
+            </FormField>
+            <FormField id="hu-edit-name-en" label={t('serviceFeedback.hearing.committeeNameEn')} error={formErrors.name_en}>
+                {({ id }) => <Input id={id} maxLength={200} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} />}
+            </FormField>
+        </>}
         <FormField id="hu-edit-desc-am" label={h('descriptionAm')} error={form.errors.description_am}>
             {({ id }) => <Textarea id={id} rows={2} maxLength={2000} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />}
         </FormField>

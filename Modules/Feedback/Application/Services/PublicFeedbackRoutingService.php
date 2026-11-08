@@ -132,7 +132,12 @@ final class PublicFeedbackRoutingService
                 ->where('case_type', 'complaint')->where('stage', 'first_instance')->where('status', 'active')->orderBy('created_at')->first();
             if ($committee !== null) {
                 try {
-                    $this->assignments->assign($submission, PublicFeedbackHandlerType::OrganizationUnit, (string) $committee->organization_unit_id, null, null, null, $request);
+                    $this->assignments->assign(
+                        $submission,
+                        $committee->isCommittee() ? PublicFeedbackHandlerType::Committee : PublicFeedbackHandlerType::OrganizationUnit,
+                        $committee->isCommittee() ? (string) $committee->getKey() : (string) $committee->organization_unit_id,
+                        null, null, null, $request,
+                    );
 
                     return;
                 } catch (ValidationException) {

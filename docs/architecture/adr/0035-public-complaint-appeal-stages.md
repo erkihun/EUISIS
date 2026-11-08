@@ -28,6 +28,13 @@
    "institution head" exists in the organization data, so the head is
    registered as the head member of the head's-office unit, with signature,
    like any committee head.
+   Owner follow-up (same day): these are **institution committees, not work
+   units**. A complaint committee, appeal committee or head's office has its
+   own name and no `organization_unit_id`; its members are any active
+   employees of the institution, from any unit. Cases go to it with the
+   handler type `committee` (id = the committee row) and reach its serving
+   members; its head hands a case to one member like a unit head. Older
+   unit-based complaint units keep working.
 3. **Routing**: a complaint that matches no routing rule goes straight to the
    institution's complaint committee. Appeals are never moved up the
    first-instance escalation ladder (ADR 0033); they go to the stage's unit.

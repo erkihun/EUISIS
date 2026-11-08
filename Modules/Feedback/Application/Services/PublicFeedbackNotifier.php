@@ -121,6 +121,7 @@ final class PublicFeedbackNotifier
     public function handlerUsers(EmployeeServiceFeedback $submission, PublicFeedbackAssignment $assignment): array
     {
         $users = match ($assignment->handler_type) {
+            PublicFeedbackHandlerType::Committee => User::query()->whereKey(app(PublicCaseHandlingUnitService::class)->committeeUserIds((string) $assignment->handler_id))->get(),
             PublicFeedbackHandlerType::User => User::query()->whereKey($assignment->handler_id)->where('status', 'active')->get(),
             PublicFeedbackHandlerType::Role => User::query()->where('status', 'active')
                 ->whereHas('roles', fn ($q) => $q->whereKey($assignment->handler_id))->get(),

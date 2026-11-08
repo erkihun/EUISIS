@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Feedback\Application\Services\PublicComplaintStageService;
+use Modules\Feedback\Application\Services\PublicFeedbackNotifier;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
@@ -77,12 +78,18 @@ function appealStaff(object $s, OrganizationUnit $unit, string $number, string $
 
 function designateStage(object $test, string $stage, ?Employee $member = null): PublicCaseHandlingUnit
 {
-    $test->actingAs($test->admin)->post(route('public-complaints.units.store'), ['organization_id' => $test->s->organization->id, 'organization_unit_id' => $test->units[$stage]->id, 'stage' => $stage])->assertSessionHasNoErrors();
-    $unit = PublicCaseHandlingUnit::query()->where('organization_unit_id', $test->units[$stage]->id)->sole();
+    // ADR 0035: a committee is an institution body with its own name, not a work unit.
+    $test->actingAs($test->admin)->post(route('public-complaints.units.store'), ['organization_id' => $test->s->organization->id, 'stage' => $stage, 'name_am' => 'ኮሚቴ '.$stage])->assertSessionHasNoErrors();
+    $unit = PublicCaseHandlingUnit::query()->where('stage', $stage)->whereNull('organization_unit_id')->sole();
     $employee = $member ?? Employee::query()->find($test->users[$stage]->employee_id);
     $test->actingAs($test->admin)->post(route('public-complaints.units.members.store', $unit), ['employee_id' => $employee->id, 'responsibility' => 'head', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('s.png')])->assertSessionHasNoErrors();
 
     return $unit;
+}
+
+function committeeOf(string $stage): PublicCaseHandlingUnit
+{
+    return PublicCaseHandlingUnit::query()->where('stage', $stage)->whereNull('organization_unit_id')->sole();
 }
 
 function fileComplaint(object $test): EmployeeServiceFeedback
@@ -120,7 +127,7 @@ it('sends a complaint to the committee, then an appeal to the appeal committee a
     $complaint = fileComplaint($this);
 
     // With no routing rule the complaint goes straight to the complaint committee.
-    expect($complaint->currentAssignment()->sole()->handler_id)->toBe($this->units['first_instance']->id);
+    expect($complaint->currentAssignment()->sole()->handler_id)->toBe(committeeOf('first_instance')->id);
 
     // The committee must write the response the complainant reads.
     decideStage($this, $this->users['first_instance'], $complaint, ['reason' => ''])->assertSessionHasErrors('reason');
@@ -141,7 +148,7 @@ it('sends a complaint to the committee, then an appeal to the appeal committee a
 
     $complaint->refresh();
     expect($complaint->status)->toBe(ServiceFeedbackStatus::Assigned)
-        ->and($complaint->currentAssignment()->sole()->handler_id)->toBe($this->units['appeal']->id)
+        ->and($complaint->currentAssignment()->sole()->handler_id)->toBe(committeeOf('appeal')->id)
         ->and($first->fresh()->citizen_outcome)->toBe('appealed');
 
     // The appeal committee must say whether it upholds or overturns.
@@ -152,7 +159,7 @@ it('sends a complaint to the committee, then an appeal to the appeal committee a
     // Then to the head, whose decision is final.
     lookUp($this, $complaint);
     $this->post(route('public-submissions.track.respond'), ['reference' => $complaint->reference_number, 'action' => 'appeal', 'reason' => 'Still not served after three days.'])->assertSessionHasNoErrors();
-    expect($complaint->fresh()->currentAssignment()->sole()->handler_id)->toBe($this->units['head_office']->id);
+    expect($complaint->fresh()->currentAssignment()->sole()->handler_id)->toBe(committeeOf('head_office')->id);
     decideStage($this, $this->users['head_office'], $complaint, ['reason' => 'Served today by my office.', 'stage_decision' => 'upheld'])->assertSessionHasNoErrors();
 
     lookUp($this, $complaint);
@@ -192,13 +199,12 @@ it('sends the appeal straight to the head when the institution has no appeal com
     $this->post(route('public-submissions.track.respond'), ['reference' => $complaint->reference_number, 'action' => 'appeal', 'reason' => 'It was not served at all.'])->assertSessionHasNoErrors();
 
     expect(PublicComplaintStage::query()->where('stage', 3)->exists())->toBeTrue()
-        ->and($complaint->fresh()->currentAssignment()->sole()->handler_id)->toBe($this->units['head_office']->id);
+        ->and($complaint->fresh()->currentAssignment()->sole()->handler_id)->toBe(committeeOf('head_office')->id);
 });
 
 it('keeps whoever decided the first answer off the appeal', function (): void {
     designateStage($this, 'first_instance');
-    // The same person also sits on the appeal committee (their unit sits beneath it).
-    $this->units['first_instance']->forceFill(['parent_unit_id' => $this->units['appeal']->id])->save();
+    // The same person also sits on the appeal committee.
     designateStage($this, 'appeal', Employee::query()->find($this->users['first_instance']->employee_id));
     $complaint = fileComplaint($this);
     decideStage($this, $this->users['first_instance'], $complaint, ['reason' => 'Served.'])->assertSessionHasNoErrors();
@@ -226,9 +232,35 @@ it('closes the complaint when the appeal period passes with no answer, and keeps
 
 it('allows one appeal committee and one head office per institution', function (): void {
     designateStage($this, 'appeal');
-    $second = OrganizationUnit::query()->create(['organization_id' => $this->s->organization->id, 'code' => 'APL-AP2', 'name_en' => 'Second Appeal Committee', 'unit_type' => 'department', 'status' => 'active']);
-    $this->actingAs($this->admin)->post(route('public-complaints.units.store'), ['organization_id' => $this->s->organization->id, 'organization_unit_id' => $second->id, 'stage' => 'appeal'])->assertSessionHasErrors('stage');
+    $this->actingAs($this->admin)->post(route('public-complaints.units.store'), ['organization_id' => $this->s->organization->id, 'stage' => 'appeal', 'name_am' => 'ሁለተኛ'])->assertSessionHasErrors('stage');
+    // A committee needs a name.
+    $this->actingAs($this->admin)->post(route('public-complaints.units.store'), ['organization_id' => $this->s->organization->id, 'stage' => 'first_instance'])->assertSessionHasErrors('name_am');
 
     $this->actingAs($this->admin)->get(route('public-complaints.units.index'))
-        ->assertInertia(fn (Assert $page) => $page->where('units.0.stage', 'appeal')->where('stageGaps.0.missing', ['first_instance', 'head_office']));
+        ->assertInertia(fn (Assert $page) => $page->where('units.0.stage', 'appeal')->where('units.0.committee', true)->where('units.0.unit', 'ኮሚቴ appeal')
+            ->where('stageGaps.0.missing', ['first_instance', 'head_office']));
+});
+
+it('draws committee members from any unit of the institution, and only from it', function (): void {
+    $committee = designateStage($this, 'first_instance');
+    // Staff of every unit are offered, not those already serving.
+    $this->actingAs($this->admin)->get(route('public-complaints.units.staff', $committee))->assertOk()
+        ->assertJsonFragment(['name' => 'Member Appeal'])->assertJsonFragment(['name' => 'Member Headoffice'])->assertJsonMissing(['name' => 'Member Firstinstance']);
+    $store = route('public-complaints.units.members.store', $committee);
+    foreach (['appeal', 'head_office'] as $stage) {
+        $this->actingAs($this->admin)->post($store, ['employee_id' => $this->users[$stage]->employee_id, 'responsibility' => 'officer', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('s.png')])->assertSessionHasNoErrors();
+    }
+    expect($committee->members()->count())->toBe(3);
+
+    // An employee of another institution is refused.
+    $other = PublicFeedbackScenario::employeeTarget('APX');
+    $this->actingAs($this->admin)->post($store, ['employee_id' => $other->employee->id, 'responsibility' => 'officer', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('s.png')])->assertSessionHasErrors('employee_id');
+
+    // A complaint sent to the committee reaches all three members, and each sees it as theirs.
+    $complaint = fileComplaint($this);
+    expect($complaint->currentAssignment()->sole()->handler_type->value)->toBe('committee');
+    $recipients = collect(app(PublicFeedbackNotifier::class)->handlerUsers($complaint, $complaint->currentAssignment()->sole()))->pluck('id')->sort()->values()->all();
+    expect($recipients)->toBe(collect($this->users)->pluck('id')->sort()->values()->all());
+    $this->actingAs($this->users['appeal'])->get(route('service-submissions.complaints.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('figures.mine', 1));
 });

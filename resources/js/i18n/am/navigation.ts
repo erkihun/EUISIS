@@ -144,7 +144,7 @@ const navigation = {
     serviceFeedbackRoutingRules: 'የማስተላለፊያ ደንቦች',
     serviceFeedbackUnit: 'አስተያየት ክፍል',
     serviceTipOffUnit: 'ጥቆማ ክፍል',
-    serviceComplaintUnit: 'ቅሬታ ክፍል',
+    serviceComplaintUnit: 'የቅሬታ ኮሚቴዎች',
     organizationFeedbackQrCodes: 'የተቋም QR ኮዶች',
     serviceSubmissionReports: 'የቀረቡ ጉዳዮች ሪፖርቶች',
     serviceFeedbackQuestionnaire: 'የአስተያየት መጠይቅ',

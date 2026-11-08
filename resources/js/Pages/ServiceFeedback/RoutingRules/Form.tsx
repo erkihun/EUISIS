@@ -6,7 +6,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import type { TipType } from '@/types/publicSubmissions';
 
-export type HandlerType = 'user' | 'organization_unit' | 'role';
+export type HandlerType = 'user' | 'organization_unit' | 'role' | 'committee';
 
 export type RuleRecord = {
     id: string;
@@ -26,7 +26,7 @@ export type RuleRecord = {
 };
 
 export type OrganizationOption = { id: string; code: string; name_en: string; name_am: string | null };
-type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
+type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[]; committees?: { id: string; name: string; name_am: string | null }[] };
 
 type Props = {
     record: RuleRecord | null;
@@ -75,7 +75,8 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
     const choices = options === null ? []
         : form.data.handler_type === 'user' ? options.users
             : form.data.handler_type === 'organization_unit' ? options.units.map((unit) => ({ id: unit.id, name: locale === 'am' && unit.name_am ? unit.name_am : unit.name }))
-                : options.roles;
+                : form.data.handler_type === 'committee' ? (options.committees ?? []).map((c) => ({ id: c.id, name: locale === 'am' && c.name_am ? c.name_am : c.name }))
+                    : options.roles;
     // The units a rule may be narrowed to: the institution's own. A city-wide rule has none.
     const unitChoices = form.data.organization_id === '' || options === null ? [] : options.units.map((unit) => ({ id: unit.id, name: locale === 'am' && unit.name_am ? unit.name_am : unit.name }));
 
@@ -152,6 +153,7 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
                             <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_type} onChange={(e) => form.setData((data) => ({ ...data, handler_type: e.target.value as HandlerType, handler_id: '' }))}>
                                 <option value="user">{t('serviceFeedback.handlerUser')}</option>
                                 {form.data.organization_id !== '' && <option value="organization_unit">{t('serviceFeedback.handlerUnit')}</option>}
+                                {form.data.organization_id !== '' && (options?.committees ?? []).length > 0 && <option value="committee">{t('serviceFeedback.handlerCommittee')}</option>}
                                 <option value="role">{t('serviceFeedback.handlerRole')}</option>
                             </Select>
                         )}

@@ -144,7 +144,7 @@ const navigation = {
     serviceFeedbackRoutingRules: 'Routing Rules',
     serviceFeedbackUnit: 'Feedback Unit',
     serviceTipOffUnit: 'Tip-off Unit',
-    serviceComplaintUnit: 'Complaint Unit',
+    serviceComplaintUnit: 'Complaint Committees',
     organizationFeedbackQrCodes: 'Organization QR Codes',
     serviceSubmissionReports: 'Submission Reports',
     serviceFeedbackQuestionnaire: 'Feedback Questionnaire',

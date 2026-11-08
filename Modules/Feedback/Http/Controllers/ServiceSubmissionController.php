@@ -430,13 +430,18 @@ class ServiceSubmissionController extends Controller
         // ADR 0034: designated handling units reach their named members only.
         $unitIds = app(PublicCaseHandlingUnitService::class)->handledUnitIdsFor($user);
 
-        return $query->where(function (Builder $q) use ($user, $roleIds, $unitIds): void {
+        $committeeIds = app(PublicCaseHandlingUnitService::class)->committeeIdsServedBy($user);
+
+        return $query->where(function (Builder $q) use ($user, $roleIds, $unitIds, $committeeIds): void {
             $q->where(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::User->value)->where('handler_id', (string) $user->getKey()));
             if ($roleIds !== []) {
                 $q->orWhere(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::Role->value)->whereIn('handler_id', $roleIds));
             }
             if ($unitIds !== []) {
                 $q->orWhere(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->whereIn('handler_id', $unitIds));
+            }
+            if ($committeeIds !== []) {
+                $q->orWhere(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::Committee->value)->whereIn('handler_id', $committeeIds));
             }
         });
     }
@@ -480,12 +485,15 @@ class ServiceSubmissionController extends Controller
     private function delegationOptions(User $user, EmployeeServiceFeedback $submission): ?array
     {
         $current = $submission->currentAssignment()->first();
-        if ($current === null || $current->handler_type !== PublicFeedbackHandlerType::OrganizationUnit
+        if ($current === null || ! in_array($current->handler_type, [PublicFeedbackHandlerType::OrganizationUnit, PublicFeedbackHandlerType::Committee], true)
             || ! in_array($submission->status, [ServiceFeedbackStatus::Assigned, ServiceFeedbackStatus::UnderReview], true)) {
             return null;
         }
         $handling = app(PublicCaseHandlingUnitService::class);
-        $unit = $handling->headedUnit($user, (string) $current->handler_id, $submission->type->value);
+        // ADR 0035: a committee's head hands a case to one of its members, like a unit head.
+        $unit = $current->handler_type === PublicFeedbackHandlerType::Committee
+            ? $handling->headedCommittee($user, (string) $current->handler_id)
+            : $handling->headedUnit($user, (string) $current->handler_id, $submission->type->value);
 
         return $unit === null ? null : $handling->memberUsers($unit);
     }

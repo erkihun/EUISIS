@@ -123,6 +123,10 @@ final class PublicCaseDashboardService implements PublicCaseDashboard
                 if ($unitIds !== []) {
                     $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->whereIn('handler_id', $unitIds));
                 }
+                // ADR 0035: the committees the user serves on.
+                if (($committeeIds = app(PublicCaseHandlingUnitService::class)->committeeIdsServedBy($user)) !== []) {
+                    $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::Committee->value)->whereIn('handler_id', $committeeIds));
+                }
             });
     }
 }

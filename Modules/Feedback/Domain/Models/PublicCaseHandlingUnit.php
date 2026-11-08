@@ -45,6 +45,8 @@ class PublicCaseHandlingUnit extends Model
         'organization_unit_id',
         'case_type',
         'stage',
+        'name_en',
+        'name_am',
         'status',
         'description_en',
         'description_am',
@@ -54,6 +56,17 @@ class PublicCaseHandlingUnit extends Model
     public function members(): HasMany
     {
         return $this->hasMany(PublicCaseHandlingUnitMember::class, 'handling_unit_id');
+    }
+
+    /** ADR 0035: an institution committee (complaint, appeal, head's office) with no work unit. */
+    public function isCommittee(): bool
+    {
+        return $this->organization_unit_id === null;
+    }
+
+    public function displayName(string $locale): ?string
+    {
+        return $locale === 'am' ? ($this->name_am ?: $this->name_en) : ($this->name_en ?: $this->name_am);
     }
 
     public function isActive(): bool

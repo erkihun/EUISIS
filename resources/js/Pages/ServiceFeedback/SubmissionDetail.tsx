@@ -113,11 +113,11 @@ function TipFormPanel({ details }: { details: TipDetails }) {
 const TIP_TYPE_LABEL: Record<TipType, string> = { CORRUPTION: 'serviceFeedback.tipTypeCorruption', IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice' };
 const EVIDENCE_LABEL = { photo: 'serviceFeedback.evidencePhoto', video: 'serviceFeedback.evidenceVideo', audio: 'serviceFeedback.evidenceAudio', document: 'serviceFeedback.evidenceDocument' } as const;
 type HistoryRow = { id: string; from_status: string | null; to_status: string; actor: string | null; reason: string | null; transitioned_at: string | null };
-type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null; level: number; due_at: string | null; overdue: boolean; escalated: boolean };
+type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role' | 'committee'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null; level: number; due_at: string | null; overdue: boolean; escalated: boolean };
 /** ADR 0035: the hearing stages of a complaint. */
 type HearingStage = { stage: 1 | 2 | 3; opened_at?: string; appeal_reason?: string; decision?: 'answered' | 'upheld' | 'overturned'; response?: string; decided_by?: string; decided_at?: string; appeal_deadline_at?: string; citizen_outcome?: 'accepted' | 'appealed' | 'lapsed'; citizen_responded_at?: string };
 type Hearing = { current: 1 | 2 | 3; decision_required: boolean; next: 2 | 3 | null; stages: HearingStage[] };
-type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
+type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[]; committees?: { id: string; name: string; name_am: string | null }[] };
 
 type Props = {
     type: 'suggestion' | 'complaint';
@@ -137,7 +137,7 @@ type Props = {
     hearing?: Hearing | null;
 };
 
-const HANDLER_TYPE_KEY: Record<AssignmentRow['handler_type'], string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
+const HANDLER_TYPE_KEY: Record<AssignmentRow['handler_type'], string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole', committee: 'handlerCommittee' };
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return <div><dt className="text-(--app-muted-foreground)">{label}</dt><dd className="mt-0.5">{children}</dd></div>;
@@ -356,12 +356,14 @@ function AssignDialog({ type, submissionId, options, reassign, locale, onClose, 
 }) {
     const { t } = useLocale();
     const form = useForm({ handler_type: 'user' as AssignmentRow['handler_type'], handler_id: options.users[0]?.id ?? '', reason: '' });
+    const committees = (options.committees ?? []).map((c) => ({ id: c.id, name: locale === 'am' && c.name_am ? c.name_am : c.name }));
     const choices = form.data.handler_type === 'user' ? options.users
         : form.data.handler_type === 'organization_unit' ? options.units.map((unit) => ({ id: unit.id, name: locale === 'am' && unit.name_am ? unit.name_am : unit.name }))
-            : options.roles;
+            : form.data.handler_type === 'committee' ? committees
+                : options.roles;
 
     function setType(handlerType: AssignmentRow['handler_type']) {
-        const first = (handlerType === 'user' ? options.users : handlerType === 'organization_unit' ? options.units : options.roles)[0]?.id ?? '';
+        const first = (handlerType === 'user' ? options.users : handlerType === 'organization_unit' ? options.units : handlerType === 'committee' ? committees : options.roles)[0]?.id ?? '';
         form.setData((data) => ({ ...data, handler_type: handlerType, handler_id: first }));
     }
 
@@ -377,6 +379,7 @@ function AssignDialog({ type, submissionId, options, reassign, locale, onClose, 
                 {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_type} onChange={(e) => setType(e.target.value as AssignmentRow['handler_type'])}>
                     <option value="user">{t('serviceFeedback.handlerUser')}</option>
                     <option value="organization_unit">{t('serviceFeedback.handlerUnit')}</option>
+                    {committees.length > 0 && <option value="committee">{t('serviceFeedback.handlerCommittee')}</option>}
                     <option value="role">{t('serviceFeedback.handlerRole')}</option>
                 </Select>}
             </FormField>}

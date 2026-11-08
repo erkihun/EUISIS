@@ -196,6 +196,7 @@ return [
         'conflict' => 'Someone who decided an earlier stage cannot decide this appeal.',
         'not_open' => 'This decision cannot be answered now.',
         'appeal_period_running' => 'The complainant’s appeal period has not passed; the complaint cannot be closed yet.',
+        'committee_name_required' => 'Enter the committee name.',
         'unit_stage_taken' => 'This institution already has an active unit for this stage.',
         'appeal_reason_required' => 'Say why you do not accept the decision, in at least 10 characters.',
         'verify_again' => 'For your security, look up your complaint again with its reference and phone number, then answer.',

@@ -80,12 +80,16 @@ class PublicCaseHandlingUnitController extends Controller
                 'id' => $d->getKey(),
                 'case_type' => $d->case_type,
                 'stage' => $d->stage ?? 'first_instance',
+                // ADR 0035: a committee has its own name and no work unit.
+                'committee' => $d->isCommittee(),
+                'name_en' => $d->name_en,
+                'name_am' => $d->name_am,
                 'status' => $d->status,
                 'description_en' => $d->description_en,
                 'description_am' => $d->description_am,
                 'organization_id' => $d->organization_id,
                 'organization' => $orgNames[$d->organization_id] ?? null,
-                'unit' => $unit === null ? null : $this->name($unit->nameEn, $unit->nameAm, $locale),
+                'unit' => $d->isCommittee() ? $d->displayName($locale) : ($unit === null ? null : $this->name($unit->nameEn, $unit->nameAm, $locale)),
                 'problems' => array_map(fn (string $key): string => __($key), $this->handling->problems($d)),
                 'members' => $d->members->map(fn (PublicCaseHandlingUnitMember $m): array => $this->memberRow($d, $m, $locale))->values()->all(),
                 'can_manage' => $this->handling->canManage($user, (string) $d->organization_id),
@@ -157,9 +161,12 @@ class PublicCaseHandlingUnitController extends Controller
     {
         $data = $request->validate([
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
-            'organization_unit_id' => ['required', 'uuid', Rule::exists('organization_units', 'id')->where('organization_id', (string) $request->input('organization_id'))],
+            'name_am' => [$this->routeType($request) === 'complaint' && ! $request->filled('organization_unit_id') && ! $request->filled('name_en') ? 'required' : 'nullable', 'string', 'max:200'],
+            // ADR 0035 (owner follow-up): complaint committees are institution bodies with no work unit.
+            'organization_unit_id' => [$this->routeType($request) === 'complaint' ? 'nullable' : 'required', 'uuid', Rule::exists('organization_units', 'id')->where('organization_id', (string) $request->input('organization_id'))],
             // ADR 0035: complaint units only — the committee, the appeal committee or the head's office.
             'stage' => ['nullable', Rule::in(PublicCaseHandlingUnit::STAGES)],
+            'name_en' => ['nullable', 'string', 'max:200'],
             'description_en' => ['nullable', 'string', 'max:2000'],
             'description_am' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -173,6 +180,8 @@ class PublicCaseHandlingUnitController extends Controller
         $this->assertOwnModule($request, $unit);
         $data = $request->validate([
             'status' => ['sometimes', Rule::in(['active', 'inactive'])],
+            'name_am' => ['sometimes', 'nullable', 'string', 'max:200'],
+            'name_en' => ['sometimes', 'nullable', 'string', 'max:200'],
             'description_en' => ['nullable', 'string', 'max:2000'],
             'description_am' => ['nullable', 'string', 'max:2000'],
         ]);

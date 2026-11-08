@@ -204,8 +204,8 @@ final class PublicComplaintStageService
             $days = $this->settings->complaintAppealResponseDays();
             $this->assignments->assign(
                 $submission,
-                PublicFeedbackHandlerType::OrganizationUnit,
-                (string) $unit->organization_unit_id,
+                $unit->isCommittee() ? PublicFeedbackHandlerType::Committee : PublicFeedbackHandlerType::OrganizationUnit,
+                $unit->isCommittee() ? (string) $unit->getKey() : (string) $unit->organization_unit_id,
                 null,
                 $history,
                 null,
