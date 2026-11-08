@@ -171,4 +171,25 @@ class PublicFeedbackTargetResolver
             ],
         );
     }
+
+    /**
+     * The photo path of each given employee who is currently placed, active,
+     * in the institution (the Tip-off staff picker). Others are left out.
+     *
+     * @param  list<string>  $employeeIds
+     * @return array<string, string> employee id => photo path
+     */
+    public function staffPhotoPaths(string $organizationId, array $employeeIds): array
+    {
+        if ($employeeIds === []) {
+            return [];
+        }
+
+        return EmployeeAssignment::query()
+            ->where('organization_id', $organizationId)->where('is_current', true)->whereIn('employee_id', $employeeIds)
+            ->whereHas('employee', fn ($query) => $query->where('status', 'active')->whereNotNull('photo_path'))
+            ->with('employee:id,photo_path')->get()
+            ->mapWithKeys(fn (EmployeeAssignment $assignment): array => [(string) $assignment->employee_id => (string) $assignment->employee->photo_path])
+            ->all();
+    }
 }

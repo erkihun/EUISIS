@@ -56,7 +56,16 @@ function Text({ id, field, label, value, onChange, error, maxLength = 200 }: { i
 }
 
 type UnitOption = { id: string; name: string; parent?: string | null };
-type PickOption = { id: string; label: string; detail?: string | null };
+type PickOption = { id: string; label: string; detail?: string | null; photo?: string | null; withPhoto?: boolean };
+
+/** A staff member's photo, or their initials when there is none (or it fails to load). */
+function StaffAvatar({ name, url }: { name: string; url?: string | null }) {
+    const [failed, setFailed] = useState(false);
+    const initials = name.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join('');
+    return url && !failed
+        ? <img src={url} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} className="h-10 w-10 shrink-0 rounded-full border border-(--app-border) object-cover" />
+        : <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--app-surface-muted) text-sm font-semibold text-(--app-muted-foreground)">{initials}</span>;
+}
 
 /**
  * A searchable field: type to narrow the list, tap a row to choose. Typing
@@ -88,9 +97,12 @@ function SearchPick({ id, label, hint, text, chosen, options, loading, onType, o
                     {!loading && options.map((option) => (
                         <li key={option.id} role="option" aria-selected={false}>
                             <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { onChoose(option); setOpen(false); }}
-                                className="flex min-h-12 w-full flex-col items-start justify-center px-4 py-2 text-left hover:bg-(--app-surface-muted) focus-visible:bg-(--app-surface-muted) focus-visible:outline-hidden">
-                                <span className="text-sm font-medium text-(--app-foreground) wrap-anywhere">{option.label}</span>
-                                {option.detail && <span className={`text-xs ${mutedClass}`}>{option.detail}</span>}
+                                className="flex min-h-12 w-full items-center gap-3 px-4 py-2 text-left hover:bg-(--app-surface-muted) focus-visible:bg-(--app-surface-muted) focus-visible:outline-hidden">
+                                {option.withPhoto && <StaffAvatar name={option.label} url={option.photo} />}
+                                <span className="flex min-w-0 flex-col items-start">
+                                    <span className="text-sm font-medium text-(--app-foreground) wrap-anywhere">{option.label}</span>
+                                    {option.detail && <span className={`text-xs ${mutedClass}`}>{option.detail}</span>}
+                                </span>
                             </button>
                         </li>
                     ))}
@@ -143,7 +155,7 @@ function TipSuspectPickers({ form, set, errors, units, staffUrl, defaultUnitId }
             setLoading(true);
             fetch(`${staffUrl}?${new URLSearchParams({ unit: form.suspect_unit_id, q: term })}`, { signal: controller.signal, headers: { Accept: 'application/json' }, credentials: 'same-origin' })
                 .then((response) => (response.ok ? response.json() : { items: [] }))
-                .then((body: { items: { id: string; name: string; position: string | null }[] }) => setStaff(body.items.map((item) => ({ id: item.id, label: item.name, detail: item.position }))))
+                .then((body: { items: { id: string; name: string; position: string | null; photo_url?: string | null }[] }) => setStaff(body.items.map((item) => ({ id: item.id, label: item.name, detail: item.position, photo: item.photo_url ?? null, withPhoto: true }))))
                 .catch(() => undefined)
                 .finally(() => setLoading(false));
         }, 250);

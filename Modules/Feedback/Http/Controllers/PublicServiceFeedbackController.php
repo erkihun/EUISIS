@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -158,6 +159,17 @@ class PublicServiceFeedbackController extends Controller
             || $this->serviceContext->availableSuspectUnit($unitId, $context->organizationTargetId) === null
             ? []
             : $this->serviceContext->unitStaff($context->organizationTargetId, $unitId, $term, app()->getLocale());
+
+        // The photo through a short-lived signed link (owner request 2026-11-08), never the storage path.
+        $paths = $items === [] ? [] : $this->resolver->staffPhotoPaths($context->organizationTargetId, array_column($items, 'id'));
+        $items = array_map(fn (array $item): array => $item + [
+            'photo_url' => isset($paths[$item['id']]) ? URL::temporarySignedRoute(
+                'public-feedback.organization.staff-photo',
+                now()->addMinutes(30),
+                ['token' => $token, 'employee' => $item['id'], 'v' => substr(hash('sha256', $paths[$item['id']]), 0, 16)],
+                absolute: false,
+            ) : null,
+        ], $items);
 
         return response()->json(['items' => $items])->header('Cache-Control', 'no-store');
     }

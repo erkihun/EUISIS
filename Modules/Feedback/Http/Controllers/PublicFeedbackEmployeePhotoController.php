@@ -70,4 +70,29 @@ class PublicFeedbackEmployeePhotoController extends Controller
             'X-Content-Type-Options' => 'nosniff',
         ]);
     }
+
+    /**
+     * A staff member's photo in the institution QR's Tip-off picker, through
+     * the signed link the staff search gave. The token decides the
+     * institution; the employee must serve in it now, or the same 404.
+     */
+    public function organizationStaff(string $token, string $employee): StreamedResponse
+    {
+        $context = $this->settings->enabled() ? $this->resolver->resolveOrganizationToken($token) : null;
+        abort_if($context?->organizationTargetId === null, 404);
+
+        $path = $this->resolver->staffPhotoPaths($context->organizationTargetId, [$employee])[$employee] ?? null;
+        $photo = EmployeePhotoStorage::thumbnail($path);
+        abort_if($photo === null, 404);
+
+        $disk = Storage::disk($photo['disk']);
+        $mime = (string) $disk->mimeType($photo['path']);
+        abort_unless(array_key_exists($mime, self::MIME_TYPES), 404);
+
+        return $disk->response($photo['path'], 'photo.'.self::MIME_TYPES[$mime], [
+            'Content-Type' => $mime,
+            'Cache-Control' => 'private, max-age='.self::BROWSER_CACHE_SECONDS,
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
 }

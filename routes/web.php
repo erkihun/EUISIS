@@ -646,6 +646,12 @@ Route::get('/feedback/{token}/staff', [PublicServiceFeedbackController::class, '
     ->middleware(['qr.private', 'throttle:30,1'])
     ->name('public-feedback.organization.staff');
 
+// A staff member's photo in that list: signed, short-lived, only for staff of the scanned institution.
+Route::get('/feedback/{token}/staff/{employee}/photo', [PublicFeedbackEmployeePhotoController::class, 'organizationStaff'])
+    ->whereUuid('employee')
+    ->middleware(['qr.private', 'signed:relative', 'throttle:service-feedback-photo'])
+    ->name('public-feedback.organization.staff-photo');
+
 // The institution's published services, searched — only for a catalog too large to send with the form.
 Route::get('/feedback/{token}/services', [PublicServiceFeedbackController::class, 'searchOrganizationServices'])
     ->middleware(['qr.private', 'throttle:30,1'])

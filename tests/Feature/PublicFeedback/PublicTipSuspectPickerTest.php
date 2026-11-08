@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use App\Support\EmployeePhotoStorage;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Tests\Support\PublicFeedbackScenario;
@@ -77,4 +80,23 @@ it('lists every active unit of the institution for the person concerned, not onl
     $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->s->unit->id)->assertOk()->assertJsonPath('items.0.id', $this->s->employee->id);
     // Another institution's unit is still refused.
     $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->other->unit->id)->assertOk()->assertJsonCount(0, 'items');
+});
+
+it('shows each listed staff member with a photo through a signed link, only for staff of the scanned institution', function (): void {
+    $chunk = static fn (string $type, string $data): string => pack('N', strlen($data)).$type.$data.pack('N', crc32($type.$data));
+    $png = "\x89PNG\r\n\x1a\n".$chunk('IHDR', pack('NNCCCCC', 1, 1, 8, 2, 0, 0, 0)).$chunk('IDAT', (string) gzcompress("\x00\x10\x20\x30")).$chunk('IEND', '');
+    foreach ([$this->s, $this->other] as $scenario) {
+        $path = EmployeePhotoStorage::PREFIX.Str::uuid().'.png';
+        Storage::disk(EmployeePhotoStorage::PRIVATE_DISK)->put($path, $png);
+        $scenario->employee->forceFill(['photo_path' => $path])->save();
+    }
+
+    $url = $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->s->unit->id)->assertOk()->json('items.0.photo_url');
+    expect($url)->toStartWith('/feedback/'.$this->token.'/staff/'.$this->s->employee->id.'/photo')->not->toContain('employee-photos');
+    $this->get($url)->assertOk();
+
+    // An unsigned link, or a signed one for another institution's employee, gives nothing.
+    $this->get('/feedback/'.$this->token.'/staff/'.$this->s->employee->id.'/photo')->assertForbidden();
+    $foreign = URL::temporarySignedRoute('public-feedback.organization.staff-photo', now()->addMinutes(5), ['token' => $this->token, 'employee' => $this->other->employee->id], absolute: false);
+    $this->get($foreign)->assertNotFound();
 });
