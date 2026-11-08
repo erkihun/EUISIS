@@ -47,82 +47,107 @@ export default function FormBuilder({ schema, onChange, errors: serverErrors, li
     errorPrefix?: string;
 }): JSX.Element {
     const { t } = useLocale();
-    // Read the server's keys as `schema.…`, whatever prefix the form posts the schema under.
     const errors: Errors = Object.fromEntries(Object.entries(serverErrors)
         .filter(([key]) => key.startsWith(`${errorPrefix}.`))
         .map(([key, message]) => [`schema.${key.slice(errorPrefix.length + 1)}`, message]));
     const hasErrors = Object.keys(errors).length > 0;
-
     const setSections = (sections: FormSection[]) => onChange({ ...schema, sections });
 
     return (
         <div className="space-y-4">
             {hasErrors && <Alert tone="danger">{t('serviceMonitoring.templates.builderErrors')}</Alert>}
             {errors['schema.sections'] && <FieldError>{errors['schema.sections']}</FieldError>}
-            {schema.sections.length === 0 && <p className="text-sm text-(--app-muted-foreground)">{t('serviceMonitoring.templates.builder.noSections')}</p>}
+            {schema.sections.length === 0 && (
+                <div className="border border-dashed border-(--app-border-strong) p-5 text-center">
+                    <p className="text-sm font-medium text-(--app-foreground)">{t('serviceMonitoring.templates.builder.noSections')}</p>
+                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('serviceMonitoring.templates.builder.noSectionsHelp')}</p>
+                </div>
+            )}
 
             {schema.sections.map((section, s) => (
-                <Card key={section.key} className="space-y-4 p-4">
+                <Card key={section.key} className="p-4">
                     <ItemToolbar
                         title={`${t('serviceMonitoring.templates.builder.section')} ${s + 1}`}
                         onUp={() => setSections(move(schema.sections, s, -1))}
                         onDown={() => setSections(move(schema.sections, s, 1))}
                         onRemove={() => setSections(schema.sections.filter((_, i) => i !== s))}
                     />
-                    <FormField label={t('serviceMonitoring.templates.builder.sectionTitle')} required error={errors[`schema.sections.${s}.title`]}>
-                        {({ id }) => <Input id={id} className="w-full" maxLength={500} value={section.title} onChange={(e) => setSections(replace(schema.sections, s, { ...section, title: e.target.value }))} />}
-                    </FormField>
+                    <div className="mt-4">
+                        <FormField label={t('serviceMonitoring.templates.builder.sectionTitle')} required error={errors[`schema.sections.${s}.title`]}>
+                            {({ id }) => <Input id={id} className="w-full" maxLength={500} value={section.title} onChange={(e) => setSections(replace(schema.sections, s, { ...section, title: e.target.value }))} />}
+                        </FormField>
+                    </div>
 
                     {errors[`schema.sections.${s}.blocks`] && <FieldError>{errors[`schema.sections.${s}.blocks`]}</FieldError>}
-                    {section.blocks.length === 0 && <p className="text-sm text-(--app-muted-foreground)">{t('serviceMonitoring.templates.builder.sectionEmpty')}</p>}
-
-                    <div className="space-y-3">
+                    <div className="mt-4 space-y-3">
                         {section.blocks.map((block, b) => {
                             const path = `schema.sections.${s}.blocks.${b}`;
                             const setBlocks = (blocks: FormBlock[]) => setSections(replace(schema.sections, s, { ...section, blocks }));
                             const setBlock = (next: FormBlock) => setBlocks(replace(section.blocks, b, next));
-                            return (
-                                <div key={block.key} className="space-y-3 rounded-card border border-(--app-border) bg-(--app-surface-muted) p-3">
-                                    <ItemToolbar
-                                        title={t(`serviceMonitoring.templates.builder.blockTypes.${block.type}`)}
-                                        onUp={() => setBlocks(move(section.blocks, b, -1))}
-                                        onDown={() => setBlocks(move(section.blocks, b, 1))}
-                                        onRemove={() => setBlocks(section.blocks.filter((_, i) => i !== b))}
-                                    />
-                                    {block.type === 'note' && (
-                                        <FormField label={t('serviceMonitoring.templates.builder.noteText')} required error={errors[`${path}.text`]}>
-                                            {({ id }) => <Textarea id={id} className="w-full" maxLength={5000} value={block.text} onChange={(e) => setBlock({ ...block, text: e.target.value })} />}
-                                        </FormField>
-                                    )}
-                                    {block.type === 'text' && (
-                                        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+
+                            if (block.type === 'text') {
+                                return (
+                                    <div key={block.key} className="border-s-4 border-(--color-primary) bg-(--app-surface-muted) p-3">
+                                        <ItemToolbar
+                                            title={`${t('serviceMonitoring.templates.builder.question')} ${b + 1}`}
+                                            onUp={() => setBlocks(move(section.blocks, b, -1))}
+                                            onDown={() => setBlocks(move(section.blocks, b, 1))}
+                                            onRemove={() => setBlocks(section.blocks.filter((_, i) => i !== b))}
+                                        />
+                                        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                                             <FormField label={t('serviceMonitoring.templates.builder.questionLabel')} required error={errors[`${path}.label`]}>
                                                 {({ id }) => <Input id={id} className="w-full" maxLength={500} value={block.label} onChange={(e) => setBlock({ ...block, label: e.target.value })} />}
                                             </FormField>
                                             <Checkbox label={t('serviceMonitoring.templates.builder.required')} checked={Boolean(block.required)} onChange={(required) => setBlock({ ...block, required })} />
                                         </div>
-                                    )}
-                                    {block.type === 'table' && <TableEditor block={block} path={path} errors={errors} limits={limits} onChange={setBlock} />}
-                                </div>
+                                    </div>
+                                );
+                            }
+
+                            if (block.type === 'note') {
+                                return (
+                                    <details key={block.key} className="border border-(--app-border) p-3">
+                                        <summary className="cursor-pointer text-sm font-medium">{t('serviceMonitoring.templates.builder.legacyNote')}</summary>
+                                        <div className="mt-3 space-y-3">
+                                            <ItemToolbar title={t('serviceMonitoring.templates.builder.blockTypes.note')} onUp={() => setBlocks(move(section.blocks, b, -1))} onDown={() => setBlocks(move(section.blocks, b, 1))} onRemove={() => setBlocks(section.blocks.filter((_, i) => i !== b))} />
+                                            <FormField label={t('serviceMonitoring.templates.builder.noteText')} required error={errors[`${path}.text`]}>
+                                                {({ id }) => <Textarea id={id} className="w-full" maxLength={5000} value={block.text} onChange={(e) => setBlock({ ...block, text: e.target.value })} />}
+                                            </FormField>
+                                        </div>
+                                    </details>
+                                );
+                            }
+
+                            return (
+                                <details key={block.key} className="border border-(--app-border) p-3" open>
+                                    <summary className="cursor-pointer text-sm font-semibold">{block.title || t('serviceMonitoring.templates.builder.blockTypes.table')}</summary>
+                                    <div className="mt-3">
+                                        <ItemToolbar title={t('serviceMonitoring.templates.builder.blockTypes.table')} onUp={() => setBlocks(move(section.blocks, b, -1))} onDown={() => setBlocks(move(section.blocks, b, 1))} onRemove={() => setBlocks(section.blocks.filter((_, i) => i !== b))} />
+                                        <div className="mt-3"><TableEditor block={block} path={path} errors={errors} limits={limits} onChange={setBlock} /></div>
+                                    </div>
+                                </details>
                             );
                         })}
                     </div>
 
                     {section.blocks.length < limits.blocks && (
-                        <div className="flex flex-wrap gap-2">
-                            {(['table', 'note', 'text'] as const).map((type) => (
-                                <Button key={type} type="button" variant="outline" size="sm"
-                                    onClick={() => setSections(replace(schema.sections, s, { ...section, blocks: [...section.blocks, blankBlock(type)] }))}>
-                                    {t(`serviceMonitoring.templates.actions.add${type === 'table' ? 'Table' : type === 'note' ? 'Note' : 'Text'}`)}
+                        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-(--app-border) pt-3">
+                            <Button type="button" variant="secondary" size="sm" onClick={() => setSections(replace(schema.sections, s, { ...section, blocks: [...section.blocks, blankBlock('text')] }))}>
+                                {t('serviceMonitoring.templates.actions.addText')}
+                            </Button>
+                            <details className="relative">
+                                <summary className="cursor-pointer text-sm font-medium text-(--app-muted-foreground) underline underline-offset-4">{t('serviceMonitoring.templates.builder.advancedData')}</summary>
+                                <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => setSections(replace(schema.sections, s, { ...section, blocks: [...section.blocks, blankBlock('table')] }))}>
+                                    {t('serviceMonitoring.templates.actions.addTable')}
                                 </Button>
-                            ))}
+                            </details>
                         </div>
                     )}
                 </Card>
             ))}
 
             {schema.sections.length < limits.sections && (
-                <Button type="button" variant="secondary" onClick={() => setSections([...schema.sections, { key: newKey(), title: '', blocks: [] }])}>
+                <Button type="button" variant="outline" onClick={() => setSections([...schema.sections, { key: newKey(), title: '', blocks: [] }])}>
                     {t('serviceMonitoring.templates.actions.addSection')}
                 </Button>
             )}
