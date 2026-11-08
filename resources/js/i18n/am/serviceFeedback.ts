@@ -452,6 +452,13 @@ export default {
     // አስተዳደር — የፖሊሲ ቅንብሮች
     settingsTitle: 'የሕዝብ አስተያየት ቅንብሮች',
     settingsIntro: 'ሕዝቡ ምን ማቅረብ እንደሚችል እና ምን እንደሚጠየቅ የሚወስነው ከተማ አቀፍ ፖሊሲ።',
+    // Each module's own settings page (owner rule: nothing shared).
+    settingsTitles: { feedback: 'የአስተያየት ቅንብሮች', suggestion: 'የጥቆማ ቅንብሮች', complaint: 'የቅሬታ ቅንብሮች' },
+    settingsIntros: {
+        feedback: 'የተገልጋይ አስተያየት ቅጾችና የQR መቀበያው ከተማ አቀፍ ቅንብሮች፦ ማብራት/ማጥፋት፣ ፋይል ማያያዝ፣ የማቅረቢያ ገደቦችና የምላሽ ጊዜ።',
+        suggestion: 'የሕዝብ ጥቆማ ከተማ አቀፍ ቅንብሮች፦ ጥቆማ መቀበልን ማብራት/ማጥፋትና የምላሽ ጊዜ።',
+        complaint: 'የሕዝብ ቅሬታ ከተማ አቀፍ ቅንብሮች፦ ቅሬታ መቀበልን ማብራት/ማጥፋት፣ የምላሽ ጊዜና የይግባኝ ጊዜዎች።',
+    },
     settingsCityWideNote: 'እነዚህ ቅንብሮች ለእያንዳንዱ ተቋም ይተገበራሉ። የተቋም-ተኮር ፖሊሲዎች እዚህ አይዋቀሩም።',
     settingsAvailability: 'ተገኝነት',
     settingEnabled: 'የሕዝብ አስተያየት ነቅቷል',
@@ -471,7 +478,7 @@ export default {
     settingRatePerSource: 'በአንድ QR ኮድ የሚቀርቡ ጉዳዮች (በ10 ደቂቃ)',
     settingRatePerIp: 'ከአንድ አድራሻ የሚቀርቡ ጉዳዮች (በ10 ደቂቃ)',
     settingsNotDecided: 'እስካሁን ያልተወሰነ',
-    settingsNotDecidedHint: 'ሕዝቡ የቀረበ ጉዳይን የሚከታተልበት መንገድ፣ CAPTCHA፣ የSMS ማረጋገጫ፣ የተቋም-ተኮር ፖሊሲዎች፣ ማቆያ እና መውጣት የፖሊሲ ውሳኔ እየጠበቁ ናቸው፤ እዚህ ማብሪያ የላቸውም።',
+    settingsNotDecidedHint: 'CAPTCHA፣ የSMS ማረጋገጫ፣ የተቋም-ተኮር ፖሊሲዎች፣ ማቆያ እና መውጣት የፖሊሲ ውሳኔ እየጠበቁ ናቸው፤ እዚህ ማብሪያ የላቸውም።',
     // አስተዳደር — የተቋም QR ዝርዝር
     orgQrIndexTitle: 'የተቋም QR ኮዶች',
     orgQrIndexIntro: 'በወሰንዎ ውስጥ ያለ እያንዳንዱ ተቋም እና የሕዝብ አስተያየት QR ሁኔታው።',

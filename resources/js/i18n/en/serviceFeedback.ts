@@ -456,6 +456,13 @@ export default {
     // Admin — policy settings
     settingsTitle: 'Public feedback settings',
     settingsIntro: 'The city-wide policy for what the public can submit and what is asked of them.',
+    // Each module's own settings page (owner rule: nothing shared).
+    settingsTitles: { feedback: 'Feedback Settings', suggestion: 'Tip-off Settings', complaint: 'Complaint Settings' },
+    settingsIntros: {
+        feedback: 'City-wide settings for the service feedback forms and the QR intake: on or off, attachments, submission limits and the response time.',
+        suggestion: 'City-wide settings for public Tip-offs: accepting them on or off, and the response time.',
+        complaint: 'City-wide settings for public complaints: accepting them on or off, the response time and the appeal periods.',
+    },
     settingsCityWideNote: 'These settings apply to every institution. Institution-specific policies are not configured here.',
     settingsAvailability: 'Availability',
     settingEnabled: 'Public feedback enabled',
@@ -475,7 +482,7 @@ export default {
     settingRatePerSource: 'Submissions per QR code (10 minutes)',
     settingRatePerIp: 'Submissions per address (10 minutes)',
     settingsNotDecided: 'Not decided yet',
-    settingsNotDecidedHint: 'Public tracking of a submission, CAPTCHA, SMS acknowledgement, per-institution policies, retention and withdrawal are awaiting a policy decision and have no switch here.',
+    settingsNotDecidedHint: 'CAPTCHA, SMS acknowledgement, per-institution policies, retention and withdrawal are awaiting a policy decision and have no switch here.',
     // Admin — organization QR list
     orgQrIndexTitle: 'Organization QR codes',
     orgQrIndexIntro: 'Every institution in your scope and the state of its public feedback QR.',

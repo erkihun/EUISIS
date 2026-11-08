@@ -56,7 +56,7 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
     const form = useForm<Settings>({ ...feedbackSettings });
     const switches = SWITCHES.filter((item) => item.module === module);
     const rules = RULES.filter((rule) => rule.module === module);
-    const title = `${t('serviceFeedback.settingsTitle')} · ${t(`serviceFeedback.${TYPE_LABEL[module]}`)}`;
+    const title = t(`serviceFeedback.settingsTitles.${module}`);
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -66,7 +66,7 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
     const errors = form.errors as Record<string, string | undefined>;
 
     return (
-        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={t('serviceFeedback.settingsIntro')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={t(`serviceFeedback.settingsIntros.${module}`)} />}>
             <Head title={title} />
 
             <form onSubmit={submit} className="space-y-5">
