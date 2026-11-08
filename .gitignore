@@ -37,5 +37,10 @@ yarn-error.log
 /sec-routes.json
 /sec-audit.json
 
+# Local AI assistant skills must never be committed to this public-history repo.
+# Offensive-security pentest checklists in particular do not belong in the tree.
+/.claude/skills/offensive-*/
+/.agents/skills/offensive-*/
+
 # Word lock files left behind by an open document
 ~$*
