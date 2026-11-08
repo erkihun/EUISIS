@@ -70,6 +70,8 @@ final class PublicCaseDashboardService implements PublicCaseDashboard
                 'outcome' => $sum([ServiceFeedbackStatus::Resolved->value, ServiceFeedbackStatus::Accepted->value, ServiceFeedbackStatus::NotAdopted->value]),
                 'closed' => $sum([ServiceFeedbackStatus::Closed->value]),
                 'mine' => $query()->whereIn('status', $open)->whereIn('id', $this->assignedTo($user))->count(),
+                // ADR 0033: open cases whose current level's deadline has passed.
+                'overdue' => $query()->whereIn('status', $open)->whereIn('id', PublicFeedbackAssignment::query()->overdue()->select('submission_id'))->count(),
                 'older_than_30_days' => $query()->whereIn('status', $open)->where('created_at', '<', now()->subDays(30))->count(),
             ],
             'byStatus' => collect($statusOrder)->mapWithKeys(fn (string $s) => [$s => (int) ($counts[$s] ?? 0)])->all(),

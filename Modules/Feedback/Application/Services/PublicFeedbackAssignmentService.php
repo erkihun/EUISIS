@@ -47,6 +47,8 @@ final class PublicFeedbackAssignmentService
         ?string $reason = null,
         ?PublicFeedbackRoutingRule $rule = null,
         ?Request $request = null,
+        ?int $level = null,
+        bool $escalation = false,
     ): PublicFeedbackAssignment {
         $names = $type->names($handlerId);
 
@@ -62,12 +64,21 @@ final class PublicFeedbackAssignmentService
             throw ValidationException::withMessages(['handler_id' => __('service-feedback.not_assignable')]);
         }
 
-        return DB::transaction(function () use ($submission, $type, $handlerId, $names, $actor, $reason, $rule, $request): PublicFeedbackAssignment {
+        return DB::transaction(function () use ($submission, $type, $handlerId, $names, $actor, $reason, $rule, $request, $level, $escalation): PublicFeedbackAssignment {
             $now = now();
             $previous = $submission->currentAssignment()->first();
+            $level ??= $previous->level ?? 1;
+            // ADR 0033: a rule's response days start the clock; a manual hand-over
+            // inside the same level keeps the level's deadline (it belongs to the
+            // level, not the person).
+            $dueAt = match (true) {
+                $rule?->response_days !== null => $now->copy()->addDays($rule->response_days),
+                $rule === null && $previous !== null && $previous->level === $level => $previous->due_at,
+                default => null,
+            };
 
             if ($previous !== null) {
-                $previous->forceFill(['ended_at' => $now, 'ended_by' => $actor?->getKey()])->save();
+                $previous->forceFill(['ended_at' => $now, 'ended_by' => $actor?->getKey(), 'escalated' => $escalation])->save();
             }
 
             $assignment = PublicFeedbackAssignment::query()->create([
@@ -77,6 +88,8 @@ final class PublicFeedbackAssignmentService
                 'handler_name_snapshot' => $names['en'],
                 'handler_name_am_snapshot' => $names['am'],
                 'routing_rule_id' => $rule?->getKey(),
+                'level' => $level,
+                'due_at' => $dueAt,
                 'assigned_by' => $actor?->getKey(),
                 'reason' => $reason !== null && trim($reason) !== '' ? trim($reason) : null,
                 'assigned_at' => $now,
@@ -98,7 +111,7 @@ final class PublicFeedbackAssignmentService
                 auditable: $submission,
                 organizationId: $submission->organization_id,
                 oldValues: $previous !== null ? ['handler' => $previous->handler_type->value.':'.$previous->handler_id] : null,
-                newValues: ['handler' => $type->value.':'.$handlerId, 'routing_rule_id' => $rule?->getKey()],
+                newValues: ['handler' => $type->value.':'.$handlerId, 'routing_rule_id' => $rule?->getKey(), 'level' => $level, 'due_at' => $dueAt?->toIso8601String(), 'escalation' => $escalation],
                 reason: $reason,
                 request: $request,
             );

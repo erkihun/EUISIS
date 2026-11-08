@@ -1682,6 +1682,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.transition');
     Route::post('/service-submissions/{type}/{submission}/assign', [ServiceSubmissionController::class, 'assign'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.assign');
+    Route::post('/service-submissions/{type}/{submission}/escalate', [ServiceSubmissionController::class, 'escalate'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.escalate');
     Route::post('/service-submissions/{type}/{submission}/subjects', [PublicFeedbackSubjectController::class, 'store'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.subjects.store');
     Route::delete('/service-submissions/{type}/{submission}/subjects/{subject}', [PublicFeedbackSubjectController::class, 'destroy'])

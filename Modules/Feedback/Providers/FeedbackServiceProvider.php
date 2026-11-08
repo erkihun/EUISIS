@@ -55,6 +55,7 @@ use Modules\Feedback\Domain\Models\PublicFeedbackReportExport;
 use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
 use Modules\Feedback\Domain\Models\PublicFeedbackStatusHistory;
 use Modules\Feedback\Domain\Models\PublicFeedbackSubjectEmployee;
+use Modules\Feedback\Infrastructure\Console\EscalateOverduePublicCases;
 use Modules\Feedback\Infrastructure\Console\PublicFeedbackDataQuality as PublicFeedbackDataQualityCommand;
 use Modules\Feedback\Infrastructure\Console\PublicFeedbackDoctor;
 use Throwable;
@@ -119,7 +120,7 @@ final class FeedbackServiceProvider extends ServiceProvider
         $this->rateLimiters();
 
         if ($this->app->runningInConsole()) {
-            $this->commands([PublicFeedbackDataQualityCommand::class, PublicFeedbackDoctor::class]);
+            $this->commands([PublicFeedbackDataQualityCommand::class, PublicFeedbackDoctor::class, EscalateOverduePublicCases::class]);
         }
     }
 

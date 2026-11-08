@@ -29,11 +29,14 @@ class PublicFeedbackAssignment extends Model
         'handler_name_snapshot',
         'handler_name_am_snapshot',
         'routing_rule_id',
+        'level',
+        'due_at',
         'assigned_by',
         'reason',
         'assigned_at',
         'ended_at',
         'ended_by',
+        'escalated',
     ];
 
     protected function casts(): array
@@ -42,6 +45,9 @@ class PublicFeedbackAssignment extends Model
             'handler_type' => PublicFeedbackHandlerType::class,
             'assigned_at' => 'datetime',
             'ended_at' => 'datetime',
+            'level' => 'integer',
+            'due_at' => 'datetime',
+            'escalated' => 'boolean',
         ];
     }
 
@@ -63,6 +69,17 @@ class PublicFeedbackAssignment extends Model
     public function scopeOpen(Builder $query): Builder
     {
         return $query->whereNull('ended_at');
+    }
+
+    /** Open, with a due date that has passed. */
+    public function scopeOverdue(Builder $query): Builder
+    {
+        return $query->whereNull('ended_at')->whereNotNull('due_at')->where('due_at', '<', now());
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->ended_at === null && $this->due_at !== null && $this->due_at->isPast();
     }
 
     public function handlerName(string $locale = 'en'): string

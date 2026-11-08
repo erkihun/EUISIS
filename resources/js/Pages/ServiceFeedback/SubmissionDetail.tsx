@@ -113,7 +113,7 @@ function TipFormPanel({ details }: { details: TipDetails }) {
 const TIP_TYPE_LABEL: Record<TipType, string> = { CORRUPTION: 'serviceFeedback.tipTypeCorruption', IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice' };
 const EVIDENCE_LABEL = { photo: 'serviceFeedback.evidencePhoto', video: 'serviceFeedback.evidenceVideo', audio: 'serviceFeedback.evidenceAudio', document: 'serviceFeedback.evidenceDocument' } as const;
 type HistoryRow = { id: string; from_status: string | null; to_status: string; actor: string | null; reason: string | null; transitioned_at: string | null };
-type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null };
+type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null; level: number; due_at: string | null; overdue: boolean; escalated: boolean };
 type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
 
 type Props = {
@@ -125,7 +125,7 @@ type Props = {
     allowedTransitions: string[];
     subjects: SubjectRow[];
     referrals: ReferralRow[];
-    can: { assign: boolean; subjects: boolean; refer: boolean; decideReferral: boolean };
+    can: { assign: boolean; escalate?: boolean; subjects: boolean; refer: boolean; decideReferral: boolean };
     handlerOptions: HandlerOptions | null;
     /** Organization form: the service received and the questionnaire answers; null otherwise. */
     organizationForm?: OrganizationFormDetailsData | null;
@@ -146,6 +146,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
     const { t, locale } = useLocale();
     const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
     const [assigning, setAssigning] = useState(false);
+    const [escalating, setEscalating] = useState(false);
 
     return <AuthenticatedLayout header={<PageHeader title={title} backHref={route(type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions')} />}>
         <Head title={entry.reference ? `${title} ${entry.reference}` : title} />
@@ -246,17 +247,25 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                     <section className={PANEL}>
                         <div className="flex items-start justify-between gap-3">
                             <h2 className="font-semibold">{t('serviceFeedback.currentHandler')}</h2>
-                            {can.assign && <Button type="button" size="sm" variant={currentAssignment ? 'outline' : 'primary'} onClick={() => setAssigning(true)}>{t(currentAssignment ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button>}
+                            <div className="flex flex-wrap justify-end gap-2">
+                                {can.escalate && <Button type="button" size="sm" variant="outline" onClick={() => setEscalating(true)}>{t('serviceFeedback.escalate')}</Button>}
+                                {can.assign && <Button type="button" size="sm" variant={currentAssignment ? 'outline' : 'primary'} onClick={() => setAssigning(true)}>{t(currentAssignment ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button>}
+                            </div>
                         </div>
                         {currentAssignment ? <div className="space-y-1 text-sm">
                             <div className="font-medium">{currentAssignment.handler}</div>
                             <div className="text-(--app-muted-foreground)">{t(`serviceFeedback.${HANDLER_TYPE_KEY[currentAssignment.handler_type]}`)} · {currentAssignment.via_rule ? t('serviceFeedback.viaRoutingRule') : currentAssignment.assigned_by ?? t('common.system')} · <LocalizedDateDisplay value={currentAssignment.assigned_at} withTime /></div>
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <span className="rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium">{t('serviceFeedback.levelOption').replace('{level}', String(currentAssignment.level))}</span>
+                                <span className="text-xs text-(--app-muted-foreground)">{currentAssignment.due_at ? <>{t('serviceFeedback.dueBy')}: <LocalizedDateDisplay value={currentAssignment.due_at} withTime /></> : t('serviceFeedback.noDeadline')}</span>
+                                {currentAssignment.overdue && <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-950/50 dark:text-red-200">{t('serviceFeedback.overdue')}</span>}
+                            </div>
                         </div> : <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noHandler')}</p>}
                         {assignments.length > 1 && <details className="text-sm">
                             <summary className="cursor-pointer font-medium text-primary">{t('serviceFeedback.assignmentHistory')}</summary>
                             <ul className="mt-2 space-y-2">{assignments.map((row) => <li key={row.id} className="rounded-control bg-(--app-surface-muted) p-2">
                                 <div className="font-medium">{row.handler} <span className="font-normal text-(--app-muted-foreground)">({t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)})</span></div>
-                                <div className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={row.assigned_at} withTime />{row.ended_at && <> → <LocalizedDateDisplay value={row.ended_at} withTime /></>} · {row.via_rule ? t('serviceFeedback.viaRoutingRule') : row.assigned_by ?? t('common.system')}{row.reason && <> · {row.reason}</>}</div>
+                                <div className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={row.assigned_at} withTime />{row.ended_at && <> → <LocalizedDateDisplay value={row.ended_at} withTime /></>} · {row.via_rule ? t('serviceFeedback.viaRoutingRule') : row.assigned_by ?? t('common.system')} · {t('serviceFeedback.levelOption').replace('{level}', String(row.level))}{row.escalated && <> · {t('serviceFeedback.escalatedMark')}</>}{row.reason && <> · {row.reason}</>}</div>
                             </li>)}</ul>
                         </details>}
                     </section>
@@ -270,6 +279,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
             </div>
         </div>
 
+        {escalating && <EscalateDialog type={type} submissionId={entry.id} onClose={() => setEscalating(false)} />}
         {assigning && handlerOptions && <AssignDialog type={type} submissionId={entry.id} options={handlerOptions} reassign={currentAssignment !== null} locale={locale} onClose={() => setAssigning(false)} />}
     </AuthenticatedLayout>;
 }
@@ -298,6 +308,26 @@ function TransitionForm({ type, submissionId, allowedTransitions }: { type: 'sug
         </FormField>
         <Button type="submit" variant="primary" loading={form.processing}>{t('serviceFeedback.saveStatus')}</Button>
     </form>;
+}
+
+function EscalateDialog({ type, submissionId, onClose }: { type: 'suggestion' | 'complaint'; submissionId: string; onClose: () => void }) {
+    const { t } = useLocale();
+    const form = useForm({ reason: '' });
+    const errors = form.errors as Record<string, string | undefined>;
+
+    function submit(event: FormEvent) {
+        event.preventDefault();
+        form.post(route('service-submissions.escalate', { type, submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
+    }
+
+    return <AppDialog open onClose={onClose} title={t('serviceFeedback.escalate')} description={t('serviceFeedback.escalateHint')} maxWidth="lg"
+        footer={<><Button type="button" variant="outline" onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" form="escalate-form" variant="primary" loading={form.processing}>{t('serviceFeedback.escalate')}</Button></>}>
+        <form id="escalate-form" onSubmit={submit} className="grid gap-4">
+            <FormField id="escalate-reason" label={t('serviceFeedback.transitionReason')} error={errors.reason ?? errors.escalation} required>
+                {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={3} maxLength={2000} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />}
+            </FormField>
+        </form>
+    </AppDialog>;
 }
 
 function AssignDialog({ type, submissionId, options, reassign, locale, onClose }: {

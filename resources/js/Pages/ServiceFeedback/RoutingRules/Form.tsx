@@ -18,6 +18,8 @@ export type RuleRecord = {
     handler_type: HandlerType;
     handler_id: string;
     priority: number;
+    escalation_level: number;
+    response_days: number | null;
     effective_from: string | null;
     effective_to: string | null;
     is_active: boolean;
@@ -46,6 +48,8 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
         handler_type: (record?.handler_type ?? 'user') as HandlerType,
         handler_id: record?.handler_id ?? '',
         priority: record?.priority ?? 100,
+        escalation_level: record?.escalation_level ?? 1,
+        response_days: record?.response_days == null ? '' : String(record.response_days),
         effective_from: record?.effective_from ?? '',
         effective_to: record?.effective_to ?? '',
         is_active: record?.is_active ?? true,
@@ -168,6 +172,16 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
                     </FormField>
                     <FormField id="rule-priority" label={t('serviceFeedback.priority')} description={t('serviceFeedback.priorityHint')} error={errors.priority}>
                         {({ id, describedBy, invalid }) => <Input id={id} type="number" min={0} max={1000} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.priority} onChange={(e) => form.setData('priority', Number(e.target.value))} />}
+                    </FormField>
+                    <FormField id="rule-level" label={t('serviceFeedback.escalationLevel')} description={t('serviceFeedback.escalationLevelHint')} error={errors.escalation_level}>
+                        {({ id, describedBy, invalid }) => (
+                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.escalation_level} onChange={(e) => form.setData('escalation_level', Number(e.target.value))}>
+                                {[1, 2, 3, 4, 5].map((level) => <option key={level} value={level}>{t('serviceFeedback.levelOption').replace('{level}', String(level))}</option>)}
+                            </Select>
+                        )}
+                    </FormField>
+                    <FormField id="rule-response-days" label={t('serviceFeedback.responseDays')} description={t('serviceFeedback.responseDaysHint')} error={errors.response_days}>
+                        {({ id, describedBy, invalid }) => <Input id={id} type="number" min={1} max={365} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.response_days} onChange={(e) => form.setData('response_days', e.target.value)} />}
                     </FormField>
                     <label className="flex items-center gap-2 self-end pb-2 text-sm">
                         <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />

@@ -12,7 +12,7 @@ type Row = { id: string; reference: string | null; status: string; tip_type: str
 
 type Props = {
     type: 'suggestion' | 'complaint';
-    figures: { total: number; open: number; waiting: number; unrouted: number; in_progress: number; outcome: number; closed: number; mine: number; older_than_30_days: number };
+    figures: { total: number; open: number; waiting: number; unrouted: number; in_progress: number; outcome: number; closed: number; mine: number; overdue: number; older_than_30_days: number };
     byStatus: Record<string, number>;
     byTipType: { total: number; CORRUPTION: number; IMPROPER_PRACTICE: number; UNCLASSIFIED_LEGACY: number } | null;
     violations: Record<string, number> | null;
@@ -40,10 +40,11 @@ export default function SubmissionDashboard({ type, figures, byStatus, byTipType
         <AuthenticatedLayout header={<PageHeader title={title} description={d(tipOff ? 'tipHelp' : 'complaintHelp')} />}>
             <Head title={title} />
             <div className="space-y-6 p-4 sm:p-6">
-                <section aria-label={title} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <section aria-label={title} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                     <Kpi href={list} icon={<Inbox className="h-[17px] w-[17px]" />} label={d('open')} value={figures.open} footer={`${d('total')}: ${figures.total.toLocaleString()}`} />
                     <Kpi href={route('service-submissions.unrouted', { submission_type: type })} tone={figures.waiting > 0 ? 'warning' : undefined} icon={<ClockIcon className="h-[17px] w-[17px]" />} label={d('waiting')} value={figures.waiting} footer={`${d('unrouted')}: ${figures.unrouted.toLocaleString()}`} />
                     <Kpi href={`${list}?mine=1`} icon={<CheckCircle className="h-[17px] w-[17px]" />} label={d('mine')} value={figures.mine} footer={`${d('inProgress')}: ${figures.in_progress.toLocaleString()}`} />
+                    <Kpi tone={figures.overdue > 0 ? 'danger' : undefined} icon={<AlertTriangle className="h-[17px] w-[17px]" />} label={d('overdue')} value={figures.overdue} footer={d('overdueHelp')} />
                     <Kpi tone={figures.older_than_30_days > 0 ? 'danger' : undefined} icon={<AlertTriangle className="h-[17px] w-[17px]" />} label={d('old')} value={figures.older_than_30_days} footer={`${d('outcome')}: ${figures.outcome.toLocaleString()} · ${d('closed')}: ${figures.closed.toLocaleString()}`} />
                 </section>
 

@@ -19,6 +19,7 @@ use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
 
 /**
@@ -64,7 +65,7 @@ final class PublicFeedbackRoutingService
      *
      * @return Collection<int, PublicFeedbackRoutingRule>
      */
-    public function candidates(EmployeeServiceFeedback $submission): Collection
+    public function candidates(EmployeeServiceFeedback $submission, int $level = 1): Collection
     {
         if ($submission->type === ServiceFeedbackType::Feedback) {
             return new Collection;
@@ -72,6 +73,8 @@ final class PublicFeedbackRoutingService
 
         return PublicFeedbackRoutingRule::query()
             ->inEffect()
+            // ADR 0033: a new submission goes to level 1; escalation looks one level up.
+            ->where('escalation_level', $level)
             ->where(fn (Builder $q) => $q->whereNull('organization_id')
                 ->when($submission->organization_id !== null, fn (Builder $q) => $q->orWhere('organization_id', $submission->organization_id)))
             ->where(fn (Builder $q) => $q->whereNull('target_type')->orWhere('target_type', $submission->target_type?->value ?? 'employee'))
@@ -134,6 +137,49 @@ final class PublicFeedbackRoutingService
             request: $request,
         );
         $this->notifier->unrouted($submission);
+    }
+
+    /** Statuses in which a handler is still expected to act. */
+    public const ESCALATABLE = [ServiceFeedbackStatus::Assigned, ServiceFeedbackStatus::UnderReview];
+
+    public function canEscalate(EmployeeServiceFeedback $submission): bool
+    {
+        if (! in_array($submission->status, self::ESCALATABLE, true)) {
+            return false;
+        }
+
+        $level = (int) ($submission->currentAssignment()->value('level') ?? 1);
+
+        return $this->candidates($submission, $level + 1)->isNotEmpty();
+    }
+
+    /**
+     * Move the submission one level up the ladder (ADR 0033): the next level's
+     * matching rules are tried in order, like routing a new submission. A
+     * person escalates with a reason; the overdue sweep escalates with none.
+     *
+     * @throws ValidationException when the case is not with a handler or no next level applies
+     */
+    public function escalate(EmployeeServiceFeedback $submission, ?User $actor, ?string $reason = null, ?Request $request = null): PublicFeedbackAssignment
+    {
+        if (! in_array($submission->status, self::ESCALATABLE, true)) {
+            throw ValidationException::withMessages(['escalation' => __('service-feedback.not_escalatable')]);
+        }
+
+        $next = (int) ($submission->currentAssignment()->value('level') ?? 1) + 1;
+
+        foreach ($this->candidates($submission, $next) as $rule) {
+            try {
+                return $this->assignments->assign($submission, $rule->handler_type, $rule->handler_id, $actor, $reason, $rule, $request, $next, true);
+            } catch (ValidationException $e) {
+                Log::warning('public-feedback.escalation.rule_skipped', [
+                    'rule_id' => $rule->getKey(),
+                    'reason' => (string) ($e->errors()['handler_id'][0] ?? 'unusable'),
+                ]);
+            }
+        }
+
+        throw ValidationException::withMessages(['escalation' => __('service-feedback.no_next_level')]);
     }
 
     public function canManage(User $user, ?string $organizationId): bool
@@ -213,6 +259,8 @@ final class PublicFeedbackRoutingService
             'handler_type' => PublicFeedbackHandlerType::from($data['handler_type']),
             'handler_id' => (string) $data['handler_id'],
             'priority' => (int) ($data['priority'] ?? 100),
+            'escalation_level' => (int) ($data['escalation_level'] ?? 1),
+            'response_days' => isset($data['response_days']) ? (int) $data['response_days'] : null,
             'effective_from' => $data['effective_from'] ?? null,
             'effective_to' => $data['effective_to'] ?? null,
             'is_active' => (bool) ($data['is_active'] ?? true),
@@ -256,6 +304,7 @@ final class PublicFeedbackRoutingService
             newValues: [
                 'organization_id' => $rule->organization_id, 'target_type' => $rule->target_type, 'submission_type' => $rule->submission_type,
                 'handler' => $rule->handler_type->value.':'.$rule->handler_id, 'priority' => $rule->priority,
+                'escalation_level' => $rule->escalation_level, 'response_days' => $rule->response_days,
                 'is_active' => $rule->is_active,
             ],
             reason: 'Public feedback routing rule '.$action,

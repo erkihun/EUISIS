@@ -109,6 +109,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                     <Th>{t('serviceFeedback.categoryScope')}</Th>
                                     <Th>{t('serviceFeedback.matches')}</Th>
                                     <Th>{t('serviceFeedback.handler')}</Th>
+                                    <Th>{t('serviceFeedback.escalationLevel')}</Th>
                                     <Th align="right">{t('serviceFeedback.priority')}</Th>
                                     <Th>{t('serviceFeedback.effectiveWindow')}</Th>
                                     <Th>{t('serviceFeedback.filterStatus')}</Th>
@@ -132,6 +133,10 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                         <Td>
                                             <div className="font-medium">{locale === 'am' && row.handler_name_am ? row.handler_name_am : row.handler_name ?? '—'}</div>
                                             <div className="text-xs text-(--app-muted-foreground)">{t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)}{row.referenced && <> · {t('serviceFeedback.ruleReferenced')}</>}</div>
+                                        </Td>
+                                        <Td>
+                                            <div className="text-sm">{t('serviceFeedback.levelOption').replace('{level}', String(row.escalation_level))}</div>
+                                            <div className="text-xs text-(--app-muted-foreground)">{row.response_days ? t('serviceFeedback.responseDaysValue').replace('{days}', String(row.response_days)) : t('serviceFeedback.noDeadline')}</div>
                                         </Td>
                                         <Td align="right" numeric>{row.priority}</Td>
                                         <Td>

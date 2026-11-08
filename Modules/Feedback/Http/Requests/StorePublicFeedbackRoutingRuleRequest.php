@@ -32,6 +32,9 @@ class StorePublicFeedbackRoutingRuleRequest extends FormRequest
             'handler_type' => ['required', Rule::in(PublicFeedbackHandlerType::values())],
             'handler_id' => ['required', 'string', 'max:64'],
             'priority' => ['nullable', 'integer', 'min:0', 'max:1000'],
+            // ADR 0033: the ladder level this rule serves, and the days its handler has to act.
+            'escalation_level' => ['nullable', 'integer', 'min:1', 'max:5'],
+            'response_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'is_active' => ['nullable', 'boolean'],
@@ -46,6 +49,7 @@ class StorePublicFeedbackRoutingRuleRequest extends FormRequest
             'submission_type' => $this->filled('submission_type') ? $this->input('submission_type') : null,
             'tip_type' => $this->filled('tip_type') ? $this->input('tip_type') : null,
             'organization_unit_id' => $this->filled('organization_unit_id') ? $this->input('organization_unit_id') : null,
+            'response_days' => $this->filled('response_days') ? $this->input('response_days') : null,
             'effective_from' => $this->filled('effective_from') ? $this->input('effective_from') : null,
             'effective_to' => $this->filled('effective_to') ? $this->input('effective_to') : null,
         ]);

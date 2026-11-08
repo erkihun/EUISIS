@@ -225,6 +225,8 @@ class ServiceSubmissionController extends Controller
             ])->values()->all(),
             'can' => [
                 'assign' => $assignable,
+                // ADR 0033: one level up the ladder, when a next level is configured.
+                'escalate' => $assignable && app(PublicFeedbackRoutingService::class)->canEscalate($submission),
                 'subjects' => $kind === ServiceFeedbackType::Complaint && $user->can('manageSubjects', $submission),
                 // Brief §59–60: asking for a referral, and deciding one, never by the employee involved.
                 'refer' => $this->referrals->canRequest($user, $submission),
@@ -292,6 +294,22 @@ class ServiceSubmissionController extends Controller
         );
 
         return back()->with('success', __('service-feedback.assigned'));
+    }
+
+    /** Move the case one level up its escalation ladder (ADR 0033). */
+    public function escalate(Request $request, string $type, EmployeeServiceFeedback $submission): RedirectResponse
+    {
+        $kind = $this->kind($type);
+        abort_unless($submission->type === $kind, 404);
+        $user = $this->user();
+        $this->assertAccess($user, $submission);
+        $this->authorize('assign', $submission);
+        abort_unless($user->hasAnyPermission(['service_feedback.reassign']), 403);
+
+        $data = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
+        app(PublicFeedbackRoutingService::class)->escalate($submission, $user, $data['reason'], $request);
+
+        return back()->with('success', __('service-feedback.escalated'));
     }
 
     public function download(Request $request, string $type, EmployeeServiceFeedback $submission, EmployeeServiceFeedbackAttachment $attachment): StreamedResponse
@@ -429,6 +447,10 @@ class ServiceSubmissionController extends Controller
             'handler' => $row->handlerName($locale),
             'assigned_by' => $row->assignedBy?->name,
             'via_rule' => $row->routing_rule_id !== null,
+            'level' => $row->level,
+            'due_at' => $row->due_at?->toIso8601String(),
+            'overdue' => $row->isOverdue(),
+            'escalated' => $row->escalated,
             'reason' => $row->reason,
             'assigned_at' => $row->assigned_at?->toIso8601String(),
             'ended_at' => $row->ended_at?->toIso8601String(),

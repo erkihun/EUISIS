@@ -58,7 +58,7 @@ class PublicFeedbackRoutingRuleController extends Controller
                 ->when($filters['organization_id'] !== '', fn ($query) => $query->where('organization_id', $filters['organization_id']))
                 ->when($filters['submission_type'] !== '', fn ($query) => $query->where(fn ($q) => $q->whereNull('submission_type')->orWhere('submission_type', $filters['submission_type'])))
                 ->orderByRaw('CASE WHEN organization_id IS NULL THEN 0 ELSE 1 END')
-                ->orderBy('priority')->orderBy('created_at')
+                ->orderBy('escalation_level')->orderBy('priority')->orderBy('created_at')
                 ->get()
                 ->map(fn (PublicFeedbackRoutingRule $rule): array => $this->present($rule, $user, $names))->values()->all(),
             ...$this->formOptions($user),
@@ -171,6 +171,8 @@ class PublicFeedbackRoutingRuleController extends Controller
             'handler_name' => $names[$key]['en'] ?? null,
             'handler_name_am' => $names[$key]['am'] ?? null,
             'priority' => $rule->priority,
+            'escalation_level' => $rule->escalation_level,
+            'response_days' => $rule->response_days,
             'effective_from' => $rule->effective_from?->toDateString(),
             'effective_to' => $rule->effective_to?->toDateString(),
             'is_active' => $rule->is_active,

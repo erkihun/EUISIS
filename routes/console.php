@@ -39,6 +39,8 @@ Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlap
 // closure after the appeal window when enabled. Idempotent (row locks + a
 // unique successor per stage), so overlapping or repeated runs are harmless;
 // withoutOverlapping/onOneServer just avoid wasted work.
+// ADR 0033: Tip-offs and complaints past their level's deadline go one level up.
+Schedule::command('service-feedback:escalate-overdue')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('grievances:process-sla')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
 
 // Regulation 201/2018 deadlines the institution owes: due-soon and overdue alerts, once each.

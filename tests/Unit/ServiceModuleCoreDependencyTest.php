@@ -123,7 +123,7 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // the path pattern (most no longer say "ServiceFeedback"), so the pattern now names the
         // module folder; its models also gained `use App\Models\...` lines for relations they
         // always had, and the QR, token and identity code was always counted under the old paths.
-        'feedback' => 30,
+        'feedback' => 29,
         'intelligence' => 2,
         'situation_room' => 12,
         'communication' => 12,
