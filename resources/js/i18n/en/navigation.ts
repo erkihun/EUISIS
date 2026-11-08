@@ -186,6 +186,8 @@ const navigation = {
     groupOrganizationDesign: 'Organization Design & Workforce Planning',
     designMandates: 'Legal Mandates',
     designFunctions: 'Functions',
+    groupInstitutionServices: 'Services',
+    institutionServices: "Institutions' Services",
     designServices: 'Service Catalog',
     designClassifications: 'Classifications',
     designProcesses: 'Processes & Standards',

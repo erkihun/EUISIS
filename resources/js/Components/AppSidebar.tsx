@@ -499,7 +499,6 @@ const navGroups: NavGroup[] = [
             { routeName: 'organization-design.imports.index', labelKey: 'nav.designImports', icon: ImportIcon, permission: 'design-imports.viewAny' },
             { routeName: 'organization-design.mandates.index', labelKey: 'nav.designMandates', icon: DiplomaIcon, permission: 'institution-mandates.viewAny' },
             { routeName: 'organization-design.functions.index', labelKey: 'nav.designFunctions', icon: WidgetsIcon, permission: 'organization-functions.viewAny' },
-            { routeName: 'organization-design.services.index', labelKey: 'nav.designServices', icon: Layers, permission: 'service-catalog.viewAny' },
             { routeName: 'organization-design.classifications.index', labelKey: 'nav.designClassifications', icon: TagsIcon, permission: 'classifications.viewAny' },
             { routeName: 'organization-design.processes.index', labelKey: 'nav.designProcesses', icon: RouteIcon, permission: 'processes.viewAny' },
             { routeName: 'organization-design.professions.index', labelKey: 'nav.designProfessions', icon: AcademicCapIcon, anyPermission: ['occupations.viewAny', 'professions.manage'] },
@@ -695,6 +694,15 @@ const navGroups: NavGroup[] = [
         /*
          * Client-facing service definitions and the entitlements catalog.
          */
+        /* The institutions' main services (owner request 2026-11-08): what the public forms offer as "the service you received". */
+        key: 'institutionServices',
+        labelKey: 'nav.groupInstitutionServices',
+        icon: Layers,
+        items: [
+            { routeName: 'organization-design.services.index', labelKey: 'nav.institutionServices', icon: Layers, permission: 'service-catalog.viewAny' },
+        ],
+    },
+    {
         key: 'serviceManagement',
         labelKey: 'nav.groupServiceManagement',
         icon: HandHeartIcon,
@@ -933,7 +941,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'institutionServices', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
     // What the public sends in: feedback, Tip-offs and complaints — three separate modules, nothing shared.
     { labelKey: 'nav.sidebarPublicVoice', keys: ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'grievanceSetup', 'discipline', 'tribunalCourt', 'auditMonitoring'] },

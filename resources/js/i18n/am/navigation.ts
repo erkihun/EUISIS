@@ -186,6 +186,8 @@ const navigation = {
     groupOrganizationDesign: 'የተቋም አደረጃጀትና የሰው ኃይል ዕቅድ',
     designMandates: 'ሕጋዊ ሥልጣንና ተግባራት',
     designFunctions: 'ተግባራት',
+    groupInstitutionServices: 'አገልግሎቶች',
+    institutionServices: "የተቋማት አገልግሎቶች",
     designServices: 'የአገልግሎት ካታሎግ',
     designClassifications: 'ምደባዎች',
     designProcesses: 'የሥራ ሂደቶችና ስታንዳርዶች',

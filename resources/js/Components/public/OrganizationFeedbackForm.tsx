@@ -344,32 +344,17 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
         );
     }
 
-    const visible = filter.trim() === '' ? items : items.filter((item) => `${item.code} ${item.name}`.toLowerCase().includes(filter.trim().toLowerCase()));
 
     return (
         <div data-field>
             <label htmlFor={mode === 'list' ? 'service_id' : 'service_search'} className={labelClass}>{t('serviceFeedback.serviceReceived')}<RequirementMark required={false} /></label>
             {mode === 'list' && (
-                <>
-                    {items.length > 12 && (
-                        <input type="search" aria-label={t('serviceFeedback.serviceFilter')} placeholder={t('serviceFeedback.serviceFilter')} value={filter} onChange={(event) => setFilter(event.target.value)} className={fieldClass} />
-                    )}
-                    <select
-                        id="service_id"
-                        value={other ? OTHER_SERVICE : data.service_id}
-                        aria-invalid={error ? true : undefined}
-                        onChange={(event) => {
-                            const value = event.target.value;
-                            setOther(value === OTHER_SERVICE);
-                            setService(value === OTHER_SERVICE ? '' : value, '');
-                        }}
-                        className={fieldClass}
-                    >
-                        <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
-                        {visible.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                        <option value={OTHER_SERVICE}>{t('serviceFeedback.serviceNotListed')}</option>
-                    </select>
-                </>
+                <SearchableSelect id="service_id" value={other ? OTHER_SERVICE : data.service_id}
+                    display={other ? t('serviceFeedback.serviceNotListed') : items.find((item) => item.id === data.service_id)?.name ?? t('serviceFeedback.serviceTypePlaceholder')}
+                    options={items.map((item) => ({ id: item.id, label: item.name }))}
+                    tail={{ id: OTHER_SERVICE, label: t('serviceFeedback.serviceNotListed') }}
+                    onChoose={(option) => { setOther(option.id === OTHER_SERVICE); setService(option.id === OTHER_SERVICE ? '' : option.id, ''); }}
+                    searchLabel={t('serviceFeedback.serviceFilter')} noMatch={t('serviceFeedback.serviceNoMatch')} invalid={Boolean(error)} />
             )}
             {mode === 'search' && !other && (
                 <>
@@ -415,29 +400,22 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
     );
 }
 
+type PickOption = { id: string; label: string; detail?: string | null };
+
 /**
- * The relevant work unit: which part of the institution the submission
- * concerns, or "General / Not sure". One field (owner request 2026-11-08):
- * tapping it opens the list with a search box on top; typing narrows it.
- * Each unit shows its parent unit underneath. Only the unit's name is shown:
- * no code, no staff, no manager.
+ * One field that opens a list with a search box on top (owner request
+ * 2026-11-08); typing narrows it, a tap chooses and closes it. Used for the
+ * work unit and for the service received.
  */
-function RelevantWorkUnit({ units, value, required, onChange, error, kind }: {
-    units: UnitOption[];
-    value: string;
-    required: boolean;
-    onChange: (unitId: string) => void;
-    error?: string;
-    kind?: 'feedback' | 'suggestion' | 'complaint';
+function SearchableSelect({ id, value, display, options, lead, tail, onChoose, searchLabel, noMatch, describedBy, invalid, required }: {
+    id: string; value: string; display: string; options: PickOption[]; lead?: PickOption; tail?: PickOption;
+    onChoose: (option: PickOption) => void; searchLabel: string; noMatch: string; describedBy?: string; invalid?: boolean; required?: boolean;
 }) {
-    const { t } = useLocale();
     const [open, setOpen] = useState(false);
     const [filter, setFilter] = useState('');
     const box = useRef<HTMLDivElement>(null);
     const term = filter.trim().toLowerCase();
-    const visible = term === '' ? units : units.filter((unit) => unitLabel(unit).toLowerCase().includes(term));
-    const selected = units.find((unit) => unit.id === value);
-    const describedBy = ['relevant-work-unit-hint', error ? 'relevant-work-unit-error' : null].filter(Boolean).join(' ');
+    const visible = term === '' ? options : options.filter((option) => `${option.label} ${option.detail ?? ''}`.toLowerCase().includes(term));
 
     // A tap outside, or Escape, closes the list.
     useEffect(() => {
@@ -456,45 +434,78 @@ function RelevantWorkUnit({ units, value, required, onChange, error, kind }: {
         };
     }, [open]);
 
-    const choose = (unitId: string) => {
-        onChange(unitId);
+    const choose = (option: PickOption) => {
+        onChoose(option);
         setOpen(false);
         setFilter('');
     };
-    const row = (id: string, label: string, detail: string | null, active: boolean) => (
-        <li key={id || 'general'} role="option" aria-selected={active}>
-            <button type="button" onClick={() => choose(id)}
-                className={`flex min-h-12 w-full flex-col items-start justify-center px-4 py-2 text-left hover:bg-(--app-surface-muted) focus-visible:bg-(--app-surface-muted) focus-visible:outline-hidden ${active ? 'bg-primary/5' : ''}`}>
-                <span className={`text-sm text-(--app-foreground) wrap-anywhere ${active ? 'font-semibold' : 'font-medium'}`}>{label}</span>
-                {detail && <span className={`text-xs ${mutedClass}`}>{detail}</span>}
-            </button>
-        </li>
-    );
+    const row = (option: PickOption) => {
+        const active = option.id === value;
+        return (
+            <li key={option.id || 'lead'} role="option" aria-selected={active}>
+                <button type="button" onClick={() => choose(option)}
+                    className={`flex min-h-12 w-full flex-col items-start justify-center px-4 py-2 text-left hover:bg-(--app-surface-muted) focus-visible:bg-(--app-surface-muted) focus-visible:outline-hidden ${active ? 'bg-primary/5' : ''}`}>
+                    <span className={`text-sm text-(--app-foreground) wrap-anywhere ${active ? 'font-semibold' : 'font-medium'}`}>{option.label}</span>
+                    {option.detail && <span className={`text-xs ${mutedClass}`}>{option.detail}</span>}
+                </button>
+            </li>
+        );
+    };
 
     return (
-        <div data-field ref={box} className="relative">
-            <label htmlFor="organization_unit_id" className={labelClass}>{t('serviceFeedback.relevantWorkUnit')}<RequirementMark required={required} /></label>
-            <p id="relevant-work-unit-hint" className={`mt-1 text-xs ${mutedClass}`}>{t(kind ? `serviceFeedback.relevantWorkUnitHints.${kind}` : 'serviceFeedback.relevantWorkUnitHint')}</p>
-            <button id="organization_unit_id" type="button" aria-haspopup="listbox" aria-expanded={open} aria-describedby={describedBy}
-                aria-invalid={error ? true : undefined} aria-required={required || undefined} onClick={() => setOpen(!open)}
+        <div ref={box} className="relative">
+            <button id={id} type="button" aria-haspopup="listbox" aria-expanded={open} aria-describedby={describedBy}
+                aria-invalid={invalid || undefined} aria-required={required || undefined} onClick={() => setOpen(!open)}
                 className={`${fieldClass} flex items-center justify-between gap-2 text-left`}>
-                <span className="min-w-0 truncate">{selected ? unitLabel(selected) : t('serviceFeedback.generalNotSure')}</span>
+                <span className="min-w-0 truncate">{display}</span>
                 <ChevronDown className={`h-5 w-5 shrink-0 ${mutedClass} transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
             {open && (
                 <div className="mt-1 overflow-hidden rounded-xl border border-(--app-border) bg-(--app-surface) shadow-lg">
                     <div className="border-b border-(--app-border) p-2">
-                        <input type="search" autoFocus aria-label={t('serviceFeedback.unitFilter')} placeholder={t('serviceFeedback.unitFilter')} value={filter}
+                        <input type="search" autoFocus aria-label={searchLabel} placeholder={searchLabel} value={filter}
                             onChange={(event) => setFilter(event.target.value)} autoComplete="off"
                             className="h-11 w-full rounded-lg border border-(--app-border) bg-(--app-surface) px-3 text-base text-(--app-foreground) focus:border-primary focus:outline-hidden" />
                     </div>
-                    <ul role="listbox" aria-label={t('serviceFeedback.relevantWorkUnit')} className="max-h-72 overflow-y-auto">
-                        {term === '' && row('', t('serviceFeedback.generalNotSure'), null, value === '')}
-                        {visible.map((unit) => row(unit.id, unit.name, unit.parent ?? null, unit.id === value))}
-                        {visible.length === 0 && <li className={`px-4 py-3 text-sm ${mutedClass}`} aria-live="polite">{t('serviceFeedback.unitNoMatch')}</li>}
+                    <ul role="listbox" className="max-h-72 overflow-y-auto">
+                        {term === '' && lead && row(lead)}
+                        {visible.map(row)}
+                        {visible.length === 0 && <li className={`px-4 py-3 text-sm ${mutedClass}`} aria-live="polite">{noMatch}</li>}
+                        {tail && row(tail)}
                     </ul>
                 </div>
             )}
+        </div>
+    );
+}
+
+/**
+ * The relevant work unit: which part of the institution the submission
+ * concerns, or "General / Not sure", in one searchable dropdown. Each unit
+ * shows its parent underneath. Only the unit's name is shown: no code, no
+ * staff, no manager.
+ */
+function RelevantWorkUnit({ units, value, required, onChange, error, kind }: {
+    units: UnitOption[];
+    value: string;
+    required: boolean;
+    onChange: (unitId: string) => void;
+    error?: string;
+    kind?: 'feedback' | 'suggestion' | 'complaint';
+}) {
+    const { t } = useLocale();
+    const selected = units.find((unit) => unit.id === value);
+    const describedBy = ['relevant-work-unit-hint', error ? 'relevant-work-unit-error' : null].filter(Boolean).join(' ');
+
+    return (
+        <div data-field>
+            <label htmlFor="organization_unit_id" className={labelClass}>{t('serviceFeedback.relevantWorkUnit')}<RequirementMark required={required} /></label>
+            <p id="relevant-work-unit-hint" className={`mt-1 text-xs ${mutedClass}`}>{t(kind ? `serviceFeedback.relevantWorkUnitHints.${kind}` : 'serviceFeedback.relevantWorkUnitHint')}</p>
+            <SearchableSelect id="organization_unit_id" value={value} display={selected ? unitLabel(selected) : t('serviceFeedback.generalNotSure')}
+                options={units.map((unit) => ({ id: unit.id, label: unit.name, detail: unit.parent ?? null }))}
+                lead={{ id: '', label: t('serviceFeedback.generalNotSure') }}
+                onChoose={(option) => onChange(option.id)} searchLabel={t('serviceFeedback.unitFilter')} noMatch={t('serviceFeedback.unitNoMatch')}
+                describedBy={describedBy} invalid={Boolean(error)} required={required} />
             {error && <p id="relevant-work-unit-error" role="alert" className={errorClass}>{error}</p>}
         </div>
     );
