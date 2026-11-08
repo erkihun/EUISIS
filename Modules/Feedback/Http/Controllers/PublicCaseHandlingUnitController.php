@@ -79,6 +79,7 @@ class PublicCaseHandlingUnitController extends Controller
             return [
                 'id' => $d->getKey(),
                 'case_type' => $d->case_type,
+                'stage' => $d->stage ?? 'first_instance',
                 'status' => $d->status,
                 'description_en' => $d->description_en,
                 'description_am' => $d->description_am,
@@ -109,6 +110,8 @@ class PublicCaseHandlingUnitController extends Controller
                 'attention' => $base()->get()->filter(fn (PublicCaseHandlingUnit $d): bool => $d->isActive() && $this->handling->problems($d) !== [])->count(),
             ],
             'can' => ['designate' => $this->organizationOptions($user, $locale) !== []],
+            // ADR 0035: institutions with a complaint unit but no appeal committee or head's office.
+            'stageGaps' => $caseType === 'complaint' ? $this->stageGaps($base(), $this->organizationNames($base()->where('status', 'active')->pluck('organization_id')->unique()->all(), $locale)) : [],
         ]);
     }
 
@@ -155,6 +158,8 @@ class PublicCaseHandlingUnitController extends Controller
         $data = $request->validate([
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
             'organization_unit_id' => ['required', 'uuid', Rule::exists('organization_units', 'id')->where('organization_id', (string) $request->input('organization_id'))],
+            // ADR 0035: complaint units only — the committee, the appeal committee or the head's office.
+            'stage' => ['nullable', Rule::in(PublicCaseHandlingUnit::STAGES)],
             'description_en' => ['nullable', 'string', 'max:2000'],
             'description_am' => ['nullable', 'string', 'max:2000'],
         ]);
@@ -228,6 +233,18 @@ class PublicCaseHandlingUnitController extends Controller
     }
 
     /** The unit page of a module: Feedback, Tip-off or Complaint Unit. */
+    /**
+     * @return list<array{organization: string|null, missing: list<string>}>
+     */
+    private function stageGaps($query, array $orgNames): array
+    {
+        return $query->where('status', 'active')->get(['organization_id', 'stage'])->groupBy('organization_id')
+            ->map(fn ($rows, $orgId): array => [
+                'organization' => $orgNames[$orgId] ?? null,
+                'missing' => array_values(array_diff(PublicCaseHandlingUnit::STAGES, $rows->pluck('stage')->all())),
+            ])->filter(fn (array $row): bool => $row['missing'] !== [])->values()->all();
+    }
+
     public static function indexRoute(string $caseType): string
     {
         return (PublicCaseHandlingUnit::ROUTES[$caseType] ?? PublicCaseHandlingUnit::ROUTES['suggestion']).'.index';

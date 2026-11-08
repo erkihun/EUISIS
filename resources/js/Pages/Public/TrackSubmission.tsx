@@ -1,12 +1,15 @@
-import { FormEvent } from 'react';
-import { useForm } from '@inertiajs/react';
+import { FormEvent, useState } from 'react';
+import { useForm, usePage } from '@inertiajs/react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { cardClass, errorClass, fieldClass, labelClass, mutedClass, sendButtonClass } from '@/Components/public/feedbackFormParts';
+import { areaClass, cardClass, errorClass, fieldClass, labelClass, mutedClass, sendButtonClass } from '@/Components/public/feedbackFormParts';
 import FeedbackAppLayout from '@/Layouts/FeedbackAppLayout';
 import { useLocale } from '@/hooks/useLocale';
 
 type Stage = 'received' | 'in_review' | 'decided' | 'closed';
-type Result = { reference: string; type: 'suggestion' | 'complaint'; stage: Stage; received_at: string | null; updated_at: string | null };
+/** ADR 0035: what the complainant was told at each stage, never who decided. */
+type HearingStage = { stage: 1 | 2 | 3; opened_at?: string; appeal_reason?: string; decision?: 'answered' | 'upheld' | 'overturned'; response?: string; decided_at?: string; appeal_deadline_at?: string; citizen_outcome?: 'accepted' | 'appealed' | 'lapsed' };
+type Hearing = { current: 1 | 2 | 3; next: 2 | 3 | null; stages: HearingStage[]; can_accept: boolean; can_appeal: boolean };
+type Result = { reference: string; type: 'suggestion' | 'complaint'; stage: Stage; received_at: string | null; updated_at: string | null; hearing?: Hearing | null };
 
 const STAGES: Stage[] = ['received', 'in_review', 'decided', 'closed'];
 
@@ -76,6 +79,74 @@ export default function TrackSubmission({ reference = '', result = null }: { ref
                     <p className={`text-xs leading-relaxed ${mutedClass}`}>{k('privacy')}</p>
                 </section>
             )}
+
+            {result?.hearing && <HearingPanel reference={result.reference} hearing={result.hearing} />}
         </FeedbackAppLayout>
+    );
+}
+
+/** ADR 0035: the responses given so far, and the complainant's answer to the latest one. */
+function HearingPanel({ reference, hearing }: { reference: string; hearing: Hearing }) {
+    const { t } = useLocale();
+    const h = (key: string) => t(`serviceFeedback.hearing.${key}`);
+    const flash = (usePage().props as { flash?: { success?: string | null } }).flash;
+    const [appealing, setAppealing] = useState(false);
+    const form = useForm({ reference, action: 'accept' as 'accept' | 'appeal', reason: '' });
+    const latest = hearing.stages[hearing.stages.length - 1];
+    const errors = form.errors as Record<string, string | undefined>;
+    const send = (action: 'accept' | 'appeal') => (event?: FormEvent) => {
+        event?.preventDefault();
+        form.transform((data) => ({ ...data, action }));
+        form.post(route('public-submissions.track.respond'), { preserveScroll: true, onSuccess: () => { setAppealing(false); form.reset('reason'); } });
+    };
+
+    return (
+        <section aria-labelledby="hearing-title" className={`${cardClass} mt-4 space-y-4`}>
+            <div>
+                <h2 id="hearing-title" className="text-sm font-semibold text-(--app-foreground)">{h('publicTitle')}</h2>
+                <p className={`mt-1 text-xs ${mutedClass}`}>{h('intro')}</p>
+            </div>
+            {flash?.success && <p role="status" className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-200">{flash.success}</p>}
+            <ol className="space-y-3">
+                {hearing.stages.map((row) => (
+                    <li key={row.stage} className="rounded-xl border border-(--app-border) p-3">
+                        <p className="text-sm font-semibold text-(--app-foreground)">{t(`serviceFeedback.hearing.stageNames.${row.stage}`)}</p>
+                        {row.appeal_reason && <p className={`mt-1 text-xs ${mutedClass}`}>{h('appealReason')}: {row.appeal_reason}</p>}
+                        {row.response
+                            ? <>
+                                <p className="mt-2 text-xs font-semibold text-(--app-foreground)">{row.decision && row.decision !== 'answered' ? t(`serviceFeedback.hearing.decisions.${row.decision}`) : h('response')}{row.decided_at && <> · <LocalizedDateDisplay value={row.decided_at} /></>}</p>
+                                <p className="mt-1 whitespace-pre-line text-sm text-(--app-foreground)">{row.response}</p>
+                            </>
+                            : <p className={`mt-2 text-sm ${mutedClass}`}>{row.stage > 1 ? h('appealInReview') : t('serviceFeedback.tracking.stageHints.in_review')}</p>}
+                        {row.citizen_outcome && <p className={`mt-2 text-xs ${mutedClass}`}>{t(`serviceFeedback.hearing.outcomes.${row.citizen_outcome}`)}</p>}
+                        {row.stage === 3 && row.response && <p className={`mt-2 text-xs ${mutedClass}`}>{h('finalNote')}</p>}
+                    </li>
+                ))}
+            </ol>
+
+            {(hearing.can_accept || hearing.can_appeal) && (
+                <div className="space-y-3 border-t border-(--app-border) pt-3">
+                    {latest?.appeal_deadline_at && <p className={`text-xs ${mutedClass}`}>{h('answerBy')}: <span className="font-semibold text-(--app-foreground)"><LocalizedDateDisplay value={latest.appeal_deadline_at} /></span> · {h('answerByHint')}</p>}
+                    {errors.reference && <p role="alert" className={errorClass}>{errors.reference}</p>}
+                    {errors.action && <p role="alert" className={errorClass}>{errors.action}</p>}
+                    {!appealing && <div className="grid gap-2">
+                        {hearing.can_accept && <button type="button" onClick={() => send('accept')()} disabled={form.processing} className={sendButtonClass}>{h('accept')}</button>}
+                        {hearing.can_appeal && hearing.next && <button type="button" onClick={() => setAppealing(true)} disabled={form.processing}
+                            className="min-h-[52px] w-full rounded-xl border border-(--app-border) bg-(--app-surface) px-4 text-base font-semibold text-(--app-foreground) hover:bg-(--app-surface-muted)">{t(`serviceFeedback.hearing.appealTo.${hearing.next}`)}</button>}
+                    </div>}
+                    {appealing && hearing.next && <form onSubmit={send('appeal')} className="space-y-3" noValidate>
+                        <div>
+                            <label htmlFor="appeal-reason" className={labelClass}>{h('appealReason')}</label>
+                            <p id="appeal-reason-hint" className={`mt-1 text-xs ${mutedClass}`}>{h('appealReasonHint')}</p>
+                            <textarea id="appeal-reason" rows={4} maxLength={2000} required aria-describedby="appeal-reason-hint" aria-invalid={errors.reason ? true : undefined}
+                                value={form.data.reason} onChange={(event) => form.setData('reason', event.target.value)} className={areaClass} />
+                            {errors.reason && <p role="alert" className={errorClass}>{errors.reason}</p>}
+                        </div>
+                        <button type="submit" disabled={form.processing} className={sendButtonClass}>{h('sendAppeal')}</button>
+                        <button type="button" onClick={() => setAppealing(false)} className={`w-full py-2 text-sm font-semibold ${mutedClass} hover:underline`}>{h('cancel')}</button>
+                    </form>}
+                </div>
+            )}
+        </section>
     );
 }

@@ -15,7 +15,11 @@ type Settings = {
     acknowledgement_enabled: boolean;
     rate_limit_per_source: number;
     rate_limit_per_ip: number;
-} & Record<RuleKey, number | null>;
+} & Record<RuleKey | AppealKey, number | null>;
+
+/** ADR 0035: the complaint appeal periods; empty assumes none. */
+const APPEAL_KEYS = ['complaint_appeal_days', 'complaint_appeal_response_days'] as const;
+type AppealKey = (typeof APPEAL_KEYS)[number];
 
 /** Executive Situation Room rules: empty keeps a rule off, so nothing is called overdue or rising on an invented number. */
 const RULES = [
@@ -123,6 +127,18 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
                         {RULES.map((rule) => (
                             <FormField key={rule.key} id={`setting-${rule.key}`} label={t(`situationRoom.rule_${rule.key}`)} description={t('situationRoom.ruleOffHint')} error={errors[rule.key]}>
                                 {({ id, describedBy, invalid }) => <Input id={id} type="number" min={rule.min} max={rule.max} inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} value={form.data[rule.key] ?? ''} onChange={(e) => form.setData(rule.key, e.target.value === '' ? null : Number(e.target.value))} />}
+                            </FormField>
+                        ))}
+                    </div>
+                </Card>
+
+                <Card className="space-y-4 p-5">
+                    <h2 className="font-semibold">{t('serviceFeedback.hearing.settingsTitle')}</h2>
+                    <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.hearing.settingsIntro')}</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {APPEAL_KEYS.map((key) => (
+                            <FormField key={key} id={`setting-${key}`} label={t(`serviceFeedback.hearing.setting_${key}`)} description={t('serviceFeedback.hearing.settingOffHint')} error={errors[key]}>
+                                {({ id, describedBy, invalid }) => <Input id={id} type="number" min={1} max={365} inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} value={form.data[key] ?? ''} onChange={(e) => form.setData(key, e.target.value === '' ? null : Number(e.target.value))} />}
                             </FormField>
                         ))}
                     </div>

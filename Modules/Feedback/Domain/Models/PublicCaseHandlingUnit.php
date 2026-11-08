@@ -27,6 +27,16 @@ class PublicCaseHandlingUnit extends Model
         'complaint' => 'public-complaints.units',
     ];
 
+    /**
+     * ADR 0035: which hearing of a complaint the unit serves — the complaint
+     * committee, the appeal committee (አቤቱታ ሰሚ ኮሚቴ) or the head of the
+     * institution's office. Other case types keep first_instance.
+     */
+    public const STAGES = ['first_instance', 'appeal', 'head_office'];
+
+    /** An institution has one appeal committee and one head's office at a time. */
+    public const SINGLE_STAGES = ['appeal', 'head_office'];
+
     /** The cases that are routed and assigned (rating feedback is reviewed, not routed). */
     public const ROUTED_TYPES = ['suggestion', 'complaint'];
 
@@ -34,6 +44,7 @@ class PublicCaseHandlingUnit extends Model
         'organization_id',
         'organization_unit_id',
         'case_type',
+        'stage',
         'status',
         'description_en',
         'description_am',

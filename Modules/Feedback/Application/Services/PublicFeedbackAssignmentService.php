@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
@@ -49,6 +50,7 @@ final class PublicFeedbackAssignmentService
         ?Request $request = null,
         ?int $level = null,
         bool $escalation = false,
+        ?Carbon $dueAt = null,
     ): PublicFeedbackAssignment {
         $names = $type->names($handlerId);
 
@@ -64,14 +66,16 @@ final class PublicFeedbackAssignmentService
             throw ValidationException::withMessages(['handler_id' => __('service-feedback.not_assignable')]);
         }
 
-        return DB::transaction(function () use ($submission, $type, $handlerId, $names, $actor, $reason, $rule, $request, $level, $escalation): PublicFeedbackAssignment {
+        return DB::transaction(function () use ($submission, $type, $handlerId, $names, $actor, $reason, $rule, $request, $level, $escalation, $dueAt): PublicFeedbackAssignment {
             $now = now();
             $previous = $submission->currentAssignment()->first();
             $level ??= $previous->level ?? 1;
             // ADR 0033: a rule's response days start the clock; a manual hand-over
             // inside the same level keeps the level's deadline (it belongs to the
             // level, not the person).
+            // ADR 0035: an appeal stage brings its own deadline.
             $dueAt = match (true) {
+                $dueAt !== null => $dueAt,
                 $rule?->response_days !== null => $now->copy()->addDays($rule->response_days),
                 $rule === null && $previous !== null && $previous->level === $level => $previous->due_at,
                 default => null,

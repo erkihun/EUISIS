@@ -20,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Feedback\Application\Services\PublicCaseHandlingUnitService;
+use Modules\Feedback\Application\Services\PublicComplaintStageService;
 use Modules\Feedback\Application\Services\PublicEvidencePolicy;
 use Modules\Feedback\Application\Services\PublicFeedbackAssignmentService;
 use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaire;
@@ -149,7 +150,9 @@ class ServiceSubmissionController extends Controller
             fn (ServiceFeedbackStatus $to): string => $to->value,
             array_filter(
                 $this->workflow->allowedFrom($kind, $submission->status),
-                fn (ServiceFeedbackStatus $to): bool => ! $to->isSystemManaged() && $user->can('transition', [$submission, $to]),
+                fn (ServiceFeedbackStatus $to): bool => ! $to->isSystemManaged() && $user->can('transition', [$submission, $to])
+                    && ($to !== ServiceFeedbackStatus::Closed || app(PublicComplaintStageService::class)->closable($submission))
+                    && ! ($to === ServiceFeedbackStatus::Resolved && app(PublicComplaintStageService::class)->decidedEarlier($user, $submission)),
             ),
         ));
         $current = $submission->currentAssignment;
@@ -204,6 +207,8 @@ class ServiceSubmissionController extends Controller
             'assignments' => $submission->assignments->map(fn (PublicFeedbackAssignment $row): array => $this->assignmentRow($row, $locale))->values()->all(),
             'currentAssignment' => $current === null ? null : $this->assignmentRow($current, $locale),
             'allowedTransitions' => $allowed,
+            // ADR 0035: the complaint's hearing stages (committee, appeal committee, head).
+            'hearing' => $kind === ServiceFeedbackType::Complaint ? app(PublicComplaintStageService::class)->present($submission) : null,
             'subjects' => $submission->subjects->map(fn ($subject): array => [
                 'id' => $subject->id,
                 'employee' => ['id' => $subject->employee_id, 'full_name' => $subject->employee?->full_name, 'employee_number' => $subject->employee?->employee_number],
@@ -250,6 +255,8 @@ class ServiceSubmissionController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in(ServiceFeedbackStatus::values())],
             'reason' => ['nullable', 'string', 'max:2000'],
+            // ADR 0035: an appeal stage upholds or overturns the answer before it.
+            'stage_decision' => ['nullable', Rule::in(['upheld', 'overturned'])],
         ]);
         $to = ServiceFeedbackStatus::from($data['status']);
 
@@ -258,6 +265,21 @@ class ServiceSubmissionController extends Controller
         }
 
         $this->authorize('transition', [$submission, $to]);
+        // ADR 0035, also for accounts past the policy: no closing while the complainant's appeal period runs.
+        if ($to === ServiceFeedbackStatus::Closed && ! app(PublicComplaintStageService::class)->closable($submission)) {
+            throw ValidationException::withMessages(['status' => __('service-feedback.stages.appeal_period_running')]);
+        }
+
+        if ($kind === ServiceFeedbackType::Complaint && $to === ServiceFeedbackStatus::Resolved) {
+            // ADR 0035: the decision of the stage the complaint is in, with the response the complainant reads.
+            try {
+                app(PublicComplaintStageService::class)->decide($submission, $user, $data['stage_decision'] ?? null, $data['reason'] ?? null, $request);
+            } catch (PublicFeedbackTransitionException) {
+                throw ValidationException::withMessages(['status' => __('service-feedback.transition_not_allowed')]);
+            }
+
+            return back()->with('success', __('service-feedback.status_changed'));
+        }
 
         try {
             $this->workflow->transition($submission, $to, $user, $data['reason'] ?? null, $request);

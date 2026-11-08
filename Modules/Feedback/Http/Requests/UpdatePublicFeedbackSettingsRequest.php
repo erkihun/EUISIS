@@ -35,6 +35,9 @@ class UpdatePublicFeedbackSettingsRequest extends FormRequest
             'spike_threshold_percent' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:1000'],
             'spike_minimum_count' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10000'],
             'repeat_threshold_count' => ['sometimes', 'nullable', 'integer', 'min:2', 'max:10000'],
+            // ADR 0035: complaint appeal periods; empty assumes none.
+            'complaint_appeal_days' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:365'],
+            'complaint_appeal_response_days' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:365'],
         ];
     }
 }

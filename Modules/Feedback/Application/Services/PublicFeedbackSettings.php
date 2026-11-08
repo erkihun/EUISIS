@@ -42,9 +42,12 @@ final class PublicFeedbackSettings implements FeedbackSettings
 
     public const DEFAULT_RATE_LIMIT_PER_IP = 30;
 
-    public const KEYS = ['enabled', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip', ...self::SITUATION_ROOM_KEYS];
+    public const KEYS = ['enabled', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip', ...self::SITUATION_ROOM_KEYS, ...self::APPEAL_KEYS];
 
     /** Executive Situation Room community-voice rules; null = the rule is off (NEEDS_DECISION until set). */
+    /** ADR 0035: the complaint appeal periods, in days; empty means none is assumed. */
+    public const APPEAL_KEYS = ['complaint_appeal_days', 'complaint_appeal_response_days'];
+
     public const SITUATION_ROOM_KEYS = ['sla_days_feedback', 'sla_days_suggestion', 'sla_days_complaint', 'spike_threshold_percent', 'spike_minimum_count', 'repeat_threshold_count'];
 
     public function __construct(
@@ -112,6 +115,25 @@ final class PublicFeedbackSettings implements FeedbackSettings
         return $rules;
     }
 
+    /** Days a complainant has to accept a decision or appeal it; null: no period, the appeal stays open. */
+    public function complaintAppealDays(): ?int
+    {
+        return $this->days('complaint_appeal_days');
+    }
+
+    /** Days the appeal committee or the head has to decide an appeal; null: no deadline. */
+    public function complaintAppealResponseDays(): ?int
+    {
+        return $this->days('complaint_appeal_response_days');
+    }
+
+    private function days(string $key): ?int
+    {
+        $value = $this->settings->get(self::GROUP, $key);
+
+        return $value === null || $value === '' ? null : max(1, (int) $value);
+    }
+
     /** @return array<string, mixed> */
     public function toArray(): array
     {
@@ -125,6 +147,8 @@ final class PublicFeedbackSettings implements FeedbackSettings
             'rate_limit_per_source' => $this->rateLimitPerSource(),
             'rate_limit_per_ip' => $this->rateLimitPerIp(),
             ...$this->situationRoomRules(),
+            'complaint_appeal_days' => $this->complaintAppealDays(),
+            'complaint_appeal_response_days' => $this->complaintAppealResponseDays(),
         ];
     }
 

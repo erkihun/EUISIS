@@ -59,7 +59,8 @@ final class PublicFeedbackWorkflow
                 'unrouted' => [$s::Assigned],
                 'assigned' => [$s::UnderReview],
                 'under_review' => [$s::Resolved],
-                'resolved' => [$s::Closed],
+                // ADR 0035: an appeal reopens a decided complaint for the next stage (system-set, never picked by hand).
+                'resolved' => [$s::Closed, $s::Assigned, $s::Unrouted],
                 'reviewed' => [$s::Closed],
             ],
         };

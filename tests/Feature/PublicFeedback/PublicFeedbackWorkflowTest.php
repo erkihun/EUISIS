@@ -104,8 +104,9 @@ it('defines a lightweight feedback workflow and a stronger complaint workflow', 
         ->toEqualCanonicalizing([ServiceFeedbackStatus::UnderReview])
         ->and($workflow->allowedFrom(ServiceFeedbackType::Complaint, ServiceFeedbackStatus::UnderReview))
         ->toEqualCanonicalizing([ServiceFeedbackStatus::Resolved])
+        // ADR 0035: an appeal reopens a decided complaint (system-set).
         ->and($workflow->allowedFrom(ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Resolved))
-        ->toEqualCanonicalizing([ServiceFeedbackStatus::Closed])
+        ->toEqualCanonicalizing([ServiceFeedbackStatus::Closed, ServiceFeedbackStatus::Assigned, ServiceFeedbackStatus::Unrouted])
         ->and($workflow->allowedFrom(ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed))
         ->toBe([]);
 });

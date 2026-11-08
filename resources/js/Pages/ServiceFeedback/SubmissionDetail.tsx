@@ -114,6 +114,9 @@ const TIP_TYPE_LABEL: Record<TipType, string> = { CORRUPTION: 'serviceFeedback.t
 const EVIDENCE_LABEL = { photo: 'serviceFeedback.evidencePhoto', video: 'serviceFeedback.evidenceVideo', audio: 'serviceFeedback.evidenceAudio', document: 'serviceFeedback.evidenceDocument' } as const;
 type HistoryRow = { id: string; from_status: string | null; to_status: string; actor: string | null; reason: string | null; transitioned_at: string | null };
 type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null; level: number; due_at: string | null; overdue: boolean; escalated: boolean };
+/** ADR 0035: the hearing stages of a complaint. */
+type HearingStage = { stage: 1 | 2 | 3; opened_at?: string; appeal_reason?: string; decision?: 'answered' | 'upheld' | 'overturned'; response?: string; decided_by?: string; decided_at?: string; appeal_deadline_at?: string; citizen_outcome?: 'accepted' | 'appealed' | 'lapsed'; citizen_responded_at?: string };
+type Hearing = { current: 1 | 2 | 3; decision_required: boolean; next: 2 | 3 | null; stages: HearingStage[] };
 type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
 
 type Props = {
@@ -131,6 +134,7 @@ type Props = {
     delegateOptions?: { id: string; name: string }[] | null;
     /** Organization form: the service received and the questionnaire answers; null otherwise. */
     organizationForm?: OrganizationFormDetailsData | null;
+    hearing?: Hearing | null;
 };
 
 const HANDLER_TYPE_KEY: Record<AssignmentRow['handler_type'], string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
@@ -144,7 +148,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * stands and every step it took (brief §52–53). The transition form offers
  * only the statuses this user may set from here; assignment opens a dialog.
  */
-export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, delegateOptions = null, subjects = [], referrals = [], organizationForm = null }: Props) {
+export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, delegateOptions = null, subjects = [], referrals = [], organizationForm = null, hearing = null }: Props) {
     const { t, locale } = useLocale();
     const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
     const [assigning, setAssigning] = useState(false);
@@ -229,6 +233,8 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         ))}</ul>
                     </section>}
 
+                    {hearing && <HearingPanel hearing={hearing} status={entry.status} />}
+
                     <section className={PANEL}>
                         <h2 className="font-semibold">{t('serviceFeedback.statusHistory')}</h2>
                         {history.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noHistory')}</p>
@@ -274,7 +280,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         </details>}
                     </section>
 
-                    {allowedTransitions.length > 0 && <TransitionForm key={`${entry.status}:${allowedTransitions.join(',')}`} type={type} submissionId={entry.id} allowedTransitions={allowedTransitions} />}
+                    {allowedTransitions.length > 0 && <TransitionForm key={`${entry.status}:${allowedTransitions.join(',')}`} type={type} submissionId={entry.id} allowedTransitions={allowedTransitions} decisionRequired={hearing?.decision_required ?? false} />}
 
                     {entry.review_note && <Card className="p-5 text-sm"><h2 className="font-semibold">{t('serviceFeedback.reviewNote')}</h2><p className="mt-2 whitespace-pre-wrap">{entry.review_note}</p></Card>}
                     {type === 'complaint' && <SubjectsPanel submissionId={entry.id} subjects={subjects} canManage={can.subjects} />}
@@ -292,9 +298,12 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
 const PANEL = 'space-y-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5';
 
 /** Keyed by the current status by its parent, so its default choice follows every change. */
-function TransitionForm({ type, submissionId, allowedTransitions }: { type: 'suggestion' | 'complaint'; submissionId: string; allowedTransitions: string[] }) {
+function TransitionForm({ type, submissionId, allowedTransitions, decisionRequired = false }: { type: 'suggestion' | 'complaint'; submissionId: string; allowedTransitions: string[]; decisionRequired?: boolean }) {
     const { t } = useLocale();
-    const form = useForm({ status: allowedTransitions[0] ?? '', reason: '' });
+    const form = useForm({ status: allowedTransitions[0] ?? '', reason: '', stage_decision: '' });
+    // ADR 0035: resolving a complaint is the stage's decision, with the response the complainant reads.
+    const deciding = type === 'complaint' && form.data.status === 'resolved';
+    const errors = form.errors as Record<string, string | undefined>;
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -308,8 +317,15 @@ function TransitionForm({ type, submissionId, allowedTransitions }: { type: 'sug
                 {allowedTransitions.map((status) => <option key={status} value={status}>{t(statusLabelKey(status))}</option>)}
             </Select>}
         </FormField>
-        <FormField id="transition-reason" label={t('serviceFeedback.transitionReason')} description={t('serviceFeedback.reviewHint')} error={form.errors.reason}>
-            {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={3} maxLength={2000} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />}
+        {deciding && decisionRequired && <FormField id="transition-stage-decision" label={t('serviceFeedback.hearing.decisionLabel')} error={errors.stage_decision} required>
+            {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.stage_decision} onChange={(e) => form.setData('stage_decision', e.target.value)}>
+                <option value="">—</option>
+                <option value="upheld">{t('serviceFeedback.hearing.decisionOptions.upheld')}</option>
+                <option value="overturned">{t('serviceFeedback.hearing.decisionOptions.overturned')}</option>
+            </Select>}
+        </FormField>}
+        <FormField id="transition-reason" label={deciding ? t('serviceFeedback.hearing.responseLabel') : t('serviceFeedback.transitionReason')} description={deciding ? t('serviceFeedback.hearing.responseHint') : t('serviceFeedback.reviewHint')} error={form.errors.reason} required={deciding}>
+            {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={deciding ? 5 : 3} maxLength={2000} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />}
         </FormField>
         <Button type="submit" variant="primary" loading={form.processing}>{t('serviceFeedback.saveStatus')}</Button>
     </form>;
@@ -375,4 +391,41 @@ function AssignDialog({ type, submissionId, options, reassign, locale, onClose, 
             </FormField>
         </form>
     </AppDialog>;
+}
+
+/** ADR 0035: each stage the complaint passed — who decided, what the complainant was told and what they did. */
+function HearingPanel({ hearing, status }: { hearing: Hearing; status: string }) {
+    const { t } = useLocale();
+    const h = (key: string) => t(`serviceFeedback.hearing.${key}`);
+    const open = status !== 'closed';
+
+    return <section className={PANEL} aria-labelledby="hearing-heading">
+        <div>
+            <h2 id="hearing-heading" className="font-semibold">{h('title')}</h2>
+            <p className="mt-1 text-sm text-(--app-muted-foreground)">{h('intro')}</p>
+        </div>
+        <ol className="grid gap-3 sm:grid-cols-3">
+            {([1, 2, 3] as const).map((number) => {
+                const row = hearing.stages.find((s) => s.stage === number);
+                const isCurrent = open && hearing.current === number;
+                return <li key={number} aria-current={isCurrent ? 'step' : undefined}
+                    className={`rounded-control border p-3 text-sm ${isCurrent ? 'border-primary bg-primary/5' : 'border-(--app-border)'} ${row || number === 1 ? '' : 'opacity-60'}`}>
+                    <p className="font-semibold">{t(`serviceFeedback.hearing.stageNames.${number}`)}{isCurrent && <span className="font-normal text-(--app-muted-foreground)"> · {h('current')}</span>}</p>
+                    {row?.appeal_reason && <p className="mt-2 text-xs"><span className="font-semibold">{h('appealReason')}:</span> {row.appeal_reason}</p>}
+                    {row?.decided_at
+                        ? <>
+                            <p className="mt-2 text-xs font-semibold">{t(`serviceFeedback.hearing.decisions.${row.decision ?? 'answered'}`)}</p>
+                            {row.response && <p className="mt-1 whitespace-pre-line">{row.response}</p>}
+                            <p className="mt-1 text-xs text-(--app-muted-foreground)">{row.decided_by ?? t('common.system')} · <LocalizedDateDisplay value={row.decided_at} withTime /></p>
+                            {row.citizen_outcome
+                                ? <p className="mt-2 text-xs font-medium">{t(`serviceFeedback.hearing.outcomes.${row.citizen_outcome}`)}{row.citizen_responded_at && <> · <LocalizedDateDisplay value={row.citizen_responded_at} /></>}</p>
+                                : number < 3 && open && <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">{h('awaiting')}{row.appeal_deadline_at && <> · {h('appealDeadline')}: <LocalizedDateDisplay value={row.appeal_deadline_at} /></>}</p>}
+                            {number === 3 && <p className="mt-2 text-xs text-(--app-muted-foreground)">{h('final')}</p>}
+                        </>
+                        : (row || number === 1) && <p className="mt-2 text-xs text-(--app-muted-foreground)">{h('pending')}</p>}
+                </li>;
+            })}
+        </ol>
+        {open && <p className="text-xs text-(--app-muted-foreground)">{h('nextStage')}: {hearing.next ? t(`serviceFeedback.hearing.stageNames.${hearing.next}`) : h('noNext')}</p>}
+    </section>;
 }

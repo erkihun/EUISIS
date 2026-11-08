@@ -8,9 +8,11 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Backbone\Contracts\AssignmentContextReader;
 use App\Backbone\Contracts\EmployeeDirectory;
 use App\Backbone\Contracts\UnitDirectory;
+use App\Backbone\Data\EmployeeIdentity;
 use App\Enums\AuditEventType;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +22,8 @@ use Illuminate\Validation\ValidationException;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
-use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnitMember;
+use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 
 /**
  * Public Tip-off and complaint handling units (ADR 0034): an institution
@@ -39,7 +41,7 @@ final class PublicCaseHandlingUnitService
         private readonly WriteAuditLogAction $audit,
     ) {}
 
-    /** @param  array{organization_unit_id: string, case_type: string, description_en?: string|null, description_am?: string|null}  $data */
+    /** @param  array{organization_unit_id: string, case_type: string, stage?: string|null, description_en?: string|null, description_am?: string|null}  $data */
     public function designate(User $actor, array $data): PublicCaseHandlingUnit
     {
         $unit = $this->units->find((string) $data['organization_unit_id']);
@@ -54,17 +56,27 @@ final class PublicCaseHandlingUnitService
         if (PublicCaseHandlingUnit::query()->where('organization_unit_id', $unit->unitUuid)->where('case_type', $caseType)->exists()) {
             throw ValidationException::withMessages(['organization_unit_id' => __('service-feedback.handling_unit_exists')]);
         }
+        // ADR 0035: a complaint unit says which hearing it serves; one appeal committee and one head's office per institution.
+        $stage = $caseType === 'complaint' ? (string) ($data['stage'] ?? 'first_instance') : 'first_instance';
+        if (! in_array($stage, PublicCaseHandlingUnit::STAGES, true)) {
+            throw ValidationException::withMessages(['stage' => __('validation.in', ['attribute' => 'stage'])]);
+        }
+        if (in_array($stage, PublicCaseHandlingUnit::SINGLE_STAGES, true) && PublicCaseHandlingUnit::query()
+            ->where('organization_id', $unit->organizationUuid)->where('case_type', $caseType)->where('stage', $stage)->where('status', 'active')->exists()) {
+            throw ValidationException::withMessages(['stage' => __('service-feedback.stages.unit_stage_taken')]);
+        }
 
         $designation = PublicCaseHandlingUnit::query()->create([
             'organization_id' => $unit->organizationUuid,
             'organization_unit_id' => $unit->unitUuid,
             'case_type' => $caseType,
+            'stage' => $stage,
             'status' => 'active',
             'description_en' => $data['description_en'] ?? null,
             'description_am' => $data['description_am'] ?? null,
             'created_by' => $actor->getKey(),
         ]);
-        $this->record(AuditEventType::ServiceFeedbackHandlingUnitSaved, $actor, $designation, ['organization_unit_id' => $unit->unitUuid, 'case_type' => $caseType, 'status' => 'active'], 'Public case handling unit designated');
+        $this->record(AuditEventType::ServiceFeedbackHandlingUnitSaved, $actor, $designation, ['organization_unit_id' => $unit->unitUuid, 'case_type' => $caseType, 'stage' => $stage, 'status' => 'active'], 'Public case handling unit designated');
 
         return $designation;
     }
@@ -330,7 +342,7 @@ final class PublicCaseHandlingUnitService
     }
 
     /** Open assignments in this user's hands: in person, by role, by unit, or handed by them as head to a member. */
-    private function handledSubmissionIds(User $user): \Illuminate\Database\Eloquent\Builder
+    private function handledSubmissionIds(User $user): Builder
     {
         $roleIds = $user->roles->pluck('id')->map(fn ($id): string => (string) $id)->all();
         $unitIds = $this->handledUnitIdsFor($user);
@@ -403,7 +415,7 @@ final class PublicCaseHandlingUnitService
      * The staff who can become members: active employees placed in the unit or
      * a unit beneath it, less those already serving in it.
      *
-     * @return list<\App\Backbone\Data\EmployeeIdentity>
+     * @return list<EmployeeIdentity>
      */
     public function candidates(PublicCaseHandlingUnit $designation): array
     {

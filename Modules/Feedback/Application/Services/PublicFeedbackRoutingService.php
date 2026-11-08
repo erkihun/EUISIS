@@ -19,6 +19,8 @@ use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
+use Modules\Feedback\Domain\Models\PublicComplaintStage;
 use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
 
@@ -124,6 +126,21 @@ final class PublicFeedbackRoutingService
             }
         }
 
+        // ADR 0035: with no rule, a complaint goes straight to the institution's complaint committee.
+        if ($submission->type === ServiceFeedbackType::Complaint && $submission->organization_id !== null) {
+            $committee = PublicCaseHandlingUnit::query()->where('organization_id', $submission->organization_id)
+                ->where('case_type', 'complaint')->where('stage', 'first_instance')->where('status', 'active')->orderBy('created_at')->first();
+            if ($committee !== null) {
+                try {
+                    $this->assignments->assign($submission, PublicFeedbackHandlerType::OrganizationUnit, (string) $committee->organization_unit_id, null, null, null, $request);
+
+                    return;
+                } catch (ValidationException) {
+                    // Fall through to unrouted.
+                }
+            }
+        }
+
         // No reason text for the reader: the UI explains an unrouted system transition in its own language.
         $this->workflow->transition($submission, ServiceFeedbackStatus::Unrouted, null, null, $request);
         $this->audit->execute(
@@ -139,12 +156,19 @@ final class PublicFeedbackRoutingService
         $this->notifier->unrouted($submission);
     }
 
+    /** ADR 0035: an appeal is heard by the appeal committee or the head, never moved up the first-instance ladder. */
+    private function inAppeal(EmployeeServiceFeedback $submission): bool
+    {
+        return $submission->type === ServiceFeedbackType::Complaint
+            && PublicComplaintStage::query()->where('submission_id', $submission->getKey())->where('stage', '>', PublicComplaintStage::COMMITTEE)->exists();
+    }
+
     /** Statuses in which a handler is still expected to act. */
     public const ESCALATABLE = [ServiceFeedbackStatus::Assigned, ServiceFeedbackStatus::UnderReview];
 
     public function canEscalate(EmployeeServiceFeedback $submission): bool
     {
-        if (! in_array($submission->status, self::ESCALATABLE, true)) {
+        if (! in_array($submission->status, self::ESCALATABLE, true) || $this->inAppeal($submission)) {
             return false;
         }
 
@@ -162,7 +186,7 @@ final class PublicFeedbackRoutingService
      */
     public function escalate(EmployeeServiceFeedback $submission, ?User $actor, ?string $reason = null, ?Request $request = null): PublicFeedbackAssignment
     {
-        if (! in_array($submission->status, self::ESCALATABLE, true)) {
+        if (! in_array($submission->status, self::ESCALATABLE, true) || $this->inAppeal($submission)) {
             throw ValidationException::withMessages(['escalation' => __('service-feedback.not_escalatable')]);
         }
 

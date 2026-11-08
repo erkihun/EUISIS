@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Modules\Feedback\Application\Services\PublicCaseHandlingUnitService;
+use Modules\Feedback\Application\Services\PublicComplaintStageService;
 use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackStatus;
 use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
@@ -74,7 +75,9 @@ class EmployeeServiceFeedbackPolicy
             && $user->hasAnyPermission([$this->viewPermission($feedback)])
             && $user->hasAnyPermission([$permission])
             && $this->withinScope($user, $feedback)
-            && $this->worksCase($user, $feedback);
+            && $this->worksCase($user, $feedback)
+            // ADR 0035: not while the complainant's appeal period runs.
+            && ($to !== ServiceFeedbackStatus::Closed || app(PublicComplaintStageService::class)->closable($feedback));
     }
 
     /** Naming investigation subjects on a complaint (§61) takes the complaint review grant. */
@@ -93,6 +96,11 @@ class EmployeeServiceFeedbackPolicy
      */
     private function worksCase(User $user, EmployeeServiceFeedback $feedback): bool
     {
+        // ADR 0035: whoever decided an earlier stage of a complaint does not work its appeal.
+        if (app(PublicComplaintStageService::class)->decidedEarlier($user, $feedback)) {
+            return false;
+        }
+
         return $this->scope->isUnrestricted($user) || app(PublicCaseHandlingUnitService::class)->mayWork($user, $feedback);
     }
 

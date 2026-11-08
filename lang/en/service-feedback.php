@@ -189,6 +189,26 @@ return [
         'not_found' => 'No Tip-off or complaint matches this reference and phone number. Check them and try again.',
     ],
 
+    // ADR 0035: the hearing stages of a public complaint.
+    'stages' => [
+        'response_required' => 'Write the response the complainant will read.',
+        'decision_required' => 'Choose whether you uphold or overturn the earlier decision.',
+        'conflict' => 'Someone who decided an earlier stage cannot decide this appeal.',
+        'not_open' => 'This decision cannot be answered now.',
+        'appeal_period_running' => 'The complainant’s appeal period has not passed; the complaint cannot be closed yet.',
+        'unit_stage_taken' => 'This institution already has an active unit for this stage.',
+        'appeal_reason_required' => 'Say why you do not accept the decision, in at least 10 characters.',
+        'verify_again' => 'For your security, look up your complaint again with its reference and phone number, then answer.',
+        'accepted_done' => 'You accepted the decision; your complaint is closed.',
+        'appealed_done' => 'Your appeal is recorded and sent to the next stage.',
+        'history' => [
+            'accepted' => 'The complainant accepted the decision.',
+            'appealed_2' => 'The complainant appealed; sent to the appeal committee.',
+            'appealed_3' => 'The complainant appealed; sent to the head of the institution.',
+            'lapsed' => 'The appeal period passed with no answer; the complaint closed.',
+        ],
+    ],
+
     'validation' => [
         'service_required' => 'Please choose the service you received.',
         'rating_required' => 'Please choose a satisfaction rating.',

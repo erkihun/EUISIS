@@ -117,15 +117,15 @@ use Modules\DailyWork\Http\Controllers\Employee\DailyActivityController as Emplo
 use Modules\Entitlements\Http\Controllers\Web\EntitlementRuleController;
 use Modules\Entitlements\Http\Controllers\Web\ServiceProviderController;
 use Modules\Entitlements\Http\Controllers\Web\ServiceTypeController;
+use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
 use Modules\Feedback\Http\Controllers\EmployeeFeedbackQrController;
 use Modules\Feedback\Http\Controllers\OrganizationFeedbackQrController;
+use Modules\Feedback\Http\Controllers\PublicCaseHandlingUnitController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackEmployeePhotoController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackOrganizationLogoController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackQuestionnaireController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackReferralController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackReportController;
-use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
-use Modules\Feedback\Http\Controllers\PublicCaseHandlingUnitController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackRoutingRuleController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackSettingsController;
 use Modules\Feedback\Http\Controllers\PublicFeedbackSubjectController;
@@ -587,6 +587,10 @@ Route::get('/track', [PublicSubmissionTrackingController::class, 'show'])
 Route::post('/track', [PublicSubmissionTrackingController::class, 'lookup'])
     ->middleware(['qr.private', 'throttle:10,1'])
     ->name('public-submissions.track.lookup');
+// ADR 0035: the complainant accepts a decision or appeals it, after a lookup in the same session.
+Route::post('/track/respond', [PublicSubmissionTrackingController::class, 'respond'])
+    ->middleware(['qr.private', 'throttle:10,1'])
+    ->name('public-submissions.track.respond');
 
 Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'show'])
     ->middleware(['qr.private', 'throttle:30,1'])
@@ -1682,7 +1686,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/service-submissions/reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-submissions.reports.export');
     Route::get('/service-submissions/reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-submissions.reports.download');
     // The shared addresses used before each module had its own.
-    Route::get('/feedback-admin/routing-rules', fn (\Illuminate\Http\Request $request) => redirect($request->query('submission_type') === 'complaint' ? '/complaint-admin/routing-rules' : '/tip-off-admin/routing-rules'));
+    Route::get('/feedback-admin/routing-rules', fn (Request $request) => redirect($request->query('submission_type') === 'complaint' ? '/complaint-admin/routing-rules' : '/tip-off-admin/routing-rules'));
     // ADR 0034: each module's own unit page and its members — /feedback-admin/units (service
     // feedback), /tip-off-admin/units (Tip-offs), /complaint-admin/units (complaints). Never one shared page.
     foreach (['feedback' => 'feedback-admin', 'suggestion' => 'tip-off-admin', 'complaint' => 'complaint-admin'] as $caseType => $prefix) {

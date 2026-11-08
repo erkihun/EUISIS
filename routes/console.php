@@ -41,6 +41,8 @@ Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlap
 // withoutOverlapping/onOneServer just avoid wasted work.
 // ADR 0033: Tip-offs and complaints past their level's deadline go one level up.
 Schedule::command('service-feedback:escalate-overdue')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
+// ADR 0035: complaints whose appeal period passed with no answer from the complainant close.
+Schedule::command('public-complaints:close-lapsed-appeals')->hourly()->withoutOverlapping()->onOneServer();
 Schedule::command('grievances:process-sla')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
 
 // Regulation 201/2018 deadlines the institution owes: due-soon and overdue alerts, once each.

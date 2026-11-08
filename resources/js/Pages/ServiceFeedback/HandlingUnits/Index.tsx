@@ -30,9 +30,14 @@ type Member = {
     signature_recorded_at: string | null;
 };
 
+/** ADR 0035: which hearing of a complaint the unit serves. */
+type UnitStage = 'first_instance' | 'appeal' | 'head_office';
+const UNIT_STAGES: UnitStage[] = ['first_instance', 'appeal', 'head_office'];
+
 type HandlingUnit = {
     id: string;
     case_type: CaseType;
+    stage?: UnitStage;
     status: 'active' | 'inactive';
     description_en: string | null;
     description_am: string | null;
@@ -52,6 +57,7 @@ type Props = {
     responsibilities: Responsibility[];
     summary: { units: number; members: number; attention: number };
     can: { designate: boolean };
+    stageGaps?: { organization: string | null; missing: UnitStage[] }[];
 };
 
 type Dialog =
@@ -87,7 +93,7 @@ function initials(name: string | null): string {
  * popup. An institution's existing unit is designated — nothing is created —
  * and its own staff are given a responsibility and a signature.
  */
-export default function HandlingUnitsIndex({ units, organizations, filters, caseType, responsibilities, summary, can }: Props) {
+export default function HandlingUnitsIndex({ units, organizations, filters, caseType, responsibilities, summary, can, stageGaps = [] }: Props) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
     const b = (key: string) => t(`serviceFeedback.handling.board.${key}`);
@@ -111,6 +117,8 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
             </section>
 
             <ResponsibilityGuide />
+
+            {caseType === 'complaint' && stageGaps.length > 0 && <StageGaps gaps={stageGaps} />}
 
             <FilterPanel onSubmit={() => router.get(index, Object.fromEntries(Object.entries(query).filter(([, v]) => v !== '')), { preserveState: true })} onReset={() => router.get(index)} hasActiveFilters={filtered}>
                 <FilterField label={b('search')} htmlFor="hu-search" wide><Input id="hu-search" type="search" value={query.search} onChange={(e) => setQuery({ ...query, search: e.target.value })} /></FilterField>
@@ -240,7 +248,7 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlingUnit; onOpen: (dialog:
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 id={`unit-${unit.id}`} className="text-base font-semibold text-(--app-foreground)">{unit.unit ?? '—'}</h2>
-                        <Pill tone="info">{h(`byType.${unit.case_type}.title`)}</Pill>
+                        <Pill tone="info">{unit.case_type === 'complaint' ? t(`serviceFeedback.hearing.unitStages.${unit.stage ?? 'first_instance'}`) : h(`byType.${unit.case_type}.title`)}</Pill>
                         <Pill tone={unit.status === 'active' ? 'success' : 'neutral'}>{h(unit.status === 'active' ? 'active' : 'inactive')}</Pill>
                         {marker}
                     </div>
@@ -301,7 +309,8 @@ function UnitCard({ unit, onOpen, bulk }: { unit: HandlingUnit; onOpen: (dialog:
 function DesignateForm({ caseType, organizations, onDone }: { caseType: CaseType; organizations: Props['organizations']; onDone: () => void }) {
     const { t } = useLocale();
     const h = (key: string) => t(`serviceFeedback.handling.${key}`);
-    const form = useForm({ organization_id: organizations.length === 1 ? organizations[0].id : '', organization_unit_id: '', description_en: '', description_am: '' });
+    const form = useForm({ organization_id: organizations.length === 1 ? organizations[0].id : '', organization_unit_id: '', stage: 'first_instance' as UnitStage, description_en: '', description_am: '' });
+    const formErrors = form.errors as Record<string, string | undefined>;
     const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
 
@@ -335,6 +344,11 @@ function DesignateForm({ caseType, organizations, onDone }: { caseType: CaseType
                 {units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name}</option>)}
             </Select>}
         </FormField>
+        {caseType === 'complaint' && <FormField id="hu-designate-stage" label={t('serviceFeedback.hearing.unitStage')} description={t(`serviceFeedback.hearing.unitStageHints.${form.data.stage}`)} error={formErrors.stage} required>
+            {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.stage} onChange={(e) => form.setData('stage', e.target.value as UnitStage)}>
+                {UNIT_STAGES.map((stage) => <option key={stage} value={stage}>{t(`serviceFeedback.hearing.unitStages.${stage}`)}</option>)}
+            </Select>}
+        </FormField>}
         <FormField id="hu-designate-desc-am" label={h('descriptionAm')} error={form.errors.description_am}>
             {({ id }) => <Textarea id={id} rows={2} maxLength={2000} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />}
         </FormField>
@@ -448,4 +462,20 @@ function EndForm({ unit, member, onDone }: { unit: HandlingUnit; member: Member;
         </FormField>
         <FormActions processing={form.processing} onCancel={onDone} />
     </form>;
+}
+
+/** ADR 0035: institutions whose complaint stages are not all set up, and what that means. */
+function StageGaps({ gaps }: { gaps: NonNullable<Props['stageGaps']> }) {
+    const { t } = useLocale();
+    const k = (key: string) => t(`serviceFeedback.hearing.${key}`);
+
+    return <section aria-labelledby="hu-stage-gaps" className="rounded-card border border-amber-300 bg-amber-50/60 p-5 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-100">
+        <h2 id="hu-stage-gaps" className="flex items-center gap-2 font-semibold"><AlertTriangle className="h-4 w-4" aria-hidden />{k('gapsTitle')}</h2>
+        <p className="mt-1">{k('gapsIntro')}</p>
+        <ul className="mt-3 space-y-1">
+            {gaps.slice(0, 20).map((gap, index) => <li key={`${gap.organization ?? ''}-${index}`}>
+                <span className="font-medium">{gap.organization ?? '—'}</span> · {k('missing')}: {gap.missing.map((stage) => t(`serviceFeedback.hearing.unitStages.${stage}`)).join('፣ ')}
+            </li>)}
+        </ul>
+    </section>;
 }
