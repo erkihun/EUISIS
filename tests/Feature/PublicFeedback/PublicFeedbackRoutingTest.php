@@ -213,24 +213,24 @@ it('lets a scoped admin manage rules only inside their scope and city rules only
         'handler_type' => 'user', 'handler_id' => (string) $this->handler->id, 'priority' => 20, 'effective_from' => null, 'effective_to' => null, 'is_active' => true,
     ];
 
-    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), $payload)->assertRedirect();
+    $this->actingAs($this->orgAdmin)->post(route('public-complaints.routing-rules.store'), $payload)->assertRedirect();
     expect(PublicFeedbackRoutingRule::query()->where('organization_id', $this->a->organization->id)->count())->toBe(1);
 
-    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['organization_id' => $this->b->organization->id]))->assertForbidden();
-    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['organization_id' => null]))->assertForbidden();
+    $this->actingAs($this->orgAdmin)->post(route('public-complaints.routing-rules.store'), array_merge($payload, ['organization_id' => $this->b->organization->id]))->assertForbidden();
+    $this->actingAs($this->orgAdmin)->post(route('public-complaints.routing-rules.store'), array_merge($payload, ['organization_id' => null]))->assertForbidden();
 
     // Organization A may not route to a unit of organization B.
     $foreignUnit = OrganizationUnit::query()->create(['organization_id' => $this->b->organization->id, 'unit_type' => 'department', 'code' => 'FX', 'name_en' => 'Foreign unit', 'status' => 'active']);
-    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['handler_type' => 'organization_unit', 'handler_id' => $foreignUnit->id]))
+    $this->actingAs($this->orgAdmin)->post(route('public-complaints.routing-rules.store'), array_merge($payload, ['handler_type' => 'organization_unit', 'handler_id' => $foreignUnit->id]))
         ->assertSessionHasErrors('handler_id');
 
     // A city-wide rule may not name a user confined to one institution.
-    $this->actingAs($this->superAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['organization_id' => null]))->assertSessionHasErrors('handler_id');
-    $this->actingAs($this->superAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id]))->assertRedirect();
+    $this->actingAs($this->superAdmin)->post(route('public-complaints.routing-rules.store'), array_merge($payload, ['organization_id' => null]))->assertSessionHasErrors('handler_id');
+    $this->actingAs($this->superAdmin)->post(route('public-complaints.routing-rules.store'), array_merge($payload, ['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id]))->assertRedirect();
     expect(PublicFeedbackRoutingRule::query()->whereNull('organization_id')->count())->toBe(1);
 
     $this->actingAs($this->orgAdmin)
-        ->get(route('service-feedback.routing-rules.index'))
+        ->get(route('public-complaints.routing-rules.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/RoutingRules/Index')
@@ -242,11 +242,11 @@ it('retires a rule that routed submissions instead of deleting it', function ():
     $rule = rtRule(['submission_type' => 'complaint']);
     $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Routed once.']))->assertRedirect();
 
-    $this->actingAs($this->superAdmin)->delete(route('service-feedback.routing-rules.destroy', $rule))->assertRedirect();
+    $this->actingAs($this->superAdmin)->delete(route('public-complaints.routing-rules.destroy', $rule))->assertRedirect();
     expect($rule->fresh())->not->toBeNull()->and($rule->fresh()->is_active)->toBeFalse();
 
     $unused = rtRule(['submission_type' => 'suggestion']);
-    $this->actingAs($this->superAdmin)->delete(route('service-feedback.routing-rules.destroy', $unused))->assertRedirect();
+    $this->actingAs($this->superAdmin)->delete(route('tip-offs.routing-rules.destroy', $unused))->assertRedirect();
     expect(PublicFeedbackRoutingRule::query()->find($unused->id))->toBeNull();
 });
 
@@ -360,15 +360,15 @@ it('accepts a unit only on its own institution\'s rule and shows it on the rules
         'handler_type' => 'user', 'handler_id' => (string) $lead->id, 'priority' => 20, 'is_active' => true,
     ];
 
-    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), $payload + ['organization_unit_id' => $foreign->id])->assertSessionHasErrors('organization_unit_id');
-    $this->actingAs($this->superAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id, 'organization_unit_id' => $permits->id]))
+    $this->actingAs($this->orgAdmin)->post(route('public-complaints.routing-rules.store'), $payload + ['organization_unit_id' => $foreign->id])->assertSessionHasErrors('organization_unit_id');
+    $this->actingAs($this->superAdmin)->post(route('public-complaints.routing-rules.store'), array_merge($payload, ['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id, 'organization_unit_id' => $permits->id]))
         ->assertSessionHasErrors('organization_unit_id');
     expect(PublicFeedbackRoutingRule::query()->count())->toBe(0);
 
-    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), $payload + ['organization_unit_id' => $permits->id])->assertRedirect();
+    $this->actingAs($this->orgAdmin)->post(route('public-complaints.routing-rules.store'), $payload + ['organization_unit_id' => $permits->id])->assertRedirect();
     expect(PublicFeedbackRoutingRule::query()->sole()->organization_unit_id)->toBe($permits->id);
 
-    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.index'))->assertInertia(fn (Assert $page) => $page
+    $this->actingAs($this->orgAdmin)->get(route('public-complaints.routing-rules.index'))->assertInertia(fn (Assert $page) => $page
         ->where('rules.0.organization_unit_id', $permits->id)
         ->where('rules.0.unit.en', 'Permits office')
         ->where('rules.0.unit.am', 'የፈቃድ ጽሕፈት ቤት'));
@@ -379,7 +379,7 @@ it('filters the routing rules page by status and organization like every other l
     rtRule(['priority' => 20, 'is_active' => false]);
 
     $this->actingAs($this->superAdmin)
-        ->get(route('service-feedback.routing-rules.index', ['status' => 'inactive']))
+        ->get(route('tip-offs.routing-rules.index', ['status' => 'inactive']))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->has('rules', 1)
@@ -388,39 +388,40 @@ it('filters the routing rules page by status and organization like every other l
         );
 
     $this->actingAs($this->superAdmin)
-        ->get(route('service-feedback.routing-rules.index', ['organization_id' => '00000000-0000-0000-0000-000000000000']))
+        ->get(route('tip-offs.routing-rules.index', ['organization_id' => '00000000-0000-0000-0000-000000000000']))
         ->assertInertia(fn ($page) => $page->has('rules', 0));
 });
 
-it('shows the Suggestions and Complaints groups their own routing rules, and starts a new rule with that type', function (): void {
+it('gives Tip-offs and complaints their own routing-rule pages, and starts a new rule with that type', function (): void {
     $complaint = rtRule(['submission_type' => 'complaint', 'priority' => 10]);
     $suggestion = rtRule(['submission_type' => 'suggestion', 'priority' => 20]);
-    $any = rtRule(['priority' => 30]);
 
-    // A complaint rule, plus the rules for every type; never a suggestion rule.
-    $this->actingAs($this->superAdmin)
-        ->get(route('service-feedback.routing-rules.index', ['submission_type' => 'complaint']))
-        ->assertInertia(fn ($page) => $page->where('filters.submission_type', 'complaint')
-            ->where('rules', fn ($rules) => collect($rules)->pluck('id')->sort()->values()->all() === collect([$complaint->id, $any->id])->sort()->values()->all()));
-    $this->actingAs($this->superAdmin)
-        ->get(route('service-feedback.routing-rules.index', ['submission_type' => 'suggestion']))
-        ->assertInertia(fn ($page) => $page->where('rules', fn ($rules) => ! collect($rules)->pluck('id')->contains($complaint->id) && collect($rules)->pluck('id')->contains($suggestion->id)));
-    // Any other value is ignored: every rule.
-    $this->actingAs($this->superAdmin)
-        ->get(route('service-feedback.routing-rules.index', ['submission_type' => 'feedback']))
-        ->assertInertia(fn ($page) => $page->where('filters.submission_type', '')->has('rules', 3));
+    expect(route('tip-offs.routing-rules.index', [], false))->toBe('/tip-off-admin/routing-rules')
+        ->and(route('public-complaints.routing-rules.index', [], false))->toBe('/complaint-admin/routing-rules');
+    $this->actingAs($this->superAdmin)->get(route('public-complaints.routing-rules.index'))
+        ->assertInertia(fn ($page) => $page->where('submissionType', 'complaint')->where('routeBase', 'public-complaints.routing-rules')
+            ->where('rules', fn ($rules) => collect($rules)->pluck('id')->all() === [$complaint->id]));
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.routing-rules.index'))
+        ->assertInertia(fn ($page) => $page->where('rules', fn ($rules) => collect($rules)->pluck('id')->all() === [$suggestion->id]));
 
-    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.create', ['submission_type' => 'complaint']))
-        ->assertInertia(fn ($page) => $page->where('submissionType', 'complaint'));
-    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.create'))
-        ->assertInertia(fn ($page) => $page->where('submissionType', null));
+    // A rule answers only at its own module's address, and a new rule takes the module's type.
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.routing-rules.edit', $complaint))->assertNotFound();
+    $this->actingAs($this->orgAdmin)->get(route('public-complaints.routing-rules.create'))->assertInertia(fn ($page) => $page->where('submissionType', 'complaint'));
+    $this->actingAs($this->superAdmin)->post(route('public-complaints.routing-rules.store'), [
+        'organization_id' => $this->a->organization->id, 'submission_type' => 'suggestion', 'handler_type' => 'user', 'handler_id' => (string) $this->handler->id,
+    ])->assertRedirect(route('public-complaints.routing-rules.index'));
+    expect(PublicFeedbackRoutingRule::query()->whereKeyNot([$complaint->id, $suggestion->id])->sole()->submission_type)->toBe('complaint');
+
+    // The shared address it replaced sends each group to its own page.
+    $this->actingAs($this->superAdmin)->get('/feedback-admin/routing-rules?submission_type=complaint')->assertRedirect('/complaint-admin/routing-rules');
+    $this->actingAs($this->superAdmin)->get('/feedback-admin/routing-rules')->assertRedirect('/tip-off-admin/routing-rules');
 });
 
 it('adds and edits a rule on its own page, inside the user scope', function (): void {
     $rule = rtRule();
 
     $this->actingAs($this->orgAdmin)
-        ->get(route('service-feedback.routing-rules.create'))
+        ->get(route('tip-offs.routing-rules.create'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/RoutingRules/Create')
@@ -428,7 +429,7 @@ it('adds and edits a rule on its own page, inside the user scope', function (): 
             ->has('organizations'));
 
     $this->actingAs($this->orgAdmin)
-        ->get(route('service-feedback.routing-rules.edit', $rule))
+        ->get(route('tip-offs.routing-rules.edit', $rule))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/RoutingRules/Edit')
@@ -437,6 +438,6 @@ it('adds and edits a rule on its own page, inside the user scope', function (): 
 
     // A city-wide rule is outside the scoped admin's reach, and open to a city-level account.
     $cityRule = rtRule(['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id]);
-    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.edit', $cityRule))->assertForbidden();
-    $this->actingAs($this->superAdmin)->get(route('service-feedback.routing-rules.edit', $cityRule))->assertOk();
+    $this->actingAs($this->orgAdmin)->get(route('tip-offs.routing-rules.edit', $cityRule))->assertForbidden();
+    $this->actingAs($this->superAdmin)->get(route('tip-offs.routing-rules.edit', $cityRule))->assertOk();
 });

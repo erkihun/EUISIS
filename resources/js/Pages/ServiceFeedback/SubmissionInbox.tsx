@@ -53,7 +53,7 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
         header={<PageHeader
             title={title}
             description={t('serviceFeedback.submissionInboxIntro')}
-            actions={canManageRouting && <Link href={route('service-feedback.routing-rules.index')} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4">{t('serviceFeedback.routingRulesTitle')}</Link>}
+            actions={canManageRouting && <Link href={route(type === 'complaint' ? 'public-complaints.routing-rules.index' : 'tip-offs.routing-rules.index')} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4">{t('serviceFeedback.routingRulesTitle')}</Link>}
         />}
     >
         <Head title={title} />

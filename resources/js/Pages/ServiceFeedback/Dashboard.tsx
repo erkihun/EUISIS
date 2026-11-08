@@ -173,16 +173,16 @@ export default function ServiceFeedbackDashboard({
                     </div>
                     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {([
-                            { key: 'total', label: t('serviceFeedback.totalSubmissions'), value: submissions.total, href: withScope('service-feedback.submission-reports.index') },
+                            { key: 'total', label: t('serviceFeedback.totalSubmissions'), value: submissions.total, href: withScope('service-submissions.reports.index') },
                             { key: 'suggestion', label: t('serviceFeedback.adminTypeSuggestion'), value: submissions.by_type.suggestion, href: route('service-submissions.suggestions') },
                             { key: 'complaint', label: t('serviceFeedback.adminTypeComplaint'), value: submissions.by_type.complaint, href: route('service-submissions.complaints') },
                             { key: 'feedback', label: t('serviceFeedback.adminTypeFeedback'), value: submissions.by_type.feedback, href: withScope('service-feedback.admin.index') },
-                            { key: 'employee', label: t('serviceFeedback.employeeTargeted'), value: submissions.by_target.employee, href: withScope('service-feedback.submission-reports.index', { target_type: 'employee' }) },
-                            { key: 'organization', label: t('serviceFeedback.organizationTargeted'), value: submissions.by_target.organization, href: withScope('service-feedback.submission-reports.index', { target_type: 'organization' }) },
+                            { key: 'employee', label: t('serviceFeedback.employeeTargeted'), value: submissions.by_target.employee, href: withScope('service-submissions.reports.index', { target_type: 'employee' }) },
+                            { key: 'organization', label: t('serviceFeedback.organizationTargeted'), value: submissions.by_target.organization, href: withScope('service-submissions.reports.index', { target_type: 'organization' }) },
                             { key: 'unrouted', label: t('serviceFeedback.statusUnrouted'), value: submissions.by_status.unrouted ?? 0, href: route('service-submissions.complaints', { status: 'unrouted' }), warn: true },
                             { key: 'under_review', label: t('serviceFeedback.statusUnderReview'), value: submissions.by_status.under_review ?? 0, href: route('service-submissions.complaints', { status: 'under_review' }) },
-                            { key: 'resolved', label: t('serviceFeedback.statusResolved'), value: submissions.by_status.resolved ?? 0, href: withScope('service-feedback.submission-reports.index', { status: 'resolved' }) },
-                            { key: 'closed', label: t('serviceFeedback.statusClosed'), value: submissions.by_status.closed ?? 0, href: withScope('service-feedback.submission-reports.index', { status: 'closed' }) },
+                            { key: 'resolved', label: t('serviceFeedback.statusResolved'), value: submissions.by_status.resolved ?? 0, href: withScope('service-submissions.reports.index', { status: 'resolved' }) },
+                            { key: 'closed', label: t('serviceFeedback.statusClosed'), value: submissions.by_status.closed ?? 0, href: withScope('service-submissions.reports.index', { status: 'closed' }) },
                         ] as { key: string; label: string; value: number; href: string; warn?: boolean }[]).map((item) => (
                             <li key={item.key}>
                                 <Link href={item.href} className="block rounded-card border border-(--app-border) p-3 transition-colors hover:bg-(--app-surface-muted) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">

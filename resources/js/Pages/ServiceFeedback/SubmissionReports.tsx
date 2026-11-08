@@ -35,6 +35,10 @@ type Props = {
     };
     exports: ExportRow[];
     can: { export: boolean };
+    /** This page's routes: a module's own report, or the overview across every type. */
+    routeBase: string;
+    /** The module's type, fixed by its address (/feedback-admin, /tip-off-admin, /complaint-admin); null on the overview. */
+    lockedType: 'feedback' | 'suggestion' | 'complaint' | null;
 };
 
 const TYPE_KEY: Record<string, string> = { feedback: 'adminTypeFeedback', suggestion: 'adminTypeSuggestion', complaint: 'adminTypeComplaint' };
@@ -58,7 +62,7 @@ const TIP_BUCKETS: TipTypeBucket[] = ['CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLAS
  * reviewers. These are reports received, not findings; nothing here is sorted
  * by count, scored or labelled as conduct.
  */
-export default function SubmissionReports({ filters, summary, byOrganization, byHandler, byUnit, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can }: Props) {
+export default function SubmissionReports({ filters, summary, byOrganization, byHandler, byUnit, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can, routeBase, lockedType }: Props) {
     const { t, locale } = useLocale();
     const [draft, setDraft] = useState<Filters>({ ...filters });
     const exportForm = useForm({ format: 'csv' as 'csv' | 'xlsx' });
@@ -68,24 +72,24 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
 
     function apply(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        router.get(route('service-feedback.submission-reports.index'), clean(draft), { preserveScroll: true, preserveState: true });
+        router.get(route(`${routeBase}.index`), clean(lockedType ? { ...draft, submission_type: '' } : draft), { preserveScroll: true, preserveState: true });
     }
 
     function reset() {
         setDraft({});
-        router.get(route('service-feedback.submission-reports.index'), {}, { preserveScroll: true });
+        router.get(route(`${routeBase}.index`), {}, { preserveScroll: true });
     }
 
     function requestExport(event: FormEvent) {
         event.preventDefault();
         exportForm.transform((data) => ({ ...data, ...clean(filters) }));
-        exportForm.post(route('service-feedback.submission-reports.export'), { preserveScroll: true });
+        exportForm.post(route(`${routeBase}.export`), { preserveScroll: true });
     }
 
     const set = (key: keyof Filters) => (value: string) => setDraft((current) => ({ ...current, [key]: value }));
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('serviceFeedback.submissionReportsTitle')} description={t('serviceFeedback.submissionReportsIntro')} />}>
+        <AuthenticatedLayout header={<PageHeader title={lockedType ? `${t('serviceFeedback.submissionReportsTitle')} — ${t(`serviceFeedback.${TYPE_KEY[lockedType]}`)}` : t('serviceFeedback.submissionReportsTitle')} description={t('serviceFeedback.submissionReportsIntro')} />}>
             <Head title={t('serviceFeedback.submissionReportsTitle')} />
 
             <div className="space-y-5">
@@ -96,12 +100,12 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                             {filterOptions.organizations.map((o) => <option key={o.id} value={o.id}>{locale === 'am' && o.name_am ? o.name_am : o.name_en}</option>)}
                         </Select>
                     </FilterField>
-                    <FilterField label={t('serviceFeedback.appliesToTypes')} htmlFor="rf-type">
+                    {lockedType === null && <FilterField label={t('serviceFeedback.appliesToTypes')} htmlFor="rf-type">
                         <Select id="rf-type" value={draft.submission_type ?? ''} onChange={(e) => set('submission_type')(e.target.value)}>
                             <option value="">{t('common.all')}</option>
                             {filterOptions.types.map((type) => <option key={type} value={type}>{t(`serviceFeedback.${TYPE_KEY[type]}`)}</option>)}
                         </Select>
-                    </FilterField>
+                    </FilterField>}
                     <FilterField label={t('serviceFeedback.tipTypeLabel')} htmlFor="rf-tip-type">
                         <Select id="rf-tip-type" value={draft.tip_type ?? ''} onChange={(e) => set('tip_type')(e.target.value)}>
                             <option value="">{t('serviceFeedback.tipTypeAll')}</option>
@@ -246,7 +250,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                                                 {row.error && <div className="mt-1 text-xs text-red-600">{row.error}</div>}
                                             </Td>
                                             <Td align="right" numeric>{row.row_count ?? '—'}</Td>
-                                            <Td align="right">{row.status === 'ready' && <a href={route('service-feedback.submission-reports.download', row.id)} className="text-sm font-medium text-primary underline underline-offset-4">{t('serviceFeedback.download')}</a>}</Td>
+                                            <Td align="right">{row.status === 'ready' && <a href={route(`${routeBase}.download`, row.id)} className="text-sm font-medium text-primary underline underline-offset-4">{t('serviceFeedback.download')}</a>}</Td>
                                         </Tr>
                                     ))}
                                 </TBody>

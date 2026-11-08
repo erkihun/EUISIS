@@ -124,7 +124,7 @@ it('escapes stored text on every page that shows it', function (): void {
     foreach ([
         route('service-submissions.complaints'),
         route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]),
-        route('service-feedback.submission-reports.index'),
+        route('service-submissions.reports.index'),
         route('service-feedback.admin.dashboard'),
     ] as $url) {
         $this->actingAs($this->superAdmin)->get($url)->assertOk()->assertDontSee($payload, false)->assertDontSee('<script>alert', false);

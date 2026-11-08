@@ -101,9 +101,9 @@ it('assigns cases to the handling unit and reaches its members, and offers only 
     $this->actingAs($this->admin)->post(route('public-complaints.units.members.store', $unit), ['employee_id' => $this->officer->id, 'responsibility' => 'head', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('sig.png')])->assertSessionHasNoErrors();
 
     // Only the designated unit is offered, and another unit is refused.
-    $this->actingAs($this->admin)->get(route('service-feedback.routing-rules.handlers', ['organization_id' => $this->s->organization->id, 'submission_type' => 'complaint']))
+    $this->actingAs($this->admin)->get(route('public-complaints.routing-rules.handlers', ['organization_id' => $this->s->organization->id]))
         ->assertOk()->assertJsonPath('units.0.id', $this->office->id)->assertJsonCount(1, 'units');
-    $this->actingAs($this->admin)->post(route('service-feedback.routing-rules.store'), ['organization_id' => $this->s->organization->id, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $this->s->unit->id])
+    $this->actingAs($this->admin)->post(route('public-complaints.routing-rules.store'), ['organization_id' => $this->s->organization->id, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $this->s->unit->id])
         ->assertSessionHasErrors('handler_id');
 
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $this->s->organization->id, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $this->office->id, 'priority' => 1, 'is_active' => true, 'created_by' => $this->admin->id]);
@@ -140,40 +140,42 @@ it('keeps Tip-off and complaint handling units apart', function (): void {
     $this->actingAs($this->admin)->post(route('tip-offs.units.store'), ['organization_id' => $org, 'organization_unit_id' => $tipDesk->id, 'case_type' => 'suggestion'])->assertSessionHasNoErrors();
     $this->actingAs($this->admin)->post(route('public-complaints.units.store'), ['organization_id' => $org, 'organization_unit_id' => $this->office->id, 'case_type' => 'complaint'])->assertSessionHasNoErrors();
 
-    $this->actingAs($this->admin)->get(route('service-feedback.routing-rules.handlers', ['organization_id' => $org, 'submission_type' => 'suggestion']))
+    $this->actingAs($this->admin)->get(route('tip-offs.routing-rules.handlers', ['organization_id' => $org]))
         ->assertJsonCount(1, 'units')->assertJsonPath('units.0.id', $tipDesk->id);
-    $this->actingAs($this->admin)->get(route('service-feedback.routing-rules.handlers', ['organization_id' => $org, 'submission_type' => 'complaint']))
+    $this->actingAs($this->admin)->get(route('public-complaints.routing-rules.handlers', ['organization_id' => $org]))
         ->assertJsonCount(1, 'units')->assertJsonPath('units.0.id', $this->office->id);
 
     // A Tip-off rule cannot name the complaints unit, and the reverse.
-    $this->actingAs($this->admin)->post(route('service-feedback.routing-rules.store'), ['organization_id' => $org, 'submission_type' => 'suggestion', 'handler_type' => 'organization_unit', 'handler_id' => $this->office->id])->assertSessionHasErrors('handler_id');
-    $this->actingAs($this->admin)->post(route('service-feedback.routing-rules.store'), ['organization_id' => $org, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $tipDesk->id])->assertSessionHasErrors('handler_id');
-    $this->actingAs($this->admin)->post(route('service-feedback.routing-rules.store'), ['organization_id' => $org, 'submission_type' => 'suggestion', 'handler_type' => 'organization_unit', 'handler_id' => $tipDesk->id])->assertSessionHasNoErrors();
+    $this->actingAs($this->admin)->post(route('tip-offs.routing-rules.store'), ['organization_id' => $org, 'submission_type' => 'suggestion', 'handler_type' => 'organization_unit', 'handler_id' => $this->office->id])->assertSessionHasErrors('handler_id');
+    $this->actingAs($this->admin)->post(route('public-complaints.routing-rules.store'), ['organization_id' => $org, 'submission_type' => 'complaint', 'handler_type' => 'organization_unit', 'handler_id' => $tipDesk->id])->assertSessionHasErrors('handler_id');
+    $this->actingAs($this->admin)->post(route('tip-offs.routing-rules.store'), ['organization_id' => $org, 'submission_type' => 'suggestion', 'handler_type' => 'organization_unit', 'handler_id' => $tipDesk->id])->assertSessionHasNoErrors();
 
     $this->actingAs($this->admin)->get(route('tip-offs.units.index'))
         ->assertInertia(fn (Assert $page) => $page->has('units', 1)->where('units.0.case_type', 'suggestion'));
 });
 
-it('opens the unit and member forms on their own pages', function (): void {
-    $this->actingAs($this->admin)->get(route('tip-offs.units.create'))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('ServiceFeedback/HandlingUnits/Create')->where('caseType', 'suggestion'));
-    $this->actingAs($this->admin)->post(route('tip-offs.units.store'), ['organization_id' => $this->s->organization->id, 'organization_unit_id' => $this->office->id, 'case_type' => 'suggestion'])
+it('shows each module its unit board, and keeps the member details for the popups', function (): void {
+    $this->actingAs($this->admin)->post(route('tip-offs.units.store'), ['organization_id' => $this->s->organization->id, 'organization_unit_id' => $this->office->id])
         ->assertRedirect(route('tip-offs.units.index'));
     $unit = PublicCaseHandlingUnit::query()->sole();
-
-    $this->actingAs($this->admin)->get(route('tip-offs.units.members.create', $unit))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('ServiceFeedback/HandlingUnits/MemberCreate')->where('unit.case_type', 'suggestion')->where('unit.has_head', false));
     $this->actingAs($this->admin)->post(route('tip-offs.units.members.store', $unit), ['employee_id' => $this->officer->id, 'responsibility' => 'head', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('sig.png')])
         ->assertRedirect(route('tip-offs.units.index'));
     $member = PublicCaseHandlingUnitMember::query()->sole();
     $old = $member->signature_sha256;
 
-    $this->actingAs($this->admin)->get(route('tip-offs.units.members.edit', [$unit, $member]))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('ServiceFeedback/HandlingUnits/MemberEdit')->where('member.name', 'Abebe Kebede'));
+    $this->actingAs($this->admin)->get(route('tip-offs.units.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('ServiceFeedback/HandlingUnits/Index')->where('caseType', 'suggestion')
+            ->where('summary', ['units' => 1, 'members' => 1, 'attention' => 0])
+            ->where('units.0.members.0.name', 'Abebe Kebede')->where('units.0.members.0.position', 'Licensing Officer')->where('units.0.members.0.placed_unit', 'Complaints Team')
+            ->where('can.designate', true));
+    $this->actingAs($this->admin)->get(route('tip-offs.units.index', ['search' => 'nothing-like-this']))->assertInertia(fn (Assert $page) => $page->has('units', 0));
+    $this->actingAs($this->admin)->get(route('tip-offs.units.index', ['status' => 'inactive']))->assertInertia(fn (Assert $page) => $page->has('units', 0));
+
     $this->actingAs($this->admin)->post(route('tip-offs.units.members.update', [$unit, $member]), ['responsibility' => 'officer', 'signature' => UploadedFile::fake()->image('new.png', 400, 120)])->assertSessionHasNoErrors();
     expect($member->fresh()->responsibility)->toBe('officer')->and($member->fresh()->signature_sha256)->not->toBe($old);
+    $this->actingAs($this->admin)->patch(route('tip-offs.units.update', $unit), ['description_am' => 'የጥቆማ መቀበያ'])->assertSessionHasNoErrors();
+    expect($unit->fresh()->description_am)->toBe('የጥቆማ መቀበያ');
 });
-
 it('shows Tip-off units and complaint units on separate pages', function (): void {
     $tipDesk = OrganizationUnit::query()->create(['organization_id' => $this->s->organization->id, 'code' => 'HDU-TD2', 'name_en' => 'Tip-off Desk', 'unit_type' => 'department', 'status' => 'active']);
     $this->actingAs($this->admin)->post(route('tip-offs.units.store'), ['organization_id' => $this->s->organization->id, 'organization_unit_id' => $tipDesk->id, 'case_type' => 'suggestion'])
@@ -202,11 +204,12 @@ it('gives each module its own unit address, and a unit answers only at its own',
     $this->actingAs($this->admin)->get(route('tip-offs.units.index'))->assertInertia(fn (Assert $page) => $page->has('units', 0));
 
     // The feedback unit is not reachable through the Tip-off or complaint address.
-    $this->actingAs($this->admin)->get(route('tip-offs.units.members.create', $feedbackUnit))->assertNotFound();
+    $member = ['employee_id' => $this->officer->id, 'responsibility' => 'head', 'effective_from' => now()->toDateString(), 'signature' => UploadedFile::fake()->image('sig.png')];
+    $this->actingAs($this->admin)->post(route('tip-offs.units.members.store', $feedbackUnit), $member)->assertNotFound();
     $this->actingAs($this->admin)->patch(route('public-complaints.units.update', $feedbackUnit), ['status' => 'inactive'])->assertNotFound();
-    $this->actingAs($this->admin)->get(route('service-feedback.units.members.create', $feedbackUnit))->assertOk();
+    $this->actingAs($this->admin)->post(route('service-feedback.units.members.store', $feedbackUnit), $member)->assertRedirect(route('service-feedback.units.index'));
 
     // A feedback unit never receives routed Tip-offs or complaints.
-    $this->actingAs($this->admin)->get(route('service-feedback.routing-rules.handlers', ['organization_id' => $this->s->organization->id, 'submission_type' => 'complaint']))
+    $this->actingAs($this->admin)->get(route('public-complaints.routing-rules.handlers', ['organization_id' => $this->s->organization->id]))
         ->assertJsonCount(3, 'units');
 });

@@ -23,7 +23,7 @@ type Rule = RuleRecord & {
 };
 
 type Filters = { status: string; organization_id: string; submission_type: string };
-type Props = { rules: Rule[]; filters: Filters; organizations: OrganizationOption[]; canManageCityWide: boolean };
+type Props = { rules: Rule[]; filters: Filters; organizations: OrganizationOption[]; canManageCityWide: boolean; submissionType: 'suggestion' | 'complaint'; routeBase: string };
 
 const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
 
@@ -33,23 +33,23 @@ const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', org
  * that already routed something is retired, never deleted. Adding and editing
  * happen on their own pages.
  */
-export default function RoutingRulesIndex({ rules, filters, organizations, canManageCityWide }: Props) {
+export default function RoutingRulesIndex({ rules, filters, organizations, canManageCityWide, submissionType, routeBase }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const [values, setValues] = useState<Filters>(filters);
-    // The type comes from the menu group (Suggestions / Complaints), not from the filter bar.
+    // The type comes from the module's address (/tip-off-admin or /complaint-admin), not from the filter bar.
     const filtersActive = Boolean(filters.status || filters.organization_id);
-    const type = filters.submission_type;
-    const title = type ? `${t('serviceFeedback.routingRulesTitle')} — ${t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion')}` : t('serviceFeedback.routingRulesTitle');
+    const title = `${t('serviceFeedback.routingRulesTitle')} — ${t(submissionType === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion')}`;
+    const query = (values: Filters) => ({ status: values.status, organization_id: values.organization_id });
 
     function submitFilters() {
-        router.get(route('service-feedback.routing-rules.index'), values, { preserveState: true, preserveScroll: true, replace: true });
+        router.get(route(`${routeBase}.index`), query(values), { preserveState: true, preserveScroll: true, replace: true });
     }
 
     function resetFilters() {
         const empty: Filters = { status: '', organization_id: '', submission_type: filters.submission_type };
         setValues(empty);
-        router.get(route('service-feedback.routing-rules.index'), empty, { preserveScroll: true, replace: true });
+        router.get(route(`${routeBase}.index`), query(empty), { preserveScroll: true, replace: true });
     }
 
     const pair = (value: NamePair, fallback: string) => (value === null ? fallback : locale === 'am' && value.am ? value.am : value.en);
@@ -58,7 +58,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
         const result = await confirm({ title: t('serviceFeedback.deleteRuleConfirm'), variant: row.referenced ? 'warning' : 'danger' });
         if (!result.confirmed) return;
 
-        router.delete(route('service-feedback.routing-rules.destroy', row.id), { preserveScroll: true });
+        router.delete(route(`${routeBase}.destroy`, row.id), { preserveScroll: true });
     }
 
     const canCreate = canManageCityWide || organizations.length > 0;
@@ -69,7 +69,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                 <PageHeader
                     title={title}
                     description={t('serviceFeedback.routingRulesIntro')}
-                    actions={canCreate && <Button as={Link} href={route('service-feedback.routing-rules.create', type ? { submission_type: type } : {})} variant="primary">{t('serviceFeedback.addRule')}</Button>}
+                    actions={canCreate && <Button as={Link} href={route(`${routeBase}.create`)} variant="primary">{t('serviceFeedback.addRule')}</Button>}
                 />
             }
         >
@@ -122,7 +122,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                         <Td>
                                             <div className="font-medium text-(--app-foreground)">
                                                 {row.can_manage
-                                                    ? <Link href={route('service-feedback.routing-rules.edit', row.id)} className="hover:underline">{pair(row.organization, t('serviceFeedback.cityWide'))}</Link>
+                                                    ? <Link href={route(`${routeBase}.edit`, row.id)} className="hover:underline">{pair(row.organization, t('serviceFeedback.cityWide'))}</Link>
                                                     : pair(row.organization, t('serviceFeedback.cityWide'))}
                                             </div>
                                         </Td>
@@ -150,7 +150,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                                 <div className="flex justify-end">
                                                     <AppActionMenu
                                                         items={[
-                                                            { label: t('common.edit'), href: route('service-feedback.routing-rules.edit', row.id) },
+                                                            { label: t('common.edit'), href: route(`${routeBase}.edit`, row.id) },
                                                             { label: t(row.referenced ? 'serviceFeedback.retireRule' : 'serviceFeedback.deleteRule'), onClick: () => destroy(row), variant: 'danger' },
                                                         ]}
                                                     />

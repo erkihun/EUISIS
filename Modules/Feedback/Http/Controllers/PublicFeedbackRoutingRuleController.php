@@ -43,12 +43,12 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         // The same filter bar as every other list: status and organization, kept in the query string.
         $status = $request->string('status')->toString();
-        $type = $request->string('submission_type')->toString();
+        $type = $this->moduleType($request);
         $filters = [
             'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
             'organization_id' => $request->string('organization_id')->toString(),
-            // Opened from the Suggestions or Complaints group: that type's rules and those for every type.
-            'submission_type' => in_array($type, ['suggestion', 'complaint'], true) ? $type : '',
+            // The module's own page (/tip-off-admin or /complaint-admin): its rules, and any older rule for both types.
+            'submission_type' => $type,
         ];
 
         return Inertia::render('ServiceFeedback/RoutingRules/Index', [
@@ -62,6 +62,8 @@ class PublicFeedbackRoutingRuleController extends Controller
                 ->get()
                 ->map(fn (PublicFeedbackRoutingRule $rule): array => $this->present($rule, $user, $names))->values()->all(),
             ...$this->formOptions($user),
+            'submissionType' => $type,
+            'routeBase' => self::routeBase($type),
         ]);
     }
 
@@ -72,13 +74,14 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         $options = $this->formOptions($user);
         abort_unless($options['canManageCityWide'] || $options['organizations'] !== [], 403);
-        $type = $request->string('submission_type')->toString();
+        $type = $this->moduleType($request);
 
-        return Inertia::render('ServiceFeedback/RoutingRules/Create', [...$options, 'submissionType' => in_array($type, ['suggestion', 'complaint'], true) ? $type : null]);
+        return Inertia::render('ServiceFeedback/RoutingRules/Create', [...$options, 'submissionType' => $type, 'routeBase' => self::routeBase($type)]);
     }
 
-    public function edit(PublicFeedbackRoutingRule $rule): Response
+    public function edit(Request $request, PublicFeedbackRoutingRule $rule): Response
     {
+        $this->assertOwnModule($request, $rule);
         $user = $this->user();
         abort_unless($this->routing->canManage($user, $rule->organization_id), 403);
 
@@ -87,6 +90,8 @@ class PublicFeedbackRoutingRuleController extends Controller
         return Inertia::render('ServiceFeedback/RoutingRules/Edit', [
             'rule' => $this->present($rule, $user, $names),
             ...$this->formOptions($user),
+            'submissionType' => $this->moduleType($request),
+            'routeBase' => self::routeBase($this->moduleType($request)),
         ]);
     }
 
@@ -101,8 +106,8 @@ class PublicFeedbackRoutingRuleController extends Controller
             ? $this->scope->isUnrestricted($user)
             : $this->scope->isUnrestricted($user) || $this->scope->canAccessOrganization($user, $organizationId), 403);
 
-        // ADR 0034: a rule for Tip-offs or for complaints offers that type's handling units.
-        $caseType = in_array($request->query('submission_type'), ['suggestion', 'complaint'], true) ? (string) $request->query('submission_type') : null;
+        // ADR 0034: a Tip-off or complaint rule offers that module's handling units.
+        $caseType = $this->moduleType($request);
         $options = $this->assignments->options($organizationId, $caseType);
 
         if ($organizationId === null) {
@@ -123,11 +128,12 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         $this->routing->store($this->user(), $data, $request);
 
-        return redirect()->route('service-feedback.routing-rules.index')->with('success', __('service-feedback.rule_saved'));
+        return redirect()->route(self::routeBase($this->moduleType($request)).'.index')->with('success', __('service-feedback.rule_saved'));
     }
 
     public function update(StorePublicFeedbackRoutingRuleRequest $request, PublicFeedbackRoutingRule $rule): RedirectResponse
     {
+        $this->assertOwnModule($request, $rule);
         $data = $request->validated();
         $user = $this->user();
 
@@ -137,17 +143,36 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         $this->routing->update($user, $rule, $data, $request);
 
-        return redirect()->route('service-feedback.routing-rules.index')->with('success', __('service-feedback.rule_saved'));
+        return redirect()->route(self::routeBase($this->moduleType($request)).'.index')->with('success', __('service-feedback.rule_saved'));
     }
 
     public function destroy(Request $request, PublicFeedbackRoutingRule $rule): RedirectResponse
     {
+        $this->assertOwnModule($request, $rule);
         abort_unless($this->routing->canManage($this->user(), $rule->organization_id), 403);
 
         $outcome = $this->routing->destroy($this->user(), $rule, $request);
 
-        return redirect()->route('service-feedback.routing-rules.index')
+        return redirect()->route(self::routeBase($this->moduleType($request)).'.index')
             ->with('success', __($outcome === 'retired' ? 'service-feedback.rule_retired' : 'service-feedback.rule_deleted'));
+    }
+
+    /** Each module's own routing-rule pages: /tip-off-admin/routing-rules or /complaint-admin/routing-rules. */
+    public static function routeBase(string $submissionType): string
+    {
+        return $submissionType === 'complaint' ? 'public-complaints.routing-rules' : 'tip-offs.routing-rules';
+    }
+
+    /** The module this address belongs to (route default `submission_type`). */
+    private function moduleType(Request $request): string
+    {
+        return $request->route('submission_type') === 'complaint' ? 'complaint' : 'suggestion';
+    }
+
+    /** A rule answers only at its own module's address (an older rule for both types, at either). */
+    private function assertOwnModule(Request $request, PublicFeedbackRoutingRule $rule): void
+    {
+        abort_unless($rule->submission_type === null || $rule->submission_type === $this->moduleType($request), 404);
     }
 
     /**

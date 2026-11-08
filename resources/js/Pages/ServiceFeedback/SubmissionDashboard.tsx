@@ -81,7 +81,7 @@ export default function SubmissionDashboard({ type, figures, byStatus, byTipType
                     <div className="flex flex-wrap items-end justify-between gap-2">
                         <h2 id="recent" className={heading}>{d('recent')}</h2>
                         <div className="flex gap-4">
-                            {canManageRouting && <Link href={route('service-feedback.routing-rules.index', { submission_type: type })} className="text-[13px] font-semibold text-primary hover:underline">{t('nav.serviceFeedbackRoutingRules')}</Link>}
+                            {canManageRouting && <Link href={route(type === 'complaint' ? 'public-complaints.routing-rules.index' : 'tip-offs.routing-rules.index')} className="text-[13px] font-semibold text-primary hover:underline">{t('nav.serviceFeedbackRoutingRules')}</Link>}
                             <Link href={list} className="text-[13px] font-semibold text-primary hover:underline">{d('viewAll')} →</Link>
                         </div>
                     </div>

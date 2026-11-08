@@ -130,17 +130,17 @@ it('leaves an export queued and visible as such when no worker runs, and refuses
     Storage::fake('local');
 
     $this->actingAs($this->superAdmin)
-        ->post(route('service-feedback.submission-reports.export'), ['format' => 'csv'])
+        ->post(route('service-submissions.reports.export'), ['format' => 'csv'])
         ->assertRedirect();
 
     Queue::assertPushed(ExportPublicFeedbackReport::class, 1);
     $export = PublicFeedbackReportExport::query()->sole();
     expect($export->status)->toBe('queued')->and($export->path)->toBeNull();
 
-    $this->actingAs($this->superAdmin)->get(route('service-feedback.submission-reports.index'))
+    $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('exports.0.status', 'queued'));
-    $this->actingAs($this->superAdmin)->get(route('service-feedback.submission-reports.download', $export))->assertNotFound();
+    $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.download', $export))->assertNotFound();
 });
 
 it('writes no narrative, contact or QR secret to the log across every public combination, and answers each request with a correlation id', function (): void {

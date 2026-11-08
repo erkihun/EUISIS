@@ -732,7 +732,7 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-feedback.units.index', labelKey: 'nav.serviceFeedbackUnit', icon: Building2, permission: 'service_feedback.manage_routing' },
             { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
             { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: FileChartIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.submission-reports.index', query: { submission_type: 'feedback' }, labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.submission-reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
             // PublicFeedbackSettings::canManage also requires citywide scope; the same permission serves scoped QR and position-service work.
             { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage', citywideOnly: true },
         ],
@@ -747,8 +747,8 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: LightbulbIcon, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.unrouted', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, permission: 'service_feedback.view' },
             { routeName: 'tip-offs.units.index', labelKey: 'nav.serviceTipOffUnit', icon: Building2, permission: 'service_feedback.manage_routing' },
-            { routeName: 'service-feedback.routing-rules.index', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
-            { routeName: 'service-feedback.submission-reports.index', query: { submission_type: 'suggestion' }, labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
+            { routeName: 'tip-offs.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
+            { routeName: 'tip-offs.reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
         ],
     },
     {
@@ -761,8 +761,8 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: ComplaintIcon, permission: 'service_feedback.complaints.view' },
             { routeName: 'service-submissions.unrouted', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceUnrouted', icon: InboxInIcon, permission: 'service_feedback.complaints.view' },
             { routeName: 'public-complaints.units.index', labelKey: 'nav.serviceComplaintUnit', icon: Building2, permission: 'service_feedback.manage_routing' },
-            { routeName: 'service-feedback.routing-rules.index', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
-            { routeName: 'service-feedback.submission-reports.index', query: { submission_type: 'complaint' }, labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
+            { routeName: 'public-complaints.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
+            { routeName: 'public-complaints.reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, anyPermission: ['service_feedback.view', 'service_feedback.complaints.view'] },
         ],
     },
     {

@@ -125,7 +125,7 @@ it('keeps Complaints from a user who holds the general grant but not the Complai
         ->and($props['overview']['by_type']['complaint'])->toBe(0)
         ->and($props['filterOptions']['types'])->toBe(['feedback', 'suggestion']);
 
-    $this->actingAs($general)->post(route('service-feedback.submission-reports.export'), ['format' => 'csv'])->assertRedirect();
+    $this->actingAs($general)->post(route('service-submissions.reports.export'), ['format' => 'csv'])->assertRedirect();
     $csv = Storage::disk('local')->get(PublicFeedbackReportExport::query()->sole()->path);
     expect($csv)->not->toContain($this->rows['complaint']->reference_number)
         ->and($csv)->toContain($this->rows['suggestion']->reference_number);
@@ -353,7 +353,7 @@ it('writes an Amharic export with Amharic labels, names and Ethiopian dates', fu
     $viewer = apfViewer('bureau', ['service_feedback.export']);
 
     $this->actingAs($viewer)->withHeader('X-Locale', 'am')
-        ->post(route('service-feedback.submission-reports.export'), ['format' => 'csv', 'submission_type' => 'complaint'])->assertRedirect();
+        ->post(route('service-submissions.reports.export'), ['format' => 'csv', 'submission_type' => 'complaint'])->assertRedirect();
 
     $export = PublicFeedbackReportExport::query()->sole();
     $csv = Storage::disk('local')->get($export->path);

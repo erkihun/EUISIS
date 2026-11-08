@@ -46,7 +46,8 @@ class StorePublicFeedbackRoutingRuleRequest extends FormRequest
         $this->merge([
             'organization_id' => $this->filled('organization_id') ? $this->input('organization_id') : null,
             'target_type' => $this->filled('target_type') ? $this->input('target_type') : null,
-            'submission_type' => $this->filled('submission_type') ? $this->input('submission_type') : null,
+            // The module's address decides the type (/tip-off-admin or /complaint-admin).
+            'submission_type' => in_array($this->route('submission_type'), ['suggestion', 'complaint'], true) ? $this->route('submission_type') : ($this->filled('submission_type') ? $this->input('submission_type') : null),
             'tip_type' => $this->filled('tip_type') ? $this->input('tip_type') : null,
             'organization_unit_id' => $this->filled('organization_unit_id') ? $this->input('organization_unit_id') : null,
             'response_days' => $this->filled('response_days') ? $this->input('response_days') : null,

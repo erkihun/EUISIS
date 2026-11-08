@@ -30,19 +30,22 @@ type HandlerOptions = { users: { id: string; name: string }[]; units: { id: stri
 
 type Props = {
     record: RuleRecord | null;
-    /** A new rule opened from the Suggestions or Complaints group starts with that type. */
-    submissionType?: 'suggestion' | 'complaint' | null;
+    /** The module the form belongs to: /tip-off-admin (suggestion) or /complaint-admin. */
+    submissionType: 'suggestion' | 'complaint';
+    /** Its routes: tip-offs.routing-rules or public-complaints.routing-rules. */
+    routeBase: string;
     organizations: OrganizationOption[];
     canManageCityWide: boolean;
 };
 
 /** The one routing-rule form, used by the create and the edit page. Saving returns to the list. */
-export default function RuleForm({ record, organizations, canManageCityWide, submissionType = null }: Props) {
+export default function RuleForm({ record, organizations, canManageCityWide, submissionType, routeBase }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({
         organization_id: record?.organization_id ?? (canManageCityWide ? '' : organizations[0]?.id ?? ''),
         target_type: record?.target_type ?? '',
-        submission_type: record?.submission_type ?? submissionType ?? '',
+        // Fixed by the module's address; an older rule for both types becomes this module's on save.
+        submission_type: submissionType as string,
         tip_type: record?.tip_type ?? '',
         organization_unit_id: record?.organization_unit_id ?? '',
         handler_type: (record?.handler_type ?? 'user') as HandlerType,
@@ -61,7 +64,7 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
     useEffect(() => {
         let cancelled = false;
         setLoadingOptions(true);
-        fetch(route('service-feedback.routing-rules.handlers', { ...(form.data.organization_id ? { organization_id: form.data.organization_id } : {}), ...(form.data.submission_type ? { submission_type: form.data.submission_type } : {}) }), { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+        fetch(route(`${routeBase}.handlers`, { ...(form.data.organization_id ? { organization_id: form.data.organization_id } : {}), ...(form.data.submission_type ? { submission_type: form.data.submission_type } : {}) }), { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
             .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
             .then((data: HandlerOptions) => { if (!cancelled) setOptions(data); })
             .catch(() => { if (!cancelled) setOptions({ users: [], units: [], roles: [] }); })
@@ -91,9 +94,9 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
         }));
 
         if (record === null) {
-            form.post(route('service-feedback.routing-rules.store'));
+            form.post(route(`${routeBase}.store`));
         } else {
-            form.put(route('service-feedback.routing-rules.update', record.id));
+            form.put(route(`${routeBase}.update`, record.id));
         }
     }
 
@@ -130,15 +133,6 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
                                 <option value="">{t('serviceFeedback.anyTargetType')}</option>
                                 <option value="employee">{t('serviceFeedback.targetEmployee')}</option>
                                 <option value="organization">{t('serviceFeedback.targetOrganization')}</option>
-                            </Select>
-                        )}
-                    </FormField>
-                    <FormField id="rule-type" label={t('serviceFeedback.appliesToTypes')} error={errors.submission_type}>
-                        {({ id, describedBy, invalid }) => (
-                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.submission_type} onChange={(e) => form.setData((data) => ({ ...data, submission_type: e.target.value, tip_type: e.target.value === 'complaint' ? '' : data.tip_type }))}>
-                                <option value="">{t('serviceFeedback.anySubmissionType')}</option>
-                                <option value="suggestion">{t('serviceFeedback.adminTypeSuggestion')}</option>
-                                <option value="complaint">{t('serviceFeedback.adminTypeComplaint')}</option>
                             </Select>
                         )}
                     </FormField>
@@ -195,7 +189,7 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
                     </FormField>
                 </div>
                 <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
-                    <Button as={Link} href={route('service-feedback.routing-rules.index')} variant="outline">{t('common.cancel')}</Button>
+                    <Button as={Link} href={route(`${routeBase}.index`)} variant="outline">{t('common.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing}>{t('common.save')}</Button>
                 </div>
             </Card>

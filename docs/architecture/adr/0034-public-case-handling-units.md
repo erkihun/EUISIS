@@ -42,6 +42,17 @@
    reachable only through its own module's address. The short-lived
    `/feedback-admin/handling-units`, `/feedback-admin/tip-off-units` and
    `/feedback-admin/complaint-units` redirect.
+   The same rule applies to the other admin pages (owner, same day):
+   routing rules at `/tip-off-admin/routing-rules` and
+   `/complaint-admin/routing-rules` (`tip-offs.routing-rules.*`,
+   `public-complaints.routing-rules.*`), and reports at
+   `/feedback-admin/submission-reports`, `/tip-off-admin/reports` and
+   `/complaint-admin/reports`, each fixed to its type. Migration
+   `2026_11_08_180000_split_routing_rules_per_module` turns every older rule
+   for both types into a Tip-off rule plus the same rule for complaints (a
+   rule narrowed to a Tip-off type stays a Tip-off rule only). The overview
+   across every type stays beside the all-types list at
+   `/service-submissions/reports`, which belongs to no single module.
 7. The Feedback Unit records the unit that receives service feedback and its
    members with signatures. Rating feedback is reviewed, not routed, so it
    changes no assignment; Tip-off and complaint pickers never list it.

@@ -100,7 +100,7 @@ it('saves a rule with its level and response days', function (): void {
     Permission::findOrCreate('service_feedback.manage_routing', 'web');
     $this->role->givePermissionTo('service_feedback.manage_routing');
 
-    $this->actingAs($this->admin)->post(route('service-feedback.routing-rules.store'), [
+    $this->actingAs($this->admin)->post(route('tip-offs.routing-rules.store'), [
         'organization_id' => $this->employee->organization->id, 'submission_type' => 'suggestion',
         'handler_type' => 'user', 'handler_id' => (string) $this->admin->id, 'escalation_level' => 3, 'response_days' => 10,
     ])->assertSessionHasNoErrors();
@@ -108,7 +108,7 @@ it('saves a rule with its level and response days', function (): void {
     $rule = PublicFeedbackRoutingRule::query()->where('escalation_level', 3)->sole();
     expect($rule->response_days)->toBe(10);
 
-    $this->actingAs($this->admin)->post(route('service-feedback.routing-rules.store'), [
+    $this->actingAs($this->admin)->post(route('tip-offs.routing-rules.store'), [
         'handler_type' => 'user', 'handler_id' => (string) $this->admin->id, 'escalation_level' => 9,
     ])->assertSessionHasErrors('escalation_level');
 });

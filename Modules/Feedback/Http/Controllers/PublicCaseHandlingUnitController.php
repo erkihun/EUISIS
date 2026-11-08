@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Feedback\Http\Controllers;
 
+use App\Backbone\Contracts\AssignmentContextReader;
 use App\Backbone\Contracts\EmployeeDirectory;
 use App\Backbone\Contracts\OrganizationDirectory;
+use App\Backbone\Contracts\PositionDirectory;
 use App\Backbone\Contracts\UnitDirectory;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -24,9 +26,10 @@ use Modules\Feedback\Domain\Models\PublicCaseHandlingUnitMember;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Public Tip-off and complaint handling units (ADR 0034): pick an
- * institution's work unit, name the staff who serve in it, and register each
- * one's signature.
+ * Each module's unit board (ADR 0034) — Feedback, Tip-off and Complaint Unit:
+ * pick an institution's work unit, give the staff who serve in it a
+ * responsibility and register each one's signature. Same board as the
+ * grievance Teams and Directorate: one card per unit, actions in popups.
  */
 class PublicCaseHandlingUnitController extends Controller
 {
@@ -38,6 +41,8 @@ class PublicCaseHandlingUnitController extends Controller
         private readonly UnitDirectory $units,
         private readonly EmployeeDirectory $employees,
         private readonly OrganizationDirectory $organizations,
+        private readonly AssignmentContextReader $assignments,
+        private readonly PositionDirectory $positions,
     ) {}
 
     public function index(Request $request): Response
@@ -45,72 +50,69 @@ class PublicCaseHandlingUnitController extends Controller
         $user = $this->user($request);
         abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
         $locale = app()->getLocale();
-
-        $query = PublicCaseHandlingUnit::query()->with(['members' => fn ($q) => $q->servingOn(now())->orderByRaw("CASE WHEN responsibility = 'head' THEN 0 ELSE 1 END")->orderBy('effective_from')]);
-        if (! $this->scope->isUnrestricted($user)) {
-            $query->whereIn('organization_id', $this->scope->accessibleOrganizationIds($user)->all());
-        }
-        if ($request->filled('organization_id')) {
-            $query->where('organization_id', (string) $request->string('organization_id'));
-        }
         // Each module's own page (route default): Feedback, Tip-off or Complaint Unit.
         $caseType = $this->routeType($request);
-        $query->where('case_type', $caseType);
 
+        $base = function () use ($user, $caseType) {
+            $query = PublicCaseHandlingUnit::query()->where('case_type', $caseType);
+            if (! $this->scope->isUnrestricted($user)) {
+                $query->whereIn('organization_id', $this->scope->accessibleOrganizationIds($user)->all());
+            }
+
+            return $query;
+        };
+        $filters = [
+            'search' => trim((string) $request->query('search', '')),
+            'organization_id' => (string) $request->query('organization_id', ''),
+            'status' => in_array($request->query('status'), ['active', 'inactive'], true) ? (string) $request->query('status') : '',
+        ];
+
+        $query = $base()->with(['members' => fn ($q) => $q->servingOn(now())->orderByRaw("CASE WHEN responsibility = 'head' THEN 0 ELSE 1 END")->orderBy('effective_from')])
+            ->when($filters['organization_id'] !== '', fn ($q) => $q->where('organization_id', $filters['organization_id']))
+            ->when($filters['status'] !== '', fn ($q) => $q->where('status', $filters['status']));
         $rows = $query->orderBy('organization_id')->orderBy('created_at')->get();
         $orgNames = $this->organizationNames($rows->pluck('organization_id')->unique()->all(), $locale);
 
-        return Inertia::render('ServiceFeedback/HandlingUnits/Index', [
-            'units' => $rows->map(function (PublicCaseHandlingUnit $d) use ($user, $locale, $orgNames): array {
-                $unit = $this->units->find((string) $d->organization_unit_id);
+        $units = $rows->map(function (PublicCaseHandlingUnit $d) use ($user, $locale, $orgNames): array {
+            $unit = $this->units->find((string) $d->organization_unit_id);
 
-                return [
-                    'id' => $d->getKey(),
-                    'case_type' => $d->case_type,
-                    'status' => $d->status,
-                    'description' => $locale === 'am' ? ($d->description_am ?: $d->description_en) : ($d->description_en ?: $d->description_am),
-                    'organization_id' => $d->organization_id,
-                    'organization' => $orgNames[$d->organization_id] ?? null,
-                    'unit' => $unit === null ? null : ($locale === 'am' ? ($unit->nameAm ?: $unit->nameEn) : ($unit->nameEn ?: $unit->nameAm)),
-                    'problems' => array_map(fn (string $key): string => __($key), $this->handling->problems($d)),
-                    'members' => $d->members->map(fn (PublicCaseHandlingUnitMember $m): array => $this->memberRow($d, $m))->values()->all(),
-                    'can_manage' => $this->handling->canManage($user, (string) $d->organization_id),
-                ];
-            })->values()->all(),
+            return [
+                'id' => $d->getKey(),
+                'case_type' => $d->case_type,
+                'status' => $d->status,
+                'description_en' => $d->description_en,
+                'description_am' => $d->description_am,
+                'organization_id' => $d->organization_id,
+                'organization' => $orgNames[$d->organization_id] ?? null,
+                'unit' => $unit === null ? null : $this->name($unit->nameEn, $unit->nameAm, $locale),
+                'problems' => array_map(fn (string $key): string => __($key), $this->handling->problems($d)),
+                'members' => $d->members->map(fn (PublicCaseHandlingUnitMember $m): array => $this->memberRow($d, $m, $locale))->values()->all(),
+                'can_manage' => $this->handling->canManage($user, (string) $d->organization_id),
+            ];
+        });
+        if ($filters['search'] !== '') {
+            $needle = mb_strtolower($filters['search']);
+            $units = $units->filter(fn (array $row): bool => str_contains(mb_strtolower((string) $row['unit']), $needle) || str_contains(mb_strtolower((string) $row['organization']), $needle));
+        }
+
+        $designations = $base()->pluck('id');
+
+        return Inertia::render('ServiceFeedback/HandlingUnits/Index', [
+            'units' => $units->values()->all(),
             'organizations' => $this->organizationOptions($user, $locale),
-            'filters' => ['organization_id' => (string) $request->query('organization_id', '')],
+            'filters' => $filters,
             'caseType' => $caseType,
+            'responsibilities' => PublicCaseHandlingUnitMember::RESPONSIBILITIES,
+            'summary' => [
+                'units' => $base()->where('status', 'active')->count(),
+                'members' => PublicCaseHandlingUnitMember::query()->servingOn(now())->whereIn('handling_unit_id', $designations)->count(),
+                'attention' => $base()->get()->filter(fn (PublicCaseHandlingUnit $d): bool => $d->isActive() && $this->handling->problems($d) !== [])->count(),
+            ],
+            'can' => ['designate' => $this->organizationOptions($user, $locale) !== []],
         ]);
     }
 
-    /** The designation form, on its own page. */
-    public function create(Request $request): Response
-    {
-        $user = $this->user($request);
-        abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
-        $organizations = $this->organizationOptions($user, app()->getLocale());
-        abort_if($organizations === [], 403);
-        return Inertia::render('ServiceFeedback/HandlingUnits/Create', ['organizations' => $organizations, 'caseType' => $this->routeType($request)]);
-    }
-
-    public function createMember(Request $request, PublicCaseHandlingUnit $unit): Response
-    {
-        $this->assertOwnModule($request, $unit);
-        abort_unless($this->handling->canManage($this->user($request), (string) $unit->organization_id) && $unit->isActive(), 403);
-
-        return Inertia::render('ServiceFeedback/HandlingUnits/MemberCreate', ['unit' => $this->unitRef($unit), 'responsibilities' => PublicCaseHandlingUnitMember::RESPONSIBILITIES]);
-    }
-
-    public function editMember(Request $request, PublicCaseHandlingUnit $unit, PublicCaseHandlingUnitMember $member): Response
-    {
-        $this->assertOwnModule($request, $unit);
-        abort_unless($member->handling_unit_id === $unit->getKey(), 404);
-        abort_unless($this->handling->canManage($this->user($request), (string) $unit->organization_id), 403);
-
-        return Inertia::render('ServiceFeedback/HandlingUnits/MemberEdit', ['unit' => $this->unitRef($unit), 'member' => $this->memberRow($unit, $member), 'responsibilities' => PublicCaseHandlingUnitMember::RESPONSIBILITIES]);
-    }
-
-    /** An institution's active work units not yet designated for the case type, for the designation form. */
+    /** An institution's active work units not yet designated for this module, for the designation form. */
     public function unitOptions(Request $request): JsonResponse
     {
         $user = $this->user($request);
@@ -122,7 +124,7 @@ class PublicCaseHandlingUnitController extends Controller
 
         return response()->json(['data' => collect($this->units->forOrganization($organizationId))
             ->reject(fn ($unit) => in_array($unit->unitUuid, $taken, true))
-            ->map(fn ($unit) => ['id' => $unit->unitUuid, 'name' => $locale === 'am' ? ($unit->nameAm ?: $unit->nameEn) : ($unit->nameEn ?: $unit->nameAm)])
+            ->map(fn ($unit) => ['id' => $unit->unitUuid, 'name' => $this->name($unit->nameEn, $unit->nameAm, $locale)])
             ->sortBy('name')->values()->all()]);
     }
 
@@ -224,31 +226,20 @@ class PublicCaseHandlingUnitController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function unitRef(PublicCaseHandlingUnit $unit): array
-    {
-        $locale = app()->getLocale();
-        $ou = $this->units->find((string) $unit->organization_unit_id);
-        $org = $this->organizations->find((string) $unit->organization_id);
-
-        return [
-            'id' => $unit->getKey(),
-            'case_type' => $unit->case_type,
-            'unit' => $ou === null ? null : ($locale === 'am' ? ($ou->nameAm ?: $ou->nameEn) : ($ou->nameEn ?: $ou->nameAm)),
-            'organization' => $org === null ? null : ($locale === 'am' ? ($org->nameAm ?: $org->nameEn) : ($org->nameEn ?: $org->nameAm)),
-            'has_head' => $unit->members()->servingOn(now())->where('responsibility', 'head')->exists(),
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function memberRow(PublicCaseHandlingUnit $d, PublicCaseHandlingUnitMember $m): array
+    private function memberRow(PublicCaseHandlingUnit $d, PublicCaseHandlingUnitMember $m, string $locale): array
     {
         $employee = $this->employees->findByUuid((string) $m->employee_id);
+        $context = $this->assignments->currentFor((string) $m->employee_id);
+        $position = $context?->positionUuid !== null ? $this->positions->find($context->positionUuid) : null;
+        $placedUnit = $context?->organizationUnitUuid !== null ? $this->units->find($context->organizationUnitUuid) : null;
 
         return [
             'id' => $m->getKey(),
             'employee_id' => $m->employee_id,
             'name' => $employee?->fullName ?? $employee?->nameEn,
             'employee_number' => $employee?->employeeNumber,
+            'position' => $position === null ? null : $this->name($position->titleEn, $position->titleAm, $locale),
+            'placed_unit' => $placedUnit === null ? null : $this->name($placedUnit->nameEn, $placedUnit->nameAm, $locale),
             'responsibility' => $m->responsibility,
             'effective_from' => $m->effective_from?->toDateString(),
             'effective_to' => $m->effective_to?->toDateString(),
@@ -260,12 +251,17 @@ class PublicCaseHandlingUnitController extends Controller
         ];
     }
 
+    private function name(?string $en, ?string $am, string $locale): ?string
+    {
+        return $locale === 'am' ? ($am ?: $en) : ($en ?: $am);
+    }
+
     /** @return list<array{id: string, name: string}> */
     private function organizationOptions(User $user, string $locale): array
     {
         $rows = [];
         foreach ($this->organizations->activeFor($user, 1000) as $org) {
-            $rows[] = ['id' => $org->organizationUuid, 'name' => (string) ($locale === 'am' ? ($org->nameAm ?: $org->nameEn) : ($org->nameEn ?: $org->nameAm))];
+            $rows[] = ['id' => $org->organizationUuid, 'name' => (string) $this->name($org->nameEn, $org->nameAm, $locale)];
         }
         usort($rows, fn ($a, $b) => strcmp((string) $a['name'], (string) $b['name']));
 
@@ -278,7 +274,7 @@ class PublicCaseHandlingUnitController extends Controller
         $names = [];
         foreach ($ids as $id) {
             $org = $this->organizations->find((string) $id);
-            $names[(string) $id] = $org === null ? null : ($locale === 'am' ? ($org->nameAm ?: $org->nameEn) : ($org->nameEn ?: $org->nameAm));
+            $names[(string) $id] = $org === null ? null : $this->name($org->nameEn, $org->nameAm, $locale);
         }
 
         return $names;

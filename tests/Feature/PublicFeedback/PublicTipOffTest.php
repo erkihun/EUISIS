@@ -219,7 +219,7 @@ it('stores a tipster\'s details encrypted and confidential, and keeps them out o
     expect(json_encode($row->toArray()))->not->toContain('Tipster Tesfaye')->not->toContain('0911 55 66 77');
 
     // Aggregates: the reports page and the dashboard show counts, never the tipster.
-    $report = $this->actingAs($this->superAdmin)->get(route('service-feedback.submission-reports.index'))->assertOk();
+    $report = $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.index'))->assertOk();
     $dashboard = $this->actingAs($this->superAdmin)->get(route('dashboard'))->assertOk();
     foreach ([$report, $dashboard] as $response) {
         expect((string) $response->getContent())
@@ -368,7 +368,7 @@ it('routes a corruption Tip-off only through a rule that names corruption, and k
 });
 
 it('refuses a tip type on a complaint routing rule', function (): void {
-    $this->actingAs($this->superAdmin)->post(route('service-feedback.routing-rules.store'), [
+    $this->actingAs($this->superAdmin)->post(route('public-complaints.routing-rules.store'), [
         'organization_id' => $this->a->organization->id, 'submission_type' => 'complaint', 'tip_type' => 'CORRUPTION',
         'handler_type' => 'user', 'handler_id' => (string) $this->superAdmin->id,
     ])->assertSessionHasErrors('tip_type');
@@ -418,7 +418,7 @@ it('splits Tip-offs into the two types plus legacy unclassified rows, and every 
         ->where('cards.tipOffs.improperPractice', 2)
         ->where('cards.tipOffs.unclassified', 1));
 
-    $this->actingAs($this->superAdmin)->get(route('service-feedback.submission-reports.index', ['tip_type' => 'CORRUPTION']))
+    $this->actingAs($this->superAdmin)->get(route('service-submissions.reports.index', ['tip_type' => 'CORRUPTION']))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('tipOffs.total', 2)->where('summary.total', 2));
     $this->actingAs($this->superAdmin)->get(route('service-submissions.suggestions', ['tip_type' => 'UNCLASSIFIED_LEGACY']))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('entries.total', 1)->where('entries.data.0.tip_type', null));

@@ -1641,9 +1641,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     });
 
     Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
-    Route::get('/feedback-admin/submission-reports', [PublicFeedbackReportController::class, 'index'])->name('service-feedback.submission-reports.index');
-    Route::post('/feedback-admin/submission-reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-feedback.submission-reports.export');
-    Route::get('/feedback-admin/submission-reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-feedback.submission-reports.download');
     Route::get('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'index'])->name('service-feedback.settings.index');
     Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
     // The organization feedback questionnaire: versions, the one draft, publish and withdraw (city-level).
@@ -1654,8 +1651,38 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/questionnaire/{questionSet}/publish', [PublicFeedbackQuestionnaireController::class, 'publish'])->whereUuid('questionSet')->name('service-feedback.questionnaire.publish');
     Route::post('/feedback-admin/questionnaire/{questionSet}/retire', [PublicFeedbackQuestionnaireController::class, 'retire'])->whereUuid('questionSet')->name('service-feedback.questionnaire.retire');
     Route::delete('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'destroy'])->whereUuid('questionSet')->name('service-feedback.questionnaire.destroy');
-    Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
     // ADR 0034: the work units that handle public Tip-offs and complaints, their members and signatures.
+    // Each module's own admin pages (owner rule 2026-11-08): reports for service feedback stay
+    // under /feedback-admin; Tip-offs and complaints have /tip-off-admin and /complaint-admin for
+    // their routing rules and reports. The type comes from the address, never a shared page.
+    foreach (['feedback' => ['feedback-admin', 'service-feedback'], 'suggestion' => ['tip-off-admin', 'tip-offs'], 'complaint' => ['complaint-admin', 'public-complaints']] as $submissionType => [$prefix, $name]) {
+        $reports = $submissionType === 'feedback' ? 'submission-reports' : 'reports';
+        Route::prefix($prefix.'/'.$reports)->name($name.'.'.$reports.'.')->controller(PublicFeedbackReportController::class)
+            ->group(function () use ($submissionType): void {
+                Route::get('/', 'index')->defaults('submission_type', $submissionType)->name('index');
+                Route::post('/export', 'export')->defaults('submission_type', $submissionType)->name('export');
+                Route::get('/exports/{export}', 'download')->defaults('submission_type', $submissionType)->whereUuid('export')->name('download');
+            });
+        if ($submissionType === 'feedback') {
+            continue; // Rating feedback is reviewed, not routed: no routing rules.
+        }
+        Route::prefix($prefix.'/routing-rules')->name($name.'.routing-rules.')->controller(PublicFeedbackRoutingRuleController::class)
+            ->group(function () use ($submissionType): void {
+                Route::get('/', 'index')->defaults('submission_type', $submissionType)->name('index');
+                Route::get('/handlers', 'handlers')->defaults('submission_type', $submissionType)->name('handlers');
+                Route::get('/create', 'create')->defaults('submission_type', $submissionType)->name('create');
+                Route::get('/{rule}/edit', 'edit')->defaults('submission_type', $submissionType)->whereUuid('rule')->name('edit');
+                Route::post('/', 'store')->defaults('submission_type', $submissionType)->name('store');
+                Route::put('/{rule}', 'update')->defaults('submission_type', $submissionType)->whereUuid('rule')->name('update');
+                Route::delete('/{rule}', 'destroy')->defaults('submission_type', $submissionType)->whereUuid('rule')->name('destroy');
+            });
+    }
+    // The overview across every type, beside the all-types list (not any one module's page).
+    Route::get('/service-submissions/reports', [PublicFeedbackReportController::class, 'index'])->name('service-submissions.reports.index');
+    Route::post('/service-submissions/reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-submissions.reports.export');
+    Route::get('/service-submissions/reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-submissions.reports.download');
+    // The shared addresses used before each module had its own.
+    Route::get('/feedback-admin/routing-rules', fn (\Illuminate\Http\Request $request) => redirect($request->query('submission_type') === 'complaint' ? '/complaint-admin/routing-rules' : '/tip-off-admin/routing-rules'));
     // ADR 0034: each module's own unit page and its members — /feedback-admin/units (service
     // feedback), /tip-off-admin/units (Tip-offs), /complaint-admin/units (complaints). Never one shared page.
     foreach (['feedback' => 'feedback-admin', 'suggestion' => 'tip-off-admin', 'complaint' => 'complaint-admin'] as $caseType => $prefix) {
@@ -1663,12 +1690,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             ->group(function () use ($caseType): void {
                 Route::get('/', 'index')->defaults('case_type', $caseType)->name('index');
                 Route::get('/unit-options', 'unitOptions')->defaults('case_type', $caseType)->name('unit-options');
-                Route::get('/create', 'create')->defaults('case_type', $caseType)->name('create');
                 Route::post('/', 'store')->defaults('case_type', $caseType)->name('store');
                 Route::patch('/{unit}', 'update')->defaults('case_type', $caseType)->whereUuid('unit')->name('update');
-                Route::get('/{unit}/members/create', 'createMember')->defaults('case_type', $caseType)->whereUuid('unit')->name('members.create');
                 Route::post('/{unit}/members', 'addMember')->defaults('case_type', $caseType)->whereUuid('unit')->name('members.store');
-                Route::get('/{unit}/members/{member}/edit', 'editMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.edit');
                 Route::post('/{unit}/members/{member}', 'updateMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.update');
                 Route::post('/{unit}/members/{member}/end', 'endMember')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.end');
                 Route::get('/{unit}/members/{member}/signature', 'signature')->defaults('case_type', $caseType)->whereUuid(['unit', 'member'])->name('members.signature');
@@ -1678,12 +1702,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::redirect('/feedback-admin/handling-units', '/tip-off-admin/units');
     Route::redirect('/feedback-admin/tip-off-units', '/tip-off-admin/units');
     Route::redirect('/feedback-admin/complaint-units', '/complaint-admin/units');
-    Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
-    Route::get('/feedback-admin/routing-rules/create', [PublicFeedbackRoutingRuleController::class, 'create'])->name('service-feedback.routing-rules.create');
-    Route::get('/feedback-admin/routing-rules/{rule}/edit', [PublicFeedbackRoutingRuleController::class, 'edit'])->whereUuid('rule')->name('service-feedback.routing-rules.edit');
-    Route::post('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'store'])->name('service-feedback.routing-rules.store');
-    Route::put('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'update'])->whereUuid('rule')->name('service-feedback.routing-rules.update');
-    Route::delete('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'destroy'])->whereUuid('rule')->name('service-feedback.routing-rules.destroy');
     Route::get('/feedback-admin/dashboard', [ServiceFeedbackController::class, 'dashboard'])->name('service-feedback.admin.dashboard');
     Route::get('/feedback-admin/reports', [ServiceFeedbackController::class, 'reports'])->name('service-feedback.admin.reports');
     Route::get('/feedback-admin/export', [ServiceFeedbackController::class, 'export'])->name('service-feedback.admin.export');

@@ -34,7 +34,7 @@ class PublicFeedbackReportController extends Controller
     {
         $this->authorize('viewAny', PublicFeedbackReportExport::class);
         $user = $this->user();
-        $filters = $this->metrics->filters($request->query());
+        $filters = $this->moduleFilters($request, $request->query());
         $query = $this->metrics->query($user, $filters);
 
         return Inertia::render('ServiceFeedback/SubmissionReports', [
@@ -66,6 +66,9 @@ class PublicFeedbackReportController extends Controller
                     'completed_at' => $export->completed_at?->toIso8601String(),
                 ])->all(),
             'can' => ['export' => $user->can('create', PublicFeedbackReportExport::class)],
+            // The module's own report (its type fixed), or the overview across every type.
+            'routeBase' => $this->routeBase($request),
+            'lockedType' => $this->moduleType($request),
         ]);
     }
 
@@ -77,7 +80,7 @@ class PublicFeedbackReportController extends Controller
         $data = $request->validate([
             'format' => ['required', Rule::in(['csv', 'xlsx'])],
         ]);
-        $filters = $this->metrics->filters($request->all());
+        $filters = $this->moduleFilters($request, $request->all());
         $organizationId = $filters['organization_id'] ?? null;
         abort_unless($organizationId === null || $this->scope->isUnrestricted($user) || $this->scope->canAccessOrganization($user, $organizationId), 403);
 
@@ -93,7 +96,7 @@ class PublicFeedbackReportController extends Controller
         ]);
         ExportPublicFeedbackReport::dispatch($export);
 
-        return redirect()->route('service-feedback.submission-reports.index', $filters)
+        return redirect()->route($this->routeBase($request).'.index', array_diff_key($filters, $this->moduleType($request) === null ? [] : ['submission_type' => true]))
             ->with('success', __('service-feedback.export_queued'));
     }
 
@@ -109,6 +112,27 @@ class PublicFeedbackReportController extends Controller
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    /** The type a module's report page is fixed to (route default), or null on the overview. */
+    private function moduleType(Request $request): ?string
+    {
+        $type = $request->route('submission_type');
+
+        return in_array($type, ['feedback', 'suggestion', 'complaint'], true) ? $type : null;
+    }
+
+    /** @param  array<string, mixed>  $input */
+    private function moduleFilters(Request $request, array $input): array
+    {
+        $type = $this->moduleType($request);
+
+        return $this->metrics->filters($type === null ? $input : ['submission_type' => $type] + $input);
+    }
+
+    private function routeBase(Request $request): string
+    {
+        return (string) preg_replace('/\.(index|export|download)$/', '', (string) $request->route()?->getName());
     }
 
     private function user(): User
