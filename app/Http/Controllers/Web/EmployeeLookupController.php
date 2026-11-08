@@ -35,6 +35,8 @@ class EmployeeLookupController extends Controller
         'cards.manage',
         'transport-passes.create',
         'transport-passes.update',
+        // ADR 0034: naming members of a public Tip-off and complaint handling unit.
+        'service_feedback.manage_routing',
     ];
 
     public function __invoke(Request $request, OrganizationScopeService $scope): JsonResponse

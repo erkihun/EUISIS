@@ -61,13 +61,13 @@ export default function RuleForm({ record, organizations, canManageCityWide, sub
     useEffect(() => {
         let cancelled = false;
         setLoadingOptions(true);
-        fetch(route('service-feedback.routing-rules.handlers', form.data.organization_id ? { organization_id: form.data.organization_id } : {}), { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
+        fetch(route('service-feedback.routing-rules.handlers', { ...(form.data.organization_id ? { organization_id: form.data.organization_id } : {}), ...(form.data.submission_type ? { submission_type: form.data.submission_type } : {}) }), { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
             .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
             .then((data: HandlerOptions) => { if (!cancelled) setOptions(data); })
             .catch(() => { if (!cancelled) setOptions({ users: [], units: [], roles: [] }); })
             .finally(() => { if (!cancelled) setLoadingOptions(false); });
         return () => { cancelled = true; };
-    }, [form.data.organization_id]);
+    }, [form.data.organization_id, form.data.submission_type]);
 
     const choices = options === null ? []
         : form.data.handler_type === 'user' ? options.users

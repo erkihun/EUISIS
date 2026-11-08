@@ -601,6 +601,9 @@ enum AuditEventType: string
     case ServiceFeedbackUnrouted = 'service_feedback.unrouted';
     case ServiceFeedbackRoutingRuleSaved = 'service_feedback.routing_rule_saved';
     case ServiceFeedbackRoutingRuleDeleted = 'service_feedback.routing_rule_deleted';
+    case ServiceFeedbackHandlingUnitSaved = 'service_feedback.handling_unit_saved';
+    case ServiceFeedbackHandlingUnitMemberSaved = 'service_feedback.handling_unit_member_saved';
+    case ServiceFeedbackHandlingUnitMemberEnded = 'service_feedback.handling_unit_member_ended';
     case ServiceFeedbackSubjectAdded = 'service_feedback.subject_added';
     case ServiceFeedbackSubjectRemoved = 'service_feedback.subject_removed';
     case ServiceFeedbackReferralRequested = 'service_feedback.referral_requested';

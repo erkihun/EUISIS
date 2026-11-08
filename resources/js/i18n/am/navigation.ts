@@ -142,6 +142,8 @@ const navigation = {
     intelligenceKnowledge: 'የዕውቀት ረዳት',
     intelligenceGovernance: 'የሰው ሠራሽ ብልህነት አስተዳደር',
     serviceFeedbackRoutingRules: 'የማስተላለፊያ ደንቦች',
+    serviceTipOffUnit: 'ጥቆማ ክፍል',
+    serviceComplaintUnit: 'ቅሬታ ክፍል',
     organizationFeedbackQrCodes: 'የተቋም QR ኮዶች',
     serviceSubmissionReports: 'የቀረቡ ጉዳዮች ሪፖርቶች',
     serviceFeedbackQuestionnaire: 'የአስተያየት መጠይቅ',

@@ -101,7 +101,9 @@ class PublicFeedbackRoutingRuleController extends Controller
             ? $this->scope->isUnrestricted($user)
             : $this->scope->isUnrestricted($user) || $this->scope->canAccessOrganization($user, $organizationId), 403);
 
-        $options = $this->assignments->options($organizationId);
+        // ADR 0034: a rule for Tip-offs or for complaints offers that type's handling units.
+        $caseType = in_array($request->query('submission_type'), ['suggestion', 'complaint'], true) ? (string) $request->query('submission_type') : null;
+        $options = $this->assignments->options($organizationId, $caseType);
 
         if ($organizationId === null) {
             // A city-wide rule may only name users who work across the city.

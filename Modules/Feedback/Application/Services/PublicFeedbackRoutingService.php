@@ -283,7 +283,7 @@ final class PublicFeedbackRoutingService
             throw ValidationException::withMessages(['handler_id' => __('service-feedback.handler_invalid')]);
         }
 
-        $this->assignments->assertHandlerWithinOrganization($type, $attributes['handler_id'], $attributes['organization_id']);
+        $this->assignments->assertHandlerWithinOrganization($type, $attributes['handler_id'], $attributes['organization_id'], null, $attributes['submission_type']);
 
         if ($attributes['organization_unit_id'] !== null) {
             $unit = OrganizationUnit::query()->find($attributes['organization_unit_id']);

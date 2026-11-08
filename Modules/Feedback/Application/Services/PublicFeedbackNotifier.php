@@ -124,8 +124,11 @@ final class PublicFeedbackNotifier
             PublicFeedbackHandlerType::User => User::query()->whereKey($assignment->handler_id)->where('status', 'active')->get(),
             PublicFeedbackHandlerType::Role => User::query()->where('status', 'active')
                 ->whereHas('roles', fn ($q) => $q->whereKey($assignment->handler_id))->get(),
-            PublicFeedbackHandlerType::OrganizationUnit => User::query()->where('status', 'active')
-                ->whereHas('employee.currentAssignment', fn ($q) => $q->where('organization_unit_id', $assignment->handler_id))->get(),
+            // ADR 0034: a designated handling unit means its serving members; any other unit, its placed staff.
+            PublicFeedbackHandlerType::OrganizationUnit => ($members = app(PublicCaseHandlingUnitService::class)->servingUserIds((string) $assignment->handler_id, $submission->type->value)) !== null
+                ? User::query()->whereIn('id', $members)->get()
+                : User::query()->where('status', 'active')
+                    ->whereHas('employee.currentAssignment', fn ($q) => $q->where('organization_unit_id', $assignment->handler_id))->get(),
         };
 
         return $users

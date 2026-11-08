@@ -19,6 +19,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Feedback\Application\Services\PublicCaseHandlingUnitService;
 use Modules\Feedback\Application\Services\PublicEvidencePolicy;
 use Modules\Feedback\Application\Services\PublicFeedbackAssignmentService;
 use Modules\Feedback\Application\Services\PublicFeedbackQuestionnaire;
@@ -232,7 +233,7 @@ class ServiceSubmissionController extends Controller
                 'refer' => $this->referrals->canRequest($user, $submission),
                 'decideReferral' => $submission->referrals->contains(fn ($r) => $r->status === 'requested' && (int) $r->requested_by !== (int) $user->getKey()) && $this->referrals->canRefer($user, $submission),
             ],
-            'handlerOptions' => $assignable ? $this->assignments->options($submission->organization_id) : null,
+            'handlerOptions' => $assignable ? $this->assignments->options($submission->organization_id, $kind->value) : null,
         ]);
     }
 
@@ -395,15 +396,16 @@ class ServiceSubmissionController extends Controller
     private function handledBy(Builder $query, User $user): Builder
     {
         $roleIds = $user->roles->pluck('id')->map(fn ($id): string => (string) $id)->all();
-        $unitId = $user->employee?->currentAssignment?->organization_unit_id;
+        // ADR 0034: designated handling units reach their named members only.
+        $unitIds = app(PublicCaseHandlingUnitService::class)->handledUnitIdsFor($user);
 
-        return $query->where(function (Builder $q) use ($user, $roleIds, $unitId): void {
+        return $query->where(function (Builder $q) use ($user, $roleIds, $unitIds): void {
             $q->where(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::User->value)->where('handler_id', (string) $user->getKey()));
             if ($roleIds !== []) {
                 $q->orWhere(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::Role->value)->whereIn('handler_id', $roleIds));
             }
-            if ($unitId !== null) {
-                $q->orWhere(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->where('handler_id', (string) $unitId));
+            if ($unitIds !== []) {
+                $q->orWhere(fn (Builder $q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->whereIn('handler_id', $unitIds));
             }
         });
     }

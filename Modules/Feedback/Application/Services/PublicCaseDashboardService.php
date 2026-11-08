@@ -110,16 +110,17 @@ final class PublicCaseDashboardService implements PublicCaseDashboard
     private function assignedTo(User $user): \Illuminate\Database\Eloquent\Builder
     {
         $roleIds = $user->roles->pluck('id')->map(fn ($id): string => (string) $id)->all();
-        $unitId = $user->employee?->currentAssignment?->organization_unit_id;
+        // ADR 0034: designated handling units reach their named members only.
+        $unitIds = app(PublicCaseHandlingUnitService::class)->handledUnitIdsFor($user);
 
         return PublicFeedbackAssignment::query()->whereNull('ended_at')->select('submission_id')
-            ->where(function ($q) use ($user, $roleIds, $unitId): void {
+            ->where(function ($q) use ($user, $roleIds, $unitIds): void {
                 $q->where(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::User->value)->where('handler_id', (string) $user->getKey()));
                 if ($roleIds !== []) {
                     $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::Role->value)->whereIn('handler_id', $roleIds));
                 }
-                if ($unitId !== null) {
-                    $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->where('handler_id', (string) $unitId));
+                if ($unitIds !== []) {
+                    $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->whereIn('handler_id', $unitIds));
                 }
             });
     }

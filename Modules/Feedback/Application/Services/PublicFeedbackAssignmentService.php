@@ -56,7 +56,7 @@ final class PublicFeedbackAssignmentService
             throw ValidationException::withMessages(['handler_id' => __('service-feedback.handler_invalid')]);
         }
 
-        $this->assertHandlerWithinOrganization($type, $handlerId, $submission->organization_id, $submission->employee_id);
+        $this->assertHandlerWithinOrganization($type, $handlerId, $submission->organization_id, $submission->employee_id, $submission->type->value);
 
         if (! in_array($submission->status, [
             ServiceFeedbackStatus::Pending, ServiceFeedbackStatus::Unrouted, ServiceFeedbackStatus::Assigned, ServiceFeedbackStatus::UnderReview,
@@ -136,10 +136,12 @@ final class PublicFeedbackAssignmentService
         string $handlerId,
         ?string $organizationId,
         ?string $targetEmployeeId = null,
+        ?string $caseType = null,
     ): void {
         $ok = match ($type) {
             PublicFeedbackHandlerType::OrganizationUnit => $organizationId !== null
-                && OrganizationUnit::query()->whereKey($handlerId)->where('organization_id', $organizationId)->exists(),
+                && OrganizationUnit::query()->whereKey($handlerId)->where('organization_id', $organizationId)->exists()
+                && $this->designatedOrUndesignatedInstitution($handlerId, $organizationId, $caseType),
             PublicFeedbackHandlerType::User => (function () use ($handlerId, $organizationId, $targetEmployeeId): bool {
                 $user = User::query()->find($handlerId);
                 if ($user === null) {
@@ -161,12 +163,30 @@ final class PublicFeedbackAssignmentService
     }
 
     /**
+     * ADR 0034: once an institution has designated a handling unit for a case
+     * type (Tip-offs or complaints), only such units receive cases of that
+     * type; until then any of its units may. A rule for both types may name a
+     * unit designated for either.
+     *
+     * @throws ValidationException
+     */
+    private function designatedOrUndesignatedInstitution(string $unitId, string $organizationId, ?string $caseType): bool
+    {
+        $designated = app(PublicCaseHandlingUnitService::class)->activeUnitIds($organizationId, $caseType);
+        if ($designated !== [] && ! in_array($unitId, $designated, true)) {
+            throw ValidationException::withMessages(['handler_id' => __('service-feedback.handler_not_designated')]);
+        }
+
+        return true;
+    }
+
+    /**
      * Handlers an actor may pick for an organization: reviewers who can work
      * there, its units, and every role.
      *
      * @return array{users: list<array{id: string, name: string}>, units: list<array{id: string, name: string, name_am: ?string}>, roles: list<array{id: string, name: string}>}
      */
-    public function options(?string $organizationId): array
+    public function options(?string $organizationId, ?string $caseType = null): array
     {
         $users = User::query()
             ->where('status', 'active')
@@ -182,9 +202,12 @@ final class PublicFeedbackAssignmentService
             ->values()
             ->all();
 
+        // ADR 0034: an institution with designated handling units offers only those.
+        $designated = app(PublicCaseHandlingUnitService::class)->activeUnitIds($organizationId, $caseType);
         $units = $organizationId === null ? [] : OrganizationUnit::query()
             ->where('organization_id', $organizationId)
             ->where('status', 'active')
+            ->when($designated !== [], fn ($query) => $query->whereIn('id', $designated))
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am'])
             ->map(fn (OrganizationUnit $unit): array => ['id' => (string) $unit->id, 'name' => (string) $unit->name_en, 'name_am' => $unit->name_am])
