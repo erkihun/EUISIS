@@ -155,7 +155,7 @@ class PublicServiceFeedbackController extends Controller
         $term = is_string($request->query('q')) ? mb_strtolower(trim(mb_substr($request->query('q'), 0, 60))) : '';
 
         $items = $context?->organizationTargetId === null || $unitId === '' || ! Str::isUuid($unitId)
-            || $this->serviceContext->availableFeedbackUnit($unitId, $context->organizationTargetId) === null
+            || $this->serviceContext->availableSuspectUnit($unitId, $context->organizationTargetId) === null
             ? []
             : $this->serviceContext->unitStaff($context->organizationTargetId, $unitId, $term, app()->getLocale());
 
@@ -179,7 +179,7 @@ class PublicServiceFeedbackController extends Controller
         $unitId = (string) ($tip['suspect_unit_id'] ?? '');
         $employeeId = (string) ($tip['suspect_employee_id'] ?? '');
         if ($unitId !== '') {
-            $unit = $this->serviceContext->availableFeedbackUnit($unitId, $organizationId);
+            $unit = $this->serviceContext->availableSuspectUnit($unitId, $organizationId);
             if ($unit === null) {
                 return 'tip_form.suspect_unit_id';
             }
@@ -413,6 +413,8 @@ class PublicServiceFeedbackController extends Controller
             // Kept as `offices` for a non-breaking Inertia rollout. Values are
             // now the safe, explicit public work-unit list.
             'offices' => $this->serviceContext->feedbackUnitOptions($context->organizationTargetId, $locale),
+            // The Tip-off's person concerned: every active unit of the institution.
+            'suspectUnits' => $type === ServiceFeedbackType::Suggestion ? $this->serviceContext->suspectUnitOptions($context->organizationTargetId, $locale) : [],
         ];
     }
 

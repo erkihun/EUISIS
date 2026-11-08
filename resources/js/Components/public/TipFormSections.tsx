@@ -69,7 +69,8 @@ function SearchPick({ id, label, hint, text, chosen, options, loading, onType, o
 }) {
     const listId = useId();
     const [open, setOpen] = useState(false);
-    const show = open && !disabled;
+    // Nothing chosen yet: the list is already shown, so the visitor sees what there is without a tap.
+    const show = !disabled && (open || (!chosen && text === ''));
 
     return (
         <div data-field={field} className="relative">
@@ -81,7 +82,7 @@ function SearchPick({ id, label, hint, text, chosen, options, loading, onType, o
                 onChange={(event) => { onType(event.target.value); setOpen(true); }}
                 className={`${fieldClass} ${chosen ? 'border-primary' : ''} disabled:opacity-60`} />
             {show && (
-                <ul id={listId} role="listbox" className="mt-1 max-h-64 overflow-y-auto rounded-xl border border-(--app-border) bg-(--app-surface) shadow-lg">
+                <ul id={listId} role="listbox" className="mt-1 max-h-60 overflow-y-auto rounded-xl border border-(--app-border) bg-(--app-surface) shadow-sm">
                     {loading && <li className={`px-4 py-3 text-sm ${mutedClass}`}>…</li>}
                     {!loading && options.length === 0 && <li className={`px-4 py-3 text-sm ${mutedClass}`}>{emptyText}</li>}
                     {!loading && options.map((option) => (
@@ -127,7 +128,7 @@ function TipSuspectPickers({ form, set, errors, units, staffUrl, defaultUnitId }
     const unitOptions = useMemo(() => {
         const term = form.suspect_unit_id === '' ? form.suspect_unit.trim().toLowerCase() : '';
         return units.filter((unit) => term === '' || unit.name.toLowerCase().includes(term) || (unit.parent ?? '').toLowerCase().includes(term))
-            .slice(0, 30).map((unit) => ({ id: unit.id, label: unit.name, detail: unit.parent ?? null }));
+            .slice(0, 200).map((unit) => ({ id: unit.id, label: unit.name, detail: unit.parent ?? null }));
     }, [units, form.suspect_unit, form.suspect_unit_id]);
 
     // The chosen unit's staff, searched as the visitor types (debounced, read-only).

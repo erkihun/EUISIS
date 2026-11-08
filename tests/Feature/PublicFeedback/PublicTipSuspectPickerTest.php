@@ -66,3 +66,15 @@ it('keeps a name typed without choosing from the list', function (): void {
     ]))->assertSessionHasNoErrors();
     expect(EmployeeServiceFeedback::query()->sole()->tip_details['suspect_name'])->toBe('A guard at the gate');
 });
+
+it('lists every active unit of the institution for the person concerned, not only those offered for routing', function (): void {
+    // Owner question 2026-11-08: the picker showed only the units marked for the public's routing choice.
+    $this->s->unit->forceFill(['is_public_feedback_selectable' => false])->save();
+
+    $this->get('/feedback/'.$this->token.'/suggestion')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('suspectUnits', fn ($units) => collect($units)->pluck('id')->contains($this->s->unit->id))
+            ->where('offices', fn ($units) => ! collect($units)->pluck('id')->contains($this->s->unit->id)));
+    $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->s->unit->id)->assertOk()->assertJsonPath('items.0.id', $this->s->employee->id);
+    // Another institution's unit is still refused.
+    $this->getJson('/feedback/'.$this->token.'/staff?unit='.$this->other->unit->id)->assertOk()->assertJsonCount(0, 'items');
+});

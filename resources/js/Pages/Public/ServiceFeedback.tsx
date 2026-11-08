@@ -70,6 +70,7 @@ interface Props {
     serviceOptions?: OrganizationFormContext['serviceOptions'];
     /** Organization QR, typed form only: the institution's offices (service points). */
     offices?: OrganizationFormContext['offices'];
+    suspectUnits?: OrganizationFormContext['offices'];
 }
 
 /** Photo frames: a portrait on the choice screen, a small round avatar beside the name on a form. */
@@ -762,7 +763,7 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
     );
 }
 
-export default function ServiceFeedback({ available, target, links, serviceTypes, submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], requirements, evidence, tipTypes = ['CORRUPTION', 'IMPROPER_PRACTICE'], formToken = null, call = null, questionnaire = null, serviceOptions = { mode: 'none', items: [] }, offices = [] }: Props) {
+export default function ServiceFeedback({ available, target, links, serviceTypes, submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], requirements, evidence, tipTypes = ['CORRUPTION', 'IMPROPER_PRACTICE'], formToken = null, call = null, questionnaire = null, serviceOptions = { mode: 'none', items: [] }, offices = [], suspectUnits = [] }: Props) {
     const { t } = useLocale();
 
     /*
@@ -801,7 +802,7 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                     requirements={requirements[type]}
                     evidence={evidence}
                     tipTypes={tipTypes}
-                    context={{ questionnaire, serviceOptions, offices }}
+                    context={{ questionnaire, serviceOptions, offices, suspectUnits }}
                 />
             ) : <>
             {type === 'feedback' && <RatingForm target={target} serviceTypes={serviceTypes} links={links} formToken={formToken} requirements={requirements.feedback} />}

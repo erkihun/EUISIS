@@ -196,6 +196,47 @@ final class PublicOrganizationServiceContext implements PublicOrganizationServic
         return $rows;
     }
 
+    /**
+     * Every active work unit of the institution, for the Tip-off's "person
+     * concerned" (owner question 2026-11-08: the institution's units must all
+     * be listed there, not only the few marked for the public's routing choice).
+     *
+     * @return list<array{id: string, name: string, type: string|null, parent_id: string|null, parent: string|null}>
+     */
+    public function suspectUnitOptions(string $organizationId, string $locale): array
+    {
+        $units = $this->activeUnitsQuery($organizationId)->orderBy('sort_order')->orderBy('name_en')->limit(500)->get();
+        $byId = OrganizationUnit::query()->where('organization_id', $organizationId)->get(['id', 'name_en', 'name_am'])->keyBy(fn (OrganizationUnit $unit): string => (string) $unit->getKey());
+
+        return $units->map(function (OrganizationUnit $unit) use ($byId, $locale): array {
+            $parent = $unit->parent_unit_id !== null ? $byId->get((string) $unit->parent_unit_id) : null;
+
+            return [
+                'id' => (string) $unit->getKey(),
+                'name' => $this->localized($unit->name_en, $unit->name_am, $locale),
+                'type' => $unit->unit_type,
+                'parent_id' => $parent === null ? null : (string) $parent->getKey(),
+                'parent' => $parent === null ? null : $this->localized($parent->name_en, $parent->name_am, $locale),
+            ];
+        })->values()->all();
+    }
+
+    public function availableSuspectUnit(string $unitId, string $organizationId): ?OrganizationUnit
+    {
+        return $this->activeUnitsQuery($organizationId)->whereKey($unitId)->first();
+    }
+
+    private function activeUnitsQuery(string $organizationId): Builder
+    {
+        $today = now()->toDateString();
+
+        return OrganizationUnit::query()
+            ->where('organization_id', $organizationId)
+            ->where('status', OrganizationUnitStatus::Active->value)
+            ->where(fn (Builder $query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $today))
+            ->where(fn (Builder $query) => $query->whereNull('effective_to')->orWhereDate('effective_to', '>=', $today));
+    }
+
     private function feedbackUnitsQuery(string $organizationId): Builder
     {
         $today = now()->toDateString();

@@ -68,6 +68,8 @@ export interface OrganizationFormContext {
     serviceOptions: { mode: 'list' | 'search' | 'none'; items: ServiceOption[] };
     /** Safe public work units of the resolved organization only, each with its parent unit when that parent is itself offered. */
     offices: UnitOption[];
+    /** Tip-off only: every active work unit of the institution, for the person concerned. */
+    suspectUnits?: UnitOption[];
 }
 
 export interface UnitOption {
@@ -895,7 +897,7 @@ export default function OrganizationFeedbackForm({ kind, target, links, formToke
                             {detailQuestions.map(renderQuestion)}
                         </div>
                         {kind === 'complaint' && <ComplaintMatterFields form={data.complaint_form} set={setComplaint} errors={fieldErrors} askServiceType={false} />}
-                        {kind === 'suggestion' && <TipSuspectAndViolationFields form={data.tip_form} set={setTip} errors={fieldErrors} units={context.offices} staffUrl={links.staffSearch} defaultUnitId={data.organization_unit_id} />}
+                        {kind === 'suggestion' && <TipSuspectAndViolationFields form={data.tip_form} set={setTip} errors={fieldErrors} units={context.suspectUnits && context.suspectUnits.length > 0 ? context.suspectUnits : context.offices} staffUrl={links.staffSearch} defaultUnitId={data.organization_unit_id} />}
                         {kind !== 'feedback' && requirements.evidence_allowed && (
                             <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
                         )}
