@@ -101,7 +101,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
     const index = unitRoute(caseType, 'index');
 
     return <AuthenticatedLayout header={<PageHeader title={title} description={h(`byType.${caseType}.intro`)}
-        actions={can.designate && <Button type="button" variant="primary" onClick={() => setDialog({ kind: 'designate' })}><Plus className="h-4 w-4" aria-hidden />{designateLabel}</Button>} />}>
+        actions={can.designate && <Button type="button" variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setDialog({ kind: 'designate' })}>{designateLabel}</Button>} />}>
         <Head title={title} />
         <div className="space-y-5 p-4 sm:p-6">
             <section aria-label={title} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
@@ -134,7 +134,7 @@ export default function HandlingUnitsIndex({ units, organizations, filters, case
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary"><Building2 className="h-6 w-6" /></span>
                     <h2 className="mt-4 text-base font-semibold text-(--app-foreground)">{filtered ? b('noMatches') : h(`byType.${caseType}.none`)}</h2>
                     {!filtered && <p className="mt-1 max-w-md text-sm text-(--app-muted-foreground)">{h(`byType.${caseType}.noneHint`)}</p>}
-                    {!filtered && can.designate && <Button type="button" variant="primary" className="mt-5" onClick={() => setDialog({ kind: 'designate' })}><Plus className="h-4 w-4" aria-hidden />{designateLabel}</Button>}
+                    {!filtered && can.designate && <Button type="button" variant="primary" className="mt-5" icon={<Plus className="h-4 w-4" />} onClick={() => setDialog({ kind: 'designate' })}>{designateLabel}</Button>}
                 </div>
                 : <div className="space-y-4">
                     <div className="flex justify-end gap-2">
