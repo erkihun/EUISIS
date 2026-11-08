@@ -62,9 +62,12 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
         // Phase 2: service catalog and classifications.
         Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
         Route::post('/services', [ServiceController::class, 'store'])->middleware('throttle:60,1')->name('services.store');
         Route::get('/services/{service}', [ServiceController::class, 'show'])->whereUuid('service')->name('services.show');
+        Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->whereUuid('service')->name('services.edit');
         Route::put('/services/{service}', [ServiceController::class, 'update'])->whereUuid('service')->name('services.update');
+        Route::get('/services/{service}/versions/create', [ServiceController::class, 'createVersion'])->whereUuid('service')->name('services.versions.create');
         Route::post('/services/{service}/versions', [ServiceController::class, 'storeVersion'])->whereUuid('service')->name('services.versions.store');
         Route::post('/services/{service}/publish', [ServiceController::class, 'publish'])->whereUuid('service')->name('services.publish');
         Route::post('/services/{service}/cancel', [ServiceController::class, 'cancel'])->whereUuid('service')->name('services.cancel');

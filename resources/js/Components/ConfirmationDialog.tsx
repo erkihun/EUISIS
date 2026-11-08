@@ -4,6 +4,7 @@ import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/re
 // Straight from the kit: this dialog is in the chunk every page loads, and the
 // app barrel would drag the table, command palette and toaster along with it.
 import { buttonClassName, cx, inputClassName, textareaClassName } from '@euisis/ui';
+import { useTranslator } from '@/hooks/useLocale';
 export type ConfirmVariant = 'default' | 'warning' | 'danger' | 'success';
 
 export interface ConfirmationDialogProps {
@@ -74,15 +75,20 @@ export default function ConfirmationDialog({
     onConfirm,
     title,
     description,
-    confirmLabel = 'Confirm',
-    cancelLabel = 'Cancel',
+    confirmLabel: confirmLabelProp,
+    cancelLabel: cancelLabelProp,
     variant = 'default',
     loading = false,
     requireReason = false,
     requireTyped = null,
-    reasonLabel = 'Reason',
+    reasonLabel: reasonLabelProp,
     icon,
 }: ConfirmationDialogProps) {
+    // The buttons follow the page language unless the caller names them.
+    const { t } = useTranslator();
+    const confirmLabel = confirmLabelProp ?? t('common.confirm');
+    const cancelLabel = cancelLabelProp ?? t('common.cancel');
+    const reasonLabel = reasonLabelProp ?? t('common.reason');
     const [reason, setReason] = useState('');
     const [typed, setTyped] = useState('');
     const confirmRef = useRef<HTMLButtonElement>(null);

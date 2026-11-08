@@ -91,6 +91,47 @@ class ImageOptimizerTest extends TestCase
         $this->assertNull((new ImageOptimizer)->optimize('/definitely/missing.png', ImageKind::Photo));
     }
 
+    public function test_a_logo_over_twenty_megapixels_is_still_downscaled(): void
+    {
+        // The branding uploads this guards were 6,683 × 6,683 and 7,473 × 4,368 pixels; the old
+        // fixed 20-megapixel cap left them untouched. 4,800² is 23 megapixels, over that cap.
+        $limit = ImageOptimizer::iniBytes((string) ini_get('memory_limit'));
+
+        if ($limit >= 0 && $limit < 512 * 1024 * 1024) {
+            $this->markTestSkipped('needs a memory limit of at least 512M to decode a 23-megapixel image');
+        }
+
+        $source = $this->png(4800, 4800, true);
+
+        $result = (new ImageOptimizer)->optimize($source, ImageKind::Logo);
+
+        $this->assertNotNull($result);
+        $this->tempFiles[] = $result->path;
+        $this->assertSame([512, 512], [$result->width, $result->height]);
+        $this->assertLessThan(filesize($source), $result->bytes);
+    }
+
+    public function test_the_memory_limit_is_put_back_after_a_large_image(): void
+    {
+        $before = (string) ini_get('memory_limit');
+        $source = $this->png(1400, 1400, false);
+
+        $result = (new ImageOptimizer)->optimize($source, ImageKind::Logo);
+
+        $this->assertNotNull($result);
+        $this->tempFiles[] = $result->path;
+        $this->assertSame($before, (string) ini_get('memory_limit'));
+    }
+
+    public function test_php_ini_sizes_are_read_in_bytes(): void
+    {
+        $this->assertSame(-1, ImageOptimizer::iniBytes('-1'));
+        $this->assertSame(512 * 1024 * 1024, ImageOptimizer::iniBytes('512M'));
+        $this->assertSame(1024 * 1024 * 1024, ImageOptimizer::iniBytes('1G'));
+        $this->assertSame(64 * 1024, ImageOptimizer::iniBytes('64K'));
+        $this->assertSame(134217728, ImageOptimizer::iniBytes('134217728'));
+    }
+
     private function png(int $width, int $height, bool $transparent): string
     {
         $image = imagecreatetruecolor($width, $height);

@@ -23,8 +23,29 @@ use Throwable;
  */
 final class ImageOptimizer
 {
-    /** Decoding a larger image would exceed a 128 MB memory limit. */
-    public const MAX_PIXELS = 20_000_000;
+    /**
+     * Nothing larger than this is decoded, whatever the memory limit (about an
+     * 11,000 px square, up to 1.2 GB while GD converts it). Smaller images are
+     * decoded when memory allows, and the limit is raised for the one image when
+     * it has to be. The uploads that defeated the old fixed 20-megapixel cap were
+     * 6,683 × 6,683 (favicon), 7,473 × 4,368 (logo) and an 11,576 × 8,186
+     * employee photo.
+     */
+    public const MAX_PIXELS = 120_000_000;
+
+    /**
+     * Bytes to reserve per pixel: GD holds a decoded truecolor pixel in four bytes
+     * and, for a palette PNG or a rotated JPEG, a second full-size copy while it
+     * converts. Running out of memory is fatal (the request dies, the upload is
+     * lost), so the estimate is for that worst case.
+     */
+    private const BYTES_PER_PIXEL = 10;
+
+    /** Headroom for the resampled copy, the encoder and the framework itself. */
+    private const DECODE_OVERHEAD_BYTES = 48 * 1024 * 1024;
+
+    /** The memory limit is never raised past this for an image. */
+    private const MAX_MEMORY_LIMIT_BYTES = 1536 * 1024 * 1024;
 
     public const PHOTO_QUALITY = 80;
 
@@ -50,6 +71,23 @@ final class ImageOptimizer
             return null;
         }
 
+        $previousMemoryLimit = $this->reserveMemory($width, $height);
+
+        if ($previousMemoryLimit === null) {
+            return null;
+        }
+
+        try {
+            return $this->shrink($sourcePath, $mime, $kind, $maxDimension);
+        } finally {
+            if ($previousMemoryLimit !== (string) ini_get('memory_limit')) {
+                ini_set('memory_limit', $previousMemoryLimit);
+            }
+        }
+    }
+
+    private function shrink(string $sourcePath, string $mime, ImageKind $kind, ?int $maxDimension): ?OptimizedImage
+    {
         $image = $this->decode($sourcePath, $mime);
 
         if ($image === null) {
@@ -101,6 +139,50 @@ final class ImageOptimizer
     public static function supportsWebp(): bool
     {
         return function_exists('imagewebp');
+    }
+
+    /**
+     * Makes sure decoding an image of this size fits in memory, raising the limit
+     * for the current request when it has to. Returns the limit to restore
+     * afterwards, or null when the image cannot be decoded safely.
+     */
+    private function reserveMemory(int $width, int $height): ?string
+    {
+        $current = (string) ini_get('memory_limit');
+        $limit = self::iniBytes($current);
+        $needed = memory_get_usage(true) + $width * $height * self::BYTES_PER_PIXEL + self::DECODE_OVERHEAD_BYTES;
+
+        if ($limit < 0 || $needed <= $limit) {
+            return $current;
+        }
+
+        if ($needed > self::MAX_MEMORY_LIMIT_BYTES) {
+            return null;
+        }
+
+        $raised = ini_set('memory_limit', (string) (int) ceil($needed / (1024 * 1024)).'M');
+
+        return $raised === false ? null : $current;
+    }
+
+    /** Bytes for a php.ini size such as "512M", "1G" or "-1" (unlimited, returned negative). */
+    public static function iniBytes(string $value): int
+    {
+        $value = trim($value);
+
+        if ($value === '' || $value === '-1') {
+            return -1;
+        }
+
+        $unit = strtoupper(substr($value, -1));
+        $number = (int) $value;
+
+        return match ($unit) {
+            'G' => $number * 1024 * 1024 * 1024,
+            'M' => $number * 1024 * 1024,
+            'K' => $number * 1024,
+            default => $number,
+        };
     }
 
     private function decode(string $path, string $mime): ?GdImage

@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import ServiceForm, { emptyService, type ClassificationOption, type Option } from '@/Components/organizationDesign/ServiceForm';
+import type { ClassificationOption, Option } from '@/Components/organizationDesign/ServiceForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
@@ -21,23 +21,20 @@ type Props = {
     filters: { organization_id?: string; status?: string; service_classification_id?: string; search?: string };
     organizations: Option[];
     classifications: ClassificationOption[];
-    cpcClassifications: ClassificationOption[];
-    serviceTypes: Option[];
     statuses: string[];
-    beneficiaryTypes: string[];
-    deliveryChannels: string[];
     can: { create: boolean };
 };
 
-export default function ServicesIndex({ services, filters, organizations, classifications, cpcClassifications, serviceTypes, statuses, beneficiaryTypes, deliveryChannels, can }: Props) {
+export default function ServicesIndex({ services, filters, organizations, classifications, statuses, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const [draft, setDraft] = useState({ organization_id: filters.organization_id ?? '', status: filters.status ?? '', service_classification_id: filters.service_classification_id ?? '', search: filters.search ?? '' });
-    const [creating, setCreating] = useState(false);
     const hasActiveFilters = Object.values(filters).some(Boolean);
+    // The new-service page starts on the institution the list is filtered to.
+    const createHref = route('organization-design.services.create', filters.organization_id ? { organization_id: filters.organization_id } : {});
 
     return (
         <AuthenticatedLayout header={<PageHeader title={tt('services.title')} description={tt('services.description')}
-            actions={can.create && <Button variant="primary" onClick={() => setCreating(true)}>{tt('services.create')}</Button>} />}>
+            actions={can.create && <Button as={Link} href={createHref} variant="primary">{tt('services.create')}</Button>} />}>
             <Head title={tt('services.title')} />
 
             <div className="space-y-4">
@@ -116,18 +113,6 @@ export default function ServicesIndex({ services, filters, organizations, classi
                     <ListPagination meta={services} />
                 </TableCard>
             </div>
-
-            {can.create && (
-                <ServiceForm
-                    show={creating}
-                    onClose={() => setCreating(false)}
-                    title={tt('services.create')}
-                    initial={emptyService(filters.organization_id ?? (organizations.length === 1 ? organizations[0].id : ''))}
-                    url={route('organization-design.services.store')}
-                    method="post"
-                    lookups={{ organizations, functions: [], units: [], classifications, cpcClassifications, isicOptions: [], serviceTypes, beneficiaryTypes, deliveryChannels }}
-                />
-            )}
         </AuthenticatedLayout>
     );
 }

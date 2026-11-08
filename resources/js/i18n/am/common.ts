@@ -41,6 +41,7 @@ const common = {
     success: 'ተሳክቷል',
     warning: 'ማስጠንቀቂያ',
     confirm: 'ያረጋግጡ',
+    reason: 'ምክንያት',
     confirmAction: 'እርምጃውን ያረጋግጡ',
     cannotUndo: 'ይህን እርምጃ መቀልበስ አይቻልም።',
     noPermission: 'ይህን ለማከናወን መብት የለዎትም።',

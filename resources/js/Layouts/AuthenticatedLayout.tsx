@@ -13,7 +13,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, hoverVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
-import { buttonClassName } from '@/Components/ui';
+import { buttonClassName } from '@euisis/ui'; // kit, not the app barrel: the barrel pulls the table and virtualiser libraries into every signed-in page
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 
 /** What the shell writes onto <html> from System Settings › Appearance. */
