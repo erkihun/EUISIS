@@ -43,7 +43,9 @@ class EmployeeServiceFeedbackPolicy
     {
         return $user->hasAnyPermission([$feedback->type === ServiceFeedbackType::Complaint
             ? 'service_feedback.complaints.view' : 'service_feedback.view'])
-            && $this->withinScope($user, $feedback);
+            && $this->withinScope($user, $feedback)
+            // Owner decision 2026-11-08: the case page follows the same limit as the lists.
+            && app(PublicCaseHandlingUnitService::class)->canSee($user, $feedback);
     }
 
     public function review(User $user, EmployeeServiceFeedback $feedback): bool

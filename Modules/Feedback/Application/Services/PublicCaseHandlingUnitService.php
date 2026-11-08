@@ -20,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnit;
+use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicCaseHandlingUnitMember;
 
 /**
@@ -280,6 +281,78 @@ final class PublicCaseHandlingUnitService
                 || $this->isHeadOver($user, (string) $assignment->handler_id, $type),
             PublicFeedbackHandlerType::Role => true,
         };
+    }
+
+    /**
+     * Owner decision 2026-11-08: in an institution that has a Tip-off or
+     * Complaint Unit, a handler's lists show only the cases in their hands —
+     * assigned to them, to their role, to their unit, or handed by them as
+     * head to one of their members. Coordinators (assign/reassign) and
+     * city-wide accounts see every case in scope; service feedback and
+     * institutions without such a unit are unchanged.
+     *
+     * @template TBuilder of \Illuminate\Contracts\Database\Eloquent\Builder
+     *
+     * @param  TBuilder  $query  over employee_service_feedback
+     * @return TBuilder
+     */
+    public function limitToHandled($query, User $user)
+    {
+        if ($this->seesEverything($user)) {
+            return $query;
+        }
+        $designated = PublicCaseHandlingUnit::query()->where('status', 'active')->whereIn('case_type', PublicCaseHandlingUnit::ROUTED_TYPES)
+            ->get(['organization_id', 'case_type'])->groupBy('case_type')->map(fn ($rows) => $rows->pluck('organization_id')->unique()->values()->all());
+        if ($designated->isEmpty()) {
+            return $query;
+        }
+        $handled = $this->handledSubmissionIds($user);
+
+        return $query->where(function ($w) use ($designated, $handled): void {
+            $w->whereNotIn('type', $designated->keys()->all());
+            foreach ($designated as $type => $organizations) {
+                $w->orWhere(fn ($t) => $t->where('type', $type)->where(fn ($o) => $o->whereNull('organization_id')->orWhereNotIn('organization_id', $organizations)->orWhereIn('id', $handled)));
+            }
+        });
+    }
+
+    /** Whether this one case passes the limit above (for the case page). */
+    public function canSee(User $user, EmployeeServiceFeedback $submission): bool
+    {
+        return $this->seesEverything($user)
+            || $this->limitToHandled(EmployeeServiceFeedback::query()->whereKey($submission->getKey()), $user)->exists();
+    }
+
+    private function seesEverything(User $user): bool
+    {
+        return $user->hasAnyPermission(['service_feedback.assign', 'service_feedback.reassign'])
+            || $this->scope->isUnrestricted($user);
+    }
+
+    /** Open assignments in this user's hands: in person, by role, by unit, or handed by them as head to a member. */
+    private function handledSubmissionIds(User $user): \Illuminate\Database\Eloquent\Builder
+    {
+        $roleIds = $user->roles->pluck('id')->map(fn ($id): string => (string) $id)->all();
+        $unitIds = $this->handledUnitIdsFor($user);
+        $userIds = [(string) $user->getKey()];
+        if ($user->employee_id !== null) {
+            $headed = PublicCaseHandlingUnit::query()->where('status', 'active')
+                ->whereHas('members', fn ($q) => $q->servingOn(now())->where('responsibility', 'head')->where('employee_id', $user->employee_id))->get();
+            foreach ($headed as $designation) {
+                $userIds = [...$userIds, ...array_column($this->memberUsers($designation), 'id')];
+            }
+        }
+
+        return PublicFeedbackAssignment::query()->whereNull('ended_at')->select('submission_id')
+            ->where(function ($q) use ($roleIds, $unitIds, $userIds): void {
+                $q->where(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::User->value)->whereIn('handler_id', array_values(array_unique($userIds))));
+                if ($roleIds !== []) {
+                    $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::Role->value)->whereIn('handler_id', $roleIds));
+                }
+                if ($unitIds !== []) {
+                    $q->orWhere(fn ($q) => $q->where('handler_type', PublicFeedbackHandlerType::OrganizationUnit->value)->whereIn('handler_id', $unitIds));
+                }
+            });
     }
 
     /** The designated unit (for this case type) whose head this user is, when the case's unit is that one. */

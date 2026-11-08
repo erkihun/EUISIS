@@ -95,6 +95,8 @@ final class PublicFeedbackMetrics
         if (! $this->scope->isUnrestricted($user)) {
             $query->whereIn('organization_id', $this->scope->accessibleOrganizationIds($user)->all());
         }
+        // Owner decision 2026-11-08: a handler sees only the cases in their hands where the institution has a Tip-off or Complaint Unit.
+        $query = app(PublicCaseHandlingUnitService::class)->limitToHandled($query, $user);
 
         if (isset($filters['organization_id'])) {
             if ($this->scope->isUnrestricted($user) || $this->scope->canAccessOrganization($user, $filters['organization_id'])) {

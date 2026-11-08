@@ -263,9 +263,14 @@ it('lets only the unit members work its case, and its head hand the case to one 
     $show = route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint->id]);
     $transition = route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint->id]);
 
-    // A colleague who is not a member may read it, but not work it.
-    $this->actingAs($outsider)->get($show)->assertOk()->assertInertia(fn (Assert $page) => $page->where('allowedTransitions', [])->where('delegateOptions', null));
+    // A colleague who is not a member neither sees it in any list nor opens or works it.
+    $this->actingAs($outsider)->get(route('service-submissions.complaints'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
+    $this->actingAs($outsider)->get(route('service-submissions.complaints.dashboard'))->assertInertia(fn (Assert $page) => $page->where('figures.total', 0));
+    $this->actingAs($outsider)->get(route('service-submissions.index'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
+    $this->actingAs($outsider)->get($show)->assertForbidden();
     $this->actingAs($outsider)->post($transition, ['status' => 'under_review'])->assertForbidden();
+    // The unit's members do see it.
+    $this->actingAs($officer)->get(route('service-submissions.complaints'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 1));
 
     // The head sees the members to hand it to, and hands it to the officer; level and deadline stay.
     $this->actingAs($head)->get($show)->assertInertia(fn (Assert $page) => $page->where('delegateOptions', fn ($rows) => collect($rows)->pluck('id')->sort()->values()->all() === collect([(string) $head->id, (string) $officer->id])->sort()->values()->all()));
@@ -274,6 +279,10 @@ it('lets only the unit members work its case, and its head hand the case to one 
     $this->actingAs($head)->post($assign, ['handler_type' => 'user', 'handler_id' => (string) $officer->id])->assertSessionHasNoErrors();
     $current = $complaint->currentAssignment()->sole();
     expect($current->handler_id)->toBe((string) $officer->id)->and($current->level)->toBe(1);
+
+    // Handed over, it stays in the head's list and the officer's; never the outsider's.
+    $this->actingAs($head)->get(route('service-submissions.complaints'))->assertInertia(fn (Assert $page) => $page->where('entries.total', 1));
+    $this->actingAs($officer)->get(route('service-submissions.complaints.dashboard'))->assertInertia(fn (Assert $page) => $page->where('figures.total', 1)->where('figures.mine', 1));
 
     // Now the officer works it; the head can still follow; the outsider cannot.
     $this->actingAs($outsider)->post($transition, ['status' => 'under_review'])->assertForbidden();

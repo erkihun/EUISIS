@@ -397,7 +397,8 @@ class ServiceSubmissionController extends Controller
             $query->whereIn('organization_id', $this->scope->accessibleOrganizationIds($user)->all());
         }
 
-        return $query;
+        // Owner decision 2026-11-08: a handler sees only the cases in their hands where the institution has a Tip-off or Complaint Unit.
+        return app(PublicCaseHandlingUnitService::class)->limitToHandled($query, $user);
     }
 
     /** Open assignments addressed to this user, one of their roles, or their current unit. */

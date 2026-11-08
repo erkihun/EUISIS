@@ -34,7 +34,8 @@ final class PublicCaseDashboardService implements PublicCaseDashboard
             $query->whereIn('organization_id', $this->scope->accessibleOrganizationIds($user)->all());
         }
 
-        return $query;
+        // Owner decision 2026-11-08: a handler sees only the cases in their hands where the institution has a Tip-off or Complaint Unit.
+        return app(PublicCaseHandlingUnitService::class)->limitToHandled($query, $user);
     }
 
     public function build(Closure $query, User $user, array $statusOrder): array
