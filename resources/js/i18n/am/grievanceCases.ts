@@ -1,7 +1,7 @@
 /* grievanceCases — የሠራተኞች የጉዳይ ዝርዝሮች፣ ዳሽቦርድ እና የጉዳይ ዝርዝር ገጽ። */
 const grievanceCases = {
     dashboard: 'የቅሬታ ዳሽቦርድ',
-    assigned: 'የተመደቡ ጉዳዮች',
+    assigned: 'ለእኔ የተመደቡ',
     authorized: 'የተፈቀዱ ጉዳዮች በሙሉ',
     intake: 'የመቀበያ ግምገማ',
     queue: 'የእኔ ወረፋ (ቀድሞ የሚያበቃው መጀመሪያ)',

@@ -1,7 +1,7 @@
 /* grievanceCases — staff case lists, dashboard and case detail. */
 const grievanceCases = {
     dashboard: 'Grievance dashboard',
-    assigned: 'Assigned cases',
+    assigned: 'Assigned to me',
     authorized: 'All authorized cases',
     intake: 'Intake review',
     queue: 'My queue (earliest deadline first)',

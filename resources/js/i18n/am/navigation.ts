@@ -161,7 +161,7 @@ const navigation = {
     grievanceCategories: 'ምድቦች',
     grievanceSlaRules: 'የጊዜ ገደብ ደንቦች (SLA)',
     grievanceDashboard: 'ዳሽቦርድ',
-    grievanceAssigned: 'የተመደቡ ጉዳዮች',
+    grievanceAssigned: 'ለእኔ የተመደቡ',
     grievanceIntake: 'የመቀበያ ግምገማ',
     grievanceAuthorized: 'የተፈቀዱ ጉዳዮች በሙሉ',
     grievanceApprovals: 'የበላይ ማጽደቂያዎች',

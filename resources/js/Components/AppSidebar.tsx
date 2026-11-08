@@ -287,6 +287,8 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: InboxOutIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: GrievanceIcon, permission: 'grievances.view_own', listedInAdmin: true },
+                    // The grievances given to the employee as a committee, team or directorate member (not their own).
+                    { routeName: 'grievances.cases.index', tab: 'assigned', labelKey: 'nav.grievanceAssigned', icon: PinListIcon, anyPermission: ['grievances.view_assigned', 'grievances.assign', 'grievances.tribunal'], listedInAdmin: true },
                     // court-ms Flow 4: the employee's tribunal cases; the court portal opens signed in.
                     { routeName: 'employee.court-cases', labelKey: 'courtCases.portal.nav', icon: GavelIcon, employeeOnly: true },
                     { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
@@ -603,8 +605,8 @@ const navGroups: NavGroup[] = [
         icon: GrievanceIcon,
         items: [
             { routeName: 'grievances.dashboard', labelKey: 'nav.grievanceDashboard', icon: LayoutDashboard, anyPermission: ['grievances.view_assigned', 'grievances.intake_review', 'grievances.assign', 'grievances.oversight_view', 'grievances.tribunal', 'grievance_decisions.approve', 'grievance_reports.view'] },
-            { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: InboxOutIcon, permission: 'grievances.view_own' },
             { routeName: 'grievances.cases.index', tab: 'assigned', labelKey: 'nav.grievanceAssigned', icon: PinListIcon, anyPermission: ['grievances.view_assigned', 'grievances.assign', 'grievances.tribunal'] },
+            { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: InboxOutIcon, permission: 'grievances.view_own' },
             { routeName: 'grievances.cases.index', tab: 'intake', labelKey: 'nav.grievanceIntake', icon: InboxInIcon, permission: 'grievances.intake_review' },
             { routeName: 'grievances.cases.index', tab: 'authorized', labelKey: 'nav.grievanceAuthorized', icon: EyeIcon, anyPermission: ['grievances.oversight_view', 'grievances.view_assigned', 'grievances.assign'] },
             { routeName: 'grievances.approvals.index', labelKey: 'nav.grievanceApprovals', icon: BadgeCheckIcon, permission: 'grievance_decisions.approve' },

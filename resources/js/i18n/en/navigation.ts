@@ -161,7 +161,7 @@ const navigation = {
     grievanceCategories: 'Categories',
     grievanceSlaRules: 'SLA Rules',
     grievanceDashboard: 'Dashboard',
-    grievanceAssigned: 'Assigned Cases',
+    grievanceAssigned: 'Assigned to Me',
     grievanceIntake: 'Intake Review',
     grievanceAuthorized: 'All Authorized Cases',
     grievanceApprovals: 'Executive Approvals',
