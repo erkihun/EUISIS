@@ -815,6 +815,38 @@ export default {
         none: 'እስካሁን የለም።',
         tipTypes: { CORRUPTION: 'የሙስና ጥቆማ', IMPROPER_PRACTICE: 'ያልተገባ አሠራር', UNCLASSIFIED_LEGACY: 'ያልተመደበ (የቀድሞ)' },
     },
+    // The case list of one module (/tip-off-admin/cases, /complaint-admin/cases).
+    caseList: {
+        titles: { suggestion: 'የሕዝብ ጥቆማዎች', complaint: 'የሕዝብ ቅሬታዎች' },
+        intros: {
+            suggestion: 'የደረሱ ጥቆማዎች በሙሉ፤ ያልተላለፉትን፣ ጊዜያቸው ያለፈባቸውንና ለእርስዎ የተሰጡትን ከላይ ይክፈቱ።',
+            complaint: 'የደረሱ የሕዝብ ቅሬታዎች በሙሉ፤ ያልተላለፉትን፣ ጊዜያቸው ያለፈባቸውንና ለእርስዎ የተሰጡትን ከላይ ይክፈቱ።',
+        },
+        dashboard: 'ዳሽቦርድ',
+        figures: {
+            all: 'ሁሉም',
+            unrouted: 'ያልተላለፉ',
+            unroutedHint: 'አስተናጋጅ የሚጠብቁ',
+            overdue: 'ጊዜው ያለፈባቸው',
+            overdueHint: 'የምላሽ ጊዜያቸው ያለፈ',
+            mine: 'ለእኔ የተሰጡ',
+            mineHint: 'በአጠቃላይ በመታየት ላይ፦ :count',
+        },
+        toolbar: 'መፈለጊያና ማጣሪያዎች',
+        search: 'ጉዳይ ይፈልጉ',
+        searchPlaceholder: 'በመለያ ቁጥር፣ በተቋም ወይም በሠራተኛ ስም ይፈልጉ',
+        searchButton: 'ፈልግ',
+        statusTabs: 'በሁኔታ',
+        clearFilters: 'ማጣሪያዎችን አጽዳ',
+        empty: { suggestion: 'እስካሁን ጥቆማ አልደረሰም', complaint: 'እስካሁን ቅሬታ አልደረሰም' },
+        emptyHint: 'ሕዝቡ ሲያቀርብ ጉዳዮቹ እዚህ ይታያሉ።',
+        emptyFiltered: 'ከተመረጡት ማጣሪያዎች ጋር የሚዛመድ ጉዳይ የለም',
+        emptyFilteredHint: 'ማጣሪያዎቹን ቀይረው ወይም አጽድተው እንደገና ይሞክሩ።',
+        overdue: 'ጊዜው አልፏል',
+        organization: 'ተቋም',
+        received: 'የደረሰበት',
+        due: 'የምላሽ የመጨረሻ ቀን',
+    },
     // ADR 0035: the hearing stages of a public complaint (committee → appeal committee → head).
     hearing: {
         title: 'የቅሬታው ሂደት',

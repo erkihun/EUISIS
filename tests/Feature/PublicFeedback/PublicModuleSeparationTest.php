@@ -8,6 +8,7 @@ use App\Models\UserOrganizationScope;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
+use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Tests\Support\PublicFeedbackScenario;
 
 /*
@@ -71,6 +72,24 @@ it('lets each grant open only its own module', function (): void {
 
     // A case is only found under its own module's address.
     $this->actingAs($complaintOnly)->get(route('public-complaints.cases.show', $this->tip))->assertNotFound();
+});
+
+it('searches a module case list by reference and filters it to overdue cases', function (): void {
+    $user = ($this->grant)(['service_feedback.complaints.view']);
+    $list = fn (array $query = []) => $this->actingAs($user)->get(route('public-complaints.cases.index', $query))->assertOk();
+
+    $list(['q' => strtolower((string) $this->complaint->reference_number)])
+        ->assertInertia(fn ($page) => $page->where('entries.total', 1)->where('entries.data.0.id', $this->complaint->id)->where('filters.q', strtolower((string) $this->complaint->reference_number)));
+    $list(['q' => 'NO-SUCH-REF'])->assertInertia(fn ($page) => $page->where('entries.total', 0));
+    // The Tip-off never shows on the complaint list, even by its own reference.
+    $list(['q' => (string) $this->tip->reference_number])->assertInertia(fn ($page) => $page->where('entries.total', 0));
+
+    $list(['overdue' => 1])->assertInertia(fn ($page) => $page->where('entries.total', 0)->where('overdueCount', 0));
+    PublicFeedbackAssignment::query()->create([
+        'submission_id' => $this->complaint->id, 'handler_type' => 'user', 'handler_id' => (string) $user->id,
+        'handler_name_snapshot' => 'Handler', 'level' => 1, 'due_at' => now()->subDay(), 'assigned_at' => now()->subDays(5),
+    ]);
+    $list(['overdue' => 1])->assertInertia(fn ($page) => $page->where('entries.total', 1)->where('overdueCount', 1)->where('entries.data.0.overdue', true));
 });
 
 it('leads the old shared addresses to the module page', function (): void {

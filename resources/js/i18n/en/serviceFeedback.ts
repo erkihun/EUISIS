@@ -821,6 +821,38 @@ export default {
         none: 'Nothing yet.',
         tipTypes: { CORRUPTION: 'Corruption', IMPROPER_PRACTICE: 'Improper practice', UNCLASSIFIED_LEGACY: 'Not classified (older)' },
     },
+    // The case list of one module (/tip-off-admin/cases, /complaint-admin/cases).
+    caseList: {
+        titles: { suggestion: 'Public Tip-offs', complaint: 'Public Complaints' },
+        intros: {
+            suggestion: 'Every Tip-off received; open the unrouted, the overdue and the ones handed to you from the figures above.',
+            complaint: 'Every public complaint received; open the unrouted, the overdue and the ones handed to you from the figures above.',
+        },
+        dashboard: 'Dashboard',
+        figures: {
+            all: 'All',
+            unrouted: 'Unrouted',
+            unroutedHint: 'Waiting for a handler',
+            overdue: 'Overdue',
+            overdueHint: 'Past the response time',
+            mine: 'Handed to me',
+            mineHint: 'Being worked overall: :count',
+        },
+        toolbar: 'Search and filters',
+        search: 'Search cases',
+        searchPlaceholder: 'Search by reference, institution or employee name',
+        searchButton: 'Search',
+        statusTabs: 'By status',
+        clearFilters: 'Clear filters',
+        empty: { suggestion: 'No Tip-offs received yet', complaint: 'No complaints received yet' },
+        emptyHint: 'Cases appear here as the public submits them.',
+        emptyFiltered: 'No case matches these filters',
+        emptyFilteredHint: 'Change or clear the filters and try again.',
+        overdue: 'Overdue',
+        organization: 'Institution',
+        received: 'Received',
+        due: 'Response due',
+    },
     // ADR 0035: the hearing stages of a public complaint (committee → appeal committee → head).
     hearing: {
         title: 'Complaint stages',

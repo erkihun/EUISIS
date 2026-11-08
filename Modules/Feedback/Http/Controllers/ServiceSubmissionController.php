@@ -36,6 +36,7 @@ use Modules\Feedback\Contracts\Data\ServiceFeedbackType;
 use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedback;
 use Modules\Feedback\Domain\Models\EmployeeServiceFeedbackAttachment;
+use Modules\Feedback\Domain\Models\PublicComplaintStage;
 use Modules\Feedback\Domain\Models\PublicFeedbackAssignment;
 use Modules\Feedback\Domain\Models\PublicFeedbackStatusHistory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -95,16 +96,44 @@ class ServiceSubmissionController extends Controller
         if ($mine) {
             $query->whereHas('currentAssignment', fn (Builder $q) => $this->handledBy($q, $user));
         }
+        // Past the handler's deadline (ADR 0033).
+        $overdue = $request->boolean('overdue');
+        if ($overdue) {
+            $query->whereHas('assignments', fn (Builder $q) => $q->overdue());
+        }
+        // Search by reference, the institution or person it is about, or the institution that holds it.
+        $search = trim((string) $request->query('q', ''));
+        $search = mb_substr($search, 0, 100);
+        if ($search !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $query->where(fn (Builder $q) => $q->where('reference_number', 'like', $like)
+                ->orWhere('target_name_snapshot', 'like', $like)
+                ->orWhereHas('organization', fn (Builder $o) => $o->where('name_en', 'like', $like)->orWhere('name_am', 'like', $like))
+                ->orWhereHas('organizationTarget', fn (Builder $o) => $o->where('name_en', 'like', $like)->orWhere('name_am', 'like', $like)->orWhere('code', 'like', $like)));
+        }
+
+        $page = $query->with(['employee:id,full_name,employee_number', 'organization:id,name_en,name_am', 'organizationTarget:id,code,name_en,name_am', 'currentAssignment'])
+            ->latest('created_at')->paginate(20)->withQueryString();
+        // ADR 0035: the hearing stage each complaint is in (committee, appeal committee, head).
+        $stages = $kind === ServiceFeedbackType::Complaint
+            ? PublicComplaintStage::query()->whereIn('submission_id', collect($page->items())->pluck('id'))
+                ->selectRaw('submission_id, MAX(stage) AS stage')->groupBy('submission_id')->pluck('stage', 'submission_id')
+            : collect();
 
         return Inertia::render('ServiceFeedback/SubmissionInbox', [
             'type' => $kind->value,
-            'entries' => $query->with(['employee:id,full_name,employee_number', 'organization:id,name_en,name_am', 'organizationTarget:id,code,name_en,name_am', 'currentAssignment'])
-                ->latest('created_at')->paginate(20)->withQueryString()
-                ->through(fn (EmployeeServiceFeedback $entry): array => $this->summary($entry)),
+            'entries' => $page->through(fn (EmployeeServiceFeedback $entry): array => $this->summary($entry) + [
+                'due_at' => $entry->currentAssignment?->due_at?->toIso8601String(),
+                'overdue' => (bool) $entry->currentAssignment?->isOverdue(),
+                'level' => $entry->currentAssignment?->level,
+                'stage' => isset($stages[$entry->id]) ? (int) $stages[$entry->id] : null,
+            ]),
             'counts' => $this->scoped($user, $kind)
                 ->selectRaw('status, COUNT(*) AS total')->groupBy('status')->pluck('total', 'status'),
+            'overdueCount' => $this->scoped($user, $kind)->whereHas('assignments', fn (Builder $q) => $q->overdue())->count(),
+            'mineCount' => $this->scoped($user, $kind)->whereHas('currentAssignment', fn (Builder $q) => $this->handledBy($q, $user))->count(),
             'statuses' => self::STATUS_ORDER[$kind->value],
-            'filters' => ['status' => $status, 'mine' => $mine, 'tip_type' => $tipType],
+            'filters' => ['status' => $status, 'mine' => $mine, 'tip_type' => $tipType, 'overdue' => $overdue, 'q' => $search],
             'canManageRouting' => $user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]),
         ]);
     }
