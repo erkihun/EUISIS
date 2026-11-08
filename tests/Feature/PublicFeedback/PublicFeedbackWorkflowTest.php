@@ -79,7 +79,7 @@ function wfSubmission(ServiceFeedbackType $type, ServiceFeedbackStatus $status =
 }
 
 it('records the initial status in the history when a submission is created', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Open the counter earlier.']))->assertRedirect();
+    $this->post(pfOrgTipUrl($this->a->organization), pfComplete('suggestion', ['message' => 'Open the counter earlier.']))->assertRedirect();
 
     $submission = EmployeeServiceFeedback::query()->sole();
     $history = PublicFeedbackStatusHistory::query()->where('submission_id', $submission->id)->orderBy('transitioned_at')->get();

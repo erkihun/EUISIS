@@ -58,10 +58,10 @@ beforeEach(function (): void {
 });
 
 it('ignores every forged target, type, source and workflow field on the employee flow', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Forged employee flow.']) + PF_FORGED)->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Forged employee flow.']) + PF_FORGED)->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
-    expect($row->type->value)->toBe('suggestion')
+    expect($row->type->value)->toBe('complaint')
         ->and($row->target_type)->toBe(PublicFeedbackTargetType::Employee)
         ->and($row->source_type)->toBe(PublicFeedbackSourceType::EmployeeCardQr)
         ->and($row->employee_id)->toBe($this->a->employee->id)
@@ -73,9 +73,9 @@ it('ignores every forged target, type, source and workflow field on the employee
         ->and($row->closed_at)->toBeNull()
         ->and($row->reviewed_by)->toBeNull()
         ->and($row->review_note)->toBeNull()
-        // A Tip-off gets the server's own reference; the forged one is ignored.
-        ->and($row->reference_number)->toStartWith('PTO-')->not->toBe('PSC-2020-000001')
-        ->and($row->submitter_identity_mode->value)->toBe('optional')
+        // The server's own reference; the forged one is ignored.
+        ->and($row->reference_number)->toStartWith('PSC-')->not->toBe('PSC-2020-000001')
+        ->and($row->submitter_identity_mode->value)->toBe('identified')
         ->and($row->ip_address)->toBe('127.0.0.1');
 });
 
@@ -97,12 +97,12 @@ it('ignores every forged target, type, source and workflow field on the institut
 it('cannot replay a one-time form token against another target, and a double POST stores once', function (): void {
     $formToken = app(PublicFeedbackFormToken::class)->issue();
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'First target.', 'form_token' => $formToken]))->assertRedirect();
+    $this->post(pfOrgTipUrl($this->a->organization), pfComplete('suggestion', ['message' => 'First target.', 'form_token' => $formToken]))->assertRedirect();
     $this->post('/feedback/'.$this->orgTokenB.'/suggestion', pfComplete('suggestion', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken]))->assertSessionHasErrors('form_token');
-    $this->post('/service-feedback/'.$this->b->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken]))->assertSessionHasErrors('form_token');
+    $this->post('/service-feedback/'.$this->b->token->token.'/complaint', pfComplete('complaint', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken]))->assertSessionHasErrors('form_token');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1)
-        ->and(EmployeeServiceFeedback::query()->sole()->employee_id)->toBe($this->a->employee->id);
+        ->and(EmployeeServiceFeedback::query()->sole()->organization_target_id)->toBe($this->a->organization->id);
 
     // Same payload twice within the window (double click, network retry): one row.
     $this->post('/service-feedback/'.$this->b->token->token.'/complaint', pfComplete('complaint', ['message' => 'Double click.']))->assertRedirect();

@@ -105,7 +105,7 @@ it('enforces target integrity at the database on PostgreSQL', function (): void 
 });
 
 it('keeps the employee target when the employee later transfers', function (): void {
-    $this->post('/service-feedback/'.$this->scenario->token->token.'/suggestion', pfComplete('suggestion', [
+    $this->post('/service-feedback/'.$this->scenario->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'Open earlier on Mondays.',
     ]))->assertRedirect();
 

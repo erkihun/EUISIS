@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
 use Modules\Providers\Contracts\Data\PortalActor;
 use Modules\Providers\Domain\Models\ProviderUser;
 use Tests\Support\PublicSubmissionPayload;
@@ -71,6 +73,17 @@ function something()
 function pfComplete(string $type, array $payload = []): array
 {
     return PublicSubmissionPayload::complete($type, $payload);
+}
+
+/**
+ * The institution-QR Tip-off address of an institution. Since 2026-11-08 a
+ * Tip-off is given on the institution QR only, never on an employee's card.
+ */
+function pfOrgTipUrl(Organization $organization): string
+{
+    $qr = app(OrganizationFeedbackQrService::class)->ensureActive($organization);
+
+    return '/feedback/'.$qr->public_token.'/suggestion';
 }
 
 /**

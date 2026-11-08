@@ -150,7 +150,8 @@ it('keeps the narrative and the contact out of the audit trail', function (): vo
 
 it('keeps the three types strictly on one table with no sibling records in other domains', function (): void {
     foreach (['feedback' => ['position_service_id' => $this->a->positionService->id, 'rating' => 4], 'suggestion' => ['message' => 'S'], 'complaint' => ['message' => 'C']] as $type => $payload) {
-        $this->post('/service-feedback/'.$this->a->token->token.'/'.$type, pfComplete($type, $payload))->assertRedirect();
+        // A Tip-off is given on the institution QR only.
+        $this->post($type === 'suggestion' ? pfOrgTipUrl($this->a->organization) : '/service-feedback/'.$this->a->token->token.'/'.$type, pfComplete($type, $payload))->assertRedirect();
     }
 
     expect(EmployeeServiceFeedback::query()->pluck('type')->map(fn (ServiceFeedbackType $t) => $t->value)->sort()->values()->all())->toBe(['complaint', 'feedback', 'suggestion'])

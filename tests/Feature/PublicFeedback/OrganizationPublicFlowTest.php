@@ -268,7 +268,7 @@ it('consumes a one-time form token so a replayed form is refused', function (): 
 });
 
 it('keeps the employee flow attached to the scanned employee when an organization target is forged', function (): void {
-    $this->post('/service-feedback/'.$this->scenario->token->token.'/suggestion', pfComplete('suggestion', [
+    $this->post('/service-feedback/'.$this->scenario->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'Forged organization target on an employee QR.',
         'organization_target_id' => $this->organization->id,
         'target_type' => 'organization',

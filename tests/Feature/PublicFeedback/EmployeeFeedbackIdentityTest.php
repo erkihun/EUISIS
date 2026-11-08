@@ -114,7 +114,7 @@ it('keeps the name and the three choices when the employee has no photo', functi
     expect($props['available'])->toBeTrue()
         ->and($props['target']['display_name'])->toBe('Hanna Girma')
         ->and($props['target']['photo_url'])->toBeNull()
-        ->and($props['enabledTypes'])->toBe(['feedback', 'suggestion', 'complaint']);
+        ->and($props['enabledTypes'])->toBe(['feedback', 'complaint']);
 });
 
 it('answers 404 for a recorded photo that is missing from storage, so the page falls back to its avatar', function (): void {
@@ -164,10 +164,10 @@ it('keeps the page, name, photo and choices whatever the state of the ID card', 
 
     expect($props['available'])->toBeTrue()
         ->and($props['target']['display_name'])->toBe('Hanna Girma')
-        ->and($props['enabledTypes'])->toBe(['feedback', 'suggestion', 'complaint']);
+        ->and($props['enabledTypes'])->toBe(['feedback', 'complaint']);
     $this->get($props['target']['photo_url'])->assertOk();
 
-    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', ['message' => 'Card state must not matter.']))->assertRedirect($this->pageA.'/suggestion');
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', ['message' => 'Card state must not matter.']))->assertRedirect($this->pageA.'/complaint');
     expect(EmployeeServiceFeedback::query()->where('employee_id', $this->a->employee->id)->count())->toBe(1);
 })->with(['revoked', 'suspended', 'lost', 'pending print', 'expired', 'qr revoked', 'no card']);
 
@@ -253,7 +253,7 @@ it('gives every screen of one visit the same photo link, so the photo downloads 
 // ── 8–10, 15, 19–20: the browser never chooses the target ────────────────────
 
 it('ignores employee B\'s ids, a forged target type and a forged assignment in a submission on A\'s code', function (): void {
-    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', [
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', [
         'message' => 'Please open the second window earlier.',
         'employee_id' => $this->b->employee->id,
         'target_employee_id' => $this->b->employee->id,
@@ -387,7 +387,7 @@ it('keeps the same token and card reference when the photo changes, and shows th
 });
 
 it('keeps the same token after a name correction, shows the corrected name and leaves earlier snapshots alone', function (): void {
-    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', ['message' => 'Before the correction.']))->assertRedirect();
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', ['message' => 'Before the correction.']))->assertRedirect();
     $earlier = EmployeeServiceFeedback::query()->sole();
     $token = $this->a->token->token;
 

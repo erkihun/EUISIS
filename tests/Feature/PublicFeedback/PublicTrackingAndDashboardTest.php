@@ -33,7 +33,7 @@ beforeEach(function (): void {
 
 it('gives every type its own Code Rule reference', function (): void {
     $this->post($this->base.'/feedback', pfComplete('feedback', ['rating' => 5, 'position_service_id' => $this->employee->positionService->id]))->assertSessionHasNoErrors();
-    $this->post($this->base.'/suggestion', ['message' => 'Tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
+    $this->post(pfOrgTipUrl($this->employee->organization), ['message' => 'Tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
     $this->post($this->base.'/complaint', pfComplete('complaint', ['message' => 'Complaint.']))->assertSessionHasNoErrors();
 
     $references = EmployeeServiceFeedback::query()->pluck('reference_number', 'type')->all();
@@ -43,7 +43,7 @@ it('gives every type its own Code Rule reference', function (): void {
 });
 
 it('lets the public track a Tip-off by reference and a complaint by reference and phone, showing only the stage', function (): void {
-    $this->post($this->base.'/suggestion', ['message' => 'Tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
+    $this->post(pfOrgTipUrl($this->employee->organization), ['message' => 'Tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
     $this->post($this->base.'/complaint', pfComplete('complaint', ['message' => 'Complaint.', 'client_contact' => '0911 22 33 44']))->assertSessionHasNoErrors();
     $this->post($this->base.'/feedback', pfComplete('feedback', ['rating' => 4, 'position_service_id' => $this->employee->positionService->id]))->assertSessionHasNoErrors();
     $tip = EmployeeServiceFeedback::query()->where('type', 'suggestion')->sole();
@@ -76,7 +76,7 @@ it('lets the public track a Tip-off by reference and a complaint by reference an
 });
 
 it('gives Tip-offs and complaints each their own dashboard under their own permission', function (): void {
-    $this->post($this->base.'/suggestion', ['message' => 'Tip.', 'tip_type' => 'CORRUPTION', 'tip_form' => ['violation_types' => ['bribery']]])->assertSessionHasNoErrors();
+    $this->post(pfOrgTipUrl($this->employee->organization), ['message' => 'Tip.', 'tip_type' => 'CORRUPTION', 'tip_form' => ['violation_types' => ['bribery']]])->assertSessionHasNoErrors();
     $this->post($this->base.'/complaint', pfComplete('complaint', ['message' => 'Complaint.']))->assertSessionHasNoErrors();
 
     $this->actingAs($this->admin)->get(route('tip-offs.dashboard'))->assertOk()

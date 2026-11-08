@@ -151,7 +151,10 @@ it('writes no narrative, contact or QR secret to the log across every public com
 
     $urls = [];
     foreach (['feedback', 'suggestion', 'complaint'] as $type) {
-        $urls[] = '/service-feedback/'.$this->a->token->token.'/'.$type;
+        // The employee QR has no Tip-off form.
+        if ($type !== 'suggestion') {
+            $urls[] = '/service-feedback/'.$this->a->token->token.'/'.$type;
+        }
         $urls[] = '/feedback/'.$this->orgToken.'/'.$type;
     }
 
@@ -169,7 +172,8 @@ it('writes no narrative, contact or QR secret to the log across every public com
         expect($posted->headers->get(RequestCorrelationId::HEADER))->not->toBeEmpty();
     }
 
-    expect(EmployeeServiceFeedback::query()->count())->toBe(6);
+    // Five forms: the employee QR has no Tip-off.
+    expect(EmployeeServiceFeedback::query()->count())->toBe(5);
 
     $leaks = collect($captured)->filter(fn (string $line): bool => str_contains($line, RES_NARRATIVE)
         || str_contains($line, RES_CONTACT)

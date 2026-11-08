@@ -79,7 +79,7 @@ it('offers no Call when the employee\'s institution has no public number, and ne
 
     expect($props['call'])->toBeNull()
         ->and($props['available'])->toBeTrue()
-        ->and($props['enabledTypes'])->toBe(['feedback', 'suggestion', 'complaint']);
+        ->and($props['enabledTypes'])->toBe(['feedback', 'complaint']);
 
     $body = (string) $response->getContent();
     foreach (['0911000111', '+251911000111', '0922000222', 'tel:'] as $private) {
@@ -126,7 +126,7 @@ it('never turns a stored value that is not a plain phone number into a link', fu
 })->with(['javascript:alert(1)', 'tel:+251111234567', 'data:text/html,x', '0111234567;ext=9', '911223344']);
 
 it('follows a transfer: the same QR then calls the new institution, and earlier submissions keep their context', function (): void {
-    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', ['message' => 'Before the transfer.']))->assertRedirect();
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', ['message' => 'Before the transfer.']))->assertRedirect();
     $before = EmployeeServiceFeedback::query()->sole();
     $token = $this->a->token->token;
 

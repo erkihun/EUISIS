@@ -644,28 +644,24 @@ it('opens exactly the three typed options from the existing feedback qr', functi
             ->where('type', null)
             ->where('available', true));
 
-    foreach (['feedback', 'suggestion', 'complaint'] as $type) {
+    foreach (['feedback', 'complaint'] as $type) {
         $this->get('/service-feedback/'.$this->token->token.'/'.$type)
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('type', $type));
     }
+    // A Tip-off is given on the institution QR only.
+    $this->get('/service-feedback/'.$this->token->token.'/suggestion')->assertNotFound();
 
     expect($this->employee->fresh()->activeFeedbackToken->token)->toBe($this->token->token);
 });
 
-it('records a suggestion for the qr employee without requiring a rating', function (): void {
+it('refuses a Tip-off on the employee QR (institution QR only)', function (): void {
     $this->post('/service-feedback/'.$this->token->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'Please offer appointments earlier in the day.',
-        'client_name' => 'Visitor',
         'employee_id' => 'attacker-controlled-target',
-    ]))->assertRedirect();
+    ]))->assertNotFound();
 
-    $entry = EmployeeServiceFeedback::query()->sole();
-    expect($entry->type)->toBe(ServiceFeedbackType::Suggestion)
-        ->and($entry->employee_id)->toBe($this->employee->id)
-        ->and($entry->rating)->toBeNull()
-        ->and($entry->client_contact)->toBeNull()
-        ->and($entry->employee_assignment_id)->toBe($this->employee->current_assignment_id);
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
 it('rejects disallowed complaint attachments and excessive file counts', function (): void {
@@ -710,7 +706,7 @@ it('issues a non-sequential complaint reference and stores approved attachments 
 it('rejects an inactive feedback qr for every new submission type', function (): void {
     app(EmployeeFeedbackTokenService::class)->revoke($this->token);
 
-    foreach (['suggestion', 'complaint'] as $type) {
+    foreach (['complaint'] as $type) {
         $this->post('/service-feedback/'.$this->token->token.'/'.$type, pfComplete($type, ['message' => 'A legitimate detailed message']))
             ->assertRedirect('/service-feedback/'.$this->token->token);
     }

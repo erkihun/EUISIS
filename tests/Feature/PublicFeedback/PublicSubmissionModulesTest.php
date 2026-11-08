@@ -27,7 +27,7 @@ beforeEach(function (): void {
 
 it('stores each type in the table its own module owns, read together through the view', function (): void {
     $this->post($this->base.'/feedback', pfComplete('feedback', ['rating' => 4, 'position_service_id' => $this->employee->positionService->id]))->assertSessionHasNoErrors();
-    $this->post($this->base.'/suggestion', ['message' => 'Tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
+    $this->post(pfOrgTipUrl($this->employee->organization), ['message' => 'Tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();
     $this->post($this->base.'/complaint', pfComplete('complaint', ['message' => 'Complaint.']))->assertSessionHasNoErrors();
 
     expect(ServiceFeedbackSubmission::query()->count())->toBe(1)

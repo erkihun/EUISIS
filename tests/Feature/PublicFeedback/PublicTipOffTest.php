@@ -85,9 +85,10 @@ function tipMedia(string $kind, string $name): UploadedFile
     return new UploadedFile($path, $name, null, null, true);
 }
 
+/** Since 2026-11-08 a Tip-off is given on the institution QR only; feedback and complaints keep both QRs. */
 function tipUrl(string $target, string $type = 'suggestion'): string
 {
-    return $target === 'organization' ? '/feedback/'.test()->orgToken.'/'.$type : test()->pageA.'/'.$type;
+    return $target === 'organization' || $type === 'suggestion' ? '/feedback/'.test()->orgToken.'/'.$type : test()->pageA.'/'.$type;
 }
 
 // ── 95–98, 109: the job designation under the employee's name ────────────────
@@ -110,7 +111,7 @@ it('shows the current job designation under the name on the employee QR, in the 
 });
 
 it('shows the current post, never a stale one, and follows a transfer on the same QR while old submissions keep their snapshot', function (): void {
-    $this->post(tipUrl('employee'), ['message' => 'Before the move.', 'tip_type' => 'IMPROPER_PRACTICE'])->assertRedirect();
+    $this->post(tipUrl('employee', 'complaint'), pfComplete('complaint', ['message' => 'Before the move.']))->assertRedirect();
     $before = EmployeeServiceFeedback::query()->sole();
     $token = $this->a->token->token;
 
@@ -141,7 +142,7 @@ it('keeps the QR usable and shows no designation when the employee holds no acti
         ->where('target.display_name', 'Hanna Girma')
         ->where('target.position_title', null));
 
-    $this->post(tipUrl('employee'), ['message' => 'Still reachable.', 'tip_type' => 'CORRUPTION'])->assertRedirect()->assertSessionHasNoErrors();
+    $this->post(tipUrl('employee', 'complaint'), pfComplete('complaint', ['message' => 'Still reachable.']))->assertRedirect()->assertSessionHasNoErrors();
     expect(EmployeeServiceFeedback::query()->sole()->employee_id)->toBe($this->a->employee->id);
 });
 
@@ -166,11 +167,18 @@ it('takes an anonymous Tip-off of either type from either QR, with no service re
         ->and($row->submitted_at)->not->toBeNull()
         ->and($row->rating)->toBeNull();
 })->with([
-    'employee QR, corruption' => ['employee', 'CORRUPTION'],
-    'employee QR, improper practice' => ['employee', 'IMPROPER_PRACTICE'],
-    'organization QR, corruption' => ['organization', 'CORRUPTION'],
-    'organization QR, improper practice' => ['organization', 'IMPROPER_PRACTICE'],
+    'corruption' => ['organization', 'CORRUPTION'],
+    'improper practice' => ['organization', 'IMPROPER_PRACTICE'],
 ]);
+
+it('offers no Tip-off on an employee QR and refuses one sent there', function (): void {
+    // Owner rule 2026-11-08: Tip-offs on the institution QR only.
+    $this->get($this->pageA)->assertOk()->assertInertia(fn (Assert $page) => $page->where('enabledTypes', ['feedback', 'complaint']));
+    $this->get($this->pageA.'/suggestion')->assertNotFound();
+    $this->post($this->pageA.'/suggestion', ['message' => 'A tip.', 'tip_type' => 'CORRUPTION'])->assertNotFound();
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+    $this->get('/feedback/'.$this->orgToken)->assertOk()->assertInertia(fn (Assert $page) => $page->where('enabledTypes', ['feedback', 'suggestion', 'complaint']));
+});
 
 // ── 101–102: the type is required and closed ─────────────────────────────────
 
@@ -233,7 +241,7 @@ it('hides the tipster from a reviewer without the identity grant and audits each
     $row = EmployeeServiceFeedback::query()->sole();
 
     $reviewer = User::factory()->create();
-    $reviewer->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target']);
+    $reviewer->givePermissionTo(['service_feedback.view', 'service_feedback.tip_offs.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
     $this->actingAs($reviewer)->get(route('tip-offs.cases.show', ['submission' => $row]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('entry.identity_hidden', true)->where('entry.client_name', null)->where('entry.client_contact', null)->where('entry.tip_type', 'IMPROPER_PRACTICE'));
@@ -310,13 +318,13 @@ it('lets an authorized reviewer download Tip-off evidence, audited, and refuses 
 // ── 59, 108: the scanned target is fixed ─────────────────────────────────────
 
 it('keeps the scanned target whatever the payload or the narrative names', function (): void {
-    $this->post(tipUrl('employee'), [
-        'message' => 'It was really '.$this->b->employee->full_name.'.', 'tip_type' => 'CORRUPTION',
-        'involved_parties' => $this->b->employee->full_name.' at '.$this->b->organization->name_en,
+    // The employee QR (a complaint there; Tip-offs are institution-QR only).
+    $this->post(tipUrl('employee', 'complaint'), pfComplete('complaint', [
+        'message' => 'It was really '.$this->b->employee->full_name.'.',
         'employee_id' => $this->b->employee->id, 'organization_id' => $this->b->organization->id,
         'organization_target_id' => $this->b->organization->id, 'target_type' => 'organization',
         'employee_assignment_id' => $this->b->assignment->id, 'intake_channel' => 'PHONE', 'reference_number' => 'PTO-1999-000001',
-    ])->assertRedirect();
+    ]))->assertRedirect()->assertSessionHasNoErrors();
 
     $row = EmployeeServiceFeedback::query()->sole();
     expect($row->employee_id)->toBe($this->a->employee->id)
@@ -377,8 +385,12 @@ it('refuses a tip type on a complaint routing rule', function (): void {
 // ── 63–67, 111–113: analytics reconcile, never rank, keep legacy rows honest ─
 
 it('splits Tip-offs into the two types plus legacy unclassified rows, and every view adds up', function (): void {
+    // Employee-targeted Tip-offs from before 2026-11-08 (the employee QR no longer takes them) are still counted.
     foreach (['CORRUPTION', 'CORRUPTION', 'IMPROPER_PRACTICE'] as $i => $tipType) {
-        $this->post(tipUrl('employee'), ['message' => "Tip {$i}", 'tip_type' => $tipType])->assertRedirect();
+        EmployeeServiceFeedback::query()->create([
+            'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'target_type' => 'employee',
+            'type' => ServiceFeedbackType::Suggestion, 'tip_type' => $tipType, 'comment' => "Tip {$i}", 'status' => ServiceFeedbackStatus::Pending, 'submitted_at' => now(),
+        ]);
     }
     $this->post(tipUrl('organization'), ['message' => 'Org tip', 'tip_type' => 'IMPROPER_PRACTICE'])->assertRedirect();
     // A suggestion stored before Tip-off types existed: kept as it is, never back-filled.

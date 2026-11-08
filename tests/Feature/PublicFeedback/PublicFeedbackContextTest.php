@@ -82,7 +82,7 @@ it('keeps the institution submission intelligible after a rename and keeps its Q
 });
 
 it('keeps rows when the employee leaves, the institution is archived or the QR is revoked, and refuses a hard delete of the employee', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Employee row.']))->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Employee row.']))->assertRedirect();
     $this->post('/feedback/'.$this->orgToken.'/suggestion', pfComplete('suggestion', ['message' => 'Institution row.']))->assertRedirect();
     expect(EmployeeServiceFeedback::query()->count())->toBe(2);
 

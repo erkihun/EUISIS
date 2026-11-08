@@ -25,7 +25,7 @@ beforeEach(function (): void {
         Permission::findOrCreate($permission, 'web');
     }
     $this->s = PublicFeedbackScenario::employeeTarget('SEP');
-    $this->post('/service-feedback/'.$this->s->token->token.'/suggestion', ['message' => 'A tip.', 'tip_type' => 'IMPROPER_PRACTICE'])->assertSessionHasNoErrors();
+    $this->post(pfOrgTipUrl($this->s->organization), ['message' => 'A tip.', 'tip_type' => 'IMPROPER_PRACTICE'])->assertSessionHasNoErrors();
     $this->post('/service-feedback/'.$this->s->token->token.'/complaint', pfComplete('complaint', ['message' => 'A complaint.']))->assertSessionHasNoErrors();
     $this->tip = EmployeeServiceFeedback::query()->where('type', 'suggestion')->sole();
     $this->complaint = EmployeeServiceFeedback::query()->where('type', 'complaint')->sole();

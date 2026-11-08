@@ -97,7 +97,6 @@ it('accepts a Tip-off and a complaint exactly as the browser form sends them', f
 })->with([
     'Tip-off to an institution' => ['organization', 'suggestion'],
     'complaint to an institution' => ['organization', 'complaint'],
-    'Tip-off about an employee' => ['employee', 'suggestion'],
     'complaint about an employee' => ['employee', 'complaint'],
 ]);
 
@@ -141,12 +140,12 @@ it('requires the complaint form: address, sex, identity document, remedy and the
         ->and($row->getRawOriginal('complaint_details'))->not->toContain('AA-123456');
 
     // A Tip-off never carries the complaint form.
-    $this->post('/service-feedback/'.$this->employee->token->token.'/suggestion', ['message' => 'Tip.', 'tip_type' => 'CORRUPTION', 'complaint_form' => ['gender' => 'male']])
+    $this->post(pfOrgTipUrl($this->employee->organization), ['message' => 'Tip.', 'tip_type' => 'CORRUPTION', 'complaint_form' => ['gender' => 'male']])
         ->assertSessionHasErrors('complaint_form');
 });
 
 it('keeps the Tip-off form\'s suspect, violations and confidentiality request, all optional', function (): void {
-    $url = '/service-feedback/'.$this->employee->token->token.'/suggestion';
+    $url = pfOrgTipUrl($this->employee->organization);
 
     // Nothing of the form is required.
     $this->post($url, ['message' => 'Bare tip.', 'tip_type' => 'CORRUPTION'])->assertSessionHasNoErrors();

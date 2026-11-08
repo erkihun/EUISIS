@@ -81,7 +81,7 @@ it('hides a disabled submission type from the public landing and refuses its for
 
     $this->get('/service-feedback/'.$this->a->token->token)
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('enabledTypes', ['feedback', 'suggestion']));
+        ->assertInertia(fn (Assert $page) => $page->where('enabledTypes', ['feedback']));
     $this->get('/service-feedback/'.$this->a->token->token.'/complaint')->assertNotFound();
     $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Still trying.']))->assertNotFound();
 
@@ -101,7 +101,7 @@ it('turns the public pages off with the master switch', function (): void {
         ->assertInertia(fn (Assert $page) => $page->where('available', false));
     $this->get('/feedback/'.$this->orgToken)
         ->assertInertia(fn (Assert $page) => $page->where('available', false));
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'x']))->assertRedirect('/service-feedback/'.$this->a->token->token);
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'x']))->assertRedirect('/service-feedback/'.$this->a->token->token);
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
@@ -149,9 +149,9 @@ it('requires a name and a phone on every Complaint, never anonymous; Feedback ma
 });
 
 it('accepts a Tip-off with no tipster details, and validates the details a tipster does offer', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Bad phone.', 'tip_type' => 'CORRUPTION', 'client_contact' => '??'])
+    $this->post(pfOrgTipUrl($this->a->organization), ['message' => 'Bad phone.', 'tip_type' => 'CORRUPTION', 'client_contact' => '??'])
         ->assertSessionHasErrors('client_contact');
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Bad e-mail.', 'tip_type' => 'CORRUPTION', 'client_email' => 'nope'])
+    $this->post(pfOrgTipUrl($this->a->organization), ['message' => 'Bad e-mail.', 'tip_type' => 'CORRUPTION', 'client_email' => 'nope'])
         ->assertSessionHasErrors('client_email');
     $this->post('/feedback/'.$this->orgToken.'/suggestion', ['message' => 'No details at all.', 'tip_type' => 'CORRUPTION'])
         ->assertRedirect()->assertSessionHasNoErrors();

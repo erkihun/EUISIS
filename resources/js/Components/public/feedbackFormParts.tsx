@@ -212,7 +212,12 @@ export function privacyNoteKey(requirements: SubmissionRequirements): string {
 export function RequirementMark({ required }: { required: boolean }) {
     const { t } = useLocale();
 
-    return <span className={optionalClass}>({t(required ? 'serviceFeedback.requiredMark' : 'serviceFeedback.clientNameHint')})</span>;
+    // A required field shows a red asterisk (the word stays for screen readers); an optional one says so.
+    if (required) {
+        return <><span aria-hidden="true" className="ml-0.5 font-bold text-red-600 dark:text-red-400">*</span><span className="sr-only">({t('serviceFeedback.requiredMark')})</span></>;
+    }
+
+    return <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>;
 }
 
 export interface IdentityData {

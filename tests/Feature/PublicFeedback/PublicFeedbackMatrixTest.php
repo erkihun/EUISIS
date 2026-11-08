@@ -92,6 +92,10 @@ function matrixCase(string $target, string $type): array
 $combinations = [];
 foreach (['employee', 'organization'] as $target) {
     foreach (['feedback', 'suggestion', 'complaint'] as $type) {
+        // A Tip-off is given on the institution QR only (owner rule 2026-11-08).
+        if ($target === 'employee' && $type === 'suggestion') {
+            continue;
+        }
         $combinations["{$target} × {$type}"] = [$target, $type];
     }
 }

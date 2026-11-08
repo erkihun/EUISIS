@@ -78,6 +78,9 @@ class PublicServiceFeedbackController extends Controller
 
     public function form(Request $request, string $token, string $type): Response
     {
+        // Owner rule 2026-11-08: a Tip-off is given on the institution QR only, never on an employee's card.
+        abort_if($type === ServiceFeedbackType::Suggestion->value, 404);
+
         return $this->render($request, PublicFeedbackTargetType::Employee, $token, $this->type($type));
     }
 
@@ -93,6 +96,9 @@ class PublicServiceFeedbackController extends Controller
 
     public function storeEntry(StorePublicServiceEntryRequest $request, string $token, string $type): RedirectResponse
     {
+        // A Tip-off is given on the institution QR only.
+        abort_if($type === ServiceFeedbackType::Suggestion->value, 404);
+
         return $this->storeFor($request, PublicFeedbackTargetType::Employee, $token, $this->entryType($type));
     }
 
@@ -219,7 +225,7 @@ class PublicServiceFeedbackController extends Controller
                 'reference' => null,
                 'receipt' => null,
                 'formToken' => null,
-                'enabledTypes' => $this->settings->enabledTypes(),
+                'enabledTypes' => $this->offeredTypes($kind),
                 ...$this->formContract(),
                 ...$this->organizationForm(null, null, 'en'),
                 'call' => null,
@@ -253,7 +259,7 @@ class PublicServiceFeedbackController extends Controller
             'reference' => $receipt['reference'] ?? null,
             'receipt' => $receipt,
             'formToken' => $type === null ? null : $this->formTokens->issue(),
-            'enabledTypes' => $this->settings->enabledTypes(),
+            'enabledTypes' => $this->offeredTypes($kind),
             ...$this->formContract(),
             ...$this->organizationForm($context, $type, $locale),
             /*
@@ -495,6 +501,21 @@ class PublicServiceFeedbackController extends Controller
             'tip_type' => $entry->tip_type?->value,
             'submitted_at' => $entry->submitted_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * The types a QR offers: the institution QR all enabled ones; an
+     * employee's card never a Tip-off (owner rule 2026-11-08).
+     *
+     * @return list<string>
+     */
+    private function offeredTypes(PublicFeedbackTargetType $kind): array
+    {
+        $types = $this->settings->enabledTypes();
+
+        return $kind === PublicFeedbackTargetType::Employee
+            ? array_values(array_filter($types, fn (string $type): bool => $type !== ServiceFeedbackType::Suggestion->value))
+            : $types;
     }
 
     private function type(string $type): ServiceFeedbackType
