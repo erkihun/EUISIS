@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Transport\Http\Requests\ProviderPortal;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Modules\Providers\Contracts\ProviderPortalSession;
+use Modules\Transport\Domain\Models\TransportInvoice;
+
+/**
+ * A provider's claim for a period: what it says it delivered and what it
+ * asks for. The verified figures and the approved amount are never on this
+ * form; they come from the statement the city computes.
+ */
+class ProviderTransportInvoiceRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        $portal = app(ProviderPortalSession::class);
+        $actor = $portal->actor($this);
+        if ($actor === null || ! $portal->actorHasService($this, 'transport') || ! $portal->can($this, 'provider.transport.invoices.manage')) {
+            return false;
+        }
+        $invoice = $this->route('invoice');
+
+        return ! $invoice instanceof TransportInvoice || $invoice->provider_id === $actor->providerId;
+    }
+
+    /** @return array<string, list<mixed>> */
+    public function rules(): array
+    {
+        $providerId = app(ProviderPortalSession::class)->actor($this)?->providerId;
+        $invoice = $this->route('invoice');
+
+        return [
+            'invoice_number' => ['nullable', 'string', 'max:60', Rule::unique('transport_invoices', 'invoice_number')->where('provider_id', $providerId)->ignore($invoice instanceof TransportInvoice ? $invoice->id : null)],
+            'transport_contract_id' => ['nullable', 'uuid', Rule::exists('transport_contracts', 'id')->where('provider_id', $providerId)],
+            'period_start' => ['required', 'date'],
+            'period_end' => ['required', 'date', 'after_or_equal:period_start'],
+            'claimed_boardings' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+            'claimed_trips' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'claimed_employee_days' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+            'claimed_amount' => ['required', 'numeric', 'regex:/^\d+(\.\d{1,2})?$/', 'min:0', 'max:999999999'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
+        ];
+    }
+}

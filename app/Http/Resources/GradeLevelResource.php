@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class GradeLevelResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        $user = $request->user();
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'is_active' => $this->deleted_at === null,
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+            'deleted_at' => $this->deleted_at?->toISOString(),
+            'can' => [
+                'view' => $user?->can('view', $this->resource) ?? false,
+                'update' => $user?->can('update', $this->resource) ?? false,
+                'archive' => $user?->can('archive', $this->resource) ?? false,
+                'restore' => $user?->can('restore', $this->resource) ?? false,
+            ],
+        ];
+    }
+}

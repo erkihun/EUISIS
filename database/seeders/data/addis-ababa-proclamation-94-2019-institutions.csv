@@ -1,0 +1,72 @@
+key,parent_key,type_code,status,article,name_en,name_am,note
+root,,CITY_GOVERNMENT,active,2(3),Addis Ababa City Administration,የአዲስ አበባ ከተማ አስተዳደር,
+council,root,COUNCIL,active,"2, 91",Addis Ababa City Council,የአዲስ አበባ ከተማ ምክር ቤት,
+city_manager,root,OFFICE,active,"4(4), 10",City Manager,የከተማ ሥራ አስኪያጅ,
+mayor_office,root,MAYOR_OFFICE,active,"11(1), 12(1)(ሀ), 17",Office of the Mayor,የከንቲባ ጽህፈት ቤት,
+industry,root,BUREAU,active,"11(2), 18",Industry Development Bureau,የኢንዱስትሪ ልማት ቢሮ,
+labour,root,BUREAU,active,"11(3), 19",Labour and Job Creation Bureau,የሠራተኛና ሥራ ዕድል ፈጠራ ቢሮ,
+tvet,root,BUREAU,active,"11(4), 22",Technical and Vocational Training Bureau,የቴክኒክና ሙያ ሥልጠና ቢሮ,
+finance,root,BUREAU,active,"11(5), 20",Finance Bureau,የፋይናንስ ቢሮ,
+housing,root,BUREAU,active,"11(6), 21",Housing Development and Administration Bureau,የቤቶች ልማትና አስተዳደር ቢሮ,
+public_service,root,BUREAU,active,"11(7), 23",Public Service and Human Resource Development Bureau,የፐብሊክ ሰርቪስና የሰው ሀብት ልማት ቢሮ,
+peace_security,root,BUREAU,active,"11(8), 24",Peace and Security Administration Bureau,የሰላምና ጸጥታ አስተዳደር ቢሮ,
+culture_tourism,root,BUREAU,active,"11(9), 25",Culture and Tourism Bureau,የባህልና ቱሪዝም ቢሮ,
+justice,root,BUREAU,active,"11(10), 26",Justice Bureau,የፍትህ ቢሮ,
+land,root,BUREAU,active,"11(11), 27",Land Development and Administration Bureau,የመሬት ልማትና አስተዳደር ቢሮ,
+transport,root,BUREAU,active,"11(12), 28",Transport Bureau,የትራንስፖርት ቢሮ,
+design_construction,root,BUREAU,active,"11(13), 29",Design and Construction Works Bureau,የዲዛይንና ግንባታ ሥራዎች ቢሮ,
+innovation,root,BUREAU,active,"11(14), 30",Innovation and Technology Development Bureau,የኢኖቬሽንና ቴክኖሎጂ ልማት ቢሮ,
+health,root,BUREAU,active,"11(15), 31",Health Bureau,የጤና ቢሮ,
+trade,root,BUREAU,active,"11(16), 32",Trade Bureau,የንግድ ቢሮ,
+education,root,BUREAU,active,"11(17), 33",Education Bureau,የትምህርት ቢሮ,
+women_children,root,BUREAU,active,"11(18), 34","Women, Children and Social Affairs Bureau",የሴቶች፣ ሕጻናትና ማህበራዊ ጉዳይ ቢሮ,
+revenue,root,BUREAU,active,"11(19), 35",Revenue Bureau,የገቢዎች ቢሮ,
+youth_sports,root,BUREAU,active,"11(20), 36",Youth and Sports Bureau,የወጣቶችና ስፖርት ቢሮ,
+communication,root,BUREAU,active,"11(21), 37",Communication Bureau,የኮሙኒኬሽን ቢሮ,
+beautification,root,BUREAU,active,"11(22), 38",City Beautification and Green Development Bureau,የከተማ ውበትና አረንጓዴ ልማት ቢሮ,
+planning,root,BUREAU,active,"11(23), 39",Planning and Development Bureau,የፕላንና ልማት ቢሮ,
+investment,root,COMMISSION,active,"11(24), 40",Investment Commission,የኢንቨስትመንት ኮሚሽን,
+building_permit,root,AUTHORITY,active,"11(25), 41",Building Permit and Control Authority,የግንባታ ፈቃድና ቁጥጥር ባለሥልጣን,
+farmers,root,COMMISSION,active,"11(26), 12(1)(ሸ), 42",Farmers and Urban Agriculture Development Commission,የአርሶ አደርና ከተማ ግብርና ልማት ኮሚሽን,
+community,root,COMMISSION,active,"11(27), 43",Community Participation and Volunteer Coordination Commission,የህብረተሰብ ተሳትፎና በጎፈቃድ ማስተባበሪያ ኮሚሽን,
+fire,city_manager,COMMISSION,active,"11(28), 12(2)(ሀ), 44",Fire and Disaster Risk Management Commission,የእሳትና አደጋ ስጋት ሥራ አመራር ኮሚሽን,
+cooperative,root,COMMISSION,active,"11(29), 12(1)(ለ), 45",Cooperative Commission,የህብረት ሥራ ኮሚሽን,
+education_quality,root,AUTHORITY,active,"11(30), 12(1)(ሐ), 46",Education and Training Quality Control Authority,የትምህርትና ስልጠና ጥራት ቁጥጥር ባለሥልጣን,
+food_medicine,root,AUTHORITY,active,"11(31), 12(1)(መ), 47",Food and Medicine Authority,የምግብና መድሃኒት ባለሥልጣን,
+driver_vehicle,transport,AUTHORITY,active,"11(32), 12(6)(ሀ), 48",Driver and Vehicle Licensing and Control Authority,የአሽከርካሪና ተሽከርካሪ ፈቃድና ቁጥጥር ባለሥልጣን,
+code_enforcement,peace_security,AUTHORITY,active,"11(33), 12(3), 49",Code Enforcement Authority,የደንብ ማስከበር ባለሥልጣን,
+environment,root,AUTHORITY,active,"11(34), 12(1)(ሠ), 50",Environmental Protection Authority,የአካባቢ ጥበቃ ባለሥልጣን,
+roads,root,AUTHORITY,active,"11(35), 12(1)(ረ), 51",Roads Authority,የመንገዶች ባለሥልጣን,
+water,root,AUTHORITY,active,"11(36), 12(1)(ሰ), 52",Water and Sewerage Authority,የውሃና ፍሳሽ ባለሥልጣን,
+housing_corporation,housing,CORPORATION,active,"11(37), 12(4), 53",Housing Development Corporation,የቤቶች ልማት ኮርፖሬሽን,
+land_registry,root,AGENCY,active,"11(38), 12(1)(ቀ), 54",Land Holding and Land-Related Property Registration and Information Agency,የመሬት ይዞታና መሬት ነክ ንብረት ምዝገባና መረጃ ኤጀንሲ,
+sanitation,city_manager,AGENCY,active,"11(39), 12(2)(ለ), 55",Sanitation Administration Agency,የጽዳት አስተዳደር ኤጀንሲ,
+civil_registration,city_manager,AGENCY,active,"11(40), 12(2)(ሐ), 56",Civil Registration and Residency Service Agency,የሲቪል ምዝገባ እና የነዋሪነት አገልግሎት ኤጀንሲ,
+procurement,finance,AGENCY,active,"11(41), 12(5), 57",Public Procurement and Property Administration Agency,የመንግሥት የግዥና ንብረት አስተዳደር ኤጀንሲ,
+gullele,beautification,CENTER,active,"11(42), 12(7), 58",Gullele Botanical Centre,ጉለሌ የዕፅዋት ማዕከል,
+transport_management,transport,CENTER,draft,59,Transport Management Centre,የትራንስፖርት ማኔጅመንት ማዕከል,በካቢኔ ደንብ የሚቋቋም፤ መቋቋሙ አልተረጋገጠም
+investment_holdings,root,HOLDINGS,draft,60,Addis Ababa Investment Holdings,የአዲስ አበባ ኢንቨስትመንት ሆልዲንግስ,በካቢኔ ደንብ የሚቋቋም፤ መቋቋሙ እና ተጠሪነቱ አልተረጋገጠም
+strategic_projects,root,OFFICE,draft,61,Strategic and Special Initiative Projects Administration Office,የስትራቴጂያዊ እና በልዩ ኢኒሽየቲቭ የሚሰሩ ፕሮጀክቶች አስተዳደር ጽህፈት ቤት,በካቢኔ ደንብ የሚቋቋም፤ መቋቋሙ እና ተጠሪነቱ አልተረጋገጠም
+police,root,COMMISSION,active,62,Addis Ababa City Police Commission,የአዲስ አበባ ከተማ ፖሊስ ኮሚሽን,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም፤ በሚኒስትሮች ምክር ቤት ደንብ ቁጥር 96/1996 ይመራል
+kenema,root,ENTERPRISE,active,63(1)(ሀ),Kenema Pharmacies Enterprise,የከነማ ፋርማሲዎች ድርጅት,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+abattoirs,root,ENTERPRISE,active,63(1)(ለ),Abattoirs Enterprise,የቄራዎች ድርጅት,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+exhibition,root,ENTERPRISE,active,63(1)(ሐ),Exhibition Centre and Market Development Enterprise,የኤግዚቢሽን ማዕከልና ገበያ ልማት ድርጅት,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+city_bus,transport,ENTERPRISE,active,"12(6)(ለ), 63(1)(መ)",City Bus Service Enterprise,የከተማ አውቶቡስ አገልግሎት ድርጅት,
+construction_design,root,ENTERPRISE,active,63(1)(ሠ),"Construction Design, Building and Consulting Enterprise",የኮንስትራክሽን ዲዛይን፣ ግንባታና ማማከር ድርጅት,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+public_recreation,root,CORPORATION,active,63(1)(ረ),Public Recreation Places Administration Corporation,የሕዝብ መዝናኛ ቦታዎች አስተዳደር ኮርፖሬሽን,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+light_rail,transport,ENTERPRISE,active,"12(6)(ሐ), 63(1)(ሰ)",Addis Ababa Light Rail Transport Service Enterprise,አዲስ አበባ የቀላል ባቡር ትራንስፖርት አገልግሎት ድርጅት,
+trade_operations,root,ENTERPRISE,active,63(1)(ሸ),Trade Operations Enterprise,የንግድ ሥራዎች ድርጅት,ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+gelan_gura,industry,CORPORATION,active,"12(8), 63(1)(ቀ)",Gelan Gura Industrial Park Corporation,የገላን ጉራ የኢንዱስትሪ ፓርክ ኮርፖሬሽን,
+social_courts_office,council,OFFICE,active,91,Social Courts Judges Administration Council Office,የአዲስ አበባ ከተማ አስተዳደር የማህበራዊ ፍርድ ቤቶች የዳኞች አስተዳደር ጉባኤ ጽህፈት ቤት,
+competency_institute,root,INSTITUTE,active,93(9),Civil Servants Competency Assessment and Certification Institute,የመንግሥት ሠራተኞች የብቃት ምዘናና ማረጋገጫ ተቋም,በአንቀጽ 93(9) ብቻ የተጠቀሰ፤ ተጠሪነቱ በዚህ አዋጅ አልተገለጸም
+addis_ketema,root,SUB_CITY,active,"2(7), 68",Addis Ketema Sub-City,አዲስ ከተማ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+akaki_kality,root,SUB_CITY,active,"2(7), 68",Akaki Kality Sub-City,አቃቂ ቃሊቲ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+arada,root,SUB_CITY,active,"2(7), 68",Arada Sub-City,አራዳ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+bole,root,SUB_CITY,active,"2(7), 68",Bole Sub-City,ቦሌ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+gulele,root,SUB_CITY,active,"2(7), 68",Gulele Sub-City,ጉለሌ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+kirkos,root,SUB_CITY,active,"2(7), 68",Kirkos Sub-City,ቂርቆስ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+kolfe_keraniyo,root,SUB_CITY,active,"2(7), 68",Kolfe Keraniyo Sub-City,ኮልፌ ቀራኒዮ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+lemi_kura,root,SUB_CITY,active,"2(7), 68",Lemi Kura Sub-City,ለሚ ኩራ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+lideta,root,SUB_CITY,active,"2(7), 68",Lideta Sub-City,ልደታ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+nifas_silk_lafto,root,SUB_CITY,active,"2(7), 68",Nifas Silk Lafto Sub-City,ንፋስ ስልክ ላፍቶ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም
+yeka,root,SUB_CITY,active,"2(7), 68",Yeka Sub-City,የካ ክፍለ ከተማ,ስሙ በአዋጁ አልተጠቀሰም

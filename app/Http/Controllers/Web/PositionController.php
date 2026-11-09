@@ -1,0 +1,896 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Web;
+
+use App\Actions\CodeRules\GenerateCodeAction;
+use App\Actions\Positions\ApprovePositionEstablishmentAction;
+use App\Actions\Positions\ArchivePositionAction;
+use App\Actions\Positions\CreatePositionAction;
+use App\Actions\Positions\MovePositionAction;
+use App\Actions\Positions\RestorePositionAction;
+use App\Actions\Positions\UpdatePositionAction;
+use App\Enums\AssignmentStatus;
+use App\Enums\CodeRuleEntityType;
+use App\Enums\EstablishmentStatus;
+use App\Enums\HierarchyVersionStatus;
+use App\Enums\OccupancyStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\MovePositionRequest;
+use App\Http\Requests\StorePositionRequest;
+use App\Http\Requests\UpdatePositionRequest;
+use App\Http\Resources\PositionResource;
+use App\Models\GradeLevel;
+use App\Models\HierarchyVersion;
+use App\Models\Occupation;
+use App\Models\Organization;
+use App\Models\OrganizationEdge;
+use App\Models\OrganizationUnit;
+use App\Models\Position;
+use App\Models\PositionEstablishment;
+use App\Models\PositionService;
+use App\Models\User;
+use App\Services\CodeGeneration\PositionCodeContextResolver;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Positions\ScopedPositionStructureService;
+use App\Support\Database\SqlText;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Performance\Contracts\PositionPerformance;
+
+class PositionController extends Controller
+{
+    /** Largest number of named slices a status breakdown chart shows before the tail rolls into "Other". */
+    private const STATUS_BREAKDOWN_LIMIT = 8;
+
+    /**
+     * One row per matching position with its status numbers, as a subquery:
+     * total = approved establishment slots (1 when none); filled = active
+     * establishment occupancies, else current active assignments capped at
+     * total. Same rule the page has always shown, computed by the database.
+     *
+     * @param  Builder<Position>  $positions  filtered, scoped position query
+     * @param  list<string>|null  $allowedOrganizationIds  null when unrestricted
+     */
+    private function positionStatusRows(Builder $positions, ?array $allowedOrganizationIds): QueryBuilder
+    {
+        $occupied = DB::table('position_occupancies')
+            ->where('status', OccupancyStatus::Active->value)
+            ->groupBy('position_establishment_id')
+            ->select('position_establishment_id', DB::raw('COUNT(*) AS filled'));
+
+        // Both aggregates are limited to the positions being reported: without
+        // it PostgreSQL grouped every current assignment in the city before
+        // joining (load test 2026-10-11: ~80 ms per query at 220k employees,
+        // run four times per page).
+        $positionIds = (clone $positions)->reorder()->select('positions.id')->toBase();
+
+        $establishments = DB::table('position_establishments AS pe')
+            ->where('pe.status', EstablishmentStatus::Approved->value)
+            ->whereNull('pe.deleted_at')
+            ->whereIn('pe.position_id', $positionIds)
+            ->when($allowedOrganizationIds !== null, fn ($query) => $query->whereIn('pe.organization_id', $allowedOrganizationIds))
+            ->leftJoinSub($occupied, 'occ', 'occ.position_establishment_id', '=', 'pe.id')
+            ->groupBy('pe.position_id')
+            ->select('pe.position_id', DB::raw('SUM(pe.approved_slots) AS slots'), DB::raw('SUM(COALESCE(occ.filled, 0)) AS filled'));
+
+        $assigned = DB::table('employee_assignments')
+            ->where('is_current', true)
+            ->where('assignment_status', AssignmentStatus::Active->value)
+            ->whereIn('position_id', $positionIds)
+            ->groupBy('position_id')
+            ->select('position_id', DB::raw('COUNT(*) AS cnt'));
+
+        $total = 'CASE WHEN COALESCE(est.slots, 0) > 0 THEN est.slots ELSE 1 END';
+
+        return (clone $positions)->toBase()
+            ->leftJoinSub($establishments, 'est', 'est.position_id', '=', 'positions.id')
+            ->leftJoinSub($assigned, 'asg', 'asg.position_id', '=', 'positions.id')
+            ->select([
+                'positions.organization_id',
+                'positions.organization_unit_id',
+                'positions.grade_level',
+                'positions.job_family',
+                DB::raw("({$total}) AS total"),
+                DB::raw("(CASE WHEN COALESCE(est.filled, 0) > 0 THEN est.filled
+                    WHEN COALESCE(asg.cnt, 0) < ({$total}) THEN COALESCE(asg.cnt, 0)
+                    ELSE ({$total}) END) AS filled"),
+                // First-appearance order of the old in-memory grouping (org, unit, code).
+                // Driver-aware text: MySQL has no VARCHAR in CAST and reads || as OR.
+                DB::raw(SqlText::concat([
+                    'COALESCE('.SqlText::idText('positions.organization_id').", '')",
+                    "'|'",
+                    'COALESCE('.SqlText::idText('positions.organization_unit_id').", '')",
+                    "'|'",
+                    "COALESCE(positions.job_position_code, '')",
+                ]).' AS sort_key'),
+            ]);
+    }
+
+    /** A query-string id filter, or null when absent or not a uuid. */
+    private function uuidFilter(Request $request, string $key): ?string
+    {
+        $value = $request->string($key)->toString();
+
+        return Str::isUuid($value) ? $value : null;
+    }
+
+    public function status(Request $request, OrganizationScopeService $organizationScopeService): Response
+    {
+        $this->authorize('viewAny', Position::class);
+
+        $user = $request->user();
+        $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
+        $isAccessRestricted = ! $organizationScopeService->isUnrestricted($user);
+        $isOrganizationScoped = $isAccessRestricted && $accessibleOrganizationIds->count() <= 1;
+
+        // Id filters come straight from the query string. Anything that is not
+        // a uuid is ignored rather than sent to the database: PostgreSQL
+        // refuses it with an error, which the page showed as a 500.
+        $organizationFilter = $this->uuidFilter($request, 'organization_id');
+        $organizationUnitFilter = $this->uuidFilter($request, 'organization_unit_id');
+
+        $baseQuery = Position::query()
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
+                $search = $request->string('search')->toString();
+                $query->where(function ($nested) use ($search): void {
+                    $nested->where('job_position_code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('old_code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('title_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('title_am', ci_like_operator(), "%{$search}%")
+                        ->orWhere('bpr_name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('grade_level', ci_like_operator(), "%{$search}%")
+                        ->orWhere('job_family', ci_like_operator(), "%{$search}%");
+                });
+            })
+            ->when($organizationFilter !== null, fn ($query) => $query->where('organization_id', $organizationFilter))
+            ->when($organizationUnitFilter !== null, fn ($query) => $query->where('organization_unit_id', $organizationUnitFilter))
+            ->when($request->string('job_family')->toString() !== '', fn ($query) => $query->where('job_family', $request->string('job_family')->toString()))
+            ->when($request->string('grade_level')->toString() !== '', fn ($query) => $query->where('grade_level', $request->string('grade_level')->toString()))
+            ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')));
+
+        // Summary tiles and charts are computed in SQL over every matching
+        // position (production risk register SCL-1): one row per position with
+        // its approved slots and filled count, aggregated by the database —
+        // never a scope-wide collection loaded into PHP.
+        $statusRows = $this->positionStatusRows($baseQuery, $isAccessRestricted ? $accessibleOrganizationIds->all() : null);
+
+        $paginatedPositions = (clone $baseQuery)
+            ->with([
+                'organization:id,name_en,name_am',
+                'organizationUnit:id,name_en,name_am',
+            ])
+            ->withCount([
+                'assignments as active_assignments_count' => fn ($query) => $query
+                    ->where('assignment_status', AssignmentStatus::Active->value)
+                    ->where('is_current', true),
+            ])
+            ->orderBy('organization_id')
+            ->orderBy('organization_unit_id')
+            ->orderBy('job_position_code')
+            ->paginate(min(max($request->integer('per_page', 15), 1), 100))
+            ->withQueryString();
+
+        // Establishments only for the positions on this page.
+        $establishmentsByPosition = PositionEstablishment::query()
+            ->where('status', EstablishmentStatus::Approved->value)
+            ->whereIn('position_id', $paginatedPositions->getCollection()->modelKeys())
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->withCount([
+                'occupancies as filled_positions' => fn ($query) => $query->where('status', OccupancyStatus::Active->value),
+            ])
+            ->get(['id', 'establishment_number', 'position_id', 'approved_slots'])
+            ->groupBy('position_id');
+
+        $attachStatus = function (Position $position) use ($establishmentsByPosition): void {
+            $establishments = $establishmentsByPosition->get($position->id, collect());
+            $approvedSlots = (int) $establishments->sum('approved_slots');
+            $establishmentFilled = (int) $establishments->sum('filled_positions');
+            $activeAssignments = (int) $position->active_assignments_count;
+
+            $position->status_total_positions = $approvedSlots > 0 ? $approvedSlots : 1;
+            $position->status_filled_positions = $establishmentFilled > 0 ? $establishmentFilled : min($activeAssignments, $position->status_total_positions);
+            $position->status_establishment_number = $establishments->pluck('establishment_number')->filter()->implode(', ');
+        };
+
+        $paginatedPositions->getCollection()->each($attachStatus);
+
+        $organizations = Organization::query()
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('id', $accessibleOrganizationIds))
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_am']);
+
+        $organizationUnits = OrganizationUnit::query()
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($organizationFilter !== null, fn ($query) => $query->where('organization_id', $organizationFilter))
+            ->orderBy('name_en')
+            ->get(['id', 'organization_id', 'name_en', 'name_am']);
+
+        $mapPosition = function (Position $position) use ($establishmentsByPosition): array {
+            $filled = (int) $position->status_filled_positions;
+            $total = (int) $position->status_total_positions;
+
+            return [
+                'id' => $position->id,
+                'position_id' => $position->id,
+                'establishment_id' => $establishmentsByPosition->get($position->id, collect())->first()?->id,
+                'establishment_number' => $position->status_establishment_number,
+                'job_position_code' => $position->job_position_code,
+                'title_en' => $position->title_en,
+                'title_am' => $position->title_am,
+                'grade_level' => $position->grade_level,
+                'job_family' => $position->job_family,
+                'organization_name_en' => $position->organization?->name_en,
+                'organization_name_am' => $position->organization?->name_am,
+                'department_name_en' => $position->organizationUnit?->name_en ?? $position->organization?->name_en,
+                'department_name_am' => $position->organizationUnit?->name_am ?? $position->organization?->name_am,
+                'is_active' => (bool) $position->is_active,
+                'total_positions' => $total,
+                'filled_positions' => $filled,
+                'vacant_positions' => max(0, $total - $filled),
+            ];
+        };
+
+        $positions = $paginatedPositions->through($mapPosition);
+
+        $jobFamilies = (clone $baseQuery)
+            ->whereNotNull('job_family')
+            ->distinct()
+            ->orderBy('job_family')
+            ->pluck('job_family')
+            ->filter()
+            ->values()
+            ->all();
+
+        $totals = DB::query()->fromSub($statusRows, 'ps')
+            ->selectRaw('COALESCE(SUM(ps.total), 0) AS total, COALESCE(SUM(ps.filled), 0) AS filled')
+            ->first();
+        $summaryTotal = (int) $totals->total;
+        $summaryFilled = (int) $totals->filled;
+        $summaryVacant = max(0, $summaryTotal - $summaryFilled);
+
+        // Breakdowns power the status charts. They aggregate the same
+        // filter-aware rows as the summary tiles, so the charts always agree
+        // with the headline numbers.
+        $buildBreakdown = function (string $column, callable $labelsFor) use ($statusRows): array {
+            $key = 'COALESCE(NULLIF('.SqlText::idText('ps.'.$column).", ''), '__unassigned__')";
+            $rows = DB::query()->fromSub($statusRows, 'ps')
+                ->selectRaw("{$key} AS group_key, SUM(ps.total) AS total, SUM(ps.filled) AS filled, MIN(ps.sort_key) AS first_seen")
+                ->groupByRaw($key)
+                ->get();
+            $labels = $labelsFor($rows->pluck('group_key')->reject(fn ($k) => $k === '__unassigned__')->values()->all());
+
+            $groups = $rows
+                // Same order as before: largest first, ties in first-appearance order.
+                ->sortBy([['total', 'desc'], ['first_seen', 'asc']])
+                ->map(function ($row) use ($labels): array {
+                    $total = (int) $row->total;
+                    $filled = (int) $row->filled;
+                    [$labelEn, $labelAm] = $row->group_key === '__unassigned__' ? [null, null] : ($labels[$row->group_key] ?? [$row->group_key, $row->group_key]);
+
+                    return [
+                        'key' => (string) $row->group_key,
+                        'label_en' => $labelEn,
+                        'label_am' => $labelAm,
+                        'total' => $total,
+                        'filled' => $filled,
+                        'vacant' => max(0, $total - $filled),
+                    ];
+                })
+                ->values();
+
+            if ($groups->count() <= self::STATUS_BREAKDOWN_LIMIT) {
+                return $groups->all();
+            }
+
+            $top = $groups->take(self::STATUS_BREAKDOWN_LIMIT);
+            $rest = $groups->slice(self::STATUS_BREAKDOWN_LIMIT);
+
+            return $top->push([
+                'key' => '__other__',
+                'label_en' => null,
+                'label_am' => null,
+                'total' => (int) $rest->sum('total'),
+                'filled' => (int) $rest->sum('filled'),
+                'vacant' => (int) $rest->sum('vacant'),
+            ])->all();
+        };
+
+        $groupingKey = $isOrganizationScoped ? 'unit' : 'organization';
+
+        $namesFor = fn (string $modelClass) => fn (array $ids): array => $modelClass::query()
+            ->withTrashed()
+            ->whereIn('id', $ids)
+            ->get(['id', 'name_en', 'name_am'])
+            ->mapWithKeys(fn ($model) => [(string) $model->id => [$model->name_en, $model->name_am]])
+            ->all();
+
+        $breakdowns = [
+            'grouping' => $groupingKey,
+            'by_group' => $groupingKey === 'unit'
+                ? $buildBreakdown('organization_unit_id', $namesFor(OrganizationUnit::class))
+                : $buildBreakdown('organization_id', $namesFor(Organization::class)),
+            'by_grade_level' => $buildBreakdown('grade_level', fn (array $keys): array => []),
+            'by_job_family' => $buildBreakdown('job_family', fn (array $keys): array => []),
+        ];
+
+        return Inertia::render('Positions/Status', [
+            'summary' => [
+                'total_positions' => $summaryTotal,
+                'filled_positions' => $summaryFilled,
+                'vacant_positions' => $summaryVacant,
+                'occupancy_rate' => $summaryTotal > 0 ? round($summaryFilled / $summaryTotal * 100, 1) : 0.0,
+            ],
+            'breakdowns' => $breakdowns,
+            'positions' => [
+                'data' => $positions->items(),
+                'meta' => [
+                    'current_page' => $positions->currentPage(),
+                    'last_page' => $positions->lastPage(),
+                    'per_page' => $positions->perPage(),
+                    'total' => $positions->total(),
+                    'from' => $positions->firstItem(),
+                    'to' => $positions->lastItem(),
+                ],
+            ],
+            'organizations' => $organizations,
+            'organizationUnits' => $organizationUnits,
+            'jobFamilies' => $jobFamilies,
+            'isOrganizationScoped' => $isOrganizationScoped,
+            'filters' => $request->only(['search', 'organization_id', 'organization_unit_id', 'job_family', 'grade_level', 'is_active', 'per_page']),
+        ]);
+    }
+
+    public function index(
+        Request $request,
+        OrganizationScopeService $organizationScopeService,
+        ScopedPositionStructureService $scopedPositionStructureService,
+    ): Response {
+        $this->authorize('viewAny', Position::class);
+
+        $user = $request->user();
+        $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
+        $isAccessRestricted = ! $organizationScopeService->isUnrestricted($user);
+        $isOrganizationScoped = $isAccessRestricted && $accessibleOrganizationIds->count() <= 1;
+
+        // Build organization tree
+        $orgQuery = Organization::query()
+            ->with(['type:id,name_en,name_am,code'])
+            ->withCount(['organizationUnits' => fn ($q) => $q->whereNull('deleted_at')])
+            ->orderBy('name_en');
+
+        // Fail closed: a scoped actor whose accessible set resolves empty must
+        // see nothing. Skipping the constraint would expose every organization.
+        if ($isAccessRestricted) {
+            $orgQuery->whereIn('id', $accessibleOrganizationIds);
+        }
+
+        $organizations = $orgQuery->get([
+            'id', 'organization_type_id', 'code', 'name_en', 'name_am',
+            'status', 'logo_path', 'effective_from',
+        ]);
+
+        $publishedVersion = HierarchyVersion::query()
+            ->where('status', HierarchyVersionStatus::Published)
+            ->latest('effective_from')
+            ->first(['id']);
+
+        $hasPublishedHierarchy = $publishedVersion !== null;
+        $orgMap = $organizations->keyBy('id');
+
+        if ($hasPublishedHierarchy) {
+            $edges = OrganizationEdge::query()
+                ->where('hierarchy_version_id', $publishedVersion->id)
+                ->get(['parent_organization_id', 'child_organization_id']);
+
+            $childrenMap = [];
+            $edgeChildIds = [];
+            foreach ($edges as $edge) {
+                $pid = $edge->parent_organization_id;
+                $cid = $edge->child_organization_id;
+                if ($orgMap->has($pid) && $orgMap->has($cid)) {
+                    $childrenMap[$pid][] = $cid;
+                    $edgeChildIds[] = $cid;
+                }
+            }
+            $edgeChildIds = array_unique($edgeChildIds);
+
+            $buildOrgNode = function (string $orgId, int $depth) use (&$buildOrgNode, $orgMap, $childrenMap): ?array {
+                $org = $orgMap->get($orgId);
+                if (! $org) {
+                    return null;
+                }
+                $children = [];
+                foreach ($childrenMap[$orgId] ?? [] as $childId) {
+                    $child = $buildOrgNode($childId, $depth + 1);
+                    if ($child !== null) {
+                        $children[] = $child;
+                    }
+                }
+
+                return [
+                    'id' => $org->id,
+                    'code' => $org->code,
+                    'name_en' => $org->name_en,
+                    'name_am' => $org->name_am,
+                    'status' => $org->status,
+                    'logo_url' => $org->logo_url,
+                    'has_logo' => $org->has_logo,
+                    'organization_units_count' => $org->organization_units_count,
+                    'type' => $org->type ? [
+                        'id' => $org->type->id,
+                        'code' => $org->type->code,
+                        'name_en' => $org->type->name_en,
+                        'name_am' => $org->type->name_am,
+                    ] : null,
+                    'depth' => $depth,
+                    'children' => $children,
+                ];
+            };
+
+            $organizationTree = $organizations
+                ->filter(fn ($org) => ! in_array($org->id, $edgeChildIds, true))
+                ->map(fn ($org) => $buildOrgNode($org->id, 0))
+                ->filter()
+                ->values()
+                ->all();
+        } else {
+            $organizationTree = $organizations->map(fn ($org) => [
+                'id' => $org->id,
+                'code' => $org->code,
+                'name_en' => $org->name_en,
+                'name_am' => $org->name_am,
+                'status' => $org->status,
+                'logo_url' => $org->logo_url,
+                'has_logo' => $org->has_logo,
+                'organization_units_count' => $org->organization_units_count,
+                'type' => $org->type ? [
+                    'id' => $org->type->id,
+                    'code' => $org->type->code,
+                    'name_en' => $org->type->name_en,
+                    'name_am' => $org->type->name_am,
+                ] : null,
+                'depth' => 0,
+                'children' => [],
+            ])->values()->all();
+        }
+
+        $selectedOrganization = null;
+        $organizationUnits = [];
+        $selectedUnit = null;
+        $positions = collect();
+
+        if ($request->filled('organization_id')) {
+            $orgId = $request->string('organization_id')->toString();
+
+            // Fail closed: an empty accessible set for a scoped actor means no
+            // access, not unrestricted access.
+            if (! $organizationScopeService->canAccess($user, $orgId)) {
+                abort(403);
+            }
+
+            $selectedOrganization = Organization::query()
+                ->with(['type:id,name_en,name_am,code'])
+                ->withCount(['organizationUnits' => fn ($q) => $q->whereNull('deleted_at')])
+                ->find($orgId, [
+                    'id', 'organization_type_id', 'code', 'name_en', 'name_am',
+                    'status', 'logo_path', 'effective_from',
+                ]);
+
+            if ($selectedOrganization !== null) {
+                $allUnits = OrganizationUnit::query()
+                    ->where('organization_id', $orgId)
+                    ->whereNull('deleted_at')
+                    ->orderBy('sort_order')
+                    ->orderBy('name_en')
+                    ->get(['id', 'code', 'name_en', 'name_am', 'parent_unit_id']);
+
+                $buildUnitTree = function (?string $parentId, int $depth) use (&$buildUnitTree, $allUnits): array {
+                    return $allUnits
+                        ->filter(fn ($u) => $u->parent_unit_id === $parentId)
+                        ->map(fn ($u) => [
+                            'id' => $u->id,
+                            'code' => $u->code,
+                            'name_en' => $u->name_en,
+                            'name_am' => $u->name_am,
+                            'depth' => $depth,
+                            'children' => $buildUnitTree($u->id, $depth + 1),
+                        ])
+                        ->values()
+                        ->all();
+                };
+
+                $organizationUnits = $buildUnitTree(null, 0);
+
+                $unitId = $request->string('organization_unit_id')->toString() ?: null;
+                if ($unitId) {
+                    $unitModel = $allUnits->firstWhere('id', $unitId);
+                    if ($unitModel) {
+                        $selectedUnit = [
+                            'id' => $unitModel->id,
+                            'name_en' => $unitModel->name_en,
+                            'name_am' => $unitModel->name_am,
+                        ];
+                    }
+                }
+
+                $positions = Position::query()
+                    ->with('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'occupation:id,isco_code,name_en,name_am')
+                    ->withCount('assignments')
+                    ->where('organization_id', $orgId)
+                    ->when($unitId, fn ($q) => $q->where('organization_unit_id', $unitId))
+                    ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
+                        $search = $request->string('search')->toString();
+                        $query->where(function ($nested) use ($search): void {
+                            $nested->where('job_position_code', ci_like_operator(), "%{$search}%")
+                                ->orWhere('old_code', ci_like_operator(), "%{$search}%")
+                                ->orWhere('title_en', ci_like_operator(), "%{$search}%")
+                                ->orWhere('title_am', ci_like_operator(), "%{$search}%")
+                                ->orWhere('bpr_name', ci_like_operator(), "%{$search}%");
+                        });
+                    })
+                    ->when($request->string('job_family')->toString() !== '', fn ($q) => $q->where('job_family', $request->string('job_family')->toString()))
+                    ->when($request->string('grade_level')->toString() !== '', fn ($q) => $q->where('grade_level', $request->string('grade_level')->toString()))
+                    ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
+                    // Vacant / held, by the one Core rule: an active current assignment holds the seat.
+                    ->when(in_array($request->string('occupancy')->toString(), ['vacant', 'held'], true), function ($q) use ($request): void {
+                        $held = fn ($assignments) => $assignments->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value);
+                        $request->string('occupancy')->toString() === 'held'
+                            ? $q->whereHas('assignments', $held)
+                            : $q->whereDoesntHave('assignments', $held);
+                    })
+                    ->orderBy('job_position_code')
+                    ->get();
+            }
+        }
+
+        // Load establishment data for every position in the current view
+        $positionIds = $positions->pluck('id');
+        $establishmentsByPosition = $positionIds->isNotEmpty()
+            ? PositionEstablishment::query()
+                ->whereIn('position_id', $positionIds)
+                ->whereIn('status', [EstablishmentStatus::Draft->value, EstablishmentStatus::Approved->value])
+                ->get(['id', 'position_id', 'status', 'approved_slots', 'establishment_number'])
+                ->groupBy('position_id')
+                ->map(fn ($group) => $group->sortBy(fn ($e) => $e->status->value === EstablishmentStatus::Approved->value ? 0 : 1)->first())
+            : collect();
+
+        $positionData = collect(PositionResource::collection($positions)->resolve())
+            ->map(function (array $pos) use ($establishmentsByPosition): array {
+                $est = $establishmentsByPosition->get($pos['id']);
+                $pos['establishment'] = $est ? [
+                    'id' => $est->id,
+                    'status' => $est->status->value,
+                    'approved_slots' => $est->approved_slots,
+                    'establishment_number' => $est->establishment_number,
+                ] : null;
+
+                return $pos;
+            })
+            ->values()
+            ->all();
+
+        return Inertia::render('Positions/Index', [
+            // Units and positions are expanded for the selected organization only.
+            'organizationStructure' => $scopedPositionStructureService->build($user, $selectedOrganization?->id !== null ? (string) $selectedOrganization->id : null),
+            'isOrganizationScoped' => $isOrganizationScoped,
+            'organizationTree' => $organizationTree,
+            'hasPublishedHierarchy' => $hasPublishedHierarchy,
+            'selectedOrganization' => $selectedOrganization,
+            'organizationUnits' => $organizationUnits,
+            'selectedUnit' => $selectedUnit,
+            'positions' => $positionData,
+            'filters' => $request->only(['search', 'job_family', 'grade_level', 'is_active', 'occupancy']),
+            'can' => [
+                'create' => $user?->can('create', Position::class) ?? false,
+                'approve_establishment' => $user?->can('position-establishments.approve') ?? false,
+            ],
+        ]);
+    }
+
+    public function create(
+        Request $request,
+        OrganizationScopeService $organizationScopeService,
+        PositionCodeContextResolver $positionCodeContextResolver,
+    ): Response {
+        $this->authorize('create', Position::class);
+
+        $organizationId = $request->string('organization_id')->toString() ?: null;
+        $organizationUnitId = $request->string('organization_unit_id')->toString() ?: null;
+
+        // Prefill params arrive from the structure tree, but they are just query
+        // string values — validate them against the actor's scope, and make sure
+        // the unit really belongs to the organization it is paired with.
+        if ($organizationId !== null && ! $organizationScopeService->canAccess($request->user(), $organizationId)) {
+            abort(403);
+        }
+
+        if ($organizationUnitId !== null) {
+            $unitOrganizationId = OrganizationUnit::query()
+                ->whereKey($organizationUnitId)
+                ->value('organization_id');
+
+            if ($unitOrganizationId !== null) {
+                if (! $organizationScopeService->canAccess($request->user(), (string) $unitOrganizationId)) {
+                    abort(403);
+                }
+
+                if ($organizationId !== null && (string) $unitOrganizationId !== $organizationId) {
+                    abort(403);
+                }
+
+                $organizationId ??= (string) $unitOrganizationId;
+            }
+        }
+
+        $organizationUnits = $organizationId
+            ? OrganizationUnit::query()
+                ->where('organization_id', $organizationId)
+                ->whereNull('deleted_at')
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_am', 'code', 'organization_unit_type_id'])
+                ->map(function (OrganizationUnit $unit) use ($organizationId, $positionCodeContextResolver): array {
+                    $resolved = $positionCodeContextResolver->resolve($organizationId, $unit->id);
+
+                    $ownerOrganization = null;
+                    $hostOrganization = null;
+
+                    // Only hosted units carry the owner/host pair to the form.
+                    if ($resolved['host_organization_id'] !== null) {
+                        $pair = Organization::query()
+                            ->whereIn('id', array_filter([$resolved['owner_organization_id'], $resolved['host_organization_id']]))
+                            ->get(['id', 'code', 'name_en', 'name_am'])
+                            ->keyBy('id');
+
+                        $ownerOrganization = $pair->get($resolved['owner_organization_id'])?->only(['id', 'code', 'name_en', 'name_am']);
+                        $hostOrganization = $pair->get($resolved['host_organization_id'])?->only(['id', 'code', 'name_en', 'name_am']);
+                    }
+
+                    return [
+                        'id' => $unit->id,
+                        'name_en' => $unit->name_en,
+                        'name_am' => $unit->name_am,
+                        'code' => $unit->code,
+                        'organization_unit_type_id' => $unit->organization_unit_type_id,
+                        'owner_organization' => $ownerOrganization,
+                        'host_organization' => $hostOrganization,
+                    ];
+                })
+                ->all()
+            : [];
+
+        $occupations = Occupation::query()
+            ->whereNull('deleted_at')
+            ->orderBy('isco_code')
+            ->get(['id', 'isco_code', 'name_en', 'name_am'])
+            ->toArray();
+
+        $gradeLevels = GradeLevel::query()
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->pluck('name')
+            ->all();
+
+        return Inertia::render('Positions/Create', [
+            'organizations' => Organization::query()
+                ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_am']),
+            'organizationUnits' => $organizationUnits,
+            'occupations' => $occupations,
+            'gradeLevels' => $gradeLevels,
+            'selectedOrganizationId' => $organizationId,
+            'selectedOrganizationUnitId' => $organizationUnitId,
+        ]);
+    }
+
+    public function store(StorePositionRequest $request, CreatePositionAction $action): RedirectResponse
+    {
+        $position = $action->execute($request->validated(), $request->user());
+
+        return to_route('positions.show', $position)
+            ->with('flash', ['message' => __('positions.created_successfully'), 'type' => 'success']);
+    }
+
+    public function show(Request $request, Position $position, PositionPerformance $performance): Response
+    {
+        $this->authorize('view', $position);
+
+        $position->load('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am,code', 'occupation:id,isco_code,name_en,name_am');
+        $position->loadCount('assignments');
+
+        $user = $request->user();
+        $canViewServices = $user->can('createForPosition', [PositionService::class, $position]);
+        $plans = $performance->positionPlans($user, $position->getKey(), $position->organization_id);
+
+        $movementHistory = $position->movements()
+            ->with([
+                'fromOrganizationUnit:id,name_en,name_am,code',
+                'toOrganizationUnit:id,name_en,name_am,code',
+                'movedBy:id,name',
+            ])
+            ->get()
+            ->map(fn ($movement): array => [
+                'id' => $movement->id,
+                'from_organization_unit' => $movement->fromOrganizationUnit?->only(['id', 'name_en', 'name_am', 'code']),
+                'to_organization_unit' => $movement->toOrganizationUnit?->only(['id', 'name_en', 'name_am', 'code']),
+                'moved_by' => $movement->movedBy?->only(['id', 'name']),
+                'reason' => $movement->reason,
+                'moved_at' => $movement->moved_at?->toISOString(),
+            ])
+            ->values();
+
+        return Inertia::render('Positions/Show', [
+            'position' => (new PositionResource($position))->resolve(),
+            'movementHistory' => $movementHistory,
+            'positionServices' => $canViewServices ? PositionService::query()->where('position_id', $position->getKey())
+                ->where('organization_id', $position->organization_id)->orderBy('sort_order')->orderBy('service_no')
+                ->get(['id', 'service_no', 'name_en', 'name_am', 'description', 'is_active'])->toArray() : [],
+            'currentPerformancePlans' => $plans['current'],
+            'historicalPerformancePlans' => $plans['historical'],
+            'canViewPerformancePlans' => $plans['can_view'],
+            'canViewPositionServices' => $canViewServices,
+        ]);
+    }
+
+    public function move(Position $position): Response
+    {
+        $this->authorize('move', $position);
+
+        $position->load(
+            'organization:id,name_en,name_am',
+            'organizationUnit:id,name_en,name_am,code',
+        );
+
+        $targetOrganizationUnits = OrganizationUnit::query()
+            ->where('organization_id', $position->organization_id)
+            ->active()
+            ->whereKeyNot($position->organization_unit_id)
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_am', 'code']);
+
+        $isOccupied = $position->assignments()
+            ->where('assignment_status', AssignmentStatus::Active->value)
+            ->where('is_current', true)
+            ->exists();
+
+        return Inertia::render('Positions/Move', [
+            'position' => (new PositionResource($position))->resolve(),
+            'targetOrganizationUnits' => $targetOrganizationUnits,
+            'isOccupied' => $isOccupied,
+        ]);
+    }
+
+    public function storeMove(
+        MovePositionRequest $request,
+        Position $position,
+        MovePositionAction $action,
+    ): RedirectResponse {
+        $validated = $request->validated();
+
+        $action->execute(
+            $position,
+            $validated['target_organization_unit_id'],
+            $validated['reason'],
+            $request->user(),
+            $request,
+        );
+
+        return to_route('positions.show', $position)
+            ->with('flash', ['message' => __('positions.moved_successfully'), 'type' => 'success']);
+    }
+
+    public function edit(Position $position, OrganizationScopeService $organizationScopeService): Response
+    {
+        $this->authorize('update', $position);
+
+        $position->load('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am,code', 'occupation:id,isco_code,name_en,name_am');
+
+        $organizationUnits = $position->organization_id
+            ? OrganizationUnit::query()
+                ->where('organization_id', $position->organization_id)
+                ->whereNull('deleted_at')
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_am', 'code', 'organization_unit_type_id'])
+                ->toArray()
+            : [];
+
+        $occupations = Occupation::query()
+            ->whereNull('deleted_at')
+            ->orderBy('isco_code')
+            ->get(['id', 'isco_code', 'name_en', 'name_am'])
+            ->toArray();
+
+        $gradeLevels = GradeLevel::query()
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->pluck('name')
+            ->all();
+
+        return Inertia::render('Positions/Edit', [
+            'position' => (new PositionResource($position))->resolve(),
+            'organizations' => Organization::query()
+                ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_am']),
+            'organizationUnits' => $organizationUnits,
+            'occupations' => $occupations,
+            'gradeLevels' => $gradeLevels,
+        ]);
+    }
+
+    public function update(UpdatePositionRequest $request, Position $position, UpdatePositionAction $action): RedirectResponse
+    {
+        $action->execute($position, $request->validated(), $request->user());
+
+        return to_route('positions.show', $position)
+            ->with('flash', ['message' => __('positions.updated_successfully'), 'type' => 'success']);
+    }
+
+    public function archive(Request $request, Position $position, ArchivePositionAction $action): RedirectResponse
+    {
+        $this->authorize('archive', $position);
+
+        $action->execute($position, $request->user(), $request->string('reason')->toString() ?: null, $request);
+
+        return to_route('positions.index')->with('flash', ['message' => __('recycle-bin.archived_successfully'), 'type' => 'success']);
+    }
+
+    public function approveEstablishment(
+        Position $position,
+        ApprovePositionEstablishmentAction $action,
+    ): RedirectResponse {
+        $this->authorize('create', PositionEstablishment::class);
+
+        /** @var User $actor */
+        $actor = Auth::user();
+
+        $establishment = PositionEstablishment::query()
+            ->where('position_id', $position->id)
+            ->where('organization_id', $position->organization_id)
+            ->whereIn('status', [EstablishmentStatus::Draft->value, EstablishmentStatus::Approved->value])
+            ->first();
+
+        if ($establishment === null) {
+            $establishment = PositionEstablishment::create([
+                'establishment_number' => app(GenerateCodeAction::class)->execute(CodeRuleEntityType::PositionEstablishment, [], null, null, 'establishment_number'),
+                'organization_id' => $position->organization_id,
+                'organization_unit_id' => $position->organization_unit_id,
+                'position_id' => $position->id,
+                'approved_slots' => 1,
+                'effective_from' => now()->toDateString(),
+                'status' => EstablishmentStatus::Draft->value,
+            ]);
+        }
+
+        if ($establishment->status->value === EstablishmentStatus::Approved->value) {
+            return back()->with('flash', ['message' => __('position-establishments.alreadyApproved'), 'type' => 'info']);
+        }
+
+        $this->authorize('approve', $establishment);
+
+        $action->execute($establishment, $actor);
+
+        return back()->with('flash', ['message' => __('position-establishments.approved'), 'type' => 'success']);
+    }
+
+    public function restore(Request $request, string $position, RestorePositionAction $action): RedirectResponse
+    {
+        $position = Position::query()->withTrashed()->findOrFail($position);
+
+        $this->authorize('restore', $position);
+
+        $action->execute($position, $request->user(), $request);
+
+        return back()->with('flash', ['message' => __('recycle-bin.restored_successfully'), 'type' => 'success']);
+    }
+}

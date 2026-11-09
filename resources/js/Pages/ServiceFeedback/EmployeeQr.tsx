@@ -1,0 +1,266 @@
+import PageHeader from '@/Components/PageHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import RatingStars from '@/Components/ServiceFeedback/RatingStars';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, router } from '@inertiajs/react';
+import { useLocale } from '@/hooks/useLocale';
+import { useState } from 'react';
+import type { JSX } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
+
+import { buttonClassName } from '@/Components/ui';
+type Token = {
+    id: string;
+    status: string;
+    url: string;
+    qr_svg: string;
+    scan_count: number;
+    last_scanned_at: string | null;
+    created_at: string | null;
+};
+
+type Props = {
+    employee: { id: string; name: string | null; employee_number: string | null; status?: string };
+    token: Token | null;
+    /** Why there is no token: an admin disabled it, or the employee is inactive. */
+    unavailableReason?: 'disabled' | 'inactive_employee' | null;
+    stats: {
+        total: number;
+        average: number;
+        recent: {
+            id: string;
+            rating: number;
+            comment: string | null;
+            status: string;
+            created_at: string | null;
+            service_type: string | null;
+        }[];
+    };
+};
+
+export default function EmployeeFeedbackQr({ employee, token, stats, unavailableReason }: Props): JSX.Element {
+    const { t } = useLocale();
+    const { confirm } = useConfirm();
+    const [copied, setCopied] = useState(false);
+
+    async function copyLink() {
+        if (token === null) {
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(token.url);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Clipboard access is denied on insecure origins and in some
+            // browsers; the URL is displayed beneath the QR for manual copying,
+            // so a silent no-op is better than an alert here.
+        }
+    }
+
+    /*
+     * Printing opens the server-rendered PDF sheet rather than window.print()
+     * on this admin page, so the printed output is the desk-ready layout with
+     * instructions — not a screenshot of the dashboard chrome.
+     */
+    function printQr() {
+        window.open(route('employees.feedback-qr.pdf', employee.id), '_blank');
+    }
+
+    function generate() {
+        router.post(route('employees.feedback-qr.generate', employee.id), {}, { preserveScroll: true });
+    }
+
+    async function regenerate() {
+        // Destructive: any QR already printed and taped to a desk dies here.
+        const result = await confirm({ title: t('serviceFeedback.regenerateQrWarning'), variant: 'warning' });
+        if (!result.confirmed) return;
+
+        router.post(route('employees.feedback-qr.regenerate', employee.id), {}, { preserveScroll: true });
+    }
+
+    async function revoke() {
+        const result = await confirm({ title: t('confirmations.deleteWarning'), variant: 'danger' });
+        if (!result.confirmed) return;
+
+        router.post(route('employees.feedback-qr.revoke', employee.id), {}, { preserveScroll: true });
+    }
+
+    return (
+        <AuthenticatedLayout header={<PageHeader
+                    title={t('serviceFeedback.employeeFeedbackQr')}
+                    description={`${employee.name ?? ''} · ${employee.employee_number ?? ''}`}
+                    backHref={route('employees.show', employee.id)}
+                />}>
+            <Head title={t('serviceFeedback.employeeFeedbackQr')} />
+
+            <div className="space-y-5">
+
+                <div className="grid gap-5 lg:grid-cols-3">
+                    {/* QR card */}
+                    <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5 text-center">
+                        {token === null ? (
+                            <>
+                                {/*
+                                  * An active employee always has a QR by now —
+                                  * the server provisions one when this page
+                                  * loads. Reaching here means the token was
+                                  * deliberately revoked/suspended, or the
+                                  * employee is not active, so the copy explains
+                                  * which rather than implying a failure.
+                                  */}
+                                <p className="py-6 text-sm text-(--app-muted-foreground)">
+                                    {unavailableReason === 'disabled'
+                                        ? t('serviceFeedback.qrDisabledByAdmin')
+                                        : t('serviceFeedback.qrInactiveEmployee')}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={generate}
+                                    className={buttonClassName({ variant: 'primary', className: 'w-full' })}
+                                >
+                                    {t('serviceFeedback.generateQr')}
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <div className="flex justify-center">
+                                    <StatusBadge status={token.status} />
+                                </div>
+
+                                {token.qr_svg !== '' && (
+                                    <img
+                                        src={token.qr_svg}
+                                        alt={t('serviceFeedback.employeeFeedbackQr')}
+                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-(--app-surface) p-2"
+                                    />
+                                )}
+
+                                <p className="mt-3 break-all text-xs text-(--app-muted-foreground)">{token.url}</p>
+
+                                <p className="mt-3 text-xs text-(--app-muted-foreground)">
+                                    {t('serviceFeedback.feedbackQrDescription')}
+                                </p>
+
+                                <div className="mt-4 grid gap-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={copyLink}
+                                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                        >
+                                            {copied ? t('serviceFeedback.linkCopied') : t('serviceFeedback.copyLink')}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={printQr}
+                                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                        >
+                                            {t('serviceFeedback.printQr')}
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <a
+                                            href={route('employees.feedback-qr.png', employee.id)}
+                                            className="rounded-lg border border-(--app-border-strong) px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
+                                        >
+                                            {t('serviceFeedback.exportQrPng')}
+                                        </a>
+                                        <a
+                                            href={route('employees.feedback-qr.pdf', employee.id)}
+                                            className="rounded-lg border border-(--app-border-strong) px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
+                                        >
+                                            {t('serviceFeedback.exportQrPdf')}
+                                        </a>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={regenerate}
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                    >
+                                        {t('serviceFeedback.regenerateQr')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={revoke}
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                    >
+                                        {t('serviceFeedback.revokeQr')}
+                                    </button>
+                                </div>
+
+                                <dl className="mt-4 space-y-1.5 border-t border-(--app-border) pt-3 text-left text-xs">
+                                    <div className="flex justify-between">
+                                        <dt className="text-(--app-muted-foreground)">{t('serviceFeedback.lastScanned')}</dt>
+                                        <dd className="text-(--app-foreground)">
+                                            <LocalizedDateDisplay value={token.last_scanned_at} withTime />
+                                        </dd>
+                                    </div>
+                                </dl>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Feedback summary */}
+                    <div className="space-y-5 lg:col-span-2">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                                <div className="text-xs font-semibold text-(--app-muted-foreground)">
+                                    {t('serviceFeedback.feedbackCount')}
+                                </div>
+                                <div className="mt-1 text-2xl font-semibold text-(--app-foreground)">
+                                    {stats.total}
+                                </div>
+                            </div>
+
+                            <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                                <div className="text-xs font-semibold text-(--app-muted-foreground)">
+                                    {t('serviceFeedback.averageRating')}
+                                </div>
+                                <div className="mt-1 flex items-center gap-2">
+                                    <span className="text-2xl font-semibold text-(--app-foreground)">
+                                        {stats.average.toFixed(2)}
+                                    </span>
+                                    <RatingStars rating={Math.round(stats.average)} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-card border border-(--app-border) bg-(--app-surface)">
+                            <h2 className="border-b border-(--app-border) px-5 py-3 text-sm font-semibold text-(--app-foreground)">
+                                {t('serviceFeedback.recentComments')}
+                            </h2>
+
+                            {stats.recent.length === 0 ? (
+                                <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">
+                                    {t('serviceFeedback.noFeedbackYet')}
+                                </p>
+                            ) : (
+                                <ul className="divide-y divide-(--app-border)">
+                                    {stats.recent.map((item) => (
+                                        <li key={item.id} className="px-5 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <RatingStars rating={item.rating} />
+                                                <span className="text-xs text-(--app-muted-foreground)">
+                                                    {item.service_type ?? '—'}
+                                                </span>
+                                            </div>
+                                            {item.comment && (
+                                                <p className="mt-1 text-sm text-(--app-foreground)">{item.comment}</p>
+                                            )}
+                                            <p className="mt-1 text-xs text-(--app-muted-foreground)">
+                                                <LocalizedDateDisplay value={item.created_at} withTime />
+                                            </p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

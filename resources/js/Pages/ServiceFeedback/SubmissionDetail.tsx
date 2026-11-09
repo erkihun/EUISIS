@@ -1,0 +1,435 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import OrganizationFormDetails, { type OrganizationFormDetailsData } from '@/Components/ServiceFeedback/OrganizationFormDetails';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import PageHeader from '@/Components/PageHeader';
+import { FeedbackStatusBadge, statusLabelKey } from '@/Components/ServiceFeedback/feedbackUi';
+import { ReferralsPanel, SubjectsPanel, type ReferralRow, type SubjectRow } from '@/Components/ServiceFeedback/ReferralPanels';
+import { useLocale } from '@/hooks/useLocale';
+import { AppDialog, Alert, Button, Card, FormField, Select, Textarea } from '@euisis/ui';
+import { Head, useForm } from '@inertiajs/react';
+import { useState, type FormEvent } from 'react';
+import type { TipType } from '@/types/publicSubmissions';
+import { caseRoute } from '@/Components/ServiceFeedback/caseRoutes';
+
+type Entry = {
+    id: string; reference: string | null; status: string; message: string; subject: string | null;
+    target_type: 'employee' | 'organization'; target_name: string | null; target_code?: string | null;
+    created_at: string | null; submitted_at: string | null; employee: string | null; employee_number: string | null;
+    organization: string | null; organization_unit: string | null; unit_selection_mode: 'SELECTED' | 'GENERAL' | null; position: string | null;
+    client_name: string | null; client_contact: string | null; identity_hidden: boolean;
+    client_email: string | null; submitter_organization: string | null;
+    submitter_address: Partial<Record<'city' | 'sub_city' | 'woreda' | 'detail', string>> | null;
+    tip_type: TipType | null; involved_parties: string | null; intake_channel: string | null;
+    attachment_count: number; attachments_hidden: boolean;
+    incident_date: string | null; incident_location: string | null;
+    /** The complaint form: the complainant's own part (identity grant only) and the matter. */
+    complainant_details?: ComplainantDetails | null;
+    complaint_matter?: ComplaintMatter | null; declared_at?: string | null;
+    /** The Tip-off form: confidentiality request, the person suspected, violations, evidence described. */
+    tip_details?: TipDetails | null;
+    review_note: string | null;
+    acknowledged_at: string | null; assigned_at: string | null; resolved_at: string | null; closed_at: string | null;
+    attachments: { id: string; name: string; size: number; kind: 'photo' | 'video' | 'audio' | 'document' | null; scan_status: string }[];
+};
+
+type ComplainantDetails = { gender?: string; id_type?: string; id_number?: string; alt_phone?: string; represented?: boolean; principal_name?: string; poa_reference?: string; poa_date?: string };
+type ComplaintMatter = {
+    unit_or_staff?: string; service_type?: string; remedy_sought?: string; attached?: string[]; other_pages?: number;
+    prior_woreda?: { date?: string; decision?: string }; prior_sub_city?: { date?: string; decision?: string };
+};
+
+/** The complaint form's details (PublicComplaintForm): who complains (identity grant only) and the matter. */
+function ComplaintFormPanel({ entry }: { entry: Entry }) {
+    const { t } = useLocale();
+    const c = (key: string) => t(`serviceFeedback.complaintForm.${key}`);
+    const who = entry.complainant_details;
+    const matter = entry.complaint_matter ?? {};
+    const prior = (value: { date?: string; decision?: string } | undefined) => value
+        ? <span>{value.date && <LocalizedDateDisplay value={value.date} />}{value.date && value.decision ? ' — ' : ''}{value.decision}</span>
+        : '—';
+    return (
+        <section className={`${PANEL} space-y-3`}>
+            <h2 className="font-semibold">{c('detailTitle')}</h2>
+            <dl className="grid gap-3 sm:grid-cols-2">
+                {entry.identity_hidden ? (
+                    <Field label={c('complainant')}>{t('serviceFeedback.identityHidden')}</Field>
+                ) : who && <>
+                    {who.gender && <Field label={c('gender')}>{c(who.gender)}</Field>}
+                    {who.id_type && <Field label={c('idType')}>{c(`idTypes.${who.id_type}`)}{who.id_number ? ` · ${who.id_number}` : ''}</Field>}
+                    {who.alt_phone && <Field label={c('altPhone')}>{who.alt_phone}</Field>}
+                    {who.represented && <Field label={c('representedBy')}>{who.principal_name ?? '—'}</Field>}
+                    {who.represented && <Field label={c('poa')}>{who.poa_reference ?? '—'}{who.poa_date ? <> · <LocalizedDateDisplay value={who.poa_date} /></> : null}</Field>}
+                </>}
+                <Field label={c('unitOrStaff')}>{matter.unit_or_staff ?? '—'}</Field>
+                <Field label={c('serviceType')}>{matter.service_type ?? '—'}</Field>
+                <Field label={c('priorWoreda')}>{prior(matter.prior_woreda)}</Field>
+                <Field label={c('priorSubCity')}>{prior(matter.prior_sub_city)}</Field>
+                <Field label={c('attachedTitle')}>
+                    {(matter.attached ?? []).length === 0 && !matter.other_pages ? c('none') : <ul className="list-disc ps-5">
+                        {(matter.attached ?? []).map((item) => <li key={item}>{c(`attachedTypes.${item}`)}</li>)}
+                        {matter.other_pages ? <li>{c('otherPagesCount').replace('{n}', String(matter.other_pages))}</li> : null}
+                    </ul>}
+                </Field>
+                {entry.declared_at && <Field label={c('declaredAt')}><LocalizedDateDisplay value={entry.declared_at} /></Field>}
+            </dl>
+            <div className="border-t border-(--app-border) pt-3">
+                <h3 className="text-sm font-semibold">{c('remedySought')}</h3>
+                <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm">{matter.remedy_sought ?? '—'}</p>
+            </div>
+        </section>
+    );
+}
+
+type TipDetails = { confidentiality?: 'confidential' | 'not_needed'; suspect_name?: string; suspect_unit?: string; suspect_location?: string; violation_types?: string[]; violation_other?: string; evidence_description?: string };
+
+/** The Tip-off form's details (PublicTipForm), for those handling the Tip-off. */
+function TipFormPanel({ details }: { details: TipDetails }) {
+    const { t } = useLocale();
+    const k = (key: string) => t(`serviceFeedback.tipForm.${key}`);
+    const violations = (details.violation_types ?? []).map((v) => v === 'other' && details.violation_other ? `${k('violations.other')}: ${details.violation_other}` : k(`violations.${v}`));
+    return (
+        <section className={`${PANEL} space-y-3`}>
+            <h2 className="font-semibold">{k('detailTitle')}</h2>
+            {details.confidentiality && (
+                <p className={`rounded-control px-3 py-2 text-sm font-medium ${details.confidentiality === 'confidential' ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200' : 'bg-(--app-surface-muted)'}`}>
+                    {k(details.confidentiality === 'confidential' ? 'confidentialityRequested' : 'confidentialityNotNeeded')}
+                </p>
+            )}
+            <dl className="grid gap-3 sm:grid-cols-2">
+                <Field label={k('suspectName')}>{details.suspect_name ?? k('notGiven')}</Field>
+                <Field label={k('suspectUnit')}>{details.suspect_unit ?? k('notGiven')}</Field>
+                <Field label={k('suspectLocation')}>{details.suspect_location ?? k('notGiven')}</Field>
+                <Field label={k('violationsTitle')}>{violations.length ? violations.join('; ') : k('notGiven')}</Field>
+            </dl>
+            {details.evidence_description && (
+                <div className="border-t border-(--app-border) pt-3">
+                    <h3 className="text-sm font-semibold">{k('evidenceDescription')}</h3>
+                    <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm">{details.evidence_description}</p>
+                </div>
+            )}
+        </section>
+    );
+}
+
+const TIP_TYPE_LABEL: Record<TipType, string> = { CORRUPTION: 'serviceFeedback.tipTypeCorruption', IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice' };
+const EVIDENCE_LABEL = { photo: 'serviceFeedback.evidencePhoto', video: 'serviceFeedback.evidenceVideo', audio: 'serviceFeedback.evidenceAudio', document: 'serviceFeedback.evidenceDocument' } as const;
+type HistoryRow = { id: string; from_status: string | null; to_status: string; actor: string | null; reason: string | null; transitioned_at: string | null };
+type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role' | 'committee'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null; level: number; due_at: string | null; overdue: boolean; escalated: boolean };
+/** ADR 0035: the hearing stages of a complaint. */
+type HearingStage = { stage: 1 | 2 | 3; opened_at?: string; appeal_reason?: string; decision?: 'answered' | 'upheld' | 'overturned'; response?: string; decided_by?: string; decided_at?: string; appeal_deadline_at?: string; citizen_outcome?: 'accepted' | 'appealed' | 'lapsed'; citizen_responded_at?: string };
+type Hearing = { current: 1 | 2 | 3; decision_required: boolean; next: 2 | 3 | null; stages: HearingStage[] };
+type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[]; committees?: { id: string; name: string; name_am: string | null }[] };
+
+type Props = {
+    type: 'suggestion' | 'complaint';
+    entry: Entry;
+    history: HistoryRow[];
+    assignments: AssignmentRow[];
+    currentAssignment: AssignmentRow | null;
+    allowedTransitions: string[];
+    subjects: SubjectRow[];
+    referrals: ReferralRow[];
+    can: { assign: boolean; escalate?: boolean; subjects: boolean; refer: boolean; decideReferral: boolean };
+    handlerOptions: HandlerOptions | null;
+    /** ADR 0034: the members a unit head can hand this case to. */
+    delegateOptions?: { id: string; name: string }[] | null;
+    /** Organization form: the service received and the questionnaire answers; null otherwise. */
+    organizationForm?: OrganizationFormDetailsData | null;
+    hearing?: Hearing | null;
+};
+
+const HANDLER_TYPE_KEY: Record<AssignmentRow['handler_type'], string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole', committee: 'handlerCommittee' };
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+    return <div><dt className="text-(--app-muted-foreground)">{label}</dt><dd className="mt-0.5">{children}</dd></div>;
+}
+
+/**
+ * One suggestion or complaint: what was said, who handles it, where it
+ * stands and every step it took (brief §52–53). The transition form offers
+ * only the statuses this user may set from here; assignment opens a dialog.
+ */
+export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, delegateOptions = null, subjects = [], referrals = [], organizationForm = null, hearing = null }: Props) {
+    const { t, locale } = useLocale();
+    const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
+    const [assigning, setAssigning] = useState(false);
+    const [delegating, setDelegating] = useState(false);
+    const [escalating, setEscalating] = useState(false);
+
+    return <AuthenticatedLayout header={<PageHeader title={title} backHref={caseRoute(type, 'cases.index')} />}>
+        <Head title={entry.reference ? `${title} ${entry.reference}` : title} />
+        <div className="space-y-5">
+            <header className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <p className="text-sm text-(--app-muted-foreground)">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetInstitutionHeading' : 'serviceFeedback.serviceProvidedBy')}</p>
+                    <h2 className="text-xl font-semibold wrap-anywhere">{entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}</h2>
+                    {entry.target_code && <p className="text-sm text-(--app-muted-foreground)">{entry.target_code}</p>}
+                    {entry.reference && <p className="mt-1 font-mono text-sm">{entry.reference}</p>}
+                </div>
+                <FeedbackStatusBadge status={entry.status} className="text-sm" />
+            </header>
+
+            {entry.status === 'unrouted' && <Alert tone="warning">{t('serviceFeedback.unroutedDetail')}</Alert>}
+
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                <div className="space-y-5">
+                    <section className={PANEL}>
+                        <h2 className="text-lg font-semibold">{t('serviceFeedback.submissionDetails')}</h2>
+                        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+                            <Field label={t('serviceFeedback.submittedDate')}><LocalizedDateDisplay value={entry.submitted_at ?? entry.created_at} withTime /></Field>
+                            {type === 'suggestion' && (
+                                <Field label={t('serviceFeedback.tipTypeLabel')}>{entry.tip_type ? t(TIP_TYPE_LABEL[entry.tip_type]) : t('serviceFeedback.tipTypeUnclassified')}</Field>
+                            )}
+                            {entry.intake_channel && <Field label={t('serviceFeedback.intakeChannel')}>{t(`serviceFeedback.intakeChannel_${entry.intake_channel}`)}</Field>}
+                            <Field label={t('serviceFeedback.filterOrganization')}>{entry.organization ?? '—'}</Field>
+                            {entry.target_type === 'employee' ? <>
+                                <Field label={t('serviceFeedback.serviceUnit')}>{entry.organization_unit ?? '—'}</Field>
+                                <Field label={t('serviceFeedback.position')}>{entry.position ?? '—'}</Field>
+                            </> : (
+                                // What the visitor said the submission concerns: contextual attribution, not the handler and not a finding.
+                                <Field label={t('serviceFeedback.relevantWorkUnit')}>{entry.organization_unit ?? (entry.unit_selection_mode === 'GENERAL' ? t('serviceFeedback.generalNotSure') : '—')}</Field>
+                            )}
+                            <Field label={t('serviceFeedback.client')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
+                            <Field label={t('serviceFeedback.contact')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>
+                            {!entry.identity_hidden && entry.client_email && <Field label={t('serviceFeedback.clientEmail')}>{entry.client_email}</Field>}
+                            {!entry.identity_hidden && entry.submitter_organization && <Field label={t('serviceFeedback.submitterOrganization')}>{entry.submitter_organization}</Field>}
+                            {!entry.identity_hidden && entry.submitter_address && (
+                                <Field label={t('serviceFeedback.submitterAddress')}>{Object.values(entry.submitter_address).filter(Boolean).join(', ')}</Field>
+                            )}
+                            <Field label={t('serviceFeedback.incidentDate')}><LocalizedDateDisplay value={entry.incident_date} /></Field>
+                            <Field label={t('serviceFeedback.incidentLocation')}>{entry.incident_location ?? '—'}</Field>
+                        </dl>
+                        <div className="border-t border-(--app-border) pt-4">
+                            <h3 className="text-sm font-semibold">{entry.subject ?? t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}</h3>
+                            <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm">{entry.message}</p>
+                        </div>
+                        {entry.involved_parties && (
+                            <div className="border-t border-(--app-border) pt-4">
+                                <h3 className="text-sm font-semibold">{t('serviceFeedback.involvedParties')}</h3>
+                                <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm">{entry.involved_parties}</p>
+                            </div>
+                        )}
+                    </section>
+
+                    {type === 'complaint' && (entry.complaint_matter || entry.complainant_details) && <ComplaintFormPanel entry={entry} />}
+                    {type === 'suggestion' && entry.tip_details && <TipFormPanel details={entry.tip_details} />}
+
+                    {organizationForm && <OrganizationFormDetails details={organizationForm} />}
+
+                    {entry.attachments_hidden && entry.attachment_count > 0 && <section className={PANEL}>
+                        <h2 className="font-semibold">{t('serviceFeedback.attachments')}</h2>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.attachmentsHidden').replace(':count', String(entry.attachment_count))}</p>
+                    </section>}
+                    {entry.attachments.length > 0 && <section className={PANEL}>
+                        {/* Submitted evidence: what the citizen sent, not verified proof. Each download is audited. */}
+                        <h2 className="font-semibold">{t('serviceFeedback.submittedEvidence')}</h2>
+                        <ul className="space-y-2">{entry.attachments.map((file) => (
+                            <li key={file.id} className="text-sm">
+                                <a href={caseRoute(type, 'cases.attachments.download', { submission: entry.id, attachment: file.id })} className="font-medium text-primary underline underline-offset-4">{file.name}</a>
+                                <span className="ml-2 text-(--app-muted-foreground)">
+                                    {file.kind ? t(EVIDENCE_LABEL[file.kind]) : ''} · {Math.ceil(file.size / 1024)} KB
+                                    {file.scan_status === 'not_scanned' && <> · {t('serviceFeedback.evidenceNotScanned')}</>}
+                                </span>
+                            </li>
+                        ))}</ul>
+                    </section>}
+
+                    {hearing && <HearingPanel hearing={hearing} status={entry.status} />}
+
+                    <section className={PANEL}>
+                        <h2 className="font-semibold">{t('serviceFeedback.statusHistory')}</h2>
+                        {history.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noHistory')}</p>
+                            : <ol className="relative space-y-4 border-s border-(--app-border) ps-5">
+                                {history.map((row) => <li key={row.id} className="relative">
+                                    <span aria-hidden="true" className="absolute inset-s-[-1.45rem] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
+                                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                                        {row.from_status && <><FeedbackStatusBadge status={row.from_status} /><span aria-hidden="true">→</span></>}
+                                        <FeedbackStatusBadge status={row.to_status} />
+                                        <span className="text-(--app-muted-foreground)"><LocalizedDateDisplay value={row.transitioned_at} withTime /></span>
+                                    </div>
+                                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{row.actor ?? t('common.system')}{row.reason ? <> · {row.reason}</> : row.to_status === 'unrouted' ? <> · {t('serviceFeedback.reasonNoRoutingRule')}</> : row.to_status === 'assigned' && !row.actor ? <> · {t('serviceFeedback.viaRoutingRule')}</> : null}</p>
+                                </li>)}
+                            </ol>}
+                    </section>
+                </div>
+
+                <div className="space-y-5">
+                    <section className={PANEL}>
+                        <div className="flex items-start justify-between gap-3">
+                            <h2 className="font-semibold">{t('serviceFeedback.currentHandler')}</h2>
+                            <div className="flex flex-wrap justify-end gap-2">
+                                {can.escalate && <Button type="button" size="sm" variant="outline" onClick={() => setEscalating(true)}>{t('serviceFeedback.escalate')}</Button>}
+                                {delegateOptions && delegateOptions.length > 0 && <Button type="button" size="sm" variant="primary" onClick={() => setDelegating(true)}>{t('serviceFeedback.delegate')}</Button>}
+                                {can.assign && <Button type="button" size="sm" variant={currentAssignment ? 'outline' : 'primary'} onClick={() => setAssigning(true)}>{t(currentAssignment ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button>}
+                            </div>
+                        </div>
+                        {currentAssignment ? <div className="space-y-1 text-sm">
+                            <div className="font-medium">{currentAssignment.handler}</div>
+                            <div className="text-(--app-muted-foreground)">{t(`serviceFeedback.${HANDLER_TYPE_KEY[currentAssignment.handler_type]}`)} · {currentAssignment.via_rule ? t('serviceFeedback.viaRoutingRule') : currentAssignment.assigned_by ?? t('common.system')} · <LocalizedDateDisplay value={currentAssignment.assigned_at} withTime /></div>
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <span className="rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium">{t('serviceFeedback.levelOption').replace('{level}', String(currentAssignment.level))}</span>
+                                <span className="text-xs text-(--app-muted-foreground)">{currentAssignment.due_at ? <>{t('serviceFeedback.dueBy')}: <LocalizedDateDisplay value={currentAssignment.due_at} withTime /></> : t('serviceFeedback.noDeadline')}</span>
+                                {currentAssignment.overdue && <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-800 dark:bg-red-950/50 dark:text-red-200">{t('serviceFeedback.overdue')}</span>}
+                            </div>
+                        </div> : <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noHandler')}</p>}
+                        {assignments.length > 1 && <details className="text-sm">
+                            <summary className="cursor-pointer font-medium text-primary">{t('serviceFeedback.assignmentHistory')}</summary>
+                            <ul className="mt-2 space-y-2">{assignments.map((row) => <li key={row.id} className="rounded-control bg-(--app-surface-muted) p-2">
+                                <div className="font-medium">{row.handler} <span className="font-normal text-(--app-muted-foreground)">({t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)})</span></div>
+                                <div className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={row.assigned_at} withTime />{row.ended_at && <> → <LocalizedDateDisplay value={row.ended_at} withTime /></>} · {row.via_rule ? t('serviceFeedback.viaRoutingRule') : row.assigned_by ?? t('common.system')} · {t('serviceFeedback.levelOption').replace('{level}', String(row.level))}{row.escalated && <> · {t('serviceFeedback.escalatedMark')}</>}{row.reason && <> · {row.reason}</>}</div>
+                            </li>)}</ul>
+                        </details>}
+                    </section>
+
+                    {allowedTransitions.length > 0 && <TransitionForm key={`${entry.status}:${allowedTransitions.join(',')}`} type={type} submissionId={entry.id} allowedTransitions={allowedTransitions} decisionRequired={hearing?.decision_required ?? false} />}
+
+                    {entry.review_note && <Card className="p-5 text-sm"><h2 className="font-semibold">{t('serviceFeedback.reviewNote')}</h2><p className="mt-2 whitespace-pre-wrap">{entry.review_note}</p></Card>}
+                    {type === 'complaint' && <SubjectsPanel submissionId={entry.id} subjects={subjects} canManage={can.subjects} />}
+                    {type === 'complaint' && <ReferralsPanel submissionId={entry.id} referrals={referrals} canRefer={can.refer} canDecide={can.decideReferral} />}
+                </div>
+            </div>
+        </div>
+
+        {escalating && <EscalateDialog type={type} submissionId={entry.id} onClose={() => setEscalating(false)} />}
+        {delegating && delegateOptions && <AssignDialog type={type} submissionId={entry.id} options={{ users: delegateOptions, units: [], roles: [] }} reassign locale={locale} onClose={() => setDelegating(false)} membersOnly />}
+        {assigning && handlerOptions && <AssignDialog type={type} submissionId={entry.id} options={handlerOptions} reassign={currentAssignment !== null} locale={locale} onClose={() => setAssigning(false)} />}
+    </AuthenticatedLayout>;
+}
+
+const PANEL = 'space-y-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5';
+
+/** Keyed by the current status by its parent, so its default choice follows every change. */
+function TransitionForm({ type, submissionId, allowedTransitions, decisionRequired = false }: { type: 'suggestion' | 'complaint'; submissionId: string; allowedTransitions: string[]; decisionRequired?: boolean }) {
+    const { t } = useLocale();
+    const form = useForm({ status: allowedTransitions[0] ?? '', reason: '', stage_decision: '' });
+    // ADR 0035: resolving a complaint is the stage's decision, with the response the complainant reads.
+    const deciding = type === 'complaint' && form.data.status === 'resolved';
+    const errors = form.errors as Record<string, string | undefined>;
+
+    function submit(event: FormEvent) {
+        event.preventDefault();
+        form.post(caseRoute(type, 'cases.transition', { submission: submissionId }), { preserveScroll: true, onSuccess: () => form.reset('reason') });
+    }
+
+    return <form onSubmit={submit} className={PANEL}>
+        <h2 className="font-semibold">{t('serviceFeedback.changeStatus')}</h2>
+        <FormField id="transition-status" label={t('serviceFeedback.newStatus')} error={form.errors.status} required>
+            {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
+                {allowedTransitions.map((status) => <option key={status} value={status}>{t(statusLabelKey(status))}</option>)}
+            </Select>}
+        </FormField>
+        {deciding && decisionRequired && <FormField id="transition-stage-decision" label={t('serviceFeedback.hearing.decisionLabel')} error={errors.stage_decision} required>
+            {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.stage_decision} onChange={(e) => form.setData('stage_decision', e.target.value)}>
+                <option value="">—</option>
+                <option value="upheld">{t('serviceFeedback.hearing.decisionOptions.upheld')}</option>
+                <option value="overturned">{t('serviceFeedback.hearing.decisionOptions.overturned')}</option>
+            </Select>}
+        </FormField>}
+        <FormField id="transition-reason" label={deciding ? t('serviceFeedback.hearing.responseLabel') : t('serviceFeedback.transitionReason')} description={deciding ? t('serviceFeedback.hearing.responseHint') : t('serviceFeedback.reviewHint')} error={form.errors.reason} required={deciding}>
+            {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={deciding ? 5 : 3} maxLength={2000} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />}
+        </FormField>
+        <Button type="submit" variant="primary" loading={form.processing}>{t('serviceFeedback.saveStatus')}</Button>
+    </form>;
+}
+
+function EscalateDialog({ type, submissionId, onClose }: { type: 'suggestion' | 'complaint'; submissionId: string; onClose: () => void }) {
+    const { t } = useLocale();
+    const form = useForm({ reason: '' });
+    const errors = form.errors as Record<string, string | undefined>;
+
+    function submit(event: FormEvent) {
+        event.preventDefault();
+        form.post(caseRoute(type, 'cases.escalate', { submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
+    }
+
+    return <AppDialog open onClose={onClose} title={t('serviceFeedback.escalate')} description={t('serviceFeedback.escalateHint')} maxWidth="lg"
+        footer={<><Button type="button" variant="outline" onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" form="escalate-form" variant="primary" loading={form.processing}>{t('serviceFeedback.escalate')}</Button></>}>
+        <form id="escalate-form" onSubmit={submit} className="grid gap-4">
+            <FormField id="escalate-reason" label={t('serviceFeedback.transitionReason')} error={errors.reason ?? errors.escalation} required>
+                {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={3} maxLength={2000} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />}
+            </FormField>
+        </form>
+    </AppDialog>;
+}
+
+function AssignDialog({ type, submissionId, options, reassign, locale, onClose, membersOnly = false }: {
+    type: 'suggestion' | 'complaint'; submissionId: string; options: HandlerOptions; reassign: boolean; locale: string; onClose: () => void; membersOnly?: boolean;
+}) {
+    const { t } = useLocale();
+    const form = useForm({ handler_type: 'user' as AssignmentRow['handler_type'], handler_id: options.users[0]?.id ?? '', reason: '' });
+    const committees = (options.committees ?? []).map((c) => ({ id: c.id, name: locale === 'am' && c.name_am ? c.name_am : c.name }));
+    const choices = form.data.handler_type === 'user' ? options.users
+        : form.data.handler_type === 'organization_unit' ? options.units.map((unit) => ({ id: unit.id, name: locale === 'am' && unit.name_am ? unit.name_am : unit.name }))
+            : form.data.handler_type === 'committee' ? committees
+                : options.roles;
+
+    function setType(handlerType: AssignmentRow['handler_type']) {
+        const first = (handlerType === 'user' ? options.users : handlerType === 'organization_unit' ? options.units : handlerType === 'committee' ? committees : options.roles)[0]?.id ?? '';
+        form.setData((data) => ({ ...data, handler_type: handlerType, handler_id: first }));
+    }
+
+    function submit(event: FormEvent) {
+        event.preventDefault();
+        form.post(caseRoute(type, 'cases.assign', { submission: submissionId }), { preserveScroll: true, onSuccess: onClose });
+    }
+
+    return <AppDialog open onClose={onClose} title={t(membersOnly ? 'serviceFeedback.delegate' : reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')} description={t(membersOnly ? 'serviceFeedback.delegateHint' : 'serviceFeedback.assignHint')} maxWidth="lg"
+        footer={<><Button type="button" variant="outline" onClick={onClose}>{t('common.cancel')}</Button><Button type="submit" form="assign-form" variant="primary" loading={form.processing}>{t(membersOnly ? 'serviceFeedback.delegate' : reassign ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button></>}>
+        <form id="assign-form" onSubmit={submit} className="grid gap-4">
+            {!membersOnly && <FormField id="assign-type" label={t('serviceFeedback.handlerType')} error={form.errors.handler_type} required>
+                {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_type} onChange={(e) => setType(e.target.value as AssignmentRow['handler_type'])}>
+                    <option value="user">{t('serviceFeedback.handlerUser')}</option>
+                    <option value="organization_unit">{t('serviceFeedback.handlerUnit')}</option>
+                    {committees.length > 0 && <option value="committee">{t('serviceFeedback.handlerCommittee')}</option>}
+                    <option value="role">{t('serviceFeedback.handlerRole')}</option>
+                </Select>}
+            </FormField>}
+            <FormField id="assign-handler" label={t('serviceFeedback.handler')} error={form.errors.handler_id} required>
+                {({ id, describedBy, invalid }) => <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_id} onChange={(e) => form.setData('handler_id', e.target.value)}>
+                    {choices.length === 0 && <option value="">{t('serviceFeedback.noHandlerOptions')}</option>}
+                    {choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.name}</option>)}
+                </Select>}
+            </FormField>
+            <FormField id="assign-reason" label={t('serviceFeedback.transitionReason')} error={form.errors.reason}>
+                {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={3} maxLength={2000} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />}
+            </FormField>
+        </form>
+    </AppDialog>;
+}
+
+/** ADR 0035: each stage the complaint passed — who decided, what the complainant was told and what they did. */
+function HearingPanel({ hearing, status }: { hearing: Hearing; status: string }) {
+    const { t } = useLocale();
+    const h = (key: string) => t(`serviceFeedback.hearing.${key}`);
+    const open = status !== 'closed';
+
+    return <section className={PANEL} aria-labelledby="hearing-heading">
+        <div>
+            <h2 id="hearing-heading" className="font-semibold">{h('title')}</h2>
+            <p className="mt-1 text-sm text-(--app-muted-foreground)">{h('intro')}</p>
+        </div>
+        <ol className="grid gap-3 sm:grid-cols-3">
+            {([1, 2, 3] as const).map((number) => {
+                const row = hearing.stages.find((s) => s.stage === number);
+                const isCurrent = open && hearing.current === number;
+                return <li key={number} aria-current={isCurrent ? 'step' : undefined}
+                    className={`rounded-control border p-3 text-sm ${isCurrent ? 'border-primary bg-primary/5' : 'border-(--app-border)'} ${row || number === 1 ? '' : 'opacity-60'}`}>
+                    <p className="font-semibold">{t(`serviceFeedback.hearing.stageNames.${number}`)}{isCurrent && <span className="font-normal text-(--app-muted-foreground)"> · {h('current')}</span>}</p>
+                    {row?.appeal_reason && <p className="mt-2 text-xs"><span className="font-semibold">{h('appealReason')}:</span> {row.appeal_reason}</p>}
+                    {row?.decided_at
+                        ? <>
+                            <p className="mt-2 text-xs font-semibold">{t(`serviceFeedback.hearing.decisions.${row.decision ?? 'answered'}`)}</p>
+                            {row.response && <p className="mt-1 whitespace-pre-line">{row.response}</p>}
+                            <p className="mt-1 text-xs text-(--app-muted-foreground)">{row.decided_by ?? t('common.system')} · <LocalizedDateDisplay value={row.decided_at} withTime /></p>
+                            {row.citizen_outcome
+                                ? <p className="mt-2 text-xs font-medium">{t(`serviceFeedback.hearing.outcomes.${row.citizen_outcome}`)}{row.citizen_responded_at && <> · <LocalizedDateDisplay value={row.citizen_responded_at} /></>}</p>
+                                : number < 3 && open && <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">{h('awaiting')}{row.appeal_deadline_at && <> · {h('appealDeadline')}: <LocalizedDateDisplay value={row.appeal_deadline_at} /></>}</p>}
+                            {number === 3 && <p className="mt-2 text-xs text-(--app-muted-foreground)">{h('final')}</p>}
+                        </>
+                        : (row || number === 1) && <p className="mt-2 text-xs text-(--app-muted-foreground)">{h('pending')}</p>}
+                </li>;
+            })}
+        </ol>
+        {open && <p className="text-xs text-(--app-muted-foreground)">{h('nextStage')}: {hearing.next ? t(`serviceFeedback.hearing.stageNames.${hearing.next}`) : h('noNext')}</p>}
+    </section>;
+}

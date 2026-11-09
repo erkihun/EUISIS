@@ -1,0 +1,76 @@
+import { useEffect, useState, type FormEvent, type JSX } from 'react';
+import { Button } from '@euisis/ui';
+import Modal from '@/Components/Modal';
+import { useLocale } from '@/hooks/useLocale';
+import { toast } from '@/lib/toast';
+import { communicationApi, firstError } from '@/lib/communication/api';
+import type { ReportCategory } from '@/types/communication';
+
+const CATEGORIES: ReportCategory[] = ['HARASSMENT', 'INAPPROPRIATE_CONTENT', 'SPAM', 'SECURITY_CONCERN', 'OTHER'];
+
+export type ReportTarget = { kind: 'message'; id: string } | { kind: 'conversation'; id: string };
+
+/** Report a message (or a group or channel) to the moderators. */
+export default function ReportDialog({ target, onClose }: { target: ReportTarget | null; onClose: () => void }): JSX.Element {
+    const { t } = useLocale();
+    const [category, setCategory] = useState<ReportCategory | null>(null);
+    const [details, setDetails] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => { setCategory(null); setDetails(''); setError(null); }, [target]);
+
+    const submit = async (event: FormEvent) => {
+        event.preventDefault();
+        if (!target || !category) return;
+        setSaving(true);
+        setError(null);
+        try {
+            await (target.kind === 'message'
+                ? communicationApi.reportMessage(target.id, category, details.trim() || null)
+                : communicationApi.reportConversation(target.id, category, details.trim() || null));
+            toast.success(t('communication.report.done'));
+            onClose();
+        } catch (reason) {
+            setError(firstError(reason) ?? t('communication.errors.generic'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Modal show={target !== null} onClose={onClose} maxWidth="md">
+            <form onSubmit={submit}>
+                <div className="space-y-4 px-5 py-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-(--app-foreground)">
+                            {target?.kind === 'conversation' ? t('communication.report.conversationTitle') : t('communication.report.title')}
+                        </h2>
+                        <p className="mt-1 text-xs leading-relaxed text-(--app-muted-foreground)">{t('communication.report.help')}</p>
+                    </div>
+                    <fieldset className="space-y-1.5">
+                        <legend className="mb-1 text-xs font-medium text-(--app-foreground)">{t('communication.report.category')}</legend>
+                        {CATEGORIES.map((value) => (
+                            <label key={value} className={`flex cursor-pointer items-center gap-2.5 rounded-control border px-3 py-2 text-sm ${category === value ? 'border-primary bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]' : 'border-(--app-border)'} text-(--app-foreground)`}>
+                                <input type="radio" name="category" checked={category === value} onChange={() => setCategory(value)} className="h-4 w-4 text-primary" />
+                                {t(`communication.report.categories.${value}`)}
+                            </label>
+                        ))}
+                    </fieldset>
+                    <label className="block space-y-1">
+                        <span className="text-xs font-medium text-(--app-foreground)">{t('communication.report.details')}</span>
+                        <textarea value={details} onChange={(e) => setDetails(e.target.value)} maxLength={2000} rows={3}
+                            className="w-full resize-none rounded-control border border-(--app-border) bg-(--app-background) px-2.5 py-2 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden" />
+                    </label>
+                    {error && <p role="alert" className="text-xs text-(--color-danger,#b42318)">{error}</p>}
+                </div>
+                <div className="flex justify-end gap-2 border-t border-(--app-border) px-5 py-3">
+                    <button type="button" onClick={onClose} className="h-9 rounded-control px-3 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">{t('common.cancel')}</button>
+                    <Button type="submit" variant="primary" disabled={saving || !category} loading={saving}>
+                        {t('communication.report.submit')}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+}

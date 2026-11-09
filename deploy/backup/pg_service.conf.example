@@ -1,0 +1,18 @@
+# No password in the project. Provision actual service file under the collector
+# account, and a mode-0600 .pgpass only if local peer authentication is unsuitable.
+[euisis_backup_monitor]
+host=/REPLACE_POSTGRES_SOCKET_DIRECTORY
+port=5432
+dbname=postgres
+user=REPLACE_MONITOR_ROLE
+connect_timeout=5
+# For remote connections use sslmode=verify-full plus an approved CA/hostname.
+
+# Optional supplementary logical archive only. Dedicated read-only role (for example
+# granted pg_read_all_data); never the Laravel application role and never a superuser.
+[euisis_logical_backup]
+host=/REPLACE_POSTGRES_SOCKET_DIRECTORY
+port=5432
+dbname=REPLACE_DATABASE
+user=REPLACE_LOGICAL_BACKUP_ROLE
+connect_timeout=5

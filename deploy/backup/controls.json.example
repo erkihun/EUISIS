@@ -1,0 +1,12 @@
+{
+  "checked_at": null,
+  "independent_copy": false,
+  "encrypted": false,
+  "private_storage": false,
+  "key_recovery": false,
+  "file_recovery": false,
+  "retention_configured": false,
+  "owner_assigned": false,
+  "alerts_tested": false,
+  "runbooks_reviewed": false
+}

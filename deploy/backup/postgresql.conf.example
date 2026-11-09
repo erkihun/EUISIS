@@ -1,0 +1,9 @@
+# Merge with actual PostgreSQL settings during an approved deployment window.
+# archive_mode needs a PostgreSQL restart. archive_timeout is a proposed baseline,
+# not an approved RPO; tune for WAL volume and confirm measured archive latency.
+wal_level = replica
+archive_mode = on
+archive_timeout = '300s'
+archive_command = '/usr/bin/pgbackrest --config=/etc/pgbackrest/pgbackrest.conf --stanza=euisis archive-push %p'
+# Keep fsync, full_page_writes and checksums enabled where supported/provisioned.
+# Never archive to public/, storage/app/public, or solely onto the data disk.
