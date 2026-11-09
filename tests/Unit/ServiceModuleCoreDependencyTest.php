@@ -14,7 +14,8 @@ declare(strict_types=1);
  * BackboneBoundaryTest.
  */
 
-const CORE_MODEL_IMPORT = '/^use App\\\\Models\\\\(Organization|OrganizationUnit|Position|PositionOccupancy|Employee|EmployeeAssignment|IdCard|CardRequest|HierarchyVersion|OrganizationClosurePath);$/m';
+// `\r?` so a CRLF checkout on Windows counts the same files as CI's LF checkout does.
+const CORE_MODEL_IMPORT = '/^use App\\\\Models\\\\(Organization|OrganizationUnit|Position|PositionOccupancy|Employee|EmployeeAssignment|IdCard|CardRequest|HierarchyVersion|OrganizationClosurePath);\r?$/m';
 
 /** Module => path pattern under app/ (case-insensitive). */
 const SERVICE_MODULES = [
@@ -123,7 +124,10 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // the path pattern (most no longer say "ServiceFeedback"), so the pattern now names the
         // module folder; its models also gained `use App\Models\...` lines for relations they
         // always had, and the QR, token and identity code was always counted under the old paths.
-        'feedback' => 29,
+        // 2026-11-09: 30. PublicFeedbackRoutingRule (ADR 0032) names the Core organization and
+        // unit a rule routes a submission to, the same kind of relation as the grievance
+        // designations above; reviewed. (The ratings contract dropped its Employee import the same day.)
+        'feedback' => 30,
         'intelligence' => 2,
         'situation_room' => 12,
         'communication' => 12,
