@@ -1,0 +1,35 @@
+# TEMPLATE: replace every REPLACE_* value after confirming actual host topology.
+# Install outside the release at /etc/pgbackrest/pgbackrest.conf, mode 0600,
+# owned by the PostgreSQL/backup OS account. Never give PHP access to this file.
+[global]
+repo1-type=posix
+repo1-host=REPLACE_PRIVATE_REPOSITORY_HOST
+repo1-host-user=pgbackrest
+repo1-path=/REPLACE_PRIVATE_REPOSITORY_MOUNT/euisis
+repo1-cipher-type=aes-256-cbc
+repo1-retention-full-type=count
+repo1-retention-full=12
+
+repo2-type=posix
+repo2-host=REPLACE_INDEPENDENT_OFFSITE_HOST
+repo2-host-user=pgbackrest
+repo2-path=/REPLACE_OFFSITE_REPOSITORY_MOUNT/euisis
+repo2-cipher-type=aes-256-cbc
+repo2-retention-full-type=count
+repo2-retention-full=12
+
+# Supply distinct repo1-cipher-pass and repo2-cipher-pass through a protected
+# secret-manager-rendered include. Recover these keys separately from repositories.
+# Retain WAL by default with retained full chains. Do not shorten retention-archive.
+expire-auto=n
+archive-async=n
+start-fast=y
+process-max=2
+log-level-file=warn
+log-path=/var/log/pgbackrest
+lock-path=/var/lib/pgbackrest/lock
+
+[euisis]
+pg1-path=/REPLACE_CONFIRMED_POSTGRES_DATA_DIRECTORY
+pg1-port=5432
+# Local peer authentication: OS postgres account. Never reuse the Laravel DB role.

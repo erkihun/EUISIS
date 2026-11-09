@@ -1,0 +1,98 @@
+[
+ {
+  "class": "Tests.Feature.Api.MasterBackboneRemediationApiTest",
+  "name": "it replays a repeated request and refuses a conflicting one under the same key (F6)",
+  "msg": "it replays a repeated request and refuses a conflicting one under the same key (F6)Expected response status code [200] but received 500.",
+  "detail": "it replays a repeated request and refuses a conflicting one under the same key (F6)Expected response status code [200] but received 500.\nFailed asserting that 500 is identical to 200.\n\nThe following exception occurred during the last request:\n\nIlluminate\\Database\\QueryException\n\n----------------------------------------------------------------------------------\n\nIlluminate\\Database\\QueryException\n\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:175\nat vendor/laravel/framework/src/Illuminate/Testing/Concerns/AssertsStatusCodes.php:16\nat tests/Feature/Api/MasterBackboneRemediationApiTest.php:353"
+ },
+ {
+  "class": "Tests.Feature.Api.MasterBackboneRemediationApiTest",
+  "name": "it refuses a duplicate that arrives while the original is still running (F6)",
+  "msg": "it refuses a duplicate that arrives while the original is still running (F6)Expected response status code [409] but received 500.",
+  "detail": "it refuses a duplicate that arrives while the original is still running (F6)Expected response status code [409] but received 500.\nFailed asserting that 500 is identical to 409.\n\nThe following exception occurred during the last request:\n\nIlluminate\\Database\\QueryException\n\n----------------------------------------------------------------------------------\n\nIlluminate\\Database\\QueryException\n\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:175\nat tests/Feature/Api/MasterBackboneRemediationApiTest.php:374"
+ },
+ {
+  "class": "Tests.Feature.Api.MasterBackboneRemediationApiTest",
+  "name": "it treats one key sent to two different service paths as reused, not a replay of the first",
+  "msg": "it treats one key sent to two different service paths as reused, not a replay of the firstExpected response status code [409] but received 500.",
+  "detail": "it treats one key sent to two different service paths as reused, not a replay of the firstExpected response status code [409] but received 500.\nFailed asserting that 500 is identical to 409.\n\nThe following exception occurred during the last request:\n\nIlluminate\\Database\\QueryException\n\n----------------------------------------------------------------------------------\n\nIlluminate\\Database\\QueryException\n\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:175\nat tests/Feature/Api/MasterBackboneRemediationApiTest.php:384"
+ },
+ {
+  "class": "Tests.Feature.Integration.OutboxEventsTest",
+  "name": "it archives a vacant position as a tombstone",
+  "msg": "it archives a vacant position as a tombstoneFailed asserting that two arrays are identical.",
+  "detail": "it archives a vacant position as a tombstoneFailed asserting that two arrays are identical.\nat tests/Feature/Integration/OutboxEventsTest.php:116"
+ },
+ {
+  "class": "Tests.Feature.Intelligence.Business.WorkforceAnalysisTest",
+  "name": "it keeps the five staffing figures distinct and exact for a sub-city viewer",
+  "msg": "it keeps the five staffing figures distinct and exact for a sub-city viewerIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check const",
+  "detail": "it keeps the five staffing figures distinct and exact for a sub-city viewerIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"position_requirements_one_subject_chk\"\nDETAIL:  Failing row contains (f69604f6-d662-44ad-b6c4-f4fa9b514e80, 763aa909-2314-4393-88b5-804a1d2c644f, 01a15c25-6bbf-712a-b928-4936839304de, null, null, 57bf3b97-a350-409c-b49f-b45c7546df4f, null, Officer, null, null, permanent, 7.5000, 8, approved, null, null, 1, null, 2026-10-21 01:48:39, 2026-10-21 01:48:39). (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_2, SQL: insert into \"position_requirements\" "
+ },
+ {
+  "class": "Tests.Feature.Intelligence.Business.WorkforceAnalysisTest",
+  "name": "it never shows a sibling sub-city its neighbour's figures, and rolls everything up for the bureau",
+  "msg": "it never shows a sibling sub-city its neighbour's figures, and rolls everything up for the bureauIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements",
+  "detail": "it never shows a sibling sub-city its neighbour's figures, and rolls everything up for the bureauIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"position_requirements_one_subject_chk\"\nDETAIL:  Failing row contains (b6c1c8f2-ddab-4a26-9daa-7a0f2ee8e302, 042f56d9-8bf2-4185-8b2d-c52735e3e453, 01a15c25-6efd-714e-8a41-e403635110f3, null, null, 8e29cf82-c832-45cf-a8df-809e31321aa8, null, Officer, null, null, permanent, 7.5000, 8, approved, null, null, 1, null, 2026-10-21 01:48:40, 2026-10-21 01:48:40). (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_2, SQL: insert into \"p"
+ },
+ {
+  "class": "Tests.Feature.Intelligence.Business.WorkforceAnalysisTest",
+  "name": "it reports leadership vacancies as NEEDS_DATA and counts anomalies with an explainable insight",
+  "msg": "it reports leadership vacancies as NEEDS_DATA and counts anomalies with an explainable insightIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" v",
+  "detail": "it reports leadership vacancies as NEEDS_DATA and counts anomalies with an explainable insightIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"position_requirements_one_subject_chk\"\nDETAIL:  Failing row contains (86c4b21c-c321-48cb-8182-1433e109fcf6, 6ac2d66c-1af7-4a8a-8f36-304b2902ece7, 01a15c25-725f-73c9-b503-d9dffbc82b24, null, null, 0b940717-fd07-4ae5-a9bd-c7592d30033b, null, Officer, null, null, permanent, 7.5000, 8, approved, null, null, 1, null, 2026-10-21 01:48:40, 2026-10-21 01:48:40). (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_2, SQL: insert into \"posi"
+ },
+ {
+  "class": "Tests.Feature.Intelligence.Business.WorkforceAnalysisTest",
+  "name": "it raises the vacancy-rate insight only against a configured limit",
+  "msg": "it raises the vacancy-rate insight only against a configured limitIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"po",
+  "detail": "it raises the vacancy-rate insight only against a configured limitIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"position_requirements_one_subject_chk\"\nDETAIL:  Failing row contains (8b683a73-2766-4326-af81-d6963f723d3c, ddde5f87-43a0-4c2d-8ffe-3b1d5792e012, 01a15c25-7599-7128-9205-a312a497dfb8, null, null, 03946f26-2bac-4db7-b464-f2ab27b00f89, null, Officer, null, null, permanent, 7.5000, 8, approved, null, null, 1, null, 2026-10-21 01:48:41, 2026-10-21 01:48:41). (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_2, SQL: insert into \"position_requirements\" (\"id\", \"p"
+ },
+ {
+  "class": "Tests.Feature.Intelligence.Business.WorkforceAnalysisTest",
+  "name": "it is forbidden to a technical-only viewer",
+  "msg": "it is forbidden to a technical-only viewerIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"position_requirements_one_",
+  "detail": "it is forbidden to a technical-only viewerIlluminate\\Database\\QueryException: SQLSTATE[23514]: Check violation: 7 ERROR:  new row for relation \"position_requirements\" violates check constraint \"position_requirements_one_subject_chk\"\nDETAIL:  Failing row contains (bf945910-849d-43f6-95d7-07f9f25fc8ec, c839a48f-a6cf-48bd-9330-aba318f618ec, 01a15c25-7be9-73fc-8ce5-81570b782e13, null, null, f683d5d6-4bd6-49d5-9625-286f1527587f, null, Officer, null, null, permanent, 7.5000, 8, approved, null, null, 1, null, 2026-10-21 01:48:43, 2026-10-21 01:48:43). (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_2, SQL: insert into \"position_requirements\" (\"id\", \"plan_id\", \"organization_i"
+ },
+ {
+  "class": "Tests.Feature.Intelligence.GovernanceAndForecastTest",
+  "name": "forecast snapshots are evaluated against actuals once the month has passed",
+  "msg": "forecast snapshots are evaluated against actuals once the month has passedIlluminate\\Database\\QueryException: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type uuid: \"snap-1\"",
+  "detail": "forecast snapshots are evaluated against actuals once the month has passedIlluminate\\Database\\QueryException: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type uuid: \"snap-1\"\nCONTEXT:  unnamed portal parameter $1 = '...' (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_3, SQL: insert into \"intelligence_forecasts\" (\"snapshot_id\", \"metric\", \"scope_key\", \"period\", \"value\", \"lower\", \"upper\", \"method\", \"model_version\", \"confidence\", \"points\", \"data_through\", \"generated_at\", \"created_at\", \"id\") values (snap-1, complaints_monthly, all, 2026-09, 4, 1, 7, linear, linear-v1, low, 6, 2026-09, 2026-09-21 01:48:46, 2026-09-21 01:48:46, 01a15c25-8"
+ },
+ {
+  "class": "Tests.Feature.OrganizationDesign.DesignImportTest",
+  "name": "an unknown reference waits for a person to map it; the mapping is remembered and the row then commits",
+  "msg": "an unknown reference waits for a person to map it; the mapping is remembered and the row then commitsFailed asserting that two strings are identical.",
+  "detail": "an unknown reference waits for a person to map it; the mapping is remembered and the row then commitsFailed asserting that two strings are identical.\nat tests/Feature/OrganizationDesign/DesignImportTest.php:137"
+ },
+ {
+  "class": "Tests.Feature.OrganizationDesign.DesignIntegrationTest",
+  "name": "a passage yields suggestions only; applying one records a function with the person's code, rejecting leaves nothing",
+  "msg": "a passage yields suggestions only; applying one records a function with the person's code, rejecting leaves nothingIlluminate\\Database\\QueryException: SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  current transac",
+  "detail": "a passage yields suggestions only; applying one records a function with the person's code, rejecting leaves nothingIlluminate\\Database\\QueryException: SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  current transaction is aborted, commands ignored until end of transaction block (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_3, SQL: select \"id\", \"label_en\", \"label_am\", \"type\", \"route_name\", \"url\" from \"public_navigation_items\" where \"is_visible\" = 1 order by \"sort_order\" asc)\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:425\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:827\nat vendor/laravel/framework/src/Illuminate/Data"
+ },
+ {
+  "class": "Tests.Feature.PublicFeedback.PublicFeedbackContextTest",
+  "name": "it keeps rows when the employee leaves, the institution is archived or the QR is revoked, and refuses a hard delete of the employee",
+  "msg": "it keeps rows when the employee leaves, the institution is archived or the QR is revoked, and refuses a hard delete of the employeeIlluminate\\Database\\QueryException: SQLSTATE[25P02]: In failed sql transaction: 7 ERROR: ",
+  "detail": "it keeps rows when the employee leaves, the institution is archived or the QR is revoked, and refuses a hard delete of the employeeIlluminate\\Database\\QueryException: SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  current transaction is aborted, commands ignored until end of transaction block (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_1, SQL: select count(*) as aggregate from \"employee_service_feedback\")\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:425\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:827\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:794\nat vendor/laravel/framework/src/Illuminate/"
+ },
+ {
+  "class": "Tests.Feature.PublicFeedback.PublicFeedbackOperationsTest",
+  "name": "it reports findings, repairs only deterministic ones and leaves ambiguous rows for review",
+  "msg": "it reports findings, repairs only deterministic ones and leaves ambiguous rows for reviewIlluminate\\Database\\QueryException: SQLSTATE[23503]: Foreign key violation: 7 ERROR:  insert or update on table \"employee_service_f",
+  "detail": "it reports findings, repairs only deterministic ones and leaves ambiguous rows for reviewIlluminate\\Database\\QueryException: SQLSTATE[23503]: Foreign key violation: 7 ERROR:  insert or update on table \"employee_service_feedback\" violates foreign key constraint \"employee_service_feedback_category_id_foreign\"\nDETAIL:  Key (category_id)=(00000000-0000-0000-0000-00000000dead) is not present in table \"public_feedback_categories\". (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_1, SQL: update \"employee_service_feedback\" set \"category_id\" = 00000000-0000-0000-0000-00000000dead where \"id\" = 01a15c2b-4655-7036-b314-7202244495b1)\nat vendor/laravel/framework/src/Illuminate/Datab"
+ },
+ {
+  "class": "Tests.Feature.Transport.TransportIntegrityTest",
+  "name": "it refuses a second accepted boarding row for the same employee and trip at the database",
+  "msg": "it refuses a second accepted boarding row for the same employee and trip at the databaseIlluminate\\Database\\QueryException: SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  current transaction is aborted, commands i",
+  "detail": "it refuses a second accepted boarding row for the same employee and trip at the databaseIlluminate\\Database\\QueryException: SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  current transaction is aborted, commands ignored until end of transaction block (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_test_test_1, SQL: update \"transport_transactions\" set \"voided_at\" = 2026-10-14 07:10:00 where \"id\" = 01a15c30-3d34-7315-8db8-c52dd4dff596)\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:609\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:827\nat vendor/laravel/framework/src/Illuminate/Database/Connection.php:794\nat vendor/laravel/framework/"
+ },
+ {
+  "class": "Tests.Feature.Transport.TransportSecurityTest",
+  "name": "it opens the manual-exception lookup only to the grant that may record one, and answers nothing but id, number and name",
+  "msg": "it opens the manual-exception lookup only to the grant that may record one, and answers nothing but id, number and nameExpected response status code [404] but received 500.",
+  "detail": "it opens the manual-exception lookup only to the grant that may record one, and answers nothing but id, number and nameExpected response status code [404] but received 500.\nFailed asserting that 500 is identical to 404.\n\nThe following exception occurred during the last request:\n\nIlluminate\\Database\\QueryException\n\n----------------------------------------------------------------------------------\n\nIlluminate\\Database\\QueryException\n\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponseAssert.php:45\nat vendor/laravel/framework/src/Illuminate/Testing/TestResponse.php:175\nat vendor/laravel/framework/src/Illuminate/Testing/Concerns/AssertsStatusCodes.php:151\nat tests/Feature/Transport/T"
+ }
+]

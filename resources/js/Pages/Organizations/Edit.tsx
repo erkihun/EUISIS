@@ -1,0 +1,447 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
+import { useLocale } from '@/hooks/useLocale';
+import { useRef, useState } from 'react';
+import { toDateInput } from '@/lib/dateUtils';
+import CodeRuleField from '@/Components/code-rules/CodeRuleField';
+import FormSection from '@/Components/FormSection';
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import { ContactSection, LocationSection, SectionNav, ShortNameFields, organizationProfile, organizationProfilePayload, type OrganizationProfile } from '@/Components/organizations/OrganizationProfileSections';
+import type { MapConfig } from '@/Components/fieldWork/LocationMap';
+
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
+type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
+
+type Organization = {
+    id: string;
+    code: string;
+    name_en: string;
+    name_am: string | null;
+    legal_basis_ref: string | null;
+    status: string;
+    effective_from: string | null;
+    effective_to: string | null;
+    organization_type_id: string;
+    type?: OrgType | null;
+    logo_url: string | null;
+    has_logo: boolean;
+    branding_primary_color: string | null;
+    branding_secondary_color: string | null;
+    public_contact_phone: string | null;
+    short_name_en?: string | null;
+    short_name_am?: string | null;
+    official_email?: string | null;
+    website?: string | null;
+    po_box?: string | null;
+    address_en?: string | null;
+    address_am?: string | null;
+    latitude?: number | string | null;
+    longitude?: number | string | null;
+    geofence_radius_m?: number | null;
+};
+
+const inputCls = cx(inputClassName, 'w-full');
+
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
+const helpCls = 'mt-1 text-xs text-(--app-muted-foreground)';
+
+function Field({
+    label,
+    error,
+    children,
+    help,
+    required,
+}: {
+    label: string;
+    error?: string;
+    children: React.ReactNode;
+    help?: string;
+    required?: boolean;
+}) {
+    return (
+        <div>
+            <label className={labelCls}>{label}{required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}</label>
+            <div className="mt-1">{children}</div>
+            {help && <p className={helpCls}>{help}</p>}
+            {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+        </div>
+    );
+}
+
+export default function EditOrganization({
+    organization,
+    organizationTypes,
+    map,
+}: {
+    organization: Organization;
+    organizationTypes: OrgType[];
+    map: MapConfig;
+}) {
+    const { t, locale } = useLocale();
+
+    const form = useForm<{
+        organization_type_id: string;
+        code: string;
+        name_en: string;
+        name_am: string;
+        legal_basis_ref: string;
+        status: string;
+        effective_from: string;
+        effective_to: string;
+        logo: File | null;
+        remove_logo: boolean;
+        branding_primary_color: string;
+        branding_secondary_color: string;
+    } & OrganizationProfile>({
+        organization_type_id: organization.organization_type_id ?? '',
+        code: organization.code ?? '',
+        name_en: organization.name_en ?? '',
+        name_am: organization.name_am ?? '',
+        legal_basis_ref: organization.legal_basis_ref ?? '',
+        status: organization.status ?? '',
+        effective_from: toDateInput(organization.effective_from),
+        effective_to: toDateInput(organization.effective_to),
+        logo: null,
+        remove_logo: false,
+        branding_primary_color: organization.branding_primary_color ?? '',
+        branding_secondary_color: organization.branding_secondary_color ?? '',
+        ...organizationProfile(organization),
+    });
+    const setProfile = (values: Partial<OrganizationProfile>) => form.setData((data) => ({ ...data, ...values }));
+    const profile: OrganizationProfile = organizationProfile(form.data);
+
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const errorMessages = Object.values(form.errors).filter(Boolean);
+
+    function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0] ?? null;
+        form.setData((prev) => ({ ...prev, logo: file, remove_logo: false }));
+        setLogoPreview(file ? URL.createObjectURL(file) : null);
+    }
+
+    function clearNewLogo() {
+        form.setData((prev) => ({ ...prev, logo: null }));
+        setLogoPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+
+    function toggleRemoveLogo() {
+        form.setData((prev) => ({ ...prev, remove_logo: !prev.remove_logo, logo: null }));
+        setLogoPreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        form.transform((data) => ({
+            ...data,
+            _method: 'patch',
+            name_am: data.name_am || null,
+            legal_basis_ref: data.legal_basis_ref || null,
+            effective_from: data.effective_from || null,
+            effective_to: data.effective_to || null,
+            branding_primary_color: data.branding_primary_color || null,
+            branding_secondary_color: data.branding_secondary_color || null,
+            ...organizationProfilePayload(organizationProfile(data)),
+        }));
+        form.post(route('organizations.update', organization.id), { preserveState: true });
+    }
+
+    const primary = form.data.branding_primary_color;
+    const secondary = form.data.branding_secondary_color;
+    const showCurrentLogo = organization.has_logo && !form.data.remove_logo && !logoPreview;
+
+    return (
+        <AuthenticatedLayout contentWidth="form"
+            header={
+                <PageHeader
+                    backHref={route('organizations.show', organization.id)}
+                    title={`${t('organizations.editPrefix')} ${locale === 'am' ? (organization.name_am || organization.name_en) : organization.name_en}`}
+                    description={organization.code}
+                />
+            }
+        >
+            <Head title={`${t('organizations.editPrefix')} ${locale === 'am' ? (organization.name_am || organization.name_en) : organization.name_en}`} />
+
+            <div className="w-full">
+                <form
+                    onSubmit={submit}
+                    className="w-full rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-6 lg:p-8"
+                >
+                    {errorMessages.length > 0 && (
+                        <div className="mb-6 rounded-card border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
+                            <p className="text-sm font-medium text-red-700 dark:text-red-300">{t('common.error')}</p>
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700 dark:text-red-300">
+                                {errorMessages.map((message, index) => <li key={`${message}-${index}`}>{message}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                    <SectionNav sections={[
+                        { id: 'organization-identity', label: t('organizations.sectionIdentity') },
+                        { id: 'organization-location', label: t('organizations.sectionLocation') },
+                        { id: 'organization-contact', label: t('organizations.sectionContact') },
+                        { id: 'organization-legal', label: t('organizations.sectionLegalValidity') },
+                        { id: 'organization-branding', label: t('organizations.branding') },
+                    ]} />
+
+                    <div className="space-y-6">
+                        {/* 1. Identity */}
+                        <FormSection id="organization-identity" step={1} title={t('organizations.sectionIdentity')} description={t('organizations.sectionIdentityHelp')}>
+                            <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id} help={t('organizations.typeHelpText')} required>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.organization_type_id}
+                                    onChange={(e) => form.setData('organization_type_id', e.target.value)}
+                                >
+                                    {organizationTypes.map((ot) => (
+                                        <option key={ot.id} value={ot.id}>
+                                            {locale === 'am' ? (ot.name_am || ot.name_en) : ot.name_en} ({ot.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </Field>
+
+                            <CodeRuleField
+                                entityType="organization"
+                                value={form.data.code}
+                                onChange={(v) => form.setData('code', v)}
+                                fieldName="code"
+                                label={t('organizations.code')}
+                                canManualOverride={false}
+                                existingCode={organization.code}
+                                preserveExistingCodeOnEdit
+                                error={form.errors.code}
+                            />
+
+                            <Field label={t('organizations.nameEn')} error={form.errors.name_en} required>
+                                <input
+                                    className={inputCls}
+                                    value={form.data.name_en}
+                                    onChange={(e) => form.setData('name_en', e.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('organizations.nameAm')} error={form.errors.name_am} required>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.fullNameAmPlaceholder')}
+                                    value={form.data.name_am}
+                                    onChange={(e) => form.setData('name_am', e.target.value)}
+                                />
+                            </Field>
+                            <ShortNameFields data={profile} errors={form.errors} set={setProfile} />
+                        </FormSection>
+
+                        <LocationSection data={profile} errors={form.errors} set={setProfile} map={map} step={2} />
+
+                        <ContactSection data={profile} errors={form.errors} set={setProfile} step={3} />
+
+                        {/* 4. Legal basis & validity */}
+                        <FormSection id="organization-legal" step={4} title={t('organizations.sectionLegalValidity')} description={t('organizations.sectionLegalValidityHelp')}>
+                            <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.legalBasisPlaceholder')}
+                                    value={form.data.legal_basis_ref}
+                                    onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('common.status')} error={form.errors.status} required>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.status}
+                                    onChange={(e) => form.setData('status', e.target.value)}
+                                >
+                                    <option value="active">{t('organizations.statusActive')}</option>
+                                    <option value="draft">{t('organizations.statusDraft')}</option>
+                                    <option value="inactive">{t('organizations.statusInactive')}</option>
+                                    <option value="dissolved">{t('organizations.statusDissolved')}</option>
+                                    {/* Merged and archived are kept when already set; they are not chosen here. */}
+                                    {organization.status === 'merged' && <option value="merged">{t('organizations.statusMerged')}</option>}
+                                    {organization.status === 'archived' && <option value="archived">{t('organizations.statusArchived')}</option>}
+                                </select>
+                            </Field>
+                            <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
+                                <LocalizedDatePicker
+                                    className={inputCls}
+                                    value={form.data.effective_from}
+                                    onChange={(iso) => form.setData('effective_from', iso)}
+                                />
+                            </Field>
+                            <Field label={t('common.effectiveTo')} error={form.errors.effective_to}>
+                                <LocalizedDatePicker
+                                    className={inputCls}
+                                    value={form.data.effective_to}
+                                    onChange={(iso) => form.setData('effective_to', iso)}
+                                />
+                            </Field>
+                        </FormSection>
+
+                        {/* Branding */}
+                        <FormSection id="organization-branding" step={5} title={t('organizations.branding')} description={t('organizations.brandingHelpText')} grid={false}>
+                            <div className="grid gap-5 sm:grid-cols-2">
+                                {/* Logo */}
+                                <div>
+                                    <label className={labelCls}>{t('organizations.logo')}</label>
+                                    <div className="mt-1 space-y-2">
+                                        {showCurrentLogo && organization.logo_url && (
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src={organization.logo_url}
+                                                    alt={t('organizations.currentLogo')}
+                                                    className="h-14 w-14 rounded-lg border border-(--app-border) object-contain p-1"
+                                                />
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-(--app-muted-foreground)">
+                                                        {t('organizations.currentLogo')}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={toggleRemoveLogo}
+                                                        className={actionLinkClassName({ tone: 'danger' })}
+                                                    >
+                                                        {t('organizations.removeLogo')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {form.data.remove_logo && (
+                                            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-800 dark:bg-red-950">
+                                                <span className="text-xs text-red-700 dark:text-red-300">
+                                                    {t('organizations.logoWillBeRemoved')}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={toggleRemoveLogo}
+                                                    className={actionLinkClassName({ tone: 'danger', className: 'ml-auto' })}
+                                                >
+                                                    {t('common.undo')}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {logoPreview && (
+                                            <div className="flex items-center gap-3">
+                                                <img
+                                                    src={logoPreview}
+                                                    alt={t('organizations.logoPreview')}
+                                                    className="h-14 w-14 rounded-lg border border-blue-200 object-contain p-1 dark:border-blue-700"
+                                                />
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-primary dark:text-primary">
+                                                        {t('organizations.newLogoSelected')}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={clearNewLogo}
+                                                        className={actionLinkClassName({ tone: 'danger' })}
+                                                    >
+                                                        {t('common.cancel')}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {!form.data.remove_logo && (
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp"
+                                                onChange={handleLogoChange}
+                                                className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
+                                            />
+                                        )}
+
+                                        <p className="text-xs text-(--app-muted-foreground)">
+                                            {t('organizations.logoHint')}
+                                        </p>
+                                        {form.errors.logo && (
+                                            <p className="text-xs text-red-600 dark:text-red-400">{form.errors.logo}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Colors */}
+                                <div className="space-y-3">
+                                    <Field label={t('organizations.brandingPrimaryColor')} error={form.errors.branding_primary_color}>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="color"
+                                                value={primary || '#1D4ED8'}
+                                                onChange={(e) => form.setData('branding_primary_color', e.target.value)}
+                                                className="h-9 w-10 cursor-pointer rounded-sm border border-(--app-border-strong) p-0.5"
+                                            />
+                                            <input
+                                                className={inputCls}
+                                                placeholder="#1D4ED8"
+                                                value={primary}
+                                                maxLength={7}
+                                                onChange={(e) => form.setData('branding_primary_color', e.target.value)}
+                                            />
+                                        </div>
+                                    </Field>
+
+                                    <Field label={t('organizations.brandingSecondaryColor')} error={form.errors.branding_secondary_color}>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="color"
+                                                value={secondary || '#F97316'}
+                                                onChange={(e) => form.setData('branding_secondary_color', e.target.value)}
+                                                className="h-9 w-10 cursor-pointer rounded-sm border border-(--app-border-strong) p-0.5"
+                                            />
+                                            <input
+                                                className={inputCls}
+                                                placeholder="#F97316"
+                                                value={secondary}
+                                                maxLength={7}
+                                                onChange={(e) => form.setData('branding_secondary_color', e.target.value)}
+                                            />
+                                        </div>
+                                    </Field>
+
+                                    {(primary || secondary) && (
+                                        <div
+                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-(--app-border) px-3 py-2"
+                                            style={{ borderLeftColor: primary || '#1D4ED8' }}
+                                        >
+                                            <div className="flex gap-1.5">
+                                                {primary && (
+                                                    <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: primary }} />
+                                                )}
+                                                {secondary && (
+                                                    <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: secondary }} />
+                                                )}
+                                            </div>
+                                            <span className="text-xs text-(--app-muted-foreground)">
+                                                {t('organizations.colorPreview')}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </FormSection>
+                    </div>
+
+                    {/* Sticky action bar */}
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) sm:pr-20! bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
+                        <Link
+                            href={route('organizations.show', organization.id)}
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
+                        >
+                            {t('common.cancel')}
+                        </Link>
+                        <button
+                            type="submit"
+                            disabled={form.processing}
+                            className={buttonClassName({ variant: 'primary' })}
+                        >
+                            {form.processing ? t('common.saving') : t('organizations.saveChanges')}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

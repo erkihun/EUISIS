@@ -1,0 +1,355 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Enums\MasterDataWriteMode;
+use App\Models\Employee;
+use App\Models\Integration\IntegrationEvent;
+use App\Models\Integration\WebhookDelivery;
+use App\Services\Audit\AuditLogSealer;
+use App\Services\Backup\BackupStatusService;
+use App\Services\Branding\BrandingService;
+use App\Services\Core\BackboneIntegrityChecks;
+use App\Services\IdCards\IdCardPngExporter;
+use App\Services\OrganizationScope\ScopeGapReport;
+use App\Support\Retention\RetentionMatrix;
+use App\Support\Security\NationalIdHash;
+use Illuminate\Console\Command;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Modules\Feedback\Contracts\FeedbackDataQuality;
+use Modules\Feedback\Contracts\FeedbackSettings;
+use Symfony\Component\Process\Process;
+use Throwable;
+
+/**
+ * Pre-go-live gate: runtime, infrastructure and operations settings that
+ * security:production-check does not cover. Read-only; prints no secret.
+ *
+ * FAIL blocks a production deployment (exit 1); WARN needs a conscious
+ * decision; INFO is context for the operator. Outside production FAILs are
+ * shown as WARN unless --strict is given, like security:production-check.
+ */
+class ProductionReadiness extends Command
+{
+    protected $signature = 'production:readiness {--strict : Treat this environment as production}';
+
+    protected $description = 'Read-only go-live gate: runtime, infrastructure and data-audit checks';
+
+    private int $failures = 0;
+
+    public function handle(Schedule $schedule): int
+    {
+        $production = app()->isProduction() || $this->option('strict');
+        $this->components->info(sprintf('Environment: %s (%s)', config('app.env'), $production ? 'production rules enforced' : 'reported for awareness'));
+
+        $this->section('Security configuration');
+        $security = $this->call('security:production-check', $production ? ['--strict' => true] : []);
+        $this->failures += $security === self::SUCCESS ? 0 : 1;
+
+        $this->section('Application');
+        $this->check('APP_ENV is production', app()->isProduction(), $production, 'Environment-specific safety rules key off APP_ENV=production.');
+        $this->check('APP_URL uses https', str_starts_with((string) config('app.url'), 'https://'), $production, 'Card QR codes, reset links and signed URLs are built from APP_URL.');
+        $this->check('Session SameSite is lax', config('session.same_site') === 'lax', $production, 'The employee portal uses first-party sign-in links; Strict breaks normal mobile browser and e-mail-link session continuity.');
+        $qrBase = trim((string) config('id_cards.qr.base_url', ''));
+        $this->check('Card QR base URL uses https', $qrBase === '' || str_starts_with($qrBase, 'https://'), $production, 'Printed cards carry this URL for years; it cannot be changed without reprinting.');
+        $this->info_('Timezone', (string) config('app.timezone'));
+        $this->info_('Trusted proxies', config('trustedproxy.proxies') === null ? 'none (correct only if clients reach this server directly)' : 'configured');
+
+        $this->section('Database');
+        try {
+            DB::connection()->select('select 1');
+            $this->check('Database reachable ('.DB::connection()->getDriverName().')', true, $production, '');
+            $pending = $this->pendingMigrations();
+            $this->check('No pending migrations', $pending === [], $production, 'Pending: '.implode(', ', array_slice($pending, 0, 10)));
+            if (Schema::hasTable('failed_jobs')) {
+                $failed = DB::table('failed_jobs')->count();
+                $this->check('No failed queue jobs', $failed === 0, false, $failed.' failed job(s): inspect with queue:failed before go-live.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Database reachable', false, $production, class_basename($e));
+        }
+
+        $this->section('Queue, cache, mail, storage');
+        $this->check('Queue is asynchronous', config('queue.default') !== 'sync', $production, 'The sync driver runs e-mails, SMS and exports inside the web request.');
+        $this->check('Cache store persists', ! in_array(config('cache.default'), ['array', 'null'], true), $production, 'Login lockouts, OTP throttles and rate limits live in the cache.');
+        $this->check('Cache store is shared across servers', config('cache.default') !== 'file', false, 'A file cache is per server: behind a load balancer, lockouts and throttles are per node.');
+        $this->check('Mail is delivered', ! in_array(config('mail.default'), ['log', 'array'], true), $production, 'Password resets and notifications would be written to the log instead.');
+        $this->check('Logs rotate', config('logging.default') !== 'single' && config('logging.channels.'.config('logging.default').'.driver') !== 'single', false, 'A single log file grows without bound; use daily or an external channel.');
+        foreach (['storage/app', 'storage/framework/cache', 'storage/framework/sessions', 'storage/logs', 'bootstrap/cache'] as $path) {
+            $this->check("{$path} is writable", is_writable(base_path($path)), $production, 'The web and queue users must be able to write here.');
+        }
+
+        $this->section('Multi-node and scale (docs/load-balancing.md)');
+        $this->check('Trusted proxies configured', config('trustedproxy.proxies') !== null, false, 'Behind a load balancer HTTPS is not detected and every client shares the balancer IP for rate limits; set APP_TRUSTED_PROXIES.');
+        $this->check('Sessions shared across nodes', ! in_array(config('session.driver'), ['file', 'array'], true), $production, 'A file session exists on one node only; use database or redis.');
+        $this->check('Maintenance mode shared across nodes', config('app.maintenance.driver') !== 'file', false, 'The file driver puts only one node in maintenance; use APP_MAINTENANCE_DRIVER=cache with a shared store.');
+        $this->check('Private files on shared storage', config('filesystems.disks.local.driver') !== 'local', false, 'Uploads on node-local disk are missing on the other nodes; set STORAGE_PRIVATE_DRIVER=s3 for a multi-node deployment.');
+        $this->check('Public files on shared storage', config('filesystems.disks.public.driver') !== 'local', false, 'Logos and photos on node-local disk are missing on the other nodes; set STORAGE_PUBLIC_DRIVER=s3 for a multi-node deployment.');
+        $retryAfter = (int) config('queue.connections.'.config('queue.default').'.retry_after', 0);
+        $longestTimeout = $this->longestJobTimeout();
+        $this->check("Queue retry_after ({$retryAfter}s) exceeds the longest job timeout ({$longestTimeout}s)", config('queue.default') === 'sync' || $retryAfter > $longestTimeout, $production, 'A job still running at retry_after is handed to a second worker and runs twice.');
+        $notOnOneServer = collect($schedule->events())->reject(fn ($event) => $event->onOneServer)->map(fn ($event) => (string) ($event->command ?? $event->description))->values()->all();
+        $this->check('Every scheduled task runs on one server', $notOnOneServer === [], $production, 'Duplicates on a multi-node scheduler: '.implode(', ', $notOnOneServer));
+        $this->check('Transport Management is enabled', (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is off: transport routes answer 404 and providers cannot scan.');
+        $this->check('Legacy card QR (card id only) is refused at the counter', ! (bool) config('id_cards.accept_legacy_qr'), false, 'ID_CARD_ACCEPT_LEGACY_QR is on: anyone who knows a card id can present it (decision D-3). Turn it off once the reprint is done.');
+        $this->check('National-ID lookup hashes are keyed', $this->nationalIdHashesKeyed(), $production, 'Stored hashes do not match the keyed hash (decision D-1): run php artisan security:rehash-national-ids.');
+        if (config('database.default') === 'pgsql') {
+            $sslmode = (string) config('database.connections.pgsql.sslmode', 'prefer');
+            $this->check("PostgreSQL TLS (sslmode={$sslmode})", in_array($sslmode, ['require', 'verify-ca', 'verify-full'], true), false, 'Database traffic leaves the host; use DB_SSLMODE=require or verify-full unless the network is private and trusted.');
+        } else {
+            $this->check('Database engine is PostgreSQL', false, false, 'PostgreSQL is the production engine (decision D-5).');
+        }
+
+        $this->section('PHP extensions');
+        $driver = (string) config('database.connections.'.config('database.default').'.driver');
+        $this->check("pdo_{$driver}", extension_loaded('pdo_'.$driver), $production, 'Required by the configured database.');
+        foreach (['mbstring', 'openssl', 'intl', 'fileinfo'] as $extension) {
+            $this->check($extension, extension_loaded($extension), $production, 'Used for Amharic text, encryption, locale formatting or upload checks.');
+        }
+        $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
+        $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
+        $this->check('imagick with SVG support (card PNG export)', app(IdCardPngExporter::class)->isAvailable(), false, 'Without Imagick and its SVG coder (librsvg) PNG card export is refused; SVG and PDF still work.');
+        $node = $this->nodeVersion();
+        $this->check('G3 Node.js for the asset build is a supported LTS (24, or 22.12+)', $node !== null && version_compare($node, '22.12.0', '>='), false, $node === null
+            ? 'node is not on this user\'s PATH: build the assets where Node 24 LTS (or 22 LTS) runs; .nvmrc names the version.'
+            : "Found Node {$node}. Node 20 is end of life and Vite needs 22.12 or later; use Node 24 LTS (22 LTS as the fallback).");
+
+        $this->section('Branding (docs/branding.md)');
+        try {
+            $branding = app(BrandingService::class);
+            $brandOk = $branding->brandNameEn() !== '' && $branding->shortName() !== '' && $branding->officialNameEn() !== '' && $branding->officialNameAm() !== '';
+            $current = $branding->brandNameEn().' / '.$branding->brandNameAm().' / '.$branding->shortName();
+            $this->check('Brand resolves to a current name (not a former one)', $brandOk && ! $branding->isLegacyName($branding->brandNameEn()) && ! $branding->isLegacyName($branding->brandNameAm()) && ! $branding->isLegacyName($branding->shortName()), $production, 'Brand: '.$current.' — set System Settings > General or run php artisan branding:migrate.');
+            $this->info_('Brand', $current);
+            $this->info_('Official name', $branding->officialNameEn());
+            $legacyRows = Schema::hasTable('system_settings')
+                ? DB::table('system_settings')->get(['group', 'key', 'value'])->filter(fn ($row): bool => collect($branding->legacyNames())->contains(fn (string $n): bool => str_contains(mb_strtolower((string) $row->value), mb_strtolower($n))))->map(fn ($row): string => $row->group.'.'.$row->key)->values()->all()
+                : [];
+            $this->check('No former product name in current settings', $legacyRows === [], false, 'Still naming the former product: '.implode(', ', $legacyRows).' — run php artisan branding:migrate and review what it lists.');
+            $logoUrl = $branding->logoUrl();
+            $faviconUrl = $branding->faviconUrl();
+            $this->check('Brand logo configured (BRAND_ASSET_REQUIRED when missing)', $logoUrl !== null, false, 'No approved brand logo is uploaded; the shell shows the generic mark. Upload the approved asset under System Settings > General when it exists.');
+            $this->check('Favicon configured (BRAND_ASSET_REQUIRED when missing)', $faviconUrl !== null, false, 'No favicon uploaded; public/favicon.ico is served. Upload the approved asset when it exists.');
+        } catch (Throwable $e) {
+            $this->check('Branding checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        $this->section('Public feedback (docs/public-feedback-readiness.md)');
+        try {
+            $feedbackTables = [
+                // ADR 0032: one table per submission type (employee_service_feedback is now a view over them).
+                'public_service_feedback', 'public_tip_offs', 'public_complaints', 'employee_feedback_tokens', 'organization_feedback_qr_codes', 'public_feedback_categories',
+                'public_feedback_routing_rules', 'public_feedback_assignments', 'public_feedback_status_history', 'public_feedback_report_exports',
+                'public_feedback_subject_employees', 'public_feedback_referrals',
+            ];
+            $missingTables = array_values(array_filter($feedbackTables, fn (string $table): bool => ! Schema::hasTable($table)));
+            $this->check('Public feedback tables present', $missingTables === [], true, 'Missing: '.implode(', ', $missingTables).' — run php artisan migrate.');
+
+            if ($missingTables === []) {
+                $this->check(
+                    'Complaint reference code rule active',
+                    DB::table('code_rules')->where('entity_type', 'public_service_complaint')->where('is_active', true)->exists(),
+                    $production,
+                    'Complaint reference numbers cannot be issued; restore the public_service_complaint rule under Code rules.',
+                );
+                $settings = app(FeedbackSettings::class);
+                $types = array_map(fn ($type): string => $type instanceof \BackedEnum ? (string) $type->value : (string) $type, $settings->enabledTypes());
+                $this->info_('Public feedback enabled / types', ($settings->enabled() ? 'yes' : 'no').' / '.($types === [] ? 'none' : implode(', ', $types)));
+                $this->info_('Submitter identity policy', 'feedback & complaint named, tip-off optional (evidence '.($settings->allowAttachments() ? 'allowed' : 'off').')');
+                $this->check('Attachment disk (local) is writable', is_writable(Storage::disk('local')->path('')), $production, 'Attachments are stored on the private local disk; the web user must be able to write there.');
+
+                $assignGranted = DB::table('role_has_permissions')
+                    ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+                    ->where('permissions.name', 'service_feedback.assign')->exists();
+                $this->check('A role holds the feedback assignment permission', $assignGranted, false, 'Migrations create the permissions but grant them to no role; run the role seeders (PermissionSeeder, RolePermissionSeeder) or assign service_feedback.assign to a handler role, or nobody can hand out complaints.');
+                $activeRules = (int) DB::table('public_feedback_routing_rules')->where('is_active', true)->count();
+                $this->check('Routing rules exist for suggestions and complaints', $activeRules > 0, false, 'Without an active routing rule every suggestion and complaint is stored as unrouted and only the routing administrators are told.');
+                $activeOrganizations = (int) DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')->count();
+                $organizationsWithQr = (int) DB::table('organization_feedback_qr_codes')->where('status', 'active')->distinct()->count('organization_id');
+                $this->info_('Institutions with an active public QR', $organizationsWithQr.' of '.$activeOrganizations.' active');
+                $failedExports = (int) DB::table('public_feedback_report_exports')->where('status', 'failed')->count();
+                $this->check('No failed public feedback exports', $failedExports === 0, false, $failedExports.' export(s) failed; check the queue worker and storage, then run the export again from Reports.');
+
+                $findings = app(FeedbackDataQuality::class)->run();
+                $describe = fn (array $list): string => implode('; ', array_map(fn (array $f): string => $f['label'].' ('.$f['count'].')', $list));
+                $failing = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === FeedbackDataQuality::SEVERITY_FAIL);
+                $review = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === FeedbackDataQuality::SEVERITY_REVIEW);
+                $this->check('Public feedback data integrity', $failing === [], $production, 'feedback:data-quality reports: '.$describe($failing));
+                $this->check('No public feedback rows awaiting data review', $review === [], false, 'feedback:data-quality lists rows a person must classify (never repaired automatically): '.$describe($review));
+            }
+        } catch (Throwable $e) {
+            $this->check('Public feedback checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        $this->section('Core platform (docs/architecture/core-authority.md)');
+        try {
+            $findings = array_filter(app(BackboneIntegrityChecks::class)->counts());
+            $this->check('Golden Path integrity', $findings === [], $production, 'backbone:audit-integrity reports: '.implode('; ', array_map(fn (string $key, int $count): string => BackboneIntegrityChecks::LABELS[$key].' ('.$count.')', array_keys($findings), $findings)));
+            $writeSetting = (string) config('core.master_data_writes', 'core');
+            $this->check('Master-data write mode is a known value', MasterDataWriteMode::isKnownSetting($writeSetting), $production, 'CORE_MASTER_DATA_WRITES="'.$writeSetting.'" is not core, legacy, cutover or rollback; master data stays read-only until it is.');
+            $this->check('Master-data writes are open (mode: '.MasterDataWriteMode::current()->value.')', MasterDataWriteMode::current()->allowsWrites(), $production, 'CORE_MASTER_DATA_WRITES='.$writeSetting.' refuses every organization, position, employee and card change; set it to core once the cutover, rollback or restore is done.');
+            if (Schema::hasTable('integration_events')) {
+                $stuck = IntegrationEvent::query()->where('status', IntegrationEvent::STATUS_PENDING)->where('created_at', '<', now()->subMinutes(15))->count();
+                $this->check('Integration outbox is draining', $stuck === 0, false, $stuck.' event(s) waiting longer than 15 minutes: check the scheduler runs integrations:publish.');
+                $dead = WebhookDelivery::query()->where('status', WebhookDelivery::STATUS_DEAD)->count();
+                $this->check('No abandoned webhook deliveries', $dead === 0, false, $dead.' delivery(ies) gave up after every retry: review them in Core › Integration Center and replay once the receiver is fixed.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Core platform checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        $this->section('Access and audit integrity');
+        try {
+            $this->check('Organization-level roles need an explicit scope', (bool) config('security.organization_scope.require_explicit_scope'), $production, 'ORGANIZATION_SCOPE_REQUIRE_EXPLICIT=false: an account with an organization-level role and no scope record sees every organization.');
+            $gaps = count(app(ScopeGapReport::class)->rows());
+            $this->check('Every organization-level account has an explicit scope', $gaps === 0, false, $gaps.' account(s) without a scope record: run php artisan access:scope-gaps and give each a scope or a global role.');
+
+            $sealer = app(AuditLogSealer::class);
+            if (! $sealer->available()) {
+                $this->check('Audit log seals present', false, $production, 'The audit_log_seals table is missing: run php artisan migrate.');
+            } else {
+                $last = $sealer->lastSealedDay();
+                $this->check('Audit log sealed through yesterday', $last !== null && $last >= now()->subDay()->toDateString(), false, 'Last sealed day: '.($last ?? 'none').'. The scheduler runs audit:seal daily; run it once by hand after deployment.');
+                $altered = collect($sealer->verify(now()->subDays(7)->toDateString()))->reject(fn (array $day): bool => $day['status'] === 'ok')->pluck('day')->all();
+                $this->check('Audit log seals of the last 7 days verify', $altered === [], $production, 'Sealed days that no longer verify: '.implode(', ', $altered).'. Treat as a security incident; run php artisan audit:verify.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Access and audit checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        // Evidence produced by people, recorded as references (config/golive.php, ADR 0004).
+        $this->section('Go-live gates (docs/go-live/go-live-gates.md)');
+        $closedP0P1 = fn (mixed $count): bool => $count !== null && $count !== '' && (string) $count === '0';
+        // G1 also needs "Backup and recovery ready" in the Operations section below.
+        $this->check('G1 Database failover drill recorded', filled(config('golive.failover_drill')), $production, 'GOLIVE_FAILOVER_DRILL is empty: rehearse failover to the standby database (docs/runbooks/database-failover.md).');
+        $this->check('G2 Restore drill met the recovery targets', filled(config('backup.objectives_validated_by')), $production, 'BACKUP_OBJECTIVES_VALIDATED_BY is empty: RPO 15 min / RTO 1 h / 4 h are targets (TARGET_NOT_YET_VALIDATED), not yet proven by a restore drill.');
+        $this->check('G4 Independent penetration test with no open P0/P1', filled(config('golive.penetration_test.report')) && $closedP0P1(config('golive.penetration_test.open_p0_p1')), $production, 'GOLIVE_PENTEST_REPORT and GOLIVE_PENTEST_OPEN_P0_P1=0 are required (docs/go-live/penetration-test-scope.md).');
+        $this->check('G4 UAT signed off with no open P0/P1', filled(config('golive.uat.signoff')) && $closedP0P1(config('golive.uat.open_p0_p1')), $production, 'GOLIVE_UAT_SIGNOFF and GOLIVE_UAT_OPEN_P0_P1=0 are required (docs/go-live/uat-plan.md).');
+        $unnamed = array_keys(array_filter((array) config('golive.governance_roles'), fn (mixed $holder): bool => blank($holder)));
+        $this->check('G5 Governance roles named', $unnamed === [], $production, 'Not yet named: '.implode(', ', $unnamed).' (docs/governance/roles-register.md).');
+        $pending = collect(app(RetentionMatrix::class)->classes())->where('state', RetentionMatrix::NEEDS_POLICY_DECISION)->keys()->all();
+        $this->check('G6 Retention schedule approved for every record class', $pending === [], false, RetentionMatrix::NEEDS_POLICY_DECISION.' for: '.implode(', ', $pending).'. Records are kept, never deleted, until approved (docs/governance/retention-matrix.md).');
+
+        $this->section('Operations');
+        // --strict evaluates backups under production rules even outside production.
+        $backup = app(BackupStatusService::class)->status(fresh: true, enforce: $production ?: null);
+        $when = fn (?int $time) => $time ? gmdate('Y-m-d H:i', $time).' UTC' : 'none recorded';
+        $this->info_('Backup & Recovery', $backup['overall_status']);
+        $this->info_('Backup reason', ($backup['reason_code'] ?? 'NONE').' ('.$backup['driver'].')');
+        $this->info_('Backup infrastructure / repository', $backup['infrastructure_status'].' / '.$backup['repository_status']);
+        $this->info_('WAL archive / PITR', $backup['wal_status']);
+        $this->info_('Last passed restore test', $when($backup['latest_restore_test_at']));
+        $this->info_('Backup production blocker', $backup['production_blocker'] ? 'YES' : ($backup['enforced'] ? 'NO' : 'NO for this environment'));
+        $this->check('Backup and recovery ready', $backup['readiness'] === 'READY', $production, $backup['message']);
+        $this->check('Configuration cached', app()->configurationIsCached(), false, 'Run php artisan config:cache on deploy.');
+        $this->check('Routes cached', app()->routesAreCached(), false, 'Run php artisan route:cache on deploy.');
+        $this->info_('Scheduled tasks', count($schedule->events()).' — needs a cron entry running schedule:run every minute');
+        $this->info_('Data audits', 'run data:audit-duplicates, structure:audit and cafeteria:audit-configuration against production data');
+
+        if ($this->failures > 0) {
+            $this->components->error($this->failures.' blocking item(s).');
+
+            return self::FAILURE;
+        }
+        $this->components->info('No blocking items. Review every WARN before go-live.');
+
+        return self::SUCCESS;
+    }
+
+    private function section(string $title): void
+    {
+        $this->newLine();
+        $this->line("<options=bold>{$title}</>");
+    }
+
+    private function check(string $label, bool $passed, bool $blocking, string $why): void
+    {
+        if ($passed) {
+            $this->components->twoColumnDetail($label, '<fg=green>PASS</>');
+
+            return;
+        }
+        $this->failures += $blocking ? 1 : 0;
+        $this->components->twoColumnDetail($label, $blocking ? '<fg=red>FAIL</>' : '<fg=yellow>WARN</>');
+        if ($why !== '') {
+            $this->components->bulletList([$why]);
+        }
+    }
+
+    private function info_(string $label, string $value): void
+    {
+        $this->components->twoColumnDetail($label, "<fg=gray>{$value}</>");
+    }
+
+    /** @return list<string> */
+    private function pendingMigrations(): array
+    {
+        $migrator = app('migrator');
+        if (! $migrator->repositoryExists()) {
+            return ['(migrations table missing)'];
+        }
+        $files = $migrator->getMigrationFiles(array_merge([database_path('migrations')], $migrator->paths()));
+        $ran = $migrator->getRepository()->getRan();
+
+        return array_values(array_diff(array_keys($files), $ran));
+    }
+
+    /** A sample of stored national-ID hashes matches the keyed hash (decision D-1). */
+    private function nationalIdHashesKeyed(): bool
+    {
+        try {
+            $sample = Employee::query()->whereNotNull('national_id')->limit(25)->get(['id', 'national_id', 'national_id_hash']);
+        } catch (Throwable) {
+            return true; // no table yet: nothing stored with the old hash
+        }
+
+        foreach ($sample as $employee) {
+            try {
+                if ($employee->national_id_hash !== NationalIdHash::of((string) $employee->national_id)) {
+                    return false;
+                }
+            } catch (Throwable) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Longest `$timeout` declared by a queued job class in app/Jobs. */
+    /** The Node.js version on PATH (without the leading v), or null when there is none. */
+    private function nodeVersion(): ?string
+    {
+        try {
+            $process = new Process(['node', '--version']);
+            $process->setTimeout(5);
+            $process->run();
+
+            return $process->isSuccessful() && preg_match('/^v?(\d+\.\d+\.\d+)/', trim($process->getOutput()), $match) === 1 ? $match[1] : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function longestJobTimeout(): int
+    {
+        $longest = 60; // worker default
+        foreach (glob(app_path('Jobs/**/*.php')) ?: [] as $file) {
+            if (preg_match('/public\s+int\s+\$timeout\s*=\s*(\d+)/', (string) file_get_contents($file), $match)) {
+                $longest = max($longest, (int) $match[1]);
+            }
+        }
+        foreach (glob(app_path('Jobs/*.php')) ?: [] as $file) {
+            if (preg_match('/public\s+int\s+\$timeout\s*=\s*(\d+)/', (string) file_get_contents($file), $match)) {
+                $longest = max($longest, (int) $match[1]);
+            }
+        }
+
+        return $longest;
+    }
+}

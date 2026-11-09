@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
+use Symfony\Component\HttpFoundation\Response;
+
+class SecurityHeaders
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        // A fresh nonce per request, generated before the view renders so the
+        // tags @vite / @viteReactRefresh emit carry it, and so a Blade view can
+        // print it on its own inline script with Vite::cspNonce().
+        $nonce = Vite::useCspNonce();
+
+        $response = $next($request);
+
+        // ── Anti-clickjacking ────────────────────────────────────────────────
+        // DENY prevents framing by any origin, including same-origin.
+        // frame-ancestors 'none' in CSP supersedes this in modern browsers;
+        // both are set for defence-in-depth with legacy browser support.
+        $response->headers->set('X-Frame-Options', 'DENY');
+
+        // ── MIME-type sniffing prevention ────────────────────────────────────
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        // ── Referrer control ─────────────────────────────────────────────────
+        // A stricter policy set by a route (no-referrer on QR token pages,
+        // PrivateQrPageHeaders) is kept.
+        if (! $response->headers->has('Referrer-Policy')) {
+            $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        }
+
+        // ── Browser feature restrictions ─────────────────────────────────────
+        // geolocation=(self): Field Work GPS check-in/out reads the position
+        // once, on an explicit button press (docs/field-work-security.md).
+        // Same-origin only, and the browser's own permission prompt remains
+        // the consent gate. It cannot be scoped per page: this is an Inertia
+        // SPA, so the policy of the first document loaded applies to every
+        // page visited after it.
+        $response->headers->set(
+            'Permissions-Policy',
+            'camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()'
+        );
+
+        // ── Cross-domain policy files ─────────────────────────────────────────
+        // Prevents Adobe Flash / PDF plugins from loading cross-domain policies.
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
+
+        // ── Cross-Origin isolation ────────────────────────────────────────────
+        // COOP prevents cross-origin windows from accessing this window object.
+        // CORP prevents other origins from loading this resource via <img>/<script>.
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
+        $response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
+
+        // ── Content Security Policy ───────────────────────────────────────────
+        // Key directives:
+        //   frame-ancestors 'none' — prevents embedding in any frame (clickjacking)
+        //   object-src 'none'      — blocks Flash/ActiveX/plugins
+        //   base-uri 'self'        — prevents base-tag injection
+        //   form-action 'self'     — prevents cross-origin form submission
+        //
+        // In local development the Vite dev server runs on a separate origin
+        // (typically http://127.0.0.1:5173 or http://localhost:5173). Scripts and
+        // WebSocket HMR connections from that origin are explicitly allowed here so
+        // the browser does not block hot-module replacement.
+        //
+        // Scripts: bundled files from 'self' plus inline scripts that carry this
+        // request's nonce. No 'unsafe-inline', in any environment: an injected
+        // <script> or on*= handler does not run. Inline event handlers cannot
+        // carry a nonce, so views attach listeners from a nonced script instead.
+        $isLocal = app()->environment('local');
+
+        // Include the host the request actually arrived on, so a device on the
+        // LAN testing against http://<ip>:8000 can still reach the Vite dev
+        // server. A fixed localhost list only works when the browser and the
+        // server are the same machine — a phone scanning a QR is not.
+        $devHosts = ['localhost', '127.0.0.1'];
+
+        $requestHost = $request->getHost();
+
+        if ($isLocal && filter_var($requestHost, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false && ! in_array($requestHost, $devHosts, true)) {
+            $devHosts[] = $requestHost;
+        }
+
+        $viteHttp = implode(' ', array_map(static fn (string $host): string => "http://{$host}:5173", $devHosts));
+        $viteWs = implode(' ', array_map(static fn (string $host): string => "ws://{$host}:5173", $devHosts));
+
+        $scriptSrc = $isLocal
+            ? "script-src 'self' 'nonce-{$nonce}' {$viteHttp}"
+            : "script-src 'self' 'nonce-{$nonce}'";
+
+        $connectSrc = $isLocal
+            ? "connect-src 'self' ws: wss: {$viteWs} {$viteHttp}"
+            : "connect-src 'self' ws: wss:";
+
+        // Fonts are bundled (resources/css/fonts.css) and served from 'self' in
+        // a build; under `npm run dev` Vite serves them from its own origin.
+        // `data:` covers fonts inlined into ID card / organogram captures.
+        $fontSrc = $isLocal
+            ? "font-src 'self' data: {$viteHttp}"
+            : "font-src 'self' data:";
+
+        // Map tiles (config/maps.php) are the one outside image source — plus the
+        // public object store when logos and favicons live there (S3 driver).
+        $imgSrc = trim("img-src 'self' data: blob: ".self::tileOrigin((string) config('maps.tile_url', '')).' '.self::publicStorageOrigin());
+
+        $response->headers->set('Content-Security-Policy', implode('; ', [
+            "default-src 'self'",
+            $scriptSrc,
+            "style-src 'self' 'unsafe-inline'",
+            $imgSrc,
+            $fontSrc,
+            $connectSrc,
+            "frame-ancestors 'none'",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'",
+        ]));
+
+        // ── HSTS (HTTPS only) ─────────────────────────────────────────────────
+        // Only sent when the request was served over HTTPS to avoid accidentally
+        // pinning a site that later loses its certificate, or breaking plain-HTTP
+        // local development.  63 072 000 s = 2 years.
+        if ($request->isSecure()) {
+            $response->headers->set(
+                'Strict-Transport-Security',
+                'max-age=63072000; includeSubDomains; preload'
+            );
+        }
+
+        return $response;
+    }
+
+    /**
+     * The scheme and host of the map tile template, for img-src. A `{s}`
+     * subdomain placeholder becomes a wildcard; anything that is not an
+     * http(s) URL adds nothing.
+     */
+    public static function tileOrigin(string $template): string
+    {
+        $wildcard = str_contains($template, '://{s}.');
+        $parts = parse_url(str_replace('://{s}.', '://sub.', $template));
+        if (! is_array($parts) || ! in_array($parts['scheme'] ?? null, ['http', 'https'], true) || empty($parts['host'])) {
+            return '';
+        }
+        $host = $wildcard ? '*.'.substr($parts['host'], 4) : $parts['host'];
+
+        return $parts['scheme'].'://'.$host.(isset($parts['port']) ? ':'.$parts['port'] : '');
+    }
+
+    /**
+     * The origin of the public object store (logos, favicons, public uploads)
+     * when it is not this application: the `local` public disk is served from
+     * 'self', so it adds nothing.
+     */
+    public static function publicStorageOrigin(): string
+    {
+        if ((string) config('filesystems.disks.public.driver') === 'local') {
+            return '';
+        }
+
+        return self::tileOrigin((string) config('filesystems.disks.public.url', ''));
+    }
+}

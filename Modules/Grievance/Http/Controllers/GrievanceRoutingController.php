@@ -1,0 +1,438 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Grievance\Http\Controllers;
+
+use App\Enums\AuditEventType;
+use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceAudit;
+use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaDayType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPurpose;
+use Modules\Grievance\Domain\Enums\GrievanceSlaStartPoint;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
+
+/**
+ * Routing graph and SLA policies (docs/grievance-management.md §5–6). A new
+ * or changed route is inactive for new cases until a DIFFERENT user approves
+ * it; existing stages keep the route they used. SLA edits never touch
+ * existing stages (they hold a snapshot).
+ */
+class GrievanceRoutingController extends Controller
+{
+    public function __construct(
+        private readonly GrievanceHandlerRegistry $handlers,
+        private readonly GrievancePresenter $presenter,
+        private readonly GrievanceAudit $audit,
+        private readonly OrganizationScopeService $scope,
+    ) {}
+
+    // ── Routes ───────────────────────────────────────────────────────────────
+
+    public function routes(Request $request): Response
+    {
+        $user = $request->user();
+        abort_unless($user->can('grievance_routes.view'), 403);
+
+        $query = GrievanceRoute::query()->with(['category:id,name_en,name_am', 'slaProfile:id,name_en,name_am', 'creator:id,name', 'approver:id,name']);
+        if ($request->filled('movement_type')) {
+            $query->where('movement_type', (string) $request->string('movement_type'));
+        }
+        foreach (['source', 'target'] as $side) {
+            $type = (string) $request->string("{$side}_handler_type");
+            if ($type === '') {
+                continue;
+            }
+            // Team and Directorate filter by the designated units of that kind.
+            if (in_array($type, GrievanceHandlerUnit::KINDS, true)) {
+                $query->where("{$side}_handler_type", GrievanceHandlerType::OrganizationUnit->value)
+                    ->whereIn("{$side}_handler_id", GrievanceHandlerUnit::query()->where('kind', $type)->select('organization_unit_id'));
+            } else {
+                $query->where("{$side}_handler_type", $type);
+            }
+        }
+        if ($request->filled('state')) {
+            match ((string) $request->string('state')) {
+                'pending' => $query->whereNull('approved_at')->where('is_active', true),
+                'active' => $query->whereNotNull('approved_at')->where('is_active', true),
+                'inactive' => $query->where('is_active', false),
+                default => null,
+            };
+        }
+
+        $page = $query->orderBy('movement_type')->orderBy('priority')->paginate(30)->withQueryString();
+        $page->through(fn (GrievanceRoute $r) => [
+            'id' => $r->getKey(),
+            'source' => $this->presenter->handler($r->source_handler_type->value, $r->source_handler_id),
+            'include_descendants' => $r->include_descendants,
+            'target' => $this->presenter->handler($r->target_handler_type->value, $r->target_handler_id),
+            'target_unit' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit && ! $r->target_all ? $this->unitReadiness((string) $r->target_handler_id) : null,
+            // Shown and edited as Grievance Team / Grievance Directorate.
+            'source_kind' => $r->source_handler_type === GrievanceHandlerType::OrganizationUnit
+                ? ($r->source_all ? $r->source_unit_kind : $this->unitReadiness((string) $r->source_handler_id)['kind']) : null,
+            'source_all' => (bool) $r->source_all,
+            'target_all' => (bool) $r->target_all,
+            'target_kind' => $r->target_handler_type === GrievanceHandlerType::OrganizationUnit
+                ? ($r->target_all ? 'team' : $this->unitReadiness((string) $r->target_handler_id)['kind']) : null,
+            'movement_type' => $r->movement_type->value,
+            'category' => $r->category?->only(['id', 'name_en', 'name_am']),
+            'sla_profile' => $r->slaProfile?->only(['id', 'name_en', 'name_am']),
+            'priority' => $r->priority,
+            'effective_from' => $r->effective_from?->toDateString(),
+            'effective_to' => $r->effective_to?->toDateString(),
+            'is_active' => $r->is_active,
+            'approved_at' => $r->approved_at?->toIso8601String(),
+            'approved_by' => $r->approver?->name,
+            'created_by' => $r->creator?->name,
+            'created_by_id' => $r->created_by,
+            'notes' => $r->notes,
+            'cross_organization' => $this->isCrossOrganization($r),
+        ]);
+
+        $all = GrievanceRoute::query();
+        $summary = [
+            'active' => (clone $all)->whereNotNull('approved_at')->where('is_active', true)->count(),
+            'pending' => (clone $all)->whereNull('approved_at')->where('is_active', true)->count(),
+            'inactive' => (clone $all)->where('is_active', false)->count(),
+            // Active routes into a Team/Directorate that is not designated or has nobody named yet.
+            'unit_gaps' => (clone $all)->where('is_active', true)->where('target_all', false)->where('target_handler_type', GrievanceHandlerType::OrganizationUnit->value)
+                ->pluck('target_handler_id')->unique()->filter(fn ($id) => ! $this->unitReadiness((string) $id)['ready'])->count(),
+        ];
+
+        return Inertia::render('Grievances/Routing/Index', [
+            'summary' => $summary,
+            'routes' => $page,
+            'filters' => $request->only(['movement_type', 'source_handler_type', 'target_handler_type', 'state']),
+            'options' => $this->handlerOptions($request),
+            'can' => ['manage' => $user->can('grievance_routes.manage'), 'approve' => $user->can('grievance_routes.approve')],
+        ]);
+    }
+
+    public function storeRoute(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->can('grievance_routes.manage'), 403);
+        $data = $this->validateRoute($request);
+        $route = GrievanceRoute::query()->create([...$data, 'is_active' => true, 'created_by' => $request->user()->getKey(), 'approved_at' => null]);
+        $this->audit->record(AuditEventType::GrievanceRouteSaved, $request->user(), $route, collect($data)->except('notes')->all());
+
+        return back()->with('flash', ['message' => __('grievances.flash.route_saved'), 'type' => 'success']);
+    }
+
+    /** Editing a route re-requires approval; its history in stages is untouched. */
+    public function updateRoute(Request $request, GrievanceRoute $grievanceRoute): RedirectResponse
+    {
+        $route = $grievanceRoute;
+        abort_unless($request->user()->can('grievance_routes.manage'), 403);
+        if ($request->boolean('deactivate')) {
+            $route->forceFill(['is_active' => false, 'effective_to' => $route->effective_to ?? now()->toDateString()])->save();
+            $this->audit->record(AuditEventType::GrievanceRouteSaved, $request->user(), $route, ['is_active' => false]);
+
+            return back()->with('flash', ['message' => __('grievances.flash.saved'), 'type' => 'success']);
+        }
+
+        $data = $this->validateRoute($request);
+        $old = $route->only(array_keys($data));
+        $route->forceFill([...$data, 'approved_at' => null, 'approved_by' => null, 'created_by' => $request->user()->getKey()])->save();
+        $this->audit->record(AuditEventType::GrievanceRouteSaved, $request->user(), $route, collect($data)->except('notes')->all(), collect($old)->map(fn ($v) => $v instanceof \BackedEnum ? $v->value : $v)->except('notes')->all());
+
+        return back()->with('flash', ['message' => __('grievances.flash.route_saved'), 'type' => 'success']);
+    }
+
+    public function approveRoute(Request $request, GrievanceRoute $grievanceRoute): RedirectResponse
+    {
+        $route = $grievanceRoute;
+        $user = $request->user();
+        abort_unless($user->can('grievance_routes.approve'), 403);
+        if ((int) $route->created_by === (int) $user->getKey() && ! $user->isSuperAdmin()) {
+            throw ValidationException::withMessages(['route' => __('grievances.errors.separation_of_duties')]);
+        }
+        $route->forceFill(['approved_at' => now(), 'approved_by' => $user->getKey()])->save();
+        $this->audit->record(AuditEventType::GrievanceRouteApproved, $user, $route, ['route_id' => $route->getKey()]);
+
+        return back()->with('flash', ['message' => __('grievances.flash.route_approved'), 'type' => 'success']);
+    }
+
+    // ── SLA profiles ─────────────────────────────────────────────────────────
+
+    public function slaProfiles(Request $request): Response
+    {
+        $user = $request->user();
+        abort_unless($user->can('grievance_sla.view'), 403);
+
+        return Inertia::render('Grievances/Sla/Index', [
+            'profiles' => GrievanceSlaProfile::query()->with(['organization:id,name_en,name_am', 'category:id,name_en,name_am'])
+                ->orderByDesc('is_active')->orderBy('purpose')->orderBy('priority')->get()
+                ->map(fn (GrievanceSlaProfile $p) => [
+                    ...$p->only(['id', 'name_en', 'name_am', 'handler_id', 'resolution_days', 'priority', 'is_active']),
+                    'purpose' => $p->purpose->value,
+                    'handler_type' => $p->handler_type?->value,
+                    'handler' => $p->handler_type && $p->handler_id ? $this->presenter->handler($p->handler_type->value, $p->handler_id) : null,
+                    'day_type' => $p->day_type->value,
+                    'start_point' => $p->start_point->value,
+                    'warning_thresholds' => $p->warning_thresholds,
+                    'auto_escalate' => $p->auto_escalate,
+                    'organization' => $p->organization?->only(['id', 'name_en', 'name_am']),
+                    'category' => $p->category?->only(['id', 'name_en', 'name_am']),
+                    'effective_from' => $p->effective_from?->toDateString(),
+                    'effective_to' => $p->effective_to?->toDateString(),
+                ])->values(),
+            'options' => [
+                ...$this->handlerOptions($request),
+                'purposes' => GrievanceSlaPurpose::values(),
+                'day_types' => GrievanceSlaDayType::values(),
+                'start_points' => GrievanceSlaStartPoint::values(),
+            ],
+            'can' => ['manage' => $user->can('grievance_sla.manage')],
+        ]);
+    }
+
+    public function storeSlaProfile(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->can('grievance_sla.manage'), 403);
+        $profile = GrievanceSlaProfile::query()->create([...$this->validateSla($request), 'created_by' => $request->user()->getKey()]);
+        $this->audit->record(AuditEventType::GrievanceConfigurationChanged, $request->user(), $profile, ['sla_profile' => $profile->getKey(), 'days' => $profile->resolution_days]);
+
+        return back()->with('flash', ['message' => __('grievances.flash.saved'), 'type' => 'success']);
+    }
+
+    /**
+     * Profiles are versioned by effective dates: an edit ends the old profile
+     * today and creates a new one, so reports can see which policy applied.
+     */
+    public function updateSlaProfile(Request $request, GrievanceSlaProfile $profile): RedirectResponse
+    {
+        abort_unless($request->user()->can('grievance_sla.manage'), 403);
+        if ($request->boolean('deactivate')) {
+            $profile->forceFill(['is_active' => false, 'effective_to' => $profile->effective_to ?? now()->toDateString()])->save();
+        } else {
+            $data = $this->validateSla($request);
+            $profile->forceFill(['effective_to' => now()->subDay()->toDateString(), 'is_active' => false])->save();
+            GrievanceSlaProfile::query()->create([...$data, 'effective_from' => now()->toDateString(), 'created_by' => $request->user()->getKey()]);
+        }
+        $this->audit->record(AuditEventType::GrievanceConfigurationChanged, $request->user(), $profile, ['sla_profile' => $profile->getKey(), 'deactivated' => $request->boolean('deactivate')]);
+
+        return back()->with('flash', ['message' => __('grievances.flash.saved'), 'type' => 'success']);
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /** @return array<string, mixed> */
+    private function validateRoute(Request $request): array
+    {
+        $this->mapUnitKinds($request, ['source_', 'target_']);
+
+        // "All" as the source: every institution, every committee, every team (or the directorate), not one handler.
+        $sourceAll = $request->input('source_handler_id') === 'all';
+        if ($sourceAll) {
+            $request->merge(['source_handler_id' => null]);
+        }
+        // "All" as the target is scoped: institutions → their own committee; committees → the nearest team.
+        $targetAll = $request->input('target_handler_id') === 'all';
+        if ($targetAll) {
+            $request->merge(['target_handler_id' => null]);
+        }
+
+        $data = $request->validate([
+            'source_handler_type' => ['required', Rule::in(GrievanceHandlerType::values())],
+            'source_handler_id' => [$sourceAll ? 'nullable' : 'required', 'nullable', 'uuid'],
+            'include_descendants' => ['nullable', 'boolean'],
+            'target_handler_type' => ['required', Rule::in([GrievanceHandlerType::Committee->value, GrievanceHandlerType::OrganizationUnit->value, GrievanceHandlerType::ExternalAuthority->value])],
+            'target_handler_id' => [$targetAll ? 'nullable' : 'required', 'nullable', 'uuid', 'different:source_handler_id'],
+            'movement_type' => ['required', Rule::in(GrievanceMovementType::values())],
+            'category_id' => ['nullable', 'uuid', 'exists:grievance_categories,id'],
+            'sla_profile_id' => ['nullable', 'uuid', 'exists:grievance_sla_profiles,id'],
+            'priority' => ['required', 'integer', 'min:1', 'max:1000'],
+            'effective_from' => ['required', 'date'],
+            'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $sourceType = GrievanceHandlerType::from($data['source_handler_type']);
+        $data['source_all'] = $sourceAll;
+        $data['source_unit_kind'] = $sourceAll && $sourceType === GrievanceHandlerType::OrganizationUnit ? ($this->sourceKind ?? 'team') : null;
+        if ($sourceAll && ! in_array($sourceType, [GrievanceHandlerType::Organization, GrievanceHandlerType::Committee, GrievanceHandlerType::OrganizationUnit], true)) {
+            throw ValidationException::withMessages(['source_handler_id' => __('grievances.errors.all_source_not_allowed')]);
+        }
+        $data['target_all'] = $targetAll;
+        $scopedTarget = ($data['target_handler_type'] === GrievanceHandlerType::Committee->value && $sourceType === GrievanceHandlerType::Organization)
+            || ($data['target_handler_type'] === GrievanceHandlerType::OrganizationUnit->value && $this->targetKind === 'team' && $sourceType === GrievanceHandlerType::Committee);
+        if ($targetAll && ! $scopedTarget) {
+            throw ValidationException::withMessages(['target_handler_id' => __('grievances.errors.all_target_not_allowed')]);
+        }
+        if ((! $sourceAll && $this->handlers->find($sourceType, $data['source_handler_id']) === null)
+            || (! $targetAll && $this->handlers->find(GrievanceHandlerType::from($data['target_handler_type']), $data['target_handler_id']) === null)) {
+            throw ValidationException::withMessages(['target_handler_id' => __('grievances.errors.handler_missing')]);
+        }
+        // ADR 0030: a route to the court (an external authority) starts from the Grievance Directorate only.
+        $fromDirectorate = $sourceAll ? $data['source_unit_kind'] === 'directorate' : $this->handlers->isGrievanceDirectorate($sourceType, $data['source_handler_id']);
+        if ($data['target_handler_type'] === GrievanceHandlerType::ExternalAuthority->value && ! $fromDirectorate) {
+            throw ValidationException::withMessages(['source_handler_id' => __('grievances.errors.court_only_from_directorate')]);
+        }
+        // ADR 0029: a Team/Directorate in a route is a designated unit (Teams / Directorate pages).
+        foreach (['source', 'target'] as $side) {
+            if ($data["{$side}_handler_type"] === GrievanceHandlerType::OrganizationUnit->value && $data["{$side}_handler_id"] !== null
+                && ! GrievanceHandlerUnit::query()->where('organization_unit_id', $data["{$side}_handler_id"])->where('status', 'active')->exists()) {
+                throw ValidationException::withMessages(["{$side}_handler_id" => __('grievances.errors.unit_not_designated')]);
+            }
+        }
+        if (($sourceType === GrievanceHandlerType::Organization) !== ($data['movement_type'] === GrievanceMovementType::InitialAssignment->value)) {
+            throw ValidationException::withMessages(['movement_type' => __('grievances.errors.initial_route_source')]);
+        }
+        $data['include_descendants'] = (bool) ($data['include_descendants'] ?? false) && $sourceType === GrievanceHandlerType::Organization && ! $sourceAll;
+
+        return $data;
+    }
+
+    /** @return array<string, mixed> */
+    private function validateSla(Request $request): array
+    {
+        if ($request->filled('handler_id')) {
+            $this->mapUnitKinds($request, ['']);
+        }
+        $data = $request->validate([
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_am' => ['nullable', 'string', 'max:255'],
+            'purpose' => ['required', Rule::in(GrievanceSlaPurpose::values())],
+            'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
+            'handler_type' => ['nullable', Rule::in([GrievanceHandlerType::Committee->value, GrievanceHandlerType::OrganizationUnit->value, GrievanceHandlerType::ExternalAuthority->value])],
+            'handler_id' => ['nullable', 'uuid'],
+            'category_id' => ['nullable', 'uuid', 'exists:grievance_categories,id'],
+            'resolution_days' => ['required', 'integer', 'min:1', 'max:365'],
+            'day_type' => ['required', Rule::in(GrievanceSlaDayType::values())],
+            'start_point' => ['required', Rule::in(GrievanceSlaStartPoint::values())],
+            'warning_percent' => ['nullable', 'array'],
+            'warning_percent.*' => ['integer', 'min:1', 'max:99'],
+            'warning_days_remaining' => ['nullable', 'array'],
+            'warning_days_remaining.*' => ['integer', 'min:1', 'max:60'],
+            'warning_due_today' => ['nullable', 'boolean'],
+            'auto_escalate' => ['required', 'boolean'],
+            'priority' => ['required', 'integer', 'min:1', 'max:1000'],
+            'effective_from' => ['required', 'date'],
+            'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
+        ]);
+        $data['warning_thresholds'] = [
+            'percent' => array_values(array_map('intval', $data['warning_percent'] ?? [])),
+            'days_remaining' => array_values(array_map('intval', $data['warning_days_remaining'] ?? [])),
+            'due_today' => (bool) ($data['warning_due_today'] ?? false),
+        ];
+        unset($data['warning_percent'], $data['warning_days_remaining'], $data['warning_due_today']);
+        $data['is_active'] = true;
+
+        return $data;
+    }
+
+    /** @return array<string, mixed> */
+    private function handlerOptions(Request $request): array
+    {
+        $user = $request->user();
+
+        return [
+            'movement_types' => GrievanceMovementType::values(),
+            'handler_types' => GrievanceHandlerType::values(),
+            'organizations' => Organization::query()->where('status', 'active')->orderBy('name_en')->limit(2000)->get(['id', 'name_en', 'name_am']),
+            'committees' => GrievanceCommittee::query()->whereIn('committee_type', GrievanceHandlerRegistry::grievanceCommitteeTypes())
+                ->where('status', '!=', 'inactive')->with('organization:id,name_en,name_am')->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'organization_id', 'status']),
+            'external_authorities' => GrievanceExternalAuthority::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
+            // ADR 0029: Teams/Directorates are offered from their designations; the id is the unit's.
+            'handler_units' => GrievanceHandlerUnit::query()->where('status', 'active')->with(['organizationUnit:id,name_en,name_am', 'organization:id,name_en,name_am'])->get()
+                ->filter(fn (GrievanceHandlerUnit $u) => $u->organizationUnit !== null)
+                ->map(fn (GrievanceHandlerUnit $u) => [
+                    'id' => $u->organization_unit_id, 'name_en' => $u->organizationUnit->name_en, 'name_am' => $u->organizationUnit->name_am,
+                    'kind' => $u->kind, 'organization' => $u->organization?->only(['id', 'name_en', 'name_am']),
+                ])->sortBy('name_en')->values(),
+            'categories' => GrievanceCategory::query()->where('is_active', true)->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
+            'sla_profiles' => GrievanceSlaProfile::query()->where('is_active', true)->where('purpose', 'resolution')->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
+            // Units are loaded per organization through the lookup endpoint.
+        ];
+    }
+
+    /**
+     * The forms offer Grievance Team and Grievance Directorate as separate handler
+     * choices; both are organization units underneath. Map them back, and check the
+     * chosen unit is designated as that kind.
+     *
+     * @param  list<string>  $prefixes  field prefixes, e.g. ['source_', 'target_'] or ['']
+     */
+    private function mapUnitKinds(Request $request, array $prefixes): void
+    {
+        $this->sourceKind = null;
+        $this->targetKind = null;
+        foreach ($prefixes as $prefix) {
+            $kind = (string) $request->input("{$prefix}handler_type");
+            if (! in_array($kind, GrievanceHandlerUnit::KINDS, true)) {
+                continue;
+            }
+            $request->merge(["{$prefix}handler_type" => GrievanceHandlerType::OrganizationUnit->value]);
+            if ($prefix === 'source_') {
+                $this->sourceKind = $kind;
+            }
+            if ($prefix === 'target_') {
+                $this->targetKind = $kind;
+            }
+            if ($request->input("{$prefix}handler_id") === 'all') {
+                continue; // "All teams" / "the directorate": checked against the kind, not one unit.
+            }
+            if (! GrievanceHandlerUnit::query()->where('organization_unit_id', (string) $request->input("{$prefix}handler_id"))->where('kind', $kind)->where('status', 'active')->exists()) {
+                throw ValidationException::withMessages(["{$prefix}handler_id" => __('grievances.errors.unit_not_designated')]);
+            }
+        }
+    }
+
+    /** Kind (team/directorate) the route form chose for its source, set by mapUnitKinds(). */
+    private ?string $sourceKind = null;
+
+    /** Kind (team/directorate) the route form chose for its target, set by mapUnitKinds(). */
+    private ?string $targetKind = null;
+
+    /** @var array<string, array{designated: bool, kind: string|null, members: int, head: string|null, ready: bool}> */
+    private array $readiness = [];
+
+    /**
+     * ADR 0029: whether a Team/Directorate target can take cases — designated,
+     * with named serving members and a head.
+     *
+     * @return array{designated: bool, kind: string|null, members: int, head: string|null, ready: bool}
+     */
+    private function unitReadiness(string $unitId): array
+    {
+        if (isset($this->readiness[$unitId])) {
+            return $this->readiness[$unitId];
+        }
+        $designation = GrievanceHandlerUnit::query()->where('organization_unit_id', $unitId)->where('status', 'active')->first();
+        $serving = $designation?->members()->servingOn(now())->with('employee:id,full_name')->get() ?? collect();
+        $head = $serving->firstWhere('responsibility', 'head');
+
+        return $this->readiness[$unitId] = [
+            'designated' => $designation !== null,
+            'kind' => $designation?->kind,
+            'members' => $serving->count(),
+            'head' => $head?->employee?->full_name,
+            'ready' => $designation !== null && $head !== null,
+        ];
+    }
+
+    private function isCrossOrganization(GrievanceRoute $route): bool
+    {
+        $source = $this->handlers->organizationIdOf($route->source_handler_type, $route->source_handler_id);
+        $target = $this->handlers->organizationIdOf($route->target_handler_type, $route->target_handler_id);
+
+        return $source !== null && $target !== null && $source !== $target;
+    }
+}

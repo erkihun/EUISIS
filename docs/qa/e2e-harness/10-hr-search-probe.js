@@ -1,0 +1,21 @@
+'use strict';
+const { BASE, newBrowser, login } = require('./lib');
+(async () => {
+    const { browser, page } = await newBrowser();
+    const reqs = [];
+    page.on('request', (r) => { if (r.url().includes('/organizations')) reqs.push(r.method() + ' ' + r.url().replace(BASE, '') + ' inertia=' + (r.headers()['x-inertia'] || '-')); });
+    await login(page, 'qa.sysadmin1@demo.local', 'password');
+    await page.goto(BASE + '/organizations', { waitUntil: 'networkidle' });
+    reqs.length = 0;
+    await page.locator('input[placeholder*="Search by code"]').first().fill('SC-01');
+    await page.locator('button:has-text("Filter")').first().click();
+    await page.waitForTimeout(2500);
+    console.log('after click:', page.url(), JSON.stringify(reqs));
+    console.log('rows', await page.locator('table tbody tr').count());
+    reqs.length = 0;
+    await page.locator('input[placeholder*="Search by code"]').first().press('Enter');
+    await page.waitForTimeout(2500);
+    console.log('after enter:', page.url(), JSON.stringify(reqs));
+    console.log('rows', await page.locator('table tbody tr').count());
+    await browser.close();
+})();

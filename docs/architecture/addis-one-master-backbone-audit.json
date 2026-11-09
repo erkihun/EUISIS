@@ -1,0 +1,1113 @@
+{
+  "audit": "Addis One master backbone architecture readiness",
+  "date": "2026-10-19",
+  "head": "cc4a44f6",
+  "report": "docs/architecture/addis-one-master-backbone-audit.md",
+  "status_vocabulary": [
+    "COMPLIANT",
+    "PARTIALLY_COMPLIANT",
+    "NON_COMPLIANT",
+    "NOT_IMPLEMENTED",
+    "NOT_APPLICABLE",
+    "NEEDS_POLICY_DECISION",
+    "NOT_VERIFIED"
+  ],
+  "severity_vocabulary": [
+    "P0",
+    "P1",
+    "P2",
+    "P3",
+    "NONE"
+  ],
+  "maturity_score": {
+    "total": 60,
+    "max": 100,
+    "areas": [
+      {
+        "area": "Master data authority",
+        "weight": 20,
+        "awarded": 17
+      },
+      {
+        "area": "Identity integrity",
+        "weight": 15,
+        "awarded": 12
+      },
+      {
+        "area": "Assignment and position",
+        "weight": 10,
+        "awarded": 8
+      },
+      {
+        "area": "API architecture",
+        "weight": 15,
+        "awarded": 8
+      },
+      {
+        "area": "Security",
+        "weight": 15,
+        "awarded": 6
+      },
+      {
+        "area": "Events and webhooks",
+        "weight": 10,
+        "awarded": 1
+      },
+      {
+        "area": "Scalability and availability",
+        "weight": 10,
+        "awarded": 5
+      },
+      {
+        "area": "Governance and documentation",
+        "weight": 5,
+        "awarded": 3
+      }
+    ]
+  },
+  "verdicts": {
+    "system_of_record": {
+      "organization": "PARTIAL",
+      "unit": "PARTIAL",
+      "position": "PARTIAL",
+      "employee": "PARTIAL",
+      "assignment": "PARTIAL",
+      "id_card": "PARTIAL"
+    },
+    "api_backbone": "PARTIAL",
+    "event_integration": "NO",
+    "scale_3m": "PARTIAL",
+    "oauth2_client_credentials": "NOT_READY",
+    "api_gateway": "RECOMMENDED_BEFORE_EXTERNAL_ROLLOUT",
+    "event_bus": "LARAVEL_QUEUE_PLUS_DB_OUTBOX_SUFFICIENT",
+    "microservices": "KEEP_MODULAR_MONOLITH",
+    "security": "NOT_READY",
+    "final": "MASTER_BACKBONE_ARCHITECTURE_NOT_READY"
+  },
+  "checklist": [
+    {
+      "id": "R01",
+      "requirement": "One canonical Organization master",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "database/migrations/2026_05_09_160000_create_domain_foundation_tables.php",
+        "app/Models/Organization.php"
+      ],
+      "risk": "None found",
+      "recommendation": "Keep",
+      "dependency": []
+    },
+    {
+      "id": "R02",
+      "requirement": "One canonical Organization Unit master",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Models/OrganizationUnit.php",
+        "database/migrations/2026_06_02_040000_add_institution_office_id_to_organization_units_table.php",
+        "tests/Feature/InstitutionOffices/DeprecationTest.php"
+      ],
+      "risk": "Legacy InstitutionOffice mapping still referenced by ~10 classes; unit parent is mutable, not versioned",
+      "recommendation": "Retire InstitutionOffice after usage reconciliation; expose hierarchy version with units",
+      "dependency": []
+    },
+    {
+      "id": "R03",
+      "requirement": "Effective-dated hierarchy with structural/functional distinction and loop prevention",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Actions/Organizations/PublishHierarchyVersionAction.php",
+        "app/Services/OrganizationRelationships/RelationshipValidationService.php",
+        "app/Services/Hierarchy/HierarchyVersionResolver.php"
+      ],
+      "risk": "Resolver picks future-dated published version as current (F20); publish cycle check ignores relationship type; no as-of resolver",
+      "recommendation": "Filter effective_from <= today; add as-of resolver; validate functional edges separately",
+      "dependency": []
+    },
+    {
+      "id": "R04",
+      "requirement": "Position is a stable slot distinct from Employee and Assignment",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/Position.php",
+        "app/Models/EmployeeAssignment.php"
+      ],
+      "risk": "None",
+      "recommendation": "Keep",
+      "dependency": []
+    },
+    {
+      "id": "R05",
+      "requirement": "Occupancy derived from Position + active Assignment",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Services/Vacancy/PositionCapacityService.php",
+        "app/Services/Api/OrganizationDataPresenter.php"
+      ],
+      "risk": "availableSlotsForPosition() uses PositionOccupancy rows without fallback while placement uses current assignments; API vacant ignores capacity and status (F10)",
+      "recommendation": "Single capacity definition; additive occupied_count/available_slots",
+      "dependency": [
+        "NEEDS_POLICY_DECISION: capacity definition"
+      ]
+    },
+    {
+      "id": "R06",
+      "requirement": "Position archive preserves assignment integrity",
+      "status": "NON_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Actions/Positions/ArchivePositionAction.php",
+        "app/Policies/PositionPolicy.php"
+      ],
+      "risk": "Soft-deleting a position with a current assignment hides the assignment's position relation (F10)",
+      "recommendation": "Block or require closure of active assignments",
+      "dependency": []
+    },
+    {
+      "id": "R07",
+      "requirement": "Employee is the canonical person/employment master",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/Employee.php",
+        "app/Actions/Employees/RegisterEmployeeAction.php"
+      ],
+      "risk": "No duplicate staff/personnel master found in app or external-apps",
+      "recommendation": "Keep",
+      "dependency": []
+    },
+    {
+      "id": "R08",
+      "requirement": "User account is not the HR master",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Models/User.php",
+        "database/migrations/2026_09_23_110000_add_employee_self_service_and_print_snapshots.php",
+        "app/Observers/EmployeeCardImpactObserver.php"
+      ],
+      "risk": "users keeps its own encrypted national_id and phone_number and legacy email auto-matching; no field-ownership rule",
+      "recommendation": "Decide field ownership; treat user profile fields as copies",
+      "dependency": [
+        "NEEDS_POLICY_DECISION"
+      ]
+    },
+    {
+      "id": "R09",
+      "requirement": "Provider users separate from Employee",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/ProviderUser.php"
+      ],
+      "risk": "No link if a civil servant is also a provider user",
+      "recommendation": "Keep separate; decide whether an optional link is wanted",
+      "dependency": []
+    },
+    {
+      "id": "R10",
+      "requirement": "Employee number is a business key, not the only machine key",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "database/migrations/2026_05_09_160000_create_domain_foundation_tables.php",
+        "app/Services/Api/OrganizationDataPresenter.php"
+      ],
+      "risk": "Separate cafeteria app keys transactions on employee_number only (F3)",
+      "recommendation": "Keep employee_number; satellites also store employee.id",
+      "dependency": [
+        "R13"
+      ]
+    },
+    {
+      "id": "R11",
+      "requirement": "Stable integration identifiers for organization, unit, position, employee, assignment, card",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/Concerns/HasUuidPrimaryKey.php",
+        "docs/audits/backbone-readonly-probe.php"
+      ],
+      "risk": "Immutability is convention, not enforced; not stated in contract",
+      "recommendation": "Publish immutability/non-reuse guarantee; do not add duplicate UUID columns",
+      "dependency": []
+    },
+    {
+      "id": "R12",
+      "requirement": "Employee UUID, employee number and card UUID are distinct; card UUID stable across reprint",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Services/IdCards/CardQrPayloadService.php",
+        "database/migrations/2026_05_26_000008_add_stable_qr_fields_to_id_cards.php"
+      ],
+      "risk": "None",
+      "recommendation": "Never regenerate public_card_uuid en masse",
+      "dependency": []
+    },
+    {
+      "id": "R13",
+      "requirement": "Partner verification returns canonical employee identifier",
+      "status": "NON_COMPLIANT",
+      "severity": "P0",
+      "evidence": [
+        "app/Http/Controllers/Api/V1/IdCardVerificationApiController.php",
+        "external-apps/cafeteria-system/app/Services/ServeEmployeeService.php",
+        "external-apps/cafeteria-system/tests/Feature/ServeEmployeeTest.php"
+      ],
+      "risk": "Cafeteria skips eligibility because employee id is absent and records eligible/served (F3)",
+      "recommendation": "Return employee.id; consumer denies when missing; shared contract fixture",
+      "dependency": [
+        "R15",
+        "R31"
+      ]
+    },
+    {
+      "id": "R14",
+      "requirement": "QR contains only an opaque reference; no PII in QR",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Services/IdCards/CardQrPayloadService.php"
+      ],
+      "risk": "None",
+      "recommendation": "Keep",
+      "dependency": []
+    },
+    {
+      "id": "R15",
+      "requirement": "Partner verification honors QR revocation and card currency",
+      "status": "NON_COMPLIANT",
+      "severity": "P0",
+      "evidence": [
+        "app/Http/Controllers/Api/V1/IdCardVerificationApiController.php",
+        "docs/audits/BackboneBoundaryEvidenceTest.php"
+      ],
+      "risk": "Active card with qr_status=revoked returns valid=true (F5, reproduced)",
+      "recommendation": "Shared credential-state check across public checker, partner API and eligibility",
+      "dependency": []
+    },
+    {
+      "id": "R16",
+      "requirement": "Public QR endpoint returns approved minimal data, separate from partner API",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "routes/web.php",
+        "app/Http/Controllers/Web/PublicIdCheckerController.php",
+        "app/Services/PublicIdCheckerService.php"
+      ],
+      "risk": "Holder fields only after OTP; legacy CardPublicVerifyController is not routed",
+      "recommendation": "Keep; remove dead controller when safe",
+      "dependency": []
+    },
+    {
+      "id": "R17",
+      "requirement": "Assignment is the authoritative Employee-Position relationship with history",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/EmployeeAssignment.php",
+        "app/Actions/Transfers/CompleteTransferAction.php"
+      ],
+      "risk": "None",
+      "recommendation": "Keep",
+      "dependency": []
+    },
+    {
+      "id": "R18",
+      "requirement": "At most one active primary assignment per employee",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "database/migrations/2026_10_10_300000_add_integrity_unique_constraints.php",
+        "docs/audits/backbone-readonly-probe.php"
+      ],
+      "risk": "Partial unique index + row locks enforce at most one; not exactly one, not interval non-overlap; concurrent writer test NOT_VERIFIED",
+      "recommendation": "Add interval-overlap probe; concurrent PostgreSQL test",
+      "dependency": []
+    },
+    {
+      "id": "R19",
+      "requirement": "Transfer changes assignment, preserves employee identity, closes old assignment",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Actions/Transfers/CompleteTransferAction.php",
+        "app/Actions/Vacancy/CompleteVacancyTransferAction.php"
+      ],
+      "risk": "New assignment copies old hierarchy_version_id, no job_description_id; vacancy transfer omits organization_unit_id (F10)",
+      "recommendation": "Pin destination in-force JD and hierarchy version; set unit",
+      "dependency": [
+        "NEEDS_POLICY_DECISION: in-force JD rule"
+      ]
+    },
+    {
+      "id": "R20",
+      "requirement": "ID card consumes Employee + Assignment context, not an alternative master",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/IdCard.php",
+        "app/Actions/IdCards/ReplaceCardAction.php"
+      ],
+      "risk": "None",
+      "recommendation": "Keep print snapshots and replacement chain",
+      "dependency": []
+    },
+    {
+      "id": "R21",
+      "requirement": "Specialized modules do not own competing employee/organization masters",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Models/CafeteriaTransaction.php",
+        "app/Models/TransportTransaction.php",
+        "app/Models/EmployeePerformanceAgreement.php",
+        "app/Models/EmployeeServiceFeedback.php"
+      ],
+      "risk": "Snapshots in satellites are valid copies",
+      "recommendation": "Keep",
+      "dependency": []
+    },
+    {
+      "id": "R22",
+      "requirement": "Recruitment hires create Employee via controlled onboarding",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P3",
+      "evidence": [
+        "database/migrations/2026_05_27_100004_create_vacancy_applications_table.php"
+      ],
+      "risk": "Vacancies are internal mobility only; no applicant model",
+      "recommendation": "Future governed onboarding command using RegisterEmployeeAction",
+      "dependency": [
+        "R40"
+      ]
+    },
+    {
+      "id": "R23",
+      "requirement": "API versioning",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "routes/api.php"
+      ],
+      "risk": "No deprecation/sunset mechanism",
+      "recommendation": "Add deprecation headers and schema freeze",
+      "dependency": []
+    },
+    {
+      "id": "R24",
+      "requirement": "Explicit response resources, no Eloquent dumps",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Services/Api/OrganizationDataPresenter.php",
+        "app/Http/Resources/VerificationResultResource.php"
+      ],
+      "risk": "Verification/eligibility/settlement responses are ad hoc arrays",
+      "recommendation": "Resources for every v1 response",
+      "dependency": [
+        "R35"
+      ]
+    },
+    {
+      "id": "R25",
+      "requirement": "API authorization requires correct principal, scope and resource policy",
+      "status": "NON_COMPLIANT",
+      "severity": "P0",
+      "evidence": [
+        "app/Http/Middleware/EnsureApiScope.php",
+        "app/Http/Middleware/ExternalApplicationGate.php",
+        "app/Http/Controllers/Api/V1/EmployeeDirectoryApiController.php",
+        "docs/audits/BackboneBoundaryEvidenceTest.php"
+      ],
+      "risk": "provider:access or * satisfies every scope; non-application principals skip the gate; plain user reads any employee (F1, reproduced)",
+      "recommendation": "Remove wildcard aliases on master routes; require supported principal",
+      "dependency": []
+    },
+    {
+      "id": "R26",
+      "requirement": "Partner access bounded by organization",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P1",
+      "evidence": [
+        "app/Models/ExternalApplication.php",
+        "tests/Feature/Security/ExternalApplicationOrganizationScopeTest.php"
+      ],
+      "risk": "Every grant is city-wide (F2)",
+      "recommendation": "Organization/subtree binding per application",
+      "dependency": [
+        "NEEDS_POLICY_DECISION"
+      ]
+    },
+    {
+      "id": "R27",
+      "requirement": "Machine-to-machine identity separate from human accounts",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Models/ExternalApplication.php",
+        "app/Http/Middleware/EnsureProviderServiceScope.php"
+      ],
+      "risk": "Provider-service routes call hasRole() and 500 for application tokens; they bypass the application gate and logs (F16)",
+      "recommendation": "Move provider routes onto the application gate with provider binding",
+      "dependency": [
+        "R25"
+      ]
+    },
+    {
+      "id": "R28",
+      "requirement": "Machine principal can run service eligibility",
+      "status": "NON_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Services/EmployeeServiceEligibilityService.php",
+        "docs/audits/BackboneBoundaryEvidenceTest.php"
+      ],
+      "risk": "check(?User $actor) TypeError for ExternalApplication (F4, reproduced)",
+      "recommendation": "Accept machine actor for audit",
+      "dependency": []
+    },
+    {
+      "id": "R29",
+      "requirement": "OAuth 2.0 client credentials",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P3",
+      "evidence": [
+        "composer.json"
+      ],
+      "risk": "Sanctum only; acceptable for bounded deployment",
+      "recommendation": "Decide when federation is needed",
+      "dependency": [
+        "R27"
+      ]
+    },
+    {
+      "id": "R30",
+      "requirement": "Least-privilege scopes",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Enums/ApiScope.php"
+      ],
+      "risk": "Scope set is good; wildcard undermines it; basic_read embeds assignment data",
+      "recommendation": "Keep names; bind field sets",
+      "dependency": [
+        "R25"
+      ]
+    },
+    {
+      "id": "R31",
+      "requirement": "Independent partner credentials and revocation; no shared global token",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "app/Http/Controllers/Web/ApiManagementController.php"
+      ],
+      "risk": "No automated rotation",
+      "recommendation": "Keep; add rotation runbook",
+      "dependency": []
+    },
+    {
+      "id": "R32",
+      "requirement": "Rate limiting per client, distributed",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Providers/AppServiceProvider.php",
+        "config/cache.php"
+      ],
+      "risk": "Backed by default cache store (database/file); multi-node needs shared store",
+      "recommendation": "Shared cache store in production",
+      "dependency": [
+        "R50"
+      ]
+    },
+    {
+      "id": "R33",
+      "requirement": "Idempotent integration writes",
+      "status": "NON_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Http/Middleware/EnforceIdempotencyKey.php",
+        "database/migrations/2026_10_10_300100_add_service_transaction_reference_unique.php"
+      ],
+      "risk": "Optional, non-atomic, no fingerprint (F6)",
+      "recommendation": "Durable atomic idempotency records",
+      "dependency": []
+    },
+    {
+      "id": "R34",
+      "requirement": "Offline sync durable and bounded",
+      "status": "NON_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Http/Controllers/Api/V1/OfflineSyncController.php",
+        "app/Http/Requests/Api/OfflineSyncTransactionRequest.php"
+      ],
+      "risk": "Verifies but never records; no max batch; provider scope skipped (F7, F16)",
+      "recommendation": "Record or rename verify-only; cap batch",
+      "dependency": [
+        "R33"
+      ]
+    },
+    {
+      "id": "R35",
+      "requirement": "OpenAPI / machine-readable contracts",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P1",
+      "evidence": [
+        "docs/api-organization-employee-v1.md"
+      ],
+      "risk": "Markdown only; consumer mocks drift (F3)",
+      "recommendation": "OpenAPI 3.1 validated in tests",
+      "dependency": [
+        "R25",
+        "R13"
+      ]
+    },
+    {
+      "id": "R36",
+      "requirement": "Consistent error contract without stack traces",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "bootstrap/app.php",
+        "app/Http/Middleware/EnsureApiScope.php"
+      ],
+      "risk": "Six error shapes; DomainException message passthrough",
+      "recommendation": "One envelope with request_id",
+      "dependency": [
+        "R35"
+      ]
+    },
+    {
+      "id": "R37",
+      "requirement": "Request correlation across API, audit and logs",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Http/Middleware/RequestCorrelationId.php",
+        "app/Actions/Audit/WriteAuditLogAction.php"
+      ],
+      "risk": "Audit writer generates a fresh request_id; api_request_logs lacks correlation id",
+      "recommendation": "Propagate X-Request-ID",
+      "dependency": []
+    },
+    {
+      "id": "R38",
+      "requirement": "External API access auditable without sensitive payloads",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Http/Middleware/ExternalApplicationGate.php"
+      ],
+      "risk": "Route templates logged, no bodies (good); not logged for provider routes or user tokens",
+      "recommendation": "Log all v1 principals",
+      "dependency": [
+        "R27"
+      ]
+    },
+    {
+      "id": "R39",
+      "requirement": "Incremental sync with cursors and tombstones",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Http/Controllers/Api/V1/Concerns/FiltersOrganizationData.php"
+      ],
+      "risk": "updated_after + offset; nested changes missed; soft-deleted rows vanish (F8)",
+      "recommendation": "Change journal with ordered cursor and tombstones",
+      "dependency": [
+        "R19"
+      ]
+    },
+    {
+      "id": "R40",
+      "requirement": "No generic partner CRUD on master data",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "routes/api.php"
+      ],
+      "risk": "None",
+      "recommendation": "Keep; future writes as governed commands",
+      "dependency": []
+    },
+    {
+      "id": "R41",
+      "requirement": "Historical as-of reads (assignment, structure, JD)",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P1",
+      "evidence": [
+        "app/Services/Hierarchy/HierarchyVersionResolver.php"
+      ],
+      "risk": "Cannot answer where an employee was assigned on date Y via API",
+      "recommendation": "Add after transfer context is pinned",
+      "dependency": [
+        "R19",
+        "R03"
+      ]
+    },
+    {
+      "id": "R42",
+      "requirement": "Durable master-data events / outbox",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P1",
+      "evidence": [
+        "app/Events",
+        "app/Observers/EmployeeAssignmentCommunicationObserver.php",
+        "config/queue.php"
+      ],
+      "risk": "Only communication broadcasts and backup alerts; no employee/assignment/card events reach partners (F9)",
+      "recommendation": "Transactional DB outbox + queue",
+      "dependency": [
+        "R39"
+      ]
+    },
+    {
+      "id": "R43",
+      "requirement": "Signed webhooks with retry, history, dead letter, replay, secret rotation",
+      "status": "NOT_IMPLEMENTED",
+      "severity": "P1",
+      "evidence": [
+        "database/migrations/2026_08_14_000000_create_external_applications_table.php"
+      ],
+      "risk": "callback_url stored but nothing sends to it",
+      "recommendation": "Implement after outbox",
+      "dependency": [
+        "R42"
+      ]
+    },
+    {
+      "id": "R44",
+      "requirement": "Events dispatched after commit",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Events/Communication",
+        "config/queue.php"
+      ],
+      "risk": "Existing events use afterCommit; queue after_commit=false globally",
+      "recommendation": "New integration jobs must use outbox/afterCommit",
+      "dependency": [
+        "R42"
+      ]
+    },
+    {
+      "id": "R45",
+      "requirement": "Partner outage does not roll back domain writes",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "external-apps/cafeteria-system/app/Services/EuisisApiClient.php"
+      ],
+      "risk": "No synchronous partner dispatch exists",
+      "recommendation": "Keep asynchronous",
+      "dependency": []
+    },
+    {
+      "id": "R46",
+      "requirement": "National ID encrypted, not an integration key, not serialized",
+      "status": "COMPLIANT",
+      "severity": "P3",
+      "evidence": [
+        "app/Models/Employee.php",
+        "app/Support/Security/NationalIdHash.php",
+        "database/migrations/2026_10_11_100100_add_employees_national_id_unique.php"
+      ],
+      "risk": "Accessor accepts legacy plaintext on decrypt failure; remediation completeness NOT_VERIFIED",
+      "recommendation": "Verify all rows encrypted, then remove fallback",
+      "dependency": []
+    },
+    {
+      "id": "R47",
+      "requirement": "Private phone and personal fields not exposed by API",
+      "status": "COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Services/Api/OrganizationDataPresenter.php"
+      ],
+      "risk": "Employee phone/email/address/DOB unencrypted at rest; audit copies them (F13)",
+      "recommendation": "Minimize audit copies; decide at-rest policy",
+      "dependency": [
+        "NEEDS_POLICY_DECISION"
+      ]
+    },
+    {
+      "id": "R48",
+      "requirement": "Media URLs authorized and short-lived",
+      "status": "NON_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "app/Http/Controllers/Api/V1/IdCardVerificationApiController.php",
+        "app/Models/Employee.php"
+      ],
+      "risk": "Unsigned public /storage/ photo URL; broken for private photos, world-readable for legacy (F17)",
+      "recommendation": "Signed short-lived media links",
+      "dependency": []
+    },
+    {
+      "id": "R49",
+      "requirement": "CORS: no wildcard with credentials",
+      "status": "COMPLIANT",
+      "severity": "P3",
+      "evidence": [
+        "config/cors.php"
+      ],
+      "risk": "Idempotency-Key and X-Request-ID not allowed/exposed",
+      "recommendation": "Add headers",
+      "dependency": []
+    },
+    {
+      "id": "R50",
+      "requirement": "Stateless multi-node readiness (sessions, cache, uploads, queues, scheduler)",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "config/filesystems.php",
+        "config/session.php",
+        "routes/console.php",
+        ".env.example"
+      ],
+      "risk": "Supported in config; local defaults are node-local; scheduler uses onOneServer",
+      "recommendation": "Shared cache/lock store and object storage in deployment",
+      "dependency": []
+    },
+    {
+      "id": "R51",
+      "requirement": "Identity lookups indexed",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "docs/audits/backbone-readonly-probe.php"
+      ],
+      "risk": "Index paths proven on 27-row dataset only",
+      "recommendation": "Re-check plans at target scale",
+      "dependency": []
+    },
+    {
+      "id": "R52",
+      "requirement": "Unbounded queries absent from request paths",
+      "status": "COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Http/Controllers/Api/V1/OrganizationApiController.php"
+      ],
+      "risk": "No ::all() on masters; structure endpoint loads all units uncapped; offline batch unbounded",
+      "recommendation": "Cap all node types",
+      "dependency": []
+    },
+    {
+      "id": "R53",
+      "requirement": "3,000,000 employee readiness measured",
+      "status": "NOT_VERIFIED",
+      "severity": "P1",
+      "evidence": [
+        "docs/load-testing.md"
+      ],
+      "risk": "Largest measured dataset 220,000 employees (7% of target)",
+      "recommendation": "Isolated 3M test after sync design",
+      "dependency": [
+        "R39",
+        "R50"
+      ]
+    },
+    {
+      "id": "R54",
+      "requirement": "No external direct database coupling",
+      "status": "COMPLIANT",
+      "severity": "NONE",
+      "evidence": [
+        "external-apps/cafeteria-system/.env.example"
+      ],
+      "risk": "Infrastructure DB grants NOT_VERIFIED",
+      "recommendation": "Keep HTTP-only",
+      "dependency": []
+    },
+    {
+      "id": "R55",
+      "requirement": "Settlement and entitlement correctness on provider API",
+      "status": "NON_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Actions/Workflows/GenerateSettlementReportAction.php",
+        "app/Http/Controllers/Api/V1/ServiceTransactionController.php"
+      ],
+      "risk": "Period ignored (F18); first entitlement without active/date filter (F19)",
+      "recommendation": "Filter by period and active entitlement",
+      "dependency": []
+    },
+    {
+      "id": "R56",
+      "requirement": "Backup / PITR / restore drill for master data",
+      "status": "NOT_VERIFIED",
+      "severity": "P1",
+      "evidence": [
+        "config/backup.php",
+        "docs/runbooks/disaster-recovery.md"
+      ],
+      "risk": "Runbooks exist; no drill evidence",
+      "recommendation": "Drill with partner reconciliation",
+      "dependency": [
+        "NEEDS_POLICY_DECISION: RPO/RTO"
+      ]
+    },
+    {
+      "id": "R57",
+      "requirement": "Data governance: owner, steward, change authority per master",
+      "status": "NEEDS_POLICY_DECISION",
+      "severity": "P1",
+      "evidence": [
+        "docs/architecture/data-ownership-matrix.md"
+      ],
+      "risk": "Not recorded in repository",
+      "recommendation": "Institutional decision",
+      "dependency": []
+    },
+    {
+      "id": "R58",
+      "requirement": "Partner onboarding governance (purpose, fields, expiry, contact, revocation)",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P2",
+      "evidence": [
+        "app/Http/Controllers/Web/ApiManagementController.php"
+      ],
+      "risk": "Technical registration exists; purpose/field approval not modeled",
+      "recommendation": "Add approved purpose and field set to application record",
+      "dependency": [
+        "R26"
+      ]
+    },
+    {
+      "id": "R59",
+      "requirement": "Data retention policy for master history and API logs",
+      "status": "NEEDS_POLICY_DECISION",
+      "severity": "P2",
+      "evidence": [
+        "config/retention.php"
+      ],
+      "risk": "Config excludes master history from pruning; legal schedule absent",
+      "recommendation": "Approve schedule",
+      "dependency": []
+    },
+    {
+      "id": "R60",
+      "requirement": "Dependency vulnerabilities",
+      "status": "PARTIALLY_COMPLIANT",
+      "severity": "P1",
+      "evidence": [
+        "composer.lock",
+        "package-lock.json"
+      ],
+      "risk": "composer clean; npm 2 critical (shell-quote via concurrently), 1 high (source-map-js), dev tooling",
+      "recommendation": "Assess reachability and update",
+      "dependency": []
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P0",
+      "kind": "Reproduced code defect",
+      "summary": "provider:access/* token bypasses master-data scopes and gate"
+    },
+    {
+      "id": "F3",
+      "priority": "P0",
+      "kind": "Contract defect",
+      "summary": "Cafeteria skips eligibility because verification omits employee UUID"
+    },
+    {
+      "id": "F5",
+      "priority": "P0",
+      "kind": "Reproduced code defect",
+      "summary": "Revoked QR accepted by partner verification"
+    },
+    {
+      "id": "F2",
+      "priority": "P1",
+      "kind": "Policy and capability gap",
+      "summary": "No partner organization restriction"
+    },
+    {
+      "id": "F4",
+      "priority": "P1",
+      "kind": "Reproduced code defect",
+      "summary": "Eligibility TypeError for application principal"
+    },
+    {
+      "id": "F6",
+      "priority": "P1",
+      "kind": "Reliability defect",
+      "summary": "Non-atomic optional idempotency; satellite lacks unique key"
+    },
+    {
+      "id": "F7",
+      "priority": "P1",
+      "kind": "Contract defect",
+      "summary": "Offline sync verifies without recording; unbounded batch"
+    },
+    {
+      "id": "F8",
+      "priority": "P1",
+      "kind": "NOT_IMPLEMENTED",
+      "summary": "No change cursor, tombstones or historical contract"
+    },
+    {
+      "id": "F9",
+      "priority": "P1",
+      "kind": "NOT_IMPLEMENTED",
+      "summary": "No durable master events or webhook delivery"
+    },
+    {
+      "id": "F10",
+      "priority": "P1",
+      "kind": "Integrity risk",
+      "summary": "Capacity disagreement, archive guard, transfer context"
+    },
+    {
+      "id": "F11",
+      "priority": "P1",
+      "kind": "Operational proof gap",
+      "summary": "Shared topology, 3M load and recovery unproven"
+    },
+    {
+      "id": "F12",
+      "priority": "P1",
+      "kind": "Dependency finding",
+      "summary": "npm critical/high advisories"
+    },
+    {
+      "id": "F16",
+      "priority": "P1",
+      "kind": "Code defect",
+      "summary": "Provider-service routes unusable by application tokens and bypass gate"
+    },
+    {
+      "id": "F17",
+      "priority": "P1",
+      "kind": "Privacy/contract defect",
+      "summary": "Unsigned public storage photo URL in partner verification"
+    },
+    {
+      "id": "F13",
+      "priority": "P2",
+      "kind": "Privacy/observability debt",
+      "summary": "Audit PII copies, correlation mismatch"
+    },
+    {
+      "id": "F14",
+      "priority": "P2",
+      "kind": "Contract hardening",
+      "summary": "Error/enum/ISO rules, OpenAPI, consumer tests"
+    },
+    {
+      "id": "F18",
+      "priority": "P2",
+      "kind": "Code defect",
+      "summary": "Settlement API ignores period"
+    },
+    {
+      "id": "F19",
+      "priority": "P2",
+      "kind": "Code defect",
+      "summary": "First entitlement picked without active/date filter"
+    },
+    {
+      "id": "F20",
+      "priority": "P2",
+      "kind": "Semantic defect",
+      "summary": "Future-dated hierarchy version treated as current"
+    },
+    {
+      "id": "F15",
+      "priority": "P3",
+      "kind": "Future enhancement",
+      "summary": "OAuth federation, replicas, extraction when justified"
+    }
+  ],
+  "remediation": {
+    "date": "2026-10-19",
+    "commit": "94d454fe",
+    "record": "docs/architecture/master-backbone-remediation-implementation.md",
+    "finding_status": {
+      "F1": "FIXED",
+      "F2": "FIXED",
+      "F3": "FIXED",
+      "F4": "FIXED",
+      "F5": "FIXED",
+      "F6": "FIXED",
+      "F7": "OPEN",
+      "F8": "OPEN",
+      "F9": "OPEN",
+      "F10": "PARTIAL",
+      "F11": "OPEN",
+      "F12": "FIXED",
+      "F13": "PARTIAL",
+      "F14": "PARTIAL",
+      "F16": "FIXED",
+      "F17": "FIXED",
+      "F18": "FIXED",
+      "F19": "FIXED",
+      "F20": "OPEN",
+      "F15": "OPEN"
+    },
+    "maturity_score": {
+      "total": 70,
+      "max": 100,
+      "areas": [
+        {
+          "area": "Master data authority",
+          "weight": 20,
+          "awarded": 17
+        },
+        {
+          "area": "Identity integrity",
+          "weight": 15,
+          "awarded": 13
+        },
+        {
+          "area": "Assignment and position",
+          "weight": 10,
+          "awarded": 9
+        },
+        {
+          "area": "API architecture",
+          "weight": 15,
+          "awarded": 10
+        },
+        {
+          "area": "Security",
+          "weight": 15,
+          "awarded": 11
+        },
+        {
+          "area": "Events and webhooks",
+          "weight": 10,
+          "awarded": 1
+        },
+        {
+          "area": "Scalability and availability",
+          "weight": 10,
+          "awarded": 5
+        },
+        {
+          "area": "Governance and documentation",
+          "weight": 5,
+          "awarded": 4
+        }
+      ]
+    },
+    "verdicts": {
+      "partner_api": "PARTNER_API_CONDITIONALLY_READY_FOR_SCOPED_PILOT",
+      "security": "CONDITIONAL",
+      "final": "MASTER_BACKBONE_ARCHITECTURE_NOT_READY"
+    }
+  }
+}

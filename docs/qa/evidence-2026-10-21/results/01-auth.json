@@ -1,0 +1,92 @@
+{
+  "name": "01-auth",
+  "results": [
+    {
+      "label": "Login page renders with email/password fields",
+      "status": "PASS",
+      "ms": 1844,
+      "info": "title=\"Sign in | Addis One\""
+    },
+    {
+      "label": "Wrong password is rejected with a field error, no redirect",
+      "status": "PASS",
+      "ms": 5662,
+      "info": null
+    },
+    {
+      "label": "Super Admin login forces MFA enrolment, TOTP accepted, lands on dashboard",
+      "status": "PASS",
+      "ms": 7602,
+      "info": "secret captured, url=http://127.0.0.1:8123/dashboard"
+    },
+    {
+      "label": "Dashboard shows signed-in shell (no debug output, has nav)",
+      "status": "PASS",
+      "ms": 27,
+      "info": "191 nav links"
+    },
+    {
+      "label": "Logout returns to login and dashboard is protected again",
+      "status": "PASS",
+      "ms": 2064,
+      "info": null
+    },
+    {
+      "label": "Second login goes through MFA challenge (not setup) with stored secret",
+      "status": "PASS",
+      "ms": 3852,
+      "info": null
+    },
+    {
+      "label": "MFA challenge rejects a wrong code",
+      "status": "PASS",
+      "ms": 5376,
+      "info": null
+    },
+    {
+      "label": "Protected page is blocked until the MFA challenge passes",
+      "status": "PASS",
+      "ms": 1563,
+      "info": null
+    },
+    {
+      "label": "MFA challenge accepts the correct TOTP",
+      "status": "PASS",
+      "ms": 7508,
+      "info": null
+    },
+    {
+      "label": "Reusing the same TOTP code is refused (replay protection) on a fresh session",
+      "status": "PASS",
+      "ms": 46272,
+      "info": "first=accepted, replay blocked"
+    },
+    {
+      "label": "HR Officer (non-MFA role) logs in without MFA and reaches dashboard",
+      "status": "PASS",
+      "ms": 4441,
+      "info": null
+    },
+    {
+      "label": "Login throttling: 10 bad attempts produce a lockout/too-many message",
+      "status": "PASS",
+      "ms": 36606,
+      "info": null
+    },
+    {
+      "label": "Forgot-password page renders and accepts an email without leaking account existence",
+      "status": "PASS",
+      "ms": 6660,
+      "info": null
+    },
+    {
+      "label": "Registration is disabled: /register redirects to login",
+      "status": "PASS",
+      "ms": 1312,
+      "info": null
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

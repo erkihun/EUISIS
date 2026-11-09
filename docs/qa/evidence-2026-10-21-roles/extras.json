@@ -1,0 +1,29 @@
+[
+  {
+    "role": "HR Officer",
+    "kind": "allow",
+    "path": "/assessments/oversight/submissions",
+    "status": 403,
+    "final": "/assessments/oversight/submissions",
+    "component": "Error",
+    "exceptions": [],
+    "bad": [],
+    "ok": false,
+    "shot": "C:\\Users\\Erkis\\AppData\\Local\\Temp\\claude\\c--Users-Erkis-Documents-GitHub-EUISIS\\0242bbff-2f32-4125-b962-46af6eefb21b\\scratchpad\\e2e\\shots\\extras-HR-Officer--assessments-oversight-submissions.png"
+  },
+  {
+    "role": "HR Officer",
+    "header": [
+      "Open menu ",
+      "Collapse navigation ",
+      "Command menu ",
+      "Command menu ",
+      "Messages http://127.0.0.1:8123/communication/messages",
+      "Notifications ",
+      "Theme mode: System ",
+      "Amharic ",
+      "English ",
+      "Account menu: QA HR Officer "
+    ]
+  }
+]

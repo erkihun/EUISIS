@@ -1,0 +1,237 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Feedback\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use Inertia\Response;
+use Modules\Feedback\Application\Services\PublicFeedbackAssignmentService;
+use Modules\Feedback\Application\Services\PublicFeedbackRoutingService;
+use Modules\Feedback\Domain\Enums\PublicFeedbackHandlerType;
+use Modules\Feedback\Domain\Models\PublicFeedbackRoutingRule;
+use Modules\Feedback\Http\Requests\StorePublicFeedbackRoutingRuleRequest;
+
+/**
+ * Routing rules for public suggestions and complaints (brief §45–47). A
+ * scoped administrator manages the rules of their own institutions; city-wide
+ * rules take a city-level account. A rule is created and edited on its own
+ * page, like every other record.
+ */
+class PublicFeedbackRoutingRuleController extends Controller
+{
+    public function __construct(
+        private readonly PublicFeedbackRoutingService $routing,
+        private readonly PublicFeedbackAssignmentService $assignments,
+        private readonly OrganizationScopeService $scope,
+    ) {}
+
+    public function index(Request $request): Response
+    {
+        $user = $this->user();
+        abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
+
+        $names = [];
+
+        // The same filter bar as every other list: status and organization, kept in the query string.
+        $status = $request->string('status')->toString();
+        $type = $this->moduleType($request);
+        $filters = [
+            'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
+            'organization_id' => $request->string('organization_id')->toString(),
+            // The module's own page (/tip-off-admin or /complaint-admin): its rules, and any older rule for both types.
+            'submission_type' => $type,
+        ];
+
+        return Inertia::render('ServiceFeedback/RoutingRules/Index', [
+            'filters' => $filters,
+            'rules' => $this->routing->queryFor($user)
+                ->when($filters['status'] !== '', fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+                ->when($filters['organization_id'] !== '', fn ($query) => $query->where('organization_id', $filters['organization_id']))
+                ->when($filters['submission_type'] !== '', fn ($query) => $query->where(fn ($q) => $q->whereNull('submission_type')->orWhere('submission_type', $filters['submission_type'])))
+                ->orderByRaw('CASE WHEN organization_id IS NULL THEN 0 ELSE 1 END')
+                ->orderBy('escalation_level')->orderBy('priority')->orderBy('created_at')
+                ->get()
+                ->map(fn (PublicFeedbackRoutingRule $rule): array => $this->present($rule, $user, $names))->values()->all(),
+            ...$this->formOptions($user),
+            'submissionType' => $type,
+            'routeBase' => self::routeBase($type),
+        ]);
+    }
+
+    public function create(Request $request): Response
+    {
+        $user = $this->user();
+        abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
+
+        $options = $this->formOptions($user);
+        abort_unless($options['canManageCityWide'] || $options['organizations'] !== [], 403);
+        $type = $this->moduleType($request);
+
+        return Inertia::render('ServiceFeedback/RoutingRules/Create', [...$options, 'submissionType' => $type, 'routeBase' => self::routeBase($type)]);
+    }
+
+    public function edit(Request $request, PublicFeedbackRoutingRule $rule): Response
+    {
+        $this->assertOwnModule($request, $rule);
+        $user = $this->user();
+        abort_unless($this->routing->canManage($user, $rule->organization_id), 403);
+
+        $names = [];
+
+        return Inertia::render('ServiceFeedback/RoutingRules/Edit', [
+            'rule' => $this->present($rule, $user, $names),
+            ...$this->formOptions($user),
+            'submissionType' => $this->moduleType($request),
+            'routeBase' => self::routeBase($this->moduleType($request)),
+        ]);
+    }
+
+    /** Handler choices for one organization (or city-wide when none), for the rule form and the assignment dialog. */
+    public function handlers(Request $request): JsonResponse
+    {
+        $user = $this->user();
+        abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION, 'service_feedback.assign', 'service_feedback.reassign']), 403);
+
+        $organizationId = $request->filled('organization_id') ? (string) $request->query('organization_id') : null;
+        abort_unless($organizationId === null
+            ? $this->scope->isUnrestricted($user)
+            : $this->scope->isUnrestricted($user) || $this->scope->canAccessOrganization($user, $organizationId), 403);
+
+        // ADR 0034: a Tip-off or complaint rule offers that module's handling units.
+        $caseType = $this->moduleType($request);
+        $options = $this->assignments->options($organizationId, $caseType);
+
+        if ($organizationId === null) {
+            // A city-wide rule may only name users who work across the city.
+            $options['users'] = array_values(array_filter(
+                $options['users'],
+                fn (array $row): bool => ($candidate = User::query()->find($row['id'])) !== null && $this->scope->isUnrestricted($candidate),
+            ));
+        }
+
+        return response()->json($options + ['handler_types' => PublicFeedbackHandlerType::values()]);
+    }
+
+    public function store(StorePublicFeedbackRoutingRuleRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        abort_unless($this->routing->canManage($this->user(), $data['organization_id'] ?? null), 403);
+
+        $this->routing->store($this->user(), $data, $request);
+
+        return redirect()->route(self::routeBase($this->moduleType($request)).'.index')->with('success', __('service-feedback.rule_saved'));
+    }
+
+    public function update(StorePublicFeedbackRoutingRuleRequest $request, PublicFeedbackRoutingRule $rule): RedirectResponse
+    {
+        $this->assertOwnModule($request, $rule);
+        $data = $request->validated();
+        $user = $this->user();
+
+        // Both the current scope and the requested one must be the user's.
+        abort_unless($this->routing->canManage($user, $rule->organization_id), 403);
+        abort_unless($this->routing->canManage($user, $data['organization_id'] ?? null), 403);
+
+        $this->routing->update($user, $rule, $data, $request);
+
+        return redirect()->route(self::routeBase($this->moduleType($request)).'.index')->with('success', __('service-feedback.rule_saved'));
+    }
+
+    public function destroy(Request $request, PublicFeedbackRoutingRule $rule): RedirectResponse
+    {
+        $this->assertOwnModule($request, $rule);
+        abort_unless($this->routing->canManage($this->user(), $rule->organization_id), 403);
+
+        $outcome = $this->routing->destroy($this->user(), $rule, $request);
+
+        return redirect()->route(self::routeBase($this->moduleType($request)).'.index')
+            ->with('success', __($outcome === 'retired' ? 'service-feedback.rule_retired' : 'service-feedback.rule_deleted'));
+    }
+
+    /** Each module's own routing-rule pages: /tip-off-admin/routing-rules or /complaint-admin/routing-rules. */
+    public static function routeBase(string $submissionType): string
+    {
+        return $submissionType === 'complaint' ? 'public-complaints.routing-rules' : 'tip-offs.routing-rules';
+    }
+
+    /** The module this address belongs to (route default `submission_type`). */
+    private function moduleType(Request $request): string
+    {
+        return $request->route('submission_type') === 'complaint' ? 'complaint' : 'suggestion';
+    }
+
+    /** A rule answers only at its own module's address (an older rule for both types, at either). */
+    private function assertOwnModule(Request $request, PublicFeedbackRoutingRule $rule): void
+    {
+        abort_unless($rule->submission_type === null || $rule->submission_type === $this->moduleType($request), 404);
+    }
+
+    /**
+     * @param  array<string, array{en: ?string, am: ?string}>  $names  handler names already resolved on this request
+     * @return array<string, mixed>
+     */
+    private function present(PublicFeedbackRoutingRule $rule, User $user, array &$names): array
+    {
+        $key = $rule->handler_type->value.':'.$rule->handler_id;
+        $names[$key] ??= $rule->handler_type->names($rule->handler_id);
+
+        return [
+            'id' => $rule->id,
+            'organization_id' => $rule->organization_id,
+            'organization' => $rule->organization === null ? null : ['en' => $rule->organization->name_en, 'am' => $rule->organization->name_am],
+            'target_type' => $rule->target_type,
+            'submission_type' => $rule->submission_type,
+            'tip_type' => $rule->tip_type?->value,
+            'organization_unit_id' => $rule->organization_unit_id,
+            'unit' => $rule->unit === null ? null : ['en' => $rule->unit->name_en, 'am' => $rule->unit->name_am],
+            'handler_type' => $rule->handler_type->value,
+            'handler_id' => $rule->handler_id,
+            'handler_name' => $names[$key]['en'] ?? null,
+            'handler_name_am' => $names[$key]['am'] ?? null,
+            'priority' => $rule->priority,
+            'escalation_level' => $rule->escalation_level,
+            'response_days' => $rule->response_days,
+            'effective_from' => $rule->effective_from?->toDateString(),
+            'effective_to' => $rule->effective_to?->toDateString(),
+            'is_active' => $rule->is_active,
+            'referenced' => $rule->isReferenced(),
+            'can_manage' => $this->routing->canManage($user, $rule->organization_id),
+        ];
+    }
+
+    /**
+     * The scopes a user may build a rule from.
+     *
+     * @return array{organizations: list<array<string, mixed>>, canManageCityWide: bool}
+     */
+    private function formOptions(User $user): array
+    {
+        $scoped = $this->scope->isScopedOrganizationalAdmin($user);
+        $organizationIds = $scoped ? $this->scope->allowedOrganizationIds($user) : null;
+        $organizations = $scoped
+            ? Organization::query()->whereIn('id', $organizationIds)
+            : Organization::query()->where('status', 'active');
+
+        return [
+            'organizations' => $organizations->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am'])->toArray(),
+            'canManageCityWide' => $this->routing->canManage($user, null),
+        ];
+    }
+
+    private function user(): User
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        return $user;
+    }
+}

@@ -1,0 +1,102 @@
+{
+  "requestId": "01a15f9f-47cc-71ce-aafc-a54e36299b7f",
+  "employee": "QA-CARD-0001",
+  "results": [
+    {
+      "journey": "ID card request",
+      "label": "ID Card Officer signs in",
+      "status": "PASS",
+      "info": "/dashboard"
+    },
+    {
+      "journey": "ID card request",
+      "label": "Officer opens New card request and sees eligible employees",
+      "status": "PASS",
+      "info": "4 listed, 1 eligible; picking QA-CARD-0001"
+    },
+    {
+      "journey": "ID card request",
+      "label": "Officer selects the employee and submits",
+      "status": "PASS",
+      "info": "landed /card-requests; flash {\"success\":null,\"error\":null,\"warning\":null,\"info\":null,\"message\":null,\"type\":null,\"generated_token\":null,\"temporary_password\":null}; request 01a15f9f-47cc-71ce-aafc-a54e36299b7f"
+    },
+    {
+      "journey": "ID card request",
+      "label": "Officer sees no Approve/Reject on own request",
+      "status": "PASS",
+      "info": "status=submitted can={\"view\":true,\"verify\":true,\"approve\":false,\"reject\":false,\"cancel\":true}"
+    },
+    {
+      "journey": "ID card request",
+      "label": "Officer approving by direct POST is refused",
+      "status": "PASS",
+      "info": "HTTP 403"
+    },
+    {
+      "journey": "ID card request",
+      "label": "ID Card Approver signs in and opens the request",
+      "status": "PASS",
+      "info": "status=submitted can={\"view\":true,\"verify\":false,\"approve\":true,\"reject\":true,\"cancel\":false}"
+    },
+    {
+      "journey": "ID card request",
+      "label": "Confirm dialog accessibility (observation)",
+      "status": "INFO",
+      "info": "{\"overlay\":true,\"roleDialog\":false,\"ariaModal\":false,\"focusInside\":false}"
+    },
+    {
+      "journey": "ID card request",
+      "label": "Approver approves through the confirm dialog",
+      "status": "PASS",
+      "info": "approved_by=undefined; flash {\"success\":\"Card request approved. Card is now pending print.\",\"error\":null,\"warning\":null,\"info\":null,\"message\":null,\"type\":null,\"generated_token\":null,\"temporary_password\":null}"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee signs in and lands on My Portal",
+      "status": "PASS",
+      "info": "landed /my-portal (Employee/Portal), employee linked=false"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee opens /my-portal",
+      "status": "PASS",
+      "info": "/my-portal Employee/Portal 6310 ms"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee opens /my-portal/employment",
+      "status": "PASS",
+      "info": "/my-portal/employment Employee/SelfService 3806 ms"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee opens /my-portal/daily-activity",
+      "status": "PASS",
+      "info": "/my-portal/daily-activity Employee/DailyActivity/Entry 3927 ms"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee opens /my-portal/grievances",
+      "status": "PASS",
+      "info": "/my-portal/grievances Grievances/Portal/Index 3458 ms"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee opens /support/tickets",
+      "status": "PASS",
+      "info": "/support/tickets Support/Tickets/Index 9583 ms"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee opens /profile",
+      "status": "PASS",
+      "info": "/my-portal/profile Employee/SelfService 4124 ms"
+    },
+    {
+      "journey": "Employee portal",
+      "label": "Employee is refused admin pages",
+      "status": "PASS",
+      "info": "/employees=403 /users=403 /roles=403 /system-settings=403 /audit-logs=403 /card-requests=403"
+    }
+  ]
+}

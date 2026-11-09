@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true">
+    <testsuites>
+        <testsuite name="Unit"><directory>tests/Unit</directory></testsuite>
+        <testsuite name="Feature"><directory>tests/Feature</directory></testsuite>
+    </testsuites>
+    <php>
+        <!-- A single-process run (CI) outgrew 512M after ~1,900 of ~4,700 tests (backup exports); 2G leaves room. -->
+        <ini name="memory_limit" value="2G"/>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="ARGON_MEMORY" value="1024"/>
+        <env name="ARGON_TIME" value="1"/>
+        <!-- No network in tests; password tests bind a fake breach checker. -->
+        <env name="PASSWORD_BREACH_CHECK" value="false"/>
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <!-- Set DB_TEST_DATABASE outside this file to a dedicated name ending in _test. -->
+        <env name="CACHE_STORE" value="array"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Tests read the cafeteria from EUISIS itself, whatever a local .env says (ADR 0014 switch). -->
+        <env name="CAFETERIA_PLATFORM_MODE" value="local"/>
+        <env name="CAFETERIA_PLATFORM_EMPLOYEE_PORTAL" value="false"/>
+    </php>
+</phpunit>

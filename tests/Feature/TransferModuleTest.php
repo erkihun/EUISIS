@@ -1,0 +1,1138 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Enums\AssignmentStatus;
+use App\Enums\CardRequestStatus;
+use App\Enums\EmployeeStatus;
+use App\Enums\EstablishmentStatus;
+use App\Enums\OrganizationScopeType;
+use App\Enums\OrganizationStatus;
+use App\Models\CardRequest;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
+use App\Models\EmployeeTransfer;
+use App\Models\Organization;
+use App\Models\OrganizationType;
+use App\Models\Position;
+use App\Models\PositionEstablishment;
+use App\Models\User;
+use App\Models\UserOrganizationScope;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
+use Modules\Performance\Application\Services\EmployeeAgreementService;
+use Modules\Performance\Application\Services\KpiActualService;
+use Modules\Performance\Domain\Models\EmployeePerformanceAgreement;
+use Modules\Performance\Domain\Models\Kpi;
+use Modules\Performance\Domain\Models\KpiActual;
+use Modules\Performance\Domain\Models\PerformanceCycle;
+use Modules\Performance\Domain\Models\PerformancePlan;
+use Modules\Performance\Domain\Models\PerformanceResult;
+use Modules\Transfer\Application\Actions\ApproveTransferApprovalAction;
+use Modules\Transfer\Application\Actions\CancelTransferAnnouncementAction;
+use Modules\Transfer\Application\Actions\CompleteTransferAction;
+use Modules\Transfer\Application\Actions\CreateTransferAnnouncementAction;
+use Modules\Transfer\Application\Actions\CreateTransferApplicationAction;
+use Modules\Transfer\Application\Actions\PublishTransferAnnouncementAction;
+use Modules\Transfer\Application\Actions\RejectTransferApprovalAction;
+use Modules\Transfer\Application\Actions\UpdateTransferSettingsAction;
+use Modules\Transfer\Contracts\Data\TransferAnnouncementStatus;
+use Modules\Transfer\Contracts\Data\TransferApplicationStatus;
+use Modules\Transfer\Domain\Enums\TransferApprovalStatus;
+use Modules\Transfer\Domain\Enums\TransferApprovalType;
+use Modules\Transfer\Domain\Models\TransferAnnouncement;
+use Modules\Transfer\Domain\Models\TransferApplication;
+use Modules\Transfer\Domain\Models\TransferApplicationDocument;
+use Modules\Transfer\Domain\Models\TransferApproval;
+use Modules\Transfer\Domain\Models\TransferSetting;
+use Modules\Transfer\Infrastructure\Jobs\NotifyEligibleTransferAudience;
+use Spatie\Permission\Models\Permission;
+
+beforeEach(function (): void {
+    foreach ([
+        'transfers.view', 'transfers.settings.manage',
+        'transfers.announcements.view', 'transfers.announcements.create',
+        'transfers.announcements.publish', 'transfers.announcements.close',
+        'transfers.applications.view', 'transfers.applications.create',
+        'transfers.applications.screen', 'transfers.release.approve',
+        'transfers.receiving.approve', 'transfers.final.approve',
+        'transfers.complete',
+    ] as $permission) {
+        Permission::findOrCreate($permission, 'web');
+    }
+});
+
+function makeTransferOrg(string $code): Organization
+{
+    $type = OrganizationType::query()->firstOrCreate(['code' => 'DEPT'], ['name_en' => 'Department']);
+
+    return Organization::query()->create([
+        'organization_type_id' => $type->id,
+        'code' => $code,
+        'name_en' => 'Organization '.$code,
+        'status' => OrganizationStatus::Active,
+    ]);
+}
+
+function makeTransferPos(string $orgId): Position
+{
+    static $counter = 0;
+    $counter++;
+
+    $position = Position::query()->create([
+        'organization_id' => $orgId,
+        'title_en' => 'Test Position '.$counter,
+        'job_position_code' => 'POS-TM-'.$counter,
+        'is_active' => true,
+    ]);
+
+    PositionEstablishment::query()->create([
+        'organization_id' => $orgId,
+        'position_id' => $position->id,
+        'establishment_number' => 'EST-TM-'.$counter,
+        'approved_slots' => 5,
+        'status' => EstablishmentStatus::Approved,
+        'effective_from' => now()->subYear()->toDateString(),
+    ]);
+
+    return $position;
+}
+
+function makeTransferEmployee(Organization $org, Position $pos): Employee
+{
+    $employee = Employee::query()->create([
+        'employee_number' => 'EMP-'.uniqid(),
+        'full_name' => 'Test Employee',
+        'first_name' => 'Test',
+        'last_name' => 'Employee',
+        'gender' => 'M',
+        'status' => EmployeeStatus::Active,
+    ]);
+
+    $assignment = EmployeeAssignment::query()->create([
+        'employee_id' => $employee->id,
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'assignment_status' => AssignmentStatus::Active,
+        'effective_from' => now()->subMonths(6)->toDateString(),
+        'is_current' => true,
+    ]);
+
+    $employee->update(['current_assignment_id' => $assignment->id]);
+
+    return $employee->fresh(['currentAssignment']);
+}
+
+function makeTransferActor(string ...$permissions): User
+{
+    $user = User::factory()->create();
+    foreach ($permissions as $perm) {
+        $user->givePermissionTo($perm);
+    }
+
+    return $user;
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+test('transfer settings can be retrieved', function (): void {
+    $settings = TransferSetting::current();
+    expect($settings)->toBeInstanceOf(TransferSetting::class);
+    expect($settings->releasing_consent_required)->toBeBool();
+});
+
+test('transfer settings update is authorized', function (): void {
+    $actor = makeTransferActor('transfers.settings.manage');
+
+    $action = app(UpdateTransferSettingsAction::class);
+    $action->execute(['releasing_consent_required' => false], $actor);
+
+    $settings = TransferSetting::current()->fresh();
+    expect($settings->releasing_consent_required)->toBeFalse();
+});
+
+// ── Announcements ─────────────────────────────────────────────────────────────
+
+test('announcement can be created in draft status', function (): void {
+    $org = makeTransferOrg('ANN-ORG');
+    $pos = makeTransferPos($org->id);
+    $actor = makeTransferActor('transfers.announcements.create');
+
+    $action = app(CreateTransferAnnouncementAction::class);
+    $announcement = $action->execute([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 2,
+        'opening_date' => now()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+    ], $actor);
+
+    expect($announcement->status)->toBe(TransferAnnouncementStatus::Draft);
+    expect($announcement->organization_id)->toBe($org->id);
+});
+
+test('announcement opening date must be before closing date', function (): void {
+    $org = makeTransferOrg('DATE-ORG');
+    $pos = makeTransferPos($org->id);
+    $actor = makeTransferActor('transfers.announcements.create');
+
+    $action = app(CreateTransferAnnouncementAction::class);
+
+    expect(fn () => $action->execute([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->toDateString(),
+        'closing_date' => now()->subDay()->toDateString(),
+    ], $actor))->toThrow(DomainException::class);
+});
+
+test('announcement can only be published when in draft status', function (): void {
+    $org = makeTransferOrg('PUB-ORG');
+    $pos = makeTransferPos($org->id);
+    $actor = makeTransferActor('transfers.announcements.publish');
+
+    // Create a published establishment so publish validation passes
+    PositionEstablishment::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'status' => EstablishmentStatus::Approved->value,
+        'approved_slots' => 1,
+        'establishment_number' => 'EST-001',
+        'effective_from' => now()->subYear()->toDateString(),
+    ]);
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Draft,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $publishAction = app(PublishTransferAnnouncementAction::class);
+    $published = $publishAction->execute($announcement, $actor);
+
+    expect($published->status)->toBe(TransferAnnouncementStatus::Published);
+    expect($published->published_at)->not->toBeNull();
+});
+
+// ── Applications ──────────────────────────────────────────────────────────────
+
+test('active employee can apply for published announcement', function (): void {
+    $fromOrg = makeTransferOrg('APP-FROM');
+    $toOrg = makeTransferOrg('APP-TO');
+    $position = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $position->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $actor = makeTransferActor('transfers.applications.create');
+    $action = app(CreateTransferApplicationAction::class);
+
+    $application = $action->execute($announcement, $employee, $actor);
+
+    expect($application->status)->toBe(TransferApplicationStatus::Submitted);
+    expect($application->employee_id)->toBe($employee->id);
+    expect($application->releasing_organization_id)->toBe($fromOrg->id);
+    expect($application->receiving_organization_id)->toBe($toOrg->id);
+});
+
+test('duplicate application for same announcement is blocked', function (): void {
+    $fromOrg = makeTransferOrg('DUP-FROM');
+    $toOrg = makeTransferOrg('DUP-TO');
+    $position = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $position->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $actor = makeTransferActor('transfers.applications.create');
+    $action = app(CreateTransferApplicationAction::class);
+    $action->execute($announcement, $employee, $actor);
+
+    expect(fn () => $action->execute($announcement, $employee, $actor))->toThrow(DomainException::class);
+});
+
+test('inactive announcement does not accept applications', function (): void {
+    $fromOrg = makeTransferOrg('INACT-FROM');
+    $toOrg = makeTransferOrg('INACT-TO');
+    $position = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+
+    $closedAnnouncement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $position->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDays(60)->toDateString(),
+        'closing_date' => now()->subDay()->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $actor = makeTransferActor('transfers.applications.create');
+    $action = app(CreateTransferApplicationAction::class);
+
+    expect(fn () => $action->execute($closedAnnouncement, $employee, $actor))->toThrow(DomainException::class);
+});
+
+// ── Completion ────────────────────────────────────────────────────────────────
+
+test('employee identity is unchanged after transfer completion', function (): void {
+    $fromOrg = makeTransferOrg('COMP-FROM');
+    $toOrg = makeTransferOrg('COMP-TO');
+    $toPos = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+
+    $employeeIdBefore = $employee->id;
+    $employeeNumberBefore = $employee->employee_number;
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $toPos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $actor = makeTransferActor('transfers.applications.create', 'transfers.complete');
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::Approved,
+        'submitted_at' => now(),
+    ]);
+
+    // Configure settings to skip all approvals
+    $settings = TransferSetting::current();
+    $settings->update([
+        'releasing_consent_required' => false,
+        'receiving_consent_required' => false,
+        'final_approval_required' => false,
+        'card_reprint_policy' => 'no_reprint',
+        'service_recalculation_policy' => 'no_recalculation',
+    ]);
+
+    $completeAction = app(CompleteTransferAction::class);
+    $completeAction->execute($application->fresh(), $actor);
+
+    $employee->refresh();
+
+    expect($employee->id)->toBe($employeeIdBefore);
+    expect($employee->employee_number)->toBe($employeeNumberBefore);
+});
+
+test('old assignment is closed and new assignment is created after transfer', function (): void {
+    $fromOrg = makeTransferOrg('ASG-FROM');
+    $toOrg = makeTransferOrg('ASG-TO');
+    $toPos = makeTransferPos($toOrg->id);
+    $fromPos = makeTransferPos($fromOrg->id);
+    $employee = makeTransferEmployee($fromOrg, $fromPos);
+
+    $oldAssignmentId = $employee->current_assignment_id;
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $toPos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $oldAssignmentId,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::Approved,
+        'submitted_at' => now(),
+    ]);
+
+    $settings = TransferSetting::current();
+    $settings->update([
+        'releasing_consent_required' => false,
+        'receiving_consent_required' => false,
+        'final_approval_required' => false,
+        'card_reprint_policy' => 'no_reprint',
+        'service_recalculation_policy' => 'no_recalculation',
+    ]);
+
+    $actor = makeTransferActor('transfers.complete');
+    app(CompleteTransferAction::class)->execute($application->fresh(), $actor);
+
+    $employee->refresh();
+
+    // Old assignment closed
+    $oldAssignment = EmployeeAssignment::find($oldAssignmentId);
+    expect($oldAssignment->is_current)->toBeFalse();
+    expect($oldAssignment->assignment_status)->toBe(AssignmentStatus::Closed);
+
+    // New assignment in new organization
+    expect($employee->current_assignment_id)->not->toBe($oldAssignmentId);
+    $newAssignment = EmployeeAssignment::find($employee->current_assignment_id);
+    expect($newAssignment->organization_id)->toBe($toOrg->id);
+    expect($newAssignment->is_current)->toBeTrue();
+    expect($newAssignment->assignment_status)->toBe(AssignmentStatus::Active);
+
+    // Application marked as transferred
+    $application->refresh();
+    expect($application->status)->toBe(TransferApplicationStatus::Transferred);
+});
+
+function makeTransferPerformanceContext(Employee $employee, User $actor, bool $sameDay = false): array
+{
+    $assignment = $employee->currentAssignment;
+    $cycle = PerformanceCycle::query()->create(['code' => 'TRANSFER-EP', 'name_en' => 'Transfer performance cycle', 'organization_id' => $assignment->organization_id, 'start_date' => now()->startOfYear()->toDateString(), 'end_date' => now()->endOfYear()->toDateString()]);
+    $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $assignment->organization_id, 'position_id' => $assignment->position_id, 'plan_type' => 'POSITION', 'title' => 'Original position plan']);
+    $plan->forceFill(['lineage_key' => (string) Str::uuid(), 'status' => 'PUBLISHED'])->save();
+    $objective = $plan->objectives()->create(['code' => 'TRANSFER-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
+    $kpi = Kpi::query()->create(['code' => 'TRANSFER-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'ANNUAL']);
+    $target = $objective->targets()->create(['performance_plan_id' => $plan->id, 'kpi_id' => $kpi->id, 'period_start' => $cycle->start_date->toDateString(), 'period_end' => $cycle->end_date->toDateString(), 'target_value' => 100, 'weight' => 100]);
+    $agreement = EmployeePerformanceAgreement::query()->create(['cycle_id' => $cycle->id, 'employee_id' => $employee->id, 'employee_assignment_id' => $assignment->id, 'performance_plan_id' => $plan->id, 'organization_id' => $assignment->organization_id, 'position_id' => $assignment->position_id, 'manager_user_id' => $actor->id, 'effective_from' => ($sameDay ? now() : now()->subMonth())->toDateString(), 'effective_to' => $cycle->end_date->toDateString()]);
+    $agreement->forceFill(['status' => 'ACTIVE', 'active_key' => $employee->id.':'.$assignment->id.':'.$cycle->id])->save();
+    $item = $agreement->items()->create(['objective_id' => $objective->id, 'kpi_id' => $kpi->id, 'position_target_id' => $target->id, 'expected_output' => 'Complete requests', 'target_value' => 100, 'weight' => 100]);
+    $actual = KpiActual::query()->create(['kpi_id' => $kpi->id, 'employee_performance_item_id' => $item->id, 'subject_key' => 'item:'.$item->id, 'agreement_id' => $agreement->id, 'performance_plan_id' => $plan->id, 'employee_id' => $employee->id, 'organization_id' => $assignment->organization_id, 'period_start' => $agreement->effective_from->toDateString(), 'period_end' => ($sameDay ? now() : now()->subDay())->toDateString(), 'actual_value' => 7, 'source_type' => 'MANUAL', 'source_key' => 'manual']);
+    $result = new PerformanceResult(['employee_id' => $employee->id, 'cycle_id' => $cycle->id, 'agreement_id' => $agreement->id, 'organization_id' => $assignment->organization_id]);
+    $result->forceFill(['results_score' => 7, 'results_weight' => 100, 'competency_weight' => 0, 'calculated_score' => 7, 'final_score' => 7, 'calculated_at' => now(), 'snapshot_json' => ['agreement_id' => $agreement->id, 'assignment_id' => $assignment->id, 'item_id' => $item->id, 'actual' => '7.0000']])->save();
+
+    return compact('agreement', 'plan', 'item', 'actual', 'result');
+}
+
+test('HR transfer closes old performance responsibility and preserves its measurement history', function (): void {
+    $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+    $from = makeTransferOrg('EP-CLOSE-FROM');
+    $to = makeTransferOrg('EP-CLOSE-TO');
+    $employee = makeTransferEmployee($from, makeTransferPos($from->id));
+    $oldAssignment = $employee->currentAssignment;
+    $actor = makeTransferActor('transfers.complete');
+    $context = makeTransferPerformanceContext($employee, $actor);
+    $announcement = TransferAnnouncement::query()->create(['organization_id' => $to->id, 'position_id' => makeTransferPos($to->id)->id, 'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(), 'status' => TransferAnnouncementStatus::Published, 'created_by' => $actor->id]);
+    $application = TransferApplication::query()->create(['announcement_id' => $announcement->id, 'employee_id' => $employee->id, 'current_assignment_id' => $oldAssignment->id, 'releasing_organization_id' => $from->id, 'receiving_organization_id' => $to->id, 'status' => TransferApplicationStatus::Approved, 'submitted_at' => now()]);
+    TransferSetting::current()->update(['card_reprint_policy' => 'no_reprint', 'service_recalculation_policy' => 'no_recalculation']);
+    $oldActual = $context['actual']->fresh()->getRawOriginal();
+    $oldResult = $context['result']->fresh()->getRawOriginal();
+    $oldItem = $context['item']->fresh()->getRawOriginal();
+
+    app(CompleteTransferAction::class)->execute($application, $actor);
+    $agreement = $context['agreement']->fresh();
+
+    expect($agreement->status->value)->toBe('CLOSED')
+        ->and($agreement->effective_to->toDateString())->toBe('2026-06-30')
+        ->and($agreement->active_key)->toBeNull()
+        ->and($agreement->employee_assignment_id)->toBe($oldAssignment->id)
+        ->and($agreement->performance_plan_id)->toBe($context['plan']->id)
+        ->and($context['item']->fresh()->getRawOriginal())->toBe($oldItem)
+        ->and($context['actual']->fresh()->getRawOriginal())->toBe($oldActual)
+        ->and($context['result']->fresh()->getRawOriginal())->toBe($oldResult);
+    $this->assertDatabaseCount('employee_performance_agreements', 1);
+
+    foreach (['employee_performance_agreements.manage', 'kpi_actuals.enter'] as $permission) {
+        $actor->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+    }
+    expect(fn () => app(KpiActualService::class)->recordForItem($context['item']->fresh(), ['period_start' => '2026-07-01', 'period_end' => '2026-07-02', 'actual_value' => 5], $actor))
+        ->toThrow(ValidationException::class);
+    expect(app(EmployeeAgreementService::class)->close($agreement, '2026-06-30', 'Repeated closure', $actor)->status->value)->toBe('CLOSED');
+});
+
+test('a same-day active agreement rolls back HR transfer rather than creating an invalid history period', function (): void {
+    $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+    $from = makeTransferOrg('EP-ROLL-FROM');
+    $to = makeTransferOrg('EP-ROLL-TO');
+    $employee = makeTransferEmployee($from, makeTransferPos($from->id));
+    $oldAssignment = $employee->currentAssignment;
+    $actor = makeTransferActor('transfers.complete');
+    $context = makeTransferPerformanceContext($employee, $actor, sameDay: true);
+    $announcement = TransferAnnouncement::query()->create(['organization_id' => $to->id, 'position_id' => makeTransferPos($to->id)->id, 'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(), 'status' => TransferAnnouncementStatus::Published, 'created_by' => $actor->id]);
+    $application = TransferApplication::query()->create(['announcement_id' => $announcement->id, 'employee_id' => $employee->id, 'current_assignment_id' => $oldAssignment->id, 'releasing_organization_id' => $from->id, 'receiving_organization_id' => $to->id, 'status' => TransferApplicationStatus::Approved, 'submitted_at' => now()]);
+    TransferSetting::current()->update(['card_reprint_policy' => 'no_reprint', 'service_recalculation_policy' => 'no_recalculation']);
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application, $actor))->toThrow(ValidationException::class);
+    expect($employee->fresh()->current_assignment_id)->toBe($oldAssignment->id)
+        ->and($oldAssignment->fresh()->assignment_status)->toBe(AssignmentStatus::Active)
+        ->and($oldAssignment->fresh()->is_current)->toBeTrue()
+        // Rolled back, then recorded as a retryable failure with its reason (never half-applied).
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::ImplementationFailed)
+        ->and($application->fresh()->implementation_failure)->not->toBeEmpty()
+        ->and($application->fresh()->implementation_assignment_id)->toBeNull()
+        ->and($context['agreement']->fresh()->status->value)->toBe('ACTIVE');
+    $this->assertDatabaseCount('employee_assignments', 1);
+});
+
+test('transfer cannot complete without full approval when approvals are required', function (): void {
+    $fromOrg = makeTransferOrg('NOAPR-FROM');
+    $toOrg = makeTransferOrg('NOAPR-TO');
+    $toPos = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $toPos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    // Application not yet approved
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::ReleasePending, // not Approved
+        'submitted_at' => now(),
+    ]);
+
+    $actor = makeTransferActor('transfers.complete');
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application->fresh(), $actor))
+        ->toThrow(DomainException::class);
+});
+
+test('approved transfer waits for its effective date without changing the assignment', function (): void {
+    $fromOrg = makeTransferOrg('FUTURE-FROM');
+    $toOrg = makeTransferOrg('FUTURE-TO');
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+    $target = makeTransferPos($toOrg->id);
+    $actor = makeTransferActor('transfers.complete');
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $target->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => $actor->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'effective_date' => now()->addWeek()->toDateString(),
+        'status' => TransferApplicationStatus::Approved,
+        'submitted_at' => now(),
+    ]);
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application, $actor))->toThrow(DomainException::class);
+    expect($employee->fresh()->current_assignment_id)->toBe($application->current_assignment_id)
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
+});
+
+test('implementation rejects a destination with no approved capacity', function (): void {
+    $fromOrg = makeTransferOrg('CAPACITY-FROM');
+    $toOrg = makeTransferOrg('CAPACITY-TO');
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+    $target = makeTransferPos($toOrg->id);
+    PositionEstablishment::query()->where('position_id', $target->id)->update(['approved_slots' => 0]);
+    $actor = makeTransferActor('transfers.complete');
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $target->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => $actor->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::Approved,
+        'submitted_at' => now(),
+    ]);
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application, $actor))->toThrow(DomainException::class);
+    expect($employee->fresh()->current_assignment_id)->toBe($application->current_assignment_id)
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::ImplementationFailed);
+});
+
+test('approval chain advances correctly from release to receiving to final', function (): void {
+    $fromOrg = makeTransferOrg('CHAIN-FROM');
+    $toOrg = makeTransferOrg('CHAIN-TO');
+    $toPos = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $toPos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => makeTransferActor()->id,
+    ]);
+
+    $settings = TransferSetting::current();
+    $settings->update([
+        'releasing_consent_required' => true,
+        'receiving_consent_required' => true,
+        'final_approval_required' => false,
+        'card_reprint_policy' => 'no_reprint',
+        'service_recalculation_policy' => 'no_recalculation',
+    ]);
+
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::ReleasePending,
+        'submitted_at' => now(),
+    ]);
+
+    $releaseApproval = TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Release->value,
+        'status' => TransferApprovalStatus::Pending->value,
+    ]);
+    TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Receiving->value,
+        'status' => TransferApprovalStatus::Pending->value,
+    ]);
+
+    $actor = makeTransferActor('transfers.release.approve', 'transfers.receiving.approve', 'transfers.complete');
+    $action = app(ApproveTransferApprovalAction::class);
+
+    // Approve release
+    $action->execute($releaseApproval, $actor);
+    $application->refresh();
+    expect($application->status)->toBe(TransferApplicationStatus::ReceivingPending);
+
+    // Approve receiving — triggers auto-complete since final not required
+    $receivingApproval = TransferApproval::query()
+        ->where('transfer_application_id', $application->id)
+        ->where('approval_type', 'receiving')
+        ->first();
+
+    $action->execute($receivingApproval, $actor);
+    $application->refresh();
+
+    // Approval must remain distinct from implementation.
+    expect($application->status)->toBe(TransferApplicationStatus::Approved);
+    $employee->refresh();
+    expect($employee->current_assignment_id)->toBe($application->current_assignment_id);
+    expect(EmployeeTransfer::query()->where('transfer_application_id', $application->id)->count())->toBe(1);
+});
+
+// ─── Announcement Action Tests ───────────────────────────────────────────────
+
+test('publish action changes status from draft to published', function (): void {
+    $org = makeTransferOrg('PUB-ORG');
+    $pos = makeTransferPos($org->id);
+
+    PositionEstablishment::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'establishment_number' => 'EST-TEST-'.uniqid(),
+        'approved_slots' => 2,
+        'status' => 'approved',
+        'effective_from' => now()->subDay(),
+    ]);
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 2,
+        'opening_date' => now()->addDay(),
+        'closing_date' => now()->addDays(10),
+        'status' => TransferAnnouncementStatus::Draft,
+        'created_by' => User::factory()->create()->id,
+    ]);
+
+    $actor = User::factory()->create();
+    $action = app(PublishTransferAnnouncementAction::class);
+    $action->execute($announcement, $actor);
+
+    $announcement->refresh();
+    expect($announcement->status)->toBe(TransferAnnouncementStatus::Published);
+    expect($announcement->published_by)->toBe($actor->id);
+});
+
+test('publish action throws for non-draft announcement', function (): void {
+    $org = makeTransferOrg('PUB-ERR');
+    $pos = makeTransferPos($org->id);
+    $user = User::factory()->create();
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->addDay(),
+        'closing_date' => now()->addDays(5),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => $user->id,
+        'published_by' => $user->id,
+        'published_at' => now(),
+    ]);
+
+    $action = app(PublishTransferAnnouncementAction::class);
+
+    expect(fn () => $action->execute($announcement, $user))
+        ->toThrow(DomainException::class);
+});
+
+test('publish action throws when closing date is not after opening date', function (): void {
+    $org = makeTransferOrg('PUB-DATE');
+    $pos = makeTransferPos($org->id);
+    $user = User::factory()->create();
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->addDays(5),
+        'closing_date' => now()->addDay(),  // before opening
+        'status' => TransferAnnouncementStatus::Draft,
+        'created_by' => $user->id,
+    ]);
+
+    $action = app(PublishTransferAnnouncementAction::class);
+
+    expect(fn () => $action->execute($announcement, $user))
+        ->toThrow(DomainException::class);
+});
+
+test('cancel action changes draft to cancelled', function (): void {
+    $org = makeTransferOrg('CAN-DRAFT');
+    $pos = makeTransferPos($org->id);
+    $user = User::factory()->create();
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->addDay(),
+        'closing_date' => now()->addDays(5),
+        'status' => TransferAnnouncementStatus::Draft,
+        'created_by' => $user->id,
+    ]);
+
+    $action = app(CancelTransferAnnouncementAction::class);
+    $action->execute($announcement, $user);
+
+    $announcement->refresh();
+    expect($announcement->status)->toBe(TransferAnnouncementStatus::Cancelled);
+});
+
+test('cancel action throws for already-cancelled announcement', function (): void {
+    $org = makeTransferOrg('CAN-FINAL');
+    $pos = makeTransferPos($org->id);
+    $user = User::factory()->create();
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->addDay(),
+        'closing_date' => now()->addDays(5),
+        'status' => TransferAnnouncementStatus::Cancelled,
+        'created_by' => $user->id,
+    ]);
+
+    $action = app(CancelTransferAnnouncementAction::class);
+
+    expect(fn () => $action->execute($announcement, $user))
+        ->toThrow(DomainException::class);
+});
+
+test('close route rejects non-published announcements', function (): void {
+    Permission::findOrCreate('transfers.announcements.update', 'web');
+
+    $user = User::factory()->create();
+    $user->givePermissionTo(['transfers.announcements.view', 'transfers.announcements.close']);
+
+    $org = makeTransferOrg('CLOSE-DRAFT');
+    $pos = makeTransferPos($org->id);
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->addDay(),
+        'closing_date' => now()->addDays(5),
+        'status' => TransferAnnouncementStatus::Draft,
+        'created_by' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('transfer-announcements.close', $announcement))
+        ->assertRedirect();
+
+    $announcement->refresh();
+    // Status should not have changed to closed since it was draft
+    expect($announcement->status)->toBe(TransferAnnouncementStatus::Draft);
+});
+
+test('cancel route is protected by authorization', function (): void {
+    $guest = User::factory()->create(); // no permissions
+
+    $org = makeTransferOrg('CANCEL-AUTHZ');
+    $pos = makeTransferPos($org->id);
+
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id,
+        'position_id' => $pos->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->addDay(),
+        'closing_date' => now()->addDays(5),
+        'status' => TransferAnnouncementStatus::Draft,
+        'created_by' => $guest->id,
+    ]);
+
+    $this->actingAs($guest)
+        ->post(route('transfer-announcements.cancel', $announcement))
+        ->assertForbidden();
+});
+
+// ── Dashboard scope (SEC-4) ──────────────────────────────────────────────────
+
+function makeScopedTransferPair(string $suffix): array
+{
+    $from = makeTransferOrg('DSH-F-'.$suffix);
+    $to = makeTransferOrg('DSH-T-'.$suffix);
+    $employee = makeTransferEmployee($from, makeTransferPos($from->id));
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $to->id, 'position_id' => makeTransferPos($to->id)->id,
+        'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id, 'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $from->id, 'receiving_organization_id' => $to->id,
+        'status' => TransferApplicationStatus::Transferred, 'submitted_at' => now(),
+    ]);
+
+    return [$from, $application];
+}
+
+test('the transfer dashboard shows a scoped user only their organizations and no employee contact data', function (): void {
+    Permission::findOrCreate('transfers.viewAny', 'web');
+    [$mineOrg, $mine] = makeScopedTransferPair('A');
+    makeScopedTransferPair('B');
+
+    $actor = makeTransferActor('transfers.viewAny');
+    UserOrganizationScope::query()->create([
+        'user_id' => $actor->id, 'organization_id' => $mineOrg->id,
+        'scope_type' => OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    $this->actingAs($actor->fresh())
+        ->get(route('transfers.dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('stats.active_announcements', 0) // both announcements belong to receiving orgs outside scope
+            ->has('recent_transfers', 1)
+            ->where('recent_transfers.0.id', $mine->id)
+            ->missing('recent_transfers.0.employee.phone')
+            ->missing('recent_transfers.0.employee.date_of_birth'));
+});
+
+// ── Approval/rejection races (CON-6) ─────────────────────────────────────────
+
+test('a stale rejection cannot relabel an application that a parallel approval already approved', function (): void {
+    [$from, $application] = makeScopedTransferPair('RJ');
+    $application->update(['status' => TransferApplicationStatus::FinalApprovalPending]);
+    $final = TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Final,
+        'status' => TransferApprovalStatus::Pending,
+    ]);
+    $stale = TransferApproval::query()->findOrFail($final->id); // loaded before the approval committed
+
+    $settings = TransferSetting::current();
+    $settings->update(['releasing_consent_required' => false, 'receiving_consent_required' => false]);
+    app(ApproveTransferApprovalAction::class)->execute($final, makeTransferActor('transfers.final.approve'));
+
+    expect(fn () => app(RejectTransferApprovalAction::class)->execute($stale, makeTransferActor('transfers.final.approve'), 'late'))
+        ->toThrow(DomainException::class);
+    expect($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
+});
+
+test('an approval of a stage the application has already left is refused', function (): void {
+    [$from, $application] = makeScopedTransferPair('ST');
+    $application->update(['status' => TransferApplicationStatus::Approved]);
+    $leftover = TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Release,
+        'status' => TransferApprovalStatus::Pending,
+    ]);
+
+    expect(fn () => app(ApproveTransferApprovalAction::class)->execute($leftover, makeTransferActor('transfers.release.approve')))
+        ->toThrow(DomainException::class);
+    expect($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
+});
+
+test('transfer application pages send employee display fields only, not contact or birth data', function (): void {
+    [$from, $application] = makeScopedTransferPair('PII');
+    $application->employee->forceFill(['phone' => '0911000000', 'date_of_birth' => '1990-01-01', 'address' => 'Bole'])->save();
+    $actor = makeTransferActor('transfers.applications.view');
+
+    $this->actingAs($actor)->get(route('transfer-applications.index'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('applications.data.0.employee.employee_number', $application->employee->employee_number)
+            ->missing('applications.data.0.employee.phone')
+            ->missing('applications.data.0.employee.date_of_birth')
+            ->missing('applications.data.0.employee.address'));
+
+    $this->actingAs($actor)->get(route('transfer-applications.show', $application))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->missing('application.employee.phone')
+            ->missing('application.employee.date_of_birth'));
+});
+
+// ── Announcement audience fan-out (SCL-8) ────────────────────────────────────
+
+test('the announcement audience job stops after its batch budget and continues from a cursor', function (): void {
+    Queue::fake();
+    Notification::fake();
+    $org = makeTransferOrg('AUD-1');
+    $first = makeTransferEmployee($org, makeTransferPos($org->id));
+    makeTransferEmployee($org, makeTransferPos($org->id));
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id, 'position_id' => makeTransferPos($org->id)->id, 'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+
+    $job = new NotifyEligibleTransferAudience($announcement->id);
+    $job->batchSize = 1;
+    $job->batchesPerRun = 1;
+    app()->call([$job, 'handle']);
+
+    Queue::assertPushedOn('long', NotifyEligibleTransferAudience::class,
+        fn ($next) => $next->announcementId === $announcement->id && $next->afterEmployeeId !== null);
+});
+
+// ── UI/UX pass regressions ───────────────────────────────────────────────────
+
+test('announcement dates reach the pages as the calendar day that was saved', function (): void {
+    // A `date` cast serialized as UTC midnight: in Addis Ababa 19 October left
+    // the server as 2026-10-18T21:00Z and every page showed the day before.
+    [$from, $application] = makeScopedTransferPair('DAY');
+    $announcement = $application->announcement;
+    $announcement->update(['status' => TransferAnnouncementStatus::Draft, 'opening_date' => '2026-10-19', 'closing_date' => '2026-11-02']);
+    Permission::findOrCreate('transfers.announcements.update', 'web');
+    $actor = makeTransferActor('transfers.announcements.view', 'transfers.announcements.update');
+
+    $this->actingAs($actor)->get(route('transfer-announcements.show', $announcement))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('announcement.opening_date', '2026-10-19')
+            ->where('announcement.closing_date', '2026-11-02'));
+});
+
+test('an announcement accepts applications until the end of its closing day', function (): void {
+    [$from, $application] = makeScopedTransferPair('CLOSE');
+    $announcement = $application->announcement;
+    $announcement->update(['opening_date' => '2026-10-01', 'closing_date' => '2026-10-20']);
+
+    $this->travelTo(Carbon::parse('2026-10-20 16:30:00'));
+    expect($announcement->fresh()->isAcceptingApplications())->toBeTrue();
+
+    $this->travelTo(Carbon::parse('2026-10-21 08:00:00'));
+    expect($announcement->fresh()->isAcceptingApplications())->toBeFalse();
+});
+
+test('implementing a transfer queues an ID card reprint when the policy asks for one', function (): void {
+    // The request was created with "pending", which CardRequestStatus does not
+    // have: every implementation under the default policy ended on a 500.
+    $fromOrg = makeTransferOrg('CARD-FROM');
+    $toOrg = makeTransferOrg('CARD-TO');
+    $toPos = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id, 'position_id' => $toPos->id, 'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id, 'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id, 'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::Approved, 'submitted_at' => now(),
+    ]);
+    TransferSetting::current()->update(['card_reprint_policy' => 'request_reprint', 'service_recalculation_policy' => 'no_recalculation']);
+
+    app(CompleteTransferAction::class)->execute($application->fresh(), makeTransferActor('transfers.complete'));
+
+    expect($application->fresh()->status)->toBe(TransferApplicationStatus::Transferred);
+    expect(CardRequest::query()->where('employee_id', $employee->id)->sole()->status)->toBe(CardRequestStatus::Submitted);
+});
+
+test('staff download an applicant document through the application it belongs to', function (): void {
+    Storage::fake('local');
+    [$from, $application] = makeScopedTransferPair('DOC');
+    [, $other] = makeScopedTransferPair('DOC2');
+    Storage::disk('local')->put('transfer-documents/letter.pdf', '%PDF-1.4 test');
+    $document = TransferApplicationDocument::query()->create([
+        'transfer_application_id' => $application->id, 'document_type' => 'Release letter',
+        'original_name' => 'letter.pdf', 'file_name' => 'letter.pdf', 'file_path' => 'transfer-documents/letter.pdf',
+        'file_type' => 'application/pdf', 'file_size' => 13,
+    ]);
+    $actor = makeTransferActor('transfers.applications.view');
+
+    $this->actingAs($actor)
+        ->get(route('transfer-applications.documents.download', [$application, $document]))
+        ->assertOk()
+        ->assertDownload('letter.pdf');
+
+    // A document id under another application's URL is not found.
+    $this->actingAs($actor)
+        ->get(route('transfer-applications.documents.download', [$other, $document]))
+        ->assertNotFound();
+
+    // Without permission to view the application there is no download.
+    $this->actingAs(makeTransferActor())
+        ->get(route('transfer-applications.documents.download', [$application, $document]))
+        ->assertForbidden();
+});
+
+test('a workflow step that is no longer possible returns with a message, not the error page', function (): void {
+    [$from, $application] = makeScopedTransferPair('STALE');
+    $application->update(['status' => TransferApplicationStatus::ReleasePending]);
+    TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Release,
+        'status' => TransferApprovalStatus::Approved, // decided in another tab
+    ]);
+
+    $this->actingAs(makeTransferActor('transfers.release.approve'))
+        ->from(route('transfer-applications.show', $application))
+        ->post(route('transfer-applications.approve-release', $application))
+        ->assertRedirect(route('transfer-applications.show', $application))
+        ->assertSessionHas('flash.type', 'error');
+});
+
+test('with cross-institution transfers off, employees may apply inside their own institution only', function (): void {
+    TransferSetting::current()->update(['allow_cross_institution' => false]);
+    $home = makeTransferOrg('CROSS-HOME');
+    $away = makeTransferOrg('CROSS-AWAY');
+    $employee = makeTransferEmployee($home, makeTransferPos($home->id));
+    $announce = fn (Organization $organization): TransferAnnouncement => TransferAnnouncement::query()->create([
+        'organization_id' => $organization->id, 'position_id' => makeTransferPos($organization->id)->id,
+        'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+    $action = app(CreateTransferApplicationAction::class);
+    $actor = makeTransferActor('transfers.applications.create');
+
+    expect($action->execute($announce($home), $employee, $actor)->status)->toBe(TransferApplicationStatus::Submitted);
+    expect(fn () => $action->execute($announce($away), $employee, $actor))->toThrow(DomainException::class);
+});
+
+test('the application page names both organizations and the destination position', function (): void {
+    [$from, $application] = makeScopedTransferPair('NAMES');
+
+    $this->actingAs(makeTransferActor('transfers.applications.view'))
+        ->get(route('transfer-applications.show', $application))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('application.releasing_organization.name_en', $from->name_en)
+            ->where('application.receiving_organization.name_en', $application->receivingOrganization->name_en)
+            ->where('application.position.title_en', $application->announcement->position->title_en)
+            ->missing('application.eligibility_snapshot')
+            // Lists, not {data: [...]} wrappers: the page maps over them.
+            ->where('application.approvals', [])
+            ->where('application.screening_reviews', [])
+            ->where('application.documents', []));
+});
+
+test('override approvers must be existing roles', function (): void {
+    $this->actingAs(makeTransferActor('transfers.settings.manage'))
+        ->patch(route('transfer-settings.update'), ['allow_exceptional_override' => true, 'override_approver_roles' => ['Not A Role']])
+        ->assertSessionHasErrors('override_approver_roles.0');
+});
+
+test('a second position approved in the same month gets its own establishment number', function (): void {
+    // Transfers advertise approved establishment slots. The number was built from
+    // the id's timestamp head, so the second approval of the month collided.
+    foreach (['position-establishments.create', 'position-establishments.approve', 'position-establishments.view', 'position-establishments.viewAny'] as $permission) {
+        Permission::findOrCreate($permission, 'web');
+    }
+    $org = makeTransferOrg('EST-NUM');
+    $positions = collect(['First', 'Second'])->map(fn (string $title): Position => Position::query()->create([
+        'organization_id' => $org->id, 'title_en' => $title.' officer', 'job_position_code' => 'EST-NUM-'.$title, 'is_active' => true,
+    ]));
+    $actor = makeTransferActor('position-establishments.create', 'position-establishments.approve', 'position-establishments.view', 'position-establishments.viewAny');
+
+    foreach ($positions as $position) {
+        $this->actingAs($actor)->post(route('positions.approve-establishment', $position))->assertRedirect();
+    }
+
+    $numbers = PositionEstablishment::query()->where('organization_id', $org->id)->where('status', EstablishmentStatus::Approved)->pluck('establishment_number');
+    expect($numbers)->toHaveCount(2)
+        ->and($numbers->unique())->toHaveCount(2);
+});
+
+test('rejecting an application or an approval stage through the page records the reason', function (): void {
+    // The routes handed the actions a Stringable where they take a string: every
+    // rejection button ended on the 500 page.
+    Permission::findOrCreate('transfers.reject', 'web');
+    [$from, $application] = makeScopedTransferPair('REJ');
+    $application->update(['status' => TransferApplicationStatus::UnderReview]);
+
+    $this->actingAs(makeTransferActor('transfers.reject', 'transfers.applications.view'))
+        ->post(route('transfer-applications.reject', $application), ['reason' => '  Filled by another candidate.  '])
+        ->assertSessionHas('flash.type', 'success');
+    expect($application->fresh())
+        ->status->toBe(TransferApplicationStatus::Rejected)
+        ->rejected_reason->toBe('Filled by another candidate.');
+
+    [, $staged] = makeScopedTransferPair('REJ-ST');
+    $staged->update(['status' => TransferApplicationStatus::ReleasePending]);
+    TransferApproval::query()->create([
+        'transfer_application_id' => $staged->id,
+        'approval_type' => TransferApprovalType::Release,
+        'status' => TransferApprovalStatus::Pending,
+    ]);
+
+    $this->actingAs(makeTransferActor('transfers.release.approve'))
+        ->post(route('transfer-applications.reject-release', $staged), ['reason' => 'Needed in the current office.'])
+        ->assertSessionHas('flash.type', 'success');
+    expect($staged->fresh()->status)->toBe(TransferApplicationStatus::Rejected);
+});

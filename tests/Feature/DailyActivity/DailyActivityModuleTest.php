@@ -1,0 +1,1505 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Contracts\EmployeeLeaveProvider;
+use App\Models\AuditLog;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
+use App\Models\Organization;
+use App\Models\OrganizationType;
+use App\Models\OrganizationUnit;
+use App\Models\Position;
+use App\Models\PositionService;
+use App\Models\PositionServiceSubService;
+use App\Models\PositionServiceTask;
+use App\Models\PositionServiceTaskStandard;
+use App\Models\PublicHoliday;
+use App\Models\SystemSetting;
+use App\Models\User;
+use App\Models\UserOrganizationScope;
+use App\Services\Calendar\CalendarService;
+use App\Services\Calendar\LocalizedDateService;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\SystemSettings\SystemSettingsRegistry;
+use App\Services\SystemSettings\SystemSettingsService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Inertia\Testing\AssertableInertia as Assert;
+use Modules\DailyWork\Application\Services\DailyActivityCalendarService;
+use Modules\DailyWork\Application\Services\DailyActivityQueryService;
+use Modules\DailyWork\Application\Services\DailyActivityReminderService;
+use Modules\DailyWork\Application\Services\DailyActivityReportService;
+use Modules\DailyWork\Application\Services\DailyActivityReviewPolicyService;
+use Modules\DailyWork\Application\Services\DailyActivityService;
+use Modules\DailyWork\Contracts\Data\DailyActivityCoverage;
+use Modules\DailyWork\Contracts\Data\DailyActivityDayStatus;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Enums\DailyActivityHistoryAction;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
+use Modules\DailyWork\Domain\Models\DailyActivityReminder;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewerAssignment;
+use Modules\DailyWork\Domain\Models\DailyActivityReviewPolicy;
+use Modules\DailyWork\Infrastructure\Exports\DailyActivityReportExport;
+use Modules\Performance\Domain\Models\KpiActual;
+use Modules\Performance\Domain\Models\PerformanceResult;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
+/*
+|--------------------------------------------------------------------------
+| Daily Activity Register
+|--------------------------------------------------------------------------
+|
+| "Today" is Wednesday 23 September 2026, 10:00 in Addis Ababa. The week:
+|   Fri 18  Sat 19  Sun 20  Mon 21  Tue 22  Wed 23  Thu 24
+| Saturday and Sunday are non-working under the default Mon-Fri week.
+| Tracking starts 1 September 2026.
+|
+| Daily activity is a work record: nothing here checks attendance or
+| derives a performance score, and the tests assert neither exists.
+*/
+
+const DA_TODAY = '2026-09-23';
+
+function daSetting(string $key, mixed $value): void
+{
+    $definition = SystemSettingsRegistry::definition(SystemSettingsRegistry::GROUP_DAILY_ACTIVITY, $key);
+
+    SystemSetting::query()->updateOrCreate(
+        ['group' => SystemSettingsRegistry::GROUP_DAILY_ACTIVITY, 'key' => $key],
+        [
+            'value' => is_array($value) ? json_encode($value) : (is_bool($value) ? ($value ? 'true' : 'false') : (string) $value),
+            'type' => $definition['type'],
+            'label_en' => $definition['label_en'],
+        ],
+    );
+
+    app(SystemSettingsService::class)->clearCache();
+}
+
+function daAt(string $time, string $date = DA_TODAY): void
+{
+    Carbon::setTestNow(Carbon::parse("{$date} {$time}:00", 'Africa/Addis_Ababa'));
+}
+
+/** @param array<int, string> $permissions */
+function daUser(string $role, array $permissions, ?string $email = null): User
+{
+    $roleModel = Role::findOrCreate($role, 'web');
+    foreach ($permissions as $permission) {
+        $roleModel->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+    }
+
+    $user = User::factory()->create(array_filter(['email' => $email, 'status' => 'active']));
+    $user->assignRole($roleModel);
+    $user->forgetCachedPermissions();
+
+    return $user->fresh();
+}
+
+function daEmployee(string $number, string $email, Organization $org, OrganizationUnit $unit, Position $position, string $from = '2026-01-01'): Employee
+{
+    $employee = Employee::query()->create([
+        'employee_number' => $number,
+        'first_name' => $number,
+        'last_name' => 'Employee',
+        'full_name' => "{$number} Employee",
+        'email' => $email,
+        'status' => 'active',
+    ]);
+
+    $assignment = EmployeeAssignment::query()->create([
+        'employee_id' => $employee->id,
+        'organization_id' => $org->id,
+        'organization_unit_id' => $unit->id,
+        'position_id' => $position->id,
+        'assignment_status' => 'active',
+        'effective_from' => $from,
+        'is_current' => true,
+    ]);
+
+    $employee->update(['current_assignment_id' => $assignment->id]);
+
+    return $employee->fresh();
+}
+
+/** @return array<int, array<string, string>> */
+function daItems(int $count = 1): array
+{
+    return array_map(static fn (int $i): array => [
+        'title' => "Activity {$i}",
+        'description' => "Work performed {$i}",
+        'output_result' => "Output {$i}",
+        'progress_status' => 'completed',
+    ], range(1, $count));
+}
+
+/** @param array<string, mixed> $extra */
+function daPost(User $user, string $date, array $items, string $action = 'draft', array $extra = [])
+{
+    return test()->actingAs($user)->post(route('employee.daily-activity.save', $date), [
+        'items' => $items,
+        'action' => $action,
+        ...$extra,
+    ]);
+}
+
+function daLog(Employee $employee, string $date): ?DailyActivityLog
+{
+    return DailyActivityLog::query()->where('employee_id', $employee->id)->onDate($date)->first();
+}
+
+/** Test double: named employees on approved full-day leave. */
+function daFakeLeave(array $leave): void
+{
+    app()->bind(EmployeeLeaveProvider::class, fn () => new class($leave) implements EmployeeLeaveProvider
+    {
+        public function __construct(private array $leave) {}
+
+        public function fullDayLeaveDates(array $employeeIds, Carbon $from, Carbon $to): array
+        {
+            return array_intersect_key($this->leave, array_flip($employeeIds));
+        }
+    });
+}
+
+beforeEach(function (): void {
+    daAt('10:00');
+    daSetting('tracking_start_date', '2026-09-01');
+
+    $type = OrganizationType::query()->create(['code' => 'DA-TYPE', 'name_en' => 'Bureau']);
+    $this->org = Organization::query()->create(['organization_type_id' => $type->id, 'code' => 'DA-ORG', 'name_en' => 'Civil Service Bureau', 'name_am' => 'ሲቪል ሰርቪስ ቢሮ', 'status' => 'active']);
+    $this->otherOrg = Organization::query()->create(['organization_type_id' => $type->id, 'code' => 'DA-OTHER', 'name_en' => 'Health Bureau', 'status' => 'active']);
+
+    $this->unit = OrganizationUnit::query()->create(['organization_id' => $this->org->id, 'code' => 'DA-HR', 'name_en' => 'HR Directorate', 'unit_type' => 'directorate', 'status' => 'active']);
+    $this->subUnit = OrganizationUnit::query()->create(['organization_id' => $this->org->id, 'parent_unit_id' => $this->unit->id, 'code' => 'DA-HR-REC', 'name_en' => 'Records Team', 'unit_type' => 'team', 'status' => 'active']);
+    $this->otherUnit = OrganizationUnit::query()->create(['organization_id' => $this->org->id, 'code' => 'DA-FIN', 'name_en' => 'Finance Directorate', 'unit_type' => 'directorate', 'status' => 'active']);
+    $this->foreignUnit = OrganizationUnit::query()->create(['organization_id' => $this->otherOrg->id, 'code' => 'DA-HB', 'name_en' => 'Health HR', 'unit_type' => 'directorate', 'status' => 'active']);
+
+    $this->position = Position::query()->create(['organization_id' => $this->org->id, 'organization_unit_id' => $this->subUnit->id, 'job_position_code' => 'DA-P1', 'title_en' => 'HR Officer', 'is_active' => true]);
+    $this->financePosition = Position::query()->create(['organization_id' => $this->org->id, 'organization_unit_id' => $this->otherUnit->id, 'job_position_code' => 'DA-P2', 'title_en' => 'Accountant', 'is_active' => true]);
+    $this->foreignPosition = Position::query()->create(['organization_id' => $this->otherOrg->id, 'organization_unit_id' => $this->foreignUnit->id, 'job_position_code' => 'DA-P3', 'title_en' => 'Clerk', 'is_active' => true]);
+
+    $this->task = PositionService::query()->create(['organization_id' => $this->org->id, 'position_id' => $this->position->id, 'service_no' => 1, 'name_en' => 'Employee transfer processing', 'is_active' => true]);
+
+    $this->employeeA = daEmployee('DA-A', 'a@da.test', $this->org, $this->subUnit, $this->position);
+    $this->employeeB = daEmployee('DA-B', 'b@da.test', $this->org, $this->subUnit, $this->position);
+    $this->employeeF = daEmployee('DA-F', 'f@da.test', $this->otherOrg, $this->foreignUnit, $this->foreignPosition);
+
+    $this->userA = daUser(DailyActivityRoles::EMPLOYEE_ROLE, [], 'a@da.test');
+    $this->userB = daUser(DailyActivityRoles::EMPLOYEE_ROLE, [], 'b@da.test');
+    $this->userF = daUser(DailyActivityRoles::EMPLOYEE_ROLE, [], 'f@da.test');
+
+    // Reviewer of the HR directorate and everything beneath it.
+    $this->reviewer = daUser(DailyActivityRoles::REVIEWER_ROLE, []);
+    DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $this->reviewer->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'include_sub_units' => true, 'is_active' => true]);
+
+    // Reviewer of a different unit of the same organization.
+    $this->financeReviewer = daUser('DA Finance Reviewer', DailyActivityRoles::REVIEWER_PERMISSIONS);
+    DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $this->financeReviewer->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->otherUnit->id, 'include_sub_units' => true, 'is_active' => true]);
+
+    // Organization-scoped oversight of the Civil Service Bureau only.
+    $this->orgAdmin = daUser('DA Org Oversight', DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS);
+    UserOrganizationScope::query()->create(['user_id' => $this->orgAdmin->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+});
+
+afterEach(function (): void {
+    Carbon::setTestNow();
+});
+
+// ── Employee ────────────────────────────────────────────────────────────────
+
+test('1. an active employee can register today\'s activity with the work context snapshot', function (): void {
+    daPost($this->userA, DA_TODAY, daItems())->assertRedirect()->assertSessionHasNoErrors();
+
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    expect($log)->not->toBeNull()
+        ->and($log->status)->toBe(DailyActivityStatus::Draft)
+        ->and($log->organization_id)->toBe($this->org->id)
+        ->and($log->organization_unit_id)->toBe($this->subUnit->id)
+        ->and($log->position_id)->toBe($this->position->id)
+        ->and(AuditLog::query()->where('event_type', 'daily_activity.created')->exists())->toBeTrue();
+});
+
+test('1b. work performed is formatted text, sanitized on save', function (): void {
+    $items = daItems(2);
+    $items[0]['description'] = '<p><strong>Filed</strong> 12 records</p><script>alert(1)</script><p onclick="x()">Checked <a href="javascript:alert(1)">this</a></p>';
+    daPost($this->userA, DA_TODAY, $items)->assertSessionHasNoErrors();
+
+    $stored = daLog($this->employeeA, DA_TODAY)->items()->orderBy('sort_order')->value('description');
+    expect($stored)->toContain('<strong>Filed</strong> 12 records')
+        ->not->toContain('<script')
+        ->not->toContain('onclick')
+        ->not->toContain('javascript:');
+
+    // An empty editor is not a description: a non-task activity is refused on submit.
+    $items[0]['description'] = '<p><br></p>';
+    daPost($this->userA, DA_TODAY, $items, 'submit')->assertSessionHasErrors('items.0.description');
+});
+
+test('2. an employee can add multiple activity items to one daily log, including a related task', function (): void {
+    $items = daItems(3);
+    $items[0]['position_service_id'] = $this->task->id;
+    $items[1]['activity_category'] = 'meeting';
+
+    daPost($this->userA, DA_TODAY, $items, 'submit')->assertSessionHasNoErrors();
+
+    $log = daLog($this->employeeA, DA_TODAY);
+    expect($log->status)->toBe(DailyActivityStatus::Submitted)
+        ->and($log->items)->toHaveCount(3)
+        ->and($log->items[0]->position_service_id)->toBe($this->task->id)
+        ->and(DailyActivityLog::query()->where('employee_id', $this->employeeA->id)->count())->toBe(1);
+});
+
+test('2b. a task that is not a service of the employee\'s position is refused', function (): void {
+    $foreignTask = PositionService::query()->create(['organization_id' => $this->otherOrg->id, 'position_id' => $this->foreignPosition->id, 'service_no' => 9, 'name_en' => 'Foreign service', 'is_active' => true]);
+    $items = daItems();
+    $items[0]['position_service_id'] = $foreignTask->id;
+
+    daPost($this->userA, DA_TODAY, $items)->assertSessionHasErrors('items');
+});
+
+test('3. an employee cannot create a duplicate daily log for the same date', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(1));
+    daPost($this->userA, DA_TODAY, daItems(2));
+
+    expect(DailyActivityLog::query()->where('employee_id', $this->employeeA->id)->count())->toBe(1)
+        ->and(daLog($this->employeeA, DA_TODAY)->items)->toHaveCount(2);
+
+    // The database itself refuses a second header.
+    $log = daLog($this->employeeA, DA_TODAY);
+    expect(fn () => DB::table('daily_activity_logs')->insert([
+        'id' => (string) Str::uuid7(),
+        'employee_id' => $this->employeeA->id,
+        'organization_id' => $this->org->id,
+        'activity_date' => $log->getRawOriginal('activity_date'),
+        'status' => 'draft',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]))->toThrow(UniqueConstraintViolationException::class);
+});
+
+test('4. an employee cannot view, submit or attach evidence to another employee\'s activity', function (): void {
+    daPost($this->userB, DA_TODAY, daItems());
+    $logB = daLog($this->employeeB, DA_TODAY);
+
+    $this->actingAs($this->userA)->get(route('daily-activities.show', $logB))->assertForbidden();
+    $this->actingAs($this->userA)
+        ->post(route('employee.daily-activity.attachments.store', $logB), ['file' => UploadedFile::fake()->create('e.pdf', 10, 'application/pdf')])
+        ->assertForbidden();
+
+    // Saving always targets the signed-in employee, so B's log is untouched.
+    daPost($this->userA, DA_TODAY, daItems(2), 'submit');
+    expect($logB->fresh()->status)->toBe(DailyActivityStatus::Draft)
+        ->and($logB->fresh()->items)->toHaveCount(1);
+});
+
+test('5. a future date is rejected', function (): void {
+    daPost($this->userA, '2026-09-24', daItems())->assertSessionHasErrors('date');
+
+    expect(DailyActivityLog::query()->count())->toBe(0);
+});
+
+test('6. backdated registration follows the settings', function (): void {
+    daSetting('max_backdate_days', 3);
+
+    // Monday, two days back: allowed.
+    daPost($this->userA, '2026-09-21', daItems())->assertSessionHasNoErrors();
+    // Friday, five days back: outside the window.
+    daPost($this->userA, '2026-09-18', daItems())->assertSessionHasErrors('date');
+
+    daSetting('allow_backdated_submission', false);
+    daPost($this->userA, '2026-09-22', daItems())->assertSessionHasErrors('date');
+
+    expect(DailyActivityLog::query()->count())->toBe(1);
+});
+
+test('7. a submission after the deadline is marked late and needs a reason', function (): void {
+    daAt('09:30');
+    daPost($this->userA, DA_TODAY, daItems(), 'submit')->assertSessionHasNoErrors();
+    expect(daLog($this->employeeA, DA_TODAY)->is_late)->toBeFalse();
+
+    daAt('19:15');
+    daPost($this->userB, DA_TODAY, daItems(), 'submit')->assertSessionHasErrors('late_reason');
+    // The failed submit is atomic: nothing is half-saved.
+    expect(daLog($this->employeeB, DA_TODAY))->toBeNull();
+
+    daPost($this->userB, DA_TODAY, daItems(), 'submit', ['late_reason' => 'Field visit ran late.'])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeB, DA_TODAY)->is_late)->toBeTrue()
+        ->and(daLog($this->employeeB, DA_TODAY)->status)->toBe(DailyActivityStatus::Submitted);
+});
+
+test('7b. late submissions are refused only when the setting explicitly says so', function (): void {
+    daSetting('reject_late_submission', true);
+    daAt('19:15');
+
+    daPost($this->userA, DA_TODAY, daItems(), 'submit', ['late_reason' => 'Late'])->assertSessionHasErrors('late_reason');
+});
+
+test('8. an approved full-day leave day does not require submission', function (): void {
+    daFakeLeave([$this->employeeA->id => ['2026-09-22' => true]]);
+    $calendar = app(DailyActivityCalendarService::class);
+
+    expect($calendar->dayStatus($this->employeeA, Carbon::parse('2026-09-22')))->toBe(DailyActivityDayStatus::Leave);
+
+    daPost($this->userA, '2026-09-22', daItems())->assertSessionHasErrors('date');
+
+    $summary = $calendar->summaries(collect([$this->employeeA]), Carbon::parse('2026-09-22'), Carbon::parse('2026-09-22'))[$this->employeeA->id];
+    expect($summary['missing'])->toBe(0)->and($summary['leave'])->toBe(1)->and($summary['required'])->toBe(0);
+});
+
+test('9. a public holiday does not require submission, including recurring Ethiopian holidays', function (): void {
+    PublicHoliday::query()->create(['name_en' => 'Test Holiday', 'holiday_date' => '2026-09-21', 'is_recurring' => false, 'is_active' => true]);
+    // Meskel is stored once, in an earlier year, as an Ethiopian recurring
+    // holiday (Meskerem 17 = 27 Sep 2025); it must fall on 27 Sep 2026 too.
+    PublicHoliday::query()->create(['name_en' => 'Meskel', 'holiday_date' => '2025-09-27', 'is_recurring' => true, 'recurrence_type' => 'ethiopian', 'is_active' => true]);
+
+    $calendar = app(DailyActivityCalendarService::class);
+
+    expect($calendar->dayStatus($this->employeeA, Carbon::parse('2026-09-21')))->toBe(DailyActivityDayStatus::PublicHoliday);
+    daPost($this->userA, '2026-09-21', daItems())->assertSessionHasErrors('date');
+
+    $days = collect($calendar->days($this->employeeA, Carbon::parse('2026-09-27'), Carbon::parse('2026-09-27')));
+    expect($days->first()['holiday_name_en'])->toBe('Meskel');
+});
+
+test('10. a configured non-working weekend day does not require submission', function (): void {
+    expect(app(DailyActivityCalendarService::class)->dayStatus($this->employeeA, Carbon::parse('2026-09-20')))
+        ->toBe(DailyActivityDayStatus::Weekend);
+
+    daPost($this->userA, '2026-09-20', daItems())->assertSessionHasErrors('date');
+
+    // Make Sunday a working day and it becomes registrable.
+    daSetting('work_week_days', ['1', '2', '3', '4', '5', '7']);
+    daPost($this->userA, '2026-09-20', daItems())->assertSessionHasNoErrors();
+});
+
+test('11. a draft does not count as submitted and is missing once its day has passed', function (): void {
+    daPost($this->userA, '2026-09-22', daItems());
+
+    $summary = app(DailyActivityCalendarService::class)
+        ->summaries(collect([$this->employeeA]), Carbon::parse('2026-09-22'), Carbon::parse('2026-09-22'))[$this->employeeA->id];
+
+    expect($summary['submitted'])->toBe(0)
+        ->and($summary['draft'])->toBe(1)
+        ->and($summary['missing'])->toBe(1)
+        ->and($summary['missing_dates'])->toBe(['2026-09-22']);
+});
+
+test('12. a submitted activity cannot be edited by the employee', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(1), 'submit');
+
+    daPost($this->userA, DA_TODAY, daItems(3))->assertSessionHasErrors('status');
+
+    expect(daLog($this->employeeA, DA_TODAY)->items)->toHaveCount(1);
+});
+
+test('12b. submitting twice is idempotent', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(1), 'submit');
+    daPost($this->userA, DA_TODAY, daItems(1), 'submit')->assertSessionHasNoErrors();
+
+    $log = daLog($this->employeeA, DA_TODAY);
+    expect($log->submission_count)->toBe(1)
+        ->and($log->histories()->where('action', DailyActivityHistoryAction::Submitted->value)->count())->toBe(1);
+});
+
+test('13. a returned activity can be corrected and resubmitted without losing the original submission', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(1), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $this->actingAs($this->reviewer)
+        ->post(route('daily-activities.return', $log), ['comment' => 'Please clarify the output of activity 1.', 'submission_count' => 1])
+        ->assertSessionHasNoErrors();
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::ReturnedForCorrection);
+
+    $corrected = daItems(1);
+    $corrected[0]['output_result'] = 'Twelve transfer files cleared and filed.';
+    daPost($this->userA, DA_TODAY, $corrected, 'submit')->assertSessionHasNoErrors();
+
+    $log = $log->fresh();
+    $history = $log->histories()->get();
+    $original = $history->firstWhere('action', DailyActivityHistoryAction::Submitted);
+    $resubmission = $history->firstWhere('action', DailyActivityHistoryAction::Resubmitted);
+
+    expect($log->status)->toBe(DailyActivityStatus::Resubmitted)
+        ->and($log->submission_count)->toBe(2)
+        ->and($original->snapshot[0]['output_result'])->toBe('Output 1')
+        ->and($resubmission->snapshot[0]['output_result'])->toBe('Twelve transfer files cleared and filed.')
+        ->and($history->firstWhere('action', DailyActivityHistoryAction::Returned)->comment)->toBe('Please clarify the output of activity 1.');
+});
+
+test('13b. correcting a returned day is allowed even when it is outside the backdate window', function (): void {
+    daAt('10:00', '2026-09-21');
+    daPost($this->userA, '2026-09-21', daItems(), 'submit');
+    $log = daLog($this->employeeA, '2026-09-21');
+    $this->actingAs($this->reviewer)->post(route('daily-activities.return', $log), ['comment' => 'Add the output please.', 'submission_count' => 1]);
+
+    daAt('10:00', '2026-10-05');
+    daPost($this->userA, '2026-09-21', daItems(), 'submit')->assertSessionHasNoErrors();
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::Resubmitted);
+});
+
+test('14. an approved activity is immutable until formally reopened with a reason', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(1), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertSessionHasNoErrors();
+
+    daPost($this->userA, DA_TODAY, daItems(2))->assertSessionHasErrors('status');
+    expect($log->fresh()->items)->toHaveCount(1);
+
+    // Reopen needs a reason and the reopen permission.
+    $this->actingAs($this->orgAdmin)->post(route('daily-activities.reopen', $log), ['reason' => ''])->assertSessionHasErrors('reason');
+    $this->actingAs($this->reviewer)->post(route('daily-activities.reopen', $log), ['reason' => 'Wrong unit recorded.'])->assertForbidden();
+
+    $this->actingAs($this->orgAdmin)->post(route('daily-activities.reopen', $log), ['reason' => 'Output figures need correcting.'])->assertSessionHasNoErrors();
+
+    $log = $log->fresh();
+    expect($log->status)->toBe(DailyActivityStatus::ReturnedForCorrection)
+        ->and($log->reopened_by)->toBe($this->orgAdmin->id)
+        ->and($log->reopen_reason)->toBe('Output figures need correcting.')
+        ->and(AuditLog::query()->where('event_type', 'daily_activity.reopened')->where('reason', 'Output figures need correcting.')->exists())->toBeTrue()
+        ->and($log->histories()->where('action', DailyActivityHistoryAction::Approved->value)->exists())->toBeTrue();
+});
+
+// ── Manager ─────────────────────────────────────────────────────────────────
+
+test('15. an assigned reviewer sees the team\'s submissions in the review queue', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    $this->actingAs($this->reviewer)
+        ->get(route('daily-activities.review-queue'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('DailyActivities/ReviewQueue')
+            ->where('logs.meta.total', 1)
+            ->where('logs.data.0.employee.employee_number', 'DA-A'));
+});
+
+test('16. a reviewer cannot see or review outside their assigned units', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $this->actingAs($this->financeReviewer)
+        ->get(route('daily-activities.review-queue'))
+        ->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 0));
+
+    $this->actingAs($this->financeReviewer)->get(route('daily-activities.show', $log))->assertForbidden();
+    $this->actingAs($this->financeReviewer)->post(route('daily-activities.approve', $log))->assertForbidden();
+
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::Submitted);
+});
+
+test('16b. nobody reviews their own daily activity', function (): void {
+    // The HR reviewer is also an employee of the unit they review.
+    daEmployee('DA-R', $this->reviewer->email, $this->org, $this->subUnit, $this->position);
+    $this->reviewer->assignRole(DailyActivityRoles::EMPLOYEE_ROLE);
+    $this->reviewer->forgetCachedPermissions();
+
+    daPost($this->reviewer, DA_TODAY, daItems(), 'submit');
+    $own = DailyActivityLog::query()->whereHas('employee', fn ($q) => $q->where('employee_number', 'DA-R'))->firstOrFail();
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $own))->assertForbidden();
+    expect($own->fresh()->status)->toBe(DailyActivityStatus::Submitted);
+});
+
+test('17. an assigned reviewer can approve', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $this->actingAs($this->reviewer)
+        ->post(route('daily-activities.approve', $log), ['comment' => 'Good.', 'submission_count' => 1])
+        ->assertRedirect(route('daily-activities.review-queue'));
+
+    $log = $log->fresh();
+    expect($log->status)->toBe(DailyActivityStatus::Approved)
+        ->and($log->reviewed_by)->toBe($this->reviewer->id)
+        ->and(AuditLog::query()->where('event_type', 'daily_activity.approved')->exists())->toBeTrue();
+});
+
+test('18. returning for correction requires a comment and notifies the employee', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.return', $log), ['comment' => '', 'submission_count' => 1])->assertSessionHasErrors('comment');
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::Submitted);
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.return', $log), [
+        'comment' => 'Please clarify the output produced for activity #1.',
+        'item_notes' => [$log->items[0]->id => 'Which files?'],
+        'submission_count' => 1,
+    ])->assertSessionHasNoErrors();
+
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::ReturnedForCorrection)
+        ->and($log->items()->first()->reviewer_note)->toBe('Which files?')
+        ->and($this->userA->notifications()->count())->toBe(1)
+        ->and($this->userA->notifications()->first()->data['kind'])->toBe('returned');
+});
+
+// ── Scope ───────────────────────────────────────────────────────────────────
+
+test('19. an organization user sees only employees inside their organization scope', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    daPost($this->userF, DA_TODAY, daItems(), 'submit');
+
+    $this->actingAs($this->orgAdmin)
+        ->get(route('daily-activities.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('logs.meta.total', 1)
+            ->where('logs.data.0.employee.employee_number', 'DA-A'));
+
+    // A filter pointing at the other organization narrows to nothing.
+    $this->actingAs($this->orgAdmin)
+        ->get(route('daily-activities.index', ['organization_id' => $this->otherOrg->id]))
+        ->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 0));
+});
+
+test('20. out-of-scope activity is refused by id (IDOR)', function (): void {
+    daPost($this->userF, DA_TODAY, daItems(), 'submit');
+    daPost($this->userB, DA_TODAY, daItems(), 'submit');
+    $foreign = daLog($this->employeeF, DA_TODAY);
+    $colleague = daLog($this->employeeB, DA_TODAY);
+
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.show', $foreign))->assertForbidden();
+    $this->actingAs($this->userA)->get(route('daily-activities.show', $colleague))->assertForbidden();
+
+    $foreign->attachments()->create(['original_name' => 'x.pdf', 'file_path' => 'daily-activity/x.pdf', 'mime_type' => 'application/pdf', 'file_size' => 1]);
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.attachments.download', $foreign->attachments()->first()))->assertForbidden();
+});
+
+// ── Calendar ────────────────────────────────────────────────────────────────
+
+test('21. calendar states are calculated for every kind of day', function (): void {
+    PublicHoliday::query()->create(['name_en' => 'Test Holiday', 'holiday_date' => '2026-09-21', 'is_active' => true]);
+    daFakeLeave([$this->employeeA->id => ['2026-09-22' => true]]);
+    daAt('10:00', '2026-09-17');
+    daPost($this->userA, '2026-09-17', daItems(), 'submit');
+    daAt('10:00');
+
+    $this->actingAs($this->userA)
+        ->get(route('employee.daily-activity.calendar', ['from' => '2026-08-31', 'to' => '2026-09-24']))
+        ->assertOk()
+        ->assertInertia(function (Assert $page): void {
+            $page->component('Employee/DailyActivity/Calendar');
+            $days = collect($page->toArray()['props']['days'])->keyBy('date');
+
+            expect($days['2026-08-31']['status'])->toBe('not_tracked')
+                ->and($days['2026-09-17']['status'])->toBe('submitted')
+                ->and($days['2026-09-18']['status'])->toBe('missing')
+                ->and($days['2026-09-19']['status'])->toBe('weekend')
+                ->and($days['2026-09-20']['status'])->toBe('weekend')
+                ->and($days['2026-09-21']['status'])->toBe('public_holiday')
+                ->and($days['2026-09-22']['status'])->toBe('leave')
+                ->and($days['2026-09-23']['status'])->toBe('required')
+                ->and($days['2026-09-24']['status'])->toBe('future');
+        });
+});
+
+test('21b. days outside employment or assignment are not required', function (): void {
+    $late = daEmployee('DA-NEW', 'new@da.test', $this->org, $this->subUnit, $this->position, '2026-09-22');
+    $calendar = app(DailyActivityCalendarService::class);
+
+    expect($calendar->dayStatus($late, Carbon::parse('2026-09-21')))->toBe(DailyActivityDayStatus::NotAssigned)
+        ->and($calendar->dayStatus($late, Carbon::parse('2026-09-22')))->toBe(DailyActivityDayStatus::Missing);
+
+    $this->employeeB->update(['status' => 'terminated']);
+    expect($calendar->dayStatus($this->employeeB->fresh(), Carbon::parse('2026-09-22')))->toBe(DailyActivityDayStatus::NotEmployed);
+});
+
+test('22. English displays an activity date in the Gregorian calendar', function (): void {
+    expect(app(CalendarService::class)->formatDate(DA_TODAY, 'en'))->toBe('September 23, 2026');
+});
+
+test('23. Amharic displays the same activity date in the Ethiopian calendar, including in exports', function (): void {
+    $amharic = app(CalendarService::class)->formatDate(DA_TODAY, 'am');
+    expect($amharic)->toContain('2019')->not->toContain('2026');
+
+    app()->setLocale('am');
+    $export = new DailyActivityReportExport(['columns' => ['date'], 'rows' => [['date' => DA_TODAY]]], app(LocalizedDateService::class));
+    expect($export->array()[0][0])->toBe($amharic);
+    app()->setLocale('en');
+});
+
+test('24. switching locale never creates a second record for the same date', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(1));
+
+    $this->withSession(['locale' => 'am']);
+    daPost($this->userA, DA_TODAY, daItems(2));
+
+    expect(DailyActivityLog::query()->where('employee_id', $this->employeeA->id)->count())->toBe(1)
+        ->and(daLog($this->employeeA, DA_TODAY)->activityDateString())->toBe(DA_TODAY);
+});
+
+// ── Reports ─────────────────────────────────────────────────────────────────
+
+test('25. the missing report excludes leave, holidays and non-working days', function (): void {
+    PublicHoliday::query()->create(['name_en' => 'Test Holiday', 'holiday_date' => '2026-09-21', 'is_active' => true]);
+    daFakeLeave([$this->employeeA->id => ['2026-09-22' => true]]);
+
+    $report = app(DailyActivityReportService::class)->build(
+        'missing',
+        new DailyActivityCoverage(organizationIds: [$this->org->id]),
+        ['date_from' => '2026-09-14', 'date_to' => DA_TODAY, 'employee_id' => $this->employeeA->id],
+        5000,
+    );
+
+    $dates = collect($report['rows'])->where('employee_number', 'DA-A')->pluck('date')->sort()->values()->all();
+
+    // 14-18 are missing; 19/20 weekend, 21 holiday, 22 leave, 23 is today (still open).
+    expect($dates)->toBe(['2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18']);
+});
+
+test('26. exports respect organization scope and are audited', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    daPost($this->userF, DA_TODAY, daItems(), 'submit');
+
+    $response = $this->actingAs($this->orgAdmin)
+        ->get(route('daily-activities.reports.export', ['type' => 'review_status', 'format' => 'csv', 'date_from' => DA_TODAY, 'date_to' => DA_TODAY]))
+        ->assertOk();
+
+    $csv = $response->streamedContent() ?: file_get_contents($response->baseResponse->getFile()->getPathname());
+
+    expect($csv)->toContain('DA-A')->not->toContain('DA-F')
+        ->and(AuditLog::query()->where('event_type', 'export_performed')->exists())->toBeTrue();
+
+    // An employee with no reporting permission cannot export at all.
+    $this->actingAs($this->userA)
+        ->get(route('daily-activities.reports.export', ['type' => 'review_status', 'format' => 'csv']))
+        ->assertForbidden();
+});
+
+// ── Security ────────────────────────────────────────────────────────────────
+
+test('27. employee_id tampering is rejected', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'draft', ['employee_id' => $this->employeeB->id])
+        ->assertSessionHasErrors('employee_id');
+
+    expect(DailyActivityLog::query()->count())->toBe(0);
+});
+
+test('28. organization, unit and position tampering is rejected', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'draft', ['organization_id' => $this->otherOrg->id])->assertSessionHasErrors('organization_id');
+    daPost($this->userA, DA_TODAY, daItems(), 'draft', ['organization_unit_id' => $this->foreignUnit->id])->assertSessionHasErrors('organization_unit_id');
+    daPost($this->userA, DA_TODAY, daItems(), 'draft', ['position_id' => $this->foreignPosition->id])->assertSessionHasErrors('position_id');
+
+    expect(DailyActivityLog::query()->count())->toBe(0);
+});
+
+test('29. status and reviewer fields cannot be mass assigned', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'draft', ['status' => 'approved', 'reviewed_by' => $this->reviewer->id])
+        ->assertSessionHasErrors(['status', 'reviewed_by']);
+
+    $items = daItems();
+    $items[0]['status'] = 'approved';
+    $items[0]['reviewer_note'] = 'self-approved';
+    daPost($this->userA, DA_TODAY, $items)->assertSessionHasErrors(['items.0.status', 'items.0.reviewer_note']);
+
+    // And at the model layer, fill() cannot reach workflow columns.
+    $log = (new DailyActivityLog)->fill(['status' => 'approved', 'reviewed_by' => 1, 'organization_id' => 'x', 'employee_id' => 'y']);
+    expect($log->getAttributes())->toBe([]);
+});
+
+// ── Concurrency ─────────────────────────────────────────────────────────────
+
+test('30. racing creations for the same employee and date produce one daily record', function (): void {
+    // Simulate the other request winning the race: after this request has
+    // checked that no header exists, and just before it inserts one, a
+    // concurrent request inserts the same employee + date.
+    $employee = $this->employeeA;
+    $org = $this->org;
+    $raced = false;
+    DB::connection()->beforeExecuting(function (string $sql) use (&$raced, $employee, $org): void {
+        if ($raced || ! str_contains($sql, 'insert') || ! str_contains($sql, 'daily_activity_logs')) {
+            return;
+        }
+        $raced = true;
+        DB::table('daily_activity_logs')->insert([
+            'id' => (string) Str::uuid7(),
+            'employee_id' => $employee->id,
+            'organization_id' => $org->id,
+            'activity_date' => (new DailyActivityLog)->fromDateTime(Carbon::parse(DA_TODAY)),
+            'status' => 'draft',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    });
+
+    $log = app(DailyActivityService::class)->save($this->userA, $employee, Carbon::parse(DA_TODAY), ['items' => daItems(2)], true);
+
+    expect($raced)->toBeTrue()
+        ->and(DailyActivityLog::query()->where('employee_id', $employee->id)->count())->toBe(1)
+        ->and($log->status)->toBe(DailyActivityStatus::Submitted)
+        ->and($log->items)->toHaveCount(2);
+});
+
+// ── Reminders ───────────────────────────────────────────────────────────────
+
+test('31. reminders go out once for missing days and never for leave or holidays', function (): void {
+    daFakeLeave([$this->employeeB->id => [DA_TODAY => true]]);
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    $reminders = app(DailyActivityReminderService::class);
+    $sent = $reminders->sendDue(Carbon::parse(DA_TODAY.' 17:30:00', 'Africa/Addis_Ababa'));
+
+    $endOfDay = fn (User $user): int => $user->notifications()->get()->where('data.kind', 'end_of_day')->count();
+
+    // A submitted today, B is on leave today, F has not submitted.
+    expect($sent['end_of_day'])->toBe(1)
+        ->and($endOfDay($this->userF))->toBe(1)
+        ->and($endOfDay($this->userA))->toBe(0)
+        ->and($endOfDay($this->userB))->toBe(0);
+
+    $again = $reminders->sendDue(Carbon::parse(DA_TODAY.' 17:45:00', 'Africa/Addis_Ababa'));
+    expect($again['end_of_day'])->toBe(0)
+        ->and(DailyActivityReminder::query()->where('reminder_type', 'end_of_day')->where('skipped', false)->count())->toBe(1);
+
+    // On a public holiday nothing is sent at all.
+    PublicHoliday::query()->create(['name_en' => 'Holiday', 'holiday_date' => '2026-09-24', 'is_active' => true]);
+    $holiday = app(DailyActivityReminderService::class)->sendDue(Carbon::parse('2026-09-24 17:30:00', 'Africa/Addis_Ababa'));
+    expect($holiday['end_of_day'])->toBe(0);
+});
+
+test('31b. each employee is evaluated once per date and type, never on every run', function (): void {
+    daFakeLeave([$this->employeeB->id => [DA_TODAY => true]]);
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    app(DailyActivityReminderService::class)->sendDue(Carbon::parse(DA_TODAY.' 17:30:00', 'Africa/Addis_Ababa'));
+
+    $row = fn (string $employeeId) => DailyActivityReminder::query()
+        ->where('employee_id', $employeeId)->where('reminder_type', 'end_of_day')->first();
+
+    // F was reminded; B (on leave) is recorded as evaluated-and-skipped so
+    // later runs do not walk them again; A had submitted and is excluded by
+    // the query itself, with no row at all.
+    expect($row($this->employeeF->id)?->skipped)->toBeFalse()
+        ->and($row($this->employeeB->id)?->skipped)->toBeTrue()
+        ->and($row($this->employeeA->id))->toBeNull();
+});
+
+// ── Pages ───────────────────────────────────────────────────────────────────
+
+test('the employee entry, calendar and history pages render', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(2));
+
+    $this->actingAs($this->userA)->get(route('employee.daily-activity.entry'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Employee/DailyActivity/Entry')
+            ->where('date', DA_TODAY)
+            ->where('day_status', 'draft')
+            ->where('can.edit', true)
+            ->has('log.items', 2)
+            ->has('tasks', 1));
+
+    $this->actingAs($this->userA)->get(route('employee.daily-activity.history'))->assertOk();
+});
+
+test('the management pages render for authorised users and refuse employees', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing', 'daily-activities.reports', 'daily-activities.settings', 'daily-activities.reviewers.index'] as $route) {
+        $this->actingAs($this->orgAdmin)->get(route($route))->assertOk();
+        $this->actingAs($this->userA)->get(route($route))->assertForbidden();
+    }
+
+    foreach (DailyActivityReportService::TYPES as $type) {
+        $this->actingAs($this->orgAdmin)->get(route('daily-activities.reports', ['type' => $type]))->assertOk();
+    }
+});
+
+test('calendar opens around today and preserves an explicit day across calendar realignment', function (): void {
+    $this->actingAs($this->userA)->get(route('employee.daily-activity.calendar'))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page->where('anchor', DA_TODAY));
+
+    $this->get(route('employee.daily-activity.calendar', [
+        'from' => '2026-09-11', 'to' => '2026-10-10', 'anchor' => DA_TODAY,
+    ]))->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('anchor', DA_TODAY)->where('from', '2026-09-11')->where('to', '2026-10-10'));
+
+    $this->get(route('employee.daily-activity.calendar', ['from' => '2026-08-01']))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page->where('anchor', '2026-08-01'));
+});
+
+test('unknown save actions are rejected without creating a draft', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'publish')->assertSessionHasErrors('action');
+    expect(daLog($this->employeeA, DA_TODAY))->toBeNull();
+});
+
+test('editing saved time details recomputes duration when the form clears its derived value', function (): void {
+    $items = daItems();
+    $items[0] = [...$items[0], 'started_at' => '09:00', 'ended_at' => '10:00'];
+    daPost($this->userA, DA_TODAY, $items)->assertSessionHasNoErrors();
+    $item = daLog($this->employeeA, DA_TODAY)->items()->first();
+    expect($item->duration_minutes)->toBe(60);
+
+    $items[0] = [...$items[0], 'id' => $item->id, 'ended_at' => '11:00', 'duration_minutes' => null];
+    daPost($this->userA, DA_TODAY, $items)->assertSessionHasNoErrors();
+    expect($item->fresh()->duration_minutes)->toBe(120);
+});
+
+test('reviewer assignments cannot be created outside the actor\'s organization scope', function (): void {
+    $this->actingAs($this->orgAdmin)
+        ->post(route('daily-activities.reviewers.store'), [
+            'reviewer_user_id' => $this->financeReviewer->id,
+            'organization_id' => $this->otherOrg->id,
+        ])
+        ->assertSessionHasErrors('organization_id');
+
+    $this->actingAs($this->orgAdmin)
+        ->post(route('daily-activities.reviewers.store'), [
+            'reviewer_user_id' => $this->financeReviewer->id,
+            'organization_id' => $this->org->id,
+            'organization_unit_id' => $this->foreignUnit->id,
+        ])
+        ->assertSessionHasErrors('organization_unit_id');
+
+    expect(DailyActivityReviewerAssignment::query()->count())->toBe(2);
+});
+
+// ── Production readiness ────────────────────────────────────────────────────
+
+test('P1. a review decision on a submission that has since been resubmitted is refused', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.return', $log), ['comment' => 'Add the files please.', 'submission_count' => 1])->assertSessionHasNoErrors();
+    daPost($this->userA, DA_TODAY, daItems(2), 'submit')->assertSessionHasNoErrors();
+
+    // A second reviewer tab still shows submission 1.
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertSessionHasErrors('status');
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::Resubmitted);
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 2])->assertSessionHasNoErrors();
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::Approved);
+});
+
+test('P2. an unrelated reviewer is refused before validation, without learning required fields', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $this->actingAs($this->financeReviewer)->post(route('daily-activities.return', $log), [])->assertForbidden();
+    $this->actingAs($this->userB)->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertForbidden();
+    expect($log->fresh()->status)->toBe(DailyActivityStatus::Submitted);
+});
+
+test('P3. a related task must be an active service of the position and organization, but a linked one survives deactivation', function (): void {
+    $inactive = PositionService::query()->create(['organization_id' => $this->org->id, 'position_id' => $this->position->id, 'service_no' => 2, 'name_en' => 'Retired service', 'is_active' => false]);
+    $foreign = PositionService::query()->create(['organization_id' => $this->otherOrg->id, 'position_id' => $this->position->id, 'service_no' => 3, 'name_en' => 'Mislinked service', 'is_active' => true]);
+
+    daPost($this->userA, DA_TODAY, [[...daItems()[0], 'position_service_id' => $inactive->id]])->assertSessionHasErrors('items');
+    daPost($this->userA, DA_TODAY, [[...daItems()[0], 'position_service_id' => $foreign->id]])->assertSessionHasErrors('items');
+
+    daPost($this->userA, DA_TODAY, [[...daItems()[0], 'position_service_id' => $this->task->id]], 'submit')->assertSessionHasNoErrors();
+    $log = daLog($this->employeeA, DA_TODAY);
+    $this->actingAs($this->reviewer)->post(route('daily-activities.return', $log), ['comment' => 'Add the output detail.', 'submission_count' => 1]);
+    $this->task->update(['is_active' => false]);
+
+    // Correcting the returned day keeps its existing link.
+    $item = $log->fresh()->items->first();
+    daPost($this->userA, DA_TODAY, [['id' => $item->id, ...daItems()[0], 'position_service_id' => $this->task->id]], 'submit')->assertSessionHasNoErrors();
+    expect($log->fresh()->items->first()->position_service_id)->toBe($this->task->id);
+});
+
+test('P4. reminders reach every eligible employee even when claims shrink the batch query', function (): void {
+    $reminders = app(DailyActivityReminderService::class);
+    $reminders->chunkSize = 1;
+
+    $sent = $reminders->sendDue(Carbon::parse(DA_TODAY.' 17:30:00', 'Africa/Addis_Ababa'));
+
+    // A, B and F all have a required, unsubmitted day. OFFSET paging would skip one.
+    expect($sent['end_of_day'])->toBe(3)
+        ->and(DailyActivityReminder::query()->where('reminder_type', 'end_of_day')->count())->toBe(3);
+});
+
+test('P5. chunked reports give the same figures as one batch and stop at the row limit', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $coverage = new DailyActivityCoverage(organizationIds: [$this->org->id]);
+    $filters = ['date_from' => '2026-09-14', 'date_to' => DA_TODAY];
+
+    $build = function (int $chunk, string $type, int $limit = DailyActivityReportService::SCREEN_LIMIT) use ($coverage, $filters): array {
+        $queries = app(DailyActivityQueryService::class);
+        $queries->employeeChunkSize = $chunk;
+        app()->instance(DailyActivityQueryService::class, $queries);
+        app()->forgetInstance(DailyActivityReportService::class);
+
+        return app(DailyActivityReportService::class)->build($type, $coverage, $filters, $limit);
+    };
+
+    foreach (['unit_activity', 'missing', 'daily_submission'] as $type) {
+        expect($build(1, $type)['rows'])->toEqual($build(1000, $type)['rows']);
+    }
+
+    $limited = $build(1, 'missing', 1);
+    expect($limited['rows'])->toHaveCount(1)->and($limited['truncated'])->toBeTrue();
+});
+
+test('P5b. full-walk reports refuse an employee × day volume over the request budget', function (): void {
+    // Risk register SCL-9: unit activity and missing walk every employee-day
+    // in the request; citywide over 92 days is ~276M visits.
+    $coverage = new DailyActivityCoverage(organizationIds: [$this->org->id]);
+    $filters = ['date_from' => '2026-09-14', 'date_to' => DA_TODAY];
+    $reports = app(DailyActivityReportService::class);
+
+    expect($reports->build('unit_activity', $coverage, $filters)['too_broad'])->toBeFalse();
+
+    config(['daily_activity.report_work_budget' => 2]);
+    foreach (['unit_activity', 'missing'] as $type) {
+        $report = $reports->build($type, $coverage, $filters);
+        expect($report['too_broad'])->toBeTrue()->and($report['rows'])->toBe([]);
+    }
+    // Row-limited reports stop early and are not refused.
+    expect($reports->build('daily_submission', $coverage, $filters)['too_broad'])->toBeFalse();
+});
+
+test('P6. evidence is private, type- and size-checked, and stays linked after review', function (): void {
+    daSetting('evidence_attachments_enabled', true);
+    daPost($this->userA, DA_TODAY, daItems());
+    $log = daLog($this->employeeA, DA_TODAY);
+    $store = fn (UploadedFile $file) => $this->actingAs($this->userA)->post(route('employee.daily-activity.attachments.store', $log), ['file' => $file]);
+
+    $store(UploadedFile::fake()->create('payload.exe', 10, 'application/x-msdownload'))->assertSessionHasErrors('file');
+    $store(UploadedFile::fake()->create('huge.pdf', 1024 * 50, 'application/pdf'))->assertSessionHasErrors('file');
+    $store(UploadedFile::fake()->create('evidence.pdf', 20, 'application/pdf'))->assertSessionHasNoErrors();
+
+    $attachment = $log->attachments()->firstOrFail();
+    $this->actingAs($this->userB)->get(route('daily-activities.attachments.download', $attachment))->assertForbidden();
+
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertSessionHasNoErrors();
+    expect($attachment->fresh()->daily_activity_log_id)->toBe($log->id);
+    $this->actingAs($this->reviewer)->get(route('daily-activities.attachments.download', $attachment))->assertOk();
+});
+
+test('P7. reviewing daily activity never creates a KPI actual or a performance score', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(3), 'submit');
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', daLog($this->employeeA, DA_TODAY)), ['submission_count' => 1]);
+
+    expect(KpiActual::query()->count())->toBe(0)
+        ->and(PerformanceResult::query()->count())->toBe(0);
+});
+
+test('P8. a transfer keeps earlier days under the old placement and records new days under the new one', function (): void {
+    daSetting('max_backdate_days', 3);
+    $old = EmployeeAssignment::query()->where('employee_id', $this->employeeA->id)->firstOrFail();
+    $old->update(['effective_to' => '2026-09-21', 'is_current' => false, 'assignment_status' => 'closed']);
+    $new = EmployeeAssignment::query()->create(['employee_id' => $this->employeeA->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->otherUnit->id, 'position_id' => $this->financePosition->id, 'assignment_status' => 'active', 'effective_from' => '2026-09-22', 'is_current' => true]);
+    $this->employeeA->update(['current_assignment_id' => $new->id]);
+
+    daPost($this->userA, '2026-09-21', daItems())->assertSessionHasNoErrors();
+    daPost($this->userA, DA_TODAY, daItems())->assertSessionHasNoErrors();
+
+    $before = daLog($this->employeeA, '2026-09-21');
+    $after = daLog($this->employeeA, DA_TODAY);
+    expect([$before->employee_assignment_id, $before->organization_unit_id, $before->position_id])->toBe([$old->id, $this->subUnit->id, $this->position->id])
+        ->and([$after->employee_assignment_id, $after->organization_unit_id, $after->position_id])->toBe([$new->id, $this->otherUnit->id, $this->financePosition->id]);
+
+    // The old position's tasks are not accepted for the new post.
+    daPost($this->userA, DA_TODAY, [[...daItems()[0], 'position_service_id' => $this->task->id]])->assertSessionHasErrors('items');
+});
+
+test('P9. an expired or not-yet-effective reviewer assignment grants no review authority', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+
+    $acting = daUser('DA Acting Reviewer', DailyActivityRoles::REVIEWER_PERMISSIONS);
+    $grant = DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $acting->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->subUnit->id, 'include_sub_units' => true, 'is_active' => true, 'effective_from' => '2026-09-01', 'effective_to' => '2026-09-20']);
+    $this->actingAs($acting)->get(route('daily-activities.show', $log))->assertForbidden();
+
+    $grant->update(['effective_from' => '2026-09-24', 'effective_to' => null]);
+    $this->actingAs($acting->fresh())->get(route('daily-activities.show', $log))->assertForbidden();
+
+    $grant->update(['effective_from' => '2026-09-20']);
+    $this->actingAs($acting->fresh())->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertSessionHasNoErrors();
+    expect($log->fresh()->reviewed_by)->toBe($acting->id);
+});
+
+test('P10. no daily activity page, record or file is reachable without signing in', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+    auth()->logout();
+
+    foreach ([route('daily-activities.index'), route('daily-activities.show', $log), route('daily-activities.reports'), route('employee.daily-activity.entry')] as $url) {
+        $this->get($url)->assertRedirect();
+    }
+    $this->get(route('daily-activities.reports.export', ['type' => 'missing', 'format' => 'csv']))->assertRedirect();
+});
+
+test('P11. CSV exports neutralize text a spreadsheet would run as a formula', function (): void {
+    $report = ['columns' => ['employee', 'late_reason'], 'rows' => [['employee' => 'Ann', 'late_reason' => '=HYPERLINK("http://x")'], ['employee' => '@SUM(A1)', 'late_reason' => '-2+3']]];
+
+    $csv = (new DailyActivityReportExport($report, app(LocalizedDateService::class), neutralizeFormulas: true))->array();
+    expect($csv)->toBe([['Ann', "'=HYPERLINK(\"http://x\")"], ["'@SUM(A1)", "'-2+3"]]);
+
+    // xlsx cells are bound as typed text instead, so their values stay as written.
+    $xlsx = (new DailyActivityReportExport($report, app(LocalizedDateService::class)))->array();
+    expect($xlsx[0][1])->toBe('=HYPERLINK("http://x")');
+});
+
+// ── Settings page ───────────────────────────────────────────────────────────
+
+test('S1. ending a reviewer assignment revokes authority at once and keeps the record', function (): void {
+    $admin = daUser('DA Settings Admin', ['daily_activities.manage_reviewers', 'daily_activity_settings.view', 'daily_activity_settings.update']);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+    $assignment = DailyActivityReviewerAssignment::query()->where('reviewer_user_id', $this->reviewer->id)->firstOrFail();
+
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('reviewers', fn ($rows) => collect($rows)->firstWhere('id', $assignment->id)['status'] === 'active'));
+
+    $this->actingAs($admin)->delete(route('daily-activities.reviewers.destroy', $assignment))->assertSessionHasNoErrors();
+
+    $assignment->refresh();
+    expect($assignment->exists)->toBeTrue()
+        ->and($assignment->is_active)->toBeFalse()
+        ->and($assignment->effective_to?->toDateString())->toBe('2026-09-22')
+        ->and(AuditLog::query()->where('event_type', 'daily_activity.reviewer_removed')->exists())->toBeTrue();
+
+    $this->actingAs($this->reviewer->fresh())->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertForbidden();
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('reviewers', fn ($rows) => collect($rows)->firstWhere('id', $assignment->id)['status'] === 'ended'));
+});
+
+test('S2. the employee picker searches the whole organization instead of preloading thousands', function (): void {
+    $admin = daUser('DA Settings Admin 2', ['daily_activities.manage_reviewers']);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index', ['organization_id' => $this->org->id, 'employee_search' => 'DA-B']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('employeeSearch', 'DA-B')
+            ->has('options.employees', 1)
+            ->where('options.employees.0.employee_number', 'DA-B')
+            ->where('options.employeesTruncated', false));
+
+    // Another organization's employees are never offered, whatever the query says.
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index', ['organization_id' => $this->otherOrg->id, 'employee_search' => 'DA-F']))
+        ->assertInertia(fn (Assert $page) => $page->where('selectedOrganizationId', null)->where('options.employees', []));
+});
+
+test('S3. every daily activity setting explains itself in both languages', function (): void {
+    foreach (SystemSettingsRegistry::group(SystemSettingsRegistry::GROUP_DAILY_ACTIVITY) as $key => $definition) {
+        expect($definition['description_en'] ?? '')->not->toBe('', "{$key} English description")
+            ->and($definition['description_am'] ?? '')->not->toBe('', "{$key} Amharic description");
+    }
+});
+
+// ── Admin pages end to end ──────────────────────────────────────────────────
+
+test('E1. a team reviewer can open every page the sidebar shows them', function (): void {
+    $teamReviewer = daUser('DA Team Reviewer', ['daily_activities.view_team', 'daily_activities.review', 'daily_activities.approve', 'daily_activities.return_for_correction']);
+    DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $teamReviewer->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'include_sub_units' => true, 'is_active' => true]);
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing', 'daily-activities.review-queue'] as $name) {
+        $this->actingAs($teamReviewer)->get(route($name))->assertOk();
+    }
+    $this->actingAs($teamReviewer)->get(route('daily-activities.reports'))->assertForbidden();
+
+    // The sidebar gates each entry by the same permissions the pages accept.
+    $sidebar = (string) file_get_contents(resource_path('js/Components/AppSidebar.tsx'));
+    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing'] as $name) {
+        expect($sidebar)->toMatch("/routeName: '".preg_quote($name, '/')."'[^}]*daily_activities\\.view_team/");
+    }
+});
+
+test('E2. the dashboard shows the real review queue size, not the preview length', function (): void {
+    foreach ([$this->userA, $this->userB] as $user) {
+        daPost($user, DA_TODAY, daItems(), 'submit');
+    }
+
+    $this->actingAs($this->reviewer)->get(route('daily-activities.dashboard'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('pendingReview', 2)->has('awaitingReviewList', 2));
+});
+
+test('E3. searches are case-insensitive on every database', function (): void {
+    $sources = (string) file_get_contents(base_path('Modules/DailyWork/Application/Services/DailyActivityQueryService.php'))
+        .file_get_contents(base_path('Modules/DailyWork/Http/Controllers/DailyActivityController.php'));
+    // PostgreSQL LIKE is case-sensitive; ci_like_operator() resolves to ILIKE there.
+    expect($sources)->not->toContain("'like'");
+
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.index', ['search' => 'da-a']))
+        ->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 1));
+});
+
+test('E4. a cut-off report and missing list say so, without inventing a total', function (): void {
+    $coverage = new DailyActivityCoverage(organizationIds: [$this->org->id]);
+    $report = app(DailyActivityReportService::class)->build('missing', $coverage, ['date_from' => '2026-09-14', 'date_to' => DA_TODAY], 1);
+    expect($report['truncated'])->toBeTrue()->and($report['total'])->toBe(1)->and($report['rows'])->toHaveCount(1);
+
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.missing', ['date_from' => '2026-09-14', 'date_to' => DA_TODAY]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('truncated', false)->where('rows.meta.total', fn ($total) => $total > 0));
+});
+
+// ── Settings and reviewer assignments are separate pages ────────────────────
+
+test('R1. city-wide settings and scoped reviewer assignments live on separate pages', function (): void {
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.settings'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('DailyActivities/Settings')
+            ->has('fields')
+            ->missing('reviewers')
+            ->missing('options')
+            ->where('canUpdate', false)
+            ->where('can.manageSettings', true)
+            ->where('can.manageReviewers', true));
+
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('DailyActivities/ReviewerAssignments')
+            ->has('reviewers')
+            ->missing('fields'));
+});
+
+test('R2. a reviewer manager without settings rights is sent to reviewer assignments, and each page keeps its own permission', function (): void {
+    $manager = daUser('DA Reviewer Manager', ['daily_activities.manage_reviewers']);
+    UserOrganizationScope::query()->create(['user_id' => $manager->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    $this->actingAs($manager)->get(route('daily-activities.settings'))->assertRedirect(route('daily-activities.reviewers.index'));
+    $this->actingAs($manager)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('can.manageSettings', false)->where('can.manageReviewers', true));
+    $this->actingAs($manager)->put(route('daily-activities.settings.update'), ['enabled' => false])->assertForbidden();
+
+    $settingsOnly = daUser('DA Settings Only', ['daily_activity_settings.view']);
+    $this->actingAs($settingsOnly)->get(route('daily-activities.settings'))->assertOk();
+    $this->actingAs($settingsOnly)->get(route('daily-activities.reviewers.index'))->assertForbidden();
+    $this->actingAs($this->reviewer)->get(route('daily-activities.settings'))->assertForbidden();
+});
+
+// ── Review policy per organization ──────────────────────────────────────────
+
+function daPolicyAdmin($test): User
+{
+    $admin = daUser('DA Policy Admin', ['daily_activities.manage_reviewers']);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => $test->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    return $admin;
+}
+
+test('W1. an organization review policy decides what waits in the review queue', function (): void {
+    $admin = daPolicyAdmin($this);
+    daAt('19:00');
+    daPost($this->userA, DA_TODAY, daItems(), 'submit', ['late_reason' => 'Field visit ran late.']);
+    daAt('10:00', '2026-09-24');
+    daPost($this->userB, '2026-09-24', daItems(), 'submit');
+    $queue = fn () => $this->actingAs($this->reviewer)->get(route('daily-activities.review-queue'));
+
+    $queue()->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 2));
+
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'late_only'])->assertSessionHasNoErrors();
+    $queue()->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 1)->where('logs.data.0.is_late', true));
+
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'none']);
+    // Other organizations still review city-wide; this one's days leave the queue.
+    $queue()->assertInertia(fn (Assert $page) => $page->where('reviewRequired', true)->where('logs.meta.total', 0));
+
+    // City-wide review off, but this organization still reviews everything.
+    daSetting('manager_review_required', false);
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'all']);
+    $queue()->assertInertia(fn (Assert $page) => $page->where('reviewRequired', true)->where('logs.meta.total', 2));
+
+    expect(AuditLog::query()->where('event_type', 'daily_activity.review_policy_changed')->count())->toBe(3);
+});
+
+test('W2. only scoped reviewer managers may set an organization review policy', function (): void {
+    $admin = daPolicyAdmin($this);
+
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->otherOrg->id, 'review_mode' => 'none'])->assertSessionHasErrors('organization_id');
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'sometimes'])->assertSessionHasErrors('review_mode');
+    $this->actingAs($this->reviewer)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'none'])->assertForbidden();
+
+    expect(DailyActivityReviewPolicy::query()->count())->toBe(0);
+});
+
+test('W3. each assignment shows how many employees it covers', function (): void {
+    $admin = daPolicyAdmin($this);
+    DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $this->financeReviewer->id, 'organization_id' => $this->org->id, 'employee_id' => $this->employeeB->id, 'is_active' => true]);
+
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('reviewers', function ($rows): bool {
+            $rows = collect($rows);
+
+            // HR directorate with sub-units holds A and B; the single-employee grant covers one.
+            return $rows->firstWhere('reviewer.id', $this->reviewer->id)['covered_employees'] === 2
+                && $rows->firstWhere('employee.employee_number', 'DA-B')['covered_employees'] === 1;
+        }));
+});
+
+test('W4. EPMS treats a day as final according to its organization review policy', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $policy = app(DailyActivityReviewPolicyService::class);
+    $final = fn () => $policy->constrainToFinal(DailyActivityLog::query(), $this->org->id)->count();
+
+    // City-wide review on: a submitted, unreviewed day is not final yet.
+    expect($final())->toBe(0);
+
+    DailyActivityReviewPolicy::query()->create(['organization_id' => $this->org->id, 'review_mode' => 'none']);
+    expect($final())->toBe(1);
+
+    DailyActivityReviewPolicy::query()->where('organization_id', $this->org->id)->update(['review_mode' => 'late_only']);
+    expect($final())->toBe(1);
+    DailyActivityLog::query()->update(['is_late' => true]);
+    expect($final())->toBe(0);
+});
+
+// ── Work execution register (የባለሞያ የዕለት ዕቅድ ክንውን መመዝገቢያ) ─────────────────
+
+/**
+ * Sub-service → main task → approved standard under the HR Officer's service.
+ *
+ * @param  array<string, mixed>  $standard
+ * @return array{0: PositionServiceSubService, 1: PositionServiceTask, 2: PositionServiceTaskStandard}
+ */
+function wxStructure(object $test, array $standard = [], ?PositionService $service = null): array
+{
+    $service ??= $test->task;
+    $sub = PositionServiceSubService::query()->create(['position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'SS-'.Illuminate\Support\Str::random(4), 'name_en' => 'Employee Transfer Processing', 'is_active' => true]);
+    $task = PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'T-'.Illuminate\Support\Str::random(4), 'name_en' => 'Review Transfer Application', 'is_active' => true]);
+    $row = PositionServiceTaskStandard::query()->create([
+        'task_id' => $task->id, 'organization_id' => $service->organization_id, 'version_no' => 1, 'status' => 'approved',
+        'planned_quantity' => 10, 'quantity_unit' => 'applications', 'planned_time_minutes' => 60,
+        'planned_quality' => 100, 'quality_unit' => '%', 'quality_measure' => 'Share of applications complete and correct',
+        'quality_source' => 'employee', 'effective_from' => '2026-01-01', 'bpr_reference' => 'BPR-HR-2026',
+        ...$standard,
+    ]);
+
+    return [$sub, $task, $row];
+}
+
+/** @param array<string, mixed> $overrides */
+function wxItem(PositionServiceTask $task, array $overrides = []): array
+{
+    return [
+        'task_id' => $task->id,
+        'started_at' => '09:00',
+        'ended_at' => '10:15',
+        'quantity' => '8',
+        'actual_quality' => '90',
+        'progress_status' => 'completed',
+        'output_result' => '8 applications reviewed',
+        ...$overrides,
+    ];
+}
+
+function wxAdmin(object $test, array $permissions, ?Organization $org = null): User
+{
+    $admin = daUser('WX Admin '.Illuminate\Support\Str::random(4), $permissions);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => ($org ?? $test->org)->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    return $admin;
+}
+
+test('X1. a task item is measured on the server from its standard: hierarchy, time taken and scores', function (): void {
+    [$sub, $task, $standard] = wxStructure($this);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task)], 'submit')->assertSessionHasNoErrors();
+
+    $item = daLog($this->employeeA, DA_TODAY)->items()->firstOrFail();
+    expect($item->position_service_id)->toBe($this->task->id)
+        ->and($item->sub_service_id)->toBe($sub->id)
+        ->and($item->task_standard_id)->toBe($standard->id)
+        ->and($item->title)->toBe('Review Transfer Application')
+        ->and($item->duration_minutes)->toBe(75)
+        ->and((string) $item->planned_quantity)->toBe('10.0000')
+        ->and($item->unit_of_measure)->toBe('applications')
+        ->and($item->standard_snapshot['bpr_reference'])->toBe('BPR-HR-2026')
+        // 8/10 = 80, 60/75 = 80, 90/100 = 90, (80+80+90)/3 = 83.3333
+        ->and((string) $item->quantity_score)->toBe('80.0000')
+        ->and((string) $item->time_score)->toBe('80.0000')
+        ->and((string) $item->quality_score)->toBe('90.0000')
+        ->and((string) $item->task_score)->toBe('83.3333');
+});
+
+test('X2. the browser can neither choose the standard nor send scores or planned values', function (): void {
+    [, $task, $standard] = wxStructure($this);
+
+    foreach (['task_standard_id' => $standard->id, 'planned_quantity' => 1, 'quantity_score' => 100, 'task_score' => 100, 'planned_time_minutes' => 1] as $field => $value) {
+        daPost($this->userA, DA_TODAY, [wxItem($task, [$field => $value])])->assertSessionHasErrors("items.0.{$field}");
+    }
+    expect(daLog($this->employeeA, DA_TODAY))->toBeNull();
+});
+
+test('X3. a task of another position, organization or sub-service is refused', function (): void {
+    [$sub, $task] = wxStructure($this);
+    $foreignService = PositionService::query()->create(['organization_id' => $this->otherOrg->id, 'position_id' => $this->foreignPosition->id, 'service_no' => 9, 'name_en' => 'Foreign service', 'is_active' => true]);
+    [, $foreignTask] = wxStructure($this, [], $foreignService);
+    [$otherSub] = wxStructure($this);
+
+    daPost($this->userA, DA_TODAY, [wxItem($foreignTask)])->assertSessionHasErrors('items.0.task_id');
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['sub_service_id' => $otherSub->id])])->assertSessionHasErrors('items.0.task_id');
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['sub_service_id' => $sub->id, 'position_service_id' => $foreignService->id])])->assertSessionHasErrors('items.0.task_id');
+
+    $task->update(['is_active' => false]);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasErrors('items.0.task_id');
+});
+
+test('X4. only an approved standard in force on the work date measures work', function (): void {
+    [, $task, $standard] = wxStructure($this, ['status' => 'draft']);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasErrors('items.0.task_id');
+
+    $standard->update(['status' => 'approved', 'effective_to' => '2026-09-22']);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasErrors('items.0.task_id');
+
+    // The same standard does measure a date inside its period.
+    daPost($this->userA, '2026-09-22', [wxItem($task)])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeA, '2026-09-22')->items()->first()->task_standard_id)->toBe($standard->id);
+});
+
+test('X5. recorded work keeps the standard it was measured against after a new version is approved', function (): void {
+    [, $task, $v1] = wxStructure($this, ['effective_from' => '2026-09-01']);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasNoErrors();
+    $item = daLog($this->employeeA, DA_TODAY)->items()->first();
+
+    $approver = wxAdmin($this, ['work_standards.manage', 'work_standards.approve']);
+    $this->actingAs($approver)->post(route('work-structure.standards.store', $task), [
+        'planned_quantity' => 20, 'quantity_unit' => 'applications', 'quality_source' => 'employee', 'effective_from' => '2026-09-15',
+    ])->assertSessionHasNoErrors();
+    $v2 = PositionServiceTaskStandard::query()->where('task_id', $task->id)->where('version_no', 2)->firstOrFail();
+    $this->actingAs($approver)->post(route('work-structure.standards.approve', $v2))->assertSessionHasErrors('effective_from');
+
+    $v2->update(['effective_from' => '2026-09-24']);
+    $this->actingAs($approver)->post(route('work-structure.standards.approve', $v2))->assertSessionHasNoErrors();
+    expect($v1->fresh()->effective_to->toDateString())->toBe('2026-09-23');
+
+    // Saving the draft again keeps the original measurement.
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['id' => $item->id])])->assertSessionHasNoErrors();
+    $item->refresh();
+    expect($item->task_standard_id)->toBe($v1->id)->and((string) $item->planned_quantity)->toBe('10.0000');
+
+    // An approved version is immutable.
+    $this->actingAs($approver)->patch(route('work-structure.standards.update', $v1), [
+        'planned_quantity' => 99, 'quantity_unit' => 'x', 'quality_source' => 'employee', 'effective_from' => '2026-09-01',
+    ])->assertSessionHasErrors('status');
+});
+
+test('X6. time is taken from start and completion, and submission needs what the standard measures', function (): void {
+    [, $task] = wxStructure($this);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['started_at' => '11:00', 'ended_at' => '10:00'])])->assertSessionHasErrors('items.0.ended_at');
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['duration_minutes' => 5])])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeA, DA_TODAY)->items()->first()->duration_minutes)->toBe(75);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['started_at' => null, 'ended_at' => null, 'quantity' => null])], 'submit')
+        ->assertSessionHasErrors(['items.0.started_at', 'items.0.quantity']);
+});
+
+test('X7. quality left to the reviewer is recorded at approval and rescored', function (): void {
+    [, $task] = wxStructure($this, ['quality_source' => 'reviewer']);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['actual_quality' => '100'])], 'submit')->assertSessionHasNoErrors();
+    $log = daLog($this->employeeA, DA_TODAY);
+    $item = $log->items()->first();
+    expect($item->actual_quality)->toBeNull()->and($item->task_score)->toBeNull();
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1])
+        ->assertSessionHasErrors("item_quality.{$item->id}");
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1, 'item_quality' => [$item->id => '75']])
+        ->assertSessionHasNoErrors();
+
+    $item->refresh();
+    expect((string) $item->quality_score)->toBe('75.0000')
+        ->and((string) $item->task_score)->toBe('78.3333')
+        ->and($log->fresh()->status)->toBe(DailyActivityStatus::Approved);
+});
+
+test('X8. the rules: task required when configured, partial standards, and the same task twice in a day', function (): void {
+    [, $task] = wxStructure($this, ['planned_quality' => null, 'quality_unit' => null, 'quality_measure' => null]);
+
+    daSetting('structured_entry_required', true);
+    daPost($this->userA, DA_TODAY, daItems())->assertSessionHasErrors('items.0.task_id');
+
+    daPost($this->userA, DA_TODAY, [wxItem($task), wxItem($task, ['started_at' => '10:30', 'ended_at' => '11:30', 'quantity' => '5'])], 'submit')->assertSessionHasNoErrors();
+    $items = daLog($this->employeeA, DA_TODAY)->items()->orderBy('sort_order')->get();
+    // Quantity and time only: (80 + 80) / 2 and (50 + 100) / 2.
+    expect($items)->toHaveCount(2)
+        ->and((string) $items[0]->task_score)->toBe('80.0000')
+        ->and((string) $items[1]->task_score)->toBe('75.0000')
+        ->and($items[0]->actual_quality)->toBeNull();
+
+    daSetting('task_score_rule', 'all_three');
+    daPost($this->userB, DA_TODAY, [wxItem($task)])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeB, DA_TODAY)->items()->first()->task_score)->toBeNull();
+});
+
+test('X9. work standards are managed and approved only within scope and with the separate rights', function (): void {
+    [$sub, $task, $standard] = wxStructure($this, ['status' => 'draft']);
+    $manager = wxAdmin($this, ['work_standards.manage']);
+    $foreignManager = wxAdmin($this, ['work_standards.manage', 'work_standards.approve'], $this->otherOrg);
+
+    $this->actingAs($manager)->get(route('work-structure.show', $this->task))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('PositionServices/Structure')->where('can.manage', true)->where('can.approve', false));
+    $this->actingAs($manager)->post(route('work-structure.sub-services.store', $this->task), ['code' => 'SS-NEW', 'name_en' => 'New', 'is_active' => true])->assertSessionHasNoErrors();
+    $this->actingAs($manager)->post(route('work-structure.standards.approve', $standard))->assertForbidden();
+
+    $this->actingAs($foreignManager)->get(route('work-structure.show', $this->task))->assertForbidden();
+    $this->actingAs($foreignManager)->post(route('work-structure.tasks.store', $sub), ['code' => 'X', 'name_en' => 'X', 'is_active' => true])->assertForbidden();
+    $this->actingAs($foreignManager)->post(route('work-structure.standards.approve', $standard))->assertForbidden();
+    $this->actingAs($this->userA)->get(route('work-structure.show', $this->task))->assertForbidden();
+
+    // A standard must measure something, above zero, and define quality when it measures it.
+    $this->actingAs($manager)->post(route('work-structure.standards.store', $task), ['quality_source' => 'employee', 'effective_from' => '2026-10-01'])->assertSessionHasErrors('planned_quantity');
+    $this->actingAs($manager)->post(route('work-structure.standards.store', $task), ['planned_quantity' => 0, 'quantity_unit' => 'x', 'quality_source' => 'employee', 'effective_from' => '2026-10-01'])->assertSessionHasErrors('planned_quantity');
+    $this->actingAs($manager)->post(route('work-structure.standards.store', $task), ['planned_quality' => 100, 'quality_unit' => '%', 'quality_source' => 'employee', 'effective_from' => '2026-10-01'])->assertSessionHasErrors('quality_measure');
+
+    expect(AuditLog::query()->where('event_type', 'work_standards.structure_changed')->exists())->toBeTrue();
+});
+
+test('X10. used structure cannot be deleted, only made inactive; the entry page offers the structure', function (): void {
+    [$sub, $task] = wxStructure($this);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasNoErrors();
+    $manager = wxAdmin($this, ['work_standards.manage']);
+
+    $this->actingAs($manager)->delete(route('work-structure.tasks.destroy', $task))->assertSessionHasErrors('structure');
+    $this->actingAs($manager)->delete(route('work-structure.sub-services.destroy', $sub))->assertSessionHasErrors('structure');
+
+    $this->actingAs($this->userA)->get(route('employee.daily-activity.entry'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('work_structure.0.sub_services.0.tasks.0.id', $task->id)
+            ->where('work_structure.0.sub_services.0.tasks.0.standard.planned_quantity', '10.0000')
+            ->where('log.items.0.scores.task', '83.3333'));
+});
+
+test('X11. task and sub-service performance reports aggregate measured work within scope', function (): void {
+    [$sub, $task] = wxStructure($this);
+    $task->update(['code' => 'T-1']);
+    $second = PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $this->task->id, 'organization_id' => $this->org->id, 'code' => 'T-2', 'name_en' => 'Prepare transfer letter', 'is_active' => true]);
+    PositionServiceTaskStandard::query()->create(['task_id' => $second->id, 'organization_id' => $this->org->id, 'version_no' => 1, 'status' => 'approved', 'planned_quantity' => 4, 'quantity_unit' => 'letters', 'quality_source' => 'employee', 'effective_from' => '2026-01-01']);
+
+    // Task 1: 83.3333 (A) and 100 (B: 10/10, 60/60, 100/100); task 2: 4/4 = 100.
+    daPost($this->userA, DA_TODAY, [wxItem($task), wxItem($second, ['started_at' => '11:00', 'ended_at' => '12:00', 'quantity' => '4', 'actual_quality' => null])], 'submit')->assertSessionHasNoErrors();
+    daPost($this->userB, DA_TODAY, [wxItem($task, ['ended_at' => '10:00', 'quantity' => '10', 'actual_quality' => '100'])], 'submit')->assertSessionHasNoErrors();
+    // Another organization's measured work never appears.
+    $foreignService = PositionService::query()->create(['organization_id' => $this->otherOrg->id, 'position_id' => $this->foreignPosition->id, 'service_no' => 9, 'name_en' => 'Foreign', 'is_active' => true]);
+    [, $foreignTask] = wxStructure($this, [], $foreignService);
+    daPost($this->userF, DA_TODAY, [wxItem($foreignTask)], 'submit')->assertSessionHasNoErrors();
+
+    $report = fn (string $type) => $this->actingAs($this->orgAdmin)->get(route('daily-activities.reports', ['type' => $type, 'date_from' => DA_TODAY, 'date_to' => DA_TODAY]))->assertOk();
+
+    $report('task_performance')->assertInertia(fn (Assert $page) => $page
+        ->has('report.rows', 2)
+        ->where('report.rows.0.executions', 2)
+        ->where('report.rows.0.employees', 2)
+        ->where('report.rows.0.actual_quantity', '18')
+        ->where('report.rows.0.task_score', '91.67')
+        ->where('report.rows.1.task_score', '100.00'));
+
+    // (91.6667 + 100) / 2 executed tasks.
+    $report('sub_service_performance')->assertInertia(fn (Assert $page) => $page
+        ->has('report.rows', 1)
+        ->where('report.rows.0.tasks_executed', 2)
+        ->where('report.rows.0.sub_service_score', '95.83'));
+});

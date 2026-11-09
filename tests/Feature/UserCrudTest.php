@@ -1,0 +1,540 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Enums\AuditEventType;
+use App\Models\Organization;
+use App\Models\OrganizationType;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
+beforeEach(function (): void {
+    foreach ([
+        'users.viewAny',
+        'users.view',
+        'users.create',
+        'users.update',
+        'users.delete',
+        'users.archive',
+        'users.restore',
+        'users.assignRoles',
+        'users.deactivate',
+        'users.updateProfilePhoto',
+        'users.viewSensitive',
+    ] as $perm) {
+        Permission::findOrCreate($perm, 'web');
+    }
+
+    Role::findOrCreate('User Manager', 'web')->syncPermissions([
+        'users.viewAny',
+        'users.view',
+        'users.create',
+        'users.update',
+        'users.delete',
+        'users.archive',
+        'users.restore',
+        'users.assignRoles',
+        'users.deactivate',
+        'users.updateProfilePhoto',
+        'users.viewSensitive',
+    ]);
+
+    Role::findOrCreate('User Viewer', 'web')->syncPermissions([
+        'users.viewAny',
+    ]);
+
+    // City-wide user administration is a global role; organization-level roles need an explicit scope (ADR 0003).
+    DB::table('roles')->whereIn('name', ['User Manager', 'User Viewer'])->update(['scope_type' => 'global']);
+});
+
+function userMgmtAdmin(): User
+{
+    $user = User::factory()->create();
+    $user->assignRole('User Manager');
+
+    return $user;
+}
+
+function userMgmtViewer(): User
+{
+    $user = User::factory()->create();
+    $user->assignRole('User Viewer');
+
+    return $user;
+}
+
+function makeTargetUser(): User
+{
+    return User::factory()->create(['status' => 'active']);
+}
+
+// ── Index ──────────────────────────────────────────────────────────────────
+
+test('guests are redirected from the users index', function (): void {
+    $this->get(route('users.index'))
+        ->assertRedirect(route('login'));
+});
+
+test('users with viewAny permission can view the users index', function (): void {
+    $this->actingAs(userMgmtViewer())
+        ->get(route('users.index'))
+        ->assertOk();
+});
+
+test('users without viewAny permission cannot view the users index', function (): void {
+    $noRoleUser = User::factory()->create();
+
+    $this->actingAs($noRoleUser)
+        ->get(route('users.index'))
+        ->assertForbidden();
+});
+
+// ── Create page ────────────────────────────────────────────────────────────
+
+test('users without create permission cannot access the create page', function (): void {
+    $this->actingAs(userMgmtViewer())
+        ->get(route('users.create'))
+        ->assertForbidden();
+});
+
+test('users with create permission can access the create page', function (): void {
+    $this->actingAs(userMgmtAdmin())
+        ->get(route('users.create'))
+        ->assertOk();
+});
+
+// ── Store ──────────────────────────────────────────────────────────────────
+
+test('users without create permission cannot store a user', function (): void {
+    $this->actingAs(userMgmtViewer())
+        ->post(route('users.store'), [
+            'name' => 'New User',
+            'email' => 'new@example.com',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
+            'status' => 'active',
+        ])
+        ->assertForbidden();
+});
+
+test('users with create permission can store a user', function (): void {
+    $this->actingAs(userMgmtAdmin())
+        ->post(route('users.store'), [
+            'name' => 'New User',
+            'email' => 'new@example.com',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
+            'status' => 'active',
+        ])
+        ->assertRedirect(route('users.index'));
+
+    $this->assertDatabaseHas('users', ['email' => 'new@example.com']);
+});
+
+test('users with create permission can store profile fields and photo', function (): void {
+    Storage::fake('public');
+    Role::findOrCreate('Operator', 'web');
+    $organizationType = OrganizationType::query()->create([
+        'code' => 'USER-CRUD',
+        'name_en' => 'User CRUD Organization',
+    ]);
+    $organization = Organization::query()->create([
+        'organization_type_id' => $organizationType->id,
+        'code' => 'USER-CRUD-ORG',
+        'name_en' => 'User CRUD Organization',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs(userMgmtAdmin())
+        ->post(route('users.store'), [
+            'name' => 'Profile User',
+            'email' => 'profile-user@example.com',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
+            'status' => 'active',
+            'national_id' => 'AA-2026-001',
+            'phone_number' => '+251911111111',
+            'gender' => 'other',
+            'roles' => ['Operator'],
+            'organization_id' => $organization->id,
+            'scope_type' => 'self',
+            'profile_photo' => UploadedFile::fake()->image('avatar.jpg'),
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('users.index'));
+
+    $created = User::query()->where('email', 'profile-user@example.com')->firstOrFail();
+
+    expect($created->national_id)->toBe('AA-2026-001')
+        ->and($created->phone_number)->toBe('+251911111111')
+        ->and($created->gender)->toBe('other')
+        ->and($created->hasRole('Operator'))->toBeTrue()
+        ->and($created->profile_photo_path)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($created->profile_photo_path);
+    $this->assertDatabaseHas('audit_logs', [
+        'auditable_id' => $created->id,
+        'event_type' => AuditEventType::UserCreated->value,
+    ]);
+});
+
+test('store user rejects invalid gender', function (): void {
+    $this->actingAs(userMgmtAdmin())
+        ->post(route('users.store'), [
+            'name' => 'Invalid Gender',
+            'email' => 'invalid-gender@example.com',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
+            'status' => 'active',
+            'gender' => 'unknown',
+        ])
+        ->assertSessionHasErrors('gender');
+});
+
+// ── Edit page ──────────────────────────────────────────────────────────────
+
+test('users without update permission cannot access the edit page', function (): void {
+    $target = makeTargetUser();
+
+    $this->actingAs(userMgmtViewer())
+        ->get(route('users.edit', $target))
+        ->assertForbidden();
+});
+
+test('users with update permission can access the edit page', function (): void {
+    $target = makeTargetUser();
+
+    $this->actingAs(userMgmtAdmin())
+        ->get(route('users.edit', $target))
+        ->assertOk();
+});
+
+// ── Update ─────────────────────────────────────────────────────────────────
+
+test('users without update permission cannot update a user', function (): void {
+    $target = makeTargetUser();
+
+    $this->actingAs(userMgmtViewer())
+        ->patch(route('users.update', $target), [
+            'name' => 'Changed Name',
+            'email' => $target->email,
+            'status' => 'active',
+        ])
+        ->assertForbidden();
+});
+
+test('users with update permission can update a user', function (): void {
+    $target = makeTargetUser();
+
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => 'Updated Name',
+            'email' => $target->email,
+            'status' => 'active',
+        ])
+        ->assertRedirect(route('users.index'));
+
+    expect($target->fresh()->name)->toBe('Updated Name');
+});
+
+test('users with update permission can update profile fields photo and roles', function (): void {
+    Storage::fake('public');
+    $target = makeTargetUser();
+    Role::findOrCreate('Supervisor', 'web');
+    $organizationType = OrganizationType::query()->create([
+        'code' => 'USER-UPDATE',
+        'name_en' => 'User Update Organization',
+    ]);
+    $organization = Organization::query()->create([
+        'organization_type_id' => $organizationType->id,
+        'code' => 'USER-UPDATE-ORG',
+        'name_en' => 'User Update Organization',
+        'status' => 'active',
+    ]);
+    $target->organizationScopes()->create([
+        'organization_id' => $organization->id,
+        'scope_type' => 'self',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => 'Updated Profile User',
+            'email' => $target->email,
+            'status' => 'active',
+            'national_id' => 'AA-2026-UPDATED',
+            'phone_number' => '+251922222222',
+            'gender' => 'not_specified',
+            'roles' => ['Supervisor'],
+            'profile_photo' => UploadedFile::fake()->image('avatar.png'),
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('users.index'));
+
+    $target->refresh();
+
+    expect($target->name)->toBe('Updated Profile User')
+        ->and($target->national_id)->toBe('AA-2026-UPDATED')
+        ->and($target->phone_number)->toBe('+251922222222')
+        ->and($target->gender)->toBe('not_specified')
+        ->and($target->hasRole('Supervisor'))->toBeTrue()
+        ->and($target->profile_photo_path)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($target->profile_photo_path);
+});
+
+test('unchecking every role on the edit form removes them', function (): void {
+    $target = makeTargetUser();
+    Role::findOrCreate('Supervisor', 'web');
+    DB::table('roles')->where('name', 'Supervisor')->update(['scope_type' => 'global']);
+    $target->assignRole('Supervisor');
+
+    // A multipart form cannot carry an empty list, so the edit form sends no
+    // roles[] at all and says so with roles_submitted.
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => $target->name,
+            'email' => $target->email,
+            'status' => 'active',
+            'roles_submitted' => '1',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('users.index'));
+
+    expect($target->fresh()->getRoleNames()->all())->toBe([]);
+});
+
+test('an update that does not mention roles leaves them alone', function (): void {
+    $target = makeTargetUser();
+    Role::findOrCreate('Supervisor', 'web');
+    DB::table('roles')->where('name', 'Supervisor')->update(['scope_type' => 'global']);
+    $target->assignRole('Supervisor');
+
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => 'Renamed Only',
+            'email' => $target->email,
+            'status' => 'active',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($target->fresh()->hasRole('Supervisor'))->toBeTrue();
+});
+
+test('blank password on edit does not change the existing password', function (): void {
+    $target = makeTargetUser();
+    $originalHash = $target->password;
+
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => 'Password Unchanged',
+            'email' => $target->email,
+            'status' => 'active',
+            'password' => '',
+            'password_confirmation' => '',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('users.index'));
+
+    expect($target->fresh()->password)->toBe($originalHash)
+        ->and(Hash::check('password', $target->fresh()->password))->toBeTrue();
+});
+
+test('national id unique validation ignores current user on update', function (): void {
+    $target = User::factory()->create([
+        'status' => 'active',
+        'national_id' => 'AA-UNIQUE-SELF',
+    ]);
+
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => $target->name,
+            'email' => $target->email,
+            'status' => 'active',
+            'national_id' => 'AA-UNIQUE-SELF',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('users.index'));
+});
+
+// ── Deactivate ─────────────────────────────────────────────────────────────
+
+test('users without archive permission cannot deactivate a user', function (): void {
+    $target = makeTargetUser();
+
+    $this->actingAs(userMgmtViewer())
+        ->post(route('users.deactivate', $target))
+        ->assertForbidden();
+});
+
+test('users with archive permission can deactivate another user', function (): void {
+    $actor = userMgmtAdmin();
+    $target = makeTargetUser();
+
+    $this->actingAs($actor)
+        ->post(route('users.deactivate', $target))
+        ->assertRedirect(route('users.index'));
+
+    expect($target->fresh()->status)->toBe('inactive');
+});
+
+test('users cannot deactivate themselves', function (): void {
+    $actor = userMgmtAdmin();
+
+    $this->actingAs($actor)
+        ->post(route('users.deactivate', $actor))
+        ->assertForbidden();
+});
+
+test('last active super admin cannot be deactivated', function (): void {
+    Role::findOrCreate('Super Admin', 'web');
+    $target = makeTargetUser();
+    $target->assignRole('Super Admin');
+
+    $this->actingAs(userMgmtAdmin())
+        ->post(route('users.deactivate', $target))
+        ->assertForbidden();
+
+    expect($target->fresh()->status)->toBe('active');
+});
+
+test('a non-super-admin cannot edit a super admin account at all', function (): void {
+    Role::findOrCreate('Super Admin', 'web');
+    $target = makeTargetUser();
+    $target->assignRole('Super Admin');
+
+    // UserPolicy::update blocks this before any role validation runs — editing
+    // a Super Admin's email/password would be an account takeover.
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => $target->name,
+            'email' => $target->email,
+            'status' => 'active',
+            'roles' => [],
+        ])
+        ->assertForbidden();
+
+    expect($target->fresh()->hasRole('Super Admin'))->toBeTrue();
+});
+
+test('last super admin role cannot be removed', function (): void {
+    Role::findOrCreate('Super Admin', 'web');
+    $target = makeTargetUser();
+    $target->assignRole('Super Admin');
+
+    // UserPolicy::update lets a Super Admin edit their own account, and any
+    // second Super Admin would mean $target is no longer the last one — so the
+    // guard is only reachable when the sole Super Admin edits themselves.
+    $this->actingAs($target)
+        ->patch(route('users.update', $target), [
+            'name' => $target->name,
+            'email' => $target->email,
+            'status' => 'active',
+            'roles' => [],
+        ])
+        ->assertSessionHasErrors('roles');
+
+    expect($target->fresh()->hasRole('Super Admin'))->toBeTrue();
+});
+
+// ── Restore ────────────────────────────────────────────────────────────────
+
+test('users without restore permission cannot restore a user', function (): void {
+    $target = makeTargetUser();
+    $target->update(['status' => 'inactive']);
+
+    $this->actingAs(userMgmtViewer())
+        ->post(route('users.restore', $target))
+        ->assertForbidden();
+});
+
+test('users with restore permission can restore a deactivated user', function (): void {
+    $target = makeTargetUser();
+    $target->update(['status' => 'inactive']);
+
+    $this->actingAs(userMgmtAdmin())
+        ->post(route('users.restore', $target))
+        ->assertRedirect(route('users.index'));
+
+    expect($target->fresh()->status)->toBe('active');
+});
+
+// ── Index filtering and paging ─────────────────────────────────────────────
+
+/*
+ * The index used to load every user in scope in one unpaginated query, with
+ * four policy evaluations per row.
+ */
+test('the users index paginates instead of returning every user', function (): void {
+    User::factory()->count(55)->create(['status' => 'active']);
+
+    $this->actingAs(userMgmtAdmin())
+        ->get(route('users.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('users', 50)
+            ->where('users_pagination.per_page', 50)
+            ->where('users_pagination.current_page', 1)
+            ->where('users_pagination.last_page', fn ($last) => $last >= 2));
+});
+
+/* phone_number is an encrypted column, so it is deliberately not searchable. */
+test('the users index searches name and email', function (string $search): void {
+    $admin = userMgmtAdmin();
+    User::factory()->create(['name' => 'Searchable Person', 'email' => 'findme@example.test', 'phone_number' => '0911222333']);
+    User::factory()->create(['name' => 'Someone Else', 'email' => 'other@example.test', 'phone_number' => '0911999888']);
+
+    $this->actingAs($admin)
+        ->get(route('users.index', ['search' => $search]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.search', trim($search))
+            ->where('users', fn ($users) => collect($users)->pluck('email')->contains('findme@example.test')
+                && ! collect($users)->pluck('email')->contains('other@example.test')));
+})->with(['Searchable', ' findme@example.test ', 'searchable person']);
+
+test('the users index filters by status', function (): void {
+    $admin = userMgmtAdmin();
+    User::factory()->create(['email' => 'on@example.test', 'status' => 'active']);
+    User::factory()->create(['email' => 'off@example.test', 'status' => 'inactive']);
+
+    $this->actingAs($admin)
+        ->get(route('users.index', ['status' => 'inactive']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'inactive')
+            ->where('users', fn ($users) => collect($users)->pluck('email')->contains('off@example.test')
+                && ! collect($users)->pluck('email')->contains('on@example.test')));
+});
+
+test('the users index filters by role', function (): void {
+    $admin = userMgmtAdmin();
+    User::factory()->create(['email' => 'viewer@example.test'])->assignRole('User Viewer');
+    User::factory()->create(['email' => 'plain@example.test']);
+
+    $this->actingAs($admin)
+        ->get(route('users.index', ['role' => 'User Viewer']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.role', 'User Viewer')
+            ->where('users', fn ($users) => collect($users)->pluck('email')->contains('viewer@example.test')
+                && ! collect($users)->pluck('email')->contains('plain@example.test')));
+});
+
+/* An unknown status must not narrow the list to nothing. */
+test('the users index ignores a status outside the known set', function (): void {
+    User::factory()->count(3)->create(['status' => 'active']);
+
+    $this->actingAs(userMgmtAdmin())
+        ->get(route('users.index', ['status' => 'bogus']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', '')
+            ->where('users', fn ($users) => count($users) > 0));
+});

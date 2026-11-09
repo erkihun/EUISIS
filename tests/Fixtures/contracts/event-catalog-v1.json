@@ -1,0 +1,382 @@
+{
+    "event_version": 1,
+    "types": {
+        "assignment.closed": {
+            "aggregate": "assignment",
+            "scope": "employee_assignments.read",
+            "data": [
+                "assignment_uuid",
+                "employee_uuid",
+                "organization_uuid",
+                "assignment_status",
+                "effective_to",
+                "state"
+            ],
+            "tombstone": true
+        },
+        "assignment.created": {
+            "aggregate": "assignment",
+            "scope": "employee_assignments.read",
+            "data": [
+                "assignment_uuid",
+                "employee_uuid",
+                "organization_uuid",
+                "unit_uuid",
+                "position_uuid",
+                "assignment_status",
+                "effective_from",
+                "effective_to",
+                "is_current"
+            ],
+            "tombstone": false
+        },
+        "assignment.updated": {
+            "aggregate": "assignment",
+            "scope": "employee_assignments.read",
+            "data": [
+                "assignment_uuid",
+                "employee_uuid",
+                "organization_uuid",
+                "unit_uuid",
+                "position_uuid",
+                "assignment_status",
+                "effective_from",
+                "effective_to",
+                "is_current",
+                "changed_fields"
+            ],
+            "tombstone": false
+        },
+        "employee.assignment_changed": {
+            "aggregate": "employee_placement",
+            "scope": "employee_assignments.read",
+            "data": [
+                "employee_uuid",
+                "assignment_uuid",
+                "previous_assignment_uuid",
+                "organization_uuid",
+                "unit_uuid",
+                "position_uuid"
+            ],
+            "tombstone": false
+        },
+        "employee.created": {
+            "aggregate": "employee",
+            "scope": "employees.basic_read",
+            "data": [
+                "employee_uuid",
+                "employee_number",
+                "status"
+            ],
+            "tombstone": false
+        },
+        "employee.status_changed": {
+            "aggregate": "employee",
+            "scope": "employees.basic_read",
+            "data": [
+                "employee_uuid",
+                "employee_number",
+                "status",
+                "previous_status",
+                "state"
+            ],
+            "tombstone": null
+        },
+        "employee.transferred": {
+            "aggregate": "employee_placement",
+            "scope": "employee_assignments.read",
+            "data": [
+                "employee_uuid",
+                "transfer_uuid",
+                "transfer_kind",
+                "effective_date",
+                "previous_assignment_uuid",
+                "previous_organization_uuid",
+                "previous_unit_uuid",
+                "previous_position_uuid",
+                "assignment_uuid",
+                "organization_uuid",
+                "unit_uuid",
+                "position_uuid",
+                "visibility"
+            ],
+            "tombstone": false
+        },
+        "employee.updated": {
+            "aggregate": "employee",
+            "scope": "employees.basic_read",
+            "data": [
+                "employee_uuid",
+                "employee_number",
+                "status",
+                "changed_fields"
+            ],
+            "tombstone": false
+        },
+        "hierarchy_version.published": {
+            "aggregate": "hierarchy_version",
+            "scope": "organization_structure.read",
+            "data": [
+                "hierarchy_version_uuid",
+                "version_name",
+                "effective_from",
+                "published_at"
+            ],
+            "tombstone": false
+        },
+        "id_card.activated": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "previous_status",
+                "is_current",
+                "state",
+                "expires_at"
+            ],
+            "tombstone": false
+        },
+        "id_card.expired": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "previous_status",
+                "is_current",
+                "state"
+            ],
+            "tombstone": true
+        },
+        "id_card.issued": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "is_current",
+                "issued_at",
+                "expires_at"
+            ],
+            "tombstone": false
+        },
+        "id_card.reprinted": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "is_current",
+                "printed_at"
+            ],
+            "tombstone": false
+        },
+        "id_card.revoked": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "is_current",
+                "revoked_at",
+                "state"
+            ],
+            "tombstone": true
+        },
+        "id_card.status_changed": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "previous_status",
+                "is_current",
+                "state"
+            ],
+            "tombstone": null
+        },
+        "id_card.suspended": {
+            "aggregate": "id_card",
+            "scope": "id_cards.verify",
+            "data": [
+                "card_uuid",
+                "employee_uuid",
+                "status",
+                "previous_status",
+                "is_current",
+                "state"
+            ],
+            "tombstone": true
+        },
+        "organization.created": {
+            "aggregate": "organization",
+            "scope": "organizations.read",
+            "data": [
+                "organization_uuid",
+                "code",
+                "name_en",
+                "name_am",
+                "status"
+            ],
+            "tombstone": false
+        },
+        "organization.status_changed": {
+            "aggregate": "organization",
+            "scope": "organizations.read",
+            "data": [
+                "organization_uuid",
+                "status",
+                "previous_status",
+                "state"
+            ],
+            "tombstone": null
+        },
+        "organization.updated": {
+            "aggregate": "organization",
+            "scope": "organizations.read",
+            "data": [
+                "organization_uuid",
+                "code",
+                "name_en",
+                "name_am",
+                "status",
+                "changed_fields"
+            ],
+            "tombstone": false
+        },
+        "organization_unit.created": {
+            "aggregate": "organization_unit",
+            "scope": "organization_units.read",
+            "data": [
+                "unit_uuid",
+                "organization_uuid",
+                "parent_unit_uuid",
+                "code",
+                "name_en",
+                "name_am",
+                "status"
+            ],
+            "tombstone": false
+        },
+        "organization_unit.moved": {
+            "aggregate": "organization_unit",
+            "scope": "organization_units.read",
+            "data": [
+                "unit_uuid",
+                "organization_uuid",
+                "parent_unit_uuid",
+                "previous_parent_unit_uuid"
+            ],
+            "tombstone": false
+        },
+        "organization_unit.status_changed": {
+            "aggregate": "organization_unit",
+            "scope": "organization_units.read",
+            "data": [
+                "unit_uuid",
+                "organization_uuid",
+                "status",
+                "previous_status",
+                "state"
+            ],
+            "tombstone": null
+        },
+        "organization_unit.updated": {
+            "aggregate": "organization_unit",
+            "scope": "organization_units.read",
+            "data": [
+                "unit_uuid",
+                "organization_uuid",
+                "parent_unit_uuid",
+                "code",
+                "name_en",
+                "name_am",
+                "status",
+                "changed_fields"
+            ],
+            "tombstone": false
+        },
+        "position.archived": {
+            "aggregate": "position",
+            "scope": "positions.read",
+            "data": [
+                "position_uuid",
+                "organization_uuid",
+                "state",
+                "reason_category"
+            ],
+            "tombstone": true
+        },
+        "position.created": {
+            "aggregate": "position",
+            "scope": "positions.read",
+            "data": [
+                "position_uuid",
+                "organization_uuid",
+                "unit_uuid",
+                "code",
+                "title_en",
+                "title_am",
+                "is_active"
+            ],
+            "tombstone": false
+        },
+        "position.occupied": {
+            "aggregate": "position",
+            "scope": "positions.read",
+            "data": [
+                "position_uuid",
+                "organization_uuid",
+                "occupancy_uuid",
+                "effective_date",
+                "state"
+            ],
+            "tombstone": false
+        },
+        "position.status_changed": {
+            "aggregate": "position",
+            "scope": "positions.read",
+            "data": [
+                "position_uuid",
+                "organization_uuid",
+                "is_active",
+                "state"
+            ],
+            "tombstone": null
+        },
+        "position.updated": {
+            "aggregate": "position",
+            "scope": "positions.read",
+            "data": [
+                "position_uuid",
+                "organization_uuid",
+                "unit_uuid",
+                "code",
+                "title_en",
+                "title_am",
+                "is_active",
+                "changed_fields"
+            ],
+            "tombstone": false
+        },
+        "position.vacated": {
+            "aggregate": "position",
+            "scope": "positions.read",
+            "data": [
+                "position_uuid",
+                "organization_uuid",
+                "occupancy_uuid",
+                "effective_date",
+                "state"
+            ],
+            "tombstone": false
+        }
+    }
+}

@@ -1,0 +1,161 @@
+import PageHeader from '@/Components/PageHeader';
+import StatusBadge from '@/Components/StatusBadge';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, router } from '@inertiajs/react';
+import EmptyState from '@/Components/EmptyState';
+import { useLocale } from '@/hooks/useLocale';
+import { useState, type JSX } from 'react';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+
+import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+type Announcement = {
+    id: string;
+    announcement_number: string;
+    title_en: string;
+    title_am: string | null;
+    status: string;
+    application_closes_at: string | null;
+    applications_count: number;
+    positions: Array<{
+        id: string;
+        vacancy_slots: number;
+        organization: { name_en: string; name_am: string | null } | null;
+        position: { title_en: string; title_am: string | null } | null;
+    }>;
+};
+
+type Props = {
+    announcements: LaravelPageMeta & { data: Announcement[] };
+    filters: { status?: string };
+    can: { create: boolean };
+};
+
+const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
+
+function DeadlineBadge({ closesAt, t }: { closesAt: string | null; t: (k: never) => string }): JSX.Element | null {
+    if (!closesAt) return null;
+    const days = Math.ceil((new Date(closesAt).getTime() - Date.now()) / 86400000);
+    if (days < 0) return null;
+    if (days === 0) return <span className={badgeClassName('danger')}>{t('vacancies.closingToday' as never)}</span>;
+    if (days <= 3) return <span className={badgeClassName('warning')}>{days} {t('vacancies.daysLeft' as never)}</span>;
+    return null;
+}
+
+export default function VacanciesIndex({ announcements, filters, can }: Props) {
+    const { locale, t } = useLocale();
+    const useAmharic = locale === 'am';
+
+    const [status, setStatus] = useState(filters.status ?? '');
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <PageHeader
+                    title={t('vacancies.announcements')}
+                    actions={
+                        can.create ? (
+                            <Link href={route('vacancy-announcements.create')} className={buttonClassName({ variant: 'primary' })}>
+                                {t('vacancies.createAnnouncement')}
+                            </Link>
+                        ) : undefined
+                    }
+                />
+            }
+        >
+            <Head title={t('vacancies.announcements')} />
+
+            <div className="space-y-4">
+                <FilterPanel
+                    onSubmit={() => router.get(route('vacancy-announcements.index'), status ? { status } : {}, { preserveState: true })}
+                    onReset={() => router.get(route('vacancy-announcements.index'))}
+                    hasActiveFilters={Boolean(filters.status)}
+                >
+                    <FilterField label={t('common.status')}>
+                        <Select value={status} onChange={e => setStatus(e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {STATUSES.map(s => (
+                                <option key={s} value={s}>
+                                    {t(`vacancies.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
+
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
+                            <tr>
+                                {[
+                                    t('vacancies.announcementNumber'),
+                                    t('vacancies.titleEn'),
+                                    t('vacancies.includedPositions'),
+                                    t('vacancies.applications'),
+                                    t('vacancies.applicationClosesAt'),
+                                    t('common.status'),
+                                ].map((heading) => (
+                                    <th key={heading} className={cx(tableHeaderCellClassName, 'text-left whitespace-nowrap')}>{heading}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className={tableBodyClassName}>
+                            {announcements.data.map((announcement) => {
+                                const totalSlots = announcement.positions.reduce((sum, p) => sum + Number(p.vacancy_slots || 0), 0);
+                                const positionSummary = announcement.positions
+                                    .slice(0, 2)
+                                    .map(p => (useAmharic ? p.position?.title_am : p.position?.title_en) ?? p.position?.title_en ?? '-')
+                                    .join(', ');
+
+                                return (
+                                    <tr key={announcement.id} className={tableRowClassName}>
+                                        <td className={tableCellClassName}>
+                                            <Link href={route('vacancy-announcements.show', announcement.id)} className="font-mono text-primary hover:underline dark:text-primary">
+                                                {announcement.announcement_number}
+                                            </Link>
+                                        </td>
+                                        <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
+                                            {(useAmharic ? announcement.title_am : null) ?? announcement.title_en}
+                                        </td>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
+                                            {positionSummary || '-'}
+                                            {announcement.positions.length > 2 && (
+                                                <span className="ml-1 text-xs text-(--app-muted-foreground)"> +{announcement.positions.length - 2}</span>
+                                            )}
+                                            <span className="ml-2 rounded-full bg-(--app-surface-muted) px-1.5 py-0.5 text-xs text-(--app-muted-foreground)">
+                                                {totalSlots} {t('vacancies.vacancySlots')}
+                                            </span>
+                                        </td>
+                                        <td className={tableCellClassName}>
+                                            <span className={`font-semibold ${announcement.applications_count > 0 ? 'text-primary dark:text-primary' : 'text-(--app-muted-foreground)'}`}>
+                                                {announcement.applications_count}
+                                            </span>
+                                        </td>
+                                        <td className={tableCellClassName}>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-(--app-muted-foreground)">
+                                                    {announcement.application_closes_at
+                                                        ? <LocalizedDateDisplay value={announcement.application_closes_at} />
+                                                        : '-'}
+                                                </span>
+                                                {announcement.status === 'published' && (
+                                                    <DeadlineBadge closesAt={announcement.application_closes_at} t={t as never} />
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className={tableCellClassName}><StatusBadge status={announcement.status} /></td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                    </div>
+                    {announcements.data.length === 0 && (
+                        <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />
+                    )}
+                    <ListPagination meta={announcements} />
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

@@ -1,0 +1,3295 @@
+{
+  "generated": "2026-10-21T18:54:57.904Z",
+  "roles": 57,
+  "table": [
+    {
+      "role": "Administrative Tribunal Officer",
+      "scope": "subtree:PSB",
+      "perms": 5,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 8,
+      "opened": "8/8",
+      "probes": 183,
+      "refused": 181,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4570,
+      "kinds": {
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "API Manager",
+      "scope": "subtree:PSB",
+      "perms": 15,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 3,
+      "opened": "3/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 2430,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Assessment Oversight Officer",
+      "scope": "subtree:PSB",
+      "perms": 12,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 10,
+      "opened": "9/10",
+      "probes": 181,
+      "refused": 180,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 8080,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "slow-page": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Assessment Report Viewer",
+      "scope": "subtree:PSB",
+      "perms": 3,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 5,
+      "opened": "4/5",
+      "probes": 186,
+      "refused": 185,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3442,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Auditor",
+      "scope": "subtree:PSB",
+      "perms": 22,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 16,
+      "opened": "16/16",
+      "probes": 175,
+      "refused": 169,
+      "open": 6,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4503,
+      "kinds": {
+        "reachable-without-permission": 6
+      }
+    },
+    {
+      "role": "Cafeteria Admin",
+      "scope": "subtree:PSB",
+      "perms": 68,
+      "mfa": true,
+      "landing": "/dashboard",
+      "sidebar": 20,
+      "opened": "20/20",
+      "probes": 171,
+      "refused": 170,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6418,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Cafeteria Operator",
+      "scope": "subtree:PSB",
+      "perms": 12,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 14,
+      "opened": "14/14",
+      "probes": 177,
+      "refused": 176,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3784,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Cafeteria Provider",
+      "scope": "subtree:PSB",
+      "perms": 12,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 2,
+      "opened": "1/2",
+      "probes": 189,
+      "refused": 188,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 2535,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "City Admin",
+      "scope": "citywide",
+      "perms": 777,
+      "mfa": true,
+      "landing": "/dashboard",
+      "sidebar": 176,
+      "opened": "176/176",
+      "probes": 10,
+      "refused": 8,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 8859,
+      "kinds": {
+        "failed-request": 1,
+        "slow-page": 2,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Comm UAT Employee",
+      "scope": "subtree:PSB",
+      "perms": 22,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 2,
+      "opened": "1/2",
+      "probes": 189,
+      "refused": 188,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 2458,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Communication Investigator",
+      "scope": "citywide",
+      "perms": 2,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 2,
+      "opened": "1/2",
+      "probes": 189,
+      "refused": 188,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4756,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Communication Moderator",
+      "scope": "subtree:PSB",
+      "perms": 14,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 2,
+      "opened": "1/2",
+      "probes": 189,
+      "refused": 188,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3733,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Communication Privacy Officer",
+      "scope": "citywide",
+      "perms": 3,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 2,
+      "opened": "1/2",
+      "probes": 189,
+      "refused": 188,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3073,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Daily Activity Reviewer",
+      "scope": "subtree:PSB",
+      "perms": 9,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 12,
+      "opened": "11/12",
+      "probes": 179,
+      "refused": 178,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4738,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Design Catalog Manager",
+      "scope": "citywide",
+      "perms": 16,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 10,
+      "opened": "10/10",
+      "probes": 181,
+      "refused": 180,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6148,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Disciplinary Committee Member",
+      "scope": "subtree:PSB",
+      "perms": 3,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 3,
+      "opened": "3/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6149,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Disciplinary Decision Authority",
+      "scope": "subtree:PSB",
+      "perms": 3,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 3,
+      "opened": "3/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 9632,
+      "kinds": {
+        "slow-page": 2,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Discipline Case Officer",
+      "scope": "subtree:PSB",
+      "perms": 8,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 3,
+      "opened": "3/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6199,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Employee",
+      "scope": "subtree:PSB",
+      "perms": 43,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 19,
+      "opened": "19/19",
+      "probes": 178,
+      "refused": 177,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 7127,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Grievance Administrator",
+      "scope": "subtree:PSB",
+      "perms": 14,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 9,
+      "opened": "9/9",
+      "probes": 182,
+      "refused": 178,
+      "open": 4,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6160,
+      "kinds": {
+        "reachable-without-permission": 4
+      }
+    },
+    {
+      "role": "Grievance Committee Chairperson",
+      "scope": "subtree:PSB",
+      "perms": 19,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 7,
+      "opened": "7/7",
+      "probes": 184,
+      "refused": 182,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3749,
+      "kinds": {
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Grievance Committee Member",
+      "scope": "subtree:PSB",
+      "perms": 8,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 7,
+      "opened": "7/7",
+      "probes": 184,
+      "refused": 182,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4998,
+      "kinds": {
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Grievance Committee Writer",
+      "scope": "subtree:PSB",
+      "perms": 10,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 7,
+      "opened": "7/7",
+      "probes": 184,
+      "refused": 182,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5875,
+      "kinds": {
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Grievance Executive Approver",
+      "scope": "subtree:PSB",
+      "perms": 7,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 6,
+      "opened": "6/6",
+      "probes": 185,
+      "refused": 181,
+      "open": 4,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4960,
+      "kinds": {
+        "reachable-without-permission": 4
+      }
+    },
+    {
+      "role": "Grievance Officer",
+      "scope": "subtree:PSB",
+      "perms": 25,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 12,
+      "opened": "12/12",
+      "probes": 179,
+      "refused": 178,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 7643,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Grievance Oversight",
+      "scope": "subtree:PSB",
+      "perms": 11,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 10,
+      "opened": "10/10",
+      "probes": 181,
+      "refused": 178,
+      "open": 3,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 14242,
+      "kinds": {
+        "slow-page": 1,
+        "reachable-without-permission": 3
+      }
+    },
+    {
+      "role": "Grievance Registry Officer",
+      "scope": "subtree:PSB",
+      "perms": 6,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 4,
+      "opened": "4/4",
+      "probes": 187,
+      "refused": 186,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3557,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "HR Officer",
+      "scope": "subtree:PSB",
+      "perms": 101,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 47,
+      "opened": "47/47",
+      "probes": 144,
+      "refused": 137,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 7839,
+      "kinds": {
+        "failed-request": 1,
+        "probe-server-error": 1,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "ID Card Approver",
+      "scope": "subtree:PSB",
+      "perms": 12,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 5,
+      "opened": "5/5",
+      "probes": 186,
+      "refused": 185,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5967,
+      "kinds": {
+        "failed-request": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "ID Card Officer",
+      "scope": "subtree:PSB",
+      "perms": 18,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 8,
+      "opened": "8/8",
+      "probes": 184,
+      "refused": 183,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5650,
+      "kinds": {
+        "failed-request": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "NFC Provisioning Officer",
+      "scope": "subtree:PSB",
+      "perms": 9,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 6,
+      "opened": "6/6",
+      "probes": 185,
+      "refused": 183,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3345,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Organization Design Approver",
+      "scope": "subtree:PSB",
+      "perms": 54,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 28,
+      "opened": "28/28",
+      "probes": 163,
+      "refused": 162,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6862,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Organization Designer",
+      "scope": "subtree:PSB",
+      "perms": 57,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 28,
+      "opened": "28/28",
+      "probes": 163,
+      "refused": 162,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6599,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Organization Transport Officer",
+      "scope": "subtree:PSB",
+      "perms": 17,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 9,
+      "opened": "8/9",
+      "probes": 182,
+      "refused": 181,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4493,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Organizational Admin",
+      "scope": "subtree:PSB",
+      "perms": 178,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 68,
+      "opened": "67/68",
+      "probes": 123,
+      "refused": 121,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 7900,
+      "kinds": {
+        "failed-request": 1,
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Performance Appeal Committee",
+      "scope": "subtree:PSB",
+      "perms": 2,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 3,
+      "opened": "2/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4117,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Performance Calibrator",
+      "scope": "subtree:PSB",
+      "perms": 5,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 7,
+      "opened": "6/7",
+      "probes": 184,
+      "refused": 182,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5403,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Performance Manager",
+      "scope": "subtree:PSB",
+      "perms": 23,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 16,
+      "opened": "15/16",
+      "probes": 174,
+      "refused": 172,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 8056,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "slow-page": 1,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Performance Officer",
+      "scope": "subtree:PSB",
+      "perms": 36,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 18,
+      "opened": "17/18",
+      "probes": 173,
+      "refused": 173,
+      "open": 0,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 7873,
+      "kinds": {
+        "sidebar-link-forbidden": 1
+      }
+    },
+    {
+      "role": "Performance Reviewer",
+      "scope": "subtree:PSB",
+      "perms": 12,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 8,
+      "opened": "7/8",
+      "probes": 183,
+      "refused": 181,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 9040,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "slow-page": 1,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Public Service Bureau Admin",
+      "scope": "citywide",
+      "perms": 777,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 176,
+      "opened": "176/176",
+      "probes": 10,
+      "refused": 8,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 14529,
+      "kinds": {
+        "failed-request": 1,
+        "slow-page": 22,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Public Site Manager",
+      "scope": "citywide",
+      "perms": 27,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 3,
+      "opened": "2/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3750,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Report Viewer",
+      "scope": "subtree:PSB",
+      "perms": 6,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 10,
+      "opened": "10/10",
+      "probes": 181,
+      "refused": 176,
+      "open": 5,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 10734,
+      "kinds": {
+        "slow-page": 1,
+        "reachable-without-permission": 5
+      }
+    },
+    {
+      "role": "Security Settings Manager",
+      "scope": "citywide",
+      "perms": 23,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 7,
+      "opened": "7/7",
+      "probes": 184,
+      "refused": 183,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 6344,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Service Provider Manager",
+      "scope": "subtree:PSB",
+      "perms": 6,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 3,
+      "opened": "3/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 3044,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Service Provider User",
+      "scope": "subtree:PSB",
+      "perms": 6,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 3,
+      "opened": "3/3",
+      "probes": 188,
+      "refused": 187,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 2732,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Settlement Officer",
+      "scope": "subtree:PSB",
+      "perms": 5,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 2,
+      "opened": "2/2",
+      "probes": 189,
+      "refused": 188,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 7064,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Structure Change Requester",
+      "scope": "subtree:PSB",
+      "perms": 28,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 12,
+      "opened": "12/12",
+      "probes": 179,
+      "refused": 177,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 9779,
+      "kinds": {
+        "slow-page": 1,
+        "reachable-without-permission": 2
+      }
+    },
+    {
+      "role": "Structure Change Reviewer",
+      "scope": "subtree:PSB",
+      "perms": 14,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 8,
+      "opened": "8/8",
+      "probes": 183,
+      "refused": 180,
+      "open": 3,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 12952,
+      "kinds": {
+        "slow-page": 4,
+        "reachable-without-permission": 3
+      }
+    },
+    {
+      "role": "Structure Implementation Officer",
+      "scope": "subtree:PSB",
+      "perms": 32,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 10,
+      "opened": "10/10",
+      "probes": 182,
+      "refused": 179,
+      "open": 3,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 8321,
+      "kinds": {
+        "slow-page": 1,
+        "reachable-without-permission": 3
+      }
+    },
+    {
+      "role": "Super Admin",
+      "scope": "citywide",
+      "perms": 879,
+      "mfa": true,
+      "landing": "/dashboard",
+      "sidebar": 185,
+      "opened": "185/185",
+      "probes": 0,
+      "refused": 0,
+      "open": 0,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 11984,
+      "kinds": {
+        "slow-page": 5,
+        "failed-request": 1,
+        "error-text": 1
+      }
+    },
+    {
+      "role": "System Admin",
+      "scope": "citywide",
+      "perms": 879,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 185,
+      "opened": "185/185",
+      "probes": 0,
+      "refused": 0,
+      "open": 0,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 10423,
+      "kinds": {
+        "failed-request": 1,
+        "slow-page": 9,
+        "error-text": 1
+      }
+    },
+    {
+      "role": "System Settings Admin",
+      "scope": "citywide",
+      "perms": 16,
+      "mfa": false,
+      "landing": "/dashboard",
+      "sidebar": 4,
+      "opened": "4/4",
+      "probes": 187,
+      "refused": 186,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5325,
+      "kinds": {
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Transport Admin",
+      "scope": "subtree:PSB",
+      "perms": 71,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 20,
+      "opened": "19/20",
+      "probes": 171,
+      "refused": 170,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 8133,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "slow-page": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Transport Dispatcher",
+      "scope": "subtree:PSB",
+      "perms": 22,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 12,
+      "opened": "11/12",
+      "probes": 179,
+      "refused": 178,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5866,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Transport Finance Reviewer",
+      "scope": "subtree:PSB",
+      "perms": 14,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 9,
+      "opened": "8/9",
+      "probes": 182,
+      "refused": 181,
+      "open": 1,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 5956,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 1
+      }
+    },
+    {
+      "role": "Transport Operator",
+      "scope": "subtree:PSB",
+      "perms": 7,
+      "mfa": false,
+      "landing": "/my-portal",
+      "sidebar": 6,
+      "opened": "5/6",
+      "probes": 185,
+      "refused": 183,
+      "open": 2,
+      "signOut": true,
+      "fatal": null,
+      "slowest": 4831,
+      "kinds": {
+        "sidebar-link-forbidden": 1,
+        "reachable-without-permission": 2
+      }
+    }
+  ],
+  "byKind": {
+    "reachable-without-permission": [
+      {
+        "role": "Administrative Tribunal Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Administrative Tribunal Officer",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "API Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Assessment Oversight Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Assessment Report Viewer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Auditor",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Auditor",
+        "kind": "reachable-without-permission",
+        "path": "/organization-design",
+        "need": [
+          "legacy-baselines.viewAny",
+          "legal-sources.viewAny",
+          "institution-mandates.viewAny",
+          "service-catalog.viewAny",
+          "processes.viewAny",
+          "organization-design.viewAny",
+          "workforce-planning.viewAny",
+          "position-profiles.viewAny",
+          "job-descriptions.viewAny",
+          "design-imports.viewAny",
+          "organization-design-reports.view",
+          "data-mapping.view"
+        ]
+      },
+      {
+        "role": "Auditor",
+        "kind": "reachable-without-permission",
+        "path": "/transfer-applications",
+        "need": "transfers.applications.view"
+      },
+      {
+        "role": "Auditor",
+        "kind": "reachable-without-permission",
+        "path": "/transfers/settings",
+        "need": "transfers.settings.manage"
+      },
+      {
+        "role": "Auditor",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=assigned",
+        "need": [
+          "grievances.view_assigned",
+          "grievances.assign",
+          "grievances.tribunal"
+        ]
+      },
+      {
+        "role": "Auditor",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Cafeteria Admin",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Cafeteria Operator",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Cafeteria Provider",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "City Admin",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "City Admin",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=authorized",
+        "need": [
+          "grievances.oversight_view",
+          "grievances.view_assigned",
+          "grievances.assign"
+        ]
+      },
+      {
+        "role": "Comm UAT Employee",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Communication Investigator",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Communication Moderator",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Communication Privacy Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Daily Activity Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Design Catalog Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Disciplinary Committee Member",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Disciplinary Decision Authority",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Discipline Case Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Employee",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Administrator",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Administrator",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=assigned",
+        "need": [
+          "grievances.view_assigned",
+          "grievances.assign",
+          "grievances.tribunal"
+        ]
+      },
+      {
+        "role": "Grievance Administrator",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Grievance Administrator",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=authorized",
+        "need": [
+          "grievances.oversight_view",
+          "grievances.view_assigned",
+          "grievances.assign"
+        ]
+      },
+      {
+        "role": "Grievance Committee Chairperson",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Committee Chairperson",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Grievance Committee Member",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Committee Member",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Grievance Committee Writer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Committee Writer",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Grievance Executive Approver",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Executive Approver",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=assigned",
+        "need": [
+          "grievances.view_assigned",
+          "grievances.assign",
+          "grievances.tribunal"
+        ]
+      },
+      {
+        "role": "Grievance Executive Approver",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Grievance Executive Approver",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=authorized",
+        "need": [
+          "grievances.oversight_view",
+          "grievances.view_assigned",
+          "grievances.assign"
+        ]
+      },
+      {
+        "role": "Grievance Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Oversight",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Grievance Oversight",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=assigned",
+        "need": [
+          "grievances.view_assigned",
+          "grievances.assign",
+          "grievances.tribunal"
+        ]
+      },
+      {
+        "role": "Grievance Oversight",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Grievance Registry Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "HR Officer",
+        "kind": "reachable-without-permission",
+        "path": "/organization-design",
+        "need": [
+          "legacy-baselines.viewAny",
+          "legal-sources.viewAny",
+          "institution-mandates.viewAny",
+          "service-catalog.viewAny",
+          "processes.viewAny",
+          "organization-design.viewAny",
+          "workforce-planning.viewAny",
+          "position-profiles.viewAny",
+          "job-descriptions.viewAny",
+          "design-imports.viewAny",
+          "organization-design-reports.view",
+          "data-mapping.view"
+        ]
+      },
+      {
+        "role": "HR Officer",
+        "kind": "reachable-without-permission",
+        "path": "/transfers/settings",
+        "need": "transfers.settings.manage"
+      },
+      {
+        "role": "ID Card Approver",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "ID Card Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "NFC Provisioning Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Organization Design Approver",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Organization Designer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Organization Transport Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Organizational Admin",
+        "kind": "reachable-without-permission",
+        "path": "/organization-design",
+        "need": [
+          "legacy-baselines.viewAny",
+          "legal-sources.viewAny",
+          "institution-mandates.viewAny",
+          "service-catalog.viewAny",
+          "processes.viewAny",
+          "organization-design.viewAny",
+          "workforce-planning.viewAny",
+          "position-profiles.viewAny",
+          "job-descriptions.viewAny",
+          "design-imports.viewAny",
+          "organization-design-reports.view",
+          "data-mapping.view"
+        ]
+      },
+      {
+        "role": "Organizational Admin",
+        "kind": "reachable-without-permission",
+        "path": "/transfers/settings",
+        "need": "transfers.settings.manage"
+      },
+      {
+        "role": "Performance Appeal Committee",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Performance Calibrator",
+        "kind": "reachable-without-permission",
+        "path": "/performance/agreements",
+        "need": "employee_performance_agreements.manage"
+      },
+      {
+        "role": "Performance Calibrator",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Performance Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Performance Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/oversight",
+        "need": "assessment_oversight.view_dashboard"
+      },
+      {
+        "role": "Performance Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/performance/agreements",
+        "need": "employee_performance_agreements.manage"
+      },
+      {
+        "role": "Performance Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=authorized",
+        "need": [
+          "grievances.oversight_view",
+          "grievances.view_assigned",
+          "grievances.assign"
+        ]
+      },
+      {
+        "role": "Public Site Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Report Viewer",
+        "kind": "reachable-without-permission",
+        "path": "/performance/agreements",
+        "need": "employee_performance_agreements.manage"
+      },
+      {
+        "role": "Report Viewer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Report Viewer",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=assigned",
+        "need": [
+          "grievances.view_assigned",
+          "grievances.assign",
+          "grievances.tribunal"
+        ]
+      },
+      {
+        "role": "Report Viewer",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=intake",
+        "need": "grievances.intake_review"
+      },
+      {
+        "role": "Report Viewer",
+        "kind": "reachable-without-permission",
+        "path": "/grievances/cases?tab=authorized",
+        "need": [
+          "grievances.oversight_view",
+          "grievances.view_assigned",
+          "grievances.assign"
+        ]
+      },
+      {
+        "role": "Security Settings Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Service Provider Manager",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Service Provider User",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Settlement Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Structure Change Requester",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Structure Change Requester",
+        "kind": "reachable-without-permission",
+        "path": "/organization-design",
+        "need": [
+          "legacy-baselines.viewAny",
+          "legal-sources.viewAny",
+          "institution-mandates.viewAny",
+          "service-catalog.viewAny",
+          "processes.viewAny",
+          "organization-design.viewAny",
+          "workforce-planning.viewAny",
+          "position-profiles.viewAny",
+          "job-descriptions.viewAny",
+          "design-imports.viewAny",
+          "organization-design-reports.view",
+          "data-mapping.view"
+        ]
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/organizational-change-requests",
+        "need": "organizational-change-requests.view_own"
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/organizational-change-requests/completed",
+        "need": "organizational-change-requests.view_own"
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Structure Implementation Officer",
+        "kind": "reachable-without-permission",
+        "path": "/organizational-change-requests",
+        "need": "organizational-change-requests.view_own"
+      },
+      {
+        "role": "Structure Implementation Officer",
+        "kind": "reachable-without-permission",
+        "path": "/organizational-change-requests/completed",
+        "need": "organizational-change-requests.view_own"
+      },
+      {
+        "role": "Structure Implementation Officer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "System Settings Admin",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Transport Admin",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Transport Dispatcher",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Transport Finance Reviewer",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Transport Operator",
+        "kind": "reachable-without-permission",
+        "path": "/assessments/records",
+        "need": [
+          "assessment_forms.edit_draft",
+          "assessment_forms.publish"
+        ]
+      },
+      {
+        "role": "Transport Operator",
+        "kind": "reachable-without-permission",
+        "path": "/transport/overview",
+        "need": "transport-reports.view"
+      }
+    ],
+    "sidebar-link-forbidden": [
+      {
+        "role": "Assessment Oversight Officer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Assessment Report Viewer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Cafeteria Provider",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Comm UAT Employee",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Communication Investigator",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Communication Moderator",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Communication Privacy Officer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Daily Activity Reviewer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Organization Transport Officer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Organizational Admin",
+        "kind": "sidebar-link-forbidden",
+        "path": "/feedback-admin/settings",
+        "label": "Settings"
+      },
+      {
+        "role": "Performance Appeal Committee",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Performance Calibrator",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Performance Manager",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Performance Officer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Performance Reviewer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Public Site Manager",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Transport Admin",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Transport Dispatcher",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Transport Finance Reviewer",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      },
+      {
+        "role": "Transport Operator",
+        "kind": "sidebar-link-forbidden",
+        "path": "/dashboard",
+        "label": "Dashboard"
+      }
+    ],
+    "slow-page": [
+      {
+        "role": "Assessment Oversight Officer",
+        "kind": "slow-page",
+        "path": "/assessments/oversight/reports",
+        "ms": 8080
+      },
+      {
+        "role": "City Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/legacy-baselines",
+        "ms": 8859
+      },
+      {
+        "role": "City Admin",
+        "kind": "slow-page",
+        "path": "/situation-room",
+        "ms": 8478
+      },
+      {
+        "role": "Disciplinary Decision Authority",
+        "kind": "slow-page",
+        "path": "/dashboard",
+        "ms": 8287
+      },
+      {
+        "role": "Disciplinary Decision Authority",
+        "kind": "slow-page",
+        "path": "/vacancy-applications/my",
+        "ms": 9632
+      },
+      {
+        "role": "Grievance Oversight",
+        "kind": "slow-page",
+        "path": "/grievances/appeals",
+        "ms": 14242
+      },
+      {
+        "role": "Performance Manager",
+        "kind": "slow-page",
+        "path": "/assessments/my-assigned",
+        "ms": 8056
+      },
+      {
+        "role": "Performance Reviewer",
+        "kind": "slow-page",
+        "path": "/performance/kpis",
+        "ms": 9040
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/field-work/types",
+        "ms": 9821
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/functions",
+        "ms": 8108
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/processes",
+        "ms": 10413
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/professions",
+        "ms": 8820
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/methodologies",
+        "ms": 9170
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/position-design",
+        "ms": 9242
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/reports",
+        "ms": 8407
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/organization-design/mapping",
+        "ms": 8528
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/situation-room",
+        "ms": 12179
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/entitlements",
+        "ms": 8218
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/feedback-admin/dashboard",
+        "ms": 9889
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/service-submissions",
+        "ms": 8734
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/feedback-admin/categories",
+        "ms": 8169
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/feedback-admin/settings",
+        "ms": 14529
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/service-providers",
+        "ms": 8862
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/cafeteria/scan",
+        "ms": 13567
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/cafeteria/transactions",
+        "ms": 12411
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/transport/providers",
+        "ms": 10073
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/transport/routes",
+        "ms": 9211
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/transport/invoices",
+        "ms": 11698
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/grievances/dashboard",
+        "ms": 12435
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "slow-page",
+        "path": "/grievances/cases?tab=assigned",
+        "ms": 9118
+      },
+      {
+        "role": "Report Viewer",
+        "kind": "slow-page",
+        "path": "/vacancy-applications/my",
+        "ms": 10734
+      },
+      {
+        "role": "Structure Change Requester",
+        "kind": "slow-page",
+        "path": "/organizations",
+        "ms": 9779
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "slow-page",
+        "path": "/organizations",
+        "ms": 12027
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "slow-page",
+        "path": "/organizational-change-requests/review-queue",
+        "ms": 11672
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "slow-page",
+        "path": "/positions/status",
+        "ms": 12952
+      },
+      {
+        "role": "Structure Change Reviewer",
+        "kind": "slow-page",
+        "path": "/vacancy-applications/my",
+        "ms": 10362
+      },
+      {
+        "role": "Structure Implementation Officer",
+        "kind": "slow-page",
+        "path": "/dashboard",
+        "ms": 8321
+      },
+      {
+        "role": "Super Admin",
+        "kind": "slow-page",
+        "path": "/organization-types",
+        "ms": 11984
+      },
+      {
+        "role": "Super Admin",
+        "kind": "slow-page",
+        "path": "/positions/status",
+        "ms": 8644
+      },
+      {
+        "role": "Super Admin",
+        "kind": "slow-page",
+        "path": "/position-services",
+        "ms": 8070
+      },
+      {
+        "role": "Super Admin",
+        "kind": "slow-page",
+        "path": "/id-cards",
+        "ms": 8485
+      },
+      {
+        "role": "Super Admin",
+        "kind": "slow-page",
+        "path": "/feedback-admin/categories",
+        "ms": 10424
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/vacancy-applications/my",
+        "ms": 8901
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/nfc-management/logs",
+        "ms": 10248
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/transfers",
+        "ms": 10423
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/situation-room",
+        "ms": 9209
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/situation-room/community-voice",
+        "ms": 8499
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/situation-room/wall",
+        "ms": 8173
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/situation-room/reports",
+        "ms": 8415
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/feedback-admin/dashboard",
+        "ms": 8074
+      },
+      {
+        "role": "System Admin",
+        "kind": "slow-page",
+        "path": "/service-submissions/unrouted",
+        "ms": 10116
+      },
+      {
+        "role": "Transport Admin",
+        "kind": "slow-page",
+        "path": "/transport/schedules",
+        "ms": 8133
+      }
+    ],
+    "failed-request": [
+      {
+        "role": "City Admin",
+        "kind": "failed-request",
+        "path": "/employees",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/employees"
+          }
+        ]
+      },
+      {
+        "role": "HR Officer",
+        "kind": "failed-request",
+        "path": "/employees",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/employees"
+          }
+        ]
+      },
+      {
+        "role": "ID Card Approver",
+        "kind": "failed-request",
+        "path": "/id-cards",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/employees/01a12185-b753-7301-bf87-597d198275ad/private-photo",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/id-cards"
+          }
+        ]
+      },
+      {
+        "role": "ID Card Officer",
+        "kind": "failed-request",
+        "path": "/id-cards",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/employees/01a12185-b753-7301-bf87-597d198275ad/private-photo",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/id-cards"
+          }
+        ]
+      },
+      {
+        "role": "Organizational Admin",
+        "kind": "failed-request",
+        "path": "/employees",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/employees"
+          }
+        ]
+      },
+      {
+        "role": "Public Service Bureau Admin",
+        "kind": "failed-request",
+        "path": "/employees",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/employees"
+          }
+        ]
+      },
+      {
+        "role": "Super Admin",
+        "kind": "failed-request",
+        "path": "/employees",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/employees"
+          }
+        ]
+      },
+      {
+        "role": "System Admin",
+        "kind": "failed-request",
+        "path": "/employees",
+        "requests": [
+          {
+            "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+            "status": 403,
+            "type": "Image",
+            "page": "http://127.0.0.1:8123/employees"
+          }
+        ]
+      }
+    ],
+    "probe-server-error": [
+      {
+        "role": "HR Officer",
+        "kind": "probe-server-error",
+        "path": "/assessments/oversight/submissions",
+        "status": 502
+      }
+    ],
+    "error-text": [
+      {
+        "role": "Super Admin",
+        "kind": "error-text",
+        "path": "/intelligence/system-health",
+        "text": "Skip to main content\n\nAgelgay\n\nAA-IEMSS\n\nAddis Ababa City Administration\n\n/\nDashboard\n\nPEOPLE & ORGANIZATION\n\nOrganization Structure\nOrganizations\nOrganization Types\nOrganization Units\nOrganization Un"
+      },
+      {
+        "role": "System Admin",
+        "kind": "error-text",
+        "path": "/intelligence/system-health",
+        "text": "Skip to main content\n\nAgelgay\n\nAA-IEMSS\n\nAddis Ababa City Administration\n\n/\nDashboard\n\nPEOPLE & ORGANIZATION\n\nOrganization Structure\nOrganizations\nOrganization Types\nOrganization Units\nOrganization Un"
+      }
+    ]
+  },
+  "uniquePaths": {
+    "reachable-without-permission": [
+      {
+        "path": "/assessments/records",
+        "roles": [
+          "Administrative Tribunal Officer",
+          "API Manager",
+          "Assessment Oversight Officer",
+          "Assessment Report Viewer",
+          "Auditor",
+          "Cafeteria Admin",
+          "Cafeteria Operator",
+          "Cafeteria Provider",
+          "Comm UAT Employee",
+          "Communication Investigator",
+          "Communication Moderator",
+          "Communication Privacy Officer",
+          "Daily Activity Reviewer",
+          "Design Catalog Manager",
+          "Disciplinary Committee Member",
+          "Disciplinary Decision Authority",
+          "Discipline Case Officer",
+          "Employee",
+          "Grievance Administrator",
+          "Grievance Committee Chairperson",
+          "Grievance Committee Member",
+          "Grievance Committee Writer",
+          "Grievance Executive Approver",
+          "Grievance Officer",
+          "Grievance Oversight",
+          "Grievance Registry Officer",
+          "ID Card Approver",
+          "ID Card Officer",
+          "NFC Provisioning Officer",
+          "Organization Design Approver",
+          "Organization Designer",
+          "Organization Transport Officer",
+          "Performance Appeal Committee",
+          "Performance Calibrator",
+          "Performance Manager",
+          "Performance Reviewer",
+          "Public Site Manager",
+          "Report Viewer",
+          "Security Settings Manager",
+          "Service Provider Manager",
+          "Service Provider User",
+          "Settlement Officer",
+          "Structure Change Requester",
+          "Structure Change Reviewer",
+          "Structure Implementation Officer",
+          "System Settings Admin",
+          "Transport Admin",
+          "Transport Dispatcher",
+          "Transport Finance Reviewer",
+          "Transport Operator"
+        ],
+        "sample": {
+          "role": "Administrative Tribunal Officer",
+          "kind": "reachable-without-permission",
+          "path": "/assessments/records",
+          "need": [
+            "assessment_forms.edit_draft",
+            "assessment_forms.publish"
+          ]
+        }
+      },
+      {
+        "path": "/grievances/cases?tab=intake",
+        "roles": [
+          "Administrative Tribunal Officer",
+          "Auditor",
+          "City Admin",
+          "Grievance Administrator",
+          "Grievance Committee Chairperson",
+          "Grievance Committee Member",
+          "Grievance Committee Writer",
+          "Grievance Executive Approver",
+          "Grievance Oversight",
+          "Public Service Bureau Admin",
+          "Report Viewer"
+        ],
+        "sample": {
+          "role": "Administrative Tribunal Officer",
+          "kind": "reachable-without-permission",
+          "path": "/grievances/cases?tab=intake",
+          "need": "grievances.intake_review"
+        }
+      },
+      {
+        "path": "/organization-design",
+        "roles": [
+          "Auditor",
+          "HR Officer",
+          "Organizational Admin",
+          "Structure Change Requester"
+        ],
+        "sample": {
+          "role": "Auditor",
+          "kind": "reachable-without-permission",
+          "path": "/organization-design",
+          "need": [
+            "legacy-baselines.viewAny",
+            "legal-sources.viewAny",
+            "institution-mandates.viewAny",
+            "service-catalog.viewAny",
+            "processes.viewAny",
+            "organization-design.viewAny",
+            "workforce-planning.viewAny",
+            "position-profiles.viewAny",
+            "job-descriptions.viewAny",
+            "design-imports.viewAny",
+            "organization-design-reports.view",
+            "data-mapping.view"
+          ]
+        }
+      },
+      {
+        "path": "/transfer-applications",
+        "roles": [
+          "Auditor"
+        ],
+        "sample": {
+          "role": "Auditor",
+          "kind": "reachable-without-permission",
+          "path": "/transfer-applications",
+          "need": "transfers.applications.view"
+        }
+      },
+      {
+        "path": "/transfers/settings",
+        "roles": [
+          "Auditor",
+          "HR Officer",
+          "Organizational Admin"
+        ],
+        "sample": {
+          "role": "Auditor",
+          "kind": "reachable-without-permission",
+          "path": "/transfers/settings",
+          "need": "transfers.settings.manage"
+        }
+      },
+      {
+        "path": "/grievances/cases?tab=assigned",
+        "roles": [
+          "Auditor",
+          "Grievance Administrator",
+          "Grievance Executive Approver",
+          "Grievance Oversight",
+          "Report Viewer"
+        ],
+        "sample": {
+          "role": "Auditor",
+          "kind": "reachable-without-permission",
+          "path": "/grievances/cases?tab=assigned",
+          "need": [
+            "grievances.view_assigned",
+            "grievances.assign",
+            "grievances.tribunal"
+          ]
+        }
+      },
+      {
+        "path": "/grievances/cases?tab=authorized",
+        "roles": [
+          "City Admin",
+          "Grievance Administrator",
+          "Grievance Executive Approver",
+          "Public Service Bureau Admin",
+          "Report Viewer"
+        ],
+        "sample": {
+          "role": "City Admin",
+          "kind": "reachable-without-permission",
+          "path": "/grievances/cases?tab=authorized",
+          "need": [
+            "grievances.oversight_view",
+            "grievances.view_assigned",
+            "grievances.assign"
+          ]
+        }
+      },
+      {
+        "path": "/performance/agreements",
+        "roles": [
+          "Performance Calibrator",
+          "Performance Reviewer",
+          "Report Viewer"
+        ],
+        "sample": {
+          "role": "Performance Calibrator",
+          "kind": "reachable-without-permission",
+          "path": "/performance/agreements",
+          "need": "employee_performance_agreements.manage"
+        }
+      },
+      {
+        "path": "/assessments/oversight",
+        "roles": [
+          "Performance Manager"
+        ],
+        "sample": {
+          "role": "Performance Manager",
+          "kind": "reachable-without-permission",
+          "path": "/assessments/oversight",
+          "need": "assessment_oversight.view_dashboard"
+        }
+      },
+      {
+        "path": "/organizational-change-requests",
+        "roles": [
+          "Structure Change Reviewer",
+          "Structure Implementation Officer"
+        ],
+        "sample": {
+          "role": "Structure Change Reviewer",
+          "kind": "reachable-without-permission",
+          "path": "/organizational-change-requests",
+          "need": "organizational-change-requests.view_own"
+        }
+      },
+      {
+        "path": "/organizational-change-requests/completed",
+        "roles": [
+          "Structure Change Reviewer",
+          "Structure Implementation Officer"
+        ],
+        "sample": {
+          "role": "Structure Change Reviewer",
+          "kind": "reachable-without-permission",
+          "path": "/organizational-change-requests/completed",
+          "need": "organizational-change-requests.view_own"
+        }
+      },
+      {
+        "path": "/transport/overview",
+        "roles": [
+          "Transport Operator"
+        ],
+        "sample": {
+          "role": "Transport Operator",
+          "kind": "reachable-without-permission",
+          "path": "/transport/overview",
+          "need": "transport-reports.view"
+        }
+      }
+    ],
+    "sidebar-link-forbidden": [
+      {
+        "path": "/dashboard",
+        "roles": [
+          "Assessment Oversight Officer",
+          "Assessment Report Viewer",
+          "Cafeteria Provider",
+          "Comm UAT Employee",
+          "Communication Investigator",
+          "Communication Moderator",
+          "Communication Privacy Officer",
+          "Daily Activity Reviewer",
+          "Organization Transport Officer",
+          "Performance Appeal Committee",
+          "Performance Calibrator",
+          "Performance Manager",
+          "Performance Officer",
+          "Performance Reviewer",
+          "Public Site Manager",
+          "Transport Admin",
+          "Transport Dispatcher",
+          "Transport Finance Reviewer",
+          "Transport Operator"
+        ],
+        "sample": {
+          "role": "Assessment Oversight Officer",
+          "kind": "sidebar-link-forbidden",
+          "path": "/dashboard",
+          "label": "Dashboard"
+        }
+      },
+      {
+        "path": "/feedback-admin/settings",
+        "roles": [
+          "Organizational Admin"
+        ],
+        "sample": {
+          "role": "Organizational Admin",
+          "kind": "sidebar-link-forbidden",
+          "path": "/feedback-admin/settings",
+          "label": "Settings"
+        }
+      }
+    ],
+    "slow-page": [
+      {
+        "path": "/assessments/oversight/reports",
+        "roles": [
+          "Assessment Oversight Officer"
+        ],
+        "sample": {
+          "role": "Assessment Oversight Officer",
+          "kind": "slow-page",
+          "path": "/assessments/oversight/reports",
+          "ms": 8080
+        }
+      },
+      {
+        "path": "/organization-design/legacy-baselines",
+        "roles": [
+          "City Admin"
+        ],
+        "sample": {
+          "role": "City Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/legacy-baselines",
+          "ms": 8859
+        }
+      },
+      {
+        "path": "/situation-room",
+        "roles": [
+          "City Admin",
+          "Public Service Bureau Admin",
+          "System Admin"
+        ],
+        "sample": {
+          "role": "City Admin",
+          "kind": "slow-page",
+          "path": "/situation-room",
+          "ms": 8478
+        }
+      },
+      {
+        "path": "/dashboard",
+        "roles": [
+          "Disciplinary Decision Authority",
+          "Structure Implementation Officer"
+        ],
+        "sample": {
+          "role": "Disciplinary Decision Authority",
+          "kind": "slow-page",
+          "path": "/dashboard",
+          "ms": 8287
+        }
+      },
+      {
+        "path": "/vacancy-applications/my",
+        "roles": [
+          "Disciplinary Decision Authority",
+          "Report Viewer",
+          "Structure Change Reviewer",
+          "System Admin"
+        ],
+        "sample": {
+          "role": "Disciplinary Decision Authority",
+          "kind": "slow-page",
+          "path": "/vacancy-applications/my",
+          "ms": 9632
+        }
+      },
+      {
+        "path": "/grievances/appeals",
+        "roles": [
+          "Grievance Oversight"
+        ],
+        "sample": {
+          "role": "Grievance Oversight",
+          "kind": "slow-page",
+          "path": "/grievances/appeals",
+          "ms": 14242
+        }
+      },
+      {
+        "path": "/assessments/my-assigned",
+        "roles": [
+          "Performance Manager"
+        ],
+        "sample": {
+          "role": "Performance Manager",
+          "kind": "slow-page",
+          "path": "/assessments/my-assigned",
+          "ms": 8056
+        }
+      },
+      {
+        "path": "/performance/kpis",
+        "roles": [
+          "Performance Reviewer"
+        ],
+        "sample": {
+          "role": "Performance Reviewer",
+          "kind": "slow-page",
+          "path": "/performance/kpis",
+          "ms": 9040
+        }
+      },
+      {
+        "path": "/field-work/types",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/field-work/types",
+          "ms": 9821
+        }
+      },
+      {
+        "path": "/organization-design/functions",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/functions",
+          "ms": 8108
+        }
+      },
+      {
+        "path": "/organization-design/processes",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/processes",
+          "ms": 10413
+        }
+      },
+      {
+        "path": "/organization-design/professions",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/professions",
+          "ms": 8820
+        }
+      },
+      {
+        "path": "/organization-design/methodologies",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/methodologies",
+          "ms": 9170
+        }
+      },
+      {
+        "path": "/organization-design/position-design",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/position-design",
+          "ms": 9242
+        }
+      },
+      {
+        "path": "/organization-design/reports",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/reports",
+          "ms": 8407
+        }
+      },
+      {
+        "path": "/organization-design/mapping",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/organization-design/mapping",
+          "ms": 8528
+        }
+      },
+      {
+        "path": "/entitlements",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/entitlements",
+          "ms": 8218
+        }
+      },
+      {
+        "path": "/feedback-admin/dashboard",
+        "roles": [
+          "Public Service Bureau Admin",
+          "System Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/feedback-admin/dashboard",
+          "ms": 9889
+        }
+      },
+      {
+        "path": "/service-submissions",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/service-submissions",
+          "ms": 8734
+        }
+      },
+      {
+        "path": "/feedback-admin/categories",
+        "roles": [
+          "Public Service Bureau Admin",
+          "Super Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/feedback-admin/categories",
+          "ms": 8169
+        }
+      },
+      {
+        "path": "/feedback-admin/settings",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/feedback-admin/settings",
+          "ms": 14529
+        }
+      },
+      {
+        "path": "/service-providers",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/service-providers",
+          "ms": 8862
+        }
+      },
+      {
+        "path": "/cafeteria/scan",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/cafeteria/scan",
+          "ms": 13567
+        }
+      },
+      {
+        "path": "/cafeteria/transactions",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/cafeteria/transactions",
+          "ms": 12411
+        }
+      },
+      {
+        "path": "/transport/providers",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/transport/providers",
+          "ms": 10073
+        }
+      },
+      {
+        "path": "/transport/routes",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/transport/routes",
+          "ms": 9211
+        }
+      },
+      {
+        "path": "/transport/invoices",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/transport/invoices",
+          "ms": 11698
+        }
+      },
+      {
+        "path": "/grievances/dashboard",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/grievances/dashboard",
+          "ms": 12435
+        }
+      },
+      {
+        "path": "/grievances/cases?tab=assigned",
+        "roles": [
+          "Public Service Bureau Admin"
+        ],
+        "sample": {
+          "role": "Public Service Bureau Admin",
+          "kind": "slow-page",
+          "path": "/grievances/cases?tab=assigned",
+          "ms": 9118
+        }
+      },
+      {
+        "path": "/organizations",
+        "roles": [
+          "Structure Change Requester",
+          "Structure Change Reviewer"
+        ],
+        "sample": {
+          "role": "Structure Change Requester",
+          "kind": "slow-page",
+          "path": "/organizations",
+          "ms": 9779
+        }
+      },
+      {
+        "path": "/organizational-change-requests/review-queue",
+        "roles": [
+          "Structure Change Reviewer"
+        ],
+        "sample": {
+          "role": "Structure Change Reviewer",
+          "kind": "slow-page",
+          "path": "/organizational-change-requests/review-queue",
+          "ms": 11672
+        }
+      },
+      {
+        "path": "/positions/status",
+        "roles": [
+          "Structure Change Reviewer",
+          "Super Admin"
+        ],
+        "sample": {
+          "role": "Structure Change Reviewer",
+          "kind": "slow-page",
+          "path": "/positions/status",
+          "ms": 12952
+        }
+      },
+      {
+        "path": "/organization-types",
+        "roles": [
+          "Super Admin"
+        ],
+        "sample": {
+          "role": "Super Admin",
+          "kind": "slow-page",
+          "path": "/organization-types",
+          "ms": 11984
+        }
+      },
+      {
+        "path": "/position-services",
+        "roles": [
+          "Super Admin"
+        ],
+        "sample": {
+          "role": "Super Admin",
+          "kind": "slow-page",
+          "path": "/position-services",
+          "ms": 8070
+        }
+      },
+      {
+        "path": "/id-cards",
+        "roles": [
+          "Super Admin"
+        ],
+        "sample": {
+          "role": "Super Admin",
+          "kind": "slow-page",
+          "path": "/id-cards",
+          "ms": 8485
+        }
+      },
+      {
+        "path": "/nfc-management/logs",
+        "roles": [
+          "System Admin"
+        ],
+        "sample": {
+          "role": "System Admin",
+          "kind": "slow-page",
+          "path": "/nfc-management/logs",
+          "ms": 10248
+        }
+      },
+      {
+        "path": "/transfers",
+        "roles": [
+          "System Admin"
+        ],
+        "sample": {
+          "role": "System Admin",
+          "kind": "slow-page",
+          "path": "/transfers",
+          "ms": 10423
+        }
+      },
+      {
+        "path": "/situation-room/community-voice",
+        "roles": [
+          "System Admin"
+        ],
+        "sample": {
+          "role": "System Admin",
+          "kind": "slow-page",
+          "path": "/situation-room/community-voice",
+          "ms": 8499
+        }
+      },
+      {
+        "path": "/situation-room/wall",
+        "roles": [
+          "System Admin"
+        ],
+        "sample": {
+          "role": "System Admin",
+          "kind": "slow-page",
+          "path": "/situation-room/wall",
+          "ms": 8173
+        }
+      },
+      {
+        "path": "/situation-room/reports",
+        "roles": [
+          "System Admin"
+        ],
+        "sample": {
+          "role": "System Admin",
+          "kind": "slow-page",
+          "path": "/situation-room/reports",
+          "ms": 8415
+        }
+      },
+      {
+        "path": "/service-submissions/unrouted",
+        "roles": [
+          "System Admin"
+        ],
+        "sample": {
+          "role": "System Admin",
+          "kind": "slow-page",
+          "path": "/service-submissions/unrouted",
+          "ms": 10116
+        }
+      },
+      {
+        "path": "/transport/schedules",
+        "roles": [
+          "Transport Admin"
+        ],
+        "sample": {
+          "role": "Transport Admin",
+          "kind": "slow-page",
+          "path": "/transport/schedules",
+          "ms": 8133
+        }
+      }
+    ],
+    "failed-request": [
+      {
+        "path": "/employees",
+        "roles": [
+          "City Admin",
+          "HR Officer",
+          "Organizational Admin",
+          "Public Service Bureau Admin",
+          "Super Admin",
+          "System Admin"
+        ],
+        "sample": {
+          "role": "City Admin",
+          "kind": "failed-request",
+          "path": "/employees",
+          "requests": [
+            {
+              "url": "http://127.0.0.1:8123/storage/employee-photos/9eff5ebd-ca47-47bb-beb4-9991bcb0f0a4.webp",
+              "status": 403,
+              "type": "Image",
+              "page": "http://127.0.0.1:8123/employees"
+            }
+          ]
+        }
+      },
+      {
+        "path": "/id-cards",
+        "roles": [
+          "ID Card Approver",
+          "ID Card Officer"
+        ],
+        "sample": {
+          "role": "ID Card Approver",
+          "kind": "failed-request",
+          "path": "/id-cards",
+          "requests": [
+            {
+              "url": "http://127.0.0.1:8123/employees/01a12185-b753-7301-bf87-597d198275ad/private-photo",
+              "status": 403,
+              "type": "Image",
+              "page": "http://127.0.0.1:8123/id-cards"
+            }
+          ]
+        }
+      }
+    ],
+    "probe-server-error": [
+      {
+        "path": "/assessments/oversight/submissions",
+        "roles": [
+          "HR Officer"
+        ],
+        "sample": {
+          "role": "HR Officer",
+          "kind": "probe-server-error",
+          "path": "/assessments/oversight/submissions",
+          "status": 502
+        }
+      }
+    ],
+    "error-text": [
+      {
+        "path": "/intelligence/system-health",
+        "roles": [
+          "Super Admin",
+          "System Admin"
+        ],
+        "sample": {
+          "role": "Super Admin",
+          "kind": "error-text",
+          "path": "/intelligence/system-health",
+          "text": "Skip to main content\n\nAgelgay\n\nAA-IEMSS\n\nAddis Ababa City Administration\n\n/\nDashboard\n\nPEOPLE & ORGANIZATION\n\nOrganization Structure\nOrganizations\nOrganization Types\nOrganization Units\nOrganization Un"
+        }
+      }
+    ]
+  }
+}

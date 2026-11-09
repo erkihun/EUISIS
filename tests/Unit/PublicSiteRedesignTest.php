@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Public site redesign (Claude Design canvas "EUISIS Public Site Redesign"):
+ * every public page shares the home page's look (hero, cards, motion), and
+ * the Verify task fits the first phone screen.
+ */
+
+function publicSource(string $path): string
+{
+    return (string) file_get_contents(__DIR__.'/../../'.$path);
+}
+
+it('routes scanned or typed values through the shared resolver', function (): void {
+    expect(publicSource('resources/js/Pages/Public/Verify.tsx'))->toContain('resolveVerifyDestination(raw)')
+        ->not->toContain('function resolveDestination');
+
+    $resolver = publicSource('resources/js/Components/public/verifyDestination.ts');
+    expect($resolver)->toContain('/service-feedback/${value}')->toContain('/id-checker/${uuidMatch[0]}')
+        // A printed organization feedback QR links to /feedback/{token}; it
+        // used to fall through to the ID checker and 404.
+        ->toContain('(id-checker|service-feedback|feedback)');
+});
+
+it('keeps the Verify task in the first phone screen', function (): void {
+    $verify = publicSource('resources/js/Pages/Public/Verify.tsx');
+    $scanner = publicSource('resources/js/Components/public/QrScanner.tsx');
+
+    expect($verify)
+        ->toContain('breadcrumbs={[{ label: title }]} compact')
+        // A square camera area: full width on a phone, capped on a wide
+        // screen. The scanner still loads lazily.
+        ->toContain('aspect-square w-full min-w-0 max-w-md')
+        ->toContain("lazy(() => import('@/Components/public/QrScanner'))")
+        // Large touch targets and a 16px input (no iOS zoom on focus).
+        ->toContain('min-h-[52px]')
+        ->toContain('h-12 min-w-0 flex-1')
+        ->toContain('text-base');
+
+    // The live video is never squeezed by CSS: html5-qrcode maps its scan box
+    // from the element to the camera frame, and a distorted element made it
+    // decode the wrong region.
+    expect($scanner)
+        ->not->toContain('object-contain')
+        ->not->toContain('clamp(160px')
+        // The camera area stays a square whichever way the camera is turned:
+        // a landscape picture takes the square's height and is clipped at the
+        // sides (before the library measures it), and the scan box is square.
+        ->toContain('className="flex aspect-square w-full')
+        ->toContain('[&_video]:max-w-none')
+        ->toContain("video.addEventListener('loadedmetadata', apply, { once: true })")
+        ->toContain('return { width: side, height: side };')
+        // An aspect-ratio constraint applied after opening is refused by
+        // some phones and failed the whole start; resolution hints are
+        // "ideal" only, so no camera refuses to open over them.
+        ->not->toContain('aspectRatio')
+        ->toContain('width: { ideal: 1920 }')
+        ->toContain('useBarCodeDetectorIfSupported: true');
+});
+
+it('gives every public page the home page look', function (): void {
+    $kit = publicSource('resources/js/Components/public/PublicPage.tsx');
+    $css = publicSource('resources/css/public-site.css');
+
+    expect($kit)
+        // The home hero, cards and heading accent, shared through the kit.
+        ->toContain('className={`public-hero')
+        ->toContain("'public-card group relative")
+        ->toContain('public-heading-accent')
+        ->toContain('compact = false')
+        // Breadcrumbs are hidden on phones so the page task shows first.
+        ->toContain('<div className="hidden sm:block">')
+        ->and($css)
+        ->toContain('linear-gradient(120deg, #101b50 0%')
+        ->toContain("[data-motion='on']")
+        ->toContain('prefers-reduced-motion: no-preference')
+        ->and(publicSource('resources/js/Layouts/PublicLayout.tsx'))
+        ->toContain("import '../../css/public-site.css'")
+        ->toContain("getBoolean('appearance.enable_ui_animations', true)");
+});

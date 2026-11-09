@@ -1,0 +1,14 @@
+{
+    "tags": ["p", "br", "strong", "em", "u", "h2", "h3", "h4", "ul", "ol", "li", "blockquote", "table", "thead", "tbody", "tr", "th", "td", "a"],
+    "attributes": {
+        "a": ["href", "title", "target", "rel"],
+        "th": ["colspan", "rowspan"],
+        "td": ["colspan", "rowspan"]
+    },
+    "aligned": ["p", "h2", "h3", "h4", "li", "th", "td"],
+    "styles": ["text-align"],
+    "alignments": ["left", "center", "right", "justify"],
+    "schemes": ["http", "https", "mailto", "tel"],
+    "targets": ["_blank"],
+    "rename": { "b": "strong", "i": "em", "h1": "h2", "h5": "h4", "h6": "h4" }
+}

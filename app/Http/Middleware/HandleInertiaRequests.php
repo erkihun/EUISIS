@@ -1,0 +1,301 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use App\Enums\CalendarSystem;
+use App\Models\User;
+use App\Security\Passwords\PasswordPolicy;
+use App\Services\Assistant\AssistantSettings;
+use App\Services\Branding\BrandingService;
+use App\Services\Calendar\CalendarService;
+use App\Services\Core\CoreNavigation;
+use App\Services\Core\CoreWorkspace;
+use App\Services\Dashboard\DashboardDataService;
+use App\Services\IdCards\IdCardTemplateService;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\PublicAssistant\PublicAssistantSettings;
+use App\Services\Security\SessionActivityService;
+use App\Services\SystemSettings\SystemSettingsService;
+use App\Support\Features;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Inertia\Middleware;
+use Modules\Communication\Contracts\CommunicationTopBar;
+use Modules\PublicSite\Contracts\PublicSitePages;
+use Modules\Transfer\Contracts\TransferAnnouncementListings;
+use Throwable;
+
+class HandleInertiaRequests extends Middleware
+{
+    protected $rootView = 'app';
+
+    public function version(Request $request): ?string
+    {
+        return parent::version($request);
+    }
+
+    public function share(Request $request): array
+    {
+        /** @var User|null $user */
+        $user = auth('web')->user();
+        $settings = $this->publicSettings();
+        $defaultLocale = (string) ($settings['localization.default_locale'] ?? config('app.locale', 'en'));
+
+        $locale = session('locale', $defaultLocale);
+        $calendarMode = (string) ($settings['localization.calendar_system_mode'] ?? 'locale_based');
+        $calendarSystem = $this->resolveCalendarSystem($locale, $calendarMode);
+
+        return [
+            ...parent::share($request),
+
+            'auth' => [
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'status' => $user->status,
+                    'profile_photo_url' => $user->profilePhotoUrl(),
+                    'initials' => $user->initials(),
+                ] : null,
+                'roles' => $user ? $user->getRoleNames()->toArray() : [],
+                'permissions' => $user ? $user->getAllPermissions()->pluck('name')->toArray() : [],
+                'isSuperAdmin' => $user?->hasRole('Super Admin') ?? false,
+                // The same test DashboardController applies, so the sidebar never
+                // offers a Dashboard link that only redirects to My Portal.
+                'canViewDashboard' => $user !== null && app(DashboardDataService::class)->canViewDashboard($user),
+                // Citywide (unrestricted) organization scope: some settings pages,
+                // e.g. public feedback settings, are city-level only.
+                'unrestrictedScope' => $user !== null && $this->resolveUnrestrictedScope($user),
+            ],
+
+            // Populated by SetCafeteriaPortalContext middleware on portal routes.
+            // Null on non-portal routes so the frontend can always type-check safely.
+            'cafeteriaProviderAuth' => null,
+
+            // Module feature flags (config/features.php): hide out-of-scope modules.
+            'features' => Features::shared(),
+            // The floating assistant mounts only for signed-in people and only while switched on (docs/assistant/architecture.md).
+            'assistant' => ['enabled' => $user !== null && app(AssistantSettings::class)->enabled()],
+            // Addis One Help for anonymous visitors (docs/public-assistant/architecture.md): a separate public boundary.
+            'publicAssistant' => ['enabled' => app(PublicAssistantSettings::class)->enabled()],
+
+            // The top-bar Messages button; nothing else of Communication travels with every page.
+            'communication' => fn (): ?array => app(CommunicationTopBar::class)->props($user, $request),
+
+            // The Core workspace (docs/architecture/core-workspace.md): its navigation while the
+            // person works in Core, null everywhere else. Pages themselves do not change.
+            'workspace' => function () use ($user, $request): ?array {
+                if (! $request->hasSession() || ! app(CoreWorkspace::class)->active($user, $request->session())) {
+                    return null;
+                }
+
+                return ['name' => CoreWorkspace::NAME, 'nav' => app(CoreNavigation::class)->for($user)];
+            },
+
+            'locale' => $locale,
+            // The rich-text editor's licence (config/richtext.php). Only signed-in
+            // people edit formatted text; public pages never load the editor.
+            'richText' => fn (): ?array => $user ? ['licenseKey' => (string) config('richtext.editor.license_key', 'gpl')] : null,
+            // The language the server wrote this page's own text in (SetClientLocale), read when the page renders.
+            // The browser reloads once when it shows another language (LocaleContext).
+            'textLocale' => fn (): string => app()->getLocale(),
+            'calendar' => [
+                'system' => $calendarSystem->value,
+                'mode' => $calendarMode,
+            ],
+            'settings' => $settings,
+            // Product identity, resolved once (BrandingService): settings over config, never per page.
+            'branding' => app(BrandingService::class)->toArray(),
+            // Card artwork (seal, signature) only reaches people who render cards.
+            'idCardTemplate' => function () use ($user): ?array {
+                if (! $this->rendersIdCards($user)) {
+                    return null;
+                }
+                $templates = app(IdCardTemplateService::class);
+                $template = $templates->active();
+
+                return $template ? $templates->presentation($template) : null;
+            },
+            /*
+             * One template per orientation. A template is built for its own
+             * shape, so a portrait card must not be styled by a landscape
+             * template; the card components pick the entry for the face they
+             * are drawing, and fall back to the built-in arrangement when that
+             * orientation has no template.
+             */
+            'idCardTemplates' => function () use ($user): ?array {
+                if (! $this->rendersIdCards($user)) {
+                    return null;
+                }
+                $templates = app(IdCardTemplateService::class);
+
+                return collect(['landscape', 'portrait'])
+                    ->mapWithKeys(function (string $orientation) use ($templates): array {
+                        $template = $templates->active($orientation);
+
+                        return [$orientation => $template ? $templates->presentation($template) : null];
+                    })
+                    ->all();
+            },
+            'registration_enabled' => (bool) config('security.registration_enabled', false),
+            'announcement_count' => $this->publishedAnnouncementCount(),
+            /*
+             * Public website chrome from Public Site Management. Published,
+             * allow-listed links only, cached by the Public Site module (PublicSitePages); both
+             * languages are sent and the browser picks one.
+             */
+            'publicSite' => fn (): array => [
+                'navigation' => app(PublicSitePages::class)->navigation(),
+                'footerLinks' => app(PublicSitePages::class)->footerLinks(),
+            ],
+            'is_employee_user' => $user !== null && $this->resolveIsEmployeeUser($user),
+            // Whether the account is linked to an employee record at all
+            // (admin or not). Self-service links are pointless without one.
+            'has_employee_record' => $user !== null && $this->resolveHasEmployeeRecord($user),
+            // Idle policy for the browser's warning/heartbeat; null when signed out.
+            'session_policy' => fn (): ?array => $this->sessionPolicy($request),
+            'flash' => [
+                // Individual-key form (preferred) — set via session('success'), etc.
+                'success' => session('success'),
+                'error' => session('error'),
+                'warning' => session('warning'),
+                'info' => session('info'),
+                // Single-message fallback — set via session()->flash('flash.message', …)
+                'message' => session('flash.message'),
+                'type' => session('flash.type'),
+                // One-time API token, shown once immediately after generation.
+                // Never persisted — only this single response carries it.
+                'generated_token' => $request->is('my-portal', 'my-portal/*') ? null : session('flash.generated_token'),
+                // A generated one-time password, shown once to the administrator
+                // who created/reset the account. Never persisted beyond the flash.
+                'temporary_password' => $request->is('my-portal', 'my-portal/*') ? null : session('flash.temporary_password'),
+            ],
+            // Length limits and toggles for the (advisory) password checklist.
+            // Nothing about any account: no hashes, no history.
+            'password_policy' => fn (): array => app(PasswordPolicy::class)->forClient(),
+        ];
+    }
+
+    /** @return array<string, int|string>|null */
+    private function sessionPolicy(Request $request): ?array
+    {
+        $activity = app(SessionActivityService::class);
+        $guards = $activity->authenticatedGuards();
+        if ($guards === []) {
+            return null;
+        }
+
+        $providerOnly = ! in_array('web', $guards, true);
+
+        return [
+            'idle_timeout_seconds' => $activity->idleTimeoutSeconds(),
+            'warning_seconds' => $activity->warningSeconds(),
+            'heartbeat_seconds' => $activity->heartbeatSeconds(),
+            'login_url' => $activity->loginUrl($request, $guards),
+            'logout_url' => $providerOnly ? route('provider.portal.logout') : route('logout'),
+        ];
+    }
+
+    private function resolveCalendarSystem(string $locale, string $mode): CalendarSystem
+    {
+        return match ($mode) {
+            'gregorian_only' => CalendarSystem::Gregorian,
+            'ethiopian_only' => CalendarSystem::Ethiopian,
+            default => app(CalendarService::class)->calendarSystemForLocale($locale),
+        };
+    }
+
+    private function publicSettings(): array
+    {
+        try {
+            return app(SystemSettingsService::class)->getPublicSettings();
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Whether the UI should present this account in employee self-service mode.
+     *
+     * Being linked to an employee record is NOT sufficient on its own. Staff who
+     * administer the system are usually employees too, and treating them as
+     * employee-only collapsed the sidebar to the self-service items and hid every
+     * administrative section — even though their permissions granted full access.
+     *
+     * So an account that holds any administrative permission stays in admin mode
+     * and keeps its own "My Portal" links; only accounts whose sole relationship
+     * to the system is their employee record get the reduced navigation.
+     */
+    private function resolveIsEmployeeUser(User $user): bool
+    {
+        try {
+            return Cache::remember(
+                "user_{$user->id}_is_employee_v2",
+                300, // 5 minutes
+                fn (): bool => $user->employee !== null && ! $this->hasAdministrativeAccess($user),
+            );
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    private function rendersIdCards(?User $user): bool
+    {
+        return $user !== null
+            && ($user->can('id-cards.view') || $user->can('cards.view') || $user->can('id_card_templates.view'));
+    }
+
+    private function resolveHasEmployeeRecord(User $user): bool
+    {
+        try {
+            return Cache::remember(
+                "user_{$user->id}_has_employee_v1",
+                300, // 5 minutes
+                fn (): bool => $user->employee !== null,
+            );
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Does this account administer anything, as opposed to only using its own
+     * employee self-service pages?
+     *
+     * `dashboard.view` is the marker: every administrative role carries it and
+     * it gates the admin landing page, so it is the cheapest accurate signal
+     * that the admin navigation is meaningful for this user.
+     */
+    private function resolveUnrestrictedScope(User $user): bool
+    {
+        try {
+            return app(OrganizationScopeService::class)->isUnrestricted($user);
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    private function hasAdministrativeAccess(User $user): bool
+    {
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
+
+        return $user->can('dashboard.view');
+    }
+
+    private function publishedAnnouncementCount(): int
+    {
+        try {
+            return Cache::remember(
+                'published_transfer_announcement_count',
+                60, // 1 minute
+                fn (): int => app(TransferAnnouncementListings::class)->publishedCount(),
+            );
+        } catch (Throwable) {
+            return 0;
+        }
+    }
+}

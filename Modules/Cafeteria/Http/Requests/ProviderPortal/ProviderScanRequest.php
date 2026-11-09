@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\Cafeteria\Http\Requests\ProviderPortal;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
+use Modules\Providers\Contracts\ProviderPortalSession;
+
+class ProviderScanRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return app(ProviderPortalSession::class)->actorHasService($this, 'cafeteria');
+    }
+
+    /** @return array<string, list<mixed>> */
+    public function rules(): array
+    {
+        return [
+            'provider_id' => ['nullable', 'uuid', 'exists:cafeteria_providers,id'],
+            'qr_token' => ['required', 'string', 'min:10'],
+            'scan_nonce' => ['required', 'uuid'],
+            // The server sets the time: a client time could claim past days.
+            'scanned_at' => ['prohibited'],
+            'usage_mode' => ['required', Rule::in([
+                CafeteriaUsageMode::SingleDay->value,
+                CafeteriaUsageMode::UseRemainingWeek->value,
+            ])],
+            'meal_amount' => ['prohibited'],
+            'requested_subsidy_amount' => ['prohibited'],
+        ];
+    }
+}

@@ -1,0 +1,171 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Middleware\SecurityHeaders;
+use App\Models\User;
+
+// ── INSA Annex B: Content headers, anti-clickjacking, XCTO, CSP ──────────────
+
+test('security headers are present on authenticated pages', function (): void {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get('/profile');
+
+    $response->assertHeader('X-Frame-Options', 'DENY');
+    $response->assertHeader('X-Content-Type-Options', 'nosniff');
+    $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    $response->assertHeader('X-Permitted-Cross-Domain-Policies', 'none');
+    $response->assertHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    $response->assertHeader('Cross-Origin-Resource-Policy', 'same-origin');
+});
+
+test('security headers are present on public pages', function (): void {
+    $response = $this->get('/login');
+
+    $response->assertHeader('X-Frame-Options', 'DENY');
+    $response->assertHeader('X-Content-Type-Options', 'nosniff');
+    $response->assertHeader('X-Permitted-Cross-Domain-Policies', 'none');
+});
+
+test('X-Content-Type-Options is nosniff', function (): void {
+    $response = $this->get('/login');
+
+    $response->assertHeader('X-Content-Type-Options', 'nosniff');
+});
+
+test('X-Frame-Options prevents clickjacking', function (): void {
+    $response = $this->get('/login');
+
+    // Must be DENY (not SAMEORIGIN) for government classification
+    $response->assertHeader('X-Frame-Options', 'DENY');
+});
+
+test('Content-Security-Policy header is present', function (): void {
+    $response = $this->get('/login');
+
+    $csp = $response->headers->get('Content-Security-Policy');
+
+    expect($csp)->not->toBeNull()
+        ->and($csp)->toContain("frame-ancestors 'none'")
+        ->and($csp)->toContain("object-src 'none'")
+        ->and($csp)->toContain("base-uri 'self'")
+        ->and($csp)->toContain("form-action 'self'");
+});
+
+test('scripts run only from self or with this request\'s nonce, never unsafe-inline', function (): void {
+    foreach (['production', 'local'] as $environment) {
+        $originalEnvironment = app()->environment();
+        app()->detectEnvironment(fn (): string => $environment);
+
+        try {
+            $response = $this->get('/login');
+            $csp = (string) $response->headers->get('Content-Security-Policy');
+
+            preg_match("/script-src [^;]*'nonce-([A-Za-z0-9]+)'/", $csp, $match);
+            $scriptSrc = preg_match('/script-src [^;]*/', $csp, $directive) ? $directive[0] : '';
+
+            expect($match)->not->toBeEmpty("{$environment}: script-src carries a nonce")
+                ->and($scriptSrc)->not->toContain('unsafe-inline')
+                ->and($scriptSrc)->not->toContain('unsafe-eval')
+                // The page's own inline script carries the same nonce, so it still runs.
+                ->and($response->getContent())->toContain('<script nonce="'.$match[1].'"');
+        } finally {
+            app()->detectEnvironment(fn (): string => $originalEnvironment);
+        }
+    }
+});
+
+test('each response gets a fresh nonce', function (): void {
+    $nonce = fn (): string => preg_match("/'nonce-([A-Za-z0-9]+)'/", (string) $this->get('/login')->headers->get('Content-Security-Policy'), $m) ? $m[1] : '';
+
+    expect($nonce())->not->toBe('')->not->toBe($nonce());
+});
+
+test('local Content-Security-Policy permits Vite without invalid IPv6 sources', function (): void {
+    $originalEnvironment = app()->environment();
+    app()->detectEnvironment(fn (): string => 'local');
+
+    try {
+        $response = $this->get('/login');
+        $csp = $response->headers->get('Content-Security-Policy');
+
+        expect($csp)
+            ->toContain('http://127.0.0.1:5173')
+            ->toContain('ws://127.0.0.1:5173')
+            ->not->toContain('[::1]');
+    } finally {
+        app()->detectEnvironment(fn (): string => $originalEnvironment);
+    }
+});
+
+test('local Content-Security-Policy does not add an invalid IPv6 request host', function (): void {
+    $originalEnvironment = app()->environment();
+    app()->detectEnvironment(fn (): string => 'local');
+
+    try {
+        $csp = $this->withServerVariables(['HTTP_HOST' => '[::1]:8000'])
+            ->get('/login')
+            ->headers->get('Content-Security-Policy');
+
+        expect($csp)->not->toContain('[::1]')->not->toContain('http://::1');
+    } finally {
+        app()->detectEnvironment(fn (): string => $originalEnvironment);
+    }
+});
+
+test('HSTS header is not sent over plain HTTP', function (): void {
+    // In the test environment requests are not HTTPS, so HSTS must be absent
+    // to prevent accidental HTTP pinning in development.
+    $response = $this->get('/login');
+
+    expect($response->headers->has('Strict-Transport-Security'))->toBeFalse();
+});
+
+test('error page does not expose stack trace', function (): void {
+    // Trigger a 404 — should return generic Inertia error page, not a stack trace.
+    $response = $this->get('/nonexistent-route-'.uniqid());
+
+    $response->assertStatus(404);
+
+    $content = $response->getContent();
+    expect($content)->not->toContain('Stack trace')
+        ->and($content)->not->toContain('vendor/laravel')
+        ->and($content)->not->toContain('Exception in');
+});
+
+test('500 response does not expose SQL or file paths', function (): void {
+    // Check that an authenticated page response does not leak server internals.
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->get('/profile');
+    $response->assertStatus(200);
+
+    // The response body must not contain raw PHP file paths or SQL
+    expect($response->getContent())
+        ->not->toContain('/var/www')
+        ->not->toContain('/home/')
+        ->not->toContain('SQLSTATE');
+});
+
+test('the map tile host is the only outside image source', function (): void {
+    config(['maps.tile_url' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png']);
+
+    $csp = (string) $this->actingAs(User::factory()->create())->get('/profile')->headers->get('Content-Security-Policy');
+
+    expect($csp)->toContain("img-src 'self' data: blob: https://tile.openstreetmap.org;")
+        ->and(SecurityHeaders::tileOrigin('https://{s}.tiles.city.gov.et:8443/{z}/{x}/{y}.png'))->toBe('https://*.tiles.city.gov.et:8443')
+        ->and(SecurityHeaders::tileOrigin('javascript:alert(1)'))->toBe('')
+        ->and(SecurityHeaders::tileOrigin(''))->toBe('');
+});
+
+test('the public object store is an allowed image source only when it is not this application', function (): void {
+    config(['filesystems.disks.public.driver' => 'local', 'filesystems.disks.public.url' => 'http://192.0.2.10:8000/storage']);
+    expect(SecurityHeaders::publicStorageOrigin())->toBe('');
+
+    config(['filesystems.disks.public.driver' => 's3', 'filesystems.disks.public.url' => 'https://assets.example.gov.et/public']);
+    $csp = (string) $this->actingAs(User::factory()->create())->get('/profile')->headers->get('Content-Security-Policy');
+
+    expect($csp)->toContain('https://assets.example.gov.et')
+        ->and(SecurityHeaders::publicStorageOrigin())->toBe('https://assets.example.gov.et');
+});

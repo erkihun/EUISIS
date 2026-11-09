@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Resources\NfcVerificationResource;
+use App\Services\CredentialVerificationService;
+use App\Services\Nfc\NfcAudit;
+use App\Services\Nfc\NfcPayloadParser;
+use App\Services\Nfc\NfcVerificationService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Modules\Cafeteria\Contracts\CafeteriaTerminalScan;
+use Modules\Entitlements\Contracts\CardServiceAuthorization;
+use Modules\Entitlements\Contracts\ReadModels\ServicePointRecord;
+use Modules\Entitlements\Contracts\ReadModels\ServiceTypeRecord;
+use Ramsey\Uuid\Uuid;
+
+class NfcController extends Controller
+{
+    public function challenge(Request $request, NfcPayloadParser $parser, NfcVerificationService $service)
+    {
+        $result = $service->challenge($parser->parse($request), $request);
+
+        return response()->json($result, isset($result['challenge']) ? 200 : 403);
+    }
+
+    public function verify(Request $request)
+    {
+        return $this->run($request, 'verify');
+    }
+
+    public function eligibility(Request $request)
+    {
+        return $this->run($request, 'eligibility');
+    }
+
+    public function record(Request $request)
+    {
+        return $this->run($request, 'record');
+    }
+
+    private function run(Request $request, string $purpose)
+    {
+        $payload = app(NfcPayloadParser::class)->parse($request);
+        if ($purpose !== 'verify') {
+            $request->validate(['service_type' => 'required|string|max:64']);
+        }
+        if ($purpose === 'record') {
+            $request->validate(['reference' => 'required|uuid']);
+        }
+        $result = DB::transaction(function () use ($request, $payload, $purpose) {
+            $result = app(CredentialVerificationService::class)->verify('nfc', $payload, $request, $purpose);
+            if (! $result['valid'] || $purpose === 'verify') {
+                return $result;
+            }
+            $terminal = $result['terminal'];
+            $card = $result['card'];
+            $serviceType = ServiceTypeRecord::query()->where('code', $payload['service_type'])->first();
+            $provider = ServicePointRecord::query()->whereKey($terminal->provider_id)->lockForUpdate()->first();
+            $allowed = false;
+            $reason = 'SERVICE_NOT_ALLOWED';
+            $transactionReference = null;
+            if ($serviceType && $provider && $provider->status === 'active' && $provider->service_type_id === $serviceType->id) {
+                if ($serviceType->code === 'cafeteria') {
+                    // The cafeteria comes from the registered terminal, never from the
+                    // request. A terminal's meal_amount stays in the signed context
+                    // but is not money: the employee organization's policy prices it.
+                    $scan = $terminal->cafeteria_provider_id === null ? null : app(CafeteriaTerminalScan::class)->scan((string) $card->getKey(), (string) $terminal->cafeteria_provider_id, (string) $provider->id, [
+                        'usage_mode' => $payload['usage_mode'] ?? 'single_day',
+                        // Bound by secure challenge; one uuid per terminal + reference, so
+                        // a retried request finds the first transaction. scan_nonce is a
+                        // uuid column: a sha256 hex did not fit it on MySQL or PostgreSQL.
+                        'scan_nonce' => isset($payload['reference'])
+                            ? Uuid::uuid5(Uuid::NAMESPACE_URL, 'urn:euisis:nfc-scan:'.$terminal->id.':'.$payload['reference'])->toString()
+                            : (string) Str::uuid(),
+                        'service_terminal_id' => $terminal->id,
+                    ], $request, $purpose === 'eligibility');
+                    if ($scan !== null) {
+                        $allowed = $scan->allowed;
+                        // Denials carry result_code 'rejected'; the specific
+                        // cause lives in denial_reason.
+                        $reason = $scan->duplicate ? 'ALREADY_SERVED' : $this->reason((string) ($scan->denialReason ?? $scan->resultCode));
+                        $transactionReference = $scan->transactionNumber;
+                    }
+                } else {
+                    // The entitlement check and the transaction belong to Entitlements.
+                    $outcome = app(CardServiceAuthorization::class)->authorizeCard((string) $card->getKey(), (string) $serviceType->id, (string) $provider->id, $purpose === 'record', $payload['reference'] ?? null, $request);
+                    $allowed = $outcome->allowed;
+                    $reason = $this->reason($outcome->resultCode);
+                    $transactionReference = $outcome->transactionReference;
+                }
+            }
+            $result['eligible'] = $allowed;
+            $result['reason_code'] = $allowed ? null : $reason;
+            $result['transaction_reference'] = $transactionReference;
+            app(NfcAudit::class)->record($purpose === 'record' ? 'service_transaction' : 'service_eligibility', $allowed, $result['reason_code'], $result['credential_model'], $terminal, $request);
+
+            return $result;
+        });
+
+        return response()->json((new NfcVerificationResource($result))->resolve(), $result['valid'] && $result['eligible'] !== false ? 200 : 403);
+    }
+
+    private function reason(string $reason): string
+    {
+        return match ($reason) {
+            'already_scanned_today', 'no_available_subsidy', 'duplicate_transaction', 'entitlement_already_consumed' => 'ALREADY_SERVED',
+            'employee_inactive' => 'EMPLOYEE_INACTIVE',
+            'id_card_expired' => 'CARD_EXPIRED', 'id_card_lost' => 'CARD_LOST',
+            'id_card_replaced' => 'CARD_REPLACED', 'id_card_revoked' => 'CARD_REVOKED',
+            'no_active_id_card', 'id_card_not_active', 'id_card_suspended', 'id_card_pending' => 'CARD_INACTIVE',
+            default => 'SERVICE_NOT_ALLOWED',
+        };
+    }
+}

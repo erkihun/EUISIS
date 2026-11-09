@@ -1,0 +1,99 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions\IdCards;
+
+use App\Actions\Audit\WriteAuditLogAction;
+use App\Enums\AuditEventType;
+use App\Enums\CardRequestStatus;
+use App\Enums\CardRequestType;
+use App\Enums\CardStatus;
+use App\Models\CardReplacement;
+use App\Models\CardRequest;
+use App\Models\Employee;
+use App\Models\IdCard;
+use App\Models\User;
+use DomainException;
+use Illuminate\Support\Facades\DB;
+
+readonly class ReplaceCardAction
+{
+    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+
+    public function execute(IdCard $oldCard, User $actor, ?string $reason = null): CardRequest
+    {
+        $replaceableStatuses = [CardStatus::Lost, CardStatus::Damaged, CardStatus::Revoked, CardStatus::Expired, CardStatus::Suspended];
+
+        if (! in_array($oldCard->status, $replaceableStatuses, true)) {
+            throw new DomainException('Only lost, damaged, revoked, expired, or suspended cards can be replaced. Current status: '.$oldCard->status->value);
+        }
+
+        return DB::transaction(function () use ($oldCard, $actor, $reason, $replaceableStatuses): CardRequest {
+            // Serialize with every other card action for this employee
+            // (approval and print preparation lock the employee row first too),
+            // then re-read the card: a concurrent replacement may have just
+            // retired it and opened a request.
+            Employee::query()->whereKey($oldCard->employee_id)->lockForUpdate()->first();
+            $oldCard = IdCard::query()->whereKey($oldCard->getKey())->lockForUpdate()->firstOrFail();
+
+            if (! in_array($oldCard->status, $replaceableStatuses, true)) {
+                throw new DomainException('Only lost, damaged, revoked, expired, or suspended cards can be replaced. Current status: '.$oldCard->status->value);
+            }
+
+            $hasPendingRequest = CardRequest::query()
+                ->where('employee_id', $oldCard->employee_id)
+                ->whereIn('status', [CardRequestStatus::Draft->value, CardRequestStatus::Submitted->value, CardRequestStatus::Verified->value])
+                ->exists();
+
+            if ($hasPendingRequest) {
+                throw new DomainException('Employee already has a pending card request.');
+            }
+
+            $oldStatus = $oldCard->status;
+            $oldCard->update([
+                'status' => CardStatus::Replaced,
+                'is_current' => false,
+            ]);
+
+            $requestType = match ($oldStatus) {
+                CardStatus::Lost => CardRequestType::Lost,
+                CardStatus::Damaged => CardRequestType::Damaged,
+                default => CardRequestType::Replacement,
+            };
+
+            $cardRequest = CardRequest::query()->create([
+                'employee_id' => $oldCard->employee_id,
+                'requested_by' => $actor->getKey(),
+                'request_type' => $requestType,
+                'status' => CardRequestStatus::Submitted,
+                // The status the card had before this action marked it replaced.
+                'request_reason' => $reason ?? 'Card replacement for '.$oldStatus->value.' card',
+                'previous_card_id' => $oldCard->id,
+                'submitted_at' => now(),
+            ]);
+
+            CardReplacement::query()->create([
+                'old_card_id' => $oldCard->id,
+                // Placeholder until the replacement is approved: ApproveCardRequestAction
+                // then sets the new card (the column is not nullable).
+                'new_card_id' => $oldCard->id,
+                'reason' => $reason ?? $oldStatus->value,
+                'replaced_by' => $actor->getKey(),
+                'replaced_at' => now(),
+            ]);
+
+            $this->writeAuditLogAction->execute(
+                AuditEventType::CardReplaced,
+                $actor,
+                $oldCard->fresh(),
+                $oldCard->employee?->currentAssignment?->organization_id,
+                oldValues: ['status' => $oldStatus->value],
+                newValues: ['status' => CardStatus::Replaced->value, 'replacement_request_id' => $cardRequest->id, 'request_type' => $requestType->value],
+                reason: $reason,
+            );
+
+            return $cardRequest;
+        });
+    }
+}

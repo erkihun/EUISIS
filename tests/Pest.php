@@ -1,0 +1,96 @@
+<?php
+
+use App\Models\Organization;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\Feedback\Application\Services\OrganizationFeedbackQrService;
+use Modules\Providers\Contracts\Data\PortalActor;
+use Modules\Providers\Domain\Models\ProviderUser;
+use Tests\Support\PublicSubmissionPayload;
+use Tests\TestCase;
+
+/*
+|--------------------------------------------------------------------------
+| Test Case
+|--------------------------------------------------------------------------
+|
+| The closure you provide to your test functions is always bound to a specific PHPUnit test
+| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
+| need to change it using the "pest()" function to bind a different classes or traits.
+|
+*/
+
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Feature');
+
+// The court module's tests (ported from court-ms, ADR 0020) render pages without a Vite build.
+pest()->beforeEach(function () {
+    $this->withoutVite();
+    if (env('COURT_TEST_DEBUG')) {
+        $this->withoutExceptionHandling();
+    }
+})->in('Feature/Court');
+
+/*
+|--------------------------------------------------------------------------
+| Expectations
+|--------------------------------------------------------------------------
+|
+| When you're writing tests, you often need to check that values meet certain conditions. The
+| "expect()" function gives you access to a set of "expectations" methods that you can use
+| to assert different things. Of course, you may extend the Expectation API at any time.
+|
+*/
+
+expect()->extend('toBeOne', function () {
+    return $this->toBe(1);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Functions
+|--------------------------------------------------------------------------
+|
+| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
+| project that you don't want to repeat in every file. Here you can also expose helpers as
+| global functions to help you to reduce the number of lines of code in your test files.
+|
+*/
+
+function something()
+{
+    // ..
+}
+
+/**
+ * Add what PublicSubmissionPolicy requires of a public form where the test
+ * payload does not set it. See Tests\Support\PublicSubmissionPayload.
+ *
+ * @param  'feedback'|'suggestion'|'complaint'  $type
+ * @param  array<string, mixed>  $payload
+ * @return array<string, mixed>
+ */
+function pfComplete(string $type, array $payload = []): array
+{
+    return PublicSubmissionPayload::complete($type, $payload);
+}
+
+/**
+ * The institution-QR Tip-off address of an institution. Since 2026-11-08 a
+ * Tip-off is given on the institution QR only, never on an employee's card.
+ */
+function pfOrgTipUrl(Organization $organization): string
+{
+    $qr = app(OrganizationFeedbackQrService::class)->ensureActive($organization);
+
+    return '/feedback/'.$qr->public_token.'/suggestion';
+}
+
+/**
+ * The provider-portal actor a service records, for a test's provider user
+ * (what ProviderPortalSession::actor() returns when that user is signed in).
+ */
+function portalActor(ProviderUser $user): PortalActor
+{
+    return new PortalActor((string) $user->id, (string) $user->provider_id, (string) $user->name);
+}

@@ -1,0 +1,7 @@
+
+> i18n:audit
+> node scripts/i18n-audit.mjs --strict
+
+Translation keys: 22420 (Amharic values present: 22420) across 156 modules
+Findings by rule: {"warn:latin_words_in_am":164,"warn:deprecated_term":1}
+Spelling variants (first/second): {"ሠራተኛ/ሰራተኛ":[646,0],"ሥራ/ስራ":[1463,0],"ሥርዓት/ስርዓት":[96,0],"ሥርዓት/ሥርአት":[96,0],"ኃላፊ/ሃላፊ":[140,0],"ኃላፊነት/ሃላፊነት":[28,0],"ጽሕፈት/ፅህፈት":[104,0],"ጽሑፍ/ፅሁፍ":[70,0],"ሕግ/ህግ":[58,0],"ሕዝብ/ህዝብ":[125,0],"ዓመት/አመት":[53,0],"ዓይነት/አይነት":[320,0],"ሪፖርት/ሪፓርት":[155,0],"ኮሚቴ/ኮሚቲ":[78,0],"ቅጽ/ቅፅ":[88,0],"ውሳኔ/ዉሳኔ":[184,0]}

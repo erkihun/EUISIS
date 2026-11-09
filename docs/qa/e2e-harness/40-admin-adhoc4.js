@@ -1,0 +1,55 @@
+'use strict';
+const path = require('path');
+const { BASE, Recorder, newBrowser, login, visit, shot } = require('./lib');
+const { FIX, sql, body } = require('./40-admin-lib');
+(async () => {
+    const R = new Recorder('40-admin-adhoc4');
+    const { browser, page } = await newBrowser();
+    R.attach(page);
+    const me = sql(`select id from users where email='qa.sysadmin5@demo.local'`)[0][0];
+    const orig = sql(`select coalesce(gender,''), coalesce(profile_photo_path,''), coalesce(phone_number,'') from users where id=${me}`)[0];
+    await login(page, 'qa.sysadmin5@demo.local', 'password');
+    await R.step('profile wrong current password: responses + visible errors', async () => {
+        await visit(page, '/profile');
+        await page.locator('[role="tab"], button').filter({ hasText: /security/i }).first().click();
+        await page.waitForTimeout(300);
+        await page.fill('#current_password', 'definitely-wrong');
+        await page.fill('#password', 'Marigold-Comet-4482!');
+        await page.fill('#password_confirmation', 'Marigold-Comet-4482!');
+        const got = [];
+        const h = async (r) => { try { if (r.url().startsWith(BASE) && /json/.test(r.headers()['content-type'] || '')) { const j = await r.json(); got.push({ url: r.url().replace(BASE, ''), status: r.status(), errors: j.props?.errors }); } else if (r.url().startsWith(BASE) && r.request().method() !== 'GET') got.push({ url: r.url().replace(BASE, ''), status: r.status(), method: r.request().method() }); } catch {} };
+        page.on('response', h);
+        const form = page.locator('#password_confirmation').locator('xpath=ancestor::form');
+        const btns = await form.locator('button').allInnerTexts();
+        await form.locator('button[type=submit]').first().evaluate((e) => e.click());
+        await page.waitForTimeout(2500);
+        page.off('response', h);
+        await shot(page, '40-adhoc-profile-wrongpw');
+        const errText = await page.locator('[aria-invalid="true"], [id$="-error"], p[class*="text-red"], [role="alert"]').allInnerTexts();
+        const near = await page.locator('#current_password').evaluate((el) => el.closest('div')?.parentElement?.innerText);
+        return `buttons=${JSON.stringify(btns)} responses=${JSON.stringify(got).slice(0, 400)} errText=${JSON.stringify(errText)} near=${JSON.stringify(near)}`;
+    }, page);
+    await R.step('profile account form: change gender + photo via evaluate click', async () => {
+        await visit(page, '/profile');
+        await page.locator('[role="tab"], button').filter({ hasText: /account/i }).first().click();
+        await page.waitForTimeout(300);
+        const sel = page.locator('select').filter({ has: page.locator('option[value="female"]') }).first();
+        await sel.selectOption('female');
+        await page.locator('input[type="file"]').first().setInputFiles(path.join(FIX, 'small.png'));
+        const form = page.locator('input[type="file"]').first().locator('xpath=ancestor::form');
+        const btns = await form.locator('button').allInnerTexts();
+        const got = [];
+        const h = async (r) => { try { if (r.url().startsWith(BASE) && r.request().method() !== 'GET') got.push({ url: r.url().replace(BASE, ''), status: r.status() }); else if (r.url().startsWith(BASE) && /json/.test(r.headers()['content-type'] || '')) { const j = await r.json(); got.push({ url: r.url().replace(BASE, ''), errors: j.props?.errors, flash: j.props?.flash?.message }); } } catch {} };
+        page.on('response', h);
+        await form.locator('button[type=submit]').first().evaluate((e) => e.click());
+        await page.waitForTimeout(3000);
+        page.off('response', h);
+        const row = sql(`select coalesce(gender,''), coalesce(profile_photo_path,''), coalesce(phone_number,'') from users where id=${me}`)[0];
+        const audit = sql(`select event_type, left(new_values::text,160), coalesce(request_ip,'NULL') from audit_logs where actor_user_id=${me} and event_type in ('profile_updated','profile_photo_updated') order by created_at desc limit 2`);
+        await shot(page, '40-adhoc-profile-updated');
+        // restore
+        sql(`update users set gender=${orig[0] ? `'${orig[0]}'` : 'NULL'}, profile_photo_path=${orig[1] ? `'${orig[1]}'` : 'NULL'} where id=${me}`);
+        return `buttons=${JSON.stringify(btns)} responses=${JSON.stringify(got).slice(0, 400)} db gender=${row[0]} photo=${row[1]} audit=${audit.map((a) => a.join(' | ')).join(' ;; ')}`;
+    }, page);
+    await browser.close(); R.save();
+})().catch((e) => { console.error('FATAL', e); process.exit(1); });

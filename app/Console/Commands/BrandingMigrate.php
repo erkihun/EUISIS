@@ -1,0 +1,157 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Services\Branding\BrandingService;
+use App\Services\SystemSettings\SystemSettingsService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Modules\PublicSite\Contracts\PublicSitePages;
+use Modules\PublicSite\Contracts\PublicSiteRebranding;
+use Modules\PublicSite\Contracts\ReadModels\PublicPageSectionRecord;
+
+/**
+ * Moves stored *defaults* of a former product identity (EUISIS, then Addis
+ * One) to the current brand (docs/branding.md §6). Only values that equal a
+ * known former default are touched; anything an administrator typed is
+ * reported as NEEDS_REVIEW and left alone. Historical records (audit logs,
+ * issued documents, exports) are never read or written. Safe to run
+ * repeatedly. `branding:migrate-addis-one` stays as an alias for deploy
+ * scripts written for the previous rebrand.
+ */
+class BrandingMigrate extends Command
+{
+    protected $signature = 'branding:migrate {--dry-run : Report without writing}';
+
+    /** @var list<string> */
+    protected $aliases = ['branding:migrate-addis-one'];
+
+    protected $description = 'Move stored former product-name defaults to the current brand, clear the settings cache and report remaining legacy references (idempotent)';
+
+    /** Stored default → new value, per settings row. */
+    private const SETTING_MOVES = [
+        'general' => [
+            'application_name' => [
+                ['Addis One', 'Addis Ababa Employee Unified ID & Service Platform', 'EUISIS', 'Employee Unified ID and Service Integration System', 'Employee Unified ID & Service Integration System', 'Unified Employee ID & Service Integration System'],
+                'branding.name',
+            ],
+            'application_name_am' => [['Addis One', 'አዲስ ዋን'], 'branding.name_am'],
+            'application_short_name' => [['AA Employee ID', 'EUISIS'], 'branding.short_name'],
+        ],
+        'branding' => [
+            'app_name_en' => [['Addis One', 'EUISIS'], 'branding.name'],
+            'app_name_am' => [['Addis One', 'ኢዩሲሲስ', 'EUISIS'], 'branding.name_am'],
+        ],
+    ];
+
+    /** Public home intro titles seeded under the former identity. */
+    private const INTRO_TITLES = [
+        'title_en' => [['Unified Employee ID & Service Integration System', 'Employee Unified ID & Service Integration System'], 'branding.official_name_en'],
+        'title_am' => [['የተቀናጀ የሠራተኛ መታወቂያ እና አገልግሎት ስርዓት', 'የሠራተኛ ተዋሃደ መታወቂያ እና አገልግሎት ስርዓት'], 'branding.official_name_am'],
+    ];
+
+    public function handle(BrandingService $branding, SystemSettingsService $settings, PublicSitePages $pages, PublicSiteRebranding $rebranding): int
+    {
+        $dryRun = (bool) $this->option('dry-run');
+        $moved = 0;
+        $review = [];
+
+        foreach (self::SETTING_MOVES as $group => $keys) {
+            foreach ($keys as $key => [$legacyValues, $configKey]) {
+                $row = DB::table('system_settings')->where('group', $group)->where('key', $key)->first(['id', 'value']);
+                if ($row === null) {
+                    continue;
+                }
+                $current = trim((string) $row->value);
+                $target = (string) config($configKey);
+                if ($this->matches($current, $legacyValues) && ($target === '' || $branding->isLegacyName($target))) {
+                    // An .env written for the previous rebrand (APP_NAME="Addis One") would "move" the value onto itself.
+                    $review[] = "setting {$group}.{$key} = \"{$current}\" not moved: its target {$configKey} is \"{$target}\" — update APP_NAME / APP_NAME_AM in .env first";
+                } elseif ($this->matches($current, $legacyValues)) {
+                    if (! $dryRun) {
+                        DB::table('system_settings')->where('id', $row->id)->update(['value' => $target, 'updated_at' => now()]);
+                    }
+                    $moved++;
+                    $this->components->twoColumnDetail("{$group}.{$key}: \"{$current}\" → \"{$target}\"", $dryRun ? '<fg=yellow>DRY RUN</>' : '<fg=green>MOVED</>');
+                } elseif ($branding->isLegacyName($current) || $this->mentionsLegacy($current, $branding)) {
+                    $review[] = "setting {$group}.{$key} = \"{$current}\"";
+                }
+            }
+        }
+
+        // Every other current setting value that still mentions a former name: reported, never changed.
+        foreach (DB::table('system_settings')->get(['group', 'key', 'value']) as $row) {
+            if (isset(self::SETTING_MOVES[$row->group][$row->key])) {
+                continue;
+            }
+            if ($this->mentionsLegacy((string) $row->value, $branding)) {
+                $review[] = "setting {$row->group}.{$row->key} mentions a former product name";
+            }
+        }
+
+        $sectionsMoved = 0;
+        $intro = PublicPageSectionRecord::query()->where('page', 'home')->where('section_key', 'intro')->first();
+        if ($intro !== null) {
+            $changes = [];
+            foreach (self::INTRO_TITLES as $column => [$legacyValues, $configKey]) {
+                if ($this->matches((string) $intro->{$column}, $legacyValues)) {
+                    $changes[$column] = (string) config($configKey);
+                }
+            }
+            if ($changes !== []) {
+                if (! $dryRun) {
+                    $rebranding->setHomeIntroTitles($changes);
+                }
+                $sectionsMoved++;
+                $this->components->twoColumnDetail('public site home intro title: '.implode(', ', array_keys($changes)), $dryRun ? '<fg=yellow>DRY RUN</>' : '<fg=green>MOVED</>');
+            }
+        }
+        foreach (PublicPageSectionRecord::query()->get() as $section) {
+            foreach (['title_en', 'title_am', 'subtitle_en', 'subtitle_am', 'body_en', 'body_am'] as $column) {
+                if ($this->mentionsLegacy((string) $section->{$column}, $branding) && ! ($section->section_key === 'intro' && in_array($column, ['title_en', 'title_am'], true) && $this->matches((string) $section->{$column}, [...self::INTRO_TITLES['title_en'][0], ...self::INTRO_TITLES['title_am'][0]]))) {
+                    $review[] = "public site section {$section->page}/{$section->section_key}.{$column} mentions a former product name";
+                }
+            }
+        }
+
+        if (! $dryRun) {
+            $settings->clearCache();
+            $pages->forgetCache();
+        }
+
+        $this->newLine();
+        $this->components->info(sprintf('%d setting(s) moved, %d public-site section(s) moved%s.', $moved, $sectionsMoved, $dryRun ? ' (dry run, nothing written)' : '; settings and public-site caches cleared on the shared store'));
+        if ($review !== []) {
+            $this->components->warn('NEEDS_REVIEW — administrator-entered content still naming the former product (left unchanged):');
+            $this->components->bulletList(array_values(array_unique($review)));
+        } else {
+            $this->components->twoColumnDetail('Current settings and public-site content free of the former product name', '<fg=green>OK</>');
+        }
+        $this->components->twoColumnDetail('Brand now resolves to', $branding->brandNameEn().' / '.$branding->brandNameAm().' / '.$branding->shortName());
+        $this->line('Historical audit entries, issued documents and exports are deliberately untouched (brief §31).');
+
+        return self::SUCCESS;
+    }
+
+    /** @param  list<string>  $legacyValues */
+    private function matches(string $value, array $legacyValues): bool
+    {
+        $needle = mb_strtolower(trim($value));
+
+        return $needle !== '' && in_array($needle, array_map(fn (string $v): string => mb_strtolower(trim($v)), $legacyValues), true);
+    }
+
+    private function mentionsLegacy(string $value, BrandingService $branding): bool
+    {
+        $haystack = mb_strtolower($value);
+        foreach ($branding->legacyNames() as $name) {
+            if (str_contains($haystack, mb_strtolower($name))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

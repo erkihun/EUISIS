@@ -1,0 +1,647 @@
+## Recommended Technologies for the Addis Ababa Employee Unified ID & Service Platform
+
+### My main recommendation
+
+Use a **Laravel-based modular monolith** first, not microservices at the beginning.
+
+This system has many modules — organization structure, employee registry, ID cards, transport, cafeteria, consumers association, transfers, reports, audit logs, and service providers. Starting with microservices too early will make authentication, authorization, reporting, employee transfer history, and audit trails unnecessarily complex.
+
+The best approach is:
+
+```text
+Laravel Modular Monolith
++ PostgreSQL
++ Redis
++ Inertia React / Vue
++ Tailwind CSS
++ QR-based ID verification
++ API-ready service modules
++ Strong audit and reporting layer
+```
+
+Later, high-traffic modules such as transport usage, cafeteria transactions, or external service-provider APIs can be separated if needed.
+
+---
+
+## 1. Backend Technology
+
+| Area                    | Recommended Technology                           | Why                                                                                                                                                                                                                                                        |
+| ----------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main backend            | **Laravel 13.x** or Laravel 12.x                 | Laravel 13 is current as of 2026 and supports PHP 8.3–8.5 with security fixes until March 17, 2028. Laravel 12 is still acceptable if you want a more conservative choice, with security fixes until February 24, 2027. ([Laravel][1])                     |
+| PHP version             | **PHP 8.4**                                      | Stable modern PHP target; compatible with both Laravel 12 and 13.                                                                                                                                                                                          |
+| Architecture            | **Modular monolith**                             | Easier shared authorization, reporting, audit log, employee identity, and organization hierarchy management.                                                                                                                                               |
+| API style               | REST first, JSON API-ready                       | Easy for mobile scanners, transport systems, cafeteria systems, and external integrations.                                                                                                                                                                 |
+| Auth for web/mobile/API | **Laravel Sanctum**                              | Sanctum supports SPAs, mobile apps, and simple token-based APIs; use it for the admin portal, verification app, and service-provider integrations. ([Laravel][2])                                                                                          |
+| OAuth2 integration      | **Laravel Passport only if required**            | Use Passport only if external agencies require full OAuth2. Laravel’s own documentation recommends Sanctum for SPAs, mobile apps, and API tokens unless OAuth2 is specifically needed. ([Laravel][3])                                                      |
+| Roles and permissions   | **Spatie Laravel Permission + Laravel Policies** | Good for bureau admin, institution admin, HR officer, ID officer, transport officer, cafeteria operator, auditor, and report viewer roles. Spatie’s package manages roles and permissions in the database and integrates with Laravel gates. ([GitHub][4]) |
+
+### Recommended backend choice
+
+```text
+Laravel 13.x + PHP 8.4 + Sanctum + Spatie Permission + Laravel Policies
+```
+
+If you want to keep the project aligned with the previous document strictly, use:
+
+```text
+Laravel 12.x + PHP 8.4
+```
+
+But for a **new project starting now**, I would choose **Laravel 13.x** unless the client/procurement document explicitly says Laravel 12.
+
+---
+
+## 2. Frontend Technology
+
+| Area                 | Recommended Technology              | Why                                                                                                                                                                                                                                                                                 |
+| -------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Admin dashboard      | **Inertia.js + React + TypeScript** | Best balance for Laravel developers who want a modern SPA-like interface without maintaining a separate API-only frontend. Laravel’s official frontend documentation recommends Inertia with React, Vue, or Svelte while still using Laravel routes and controllers. ([Laravel][5]) |
+| Alternative frontend | **Inertia.js + Vue + TypeScript**   | Choose Vue if the team is more comfortable with Vue.                                                                                                                                                                                                                                |
+| Styling              | **Tailwind CSS 4**                  | Fast UI development, good for dashboards, forms, tables, badges, status labels, and responsive layouts. Tailwind v4 includes a first-party Vite plugin and simplified setup. ([Tailwind CSS][6])                                                                                    |
+| UI components        | **shadcn/ui or Headless UI**        | Good for accessible modals, dropdowns, tables, command palettes, and forms.                                                                                                                                                                                                         |
+| Build tool           | **Vite**                            | Laravel uses Vite by default for asset bundling and fast local development. ([Laravel][5])                                                                                                                                                                                          |
+
+### Recommended frontend choice
+
+```text
+Inertia.js 2 + React + TypeScript + Tailwind CSS 4 + shadcn/ui
+```
+
+For this system, React is slightly better if you plan to build complex dashboards, searchable tables, ID card preview screens, and role-based admin panels.
+
+---
+
+## 3. Database Technology
+
+| Area                     | Recommended Technology                   | Why                                                                                                                                                                                                                                  |
+| ------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Primary database         | **PostgreSQL 18**                        | Best fit for hierarchical organization structure, employee registry, audit logs, transactions, reporting, JSON fields, indexing, and future analytics. PostgreSQL 18 supports native UUIDv4 and UUIDv7 generation. ([PostgreSQL][7]) |
+| Conservative DB option   | PostgreSQL 17                            | Use this if your server/hosting environment is not yet ready for PostgreSQL 18.                                                                                                                                                      |
+| IDs                      | UUIDv7                                   | Good for distributed systems and large tables because IDs are unique and time-ordered. Laravel 12+ already uses UUIDv7 behavior through `HasUuids`; PostgreSQL 18 also supports UUIDv7 natively. ([Laravel][8])                      |
+| Hierarchy model          | Adjacency list + closure table           | Needed because Addis Ababa city administration structure can change over time.                                                                                                                                                       |
+| Historical structure     | Effective-dated organization assignments | Allows you to know where an employee worked at any past date.                                                                                                                                                                        |
+| Heavy transaction tables | Monthly/yearly partitioning              | Useful for transport usage, cafeteria transactions, verification logs, and audit logs.                                                                                                                                               |
+
+### Recommended database choice
+
+```text
+PostgreSQL 18
+```
+
+Key tables should use UUIDv7:
+
+```text
+organizations
+organization_versions
+organization_edges
+employees
+employee_assignments
+id_cards
+card_requests
+service_entitlements
+service_transactions
+audit_logs
+```
+
+---
+
+## 4. Organization Structure Technology Pattern
+
+Because the city administration structure can change, do **not** hard-code this hierarchy:
+
+```text
+Bureau → Branch → Sub-city → Pool → Woreda
+```
+
+Instead, use a flexible model:
+
+```text
+Organization Type
+Organization Node
+Organization Relationship
+Organization Version
+Effective Date
+```
+
+Recommended structure:
+
+```text
+organization_types
+organizations
+organization_versions
+organization_edges
+employee_assignments
+```
+
+This allows the system to support future changes such as:
+
+```text
+Bureau → Sector Office → Branch → Directorate
+Sub-city → Pool → Woreda
+Bureau → Agency → District Office
+Institution → Department → Team
+```
+
+The important point is that the database should store the structure as configurable data, not as fixed columns.
+
+Avoid this:
+
+```text
+bureau_id
+sub_city_id
+woreda_id
+pool_id
+```
+
+Prefer this:
+
+```text
+organizations.parent_id
+organization_edges.parent_id
+organization_edges.child_id
+organization_edges.effective_from
+organization_edges.effective_to
+```
+
+---
+
+## 5. Cache, Queues, and Background Jobs
+
+| Area             | Recommended Technology     | Why                                                                                                                                                  |
+| ---------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cache            | **Redis**                  | Good for permissions cache, dashboard counters, sessions, temporary verification data, and rate limiting.                                            |
+| Queues           | **Laravel Queues + Redis** | Needed for ID card generation, PDF rendering, SMS/email notification, bulk imports, reporting, and service sync.                                     |
+| Queue monitoring | **Laravel Horizon**        | Horizon provides a dashboard and code-driven configuration for Laravel Redis queues, including job throughput, runtime, and failures. ([Laravel][9]) |
+| Scheduled tasks  | Laravel Scheduler          | For card expiry checks, monthly reports, entitlement refresh, settlement generation, and cleanup jobs.                                               |
+
+### Recommended choice
+
+```text
+Redis + Laravel Horizon + Laravel Scheduler
+```
+
+Background jobs should handle:
+
+```text
+Bulk employee import
+Card print batch generation
+QR code generation
+Notification sending
+Report generation
+Transport usage import
+Cafeteria settlement calculation
+Audit archiving
+```
+
+---
+
+## 6. ID Card and Verification Technologies
+
+### MVP recommendation
+
+Use:
+
+```text
+Physical printed ID card
++ QR code
++ signed verification token
++ online verification endpoint
+```
+
+The QR code should **not** expose sensitive employee data directly. It should contain a signed token or verification URL.
+
+Example QR content:
+
+```text
+https://verify.example.gov.et/v/eyJhbGciOi...
+```
+
+When scanned, the system should show only the necessary information:
+
+```text
+Employee status: Active
+Institution: Public Service and Human Resource Development Bureau
+Current assignment: HR Directorate
+Card status: Active
+Allowed services: Transport, Cafeteria, Consumers Association
+```
+
+Do not expose:
+
+```text
+Full personal file
+Salary
+National ID
+Home address
+Private documents
+Sensitive HR history
+```
+
+### Recommended ID card stack
+
+| Area                | Recommended Technology                     |
+| ------------------- | ------------------------------------------ |
+| QR code generation  | Laravel package for QR generation          |
+| Card preview        | HTML/CSS card template rendered in browser |
+| Print batch         | Server-side PDF generation                 |
+| Secure verification | Signed URL / signed token                  |
+| Scanner app         | PWA first, Android app later               |
+| Future upgrade      | NFC smart card support                     |
+
+### Phase 2 option
+
+Add NFC cards only after the basic QR-based system is stable.
+
+```text
+Phase 1: QR card
+Phase 2: QR + NFC
+Phase 3: QR + NFC + offline verification
+```
+
+For government use, QR should be cryptographically signed and short-lived verification responses should be logged.
+
+---
+
+## 7. Search Technology
+
+| Use case              | Recommended Technology                                             |
+| --------------------- | ------------------------------------------------------------------ |
+| Basic employee search | PostgreSQL indexes + Laravel Scout database driver                 |
+| Advanced search       | Meilisearch or Typesense                                           |
+| Search fields         | Employee ID, full name, card number, institution, phone, job title |
+| Audit/report search   | PostgreSQL full-text + filtered indexes                            |
+
+Laravel Scout supports full-text search for Eloquent models and can use the database engine first, then Meilisearch or Typesense when typo tolerance, faceted filtering, or larger search scale is needed. ([Laravel][10])
+
+### Recommended choice
+
+Start with:
+
+```text
+Laravel Scout database driver
+```
+
+Upgrade later to:
+
+```text
+Meilisearch
+```
+
+Use Meilisearch when you need fast search across hundreds of thousands or millions of employees, card records, and service transactions.
+
+---
+
+## 8. File Storage and Document Management
+
+| Area               | Recommended Technology                              | Why                                                                                |
+| ------------------ | --------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Local development  | Laravel local/private disk                          | Simple for development.                                                            |
+| Production storage | S3-compatible storage                               | Good for photos, scanned documents, signed letters, card images, and import files. |
+| On-prem option     | MinIO                                               | Good if the government wants data hosted locally.                                  |
+| Cloud option       | AWS S3 / compatible government cloud object storage | Good if cloud hosting is approved.                                                 |
+| File access        | Signed temporary URLs                               | Prevents direct public access to employee documents.                               |
+
+Recommended storage layout:
+
+```text
+private/
+  employees/
+    photos/
+    documents/
+  cards/
+    previews/
+    print-batches/
+  imports/
+  exports/
+```
+
+Employee photos and documents should never be stored in a public folder.
+
+---
+
+## 9. Reporting and Dashboard Technologies
+
+| Area                      | Recommended Technology                      |
+| ------------------------- | ------------------------------------------- |
+| Operational dashboard     | Laravel + Inertia dashboard                 |
+| Charts                    | Recharts / ECharts                          |
+| Export                    | Laravel Excel                               |
+| PDF reports               | Browsershot / headless Chrome               |
+| Large reports             | Queue-based report generation               |
+| Analytics warehouse later | PostgreSQL replica or separate reporting DB |
+
+Main reports:
+
+```text
+Employees by institution
+Employees by sub-city
+Employees by woreda
+Active/inactive/transferred employees
+Cards requested/approved/printed/issued
+Lost/replaced/revoked cards
+Transport users by month
+Cafeteria coupon usage
+Consumers association usage
+Service provider settlement report
+Audit log report
+```
+
+For heavy reporting, avoid running everything on the primary transactional database. Add a read replica or reporting database when usage grows.
+
+---
+
+## 10. Real-time Notifications
+
+| Area                        | Recommended Technology        |
+| --------------------------- | ----------------------------- |
+| In-app notifications        | Laravel Notifications         |
+| Real-time dashboard updates | Laravel Reverb                |
+| Email                       | SMTP / government mail server |
+| SMS                         | Local SMS gateway integration |
+| WebSocket client            | Laravel Echo                  |
+
+Laravel Reverb provides Laravel-native WebSocket communication and integrates with Laravel broadcasting tools. ([Laravel][11])
+
+Use real-time features for:
+
+```text
+Card approved
+Card printed
+Card ready for pickup
+Employee transfer approved
+Bulk import completed
+Service provider settlement generated
+Suspicious verification activity detected
+```
+
+---
+
+## 11. Observability and Monitoring
+
+| Area                    | Recommended Technology |
+| ----------------------- | ---------------------- |
+| Laravel app metrics     | Laravel Pulse          |
+| Debugging local/staging | Laravel Telescope      |
+| Queue monitoring        | Laravel Horizon        |
+| Logs                    | Structured JSON logs   |
+| Metrics and traces      | OpenTelemetry          |
+| Error tracking          | Sentry / GlitchTip     |
+| Server metrics          | Prometheus + Grafana   |
+
+Laravel Pulse gives application performance and usage insights, including slow jobs, slow endpoints, and active users. ([Laravel][12]) OpenTelemetry is a vendor-neutral observability framework for traces, metrics, and logs. ([OpenTelemetry][13])
+
+### Recommended monitoring setup
+
+```text
+Laravel Pulse
++ Laravel Horizon
++ Structured logs
++ OpenTelemetry
++ Grafana dashboard
+```
+
+---
+
+## 12. Security Technologies
+
+| Area             | Recommended Technology                          |
+| ---------------- | ----------------------------------------------- |
+| Authentication   | Laravel auth + Sanctum                          |
+| Authorization    | Policies + Spatie roles/permissions             |
+| Admin protection | MFA / OTP / passkeys if available               |
+| API protection   | Token abilities, rate limiting, signed requests |
+| Password hashing | Argon2id / bcrypt                               |
+| Data in transit  | HTTPS/TLS                                       |
+| Sensitive files  | Private object storage                          |
+| Audit logs       | Append-only audit trail                         |
+| QR verification  | Signed token, not plain employee data           |
+| Row-level access | Application-level organization scope            |
+| Backups          | Encrypted backups                               |
+| Sessions         | Secure cookies, Redis session driver            |
+
+Important security rule:
+
+```text
+Every user must only access data inside their assigned organization scope.
+```
+
+Example:
+
+```text
+Woreda HR Officer → only employees in that woreda
+Sub-city Admin → sub-city + child woredas/pools
+Bureau Admin → assigned bureau and its branches
+Central Admin → full structure
+Auditor → read-only audit/report access
+```
+
+---
+
+## 13. API and Integration Technologies
+
+| Integration                 | Recommended Technology                 |
+| --------------------------- | -------------------------------------- |
+| Internal frontend           | Inertia, no separate API required      |
+| Mobile scanner              | REST API + Sanctum token               |
+| Transport provider          | REST API or secure batch import        |
+| Cafeteria provider          | REST API or POS integration            |
+| Consumers association       | REST API or CSV/Excel import initially |
+| External government systems | API gateway later                      |
+| Webhooks                    | Signed webhook payloads                |
+| Data exchange               | JSON first, CSV/Excel fallback         |
+
+For service providers, create a dedicated API layer:
+
+```text
+/api/v1/verify-card
+/api/v1/service-entitlements
+/api/v1/transport/transactions
+/api/v1/cafeteria/transactions
+/api/v1/settlements
+```
+
+Each provider should have:
+
+```text
+client_id
+API token
+allowed IPs
+allowed service type
+rate limit
+audit log
+revocation support
+```
+
+---
+
+## 14. Deployment Technologies
+
+### Recommended production deployment
+
+```text
+Nginx
+PHP-FPM
+Laravel app servers
+PostgreSQL primary + standby
+Redis
+Queue workers
+Object storage
+Backup server
+Monitoring server
+```
+
+### Practical setup
+
+| Environment                | Recommendation                                               |
+| -------------------------- | ------------------------------------------------------------ |
+| Local development          | Docker Compose / Laravel Sail                                |
+| Staging                    | Same as production but smaller                               |
+| Production MVP             | 2 app servers + 1 PostgreSQL primary + 1 standby + Redis     |
+| Large scale                | Kubernetes only if the team has strong DevOps capacity       |
+| Simpler government hosting | Linux VMs with Nginx, PHP-FPM, Supervisor, Redis, PostgreSQL |
+
+For this project, Kubernetes is not required at MVP unless the infrastructure team already uses it.
+
+---
+
+## 15. DevOps and Quality Tools
+
+| Area              | Recommended Technology                        |
+| ----------------- | --------------------------------------------- |
+| Version control   | GitHub / GitLab                               |
+| CI/CD             | GitHub Actions / GitLab CI                    |
+| Code style        | Laravel Pint                                  |
+| Static analysis   | PHPStan / Larastan                            |
+| Testing           | Pest                                          |
+| Browser testing   | Laravel Dusk / Playwright                     |
+| API testing       | Pest feature tests                            |
+| Security scanning | Composer audit, npm audit, Semgrep            |
+| Deployment        | Envoy, Deployer, GitLab CI, or GitHub Actions |
+| Backups           | pgBackRest / WAL archiving                    |
+
+Minimum test coverage should include:
+
+```text
+Organization hierarchy changes
+Employee registration
+Employee transfer
+Card request approval
+Card issuance
+QR verification
+Service entitlement check
+Role-based access
+Audit log creation
+```
+
+---
+
+## 16. Recommended MVP Stack
+
+For the first working version, use this:
+
+```text
+Backend:
+Laravel 13.x
+PHP 8.4
+Laravel Sanctum
+Spatie Laravel Permission
+Laravel Policies
+Laravel Queues
+Laravel Horizon
+
+Frontend:
+Inertia.js 2
+React
+TypeScript
+Tailwind CSS 4
+shadcn/ui
+
+Database:
+PostgreSQL 18
+UUIDv7
+Redis
+
+Storage:
+S3-compatible private object storage
+MinIO if on-premise
+
+Search:
+Laravel Scout database driver first
+Meilisearch later
+
+ID Card:
+QR code
+Signed verification URL
+HTML/CSS card template
+PDF print batch
+
+Monitoring:
+Laravel Pulse
+Laravel Horizon
+Structured logs
+OpenTelemetry later
+```
+
+---
+
+## 17. What I would not use at MVP
+
+Avoid these in the first version:
+
+```text
+Microservices
+Blockchain
+NFC-only ID cards
+Complex biometric system
+Separate React/Next.js frontend unless required
+Event sourcing for everything
+Kubernetes without DevOps maturity
+Over-custom workflow engine
+```
+
+These can slow the project down before the core registry, ID card, and verification workflows are stable.
+
+---
+
+## Final Recommendation
+
+Use this stack:
+
+```text
+Laravel 13.x
+PHP 8.4
+PostgreSQL 18
+Redis
+Laravel Horizon
+Laravel Sanctum
+Spatie Laravel Permission
+Inertia.js 2
+React + TypeScript
+Tailwind CSS 4
+S3-compatible private storage
+QR-based signed ID verification
+Laravel Pulse + OpenTelemetry
+```
+
+For the system’s flexible Addis Ababa administration structure, the most important technical decision is not the UI framework. It is the **database model**:
+
+```text
+Do not hard-code bureau/sub-city/woreda columns.
+Use configurable, versioned organization hierarchy tables.
+```
+
+That will allow the system to survive future restructuring without rewriting the application.
+
+[1]: https://laravel.com/docs/13.x/releases "Release Notes | Laravel 13.x - The clean stack for Artisans and agents"
+[2]: https://laravel.com/docs/13.x/sanctum "Laravel Sanctum | Laravel 13.x - The clean stack for Artisans and agents"
+[3]: https://laravel.com/docs/13.x/passport "Laravel Passport | Laravel 13.x - The clean stack for Artisans and agents"
+[4]: https://github.com/spatie/laravel-permission "GitHub - spatie/laravel-permission: Associate users with roles and permissions · GitHub"
+[5]: https://laravel.com/docs/12.x/frontend "Frontend | Laravel 12.x - The clean stack for Artisans and agents"
+[6]: https://tailwindcss.com/docs/installation "Installing Tailwind CSS with Vite - Tailwind CSS"
+[7]: https://www.postgresql.org/docs/current/datatype-uuid.html "PostgreSQL: Documentation: 18: 8.12. UUID Type"
+[8]: https://laravel.com/docs/12.x/upgrade "Upgrade Guide | Laravel 12.x - The clean stack for Artisans and agents"
+[9]: https://laravel.com/docs/12.x/horizon "Laravel Horizon | Laravel 12.x - The clean stack for Artisans and agents"
+[10]: https://laravel.com/docs/13.x/scout "Laravel Scout | Laravel 13.x - The clean stack for Artisans and agents"
+[11]: https://laravel.com/docs/13.x/reverb "Laravel Reverb | Laravel 13.x - The clean stack for Artisans and agents"
+[12]: https://laravel.com/docs/13.x/pulse "Laravel Pulse | Laravel 13.x - The clean stack for Artisans and agents"
+[13]: https://opentelemetry.io/docs/ "Documentation | OpenTelemetry"

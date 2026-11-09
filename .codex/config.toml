@@ -1,0 +1,55 @@
+[mcp_servers.cognee]
+command = "uvx"
+args = [
+    "--python",
+    "3.12",
+    "--from",
+    "cognee-mcp",
+    "cognee-mcp",
+    "--no-migration",
+    "--tool-mode",
+    "minimal",
+]
+
+[mcp_servers.context7]
+command = "cmd"
+args = [
+    "/c",
+    "npx",
+    "-y",
+    "@upstash/context7-mcp@latest",
+]
+
+[mcp_servers.omniroute]
+command = "cmd"
+args = [
+    "/c",
+    "npx",
+    "-y",
+    "omniroute@latest",
+    "--mcp",
+]
+
+[mcp_servers.omniroute.env]
+OMNIROUTE_URL = "http://localhost:20128"
+
+[mcp_servers.playwright]
+command = "cmd"
+args = [
+    "/c",
+    "npx",
+    "-y",
+    "@playwright/mcp@latest",
+]
+
+[mcp_servers.serena]
+command = "uvx"
+args = [
+    "--from",
+    "git+https://github.com/oraios/serena",
+    "serena",
+    "start-mcp-server",
+    "--context",
+    "claude-code",
+    "--project-from-cwd",
+]

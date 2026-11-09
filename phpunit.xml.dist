@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+        <!--
+            CI shards (docs/testing.md). Four roughly equal slices of the whole suite,
+            run as parallel jobs. Shard4 is the catch-all: any new directory lands there
+            automatically, so nothing is ever left out. Rebalance by moving a directory
+            from Shard4's excludes into Shard1-3.
+        -->
+        <testsuite name="Shard1">
+            <directory>tests/Feature/Court</directory>
+            <directory>tests/Feature/Auth</directory>
+            <directory>tests/Feature/Api</directory>
+            <directory>tests/Feature/Backbone</directory>
+            <directory>tests/Feature/Architecture</directory>
+            <directory>tests/Feature/Infrastructure</directory>
+        </testsuite>
+        <testsuite name="Shard2">
+            <directory>tests/Feature/Security</directory>
+            <directory>tests/Feature/PublicFeedback</directory>
+            <directory>tests/Feature/OrganizationDesign</directory>
+            <directory>tests/Feature/IdCards</directory>
+            <directory>tests/Feature/Nfc</directory>
+            <directory>tests/Feature/Branding</directory>
+        </testsuite>
+        <testsuite name="Shard3">
+            <directory>tests/Feature/Grievances</directory>
+            <directory>tests/Feature/Intelligence</directory>
+            <directory>tests/Feature/Performance</directory>
+        </testsuite>
+        <testsuite name="Shard4">
+            <directory>tests/Feature/Cafeteria</directory>
+            <directory>tests/Feature/Transport</directory>
+            <directory>tests/Feature/ServiceMonitoring</directory>
+            <directory>tests/Feature/Organizations</directory>
+            <directory>tests/Feature/Integration</directory>
+            <directory>tests/Feature/Assistant</directory>
+            <directory>tests/Feature/PublicAssistant</directory>
+        </testsuite>
+        <testsuite name="Shard5">
+            <directory>tests/Feature/Employees</directory>
+            <directory>tests/Feature/Communication</directory>
+            <directory>tests/Feature/Rbac</directory>
+            <directory>tests/Feature/Settings</directory>
+            <directory>tests/Feature/Discipline</directory>
+            <directory>tests/Feature/CodeRules</directory>
+            <directory>tests/Feature/SituationRoom</directory>
+            <directory>tests/Feature/Core</directory>
+            <directory>tests/Feature/Positions</directory>
+            <directory>tests/Feature/ReportingLines</directory>
+            <directory>tests/Feature/PublicSite</directory>
+            <directory>tests/Feature/OrganizationStructure</directory>
+            <directory>tests/Feature/Localization</directory>
+            <directory>tests/Feature/Demo</directory>
+            <directory>tests/Feature/Vacancy</directory>
+            <directory>tests/Feature/OrganizationUnits</directory>
+            <directory>tests/Feature/OrganizationRelationships</directory>
+            <directory>tests/Feature/InstitutionOffices</directory>
+            <directory>tests/Feature/Assessment</directory>
+            <directory>tests/Feature/GoldenPath</directory>
+            <directory>tests/Feature/GoLive</directory>
+            <directory>tests/Feature/Governance</directory>
+        </testsuite>
+        <testsuite name="Shard6">
+            <directory>tests/Unit</directory>
+            <directory>tests/Feature</directory>
+            <exclude>tests/Feature/Court</exclude>
+            <exclude>tests/Feature/Auth</exclude>
+            <exclude>tests/Feature/Api</exclude>
+            <exclude>tests/Feature/Backbone</exclude>
+            <exclude>tests/Feature/Architecture</exclude>
+            <exclude>tests/Feature/Infrastructure</exclude>
+            <exclude>tests/Feature/Security</exclude>
+            <exclude>tests/Feature/PublicFeedback</exclude>
+            <exclude>tests/Feature/OrganizationDesign</exclude>
+            <exclude>tests/Feature/IdCards</exclude>
+            <exclude>tests/Feature/Nfc</exclude>
+            <exclude>tests/Feature/Branding</exclude>
+            <exclude>tests/Feature/Grievances</exclude>
+            <exclude>tests/Feature/Intelligence</exclude>
+            <exclude>tests/Feature/Performance</exclude>
+            <exclude>tests/Feature/Cafeteria</exclude>
+            <exclude>tests/Feature/Transport</exclude>
+            <exclude>tests/Feature/ServiceMonitoring</exclude>
+            <exclude>tests/Feature/Organizations</exclude>
+            <exclude>tests/Feature/Integration</exclude>
+            <exclude>tests/Feature/Assistant</exclude>
+            <exclude>tests/Feature/PublicAssistant</exclude>
+            <exclude>tests/Feature/Employees</exclude>
+            <exclude>tests/Feature/Communication</exclude>
+            <exclude>tests/Feature/Rbac</exclude>
+            <exclude>tests/Feature/Settings</exclude>
+            <exclude>tests/Feature/Discipline</exclude>
+            <exclude>tests/Feature/CodeRules</exclude>
+            <exclude>tests/Feature/SituationRoom</exclude>
+            <exclude>tests/Feature/Core</exclude>
+            <exclude>tests/Feature/Positions</exclude>
+            <exclude>tests/Feature/ReportingLines</exclude>
+            <exclude>tests/Feature/PublicSite</exclude>
+            <exclude>tests/Feature/OrganizationStructure</exclude>
+            <exclude>tests/Feature/Localization</exclude>
+            <exclude>tests/Feature/Demo</exclude>
+            <exclude>tests/Feature/Vacancy</exclude>
+            <exclude>tests/Feature/OrganizationUnits</exclude>
+            <exclude>tests/Feature/OrganizationRelationships</exclude>
+            <exclude>tests/Feature/InstitutionOffices</exclude>
+            <exclude>tests/Feature/Assessment</exclude>
+            <exclude>tests/Feature/GoldenPath</exclude>
+            <exclude>tests/Feature/GoLive</exclude>
+            <exclude>tests/Feature/Governance</exclude>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <!-- A single-process run (CI) outgrew 512M after ~1,900 of ~4,700 tests (backup exports); 2G leaves room. -->
+        <ini name="memory_limit" value="2G"/>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <!-- Cheap Argon2id for the suite; production uses config/hashing.php defaults. -->
+        <env name="ARGON_MEMORY" value="1024"/>
+        <env name="ARGON_TIME" value="1"/>
+        <!-- No network in tests; password tests bind a fake breach checker. -->
+        <env name="PASSWORD_BREACH_CHECK" value="false"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Tests read the cafeteria from EUISIS itself, whatever a local .env says (ADR 0014 switch). -->
+        <env name="CAFETERIA_PLATFORM_MODE" value="local"/>
+        <env name="CAFETERIA_PLATFORM_EMPLOYEE_PORTAL" value="false"/>
+    </php>
+</phpunit>

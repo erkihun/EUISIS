@@ -1,0 +1,325 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Support;
+
+use App\Enums\AssignmentStatus;
+use App\Enums\OrganizationScopeType;
+use App\Enums\OrganizationStatus;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
+use App\Models\Organization;
+use App\Models\OrganizationSeal;
+use App\Models\OrganizationType;
+use App\Models\OrganizationUnit;
+use App\Models\Position;
+use App\Models\User;
+use App\Models\UserOrganizationScope;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Application\Services\GrievanceRoutingService;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Enums\GrievanceVoteType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceHandlerUnit;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
+
+/**
+ * Reference grievance layout, built fresh per test:
+ *
+ *   Woreda (A)   ── complainant; grievance committee (chair, writer, member)
+ *   Sub-city (B) ── Grievance Team (organization unit) with an assigning officer
+ *   Bureau (C)   ── Grievance Directorate (organization unit) + head position
+ *
+ *   A → committee (initial) → B team (timeout) → C directorate (timeout)
+ *
+ * Every route is explicit and cross-organization; nothing follows the
+ * administrative hierarchy.
+ */
+final class GrievanceScenario
+{
+    public Organization $woreda;
+
+    public Organization $subcity;
+
+    public Organization $bureau;
+
+    public OrganizationUnit $woredaUnit;
+
+    public OrganizationUnit $team;
+
+    public OrganizationUnit $directorate;
+
+    public Position $headPosition;
+
+    public GrievanceCategory $category;
+
+    public GrievanceCommittee $committee;
+
+    public User $complainant;
+
+    public User $chair;
+
+    public User $writer;
+
+    public User $member;
+
+    public User $teamLead;
+
+    public User $teamOfficer;
+
+    public User $directorateOfficer;
+
+    public User $approver;
+
+    public User $intake;
+
+    public User $outsider;
+
+    public GrievanceSlaProfile $committeeSla;
+
+    public static function build(bool $withRoutes = true, bool $withSla = true): self
+    {
+        $s = new self;
+        $type = OrganizationType::query()->firstOrCreate(['code' => 'GRVT'], ['name_en' => 'Test type']);
+        $s->woreda = self::org($type, 'Woreda 01');
+        $s->subcity = self::org($type, 'Sub-city');
+        $s->bureau = self::org($type, 'Bureau');
+
+        $s->woredaUnit = self::unit($s->woreda, 'team', 'Woreda Office');
+        $s->team = self::unit($s->subcity, 'team', 'Grievance Team');
+        $s->directorate = self::unit($s->bureau, 'directorate', 'Grievance Directorate');
+        $s->headPosition = Position::query()->create(['organization_id' => $s->bureau->id, 'job_position_code' => 'POS-'.Str::upper(Str::random(6)), 'title_en' => 'Bureau Head', 'title_am' => 'የቢሮ ኃላፊ', 'is_active' => true]);
+
+        $s->category = GrievanceCategory::query()->create(['code' => 'CAT-'.Str::random(6), 'name_en' => 'Working conditions', 'name_am' => 'የሥራ ሁኔታ', 'is_active' => true]);
+
+        $s->complainant = self::user(self::employee($s->woreda, $s->woredaUnit), GrievanceRoles::EMPLOYEE_PERMISSIONS);
+        $s->chair = self::user(self::employee($s->woreda, $s->woredaUnit), GrievanceRoles::COMMITTEE_CHAIR_PERMISSIONS);
+        $s->writer = self::user(self::employee($s->woreda, $s->woredaUnit), GrievanceRoles::COMMITTEE_WRITER_PERMISSIONS);
+        $s->member = self::user(self::employee($s->woreda, $s->woredaUnit), GrievanceRoles::COMMITTEE_MEMBER_PERMISSIONS);
+        $s->teamLead = self::user(self::employee($s->subcity, $s->team), GrievanceRoles::OFFICER_PERMISSIONS);
+        $s->teamOfficer = self::user(self::employee($s->subcity, $s->team), GrievanceRoles::COMMITTEE_MEMBER_PERMISSIONS);
+        $s->directorateOfficer = self::user(self::employee($s->bureau, $s->directorate), GrievanceRoles::OFFICER_PERMISSIONS);
+        $s->approver = self::user(self::employee($s->bureau, null, $s->headPosition), GrievanceRoles::APPROVER_PERMISSIONS);
+        $s->intake = self::user(self::employee($s->woreda, null), ['grievances.intake_review', 'grievances.view_assigned']);
+        $s->outsider = self::user(self::employee($s->woreda, $s->woredaUnit), [...GrievanceRoles::OFFICER_PERMISSIONS, ...GrievanceRoles::COMMITTEE_CHAIR_PERMISSIONS]);
+
+        // Scoped users: the intake officer sees the woreda only.
+        self::scope($s->intake, $s->woreda);
+
+        $s->committee = GrievanceCommittee::query()->create([
+            'organization_id' => $s->woreda->id,
+            'committee_type' => CommitteeType::Grievance->value,
+            'name_en' => 'Woreda 01 Grievance Committee',
+            'status' => 'active',
+            'effective_from' => now()->subYear()->toDateString(),
+            'approved_at' => now(),
+        ]);
+        foreach (['chairperson' => $s->chair, 'writer' => $s->writer, 'member' => $s->member] as $role => $user) {
+            GrievanceCommitteeMember::query()->create([
+                'committee_id' => $s->committee->id, 'employee_id' => $user->employee_id, 'role' => $role,
+                'effective_from' => now()->subMonth()->toDateString(), 'status' => 'active',
+            ]);
+        }
+
+        // Regulation 201/2018 Art. 35(1): the committee recommends, the head of the institution decides.
+        GrievanceApprovalRule::query()->create([
+            'name_en' => 'Committee recommendations', 'handler_type' => 'committee',
+            'requires_approval' => true, 'approver_position_id' => $s->headPosition->id, 'priority' => 5,
+            'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
+        ]);
+
+        if ($withRoutes) {
+            self::route('organization', $s->woreda->id, 'committee', $s->committee->id, 'initial_assignment');
+            self::route('committee', $s->committee->id, 'organization_unit', $s->team->id, 'timeout_escalation');
+            self::route('organization_unit', $s->team->id, 'organization_unit', $s->directorate->id, 'timeout_escalation');
+        }
+
+        if ($withSla) {
+            // Deactivate the seeded default so tests control deadlines exactly.
+            GrievanceSlaProfile::query()->update(['is_active' => false]);
+            $s->committeeSla = GrievanceSlaProfile::query()->create([
+                'name_en' => 'Committee 3 working days', 'purpose' => 'resolution', 'handler_type' => 'committee',
+                'resolution_days' => 3, 'day_type' => 'working_days', 'start_point' => 'on_assignment',
+                'auto_escalate' => true, 'priority' => 1, 'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
+            ]);
+            GrievanceSlaProfile::query()->create([
+                'name_en' => 'Team 10 working days', 'purpose' => 'resolution', 'handler_type' => 'organization_unit',
+                'resolution_days' => 10, 'day_type' => 'working_days', 'start_point' => 'on_assignment',
+                'auto_escalate' => true, 'priority' => 1, 'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
+            ]);
+        }
+
+        return $s;
+    }
+
+    /**
+     * ADR 0030: the court is reached from the Grievance Directorate only. Designate
+     * the scenario's directorate, move the case there, and refer it to $tribunal
+     * along a directorate → tribunal route, as the directorate officer.
+     */
+    public function referToCourtFromDirectorate(Grievance $grievance, GrievanceExternalAuthority $tribunal): Grievance
+    {
+        $this->moveToDirectorate($grievance);
+        $route = self::route('organization_unit', $this->directorate->id, 'external_authority', $tribunal->id, 'referred');
+        app(GrievanceEscalationService::class)->refer($grievance->refresh(), $this->directorateOfficer, 'Tribunal referral.', $route->id);
+
+        return $grievance->refresh();
+    }
+
+    /** Designate the scenario's directorate as the Grievance Directorate and move the case to it. */
+    public function moveToDirectorate(Grievance $grievance): Grievance
+    {
+        GrievanceHandlerUnit::query()->firstOrCreate(
+            ['organization_unit_id' => $this->directorate->id],
+            ['organization_id' => $this->bureau->id, 'kind' => 'directorate', 'status' => 'active'],
+        );
+        DB::transaction(function () use ($grievance): void {
+            $locked = Grievance::query()->whereKey($grievance->getKey())->lockForUpdate()->firstOrFail();
+            $from = GrievanceCaseStage::query()->whereKey($locked->current_stage_id)->firstOrFail();
+            app(GrievanceRoutingService::class)->createStage($locked, GrievanceHandlerType::OrganizationUnit, $this->directorate->id, GrievanceMovementType::ManualEscalation, null, $from, 'Escalated to the Grievance Directorate.');
+        });
+
+        return $grievance->refresh();
+    }
+
+    /** The committee's recommendation goes to the head, who approves it; the lead then finalizes. */
+    public function headDecides(GrievanceDecision $decision, User $lead): GrievanceDecision
+    {
+        $decisions = app(GrievanceDecisionService::class);
+        $this->committeeVotes($decision);
+        $decision = $decisions->submitForApproval($decision, $lead);
+        $decisions->approve($decision, $this->approver, null);
+
+        return $decisions->finalize($decision->refresh(), $lead);
+    }
+
+    /** Put the issuing organization's approved seal on a signed letter (Art. 35(2)). */
+    public static function seal(GrievanceLetter $letter): GrievanceLetter
+    {
+        $seal = OrganizationSeal::query()->firstOrCreate(['organization_id' => $letter->organization_id, 'name' => 'Official seal'], [
+            'disk' => 'local', 'path' => 'seals/'.$letter->organization_id.'.png', 'mime_type' => 'image/png', 'sha256' => str_repeat('0', 64),
+            'status' => 'active', 'effective_from' => now()->subYear()->toDateString(), 'approved_at' => now()->subYear(),
+        ]);
+        $letter->forceFill(['seal_id' => $seal->getKey(), 'seal_applied_at' => now()])->save();
+
+        return $letter;
+    }
+
+    /** The seated chairperson, writer and member all concur (Art. 8: quorum and majority). */
+    public function committeeVotes(GrievanceDecision $decision): void
+    {
+        $decisions = app(GrievanceDecisionService::class);
+        foreach ([$this->chair, $this->writer, $this->member] as $voter) {
+            $decisions->castVote($decision, $voter, GrievanceVoteType::Concur, null);
+        }
+    }
+
+    /** Directorate decisions need the Bureau Head's approval. */
+    public function requireDirectorateApproval(): GrievanceApprovalRule
+    {
+        return GrievanceApprovalRule::query()->create([
+            'name_en' => 'Directorate decisions', 'handler_type' => 'organization_unit', 'handler_id' => $this->directorate->id,
+            'requires_approval' => true, 'approver_position_id' => $this->headPosition->id, 'priority' => 1,
+            'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
+        ]);
+    }
+
+    /**
+     * The rest of a complete grievance application on the portal form
+     * (Regulation 201/2018 Art. 32(2)), presented to the supervisor in
+     * writing today so it is inside the Art. 33(1) filing window.
+     *
+     * @return array<string, mixed>
+     */
+    public static function application(array $overrides = []): array
+    {
+        return [
+            'incident_date' => now()->subDays(3)->toDateString(),
+            'written_issue_raised_at' => now()->toDateString(),
+            'immediate_supervisor_name' => 'Records Team Leader',
+            'applicant_address' => 'Bole Sub-City, Woreda 3, Addis Ababa',
+            'requested_remedy' => 'Pay the overtime that is owed.',
+            'declaration' => '1',
+            ...$overrides,
+        ];
+    }
+
+    public static function route(string $sourceType, string $sourceId, string $targetType, string $targetId, string $movement, bool $approved = true, bool $descendants = false): GrievanceRoute
+    {
+        return GrievanceRoute::query()->create([
+            'source_handler_type' => $sourceType, 'source_handler_id' => $sourceId, 'include_descendants' => $descendants,
+            'target_handler_type' => $targetType, 'target_handler_id' => $targetId, 'movement_type' => $movement,
+            'priority' => 10, 'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
+            'approved_at' => $approved ? now() : null,
+        ]);
+    }
+
+    public static function org(OrganizationType $type, string $name): Organization
+    {
+        return Organization::query()->create([
+            'organization_type_id' => $type->id, 'code' => 'GRV-'.Str::upper(Str::random(8)),
+            'name_en' => $name, 'name_am' => $name.' (አማ)', 'status' => OrganizationStatus::Active,
+        ]);
+    }
+
+    public static function unit(Organization $org, string $type, string $name, ?OrganizationUnit $parent = null): OrganizationUnit
+    {
+        return OrganizationUnit::query()->create([
+            'organization_id' => $org->id, 'parent_unit_id' => $parent?->id, 'unit_type' => $type,
+            'code' => 'U-'.Str::upper(Str::random(6)), 'name_en' => $name, 'name_am' => $name.' (አማ)', 'status' => 'active',
+        ]);
+    }
+
+    public static function employee(Organization $org, ?OrganizationUnit $unit, ?Position $position = null): Employee
+    {
+        $uid = Str::upper(Str::random(8));
+        $employee = Employee::query()->create([
+            'employee_number' => 'EMP-'.$uid, 'first_name' => 'Test', 'last_name' => $uid,
+            'full_name' => 'ሠራተኛ '.$uid, 'name_en' => 'Employee '.$uid, 'status' => 'active', 'phone' => '0911'.random_int(100000, 999999),
+        ]);
+        $assignment = EmployeeAssignment::query()->create([
+            'employee_id' => $employee->id, 'organization_id' => $org->id, 'organization_unit_id' => $unit?->id,
+            'position_id' => $position?->id, 'assignment_status' => AssignmentStatus::Active,
+            'effective_from' => now()->subYear()->toDateString(), 'is_current' => true,
+        ]);
+        // Every test employee has a signature on file (ADR 0028); tests about the
+        // missing-signature rule clear it explicitly.
+        $employee->forceFill(['current_assignment_id' => $assignment->id, 'signature_path' => 'employee-signatures/test-'.strtolower($uid).'.png'])->save();
+
+        return $employee;
+    }
+
+    /** @param  list<string>  $permissions */
+    public static function user(Employee $employee, array $permissions): User
+    {
+        $user = User::factory()->create(['email' => 'g-'.Str::lower(Str::random(10)).'@test.local']);
+        $user->forceFill(['employee_id' => $employee->id])->save();
+        $user->givePermissionTo(array_values(array_unique($permissions)));
+
+        return $user->refresh();
+    }
+
+    public static function scope(User $user, Organization $org): void
+    {
+        UserOrganizationScope::query()->create([
+            'user_id' => $user->id, 'organization_id' => $org->id, 'scope_type' => OrganizationScopeType::Self,
+            'is_active' => true, 'effective_from' => now()->subYear()->toDateString(),
+        ]);
+    }
+}

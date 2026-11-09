@@ -1,0 +1,110 @@
+
+   INFO  Seeding database.  
+
+  Database\Seeders\PermissionSeeder .................................. RUNNING  
+Permissions seeded: 0 created, 0 updated.
+  Database\Seeders\PermissionSeeder ............................... 83 ms DONE  
+
+  Database\Seeders\RoleSeeder ........................................ RUNNING  
+Roles seeded: 38 created (Super Admin, System Admin, City Admin, Public Service Bureau Admin, Organizational Admin, HR Officer, Organization Designer, Organization Design Approver, Design Catalog Manager, Structure Change Requester, Structure Change Reviewer, Structure Implementation Officer, ID Card Officer, ID Card Approver, NFC Provisioning Officer, Security Settings Manager, System Settings Admin, API Manager, Auditor, Report Viewer, Performance Officer, Performance Reviewer, Performance Calibrator, Grievance Officer, Grievance Committee Member, Grievance Committee Chairperson, Administrative Tribunal Officer, Cafeteria Admin, Cafeteria Operator, Transport Admin, Transport Operator, Transport Dispatcher, Transport Finance Reviewer, Organization Transport Officer, Service Provider Manager, Service Provider User, Settlement Officer, Cafeteria Provider), 3 updated.
+  Database\Seeders\RolePermissionSeeder .............................. RUNNING  
+Super Admin: +879 -0
+System Admin: +879 -0
+City Admin: +777 -0
+Public Service Bureau Admin: +777 -0
+Organizational Admin: +178 -0
+HR Officer: +101 -0
+Organization Designer: +57 -0
+Organization Design Approver: +54 -0
+Design Catalog Manager: +16 -0
+Structure Change Requester: +28 -0
+Structure Change Reviewer: +14 -0
+Structure Implementation Officer: +32 -0
+ID Card Officer: +18 -0
+ID Card Approver: +12 -0
+NFC Provisioning Officer: +9 -0
+Security Settings Manager: +23 -0
+System Settings Admin: +16 -0
+API Manager: +15 -0
+Auditor: +22 -0
+Report Viewer: +6 -0
+Public Site Manager: +0 -5
+  removed: public_holidays.viewAny, public_holidays.view, public_holidays.create, public_holidays.update, public_holidays.archive
+Performance Officer: +36 -0
+Performance Reviewer: +12 -0
+Performance Calibrator: +5 -0
+Grievance Officer: +25 -0
+Grievance Committee Member: +8 -0
+Grievance Committee Chairperson: +19 -0
+Administrative Tribunal Officer: +5 -0
+Cafeteria Admin: +68 -0
+Cafeteria Operator: +12 -0
+Transport Admin: +71 -0
+Transport Operator: +7 -0
+Transport Dispatcher: +22 -0
+Transport Finance Reviewer: +14 -0
+Organization Transport Officer: +17 -0
+Service Provider Manager: +6 -0
+Service Provider User: +6 -0
+Settlement Officer: +5 -0
+Cafeteria Provider: +12 -0
+  Database\Seeders\RolePermissionSeeder .......................... 238 ms DONE  
+
+  Database\Seeders\RoleSeeder .................................... 303 ms DONE  
+
+  Database\Seeders\CodeRuleSeeder .................................... RUNNING  
+  Database\Seeders\CodeRuleSeeder ................................. 40 ms DONE  
+
+  Database\Seeders\GrievanceDefaultsSeeder ........................... RUNNING  
+  Database\Seeders\GrievanceDefaultsSeeder ........................ 32 ms DONE  
+
+  Database\Seeders\EthiopianPublicHolidaySeeder ...................... RUNNING  
+  Database\Seeders\EthiopianPublicHolidaySeeder ................... 21 ms DONE  
+
+  Database\Seeders\FieldWorkTypeSeeder ............................... RUNNING  
+  Database\Seeders\FieldWorkTypeSeeder ............................. 5 ms DONE  
+
+  Database\Seeders\OrganizationUnitTypeSeeder ........................ RUNNING  
+  Database\Seeders\OrganizationUnitTypeSeeder ..................... 10 ms DONE  
+
+  Database\Seeders\IsicActivitySeeder ................................ RUNNING  
+  Database\Seeders\IsicActivitySeeder .............................. 7 ms DONE  
+
+  Database\Seeders\LegalInstrumentTypeSeeder ......................... RUNNING  
+  Database\Seeders\LegalInstrumentTypeSeeder ....................... 6 ms DONE  
+
+  Database\Seeders\OrganizationDesignCatalogSeeder ................... RUNNING  
+  Database\Seeders\OrganizationDesignCatalogSeeder ................ 34 ms DONE  
+
+  Database\Seeders\OccupationSeeder .................................. RUNNING  
+  Database\Seeders\OccupationSeeder ............................... 12 ms DONE  
+
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[25P02]: In failed sql transaction: 7 ERROR:  current transaction is aborted, commands ignored until end of transaction block (Connection: pgsql, Host: /tmp, Port: 54329, Database: euisis_app, SQL: update "cache_locks" set "owner" = hdRQS3H5Dij8VFBm, "expiration" = 1792538778 where "key" = addis_one_cache_laravel_unique_job:App\Jobs\Communication\SyncEmployeeCommunicationMemberships:01a15ba1-44d0-72b0-81df-000be7d65e4b and ("owner" = hdRQS3H5Dij8VFBm or "expiration" <= 1792538658))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+    834▕             $exceptionType = $this->isUniqueConstraintError($e)
+    835▕                 ? UniqueConstraintViolationException::class
+    836▕                 : QueryException::class;
+    837▕ 
+  ➜ 838▕             throw new $exceptionType(
+    839▕                 $this->getNameWithReadWriteType(),
+    840▕                 $query,
+    841▕                 $this->prepareBindings($bindings),
+    842▕                 $e,
+
+      [2m+12 vendor frames [22m
+
+  13  app/Observers/EmployeeAssignmentCommunicationObserver.php:43
+      Illuminate\Foundation\Bus\PendingDispatch::__destruct()
+
+  14  app/Observers/EmployeeAssignmentCommunicationObserver.php:36
+      App\Observers\EmployeeAssignmentCommunicationObserver::queue()
+
+
+real	0m3.948s
+user	0m2.503s
+sys	0m0.390s
+seed exit 1
