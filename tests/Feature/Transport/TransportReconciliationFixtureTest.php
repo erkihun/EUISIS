@@ -24,6 +24,10 @@ use Tests\Support\TransportScenario;
  * the boarding.
  */
 it('reconciles one hundred employees over a week exactly, from plan to statement', function (): void {
+    // The scenario dates passes from "today" (a month either side), so build it
+    // inside the fixture week; on the real clock the passes stop covering
+    // 2026-10-05 once a month has gone by.
+    Carbon::setTestNow(Carbon::parse('2026-10-01 08:00'));
     $s = TransportScenario::make();
     $provider = $s->provider('Fixture Lines');
     $route = $s->route($provider);

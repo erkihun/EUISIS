@@ -16,7 +16,8 @@ declare(strict_types=1);
 function adminTsxFiles(): array
 {
     $root = dirname(__DIR__, 2).'/resources/js';
-    $excluded = '#/(Pages/(Auth|Public|Employee|ProviderPortal|Transport|Discipline|Cafeteria/Portal|Court)/|Pages/(Welcome|Error)\.tsx$|Components/(public|ProviderPortal|transport|discipline|ui)/)#';
+    // The provider sign-in layouts frame only Pages/ProviderPortal/Auth, which is excluded too.
+    $excluded = '#/(Pages/(Auth|Public|Employee|ProviderPortal|Transport|Discipline|Cafeteria/Portal|Court)/|Pages/(Welcome|Error)\.tsx$|Layouts/(Cafeteria|Transport)AuthLayout\.tsx$|Components/(public|ProviderPortal|transport|discipline|ui)/)#';
     $files = [];
 
     foreach (['Pages', 'Components', 'Layouts'] as $dir) {

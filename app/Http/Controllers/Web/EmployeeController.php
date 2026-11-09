@@ -630,7 +630,7 @@ class EmployeeController extends Controller
             'recentActivity' => $this->recentActivity($request, $employee),
             'reportingLine' => $reportingLine,
             // Clients' star ratings, within the viewer's feedback grants and scope; null when they hold none.
-            'feedbackRating' => $feedbackRatings->summaryFor($employee, $request->user())?->toArray(),
+            'feedbackRating' => $feedbackRatings->summaryFor($employee->getKey(), $request->user())?->toArray(),
         ]);
     }
 
