@@ -62,7 +62,7 @@ export default function Standards({ organizations, platform, selected_organizati
             <ActionErrors />
             <div className="space-y-5">
                 <div className={cx(panelCls, 'p-4')}>
-                    <label htmlFor="ls-org" className={labelCls}>{lt('letterhead.institution')}</label>
+                    <label htmlFor="ls-org" className={labelCls}>{lt('letterheads.institution')}</label>
                     <select id="ls-org" className={inputCls} value={selected_organization_id} onChange={(e) => changeOrganization(e.target.value)}>
                         {platform && <option value="">{lt('standards.platformDefault')}</option>}
                         {organizations.map((o) => <option key={o.id} value={o.id}>{pick(o)}</option>)}

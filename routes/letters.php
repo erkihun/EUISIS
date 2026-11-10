@@ -20,6 +20,7 @@ use Modules\Letters\Http\Controllers\RoutingController;
 use Modules\Letters\Http\Controllers\StandardsController;
 use Modules\Letters\Http\Controllers\TemplateController;
 use Modules\Letters\Http\Controllers\VerificationController;
+use Modules\Letters\Http\Middleware\ScalarQueryParameters;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +32,7 @@ use Modules\Letters\Http\Controllers\VerificationController;
 | route into a 404.
 */
 
-Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
+Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', ScalarQueryParameters::class])
     ->prefix('letters')->name('letters.')
     ->group(function (): void {
         Route::get('/', LettersDashboardController::class)->name('dashboard');

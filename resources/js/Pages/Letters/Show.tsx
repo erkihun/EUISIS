@@ -4,6 +4,8 @@ import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import PageHeader from '@/Components/PageHeader';
 import RichTextViewer from '@/Components/forms/RichTextViewer';
 import ActionErrors from '@/Components/letters/ActionErrors';
+import FilePicker from '@/Components/letters/FilePicker';
+import LetterProgress from '@/Components/letters/LetterProgress';
 import { PriorityBadge, StatusBadge } from '@/Components/letters/LetterBadges';
 import { dangerBtn, daysUntil, errorCls, formatBytes, inputCls, labelCls, mutedCls, panelCls, primaryBtn, secondaryBtn, sectionTitleCls, textareaCls, useLetters } from '@/Components/letters/helpers';
 import { Alert, cx } from '@/Components/ui';
@@ -34,7 +36,10 @@ export default function Show({ letter, routing_lookups, dispatch_modes, reply_or
     const [dispatching, setDispatching] = useState(false);
     const [busy, setBusy] = useState(false);
     const [replyOrg, setReplyOrg] = useState(reply_organizations[0]?.id ?? '');
-    const dispatchForm = useForm({ mode: letter.external_party_email ? 'email' : 'system', reference: '', email: letter.external_party_email ?? '', note: '' });
+    // A letter to a party outside the platform cannot leave "in the system": offer the real ways out and start on the likely one.
+    const toOutside = letter.direction === 'outgoing' && !letter.recipient_organization;
+    const modes = toOutside ? dispatch_modes.filter((m) => m !== 'system') : dispatch_modes;
+    const dispatchForm = useForm({ mode: toOutside ? (letter.external_party_email ? 'email' : 'hand') : 'system', reference: '', email: letter.external_party_email ?? '', note: '' });
     const composed = letter.direction !== 'incoming';
     const subjectText = letter.subject ?? lt(`classification.${letter.classification}`);
     const title = letter.number ? `${letter.number} · ${subjectText}` : subjectText;
@@ -88,15 +93,16 @@ export default function Show({ letter, routing_lookups, dispatch_modes, reply_or
                 </div>
             )} />}>
             <Head title={title} />
-            <ActionErrors only={['subject', 'body', 'recipient', 'organization_id', 'reason', 'closing_note', 'outcome', 'mode', 'reference', 'acknowledged_on']} />
+            <ActionErrors except={['email', 'to_user_id', 'to_unit_id', 'instruction', 'file']} />
             {letter.contents_hidden && <Alert tone="warning" className="mb-4" title={lt(`classification.${letter.classification}`)}>{lt('show.contentsHidden')}</Alert>}
+            <LetterProgress letter={letter} />
             {dispatching && letter.can.dispatch && (
                 <form onSubmit={sendDispatch} className={cx(panelCls, 'mb-4 grid gap-3 p-4 sm:grid-cols-3')} aria-label={lt('show.dispatch')}>
                     <p className={cx(mutedCls, 'sm:col-span-3')}>{lt('show.confirmDispatch')}</p>
                     <div>
                         <label htmlFor="ld-mode" className={labelCls}>{lt('show.dispatchMode')}</label>
                         <select id="ld-mode" className={inputCls} value={dispatchForm.data.mode} onChange={(e) => dispatchForm.setData('mode', e.target.value)}>
-                            {dispatch_modes.map((m) => <option key={m} value={m}>{lt(`dispatchMode.${m}`)}</option>)}
+                            {modes.map((m) => <option key={m} value={m}>{lt(`dispatchMode.${m}`)}</option>)}
                         </select>
                     </div>
                     {dispatchForm.data.mode === 'email' ? (
@@ -406,10 +412,11 @@ function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, on
 function AttachmentsPanel({ letter }: { letter: LetterFull }): JSX.Element {
     const { lt } = useLetters();
     const form = useForm({ file: null as File | null, kind: 'annex' });
+    const [pickerKey, setPickerKey] = useState(0);
 
     function upload(event: FormEvent) {
         event.preventDefault();
-        form.post(route('letters.attachments.store', letter.id), { forceFormData: true, preserveScroll: true, onSuccess: () => form.reset() });
+        form.post(route('letters.attachments.store', letter.id), { forceFormData: true, preserveScroll: true, onSuccess: () => { form.reset(); setPickerKey((k) => k + 1); } });
     }
 
     return (
@@ -429,7 +436,7 @@ function AttachmentsPanel({ letter }: { letter: LetterFull }): JSX.Element {
                 <form onSubmit={upload} className="mt-3 space-y-2 border-t border-(--app-border) pt-3" aria-label={lt('show.addFile')}>
                     <div>
                         <label htmlFor="letter-file" className={labelCls}>{lt('show.addFile')}</label>
-                        <input id="letter-file" type="file" accept="application/pdf,image/jpeg,image/png" className="block w-full text-sm" onChange={(e) => form.setData('file', e.target.files?.[0] ?? null)} />
+                        <FilePicker key={pickerKey} id="letter-file" accept="application/pdf,image/jpeg,image/png" onChange={(files) => form.setData('file', files[0] ?? null)} />
                         {form.errors.file && <p className={errorCls}>{form.errors.file}</p>}
                     </div>
                     <div className="flex items-end gap-2">

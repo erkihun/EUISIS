@@ -92,6 +92,7 @@ return [
         'pattern_unknown_tokens' => 'በቅርጹ ውስጥ ያልታወቁ ምልክቶች፡ :tokens።',
         'reply_organization' => 'ደብዳቤውን የተቀበለውን ተቋም ይምረጡ።',
         'logo_type' => 'እስከ :max ሜባ የሆኑ PNG፣ JPEG እና SVG ምስሎች ብቻ ይቀበላሉ፤ ዓይነቱ ከፋይሉ ራሱ ይነበባል።',
+        'image_pixels' => 'ምስሉ :width × :height ፒክሰል ነው፤ ይህ ሰርቨር ለሕትመት ሊያዘጋጀው ከሚችለው በላይ ትልቅ ነው። ቢበዛ :max × :max ፒክሰል የሆነ ምስል ይጫኑ።',
         'layout_invalid' => 'ራስጌና ግርጌውን ማንበብ አልተቻለም። ገጹን እንደገና ጭነው ይሞክሩ።',
         'layout_placeholders' => 'እነዚህ ቦታ ያዢዎች አይታወቁም፦ :keys።',
         'layout_images' => 'አንድ ራስጌና ግርጌ ቢበዛ :max ምስሎች ሊይዝ ይችላል።',

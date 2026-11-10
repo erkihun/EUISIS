@@ -25,6 +25,7 @@ use Modules\Letters\Domain\Models\LetterNumberingRule;
 use Modules\Letters\Domain\Models\LetterRegistration;
 use Modules\Letters\Domain\Models\LetterRouting;
 use Modules\Letters\Domain\Models\LetterTemplate;
+use Modules\Letters\Infrastructure\Console\FitLetterImagesCommand;
 use Modules\Letters\Infrastructure\Console\SendLetterRemindersCommand;
 
 /**
@@ -63,7 +64,7 @@ final class LettersServiceProvider extends ServiceProvider
         NotificationPresenter::registerRenderer('letters', LetterNotification::class);
 
         if ($this->app->runningInConsole()) {
-            $this->commands([SendLetterRemindersCommand::class]);
+            $this->commands([SendLetterRemindersCommand::class, FitLetterImagesCommand::class]);
         }
     }
 }

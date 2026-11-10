@@ -17,15 +17,31 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('letter_letterheads', function (Blueprint $table): void {
-            $table->string('footer_am', 300)->nullable()->after('motto_en');
-            $table->string('footer_en', 300)->nullable()->after('footer_am');
-            $table->string('contacts_position', 8)->default('header')->after('footer_en');
-            $table->boolean('show_page_numbers')->default(true)->after('contacts_position');
-            $table->string('stamp_path', 255)->nullable()->after('logo_right_path');
+        // Guarded column by column: MySQL does not roll back a failed migration, so a retry must resume.
+        // (A database already on the layouts migration has no fixed footer columns any more: only the stamp is added.)
+        $layouts = Schema::hasColumn('letter_letterheads', 'header');
+        Schema::table('letter_letterheads', function (Blueprint $table) use ($layouts): void {
+            if (! $layouts) {
+                if (! Schema::hasColumn('letter_letterheads', 'footer_am')) {
+                    $table->string('footer_am', 300)->nullable();
+                }
+                if (! Schema::hasColumn('letter_letterheads', 'footer_en')) {
+                    $table->string('footer_en', 300)->nullable();
+                }
+                if (! Schema::hasColumn('letter_letterheads', 'contacts_position')) {
+                    $table->string('contacts_position', 8)->default('header');
+                }
+                if (! Schema::hasColumn('letter_letterheads', 'show_page_numbers')) {
+                    $table->boolean('show_page_numbers')->default(true);
+                }
+            }
+            if (! Schema::hasColumn('letter_letterheads', 'stamp_path')) {
+                $table->string('stamp_path', 255)->nullable();
+            }
         });
 
-        if (! Schema::hasTable('letter_settings')) {
+        // The layouts migration renames this table to letter_standards: on a re-run after it, there is nothing to create.
+        if (! Schema::hasTable('letter_settings') && ! Schema::hasTable('letter_standards')) {
             Schema::create('letter_settings', function (Blueprint $table): void {
                 $table->uuid('id')->primary();
                 $table->foreignUuid('organization_id')->nullable()->constrained('organizations', 'id', 'ltr_set_org_fk')->cascadeOnDelete();
@@ -57,14 +73,24 @@ return new class extends Migration
             });
         }
 
-        Schema::table('letters', function (Blueprint $table): void {
-            $table->string('external_party_email', 160)->nullable()->after('external_party_address');
-            $table->foreignUuid('file_class_id')->nullable()->after('file_code')->constrained('letter_file_classes', 'id', 'ltr_file_class_fk')->nullOnDelete();
-        });
+        if (! Schema::hasColumn('letters', 'external_party_email')) {
+            Schema::table('letters', function (Blueprint $table): void {
+                $table->string('external_party_email', 160)->nullable()->after('external_party_address');
+            });
+        }
+        if (! Schema::hasColumn('letters', 'file_class_id')) {
+            Schema::table('letters', function (Blueprint $table): void {
+                $table->foreignUuid('file_class_id')->nullable()->after('file_code')->constrained('letter_file_classes', 'id', 'ltr_file_class_fk')->nullOnDelete();
+            });
+        }
 
         Schema::table('letter_registrations', function (Blueprint $table): void {
-            $table->dateTime('escalated_at')->nullable()->after('reminded_at');
-            $table->dateTime('interim_reminded_at')->nullable()->after('escalated_at');
+            if (! Schema::hasColumn('letter_registrations', 'escalated_at')) {
+                $table->dateTime('escalated_at')->nullable();
+            }
+            if (! Schema::hasColumn('letter_registrations', 'interim_reminded_at')) {
+                $table->dateTime('interim_reminded_at')->nullable();
+            }
         });
     }
 

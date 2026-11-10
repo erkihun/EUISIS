@@ -171,13 +171,15 @@ final class LetterheadController extends Controller
         $user = $request->user();
         $this->authorizeLayout($user, $letterhead);
         $organization = $letterhead->organization ?? $this->sampleOrganization($user);
+        // Only a plain string counts: `?language[]=x` must not reach a string conversion.
+        $language = is_string($request->query('language')) ? $request->query('language') : '';
 
         $letter = new Letter([
             'direction' => LetterDirection::Outgoing->value, 'status' => LetterStatus::Draft->value, 'organization_id' => $organization->id,
             'letterhead_id' => $letterhead->id,
             'external_party_name' => __('letters.letterhead.sample_recipient'), 'external_party_address' => __('letters.letterhead.sample_address'),
             'subject' => __('letters.letterhead.sample_subject'), 'body' => '<p>'.e(__('letters.letterhead.sample_body')).'</p><p>'.e(__('letters.letterhead.sample_body')).'</p>',
-            'language' => $request->string('language')->toString() === 'en' || ($request->string('language')->toString() === '' && app()->getLocale() === 'en') ? 'en' : 'am',
+            'language' => $language === 'en' || ($language === '' && app()->getLocale() === 'en') ? 'en' : 'am',
             'priority' => LetterPriority::Normal->value, 'classification' => LetterClassification::Internal->value,
             'letter_date' => now()->toDateString(), 'signatory_user_id' => $user->id,
         ]);

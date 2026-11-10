@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Letters\Application\Services\LetterImageFitter;
 use Modules\Letters\Application\Services\LetterLayout;
 use Modules\Letters\Application\Services\LettersAudit;
 use Modules\Letters\Domain\Models\LetterLetterhead;
@@ -30,7 +31,7 @@ final class SaveLetterhead
     /** @var array<string, string> sniffed MIME => extension */
     public const ALLOWED = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/svg+xml' => 'svg'];
 
-    public function __construct(private readonly LettersAudit $audit) {}
+    public function __construct(private readonly LettersAudit $audit, private readonly LetterImageFitter $fitter) {}
 
     /**
      * @param  array<string, mixed>  $data  validated request data (name, is_default, active, remove_images, image_names, remove_stamp)
@@ -157,6 +158,20 @@ final class SaveLetterhead
         $size = (int) $file->getSize();
         if (! isset(self::ALLOWED[$mime]) || $size <= 0 || $size > self::MAX_IMAGE_BYTES) {
             throw ValidationException::withMessages([$field => __('letters.validation.logo_type', ['max' => self::MAX_IMAGE_BYTES / 1024 / 1024])]);
+        }
+        // A raster image is stored at the size it prints: a 7,000-pixel logo would exhaust memory every time it is shown or printed.
+        if ($mime !== 'image/svg+xml' && $path !== false && $this->fitter->needsFitting($path)) {
+            $fit = $this->fitter->fitted($path);
+            if ($fit !== null) {
+                $name = 'letters/letterheads/'.Str::random(40).'.'.$fit['extension'];
+                Storage::disk(LetterLetterhead::DISK)->put($name, $fit['bytes']);
+
+                return $name;
+            }
+            if ($this->fitter->unsafe($path)) {
+                [$width, $height] = $this->fitter->dimensions($path) ?? [0, 0];
+                throw ValidationException::withMessages([$field => __('letters.validation.image_pixels', ['width' => $width, 'height' => $height, 'max' => 2000])]);
+            }
         }
         $stored = $file->storeAs('letters/letterheads', Str::random(40).'.'.self::ALLOWED[$mime], LetterLetterhead::DISK);
         if ($stored === false) {

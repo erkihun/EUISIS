@@ -100,7 +100,21 @@ export default function Numbering({ rules, organizations, platform, directions, 
                     <div className="sm:col-span-2">
                         <label htmlFor="num-pattern" className={labelCls}>{lt('numbering.pattern')}</label>
                         <input id="num-pattern" className={cx(inputCls, 'font-mono')} value={form.data.pattern} onChange={(e) => form.setData('pattern', e.target.value)} required maxLength={120} />
-                        <p className={cx(mutedCls, 'mt-1')}>{lt('numbering.patternHelp')} <span className="font-mono">{tokens.join(' ')}</span></p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span className={mutedCls}>{lt('numbering.patternHelp')}</span>
+                            {tokens.map((token) => (
+                                <button key={token} type="button" title={token}
+                                    className="inline-flex min-h-8 items-center rounded-full border border-(--app-border) px-2.5 font-mono text-xs transition-colors duration-150 hover:border-[#122170] hover:text-[#122170] focus-visible:outline-2 focus-visible:outline-[#122170]"
+                                    onClick={() => {
+                                        const el = document.getElementById('num-pattern') as HTMLInputElement | null;
+                                        const at = el?.selectionStart ?? form.data.pattern.length;
+                                        form.setData('pattern', (form.data.pattern.slice(0, at) + token + form.data.pattern.slice(at)).slice(0, 120));
+                                        el?.focus();
+                                    }}>
+                                    {token}
+                                </button>
+                            ))}
+                        </div>
                         {form.errors.pattern && <p className={errorCls}>{form.errors.pattern}</p>}
                     </div>
                     <div>

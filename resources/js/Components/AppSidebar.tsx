@@ -164,6 +164,8 @@ type NavSubItem = {
     tab?: string;
     /** Query parameters the page is opened with, e.g. one submission type (`tab` is the older, single-key form). */
     query?: Record<string, string>;
+    /** Other routes (or route prefixes) that belong under this item, for pages the nearest-module rule would file elsewhere. */
+    owns?: string[];
     /** Also listed in an admin group, so staff see it there and not twice. */
     listedInAdmin?: boolean;
     /** The page serves the signed-in employee's own record, so accounts without one never see it. */
@@ -399,7 +401,7 @@ const navGroups: NavGroup[] = [
         icon: MailIcon,
         items: [
             { routeName: 'letters.dashboard', labelKey: 'letters.nav.dashboard', icon: LayoutDashboard, anyPermission: ['letters.view', 'letters.handle'] },
-            { routeName: 'letters.index', labelKey: 'letters.nav.registry', icon: FolderFilesIcon, anyPermission: ['letters.view', 'letters.handle'] },
+            { routeName: 'letters.index', labelKey: 'letters.nav.registry', icon: FolderFilesIcon, anyPermission: ['letters.view', 'letters.handle'], owns: ['letters.show', 'letters.edit'] },
             { routeName: 'letters.register', labelKey: 'letters.nav.register', icon: InboxInIcon, permission: 'letters.register' },
             { routeName: 'letters.compose', labelKey: 'letters.nav.compose', icon: PenNewIcon, permission: 'letters.compose' },
             { routeName: 'letters.templates.index', labelKey: 'letters.nav.templates', icon: DocumentsIcon, anyPermission: ['letters.templates.view', 'letters.templates.manage', 'letters.templates.manage_platform'] },
@@ -983,6 +985,8 @@ const selectedSurface = 'bg-(--sidebar-accent-wash) text-(--sidebar-accent)';
 /** Exact routes win; otherwise select the nearest permitted module (index or a page's own sub-routes). */
 function activeRoute(items: NavSubItem[], current: string): string | undefined {
     if (items.some((item) => item.routeName === current)) return current;
+    const owner = items.find((item) => item.owns?.some((owned) => current === owned || current.startsWith(owned + '.')));
+    if (owner) return owner.routeName;
     return items
         .map((item) => ({ name: item.routeName, prefix: item.routeName.replace(/\.(index|dashboard)$/, '') }))
         .filter((item) => current.startsWith(item.prefix + '.'))

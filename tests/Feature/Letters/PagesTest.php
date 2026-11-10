@@ -92,3 +92,15 @@ it('renders the template, numbering and report pages', function (): void {
             ->where('by_institution.0.incoming', 1)->where('by_institution.0.open', 1)->where('by_institution.0.closed', 0)->has('by_month', 1)->where('by_month.0.incoming', 1));
     $this->actingAs($this->s->officer('A'))->get(route('letters.reports'))->assertForbidden();
 });
+
+it('opens the pages when a filter arrives as a list instead of a single value', function (): void {
+    $admin = $this->s->administrator('A');
+    $this->s->incoming('A', $admin);
+
+    // `?q[]=x` used to reach a string conversion and answer 500.
+    $this->actingAs($admin)->get('/letters/registry?q[]=x&tab[]=inbox&organization_id[]=1')->assertOk();
+    $this->actingAs($admin)->get('/letters/reports?from[]=2026-01-01')->assertOk();
+    $this->actingAs($admin)->get('/letters/compose?direction[]=internal')->assertOk();
+    $this->actingAs($admin)->get('/letters/letterheads?organization_id[]=x')->assertOk();
+    $this->actingAs($admin)->get('/letters/registry/export?q[]=x')->assertOk();
+});

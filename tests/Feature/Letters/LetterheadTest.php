@@ -212,3 +212,83 @@ it('deletes only layouts no letter printed on, and serves the sample PDF', funct
     $this->actingAs($admin)->delete(route('letters.letterheads.destroy', $spare))->assertSessionHasNoErrors();
     expect($spare->fresh())->toBeNull()->and(Storage::disk('local')->exists($stamp))->toBeFalse()->and($used->fresh()->is_default)->toBeTrue();
 });
+
+/** A real PNG of the given size, made with GD. */
+function gdPng(int $width, int $height): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    imagefilledrectangle($image, 0, 0, $width - 1, $height - 1, imagecolorallocate($image, 18, 33, 112));
+    ob_start();
+    imagepng($image);
+
+    return (string) ob_get_clean();
+}
+
+/** A PNG header that claims a size no server can decode; nothing follows it. */
+function hugePngHeader(int $side): string
+{
+    $ihdr = 'IHDR'.pack('NNCCCCC', $side, $side, 8, 6, 0, 0, 0);
+
+    return hex2bin('89504e470d0a1a0a').pack('N', 13).$ihdr.pack('N', crc32($ihdr));
+}
+
+it('stores an uploaded emblem and stamp at print size, and refuses an image too large to prepare', function (): void {
+    if (! function_exists('imagecreatetruecolor')) {
+        $this->markTestSkipped('GD is not loaded.');
+    }
+    $admin = $this->s->administrator('A');
+    $org = $this->s->org['A']->id;
+    $image = ['type' => 'image', 'image' => 'img_logo', 'width_mm' => 24];
+
+    $this->actingAs($admin)->post(route('letters.letterheads.store'), [
+        'organization_id' => $org, 'name' => 'Large logo', 'layout' => lhLayout([$image], []),
+        'new_images' => ['img_logo' => UploadedFile::fake()->createWithContent('logo.png', gdPng(1500, 900))],
+        'stamp' => UploadedFile::fake()->createWithContent('stamp.png', gdPng(900, 900)),
+    ])->assertSessionHasNoErrors();
+
+    $layout = LetterLetterhead::query()->where('name', 'Large logo')->firstOrFail();
+    $logo = getimagesize(Storage::disk('local')->path($layout->imageList()[0]['path']));
+    $stamp = getimagesize(Storage::disk('local')->path((string) $layout->stamp_path));
+    expect(max($logo[0], $logo[1]))->toBe(600)->and($logo[1])->toBe(360)
+        ->and(max($stamp[0], $stamp[1]))->toBe(600);
+    // The page that failed on the live server: it opens, with the emblem ready to preview.
+    $this->actingAs($admin)->get(route('letters.letterheads.edit', $layout))->assertOk();
+    $this->actingAs($admin)->get(route('letters.letterheads.preview', $layout))->assertOk();
+
+    $this->actingAs($admin)->post(route('letters.letterheads.store'), [
+        'organization_id' => $org, 'name' => 'Impossible', 'layout' => lhLayout([$image], []),
+        'new_images' => ['img_logo' => UploadedFile::fake()->createWithContent('logo.png', hugePngHeader(30000))],
+    ])->assertSessionHasErrors('new_images');
+    expect(LetterLetterhead::query()->where('name', 'Impossible')->exists())->toBeFalse();
+});
+
+it('fits images stored before fitting existed, and leaves an undecodable one out of the PDF instead of failing', function (): void {
+    if (! function_exists('imagecreatetruecolor')) {
+        $this->markTestSkipped('GD is not loaded.');
+    }
+    $disk = Storage::disk('local');
+    $disk->put('letters/letterheads/old-logo.png', gdPng(1400, 700));
+    $disk->put('letters/letterheads/old-stamp.png', gdPng(800, 800));
+    $disk->put('letters/letterheads/broken.png', hugePngHeader(30000));
+    $image = fn (string $key): array => ['type' => 'image', 'image' => $key, 'width_mm' => 24];
+    $layout = LetterLetterhead::query()->create([
+        'organization_id' => $this->s->org['A']->id, 'name' => 'Old', 'is_default' => true, 'active' => true,
+        'page' => LetterLayout::defaults()['page'],
+        'header' => ['rows' => [['cells' => [['items' => [$image('img_old'), $image('img_broken')], 'align' => 'center', 'valign' => 'middle', 'width' => 0]], 'border_position' => 'none', 'border_style' => 'thin', 'border_color' => '#111111', 'space_after' => 2]]],
+        'footer' => ['rows' => []],
+        'images' => [['key' => 'img_old', 'path' => 'letters/letterheads/old-logo.png', 'name' => 'Old'], ['key' => 'img_broken', 'path' => 'letters/letterheads/broken.png', 'name' => 'Broken']],
+        'stamp_path' => 'letters/letterheads/old-stamp.png',
+    ]);
+
+    $this->artisan('letters:fit-images', ['--dry-run' => true])->assertSuccessful();
+    expect(getimagesize($disk->path('letters/letterheads/old-logo.png'))[0])->toBe(1400);
+
+    $this->artisan('letters:fit-images')->expectsOutputToContain('broken.png')->assertSuccessful();
+    expect(getimagesize($disk->path('letters/letterheads/old-logo.png'))[0])->toBe(600)
+        ->and(getimagesize($disk->path('letters/letterheads/old-stamp.png'))[0])->toBe(600);
+
+    $resolved = app(LetterheadResolver::class)->resolve($layout->fresh(), $this->s->org['A']);
+    expect($resolved['images'])->toHaveKey('img_old')->not->toHaveKey('img_broken')
+        ->and($resolved['stamp'])->toStartWith('data:image/');
+    $this->actingAs($this->s->administrator('A'))->get(route('letters.letterheads.edit', $layout))->assertOk();
+});

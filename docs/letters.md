@@ -59,8 +59,16 @@ What the registries of the world add, and the module has since the second cut
   colour, reference block left or right), `header` and `footer` as JSON rows
   (`Modules/Letters/Application/Services/LetterLayout.php` defines and
   normalizes the structure: up to 6 rows, 3 columns per row, 8 lines per
-  column), its `images` (private disk, sniffed PNG/JPEG/SVG, scaled to print
-  size, max 8) and `stamp_path`. A line is text or an image; text lines carry
+  column), its `images` (private disk, sniffed PNG/JPEG/SVG, max 8) and
+  `stamp_path`. Raster emblems and stamps are stored at print size (longest
+  side 600 px, `LetterImageFitter` over the platform image optimizer): a
+  7,000-pixel logo needs over 150 MB to decode, which a web request on the
+  live server does not get, and that answered 500 on the edit page and on
+  every PDF (2026-11-10). An image the server cannot decode is refused at
+  upload when it is above 4 megapixels, and left out of a PDF rather than
+  failing it. Files stored before that are fitted by the migration
+  `2026_11_10_110000` and by `php artisan letters:fit-images` (`--dry-run`
+  counts only; safe to repeat). A line is text or an image; text lines carry
   their own font (Abyssinica SIL or Noto Sans Ethiopic, the only bundled
   fonts with both scripts; Abyssinica has no bold, neither has italic),
   size, bold, underline, colour and the letter language they print on.
@@ -75,7 +83,11 @@ What the registries of the world add, and the module has since the second cut
   chosen one if it is active and belongs to the institution or the platform,
   else the institution's default, else the platform's, else the built-in
   layout. Pages: `/letters/letterheads` (list with "Add new"), `/create`,
-  `/{id}/edit` (editor with live preview and placeholder palette),
+  `/{id}/edit` (one plain form: name; header, the strip under its dividing
+  line, and footer, each with a left, centre and right position holding a
+  logo and/or text lines; stamp; page set-up folded away; the printed page
+  beside it; `fromLayout`/`toLayout` in the page map the positions to the
+  stored rows and an untouched layout saves back identically),
   `/{id}/preview` (sample PDF), duplicate, make default, delete (refused once
   letters printed on it). Permission `letters.letterhead.manage`; platform
   layouts need city-wide reach.
@@ -97,6 +109,26 @@ What the registries of the world add, and the module has since the second cut
 - **Export.** `GET /letters/registry/export` (letters.export) streams the
   registry with the page's filters as CSV, formula-safe (`csv_safe_row`),
   audited, confidential subjects masked unless the exporter may read them.
+
+## Using it (pages)
+
+- **Letter page.** A progress strip (`Components/letters/LetterProgress.tsx`)
+  shows the steps (draft, awaiting signature, signed, dispatched; or
+  registered, forwarded, in progress, closed for a letter that came in) and
+  one sentence naming the viewer's next action or who the letter waits for.
+  The dispatch form offers only the ways a letter can really leave: a letter
+  to a party outside the platform starts on "by hand" (or "email" when an
+  address is on the letter) and never offers "in the system".
+- **Addresses with list parameters.** `ScalarQueryParameters` on the letters
+  routes drops a query parameter sent as a list (`?q[]=x`), which used to
+  reach a string conversion and answer 500.
+- **Errors are never silent.** Register, compose, template and letter pages
+  list every refusal at the top (`ActionErrors`); the letter page leaves out
+  only the fields that show their message beside the input.
+- **File pickers** (`FilePicker`) speak the page's language instead of the
+  browser's "Choose file".
+- **Dictionary keys.** `npm run i18n:letters` fails when a page asks for a key
+  missing from either dictionary or when the two dictionaries differ.
 
 ## Model
 

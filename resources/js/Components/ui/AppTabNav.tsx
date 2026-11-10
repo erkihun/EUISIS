@@ -28,7 +28,7 @@ export default function AppTabNav({ items, current, label, preserveScroll = true
     className?: string;
 }) {
     return (
-        <nav aria-label={label} className={cx('flex gap-1 overflow-x-auto border-b border-(--app-border)', className)}>
+        <nav aria-label={label} className={cx('flex gap-1 overflow-x-auto overflow-y-hidden border-b border-(--app-border)', className)}>
             {items.map((item) => {
                 const active = item.key === current;
                 return (

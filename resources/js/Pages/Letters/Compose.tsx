@@ -1,5 +1,6 @@
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import PageHeader from '@/Components/PageHeader';
+import ActionErrors from '@/Components/letters/ActionErrors';
 import RichTextEditor from '@/Components/forms/RichTextEditor';
 import { errorCls, inputCls, labelCls, mutedCls, panelCls, primaryBtn, secondaryBtn, sectionTitleCls, textareaCls, useLetters } from '@/Components/letters/helpers';
 import SearchableSelect from '@/Components/ui/SearchableSelect';
@@ -111,6 +112,7 @@ export default function Compose({ mode, letter, direction: initialDirection, org
     return (
         <AuthenticatedLayout header={<PageHeader title={title} description={lt('compose.description')} backHref={editing ? route('letters.show', letter.id) : route('letters.index')} />}>
             <Head title={title} />
+            <ActionErrors />
             <form onSubmit={save} className="space-y-5" aria-label={title}>
                 <section className={cx(panelCls, 'grid gap-4 p-4 sm:grid-cols-2')}>
                     <h2 className={cx(sectionTitleCls, 'sm:col-span-2')}>{lt('common.sender')}</h2>
