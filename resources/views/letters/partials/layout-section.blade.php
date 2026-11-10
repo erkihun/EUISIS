@@ -29,7 +29,11 @@
                         @continue(! \Modules\Letters\Application\Services\LetterLayout::prints($item, $language, $vars))
                         @if($item['type'] === 'image')
                             @if(! empty($images[$item['image']]))
-                                <div><img src="{{ $images[$item['image']] }}" alt="" style="width: {{ $item['width_mm'] }}mm; max-height: {{ $item['width_mm'] * 1.4 }}mm;"></div>
+                                @if(! empty($item['full']))
+                                    <div><img src="{{ $images[$item['image']] }}" alt="" style="width: 100%;"></div>
+                                @else
+                                    <div><img src="{{ $images[$item['image']] }}" alt="" style="width: {{ $item['width_mm'] }}mm; max-height: {{ $item['width_mm'] * 1.4 }}mm;"></div>
+                                @endif
                             @endif
                         @else
                             <div style="{{ $item['font_family'] !== '' ? 'font-family: '.\Modules\Letters\Application\Services\LetterLayout::family($item['font_family']).';' : '' }} font-size: {{ $item['font_size'] }}pt; line-height: 1.3; color: {{ $item['color'] }};{{ $item['bold'] ? ' font-weight: bold;' : '' }}{{ $item['underline'] ? ' text-decoration: underline;' : '' }}">{!! \Modules\Letters\Application\Services\LetterLayout::fill($item['text'], $vars) !!}</div>

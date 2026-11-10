@@ -22,6 +22,15 @@ enum ImageKind: string
     /** Emblems and stamps printed on letters: kept as PNG or JPEG, the only formats the PDF engine embeds. */
     case Print = 'print';
 
+    /** A picture printed across the whole width of a letter (a header or footer drawn as one image). */
+    case PrintWide = 'print_wide';
+
+    /** Whether the result must stay PNG or JPEG, the only formats the PDF engine embeds. */
+    public function forPrint(): bool
+    {
+        return $this === self::Print || $this === self::PrintWide;
+    }
+
     /** Longest side after optimisation, in pixels. */
     public function maxDimension(): int
     {
@@ -31,6 +40,8 @@ enum ImageKind: string
             self::Photo => 1024,
             // 600 px is about 300 dpi at 50 mm, the largest an emblem prints.
             self::Print => 600,
+            // 1,600 px is about 230 dpi across the 174 mm between the margins of an A4 page.
+            self::PrintWide => 1600,
         };
     }
 }

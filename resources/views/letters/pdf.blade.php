@@ -44,8 +44,9 @@
         table { border-collapse: collapse; width: 100%; }
         .meta { margin: 6px 0 14px; }
         .meta td { font-size: 10.5pt; padding: 1px 0; }
-        .meta td.k { color: #555; width: 22%; }
-        .meta td.v { font-weight: bold; }
+        .meta td { vertical-align: top; }
+        .meta .k { color: #555; }
+        .meta .v { font-weight: bold; }
         .to { margin: 12px 0 14px; }
         .to .label { color: #555; font-size: 10pt; }
         .to .name { font-weight: bold; }
@@ -91,16 +92,41 @@
         <div class="draft">{{ $t('draft_notice', ['status' => __('letters.enums.letter_status.'.$letter->status->value, [], $locale)]) }}</div>
     @endif
 
-    <table class="meta" @if($page['reference_align'] === 'right') style="width: 55%; margin-left: 45%;" @endif>
-        <tr><td class="k">{{ $t('number') }}</td><td class="v">{{ $context['letter.number'] !== '' ? $context['letter.number'] : $t('number_pending') }}</td></tr>
-        <tr><td class="k">{{ $t('date') }}</td><td class="v">{{ $context['letter.date_ec'] }} {{ $t('ec') }} &nbsp;·&nbsp; {{ $context['letter.date_gc'] }}</td></tr>
-        @if($letter->file_code)
-            <tr><td class="k">{{ $t('file') }}</td><td>{{ $letter->file_code }}</td></tr>
-        @endif
-        @if($letter->in_reply_to_letter_id && $letter->inReplyTo)
-            <tr><td class="k">{{ $t('in_reply_to') }}</td><td>{{ $letter->inReplyTo->referenceNumber() ?? $letter->inReplyTo->external_reference ?? $letter->inReplyTo->subject }}</td></tr>
-        @endif
-    </table>
+    @php
+        // The number and the date are placed separately (left, centre, right, or not printed when the
+        // header or footer carries them). On the same side they stack; on different sides they share a line.
+        $refLine = fn (string $label, string $value, bool $strong = true): string => '<span class="k">'.e($label).':</span> <span'.($strong ? ' class="v"' : '').'>'.e($value).'</span>';
+        $refSlots = ['left' => [], 'center' => [], 'right' => []];
+        if ($page['number_align'] !== 'none') {
+            $refSlots[$page['number_align']][] = $refLine($t('number'), $context['letter.number'] !== '' ? $context['letter.number'] : $t('number_pending'));
+        }
+        if ($page['date_align'] !== 'none') {
+            $refSlots[$page['date_align']][] = $refLine($t('date'), $context['letter.date_ec'].' '.$t('ec').' · '.$context['letter.date_gc']);
+        }
+        // The file code and "your reference" follow the number, else the date, else the left edge.
+        $refExtra = $page['number_align'] !== 'none' ? $page['number_align'] : ($page['date_align'] !== 'none' ? $page['date_align'] : 'left');
+        if ($letter->file_code) {
+            $refSlots[$refExtra][] = $refLine($t('file'), (string) $letter->file_code, false);
+        }
+        if ($letter->in_reply_to_letter_id && $letter->inReplyTo) {
+            $refSlots[$refExtra][] = $refLine($t('in_reply_to'), (string) ($letter->inReplyTo->referenceNumber() ?? $letter->inReplyTo->external_reference ?? $letter->inReplyTo->subject), false);
+        }
+        $refUsed = array_keys(array_filter($refSlots));
+        $refColumns = count($refUsed) <= 1 ? $refUsed : (in_array('center', $refUsed, true) ? ['left', 'center', 'right'] : ['left', 'right']);
+    @endphp
+    @if($refColumns !== [])
+        <table class="meta">
+            <tr>
+                @foreach($refColumns as $slot)
+                    <td style="width: {{ round(100 / count($refColumns), 2) }}%; text-align: {{ $slot }};">
+                        @foreach($refSlots[$slot] as $line)
+                            <div>{!! $line !!}</div>
+                        @endforeach
+                    </td>
+                @endforeach
+            </tr>
+        </table>
+    @endif
 
     @if($letter->direction->value !== 'internal')
         <div class="to">

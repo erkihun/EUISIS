@@ -278,7 +278,7 @@ final class ImageOptimizer
         if ($kind === ImageKind::Favicon) {
             $written = imagepng($image, $tempPath, 9);
             $extension = 'png';
-        } elseif (self::supportsWebp() && $kind !== ImageKind::Print) {
+        } elseif (self::supportsWebp() && ! $kind->forPrint()) {
             $written = $kind === ImageKind::Photo
                 ? imagewebp($image, $tempPath, self::PHOTO_QUALITY)
                 : (defined('IMG_WEBP_LOSSLESS') && imagewebp($image, $tempPath, IMG_WEBP_LOSSLESS)) || imagewebp($image, $tempPath, 90);

@@ -61,10 +61,11 @@ class LetterheadResolver
         $paths = $layout !== null ? array_column($layout->imageList(), 'path', 'key') : [];
 
         $images = [];
+        $wide = LetterLayout::wideImages($header, $footer);
         foreach (LetterLayout::usedImages($header, $footer) as $key) {
             $uri = $key === LetterLayout::ORG_LOGO
                 ? ($organization !== null ? $this->dataUri($organization->logo_path, 'public', true) : null)
-                : $this->dataUri($paths[$key] ?? null, LetterLetterhead::DISK, true);
+                : $this->dataUri($paths[$key] ?? null, LetterLetterhead::DISK, true, in_array($key, $wide, true));
             if ($uri !== null) {
                 $images[$key] = $uri;
             }
@@ -105,7 +106,7 @@ class LetterheadResolver
      * print size and that is too large for the PDF engine is left out (null)
      * rather than allowed to exhaust the request's memory.
      */
-    public function dataUri(?string $path, string $disk, bool $forPrint = false): ?string
+    public function dataUri(?string $path, string $disk, bool $forPrint = false, bool $wide = false): ?string
     {
         if ($path === null || $path === '') {
             return null;
@@ -127,7 +128,7 @@ class LetterheadResolver
         }
 
         if ($mime !== 'image/svg+xml') {
-            $fitted = $this->printSize($bytes, $mime, $disk, $path);
+            $fitted = $this->printSize($bytes, $mime, $disk, $path, $wide);
             if ($fitted === null && $forPrint) {
                 return null;
             }
@@ -142,17 +143,17 @@ class LetterheadResolver
      * small already, else a fitted copy cached on the same disk by content.
      * Null when the image is too large to print and cannot be fitted here.
      */
-    private function printSize(string $bytes, string $mime, string $disk, string $path): ?string
+    private function printSize(string $bytes, string $mime, string $disk, string $path, bool $wide = false): ?string
     {
         try {
             $file = Storage::disk($disk)->path($path);
         } catch (Throwable) {
             return $bytes;
         }
-        if (! $this->fitter->needsFitting($file)) {
+        if (! $this->fitter->needsFitting($file, $wide)) {
             return $bytes;
         }
-        $cache = 'letters/letterheads/print/'.sha1($bytes).($mime === 'image/png' ? '.png' : '.jpg');
+        $cache = 'letters/letterheads/print/'.sha1($bytes).($wide ? '-wide' : '').($mime === 'image/png' ? '.png' : '.jpg');
         try {
             if (Storage::disk($disk)->exists($cache)) {
                 return (string) Storage::disk($disk)->get($cache);
@@ -161,7 +162,7 @@ class LetterheadResolver
             // The cache is a convenience; fall through and fit again.
         }
 
-        $fit = $this->fitter->fitted($file);
+        $fit = $this->fitter->fitted($file, $wide);
         if ($fit === null) {
             return $this->fitter->unsafe($file) ? null : $bytes;
         }

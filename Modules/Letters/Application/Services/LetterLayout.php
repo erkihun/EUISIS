@@ -42,6 +42,18 @@ final class LetterLayout
     /** @var list<string> */
     public const VALIGNS = ['top', 'middle', 'bottom'];
 
+    /**
+     * Where the letter's number, and separately its date, print under the
+     * header: at the left, the centre or the right edge, or not at all
+     * ("none") when the layout prints that field in its header or footer.
+     *
+     * @var list<string>
+     */
+    public const REFERENCE_PLACES = ['left', 'center', 'right', 'none'];
+
+    /** @var array<string, list<string>> the placeholders that stand in for a hidden number or date */
+    public const REFERENCE_FIELDS = ['number' => ['letter.number'], 'date' => ['letter.date_ec', 'letter.date_gc']];
+
     /** Which letters a line prints on: every letter, Amharic letters only, English letters only. */
     public const LANGUAGES = ['both', 'am', 'en'];
 
@@ -111,6 +123,9 @@ final class LetterLayout
      */
     public static function page(array $in): array
     {
+        // Layouts saved before the number and the date could be placed apart carry one side for both.
+        $both = self::oneOf($in['reference_align'] ?? null, ['left', 'right'], 'left');
+
         return [
             'paper' => self::oneOf($in['paper'] ?? null, self::PAPERS, 'a4'),
             'orientation' => self::oneOf($in['orientation'] ?? null, self::ORIENTATIONS, 'portrait'),
@@ -121,8 +136,45 @@ final class LetterLayout
             'font_family' => self::oneOf($in['font_family'] ?? null, array_keys(self::FONTS), 'abyssinica'),
             'font_size' => self::number($in['font_size'] ?? null, 8, 16, 11.5),
             'text_color' => self::color($in['text_color'] ?? null, '#111111'),
-            'reference_align' => self::oneOf($in['reference_align'] ?? null, ['left', 'right'], 'left'),
+            'number_align' => self::oneOf($in['number_align'] ?? null, self::REFERENCE_PLACES, $both),
+            'date_align' => self::oneOf($in['date_align'] ?? null, self::REFERENCE_PLACES, $both),
         ];
+    }
+
+    /**
+     * Which of the number and the date the page set-up hides although no line
+     * of the header or footer prints it: such a letter would go out without
+     * its reference number or its date.
+     *
+     * @param  array<string, mixed>  $page
+     * @param  array<string, mixed>  $header
+     * @param  array<string, mixed>  $footer
+     * @return list<string> 'number' and/or 'date'
+     */
+    public static function hiddenReferences(array $page, array $header, array $footer): array
+    {
+        $text = '';
+        foreach ([$header, $footer] as $section) {
+            foreach ((array) ($section['rows'] ?? []) as $row) {
+                foreach ((array) ($row['cells'] ?? []) as $cell) {
+                    foreach ((array) ($cell['items'] ?? []) as $item) {
+                        if (is_array($item) && ($item['type'] ?? 'text') === 'text') {
+                            $text .= ' '.(string) ($item['text'] ?? '');
+                        }
+                    }
+                }
+            }
+        }
+        preg_match_all('/\{\{\s*([a-z_.]+)\s*\}\}/', $text, $matches);
+
+        $missing = [];
+        foreach (self::REFERENCE_FIELDS as $what => $fields) {
+            if (($page[$what.'_align'] ?? 'left') === 'none' && array_intersect($fields, $matches[1]) === []) {
+                $missing[] = $what;
+            }
+        }
+
+        return $missing;
     }
 
     /**
@@ -156,7 +208,7 @@ final class LetterLayout
                         if ($key !== self::ORG_LOGO && ! in_array($key, $imageKeys, true)) {
                             continue;
                         }
-                        $items[] = self::image($key, self::number($item['width_mm'] ?? null, 5, 120, 22));
+                        $items[] = self::image($key, self::number($item['width_mm'] ?? null, 5, 120, 22), ! empty($item['full']));
                     } else {
                         $items[] = self::text(mb_substr((string) ($item['text'] ?? ''), 0, self::MAX_TEXT), $item);
                     }
@@ -242,13 +294,35 @@ final class LetterLayout
     /** @return list<string> the image keys a layout's header and footer use */
     public static function usedImages(array $header, array $footer): array
     {
+        return self::imageKeys($header, $footer, false);
+    }
+
+    /**
+     * The images that print across the whole page width; they are kept larger than emblems.
+     *
+     * @param  array<string, mixed>  $header
+     * @param  array<string, mixed>  $footer
+     * @return list<string>
+     */
+    public static function wideImages(array $header, array $footer): array
+    {
+        return self::imageKeys($header, $footer, true);
+    }
+
+    /**
+     * @param  array<string, mixed>  $header
+     * @param  array<string, mixed>  $footer
+     * @return list<string>
+     */
+    private static function imageKeys(array $header, array $footer, bool $wideOnly): array
+    {
         $keys = [];
         foreach ([$header, $footer] as $section) {
             foreach ((array) ($section['rows'] ?? []) as $row) {
                 foreach ((array) ($row['cells'] ?? []) as $cell) {
                     foreach ((array) ($cell['items'] ?? []) as $item) {
-                        if (($item['type'] ?? '') === 'image') {
-                            $keys[] = (string) $item['image'];
+                        if (is_array($item) && ($item['type'] ?? '') === 'image' && (! $wideOnly || ! empty($item['full']))) {
+                            $keys[] = (string) ($item['image'] ?? '');
                         }
                     }
                 }
@@ -302,9 +376,10 @@ final class LetterLayout
     }
 
     /** @return array<string, mixed> */
-    private static function image(string $key, float $widthMm): array
+    private static function image(string $key, float $widthMm, bool $full = false): array
     {
-        return ['type' => 'image', 'image' => $key, 'width_mm' => $widthMm, 'language' => 'both'];
+        // "full": the picture prints across the whole width between the margins (a header or footer drawn as one image).
+        return ['type' => 'image', 'image' => $key, 'width_mm' => $widthMm, 'full' => $full, 'language' => 'both'];
     }
 
     /** @param list<string> $allowed */

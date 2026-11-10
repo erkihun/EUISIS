@@ -95,6 +95,7 @@ return [
         'image_pixels' => 'The image is :width × :height pixels, too large for this server to prepare for printing. Upload one of at most :max × :max pixels.',
         'layout_invalid' => 'The header and footer could not be read. Reload the page and try again.',
         'layout_placeholders' => 'These placeholders are not known: :keys.',
+        'layout_reference_hidden' => 'These are set to "Do not print" but no line at the top or bottom of the page prints them: :what. Add the field there, or choose a side.',
         'layout_images' => 'A header and footer can hold at most :max images.',
         'layout_in_use' => 'Letters were printed on this header and footer, so it cannot be deleted. Make it inactive instead.',
         'email_required' => 'Dispatch by email needs the recipient\'s email address.',

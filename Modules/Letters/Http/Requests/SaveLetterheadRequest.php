@@ -91,6 +91,12 @@ final class SaveLetterheadRequest extends FormRequest
 
                 return;
             }
+            $hidden = LetterLayout::hiddenReferences(LetterLayout::page((array) ($decoded['page'] ?? [])), (array) ($decoded['header'] ?? []), (array) ($decoded['footer'] ?? []));
+            if ($hidden !== []) {
+                $validator->errors()->add('layout', __('letters.validation.layout_reference_hidden', ['what' => implode(', ', array_map(fn (string $w): string => __('letters.pdf.'.$w), $hidden))]));
+
+                return;
+            }
             $this->decoded = $decoded;
         });
     }

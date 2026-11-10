@@ -111,8 +111,9 @@ final class LetterheadController extends Controller
         $organization = $letterhead->organization;
 
         $previews = [];
+        $wide = LetterLayout::wideImages((array) $letterhead->header, (array) $letterhead->footer);
         foreach ($letterhead->imageList() as $image) {
-            $previews[$image['key']] = $this->resolver->dataUri($image['path'], LetterLetterhead::DISK);
+            $previews[$image['key']] = $this->resolver->dataUri($image['path'], LetterLetterhead::DISK, false, in_array($image['key'], $wide, true));
         }
         $previews['stamp'] = $this->resolver->dataUri($letterhead->stamp_path, LetterLetterhead::DISK);
 
