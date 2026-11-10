@@ -145,7 +145,8 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // recipient, the letterhead), the numbering service reading the institution code, the
         // letterhead resolver and page, the routing check and the form pick-lists. Lower as Core
         // publishes an organization read model.
-        'letters' => 14,
+        // +1 on 2026-11-10: the registry office model points at the unit of the structure it designates (ADR 0037 §14).
+        'letters' => 15,
     ];
 
     $current = serviceModuleCoreImports();

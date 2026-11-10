@@ -73,6 +73,8 @@ return [
         'letterhead_deleted' => 'ራስጌና ግርጌው ተሰርዟል።',
         'standards_saved' => 'የምላሽ ጊዜ ስታንዳርዱ ተቀምጧል።',
         'file_class_saved' => 'የፋይል ምድቡ ተቀምጧል።',
+        'registry_office_saved' => 'መዝገብ ቤቱ ተቀምጧል።',
+        'registry_office_removed' => 'ክፍሉ ከእንግዲህ መዝገብ ቤት አይደለም።',
     ],
 
     'validation' => [
@@ -99,6 +101,7 @@ return [
         'layout_images' => 'አንድ ራስጌና ግርጌ ቢበዛ :max ምስሎች ሊይዝ ይችላል።',
         'layout_in_use' => 'በዚህ ራስጌና ግርጌ ደብዳቤዎች ታትመዋል፤ ስለዚህ ሊሰረዝ አይችልም። በምትኩ እንዳይሠራ ያድርጉት።',
         'email_required' => 'በኢሜይል መላክ የተቀባዩን የኢሜይል አድራሻ ይፈልጋል።',
+        'registry_office_taken' => 'ይህ ክፍል አስቀድሞ የተቋሙ መዝገብ ቤት ነው።',
         'file_class_code_taken' => 'ይህ መርሃ ግብር በዚህ ኮድ ያለ ግቤት አስቀድሞ አለው።',
         'file_class_parent' => 'የበላይ ግቤቱ የዚያው መርሃ ግብር ግቤት መሆን አለበት።',
     ],

@@ -196,16 +196,26 @@ If a load balancer (Nginx upstream, HAProxy, or a cloud LB) is deployed in front
 
 ## 8. DDoS Protection
 
-- Configure rate limiting at the Nginx level for the login endpoint:
+- Configure rate limiting at the Nginx level for the login endpoint. Most users reach the
+  system through Ethio Telecom carrier-grade NAT, so one public address stands for a whole
+  office or many mobile subscribers. Size the limit for a shared address, match the login
+  path exactly (a bare `location /login` is a prefix match), and answer with 429:
 
 ```nginx
-limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
+limit_req_zone $binary_remote_addr zone=login:10m rate=60r/m;
 
-location /login {
-    limit_req zone=login burst=10 nodelay;
+location = /login {
+    limit_req zone=login burst=30 nodelay;
+    limit_req_status 429;
     # ... rest of PHP handling
 }
 ```
+
+- Do not turn a rate-limit or WAF hit into an automatic firewall ban of the address
+  (Fail2Ban `nginx-limit-req`, `plesk-modsecurity`, `recidive`, CSF/LFD port-scan tracking)
+  without measuring first: a ban on a shared address locks out every user behind it, and the
+  browser's retries against the blocked port can escalate it to an all-port ban. Per-account
+  throttling in the application is the control that tells one user from another.
 
 - For production deployments serving the public internet, consider a CDN/WAF layer (Cloudflare, AWS WAF, or equivalent) in front of Nginx.
 - Laravel's application-level rate limiting (login throttle, API throttle) provides a second layer of defence.

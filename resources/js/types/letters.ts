@@ -120,7 +120,22 @@ export interface Routing {
     acknowledged_at: string | null;
     completed_at: string | null;
     outcome: string | null;
+    /** The unit the step was sent from: the registry office for a first step. */
+    from_unit: NamedWithId | null;
+    /** The step this one was passed on from. */
+    parent_step: number | null;
     can_act: boolean;
+    /** The viewer is the person it was forwarded to and may pass it on. */
+    can_forward: boolean;
+}
+
+export interface RegistryOfficeRow {
+    id: string;
+    status: 'active' | 'inactive';
+    note: string | null;
+    unit: { id: string; code: string | null; name_en: string | null; name_am: string | null } | null;
+    staff: { id: number; name: string; position: { title_en: string | null; title_am: string | null } | null; can_register: boolean; can_route: boolean }[];
+    problems: ('unit_inactive' | 'no_staff' | 'no_registrar' | 'no_router')[];
 }
 
 export interface Registration {

@@ -22,9 +22,13 @@ use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Employees\EmployeeCsvImportService;
+use App\Services\Employees\EmployeeImportFileException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -344,7 +348,7 @@ it('generates unique numbers when legacy rows contain the same employee number',
     $batch = $this->service->validate(
         csvUpload([
             importRow($this->alpha, 1, ['employee_number' => 'CSV-SAME']),
-            importRow($this->alpha, 2, ['employee_number' => 'CSV-SAME']),
+            importRow($this->alpha, 2, ['employee_number' => 'CSV-SAME', 'first_name' => 'Bekele']),
         ]),
         $this->admin,
     );
@@ -484,7 +488,7 @@ it('lets an unrestricted admin import across organizations', function (): void {
     expect(Employee::query()->count())->toBe(2);
 });
 
-it('does not partially import when a row turns invalid before confirm', function (): void {
+it('leaves out a row that turns invalid before confirm and imports the rest', function (): void {
     $batch = $this->service->validate(
         csvUpload([importRow($this->alpha, 1), importRow($this->alpha, 2, ['first_name' => 'Bekele'])]),
         $this->admin,
@@ -493,8 +497,9 @@ it('does not partially import when a row turns invalid before confirm', function
     expect($batch->isImportable())->toBeTrue();
 
     /*
-     * Simulate a race: someone fills the second position between preview and
-     * confirm. The whole import must roll back, not load the first row only.
+     * Simulate a race: someone fills the second position between the check
+     * and the confirmation. That row is left out with its reason; the first
+     * row is still imported, so the importer is never left at a dead end.
      */
     $occupant = Employee::query()->create([
         'employee_number' => 'RACE-1',
@@ -513,15 +518,321 @@ it('does not partially import when a row turns invalid before confirm', function
         'effective_from' => now()->toDateString(),
     ]);
 
-    expect(fn () => $this->service->import($batch, $this->admin))
-        ->toThrow(RuntimeException::class);
+    $result = $this->service->import($batch, $this->admin);
 
-    // Only the pre-existing occupant remains — neither CSV row was written.
-    expect(Employee::query()->count())->toBe(1)
-        ->and(Employee::query()->where('first_name', 'Abebe')->exists())->toBeFalse();
+    expect($result['imported'])->toBe(1)
+        ->and($result['failed'])->toBe(1)
+        ->and(Employee::query()->where('first_name', 'Abebe')->exists())->toBeTrue()
+        ->and(Employee::query()->where('first_name', 'Bekele')->exists())->toBeFalse();
+
+    $leftOut = EmployeeImportBatchRow::query()->where('row_number', 3)->firstOrFail();
+
+    expect($leftOut->status)->toBe(EmployeeImportBatchRow::STATUS_INVALID)
+        ->and(implode(' ', $leftOut->errors))->toContain('occupied')
+        ->and($batch->fresh()->status)->toBe(EmployeeImportBatch::STATUS_IMPORTED);
 });
 
-it('refuses to import a batch that still has invalid rows', function (): void {
+it('imports the valid rows and keeps the rows with problems for download', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([
+            importRow($this->alpha, 1),
+            importRow($this->alpha, 2, ['first_name' => 'Bekele', 'gender' => 'unknown']),
+        ]),
+        $this->admin,
+    );
+
+    expect($batch->valid_rows)->toBe(1)
+        ->and($batch->failed_rows)->toBe(1)
+        ->and($batch->isImportable())->toBeTrue();
+
+    $result = $this->service->import($batch, $this->admin);
+
+    expect($result['imported'])->toBe(1)
+        ->and($result['failed'])->toBe(1)
+        ->and(Employee::query()->count())->toBe(1);
+
+    $lines = array_map('str_getcsv', array_filter(explode("\n", ltrim($this->service->failedRowsCsv($batch->fresh()), "\xEF\xBB\xBF"))));
+
+    expect($lines)->toHaveCount(2)
+        ->and($lines[0])->toBe([...EmployeeCsvImportService::COLUMNS, 'errors'])
+        ->and($lines[1][1])->toBe('Bekele')
+        ->and(end($lines[1]))->toContain('gender');
+});
+
+it('lets only the uploader download the rows that were left out', function (): void {
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha, 1, ['first_name' => ''])]), $this->admin);
+
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.errors', $batch->id))
+        ->assertOk()
+        ->assertHeader('content-disposition', 'attachment; filename="employee-import-rows-to-fix.csv"');
+
+    $other = User::factory()->create();
+    $other->assignRole('Organizational Admin');
+
+    $this->actingAs($other)
+        ->get(route('employees.import.errors', $batch->id))
+        ->assertForbidden();
+});
+
+it('skips template rows whose employee cells were left empty', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([
+            importRow($this->alpha, 1),
+            // A vacant position nobody was entered for: placement only.
+            [
+                'organization_code' => $this->alpha['org']->code,
+                'organization_unit_code' => $this->alpha['unit']->code,
+                'position_code' => $this->alpha['positions'][2]->job_position_code,
+                'employment_status' => 'active',
+            ],
+        ]),
+        $this->admin,
+    );
+
+    expect($batch->total_rows)->toBe(2)
+        ->and($batch->valid_rows)->toBe(1)
+        ->and($batch->failed_rows)->toBe(0)
+        ->and($batch->unfilledRows())->toBe(1)
+        ->and($batch->isImportable())->toBeTrue()
+        ->and(EmployeeImportBatchRow::query()->count())->toBe(1);
+});
+
+it('rejects a start date that is not a real date', function (string $value): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['assignment_start_date' => $value])]),
+        $this->admin,
+    );
+
+    expect($batch->failed_rows)->toBe(1)
+        ->and(implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors))->toContain('assignment_start_date');
+})->with(['31/02/2026', '2026-13-01', 'yesterday', '5/6/26']);
+
+it('reads start dates in the calendar chosen for the file', function (): void {
+    // 1 Meskerem 2018 in the Ethiopian calendar is 11 September 2025.
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['assignment_start_date' => '01/01/2018'])]),
+        $this->admin,
+        null,
+        EmployeeCsvImportService::CALENDAR_ETHIOPIAN,
+    );
+
+    expect($batch->failed_rows)->toBe(0);
+
+    $this->service->import($batch, $this->admin);
+
+    expect(EmployeeAssignment::query()->firstOrFail()->effective_from->toDateString())->toBe('2025-09-11');
+});
+
+it('reads day/month/year and year-month-day Gregorian start dates alike', function (string $value): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['assignment_start_date' => $value])]),
+        $this->admin,
+    );
+
+    $this->service->import($batch, $this->admin);
+
+    expect(EmployeeAssignment::query()->firstOrFail()->effective_from->toDateString())->toBe('2026-01-05');
+})->with(['2026-01-05', '05/01/2026', '5.1.2026']);
+
+it('questions a start date more than a year ahead', function (): void {
+    // A Gregorian date read as Ethiopian lands seven or eight years late.
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['assignment_start_date' => now()->format('15/06/Y')])]),
+        $this->admin,
+        null,
+        EmployeeCsvImportService::CALENDAR_ETHIOPIAN,
+    );
+
+    expect($batch->failed_rows)->toBe(1)
+        ->and(implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors))->toContain('calendar');
+});
+
+it('requires the grandfather name, as the employee form and the database do', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['grandfather_name' => ''])]),
+        $this->admin,
+    );
+
+    expect($batch->failed_rows)->toBe(1)
+        ->and(implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors))->toContain('grandfather_name');
+});
+
+it('reports an unknown employment type instead of dropping it', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['employment_type' => 'full-time'])]),
+        $this->admin,
+    );
+
+    expect($batch->failed_rows)->toBe(1)
+        ->and(implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors))->toContain('employment_type');
+});
+
+it('reports a value that is too long for its column', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['phone' => str_repeat('9', 40)])]),
+        $this->admin,
+    );
+
+    expect($batch->failed_rows)->toBe(1)
+        ->and(implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors))->toContain('phone');
+});
+
+it('accepts gender written in Amharic or as one letter', function (string $value, string $expected): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['gender' => $value])]),
+        $this->admin,
+    );
+
+    $this->service->import($batch, $this->admin);
+
+    expect(Employee::query()->firstOrFail()->gender)->toBe($expected);
+})->with([['ሴት', 'female'], ['ወንድ', 'male'], ['F', 'female'], ['Male', 'male']]);
+
+it('reports the same person entered on two rows', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1), importRow($this->alpha, 2)]),
+        $this->admin,
+    );
+
+    expect($batch->valid_rows)->toBe(1)
+        ->and($batch->failed_rows)->toBe(1)
+        ->and(implode(' ', EmployeeImportBatchRow::query()->where('row_number', 3)->firstOrFail()->errors))->toContain('row 2');
+});
+
+it('refuses a file without the template columns and names them', function (): void {
+    $path = tempnam(sys_get_temp_dir(), 'imp').'.csv';
+    file_put_contents($path, "name,age\nAbebe,30\n");
+
+    $this->actingAs($this->admin)
+        ->post(route('employees.import.store'), ['file' => new UploadedFile($path, 'people.csv', 'text/csv', null, true)])
+        ->assertSessionHasErrors('file');
+
+    expect(session('errors')->first('file'))->toContain('first_name')
+        ->and(EmployeeImportBatch::query()->count())->toBe(0);
+});
+
+it('refuses a file with a heading row and nothing else', function (): void {
+    expect(fn () => $this->service->validate(csvUpload([]), $this->admin))
+        ->toThrow(EmployeeImportFileException::class);
+});
+
+it('refuses a csv whose letters are not utf-8', function (): void {
+    $path = tempnam(sys_get_temp_dir(), 'imp').'.csv';
+    file_put_contents($path, implode(',', EmployeeCsvImportService::COLUMNS)."\n,Abeb\xE9,Kebede\n");
+
+    expect(fn () => $this->service->validate(new UploadedFile($path, 'ansi.csv', 'text/csv', null, true), $this->admin))
+        ->toThrow(EmployeeImportFileException::class, 'UTF-8');
+});
+
+it('reads a csv that uses semicolons between cells', function (): void {
+    $row = importRow($this->alpha);
+    $path = tempnam(sys_get_temp_dir(), 'imp').'.csv';
+    file_put_contents($path, implode(';', EmployeeCsvImportService::COLUMNS)."\n".implode(';', array_map(
+        static fn (string $column): string => (string) ($row[$column] ?? ''),
+        EmployeeCsvImportService::COLUMNS,
+    ))."\n");
+
+    $batch = $this->service->validate(new UploadedFile($path, 'semicolon.csv', 'text/csv', null, true), $this->admin);
+
+    expect($batch->valid_rows)->toBe(1)->and($batch->failed_rows)->toBe(0);
+});
+
+it('round-trips the excel template: download, fill in, upload, import', function (): void {
+    $xlsx = $this->service->templateXlsx($this->alpha['org'], 'en');
+    $path = tempnam(sys_get_temp_dir(), 'imp').'.xlsx';
+    file_put_contents($path, $xlsx);
+
+    $spreadsheet = IOFactory::load($path);
+    $sheet = $spreadsheet->getActiveSheet();
+    $header = $sheet->toArray(null, false, false, false)[0];
+
+    expect($header)->toBe(EmployeeCsvImportService::templateColumns());
+
+    $column = static fn (string $name): int => array_search($name, $header, true) + 1;
+    // Fill the first vacant position only; the second row stays empty.
+    $sheet->setCellValue([$column('first_name'), 2], 'Hana');
+    $sheet->setCellValue([$column('father_name'), 2], 'Girma');
+    $sheet->setCellValue([$column('grandfather_name'), 2], 'Tadesse');
+    $sheet->setCellValue([$column('gender'), 2], 'female');
+    // A phone typed as a number and a date typed into a date cell, as Excel stores them.
+    $sheet->setCellValue([$column('phone'), 2], 911223344);
+    $sheet->setCellValue([$column('assignment_start_date'), 2], Date::PHPToExcel(new DateTime('2026-01-05')));
+    (new Xlsx($spreadsheet))->save($path);
+
+    $upload = new UploadedFile($path, 'filled.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);
+
+    $this->actingAs($this->admin)
+        ->post(route('employees.import.store'), ['file' => $upload])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('employees.import.create'));
+
+    $batch = EmployeeImportBatch::query()->firstOrFail();
+
+    expect($batch->valid_rows)->toBe(1)
+        ->and($batch->failed_rows)->toBe(0)
+        ->and($batch->unfilledRows())->toBe(1);
+
+    $this->service->import($batch, $this->admin);
+
+    $employee = Employee::query()->firstOrFail();
+
+    expect($employee->first_name)->toBe('Hana')
+        ->and($employee->phone)->toBe('911223344')
+        ->and(EmployeeAssignment::query()->firstOrFail()->effective_from->toDateString())->toBe('2026-01-05');
+});
+
+it('serves the template as an excel workbook when asked', function (): void {
+    $response = $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id, 'format' => 'xlsx']))
+        ->assertOk();
+
+    expect($response->headers->get('content-disposition'))->toContain('.xlsx')
+        ->and(substr((string) $response->getContent(), 0, 2))->toBe('PK');
+});
+
+it('shows the result on the import page after confirming', function (): void {
+    $this->actingAs($this->admin)
+        ->post(route('employees.import.store'), ['file' => csvUpload([
+            importRow($this->alpha, 1),
+            importRow($this->alpha, 2, ['first_name' => 'Bekele', 'email' => 'not-an-email']),
+        ])]);
+
+    $batch = EmployeeImportBatch::query()->firstOrFail();
+
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.create'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('batch.valid_rows', 1)
+            ->where('batch.failed_rows', 1)
+            ->where('batch.finished', false)
+            ->has('rows', 2));
+
+    $this->actingAs($this->admin)
+        ->post(route('employees.import.confirm', $batch->id))
+        ->assertRedirect(route('employees.import.create'));
+
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.create'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('batch.finished', true)
+            ->where('batch.imported_rows', 1)
+            ->where('batch.failed_rows', 1)
+            ->where('batch.importable', false));
+});
+
+it('names the rows of the check in the language of the page', function (): void {
+    $this->alpha['org']->update(['name_am' => 'አልፋ ተቋም']);
+    $this->alpha['positions'][1]->update(['title_am' => 'ባለሙያ']);
+
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha)]), $this->admin);
+
+    expect($this->service->preview($batch, 'am')[0])
+        ->toMatchArray(['organization' => 'አልፋ ተቋም', 'position' => 'ባለሙያ', 'start_date' => '2026-01-01'])
+        ->and($this->service->preview($batch, 'en')[0]['organization'])->toBe('ALPHA Organization');
+});
+
+it('refuses to import a batch with no valid rows', function (): void {
     $batch = $this->service->validate(
         csvUpload([importRow($this->alpha, 1, ['first_name' => ''])]),
         $this->admin,
@@ -593,7 +904,7 @@ it('imports through the http flow end to end', function (): void {
 
     $this->actingAs($this->admin)
         ->post(route('employees.import.confirm', $batch->id))
-        ->assertRedirect(route('employees.index'));
+        ->assertRedirect(route('employees.import.create'));
 
     expect(Employee::query()->count())->toBe(1);
 });
@@ -627,7 +938,7 @@ it('warns on the import page when a file ran past the row cap', function (): voi
     $this->actingAs($this->admin)
         ->get(route('employees.import.create'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('skippedRows', 2)->where('maxRows', $max));
+        ->assertInertia(fn (Assert $page) => $page->where('batch.over_limit_rows', 2)->where('maxRows', $max));
 });
 
 /* The template's example row must line up with its own header. */
@@ -732,6 +1043,7 @@ it('looks the organization and unit up once when building a preview', function (
 
         $rows[] = importRow($ctx, 1, [
             'position_code' => $position->job_position_code,
+            'first_name' => 'Preview'.$n,
             'email' => "preview{$n}@example.et",
         ]);
     }

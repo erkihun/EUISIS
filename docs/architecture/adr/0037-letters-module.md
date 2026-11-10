@@ -156,3 +156,32 @@ Routes live under `/letters` (`letters.*`), gated by `features.letters`.
 Scheduled work: none in this version (routing due dates are shown, not
 chased). Backups: the private disk now holds letter scans and dispatched
 PDFs.
+
+## 14. Registry office and the forwarding chain (2026-11-10)
+
+The owner asked for a registry office "called from the institutions' structure, like the
+grievance teams". Decided:
+
+- **A registry office is a designation, not a new unit.** `letter_registry_offices` points at
+  an `organization_units` row of the institution; the name and the people who work there are
+  read from the structure (`LetterLookups::staffOf`) and never typed again. An institution may
+  designate more than one (a branch registry). Page: `/letters/registry-offices`, managed with
+  `letters.standards.manage`.
+- **Designation grants no permission.** Access stays with roles (ADR 0003, ADR 0026). The page
+  shows, for each person placed in the unit, whether they can register and forward letters,
+  and warns when nobody can, so the gap is visible instead of being papered over by a
+  placement-based grant. Unlike grievance teams there are no named members, terms or
+  signatures: a registry signs nothing.
+- **Forwarding starts from the registry office.** `letter_routings.from_unit_id` records the
+  unit a step was sent from: the registry office the actor works in (else the institution's
+  first active one) for a first step.
+- **The person a letter was forwarded to passes it on** (`POST /letters/routings/{routing}/forward`,
+  `LettersAccess::canForwardOnward`: the step is open, addressed to them, they hold
+  `letters.handle`). The new step carries `parent_id`; the step it came from moves from pending
+  to acknowledged and stays open until its addressee completes or returns it. The registry
+  desk's own route (`letters.route`) is unchanged, and closing still needs every step resolved.
+- Not done: staff of a unit acting on a step addressed to the unit, "for information" copies,
+  and narrowing receipt notifications to registry staff.
+
+Ratchet: `letters` 14 -> 15 (the registry office model imports `Organization` and
+`OrganizationUnit`).

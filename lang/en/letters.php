@@ -73,6 +73,8 @@ return [
         'letterhead_deleted' => 'Header and footer deleted.',
         'standards_saved' => 'Reply-time standard saved.',
         'file_class_saved' => 'File class saved.',
+        'registry_office_saved' => 'Registry office saved.',
+        'registry_office_removed' => 'The unit is no longer a registry office.',
     ],
 
     'validation' => [
@@ -99,6 +101,7 @@ return [
         'layout_images' => 'A header and footer can hold at most :max images.',
         'layout_in_use' => 'Letters were printed on this header and footer, so it cannot be deleted. Make it inactive instead.',
         'email_required' => 'Dispatch by email needs the recipient\'s email address.',
+        'registry_office_taken' => 'This unit is already a registry office of the institution.',
         'file_class_code_taken' => 'This scheme already has an entry with this code.',
         'file_class_parent' => 'The parent must be an entry of the same scheme.',
     ],

@@ -152,6 +152,7 @@ What the registries of the world add, and the module has since the second cut
   outgoing registers are separate books), `direction`, handling `status`
   (pending_receipt, registered, routed, in_progress, closed), received and due
   dates, physical location, acknowledgement of receipt.
+- `letter_registry_offices` — units of the structure designated as the institution's registry (መዝገብ ቤት); staff are read from the structure, access stays with roles (ADR 0037 §14).
 - `letter_routings` — forwarding steps inside one institution.
 - `letter_attachments` — scans, annexes and the dispatched PDF on the private
   disk; served only through the policy, as downloads, sniffed by content.

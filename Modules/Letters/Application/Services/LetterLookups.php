@@ -7,7 +7,9 @@ namespace Modules\Letters\Application\Services;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Modules\Letters\Domain\Enums\TemplateStatus;
+use Modules\Letters\Domain\Models\LetterRegistryOffice;
 use Modules\Letters\Domain\Models\LetterTemplate;
 
 /** Pick-lists for the forms, always narrowed to what the user may act for. */
@@ -49,6 +51,39 @@ class LetterLookups
     {
         return OrganizationUnit::query()->where('organization_id', $organizationId)->where('status', 'active')->orderBy('name_en')->limit(500)
             ->get(['id', 'code', 'name_en', 'name_am'])->map(fn (OrganizationUnit $u): array => ['id' => $u->id, 'code' => $u->code, 'name_en' => $u->name_en, 'name_am' => $u->name_am])->all();
+    }
+
+    /**
+     * The registry office (መዝገብ ቤት) a forwarding starts from: the active one
+     * the actor works in, else the first active one the institution designated.
+     */
+    public function registryOffice(string $organizationId, ?User $actor = null): ?LetterRegistryOffice
+    {
+        $offices = LetterRegistryOffice::query()->where('organization_id', $organizationId)->where('status', 'active')->orderBy('created_at')->get();
+        $unit = $actor !== null ? $this->unitOf($actor, $organizationId) : null;
+
+        return ($unit !== null ? $offices->firstWhere('organization_unit_id', $unit) : null) ?? $offices->first();
+    }
+
+    /** The unit the user currently works in, when it belongs to this institution. */
+    public function unitOf(User $user, string $organizationId): ?string
+    {
+        $assignment = $user->employee?->currentAssignment;
+
+        return $assignment !== null && $assignment->organization_id === $organizationId ? $assignment->organization_unit_id : null;
+    }
+
+    /**
+     * Active accounts whose employee currently works in the unit, read from the structure.
+     *
+     * @return Collection<int, User>
+     */
+    public function staffOf(string $unitId): Collection
+    {
+        return User::query()->where('status', 'active')
+            ->whereHas('employee.currentAssignment', fn ($a) => $a->where('organization_unit_id', $unitId))
+            ->with('employee.currentAssignment.position:id,title_en,title_am')
+            ->orderBy('name')->limit(200)->get()->toBase();
     }
 
     /**

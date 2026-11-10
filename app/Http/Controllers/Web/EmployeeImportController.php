@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EmployeeImportBatch;
 use App\Models\Organization;
 use App\Services\Employees\EmployeeCsvImportService;
+use App\Services\Employees\EmployeeImportFileException;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -20,15 +21,17 @@ use Inertia\Response;
 use Throwable;
 
 /**
- * Scoped CSV upload of employees.
+ * Scoped upload of employees from a CSV or Excel file.
  *
- * Three steps, each separately permissioned: open the page, upload and validate,
+ * Three steps, each separately permissioned: open the page, upload and check,
  * then confirm. The middle step writes nothing to `employees`, so an importer
- * can inspect a preview and walk away without consequence.
+ * can inspect the check and walk away without consequence. After the
+ * confirmation the same page shows the result, with the rows that were left
+ * out ready to download.
  *
- * Every batch is re-checked for ownership on the later steps. A validated batch
- * id is a URL parameter, so it must never be enough on its own to view or
- * commit someone else's upload.
+ * Every batch is re-checked for ownership on the later steps. A batch id is a
+ * URL parameter, so it must never be enough on its own to view or commit
+ * someone else's upload.
  */
 class EmployeeImportController extends Controller
 {
@@ -37,14 +40,14 @@ class EmployeeImportController extends Controller
         private readonly OrganizationScopeService $scope,
     ) {}
 
-    /** The upload screen, plus the batch being previewed if there is one. */
+    /** The upload screen, plus the batch being checked or just imported, if there is one. */
     public function create(Request $request): Response
     {
         $this->authorizePermission('employees.import.view');
 
         $user = Auth::user();
         $batch = null;
-        $preview = [];
+        $rows = [];
 
         $batchId = $request->session()->get('employee_import_batch');
 
@@ -53,70 +56,66 @@ class EmployeeImportController extends Controller
 
             if ($candidate !== null && $this->ownsBatch($candidate)) {
                 $batch = $this->batchPayload($candidate);
-                $preview = $this->importService->preview($candidate);
+                $rows = $this->importService->preview($candidate, app()->getLocale());
             }
         }
 
         return Inertia::render('Employees/ImportCsv', [
             'batch' => $batch,
-            'preview' => $preview,
-            'columns' => EmployeeCsvImportService::templateColumns(),
-            // Rows the reader could not take from the uploaded file. Carried
-            // in the session beside the batch id so the warning survives a
-            // reload of the preview, not just the flash after upload.
-            'skippedRows' => $batch === null ? 0 : (int) $request->session()->get('employee_import_skipped', 0),
+            'rows' => $rows,
             'maxRows' => $this->importService->maxRows(),
-            // Shown so an importer knows which organization codes are usable.
-            'allowedOrganizations' => $this->allowedOrganizations($user),
+            // The organizations the actor may import into, for the template.
+            'organizations' => $this->allowedOrganizations($user),
             'can' => [
                 'upload' => $user?->can('employees.import.upload') ?? false,
                 'confirm' => $user?->can('employees.import.confirm') ?? false,
+                'viewEmployees' => $user?->can('employees.view') ?? false,
             ],
         ]);
     }
 
-    /** Validate an uploaded file and show the preview. */
+    /** Check an uploaded file and show the result. Nothing is saved to employees. */
     public function store(Request $request): RedirectResponse
     {
         $this->authorizePermission('employees.import.upload');
 
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+        $data = $request->validate([
+            // `zip` because some servers report an Excel workbook as a plain
+            // archive; the reader then refuses anything that is not a workbook.
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,zip', 'max:5120'],
+            'calendar' => ['nullable', 'string', 'in:gregorian,ethiopian'],
         ], [
+            'file.required' => __('employees.import.errors.noFile'),
+            'file.file' => __('employees.import.errors.noFile'),
+            'file.uploaded' => __('employees.import.errors.tooLarge'),
             'file.mimes' => __('employees.import.errors.notCsv'),
+            'file.max' => __('employees.import.errors.tooLarge'),
         ]);
 
-        $batch = $this->importService->validate($request->file('file'), Auth::user(), $request);
-
-        $skipped = $this->importService->skippedRowCount();
-
-        $request->session()->put('employee_import_batch', $batch->id);
-        $request->session()->put('employee_import_skipped', $skipped);
-
-        /*
-         * A file longer than the reader's cap is the most important thing to
-         * say about it: the rows beyond the cap were never validated and will
-         * not be imported.
-         */
-        if ($skipped > 0) {
-            return to_route('employees.import.create')->with('flash', [
-                'message' => __('employees.import.truncated', [
-                    'read' => $batch->total_rows,
-                    'skipped' => $skipped,
-                ]),
-                'type' => 'warning',
-            ]);
+        try {
+            $batch = $this->importService->validate(
+                $request->file('file'),
+                Auth::user(),
+                $request,
+                $data['calendar'] ?? EmployeeCsvImportService::CALENDAR_GREGORIAN,
+            );
+        } catch (EmployeeImportFileException $e) {
+            // The file as a whole could not be read: say why beside the file field.
+            return back()->withErrors(['file' => $e->getMessage()]);
         }
 
+        $request->session()->put('employee_import_batch', $batch->id);
+
         return to_route('employees.import.create')->with('flash', [
-            'message' => $batch->failed_rows > 0
-                ? __('employees.import.validatedWithErrors', ['invalid' => $batch->failed_rows])
-                : __('employees.import.validatedClean', ['valid' => $batch->valid_rows]),
-            'type' => $batch->failed_rows > 0 ? 'warning' : 'success',
+            'message' => __('employees.import.checked', [
+                'valid' => $batch->valid_rows,
+                'invalid' => $batch->failed_rows,
+            ]),
+            'type' => $batch->failed_rows > 0 || $batch->valid_rows === 0 ? 'warning' : 'success',
         ]);
     }
 
-    /** Commit a validated batch. */
+    /** Import the rows of a checked batch that passed. */
     public function confirm(Request $request, EmployeeImportBatch $batch): RedirectResponse
     {
         $this->authorizePermission('employees.import.confirm');
@@ -141,23 +140,33 @@ class EmployeeImportController extends Controller
                 'type' => 'error',
             ]);
         } catch (Throwable $e) {
-            /*
-             * The service rolls back on any failure, so nothing was written.
-             * The message names the offending row, which is what an importer
-             * needs to fix the file.
-             */
+            // The service rolls back on any failure, so nothing was written.
             return back()->with('flash', [
                 'message' => __('employees.import.failed', ['reason' => $e->getMessage()]),
                 'type' => 'error',
             ]);
         }
 
-        $request->session()->forget('employee_import_batch');
-        $request->session()->forget('employee_import_skipped');
+        // The batch stays in the session so the page can show what happened
+        // and offer the rows that were left out.
+        $request->session()->put('employee_import_batch', $batch->id);
 
-        return to_route('employees.index')->with('flash', [
+        return to_route('employees.import.create')->with('flash', [
             'message' => __('employees.import.imported', ['count' => $result['imported']]),
-            'type' => 'success',
+            'type' => $result['imported'] > 0 ? 'success' : 'warning',
+        ]);
+    }
+
+    /** The rows that were left out, to correct and upload again. */
+    public function errors(EmployeeImportBatch $batch): HttpResponse
+    {
+        $this->authorizePermission('employees.import.view');
+
+        abort_unless($this->ownsBatch($batch), 403);
+
+        return response($this->importService->failedRowsCsv($batch), 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="employee-import-rows-to-fix.csv"',
         ]);
     }
 
@@ -167,12 +176,11 @@ class EmployeeImportController extends Controller
         $this->authorizePermission('employees.import.view');
 
         $request->session()->forget('employee_import_batch');
-        $request->session()->forget('employee_import_skipped');
 
         return to_route('employees.import.create');
     }
 
-    /** Download the CSV template. */
+    /** Download the template, as an Excel workbook or as CSV. */
     public function template(Request $request): HttpResponse
     {
         $this->authorizePermission('employees.import.view');
@@ -180,6 +188,7 @@ class EmployeeImportController extends Controller
         $data = $request->validate([
             'organization_id' => ['required', 'uuid'],
             'locale' => ['nullable', 'string', 'in:en,am'],
+            'format' => ['nullable', 'string', 'in:csv,xlsx'],
         ]);
         $user = Auth::user();
         $organization = Organization::query()
@@ -188,10 +197,18 @@ class EmployeeImportController extends Controller
             ->findOrFail($data['organization_id']);
 
         $locale = $this->templateLocale($data['locale'] ?? null);
+        $fileName = 'employee-import-'.Str::slug($organization->code).'-template-'.$locale;
+
+        if (($data['format'] ?? 'csv') === 'xlsx') {
+            return response($this->importService->templateXlsx($organization, $locale), 200, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => 'attachment; filename="'.$fileName.'.xlsx"',
+            ]);
+        }
 
         return response($this->importService->templateCsv($organization, $locale), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="employee-import-'.Str::slug($organization->code).'-template-'.$locale.'.csv"',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'.csv"',
         ]);
     }
 
@@ -247,8 +264,14 @@ class EmployeeImportController extends Controller
             'total_rows' => $batch->total_rows,
             'valid_rows' => $batch->valid_rows,
             'failed_rows' => $batch->failed_rows,
+            'unfilled_rows' => $batch->unfilledRows(),
+            'over_limit_rows' => $batch->overLimitRows(),
+            'imported_rows' => $batch->importedRows(),
+            'calendar' => (string) ($batch->error_summary['calendar'] ?? EmployeeCsvImportService::CALENDAR_GREGORIAN),
             'status' => $batch->status,
             'importable' => $batch->isImportable(),
+            // True once the confirmation ran, whether or not every row went in.
+            'finished' => array_key_exists('imported', $batch->error_summary ?? []),
         ];
     }
 

@@ -60,7 +60,7 @@ const navigation = {
     institutionOffices: 'የተቋም ጽሕፈት ቤቶች',
     hierarchyVersions: 'የመዋቅር ስሪቶች',
     employees: 'ሠራተኞች',
-    employeeImport: 'የሠራተኞች CSV ይጫኑ',
+    employeeImport: 'ሠራተኞችን ከፋይል ይመዝግቡ',
     employeeTransfers: 'የሠራተኛ ዝውውሮች',
     transferManagement: 'የዝውውር አስተዳደር',
     transferDashboard: 'ዳሽቦርድ',

@@ -19,4 +19,11 @@ final class LetterRoutingPolicy
 
         return $this->access->canActOnRouting($user, $routing);
     }
+
+    public function forward(User $user, LetterRouting $routing): bool
+    {
+        $routing->loadMissing('registration');
+
+        return $this->access->canForwardOnward($user, $routing);
+    }
 }
