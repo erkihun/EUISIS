@@ -5,6 +5,8 @@ import { CaseNumber, GPill, Pager, Table, TablePanel, primaryBtn, tdCls, thCls, 
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { CorrespondenceIndexProps } from '@/types/grievances';
 
+import { TableTools } from '@/Components/ui';
+
 const CHANNELS = ['in_app', 'email', 'sms_notice', 'printed', 'official_registry', 'other'];
 
 /** Correspondence register: letters the user may see, with registry actions (seal, issue, dispatch). */
@@ -21,7 +23,7 @@ export default function Index({ letters, filters, options, seals, can }: Corresp
             { name: 'letter_type', label: t('grievances.common.type'), type: 'select', options: options.types.map(v => ({ value: v, label: label('letter_type', v) })) },
         ]} />
         <TablePanel page={letters} empty={w('no_letters')}>
-            <Table head={<>{['reference', 'case', 'type', 'subject', 'status', 'signed', 'issued', 'actions'].map(k => <th key={k} className={thCls}>{w(`col_${k}`)}</th>)}</>}>
+            <TableTools id="grievances-correspondence-index"><Table head={<>{['reference', 'case', 'type', 'subject', 'status', 'signed', 'issued', 'actions'].map(k => <th key={k} className={thCls}>{w(`col_${k}`)}</th>)}</>}>
                 {letters.data.map(l => <tr key={l.id}>
                     <td className={tdCls}><span className="font-mono text-xs">{l.reference_number ?? '—'}</span></td>
                     <td className={tdCls}><Link href={route('grievances.cases.show', l.grievance_id) + '?tab=letters'}><CaseNumber value={l.case_number} /></Link></td>
@@ -37,7 +39,7 @@ export default function Index({ letters, filters, options, seals, can }: Corresp
                         {l.status === 'issued' && can.issue && <ActionForm url={route('grievances.cases.letters.dispatch', [l.grievance_id, l.id])} submitLabel={w('dispatch')} fields={[{ name: 'channel', label: w('channel'), type: 'select', required: true, options: CHANNELS.map(v => ({ value: v, label: label('dispatch_channel', v) })) }, { name: 'notes', label: t('grievances.common.notes'), maxLength: 255 }]} />}
                     </div></td>
                 </tr>)}
-            </Table>
+            </Table></TableTools>
         </TablePanel>
         <Pager page={letters} />
     </Workspace>;

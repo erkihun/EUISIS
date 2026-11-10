@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { NfcResultBadge, useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 
@@ -120,7 +120,7 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
             ) : (
                 <>
                     <div className="hidden overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface) md:block">
-                        <table className={cx(tableClassName, 'min-w-full')}>
+                        <TableTools id="nfc-management-logs-index"><table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.time')}</th>
@@ -176,7 +176,7 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
 
                     <div className="space-y-3 md:hidden">

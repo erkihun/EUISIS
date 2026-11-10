@@ -70,6 +70,7 @@ class PublicSettingsService
              * gregorian_only / ethiopian_only choices could not take effect.
              */
             'localization.calendar_system_mode' => $settings['localization']['calendar_system_mode'] ?? 'locale_based',
+            'appearance.ui_style' => $settings['appearance']['ui_style'] ?? 'swiss',
             'appearance.default_theme' => $settings['appearance']['default_theme'] ?? 'system',
             'appearance.primary_color' => $settings['appearance']['primary_color'] ?? '#122170',
             'appearance.secondary_color' => $settings['appearance']['secondary_color'] ?? '#1D3084',

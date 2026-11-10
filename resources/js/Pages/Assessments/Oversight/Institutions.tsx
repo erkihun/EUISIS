@@ -1,4 +1,4 @@
-import { FilterField } from '@/Components/ui';
+import { FilterField, TableTools } from '@/Components/ui';
 import { CoverageBar, ExportButtons, Filters, OversightLayout, StatusBadge, named, oversightHref, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Table, TablePanel, filterInputCls, tdCls, thCls, type Paginator } from '@/Components/performance/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
@@ -59,7 +59,7 @@ export default function OversightInstitutions(props: Props) {
 
             {rows && (
                 <TablePanel page={rows} empty={t('assessmentOversight.noInstitutions')}>
-                    <Table head={<>
+                    <TableTools id="assessments-oversight-institutions"><Table head={<>
                         {head('name', t('assessmentOversight.institution'))}
                         {head('eligible', t('assessmentOversight.eligible'))}
                         {head(null, t('assessmentOversight.kpi.assigned'))}
@@ -111,7 +111,7 @@ export default function OversightInstitutions(props: Props) {
                                 <td className={tdCls}>{row.verified_at ? <LocalizedDateDisplay value={row.verified_at} /> : '—'}</td>
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </TablePanel>
             )}
         </OversightLayout>

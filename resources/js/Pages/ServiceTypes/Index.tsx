@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type ServiceTypeRow = {
     id: string;
@@ -88,7 +88,7 @@ export default function ServiceTypesIndex({
                         <EmptyState title={t('serviceTypes.noServiceTypes')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="service-types-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
@@ -157,7 +157,7 @@ export default function ServiceTypesIndex({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </section>

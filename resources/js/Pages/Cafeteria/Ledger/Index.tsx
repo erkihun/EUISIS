@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 
-import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, cx, filterCaptionClassName, filterFieldClassName, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, cx, filterCaptionClassName, filterFieldClassName, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type EmployeeOption = { id: string; full_name: string; employee_number: string };
 
 type LedgerEntry = {
@@ -151,7 +151,7 @@ export default function LedgerIndex({
                         <EmptyState description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-ledger-index"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.employeeInfo')}</th>
@@ -178,7 +178,7 @@ export default function LedgerIndex({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} label={t('cafeteria.ledgerPages')} disabled={loading} onPageChange={(page) => navigate({ ...filters, page })} />

@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Holiday = {
     id: string; name_en: string; name_am: string | null;
@@ -56,7 +56,7 @@ export default function HolidaysIndex({ holidays, meta, year, can }: { holidays:
                 <div className={tableContainerClassName}>
                     {holidays.length === 0 ? <EmptyState description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} /> : (
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-holidays-index"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.holidayDate')}</th>
@@ -86,7 +86,7 @@ export default function HolidaysIndex({ holidays, meta, year, can }: { holidays:
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} />

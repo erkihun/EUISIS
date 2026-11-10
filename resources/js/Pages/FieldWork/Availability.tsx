@@ -10,7 +10,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
-import { cx, tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, TableTools } from '@/Components/ui';
 import { useBranding } from '@/hooks/useBranding';
 type Row = {
     id: string;
@@ -44,7 +44,7 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
                     <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{t('fieldWork.availability.empty')}</p>
                 ) : (
                     <div className={panelCls}>
-                        <table className={cx(tableClassName, 'hidden md:table')}>
+                        <TableTools id="field-work-availability"><table className={cx(tableClassName, 'hidden md:table')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={th}>{t('fieldWork.columns.employee')}</th>
@@ -68,7 +68,7 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                         <ul className="divide-y divide-(--app-border) md:hidden">
                             {rows.data.map((row) => (
                                 <li key={row.id}>

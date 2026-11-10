@@ -1,5 +1,13 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@php
+    // Interface style preset for the first paint (System Settings › Appearance); AuthenticatedLayout keeps it current afterwards.
+    $appearance = rescue(fn () => app(App\Services\SystemSettings\PublicSettingsService::class)->shareableSettings(), [], false);
+    $uiStyle = $appearance['appearance.ui_style'] ?? 'swiss';
+    $uiStyle = in_array($uiStyle, ['swiss', 'classic', 'soft', 'contrast'], true) ? $uiStyle : 'swiss';
+    // When people may choose their own theme, their saved interface style (localStorage) is applied before first paint too.
+    $allowUserTheme = (bool) ($appearance['appearance.allow_user_theme_switching'] ?? true);
+@endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-ui-style="{{ $uiStyle }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -96,6 +104,14 @@
                 } catch (e) {
                     document.documentElement.classList.remove('dark');
                 }
+                @if ($allowUserTheme)
+                try {
+                    var ownStyle = localStorage.getItem('ui-style');
+                    if (['swiss', 'classic', 'soft', 'contrast'].indexOf(ownStyle) !== -1) {
+                        document.documentElement.setAttribute('data-ui-style', ownStyle);
+                    }
+                } catch (e) {}
+                @endif
             })();
         </script>
 

@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, SelectOptions, StatusPill } from '@/Components/Cafeteria/PolicyUi';
 
-import { tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
+import { tableBodyClassName, tableClassName, tableHeadClassName, TableTools } from '@/Components/ui';
 type Option = { id: string; code?: string; provider_code?: string; name_en: string; name_am: string | null };
 type Filters = { type: string; date_from: string; date_to: string; organization_id: string | null; provider_id: string | null; network_id: string | null; cafeteria_id: string | null };
 
@@ -78,7 +78,7 @@ export default function AnalyticsIndex({ filters, types, report, organizations, 
 
                 <div className="overflow-x-auto rounded-card border border-(--app-border) bg-(--app-surface)">
                     {report.rows.length === 0 ? <EmptyState title={tt('noResults')} /> : (
-                        <table className={tableClassName}>
+                        <TableTools id="cafeteria-analytics-index"><table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>{report.columns.map((column) => <th key={column} className={`px-4 py-3 ${MONEY.has(column) ? 'text-end' : 'text-start'}`}>{t(`cafeteriaPolicy.columns.${column}`)}</th>)}</tr>
                             </thead>
@@ -89,7 +89,7 @@ export default function AnalyticsIndex({ filters, types, report, organizations, 
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     )}
                 </div>
             </div>

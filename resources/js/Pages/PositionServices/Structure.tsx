@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 /*
  * Position Service (ዋና አገልግሎት) → Sub-Service (ንዑስ አገልግሎት) → Main Task
  * (ዋና ተግባር) → Task Standard / BPR plan (ስታንዳርድ መለኪያ / የBPR ዕቅድ).
@@ -181,7 +181,7 @@ export default function Structure({ service, sub_services, quality_sources, can 
                                             <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{t('workStandards.noStandard')}</p>
                                         ) : (
                                             <div className="mt-2 overflow-x-auto">
-                                                <table className={cx(tableClassName, 'min-w-full')}>
+                                                <TableTools id="position-services-structure"><table className={cx(tableClassName, 'min-w-full')}>
                                                     <thead className={tableHeadClassName}>
                                                         <tr className="text-left">
                                                             <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('workStandards.version')}</th>
@@ -219,7 +219,7 @@ export default function Structure({ service, sub_services, quality_sources, can 
                                                             </tr>
                                                         ))}
                                                     </tbody>
-                                                </table>
+                                                </table></TableTools>
                                             </div>
                                         )}
                                     </li>

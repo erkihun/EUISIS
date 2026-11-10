@@ -8,6 +8,8 @@ import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 
+import { TableTools } from '@/Components/ui';
+
 type Row = {
     id: string;
     code: string;
@@ -35,7 +37,7 @@ export default function OrganizationQrIndex({ organizations }: Props) {
                 <Card><EmptyState title={t('serviceFeedback.noOrganizationsInScope')} /></Card>
             ) : (
                 <TableCard>
-                    <Table>
+                    <TableTools id="service-feedback-organization-qr-index"><Table>
                         <THead>
                             <Tr>
                                 <Th>{t('serviceFeedback.filterOrganization')}</Th>
@@ -69,7 +71,7 @@ export default function OrganizationQrIndex({ organizations }: Props) {
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                 </TableCard>
             )}
         </AuthenticatedLayout>

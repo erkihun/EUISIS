@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
+import Button from '@/Components/Button';
 import { useLocale } from '@/hooks/useLocale';
 
 import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
@@ -51,10 +52,10 @@ export function FormCard({
 }>) {
     return (
         <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
-            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) bg-gray-50/70 px-5 py-4 dark:bg-slate-950/40">
+            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) bg-(--app-surface-muted) px-5 py-4">
                 <div className="flex min-w-0 items-start gap-3">
                     <span
-                        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary dark:bg-blue-500/10 dark:text-primary"
+                        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary dark:bg-primary/10 dark:text-primary"
                         aria-hidden="true"
                     >
                         {icon}
@@ -180,44 +181,23 @@ export function FormActions({
     const { t } = useLocale();
 
     return (
-        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
-            {/* sm:pr-14 keeps the floating assistant button off the primary action. */}
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:pr-14">
-                <Link
-                    href={cancelHref}
-                    className="rounded-lg px-4 py-2 text-center text-sm font-medium text-(--app-foreground) transition hover:bg-(--app-surface-muted)"
-                >
+        // data-sticky-actions: the floating assistant button (GlobalAIAssistant) lifts itself above this bar.
+        <div data-sticky-actions className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-(--app-border) bg-(--app-surface) px-4 py-3 sm:-mx-6 sm:px-6">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+                {/* Kit buttons, so each carries the glyph its label earns (Cancel ×, Save ✓). */}
+                <Button as={Link} href={cancelHref} variant="ghost" className="text-(--app-foreground)">
                     {t('common.cancel')}
-                </Link>
+                </Button>
 
                 {onSaveAndView && (
-                    <button
-                        type="button"
-                        onClick={onSaveAndView}
-                        disabled={processing}
-                        className={buttonClassName({ variant: 'outline' })}
-                    >
+                    <Button variant="outline" onClick={onSaveAndView} disabled={processing}>
                         {t('employees.saveAndView')}
-                    </button>
+                    </Button>
                 )}
 
-                <button
-                    type="submit"
-                    disabled={processing}
-                    className={buttonClassName({ variant: 'primary' })}
-                >
-                    {processing && (
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"
-                            />
-                        </svg>
-                    )}
+                <Button type="submit" variant="primary" loading={processing}>
                     {processing ? t('common.saving') : saveLabel}
-                </button>
+                </Button>
             </div>
         </div>
     );

@@ -7,6 +7,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -39,7 +40,7 @@ export default function AboutIndex({ pages }: AboutIndexProps) {
 
             <div className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="court-about-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('cm.about.table_title'), t('cm.about.table_status'), t('cm.about.table_updated'), t('cm.about.table_actions')].map((heading) => (
@@ -68,7 +69,7 @@ export default function AboutIndex({ pages }: AboutIndexProps) {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
                 {pages.data.length === 0 && <EmptyState title={t('cm.about.empty_state')} description={t('cm.about.empty_state_help')} />}
                 <ListPagination meta={pages} />

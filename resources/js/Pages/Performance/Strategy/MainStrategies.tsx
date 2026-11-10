@@ -7,6 +7,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 
+import { TableTools } from '@/Components/ui';
+
 type Props = {
     mains: MainRow[]; summary: { main_count: number; strategy_count: number; main_total: string } | null;
     filters: Filters; cycles: Cycle[]; organizations: Named[]; can: Can;
@@ -42,7 +44,7 @@ export default function MainStrategies({ mains, summary, filters, cycles, organi
 
                 {contextSelected && (
                     <div className="overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)">
-                        <table className={`${wTable} min-w-[900px]`}>
+                        <TableTools id="performance-strategy-main-strategies"><table className={`${wTable} min-w-[900px]`}>
                             <thead>
                                 <tr>
                                     <th className={wTh}>{m('mainTitle')}</th>
@@ -91,7 +93,7 @@ export default function MainStrategies({ mains, summary, filters, cycles, organi
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </div>

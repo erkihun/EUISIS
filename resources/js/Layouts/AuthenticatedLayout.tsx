@@ -12,6 +12,7 @@ import GlobalAIAssistant from '@/Components/ai/GlobalAIAssistant';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, hoverVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
+import { resolveUiStyle } from '@/lib/theme';
 
 import { buttonClassName } from '@euisis/ui'; // kit, not the app barrel: the barrel pulls the table and virtualiser libraries into every signed-in page
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
@@ -34,7 +35,7 @@ const SHELL_ROOT_PROPERTIES = [
     '--sidebar-accent-light',
     '--sidebar-accent-dark',
 ] as const;
-const SHELL_ROOT_DATASET = ['buttonStyle', 'cardRadius', 'tableDensity', 'stickyTables', 'animations'] as const;
+const SHELL_ROOT_DATASET = ['uiStyle', 'buttonStyle', 'cardRadius', 'tableDensity', 'stickyTables', 'animations'] as const;
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
 const CONTENT_WIDTH = 'mx-auto w-full max-w-[1600px]';
@@ -79,6 +80,10 @@ export default function Authenticated({
     const secondary = getString('appearance.secondary_color', '#1d3084');
     const accent = getString('appearance.accent_color', '#d12908');
     const sidebarColor = getString('appearance.sidebar_color', '#ffffff');
+    // Interface style preset (app.css "Interface style presets"); app.blade.php sets it for the first paint.
+    const uiStyle = getString('appearance.ui_style', 'swiss');
+    // A person's own style (ThemeToggle) wins over the organisation's while switching is allowed.
+    const allowUserTheme = getBoolean('appearance.allow_user_theme_switching', true);
     const buttonStyle = getString('appearance.button_style', 'rounded');
     const cardRadius = getString('appearance.card_radius', 'xl');
     const tableDensity = getString('appearance.table_density', 'comfortable');
@@ -171,6 +176,7 @@ export default function Authenticated({
             '--sidebar-accent-dark',
             sidebarAccent(darkThemeVariant(primary), sidebarDark),
         );
+        root.dataset.uiStyle = resolveUiStyle(uiStyle, allowUserTheme);
         root.dataset.buttonStyle = buttonStyle;
         root.dataset.cardRadius = cardRadius;
         root.dataset.tableDensity = tableDensity;
@@ -187,7 +193,7 @@ export default function Authenticated({
             for (const name of SHELL_ROOT_PROPERTIES) root.style.removeProperty(name);
             for (const key of SHELL_ROOT_DATASET) delete root.dataset[key];
         };
-    }, [primary, secondary, accent, sidebarColor, buttonStyle, cardRadius, tableDensity, stickyTableHeaders, enableAnimations]);
+    }, [primary, secondary, accent, sidebarColor, uiStyle, allowUserTheme, buttonStyle, cardRadius, tableDensity, stickyTableHeaders, enableAnimations]);
 
     return (
         <LocalizedUiProvider>
@@ -222,12 +228,12 @@ export default function Authenticated({
             <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
                 <DialogBackdrop
                     transition
-                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] transition-opacity duration-200 data-closed:opacity-0"
+                    className="fixed inset-0 bg-black/50 transition-opacity duration-200 data-closed:opacity-0"
                 />
                 <div className="fixed inset-0 flex">
                     <DialogPanel
                         transition
-                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-2xl shadow-2xl transition duration-200 ease-out data-closed:-translate-x-full"
+                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-(--radius-panel) border-e border-(--app-border) shadow-xl transition duration-200 ease-out data-closed:-translate-x-full"
                     >
                         <DialogTitle className="sr-only">{t('publicSite.mainNavigation')}</DialogTitle>
                         <AppSidebar onClose={() => setSidebarOpen(false)} />

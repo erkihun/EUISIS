@@ -11,7 +11,7 @@ import OrganizationAccessFields, { type Option, type OrganizationGrant } from '@
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type TokenRow = {
     id: number | string;
@@ -334,7 +334,7 @@ export default function ApiManagementShow({
                     </p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="api-management-show"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.method')}</th>
@@ -367,7 +367,7 @@ export default function ApiManagementShow({
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </section>
@@ -388,7 +388,7 @@ export default function ApiManagementShow({
                 </div>
 
                 <div className="overflow-x-auto rounded-card border border-(--app-border)">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="api-management-show-2"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.name')}</th>
@@ -417,7 +417,7 @@ export default function ApiManagementShow({
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
             </section>
         </AuthenticatedLayout>

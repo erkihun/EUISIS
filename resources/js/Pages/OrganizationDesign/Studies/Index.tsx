@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StudyForm, { emptyStudy, type Option } from '@/Components/organizationDesign/StudyForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -68,7 +68,7 @@ export default function StudiesIndex({ studies, filters, organizations, statuses
                     {studies.data.length === 0 ? (
                         <EmptyState title={tt('studies.noStudies')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('studies.noStudiesHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-studies-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.reference')}</Th>
@@ -106,7 +106,7 @@ export default function StudiesIndex({ studies, filters, organizations, statuses
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={studies} />
                 </TableCard>

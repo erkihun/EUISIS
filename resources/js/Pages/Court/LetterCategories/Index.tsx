@@ -7,6 +7,7 @@ import {
     AppActionMenu, ListPagination, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
     type AppActionItem,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import type { LetterCategoriesIndexProps, LetterCategoryRow } from '@/court/types/letters';
@@ -49,7 +50,7 @@ export default function LetterCategoriesIndex({ categories, can }: LetterCategor
 
             <div className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="court-letter-categories-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cm.json.Name')}</th>
@@ -68,7 +69,7 @@ export default function LetterCategoriesIndex({ categories, can }: LetterCategor
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
                 {categories.data.length === 0 && (
                     <EmptyState

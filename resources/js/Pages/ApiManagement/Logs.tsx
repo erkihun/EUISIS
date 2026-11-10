@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type LogRow = {
     id: string;
     application: { id: string; name: string; code: string } | null;
@@ -58,7 +58,7 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
             </FilterPanel>
             <section className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                <TableTools id="api-management-logs"><table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>
                             <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.externalApplications')}</th>
@@ -89,7 +89,7 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                </table></TableTools>
                 </div>
                 <ListPagination meta={logs} />
             </section>

@@ -11,7 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type EstablishmentSummary = {
     id: string;
@@ -242,7 +242,7 @@ export default function PositionsIndex({
                                     <EmptyState title={t('positions.noPositionsFound')} />
                                 ) : (
                                     <div className="overflow-x-auto">
-                                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                        <TableTools id="positions-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                             <thead className={tableHeadClassName}>
                                                 <tr>
                                                     {[
@@ -336,7 +336,7 @@ export default function PositionsIndex({
                                                     </tr>
                                                 ))}
                                             </tbody>
-                                        </table>
+                                        </table></TableTools>
                                     </div>
                                 )}
                             </section>

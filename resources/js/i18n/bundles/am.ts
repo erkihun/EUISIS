@@ -9,6 +9,7 @@ import amCommon from '@/i18n/am/common';
 import amDailyActivities from '@/i18n/am/dailyActivities';
 import amFieldWork from '@/i18n/am/fieldWork';
 import amServiceMonitoring from '@/i18n/am/serviceMonitoring';
+import amLetters from '@/i18n/am/letters';
 import amPerformance from '@/i18n/am/performance';
 import amCommunication from '@/i18n/am/communication';
 import amRichText from '@/i18n/am/richText';
@@ -93,6 +94,7 @@ const tree: TranslationTree = {
     employeePortal: amEmployeePortal,
     fieldWork: amFieldWork,
     serviceMonitoring: amServiceMonitoring,
+    letters: amLetters,
     dailyActivities: amDailyActivities,
     performance: amPerformance,
     communication: amCommunication,

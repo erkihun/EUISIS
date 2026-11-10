@@ -4,6 +4,8 @@ import { useChartColors } from '@/hooks/useChartColors';
 import { useLocale } from '@/hooks/useLocale';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+import { TableTools } from '@/Components/ui';
+
 type Props = ShellProps & {
     totals: Metrics | null;
     institutions: Metrics[];
@@ -43,7 +45,7 @@ export default function OversightGender(props: Props) {
                 </div>
             )}
             <Section title={t('assessmentOversight.byInstitution')} flush>
-                <Table head={<>
+                <TableTools id="assessments-oversight-gender"><Table head={<>
                     <th className={thCls}>{t('assessmentOversight.institution')}</th>
                     <th className={thCls}>{t('assessmentOversight.eligibleMale')}</th>
                     <th className={thCls}>{t('assessmentOversight.eligibleFemale')}</th>
@@ -72,7 +74,7 @@ export default function OversightGender(props: Props) {
                             </tr>
                         );
                     })}
-                </Table>
+                </Table></TableTools>
             </Section>
         </OversightLayout>
     );

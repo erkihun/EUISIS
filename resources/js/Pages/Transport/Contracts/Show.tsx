@@ -6,6 +6,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { ActionDialogButton, DateText, Field, Money, Pill } from '@/Components/transport/TransportShared';
 import type { TransportContract, TransportSettlement } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 export default function Show({ contract, versions, settlements, can }: { contract: TransportContract; versions: TransportContract[]; settlements: TransportSettlement[]; can: { update: boolean; approve: boolean; settlements: boolean } }) {
     const { t, name, label } = useTransportLabels();
     const title = `${contract.contract_reference} v${contract.version_no}`;
@@ -43,13 +45,13 @@ export default function Show({ contract, versions, settlements, can }: { contrac
                     {contract.service_coverage && <p className="border-t border-(--app-border) p-4 text-sm whitespace-pre-line">{contract.service_coverage}</p>}
                 </TableCard>
                 <TableCard title={t('transport.versions')}>
-                    <table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.version')}</th><th className={tableHeaderCellClassName}>{t('transport.validity')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
-                        <tbody className={tableBodyClassName}>{versions.map((v) => <tr key={v.id} className={tableRowClassName}><td className={tableCellClassName}><Link href={route('transport.contracts.show', v.id)} className="underline-offset-2 hover:underline">v{v.version_no}</Link></td><td className={tableCellClassName}><DateText value={v.effective_from} /> – {v.effective_to ? <DateText value={v.effective_to} /> : '…'}</td><td className={tableCellClassName}><Pill value={v.status} /></td></tr>)}</tbody></table>
+                    <TableTools id="transport-contracts-show"><table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.version')}</th><th className={tableHeaderCellClassName}>{t('transport.validity')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
+                        <tbody className={tableBodyClassName}>{versions.map((v) => <tr key={v.id} className={tableRowClassName}><td className={tableCellClassName}><Link href={route('transport.contracts.show', v.id)} className="underline-offset-2 hover:underline">v{v.version_no}</Link></td><td className={tableCellClassName}><DateText value={v.effective_from} /> – {v.effective_to ? <DateText value={v.effective_to} /> : '…'}</td><td className={tableCellClassName}><Pill value={v.status} /></td></tr>)}</tbody></table></TableTools>
                 </TableCard>
                 {can.settlements && settlements.length > 0 && (
                     <TableCard title={t('transport.settlements')}>
-                        <table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.statement')}</th><th className={tableHeaderCellClassName}>{t('transport.period')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.calculatedAmount')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
-                            <tbody className={tableBodyClassName}>{settlements.map((s) => <tr key={s.id} className={tableRowClassName}><td className={tableCellClassName}><Link href={route('transport.settlements.show', s.id)} className="underline-offset-2 hover:underline">{s.settlement_number}</Link></td><td className={tableCellClassName}><DateText value={s.period_start} /> – <DateText value={s.period_end} /></td><td className={`${tableCellClassName} text-right`}><Money value={s.calculated_amount} currency={s.currency_code} /></td><td className={tableCellClassName}><Pill value={s.status} /></td></tr>)}</tbody></table>
+                        <TableTools id="transport-contracts-show-2"><table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.statement')}</th><th className={tableHeaderCellClassName}>{t('transport.period')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.calculatedAmount')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
+                            <tbody className={tableBodyClassName}>{settlements.map((s) => <tr key={s.id} className={tableRowClassName}><td className={tableCellClassName}><Link href={route('transport.settlements.show', s.id)} className="underline-offset-2 hover:underline">{s.settlement_number}</Link></td><td className={tableCellClassName}><DateText value={s.period_start} /> – <DateText value={s.period_end} /></td><td className={`${tableCellClassName} text-right`}><Money value={s.calculated_amount} currency={s.currency_code} /></td><td className={tableCellClassName}><Pill value={s.status} /></td></tr>)}</tbody></table></TableTools>
                     </TableCard>
                 )}
             </div>

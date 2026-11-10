@@ -43,6 +43,7 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0024](0024-public-feedback-throttle-and-service-requirement.md) | Public feedback throttle counts stored submissions; a post without services is still ratable | accepted 2026-11-02 |
 | [0025](0025-reporting-hierarchy-and-supervisor-resolution.md) | One reporting model: published profile line, else unit leadership, acting appointment first; a person only from assignments in force on the date; every gap its own outcome; permission AND relationship for every supervisor action; delegations bounded by the delegator's live authority; one head per unit and organization at the database; workflows switch to the structure behind a flag | accepted 2026-11-02 |
 | [0026](0026-complete-default-role-catalog.md) | A complete default role catalog: every permission reachable through a non-administrator role unless it is deliberately admin-only or a legacy alias; 38 roles added along maker ≠ checker lines; the list of admin-only permissions is code, tested, and never grows silently | accepted 2026-11-02 |
+| [0037](0037-letters-module.md) | One Letters module owns every official letter and template: one letter, one registry entry per institution with its own number; other modules issue letters through a contract and store none; fresh code, nothing taken from the earlier letter features | accepted 2026-11-09 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),

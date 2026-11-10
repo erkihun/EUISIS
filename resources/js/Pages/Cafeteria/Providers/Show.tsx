@@ -5,7 +5,7 @@ import { Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Provider = {
     id: string; code: string; name_en: string; name_am: string | null;
@@ -130,7 +130,7 @@ export default function ProviderShow({
                         </p>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-providers-show"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={thCls}>{t('cafeteria.branchCode')}</th>
@@ -173,7 +173,7 @@ export default function ProviderShow({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </div>
@@ -200,7 +200,7 @@ export default function ProviderShow({
                         </p>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-providers-show-2"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={thCls}>{t('cafeteria.providerUser')}</th>
@@ -237,7 +237,7 @@ export default function ProviderShow({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </div>

@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import RangePicker from '@/Components/serviceMonitoring/RangePicker';
-import { Alert, AppMetricCard, Card, CardTitle, Table, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { Alert, AppMetricCard, Card, CardTitle, Table, TBody, Td, Th, THead, Tr, TableTools } from '@/Components/ui';
 import type { TemplateContentData } from '@/Components/serviceMonitoring/builder/TemplateEditor';
 import { formatNumber, headerRuns, isTotalled, nameOf, toNumber } from '@/Components/serviceMonitoring/builder/helpers';
 import type { Cell, FormColumn, Named, TableBlock } from '@/Components/serviceMonitoring/builder/types';
@@ -112,7 +112,7 @@ function FixedSummary({ block, table, types }: { block: TableBlock; table: Summa
         <div className="space-y-2">
             <h3 className="text-sm font-semibold text-(--app-foreground)">{block.title}</h3>
             <div className="overflow-x-auto rounded-card border border-(--app-border)">
-                <Table>
+                <TableTools id="service-monitoring-forms-summary"><Table>
                     <THead>
                         <Tr>
                             <Th rowSpan={2} />
@@ -136,7 +136,7 @@ function FixedSummary({ block, table, types }: { block: TableBlock; table: Summa
                             </Tr>
                         )}
                     </TBody>
-                </Table>
+                </Table></TableTools>
             </div>
         </div>
     );
@@ -154,7 +154,7 @@ function ListedSummary({ block, table, typeName }: { block: TableBlock; table: S
             <h3 className="text-sm font-semibold text-(--app-foreground)">{block.title} <span className="text-xs font-normal text-(--app-muted-foreground)">({table.listed_count})</span></h3>
             {table.listed.length < table.listed_count && <p className="text-xs text-(--app-muted-foreground)">{t('serviceMonitoring.templates.listedLimit')}</p>}
             <div className="overflow-x-auto rounded-card border border-(--app-border)">
-                <Table>
+                <TableTools id="service-monitoring-forms-summary-2"><Table>
                     <THead>
                         <Tr>
                             <Th rowSpan={grouped ? 2 : 1}>{t('serviceMonitoring.templates.institution')}</Th>
@@ -182,7 +182,7 @@ function ListedSummary({ block, table, typeName }: { block: TableBlock; table: S
                             </Tr>
                         )}
                     </TBody>
-                </Table>
+                </Table></TableTools>
             </div>
         </div>
     );

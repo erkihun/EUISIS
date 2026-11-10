@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LegalSourceForm, { emptyLegalSource, type SourceType } from '@/Components/organizationDesign/LegalSourceForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -79,7 +79,7 @@ export default function LegalSourcesIndex({ sources, filters, organizations, sou
                     {sources.data.length === 0 ? (
                         <EmptyState title={tt('legalSources.none')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('legalSources.noneHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-legal-sources-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -115,7 +115,7 @@ export default function LegalSourcesIndex({ sources, filters, organizations, sou
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={sources} />
                 </TableCard>

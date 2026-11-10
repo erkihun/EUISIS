@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import { nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FileUpload, FilterField, FilterPanel, FormField, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, buttonClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FileUpload, FilterField, FilterPanel, FormField, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, buttonClassName, badgeClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -86,7 +86,7 @@ export default function DesignImportsIndex({ batches, filters, organizations, en
                     {batches.data.length === 0 ? (
                         <EmptyState title={tt('designImports.none')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('designImports.noneHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-imports-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.reference')}</Th>
@@ -122,7 +122,7 @@ export default function DesignImportsIndex({ batches, filters, organizations, en
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={batches} />
                 </TableCard>

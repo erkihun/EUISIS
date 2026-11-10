@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { ActionButton, Money, StatusPill, useNames, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 import type { SettlementSummary } from './Index';
 
-import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type Line = { id: string; employee_organization: NamePair; cafeteria: NamePair & { location_type?: string | null }; transaction_count: number; subsidy_amount: string; employee_amount: string; provider_amount: string };
 type OrgTotal = { employee_organization: NamePair; transaction_count: number; subsidy_amount: string; employee_amount: string; provider_amount: string };
 
@@ -48,7 +48,7 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
 
                 <Card className="overflow-x-auto p-0">
                     <h2 className="px-5 pt-4 text-base font-semibold">{tt('liabilityByOrganization')}</h2>
-                    <table className={cx(tableClassName, 'mt-2')}>
+                    <TableTools id="cafeteria-settlements-show"><table className={cx(tableClassName, 'mt-2')}>
                         <thead className={tableHeadClassName}><tr>
                             <Th>{tt('employeeOrganization')}</Th><Th end>{tt('transactions')}</Th><Th end>{tt('subsidyAmount')}</Th><Th end>{tt('employeeAmount')}</Th><Th end>{tt('providerAmount')}</Th>
                         </tr></thead>
@@ -63,12 +63,12 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </Card>
 
                 <Card className="overflow-x-auto p-0">
                     <h2 className="px-5 pt-4 text-base font-semibold">{tt('serviceLocation')}</h2>
-                    <table className={cx(tableClassName, 'mt-2')}>
+                    <TableTools id="cafeteria-settlements-show-2"><table className={cx(tableClassName, 'mt-2')}>
                         <thead className={tableHeadClassName}><tr>
                             <Th>{tt('employeeOrganization')}</Th><Th>{tt('cafeteria')}</Th><Th end>{tt('transactions')}</Th><Th end>{tt('subsidyAmount')}</Th><Th end>{tt('employeeAmount')}</Th><Th end>{tt('providerAmount')}</Th>
                         </tr></thead>
@@ -84,7 +84,7 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </Card>
                 {settlement.notes && <p className="text-sm text-(--app-muted-foreground)">{settlement.notes}</p>}
             </div>

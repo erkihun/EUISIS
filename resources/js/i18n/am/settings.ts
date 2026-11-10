@@ -431,6 +431,7 @@ const settings = {
         sms_provider: { disabled: 'ተሰናክሏል', generic_http: 'አጠቃላይ HTTP API', local_gateway: 'አካባቢያዊ መግቢያ', ethio_telecom: 'ኢትዮ ቴሌኮም', custom: 'ብጁ' },
         default_theme: { light: 'ብሩህ', dark: 'ጨለማ', system: 'መሳሪያውን ተከተል' },
         table_density: { compact: 'የታመቀ', comfortable: 'ምቹ', spacious: 'ሰፊ' },
+        ui_style: { swiss: 'ስዊስ (ንጹህ፣ ጠፍጣፋ፤ የሚመከር)', classic: 'ክላሲክ (በቀለም የተነከሩ ካርዶች)', soft: 'ለስላሳ (ከፍ ያሉ ገጾች)', contrast: 'ከፍተኛ ንጽጽር' },
         button_style: { rounded: 'የተጠጋጋ', soft: 'ለስላሳ', square: 'ካሬ' },
         card_radius: { sm: 'ትንሽ', md: 'መካከለኛ', lg: 'ትልቅ', xl: 'በጣም ትልቅ', '2xl': 'ትልቁ' },
         dashboard_layout: { executive: 'የአመራር', compact: 'የታመቀ' },

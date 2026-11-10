@@ -8,7 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type OrgType = {
     id: string;
@@ -140,7 +140,7 @@ export default function OrganizationTypesIndex({
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="organization-types-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
@@ -232,7 +232,7 @@ export default function OrganizationTypesIndex({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </TableCard>

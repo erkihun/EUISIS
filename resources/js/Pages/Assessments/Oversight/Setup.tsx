@@ -9,7 +9,7 @@ import { StatusBadge as UiStatusBadge, Tabs } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 type BandDraft = { code: string; label_en: string; label_am: string | null; min_score: string; max_score: string; min_inclusive: boolean; max_inclusive: boolean };
 type Policy = { id: string; code: string; version_no: number; name_en: string; name_am: string | null; status: string; range_min: string; range_max: string; requires_full_coverage: boolean; activated_at: string | null; bands: BandDraft[]; problems: string[] };
 type Reason = { id: string; code: string; name_en: string; name_am: string | null; source: string; requires_approval: boolean; excludes_from_denominator: boolean; is_system: boolean; is_active: boolean; sort_order: number };
@@ -41,7 +41,7 @@ export default function OversightSetup({ cycles, policies, reasons, types, emplo
                         ? <Section title={t('assessmentOversight.setup.newCycle')}><CycleForm types={types} policies={policies.filter((p) => p.status === 'active')} employeeStatuses={employeeStatuses} onCancel={() => setCreating(false)} /></Section>
                         : <div className="mb-4"><button type="button" className={primaryBtn} onClick={() => setCreating(true)}>{t('assessmentOversight.setup.newCycle')}</button></div>}
                     <TablePanel page={cycles} empty={t('assessmentOversight.setup.noCycles')}>
-                        <Table head={<>
+                        <TableTools id="assessments-oversight-setup"><Table head={<>
                             <th className={thCls}>{t('assessmentOversight.cycle')}</th>
                             <th className={thCls}>{t('assessmentOversight.setup.type')}</th>
                             <th className={thCls}>{t('assessmentOversight.setup.period')}</th>
@@ -61,7 +61,7 @@ export default function OversightSetup({ cycles, policies, reasons, types, emplo
                                     <td className={`${tdCls} text-right`}><Link className={linkBtn} href={route('assessment-oversight.cycles.show', c.id)}>{t('assessmentOversight.open')}</Link></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     </TablePanel>
                 </>
                     ) }] : []),
@@ -127,7 +127,7 @@ function BandEditor({ policy, onDone }: { policy: Policy; onDone: () => void }) 
                 <label className="flex items-end gap-2 pb-2 text-sm"><input type="checkbox" checked={form.data.requires_full_coverage} onChange={(e) => form.setData('requires_full_coverage', e.target.checked)} />{t('assessmentOversight.setup.fullCoverage')}</label>
             </div>
             <div className="overflow-x-auto">
-                <table className={cx(tableClassName, 'min-w-full')}>
+                <TableTools id="assessments-oversight-setup-2"><table className={cx(tableClassName, 'min-w-full')}>
                     <thead className={tableHeadClassName}><tr>
                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.code')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.labelEn')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.labelAm')}</th>
                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.min')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.minInclusive')}</th>
@@ -147,7 +147,7 @@ function BandEditor({ policy, onDone }: { policy: Policy; onDone: () => void }) 
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                </table></TableTools>
             </div>
             {Object.entries(form.errors).map(([k, v]) => <p key={k} className="text-sm text-red-600">{v}</p>)}
             <div className="flex gap-2">
@@ -192,7 +192,7 @@ function Reasons({ reasons }: { reasons: Reason[] }) {
                 </form>
             </Section>
             <Section title={t('assessmentOversight.setup.tabs.reasons')} flush>
-                <Table head={<>
+                <TableTools id="assessments-oversight-setup-3"><Table head={<>
                     <th className={thCls}>{t('assessmentOversight.setup.code')}</th>
                     <th className={thCls}>{t('assessmentOversight.reason')}</th>
                     <th className={thCls}>{t('assessmentOversight.setup.source')}</th>
@@ -210,7 +210,7 @@ function Reasons({ reasons }: { reasons: Reason[] }) {
                             <td className={tdCls}><button type="button" className={linkBtn} onClick={() => edit(r)}>{t('assessmentOversight.actions.edit')}</button></td>
                         </tr>
                     ))}
-                </Table>
+                </Table></TableTools>
             </Section>
         </>
     );

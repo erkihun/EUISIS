@@ -4,6 +4,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { ActionDialogButton, DateText, Pill } from '@/Components/transport/TransportShared';
 import type { TransportDevice } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 /** The provider's scanner devices. Registration is the city's; a lost device is revoked here at once. */
 export default function Index({ devices, inactivityMinutes }: { devices: TransportDevice[]; inactivityMinutes: number }) {
     const { t } = useTransportLabels();
@@ -14,7 +16,7 @@ export default function Index({ devices, inactivityMinutes }: { devices: Transpo
             <TableCard title={t('transport.devices')} description={t('transport.devicesPortalIntro')}>
                 {devices.length === 0 ? <EmptyState title={t('transport.noRecords')} /> : (
                     <div className="relative overflow-x-auto">
-                        <table className={tableClassName}>
+                        <TableTools id="provider-portal-transport-devices-index"><table className={tableClassName}>
                             <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.deviceCode')}</th><th className={tableHeaderCellClassName}>{t('transport.boundVehicle')}</th><th className={tableHeaderCellClassName}>{t('transport.lastSeen')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th><th className={tableHeaderCellClassName} /></tr></thead>
                             <tbody className={tableBodyClassName}>
                                 {devices.map((d) => (
@@ -27,7 +29,7 @@ export default function Index({ devices, inactivityMinutes }: { devices: Transpo
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </TableCard>

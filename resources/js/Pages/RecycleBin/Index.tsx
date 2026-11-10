@@ -9,7 +9,7 @@ import { toast } from '@/lib/toast';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type RecycleBinRecord = {
     type: string;
     type_label_key: string;
@@ -122,7 +122,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                         <EmptyState title={t('recycleBin.noDeletedRecords')} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="recycle-bin-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('recycleBin.recordType')}</th>
@@ -169,7 +169,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={records.meta} />

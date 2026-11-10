@@ -19,6 +19,8 @@ class UpdateAppearanceSettingsRequest extends FormRequest
         $hex = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
 
         return [
+            // `sometimes`: older clients and tests that post the appearance form without it keep the saved style.
+            'ui_style' => ['sometimes', 'string', Rule::in(['swiss', 'classic', 'soft', 'contrast'])],
             'default_theme' => ['required', Rule::in(['light', 'dark', 'system'])],
             'primary_color' => $hex,
             'secondary_color' => $hex,

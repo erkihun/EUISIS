@@ -5,7 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-import { FilterField, inputClassName } from '@/Components/ui';
+import { FilterField, inputClassName, TableTools } from '@/Components/ui';
 type Row = {
     id: string; revision_no: number; status: string; eligible_count: number; assessed_count: number; unassessed_count: number; coverage_percent: string | null; return_reason: string | null;
     organization: { id: string; code: string; name_en: string; name_am: string | null } | null; submitter: string | null;
@@ -36,7 +36,7 @@ export default function OversightSubmissions(props: Props) {
             </Filters>
             {rows && (
                 <TablePanel page={rows} empty={t('assessmentOversight.noSubmissions')}>
-                    <Table head={<>
+                    <TableTools id="assessments-oversight-submissions"><Table head={<>
                         <th className={thCls}>{t('assessmentOversight.institution')}</th>
                         <th className={thCls}>{t('assessmentOversight.revision')}</th>
                         <th className={thCls}>{t('assessmentOversight.status')}</th>
@@ -76,7 +76,7 @@ export default function OversightSubmissions(props: Props) {
                                 </tr>
                             );
                         })}
-                    </Table>
+                    </Table></TableTools>
                 </TablePanel>
             )}
         </OversightLayout>

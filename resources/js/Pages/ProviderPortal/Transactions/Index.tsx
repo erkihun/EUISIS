@@ -6,6 +6,8 @@ import { Link, router } from '@inertiajs/react';
 import { FormEvent, useRef, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { TableTools } from '@/Components/ui';
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Provider = { id: string; code: string; name_en: string; name_am?: string | null };
 type Transaction = {
@@ -293,7 +295,7 @@ export default function TransactionsIndex({
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <TableTools id="provider-portal-transactions-index"><table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-100 bg-gray-50/80 dark:border-slate-800 dark:bg-slate-800/40">
                                     <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-slate-500">Txn #</th>
@@ -368,7 +370,7 @@ export default function TransactionsIndex({
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
 
                     {/* Pagination */}

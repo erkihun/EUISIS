@@ -7,7 +7,7 @@ import { useState } from 'react';
 import EmptyState from '@/Components/EmptyState';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type Application = {
     id: string;
     application_number: string;
@@ -70,7 +70,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="vacancy-applications-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[
@@ -103,7 +103,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                     </div>
                     {applications.data.length === 0 && (
                         <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />

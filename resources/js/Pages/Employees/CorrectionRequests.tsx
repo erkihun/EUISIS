@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Alert, Button, ListPagination, TableCard, Table, TBody, Td, Th, THead, Tr, buttonClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Alert, Button, ListPagination, TableCard, Table, TBody, Td, Th, THead, Tr, buttonClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 
 type Correction = { id: string; employee: string; employee_id: string; field: string; value: string; can_review: boolean };
 
@@ -16,7 +16,7 @@ export default function CorrectionRequests({ requests, labels }: { requests: Lar
             {Object.keys(errors).length > 0 && <Alert tone="danger" className="mb-4">{Object.values(errors).join(' ')}</Alert>}
             <TableCard>
                 {requests.data.length === 0 ? <EmptyState title={labels.empty} /> : (
-                    <Table>
+                    <TableTools id="employees-correction-requests"><Table>
                         <THead>
                             <tr>
                                 <Th>{labels.fields.full_name}</Th>
@@ -43,7 +43,7 @@ export default function CorrectionRequests({ requests, labels }: { requests: Lar
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                 )}
                 <ListPagination meta={requests} />
             </TableCard>

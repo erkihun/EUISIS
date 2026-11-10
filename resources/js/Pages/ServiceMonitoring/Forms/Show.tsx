@@ -3,7 +3,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useConfirm } from '@/Components/ConfirmProvider';
-import { Alert, Button, Card, CardDescription, CardHeader, CardTitle, FormField, Input, Table, TableCard, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { Alert, Button, Card, CardDescription, CardHeader, CardTitle, FormField, Input, Table, TableCard, TBody, Td, Th, THead, Tr, TableTools } from '@/Components/ui';
 import FormRenderer from '@/Components/serviceMonitoring/builder/FormRenderer';
 import type { BuiltInSection, OfficialWording, TemplateContentData } from '@/Components/serviceMonitoring/builder/TemplateEditor';
 import { nameOf } from '@/Components/serviceMonitoring/builder/helpers';
@@ -101,7 +101,7 @@ export default function FormTemplateShow({ template, versions, problems, officia
 
                 <TableCard title={tt('versions')}>
                     <div className="overflow-x-auto">
-                        <Table>
+                        <TableTools id="service-monitoring-forms-show"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{tt('version')}</Th>
@@ -120,7 +120,7 @@ export default function FormTemplateShow({ template, versions, problems, officia
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     </div>
                 </TableCard>
 

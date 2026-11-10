@@ -9,7 +9,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type TreeNode = {
     id: string;
     code: string;
@@ -224,7 +224,7 @@ export default function HierarchyVersionShow({
                     {t('hierarchyVersions.edgeCount')}
                 </h3>
                 <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="hierarchy-versions-show"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('hierarchyVersions.parentOrganization'), t('hierarchyVersions.childOrganization'), t('organizations.relationshipType')].map((heading) => (
@@ -249,7 +249,7 @@ export default function HierarchyVersionShow({
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
             </section>
         </AuthenticatedLayout>

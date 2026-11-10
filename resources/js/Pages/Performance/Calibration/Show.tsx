@@ -7,6 +7,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Item = { id: string; employee: { name: string | null; name_en: string | null; number: string | null }; manager_score: string | null; proposed_score: string | null; calibrated_score: string | null; reason: string | null; decided_at: string | null };
 
 type Props = {
@@ -37,7 +39,7 @@ export default function CalibrationShow({ session, items, candidates, can }: Pro
 
                 <Section title={t('performance.calibration.title')}>
                     {items.length === 0 ? <Empty>{t('performance.calibration.empty')}</Empty> : (
-                        <Table head={<>
+                        <TableTools id="performance-calibration-show"><Table head={<>
                             <th className={thCls}>{t('performance.fields.employee')}</th>
                             <th className={thCls}>{t('performance.calibration.managerScore')}</th>
                             <th className={thCls}>{t('performance.calibration.calibratedScore')}</th>
@@ -45,7 +47,7 @@ export default function CalibrationShow({ session, items, candidates, can }: Pro
                             {can.decide && !finalized && <th className={thCls}><span className="sr-only">{t('performance.actions.decide')}</span></th>}
                         </>}>
                             {items.map((item) => <ItemRow key={item.id} item={item} canDecide={can.decide && !finalized} locale={locale} />)}
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </Section>
 

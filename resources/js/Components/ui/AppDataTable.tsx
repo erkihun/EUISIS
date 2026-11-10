@@ -13,7 +13,7 @@ import EmptyState from '@/Components/EmptyState';
 import { AppTableSkeleton } from '@/Components/ui/AppSkeleton';
 import ListPagination, { type LaravelPageMeta } from '@/Components/ui/ListPagination';
 import { useLocale } from '@/hooks/useLocale';
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@euisis/ui';
+import { TableTools, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@euisis/ui';
 
 /**
  * TanStack Table 9 types every column by the table's feature set. These tables
@@ -29,6 +29,8 @@ export const createColumnHelper = <TData extends RowData>() => createFeatureColu
 export type AppDataTableMeta = LaravelPageMeta;
 
 interface AppDataTableProps<TData extends RowData> {
+    /** Name under which TableTools remembers the viewer's columns and density; defaults to the route name. */
+    id?: string;
     /** Row data. */
     data: TData[];
     /** TanStack column definitions. */
@@ -62,6 +64,7 @@ interface AppDataTableProps<TData extends RowData> {
  * ```
  */
 export default function AppDataTable<TData extends RowData>({
+    id,
     data,
     columns,
     meta,
@@ -88,7 +91,7 @@ export default function AppDataTable<TData extends RowData>({
     }
 
     return (
-        <div className={cx(tableContainerClassName, className)}>
+        <TableTools id={id ?? routeName ?? 'data-table'} className={cx(tableContainerClassName, className)}>
             {!loading && data.length === 0 ? (
                 <EmptyState title={emptyTitle ?? t('common.noResults')} description={emptyDescription} action={emptyAction} />
             ) : (
@@ -135,7 +138,7 @@ export default function AppDataTable<TData extends RowData>({
             )}
 
             <ListPagination meta={meta} onPageChange={routeName ? goToPage : undefined} disabled={loading} />
-        </div>
+        </TableTools>
     );
 }
 

@@ -119,7 +119,12 @@ ls_additional_workspace_folders: []
 #     - "**/bin/**"
 #     - "**/obj/**"
 # Note: global ignored_paths from serena_config.yml are also applied additively.
-ignored_paths: []
+ignored_paths:
+  - "vendor/**"
+  - "node_modules/**"
+  - ".claude/worktrees/**"
+  - "storage/**"
+  - "public/build/**"
 
 # whether the project is in read-only mode
 # If set to true, all editing tools will be disabled and attempts to use them will result in an error

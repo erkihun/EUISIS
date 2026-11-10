@@ -8,6 +8,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import {
     FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatNumber } from '@/utils/displayFormat';
@@ -46,7 +47,7 @@ export default function HearingsIndex({ hearings, filters }: HearingsIndexProps)
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-hearings-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[t('cm.cases.table.number'), t('cm.cases.table.case_number'), t('court.hearings.dateTime'), t('court.hearings.type'), t('court.hearings.createdBy'), t('cm.cases.table.actions')].map((heading) => (
@@ -88,7 +89,7 @@ export default function HearingsIndex({ hearings, filters }: HearingsIndexProps)
                                     </Fragment>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {hearings.data.length === 0 && <EmptyState title={t('cm.cases.no_hearings_scheduled')} />}
                     <ListPagination meta={hearings} />

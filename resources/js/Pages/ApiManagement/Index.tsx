@@ -13,7 +13,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { formatRelative } from '@/lib/relativeTime';
 import { Alert, Button, Card, EmptyState, SearchInput, cx } from '@euisis/ui';
 
-import { tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type ScopeOption = { value: string; label: string };
 
 type ApplicationRow = {
@@ -302,7 +302,7 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                     ) : (
                         <>
                             <div className="hidden overflow-x-auto md:block">
-                                <table className={cx(tableClassName, 'text-left')}>
+                                <TableTools id="api-management-index"><table className={cx(tableClassName, 'text-left')}>
                                     <thead className={tableHeadClassName}>
                                         <tr>
                                             <th scope="col" className={cx(cell, 'pl-5 font-medium')}>{t('apiManagement.application')}</th>
@@ -350,7 +350,7 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                             </tr>
                                         ))}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
 
                             <ul className="divide-y divide-(--app-border) md:hidden">

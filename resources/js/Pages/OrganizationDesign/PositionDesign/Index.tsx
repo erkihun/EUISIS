@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -51,7 +51,7 @@ export default function PositionDesignIndex({ positions, filters, organizations 
                     {positions.data.length === 0 ? (
                         <EmptyState title={tt('positionDesign.noPositions')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('positionDesign.noPositionsHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-position-design-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -89,7 +89,7 @@ export default function PositionDesignIndex({ positions, filters, organizations 
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={positions} />
                 </TableCard>

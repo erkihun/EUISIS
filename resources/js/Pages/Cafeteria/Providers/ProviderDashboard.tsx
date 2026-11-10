@@ -4,7 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Stats = {
     total_providers: number;
@@ -120,7 +120,7 @@ export default function ProviderDashboard({
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className={tableClassName}>
+                        <TableTools id="cafeteria-providers-provider-dashboard"><table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={thCls}>{t('cafeteria.providerCode')}</th>
@@ -185,7 +185,7 @@ export default function ProviderDashboard({
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
 
                     {/* Footer: today label */}

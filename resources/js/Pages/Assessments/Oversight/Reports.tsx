@@ -2,7 +2,7 @@ import { ExportButtons, Filters, IssueTile, Kpi, KpiGroup, OversightLayout, name
 import { Section, Table, filterInputCls, tdCls, thCls } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, cx, tableRowClassName } from '@/Components/ui';
+import { FilterField, cx, tableRowClassName, TableTools } from '@/Components/ui';
 type Row = { organization: { id: string; code?: string; name_en?: string; name_am?: string | null }; metrics: Metrics; bands: Record<string, number> | null };
 type ReasonRow = { code: string | null; name_en: string | null; name_am: string | null; n: number };
 
@@ -96,7 +96,7 @@ export default function OversightReports(props: Props) {
                     )}
 
                     <Section title={t('assessmentOversight.reports.consolidated')} description={t('assessmentOversight.consolidatedHelp')} flush>
-                        <Table head={<>
+                        <TableTools id="assessments-oversight-reports"><Table head={<>
                             <th className={thCls}>{t('assessmentOversight.institution')}</th>
                             <th className={thCls}>{t('assessmentOversight.eligible')}</th>
                             <th className={thCls}>{t('assessmentOversight.assessed')}</th>
@@ -144,7 +144,7 @@ export default function OversightReports(props: Props) {
                                     {bands.map((b) => <td key={b.code} className={`${tdCls} tabular-nums`}>{b.count}</td>)}
                                 </tr>
                             )}
-                        </Table>
+                        </Table></TableTools>
                     </Section>
 
                     {reasons && (

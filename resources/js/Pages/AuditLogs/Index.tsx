@@ -8,7 +8,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { FilterField, FilterPanel, Input, ListPagination, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type AuditLog = {
     id: string;
     event_type: string;
@@ -159,7 +159,7 @@ export default function AuditLogsIndex({
                         <EmptyState title={t('auditLogs.noLogs')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="audit-logs-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
@@ -216,7 +216,7 @@ export default function AuditLogsIndex({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} />

@@ -13,7 +13,7 @@ import { Ziggy } from './ziggy';
 import { LocaleProvider, resolveInitialLocale } from '@/contexts/LocaleContext';
 import { ensureCourtLocale, ensureLocale } from '@/i18n/registry';
 import ConfirmProvider from '@/Components/ConfirmProvider';
-import { initTheme, type ThemePreference } from '@/lib/theme';
+import { initTheme, initUiStyle, type ThemePreference } from '@/lib/theme';
 import { BRANDING_FALLBACK, brandNameFor, type Branding } from '@/lib/branding';
 import AppErrorBoundary from '@/Components/errors/AppErrorBoundary';
 import AppPageLoader from '@/Components/ui/AppPageLoader';
@@ -124,6 +124,8 @@ function mount() {
                 (settings['appearance.default_theme'] as ThemePreference | undefined) ?? 'system',
                 Boolean(settings['appearance.allow_user_theme_switching'] ?? true),
             );
+            // Interface style: the organisation's choice, or the person's own when switching is allowed.
+            initUiStyle(settings['appearance.ui_style'], Boolean(settings['appearance.allow_user_theme_switching'] ?? true));
 
             const root = createRoot(el);
             root.render(

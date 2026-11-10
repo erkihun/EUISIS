@@ -6,6 +6,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { ActionDialogButton, DateText, Field, Kpi, Money, Pill } from '@/Components/transport/TransportShared';
 import { DISPUTE_TYPES, type Reconciliation, type RouteRef, type TransportSettlement } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 /** Reconciliation: claimed vs verified vs calculated vs adjusted vs approved, each kept, none overwritten. */
 export default function Show({ settlement, reconciliation, routes, can }: { settlement: TransportSettlement; reconciliation: Reconciliation; routes: RouteRef[]; can: { manage: boolean; approve: boolean; isComputer: boolean } }) {
     const { t, name, label } = useTransportLabels();
@@ -53,7 +55,7 @@ export default function Show({ settlement, reconciliation, routes, can }: { sett
                     </dl>
                 </Card>
                 <TableCard title={t('transport.reconciliation')}>
-                    <table className={tableClassName}>
+                    <TableTools id="transport-settlements-show"><table className={tableClassName}>
                         <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.unit')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.claimed')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.verified')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.difference')}</th></tr></thead>
                         <tbody className={tableBodyClassName}>
                             <tr className={tableRowClassName}><td className={tableCellClassName}>{t('transport.boardings')}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{reconciliation.claimed_boardings ?? '—'}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{reconciliation.verified_boardings}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{reconciliation.boardings_difference ?? '—'}</td></tr>
@@ -62,21 +64,21 @@ export default function Show({ settlement, reconciliation, routes, can }: { sett
                             <tr className={tableRowClassName}><td className={tableCellClassName}>{t('transport.uniqueRiders')}</td><td className={`${tableCellClassName} text-right`}>—</td><td className={`${tableCellClassName} text-right tabular-nums`}>{s.unique_riders}</td><td className={tableCellClassName} /></tr>
                             <tr className={tableRowClassName}><td className={tableCellClassName}>{t('transport.cancelledTrips')}</td><td className={`${tableCellClassName} text-right`}>—</td><td className={`${tableCellClassName} text-right tabular-nums`}>{s.cancelled_trips}</td><td className={tableCellClassName} /></tr>
                         </tbody>
-                    </table>
+                    </table></TableTools>
                     {s.basis?.data_quality && (s.basis.data_quality.boardings_on_uncompleted_trips || s.basis.data_quality.offline_pending_boardings) ? <p className="border-t border-(--app-border) p-4 text-sm text-amber-700">{t('transport.basisDataQuality')}: {t('transport.dataQuality.boardings_on_uncompleted_trips')} {s.basis.data_quality.boardings_on_uncompleted_trips ?? 0} · {t('transport.dataQuality.offline_pending_boardings')} {s.basis.data_quality.offline_pending_boardings ?? 0}</p> : null}
                 </TableCard>
                 <TableCard title={t('transport.calculation')}>
                     {(s.basis?.lines ?? []).length === 0 ? <p className="p-4 text-sm text-amber-700">{t('transport.statementNoAmount')}</p> : (
-                        <table className={tableClassName}>
+                        <TableTools id="transport-settlements-show-2"><table className={tableClassName}>
                             <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.line')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.quantity')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.rate')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.amount')}</th></tr></thead>
                             <tbody className={tableBodyClassName}>{(s.basis?.lines ?? []).map((line, i) => <tr key={i} className={tableRowClassName}><td className={tableCellClassName}>{t(`transport.lines.${line.label}`)}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{line.quantity ?? '—'}</td><td className={`${tableCellClassName} text-right`}>{line.rate ? <Money value={line.rate} currency={cur} /> : '—'}</td><td className={`${tableCellClassName} text-right`}><Money value={line.amount} currency={cur} /></td></tr>)}</tbody>
-                        </table>
+                        </table></TableTools>
                     )}
                 </TableCard>
                 <TableCard title={t('transport.adjustmentsAndDisputes')} actions={can.manage && !final ? <ActionDialogButton label={t('transport.recordAdjustment')} title={t('transport.recordAdjustment')} description={t('transport.recordAdjustmentHelp')} variant="outline" url={route('transport.settlements.adjustments.store', s.id)}
                     fields={[{ name: 'amount', label: `${t('transport.amount')} (${cur})`, type: 'number', required: true, description: t('transport.adjustmentAmountHelp') }, { name: 'quantity', label: t('transport.quantity'), type: 'number' }, { name: 'reason', label: t('transport.reason'), type: 'textarea', required: true }]} /> : undefined}>
                     {(s.adjustments ?? []).length === 0 ? <p className="p-4 text-sm text-(--app-muted-foreground)">{t('transport.noAdjustments')}</p> : (
-                        <table className={tableClassName}>
+                        <TableTools id="transport-settlements-show-3"><table className={tableClassName}>
                             <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.origin')}</th><th className={tableHeaderCellClassName}>{t('transport.reason')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.amount')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th><th className={tableHeaderCellClassName} /></tr></thead>
                             <tbody className={tableBodyClassName}>{(s.adjustments ?? []).map((a) => (
                                 <tr key={a.id} className={tableRowClassName}>
@@ -94,13 +96,13 @@ export default function Show({ settlement, reconciliation, routes, can }: { sett
                                     </td>
                                 </tr>
                             ))}</tbody>
-                        </table>
+                        </table></TableTools>
                     )}
                 </TableCard>
                 {(s.basis?.by_route ?? []).length > 0 && (
                     <TableCard title={t('transport.byRoute')}>
-                        <table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.route')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.boardings')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.uniqueRiders')}</th></tr></thead>
-                            <tbody className={tableBodyClassName}>{(s.basis?.by_route ?? []).map((r) => <tr key={r.route_id} className={tableRowClassName}><td className={tableCellClassName}>{routeName(r.route_id)}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{r.boardings}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{r.riders}</td></tr>)}</tbody></table>
+                        <TableTools id="transport-settlements-show-4"><table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.route')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.boardings')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.uniqueRiders')}</th></tr></thead>
+                            <tbody className={tableBodyClassName}>{(s.basis?.by_route ?? []).map((r) => <tr key={r.route_id} className={tableRowClassName}><td className={tableCellClassName}>{routeName(r.route_id)}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{r.boardings}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{r.riders}</td></tr>)}</tbody></table></TableTools>
                     </TableCard>
                 )}
                 <p className="text-xs text-(--app-muted-foreground)">{DISPUTE_TYPES.length ? t('transport.statementFooter') : ''}</p>

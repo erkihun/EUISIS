@@ -8,6 +8,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Group = { id: string; number: number; title: string; weight_percent: string; goals: GoalRow[] };
 type Summary = { goal_count: number; active_count: number; inactive_count: number; objective_count: number; activity_count: number };
 type Props = { groups: Group[]; summary: Summary | null; filters: Filters; cycles: Cycle[]; organizations: Named[]; can: Can };
@@ -49,7 +51,7 @@ export default function Goals({ groups, summary, filters, cycles, organizations,
 
                 {contextSelected && (
                     <div className="overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)">
-                        <table className={`${wTable} min-w-[1100px]`}>
+                        <TableTools id="performance-strategy-goals"><table className={`${wTable} min-w-[1100px]`}>
                             <thead>
                                 <tr>
                                     <th className={wTh}>{g('titleLabel')}</th>
@@ -68,7 +70,7 @@ export default function Goals({ groups, summary, filters, cycles, organizations,
                                         can={can} onDelete={remove} />
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </div>

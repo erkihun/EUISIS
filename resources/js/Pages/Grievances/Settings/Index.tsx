@@ -10,7 +10,7 @@ import { AlertTriangle, CheckCircle, Plus, SearchIcon, ShieldCheck, TagsIcon, X,
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
-import { actionLinkClassName, badgeClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useCan } from '@/hooks/useCan';
@@ -320,7 +320,7 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                         <button type="button" className={secondaryBtn} onClick={clear}>{a('clear_filters')}</button>
                     </div>
                 ) : rows.length ? (
-                    <Table head={<>{[...head, ...(rowEdit ? [''] : [])].map((h, i) => <th key={i} className={thCls}>{h ? a(`fields.${h}`) : <span className="sr-only">{t('grievances.common.actions')}</span>}</th>)}</>}>
+                    <TableTools id="grievances-settings-index"><Table head={<>{[...head, ...(rowEdit ? [''] : [])].map((h, i) => <th key={i} className={thCls}>{h ? a(`fields.${h}`) : <span className="sr-only">{t('grievances.common.actions')}</span>}</th>)}</>}>
                         {shown.map(row => (
                             <tr key={row.id} className={tableRowClassName}>
                                 {cells(row).map((cell, i) => <td key={i} className={tdCls}>{cell}</td>)}
@@ -333,7 +333,7 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                                 )}
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 ) : (
                     <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
                         <div className={`flex h-12 w-12 items-center justify-center rounded-full ${emptyTone === 'danger' ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>{emptyIcon ?? <TagsIcon className="h-5 w-5" />}</div>

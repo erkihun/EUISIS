@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { FilterField, FilterPanel, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Alert, Button } from '@euisis/ui';
 import type { TransferApplicationRecord } from '@/Components/transfers/types';
 
@@ -68,7 +68,7 @@ export default function TransferApplicationsIndex({ applications, filters, annou
                 </FilterPanel>
 
                 <TableCard>
-                    <Table>
+                    <TableTools id="transfers-applications-index"><Table>
                         <THead>
                             <Tr>
                                 <Th>{t('common.employee')}</Th>
@@ -100,7 +100,7 @@ export default function TransferApplicationsIndex({ applications, filters, annou
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                     {applications.data.length === 0 && (
                         <EmptyState
                             title={t('transfers.noApplications')}

@@ -7,6 +7,7 @@ import RichTextViewer from '@/Components/forms/RichTextViewer';
 import {
     Alert, Card, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { CASE_STATUS_TONES, REVIEW_STATUS_TONES, useApplicantCaseText } from '@/court/i18n/useApplicantCaseText';
 import type { ApplicantCaseShowProps } from '@/court/types/applicantCases';
@@ -189,7 +190,7 @@ export default function ApplicantCaseShow(props: ApplicantCaseShowProps) {
                             {witnesses.length === 0 ? <EmptyBox>{t('cm.cases.no_witnesses_listed')}</EmptyBox> : (
                                 <div className={tableContainerClassName}>
                                     <div className="overflow-x-auto">
-                                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                        <TableTools id="court-applicant-cases-show"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                             <thead className={tableHeadClassName}>
                                                 <tr>
                                                     {[t('cm.cases.labels.name'), t('cm.cases.labels.phone'), t('cm.cases.labels.email'), t('cm.cases.labels.address')].map((heading) => (
@@ -209,7 +210,7 @@ export default function ApplicantCaseShow(props: ApplicantCaseShowProps) {
                                                     </tr>
                                                 ))}
                                             </tbody>
-                                        </table>
+                                        </table></TableTools>
                                     </div>
                                 </div>
                             )}

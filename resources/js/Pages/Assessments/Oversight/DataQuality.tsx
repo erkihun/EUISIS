@@ -4,6 +4,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Issue = {
     code: string; severity: string; is_blocking: boolean; organization: { id: string; name_en: string | null; name_am: string | null };
     employee: { id: string; number: string; name: string | null; name_en: string | null } | null; record_id: string | null; details: string | number | null; resolution_hint: string;
@@ -57,7 +59,7 @@ export default function OversightDataQuality(props: Props) {
                         </Section>
                     )}
                     <Section title={t('assessmentOversight.rulesTitle')} flush>
-                        <Table head={<>
+                        <TableTools id="assessments-oversight-data-quality"><Table head={<>
                             <th className={thCls}>{t('assessmentOversight.issue')}</th>
                             <th className={thCls}>{t('assessmentOversight.severityLabel')}</th>
                             <th className={thCls}>{t('assessmentOversight.count')}</th>
@@ -75,14 +77,14 @@ export default function OversightDataQuality(props: Props) {
                                 </td></tr>
                             )}
                             {showClear && clear.map(row)}
-                        </Table>
+                        </Table></TableTools>
                     </Section>
 
                     {issues && filters.code && (
                         <>
                             <h2 className="text-sm font-semibold">{t(`assessmentOversight.rules.${filters.code}`)}</h2>
                             <TablePanel page={issues} empty={t('assessmentOversight.noIssues')}>
-                                <Table head={<>
+                                <TableTools id="assessments-oversight-data-quality-2"><Table head={<>
                                     <th className={thCls}>{t('assessmentOversight.institution')}</th>
                                     <th className={thCls}>{t('assessmentOversight.employee')}</th>
                                     <th className={thCls}>{t('assessmentOversight.details')}</th>
@@ -94,14 +96,14 @@ export default function OversightDataQuality(props: Props) {
                                             <td className={`${tdCls} text-xs`}>{i.details ?? '—'}</td>
                                         </tr>
                                     ))}
-                                </Table>
+                                </Table></TableTools>
                             </TablePanel>
                         </>
                     )}
 
                     {!filters.organization_id && Object.keys(summary.organizations).length > 0 && (
                         <Section title={t('assessmentOversight.byInstitution')} flush>
-                            <Table head={<>
+                            <TableTools id="assessments-oversight-data-quality-3"><Table head={<>
                                 <th className={thCls}>{t('assessmentOversight.institution')}</th>
                                 <th className={thCls}>{t('assessmentOversight.severity.blocking')}</th>
                                 <th className={thCls}>{t('assessmentOversight.severity.warning')}</th>
@@ -115,7 +117,7 @@ export default function OversightDataQuality(props: Props) {
                                         <td className={`${tdCls} tabular-nums`}>{c.info}</td>
                                     </tr>
                                 ))}
-                            </Table>
+                            </Table></TableTools>
                         </Section>
                     )}
                 </>

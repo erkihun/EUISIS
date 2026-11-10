@@ -42,9 +42,9 @@ const toneStyles = {
         icon: 'bg-red-700 text-white dark:bg-red-950/60 dark:text-red-400',
     },
     neutral: {
-        marker: 'bg-slate-400 dark:bg-slate-600',
+        marker: 'bg-(--app-border-strong)',
         card: 'card-tone-neutral',
-        icon: 'bg-slate-600 text-white dark:bg-slate-800 dark:text-(--app-muted-foreground)',
+        icon: 'bg-(--app-muted-foreground) text-white dark:bg-(--app-surface-muted) dark:text-(--app-muted-foreground)',
     },
 } as const;
 
@@ -180,7 +180,7 @@ export default function KpiCard({
         'relative h-full min-w-0 overflow-hidden rounded-panel border transition-colors',
         style.card,
         featured
-            ? 'min-h-[112px] border-(--app-border) border-s-[3px] border-s-primary p-4 dark:border-s-indigo-400 '
+            ? 'min-h-[112px] border-(--app-border) border-s-[3px] border-s-primary p-4 '
             : 'min-h-[112px] border-(--app-border) p-4 ',
     ].join(' ');
 
@@ -191,7 +191,7 @@ export default function KpiCard({
     return (
         <Link
             href={href}
-            className={`${shell} group block hover:border-(--app-border-strong) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:hover:bg-slate-800/70 dark:focus-visible:ring-offset-slate-950`}
+            className={`${shell} group block hover:border-(--app-border-strong) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:hover:bg-(--app-surface-muted) dark:focus-visible:ring-offset-(--app-background)`}
         >
             {body}
         </Link>

@@ -18,13 +18,15 @@ page adds hand-rolled versions.
 | Label, help, error | `<FormField>`, `<FormLabel>`, `<FieldError>` | — |
 | Search box | `<SearchInput>` | — |
 | List filters | `<FilterPanel>` + `<FilterField label>`; `<AppFilterBar routeName>` when the controls are uncontrolled (`name` + `defaultValue`) | `filterPanelClassName`, `filterFieldClassName(wide)`, `filterCaptionClassName` |
-| Table | `<TableCard>` + `<Table>`, `<THead>`, `<TBody>`, `<Tr>`, `<Th align>`, `<Td align numeric muted>` | `tableClassName`, `tableHeadClassName`, `tableBodyClassName`, `tableRowClassName`, `tableHeaderCellClassName`, `tableCellClassName` |
+| Table | `<TableCard>` + `<Table>`, `<THead>`, `<TBody>`, `<Tr>`, `<Th align>`, `<Td align numeric muted clamp>` (`clamp={2 \| 3}` holds long text to that many lines, full text in `title`) | `tableClassName`, `tableHeadClassName`, `tableBodyClassName`, `tableRowClassName`, `tableHeaderCellClassName`, `tableCellClassName`, `tableCellClampClassName(lines)` (for a plain `<td>`; sets its own display, so no `block` beside it) |
 | Column-defined table | `<AppDataTable columns data>` | — |
 | Pagination | `<ListPagination meta>` (any Laravel paginator; keeps the query string), `<Pagination meta onPageChange>` (kit) | `paginationItemClassName(active)` |
 | Status | `<StatusBadge status>` (`@/Components/StatusBadge`) | `badgeClassName(tone, className)` — tone `neutral`, `info`, `success`, `warning`, `danger` |
 | Row actions | `<AppActionMenu items>` — the ⋮ menu in the last cell: `{ label, href | onClick, variant: 'danger' | 'warning', show, disabled, title, icon, method }` per item; labels are the bare verbs `t('common.view' | 'common.edit' | 'common.delete' | 'common.archive' | 'common.restore')`; a menu with no visible item renders nothing | `actionLinkClassName({ tone, size, className })` only for text links outside table rows (cards, detail pages, form repeaters) — tone `primary`, `neutral`, `danger`, `success` |
 | Card / panel | `<Card>`, `<CardHeader>`, `<CardTitle>` | — |
-| Empty list | `<EmptyState>` (`@/Components/EmptyState`) | — |
+| Action icons | `UiProvider actionIcons` rules (`resources/js/Components/ui/actionIcons.tsx`): a `Button` or `ActionMenu` item with a text label and no `icon` draws the glyph its label earns (Save ✓, Cancel ×, Delete, Export, …); `icon={null}` opts out, `link` and `icon` sizes never infer | — |
+| Table tools | `<TableTools id="employees-index" toolbar sortable serverSort>` wrapping a `<table>`, `<Table>` or `<DataTable>`: header click sorts this page's rows (headers holding their own control are left alone; `data-sort="column"` + `serverSort={{ column, direction, onSort }}` asks the server), Columns menu, density, kept header, all remembered per `id` | `tableCellClampClassName` for cells; cells may set `data-sort-value` for a sort key other than their text |
+| Empty list | `<EmptyState>` (`@/Components/EmptyState`): a muted search glyph unless `icon` is given (`icon={null}` for none), bold title, description, `action` | — |
 | Dialog / confirm | `useConfirm()` (`@/Components/ConfirmProvider`), `<Modal>` | — |
 
 ### Button variants

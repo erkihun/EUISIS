@@ -7,6 +7,8 @@ import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 
+import { TableTools } from '@/Components/ui';
+
 type Option = { id: string; code?: string; name_en: string | null; name_am: string | null };
 type Row = { id: string; status: string; evaluator_type: string; due_at: string | null; deadline: string | null; record_status: string; employee: { name?: string; name_en?: string; number?: string; position?: string; position_am?: string; unit?: string; unit_am?: string }; form: { name_en: string; name_am: string | null; version_no: number } | null; cycle: Option | null; progress: { answered: number; required: number } };
 type Page<T> = { data: T[]; current_page: number; last_page: number; per_page: number; from: number | null; to: number | null; total: number; path: string; prev_page_url: string | null; next_page_url: string | null };
@@ -40,7 +42,7 @@ export default function AssignedAssessments({ rows, filters, counts, options }: 
                 </FilterField>
             </AppFilterBar>
             <TablePanel page={rows} empty={t('assessmentWorkspace.empty')}>
-                <Table head={<><th className={thCls}>{t('assessmentWorkspace.columns.employee')}</th><th className={thCls}>{t('assessmentWorkspace.columns.form')}</th><th className={thCls}>{t('assessmentWorkspace.columns.cycle')}</th><th className={thCls}>{t('assessmentWorkspace.columns.evaluatorType')}</th><th className={thCls}>{t('assessmentWorkspace.columns.dueDate')}</th><th className={thCls}>{t('assessmentWorkspace.columns.status')}</th><th className={thCls}>{t('assessmentWorkspace.columns.progress')}</th><th className={thCls}><span className="sr-only">{t('assessmentWorkspace.columns.action')}</span></th></>}>
+                <TableTools id="assessments-workspace-index"><Table head={<><th className={thCls}>{t('assessmentWorkspace.columns.employee')}</th><th className={thCls}>{t('assessmentWorkspace.columns.form')}</th><th className={thCls}>{t('assessmentWorkspace.columns.cycle')}</th><th className={thCls}>{t('assessmentWorkspace.columns.evaluatorType')}</th><th className={thCls}>{t('assessmentWorkspace.columns.dueDate')}</th><th className={thCls}>{t('assessmentWorkspace.columns.status')}</th><th className={thCls}>{t('assessmentWorkspace.columns.progress')}</th><th className={thCls}><span className="sr-only">{t('assessmentWorkspace.columns.action')}</span></th></>}>
                     {rows.data.map((row) => <tr key={row.id}><td className={tdCls}><Link href={route('assessment-workspace.show', row.id)} className="font-medium text-primary hover:underline">{employee(row.employee)}</Link><p className="text-xs text-(--app-muted-foreground)">{row.employee.number}</p><p className="text-xs text-(--app-muted-foreground)">{pick(row.employee.unit, row.employee.unit_am)} · {pick(row.employee.position, row.employee.position_am)}</p></td><td className={tdCls}>{row.form ? `${pick(row.form.name_en, row.form.name_am)} · v${row.form.version_no}` : '—'}</td><td className={tdCls}>{label(row.cycle)}</td><td className={tdCls}>{t(`assessmentWorkspace.evaluatorTypes.${row.evaluator_type}`)}</td><td className={tdCls}>{row.due_at ? <><LocalizedDateDisplay value={row.due_at} /><div className="mt-1"><DeadlineBadge value={row.deadline} /></div></> : '—'}</td><td className={tdCls}><ResponseStatus value={row.status} />{row.status === 'submitted' && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t(`assessmentWorkspace.recordStatuses.${row.record_status}`)}</p>}</td><td className={tdCls}><ProgressMeter {...row.progress} /></td><td className={`${tdCls} text-right`}>
                         <div className="flex justify-end">
                             <AppActionMenu
@@ -50,7 +52,7 @@ export default function AssignedAssessments({ rows, filters, counts, options }: 
                             />
                         </div>
                     </td></tr>)}
-                </Table>
+                </Table></TableTools>
             </TablePanel>
         </div>
     </AuthenticatedLayout>;

@@ -8,6 +8,7 @@ import { CalendarIcon, DownloadIcon, MapPinned } from '@/Components/Icons';
 import {
     Alert, Button, Card, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useRespondentText } from '@/court/i18n/useRespondentText';
 import type { RespondentCaseShowProps } from '@/court/types/respondent';
@@ -131,7 +132,7 @@ export default function RespondentCaseShow({ case: item, docs, hearings, letters
                         <Section title={t('cm.cases.witnesses_section.title')} count={witnesses.length}>
                             {witnesses.length === 0 ? <Empty>{t('cm.cases.no_witnesses_listed')}</Empty> : (
                                 <div className="overflow-x-auto">
-                                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                    <TableTools id="court-respondent-case-show"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 {[t('cm.cases.labels.name'), t('cm.cases.labels.phone'), t('cm.cases.labels.email'), t('cm.cases.labels.address')].map((heading) => (
@@ -149,7 +150,7 @@ export default function RespondentCaseShow({ case: item, docs, hearings, letters
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </Section>

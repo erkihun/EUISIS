@@ -5,7 +5,7 @@ import { CycleForm, type CycleData, type Option } from '@/Components/assessmentO
 import { named, oversightHref, type Cycle as ShellCycle } from '@/Components/assessmentOversight/shell';
 import { Section, Table, dangerLinkBtn, filterInputCls, pageCls, primaryBtn, secondaryBtn, smallBtn, smallPrimaryBtn, tdCls, thCls } from '@/Components/performance/ui';
 import { useConfirm } from '@/Components/ConfirmProvider';
-import { badgeClassName } from '@/Components/ui';
+import { badgeClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
@@ -102,7 +102,7 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                 </Section>
 
                 <Section title={t('assessmentOversight.cycleSections.participants')} description={t('assessmentOversight.participantsHelp')} flush>
-                    <Table head={<>
+                    <TableTools id="assessments-oversight-cycle"><Table head={<>
                         <th className={thCls}>{t('assessmentOversight.institution')}</th>
                         <th className={thCls}>{t('assessmentOversight.participation')}</th>
                         <th className={thCls}>{t('assessmentOversight.submissionStatus')}</th>
@@ -135,7 +135,7 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                                 </td>
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </Section>
 
                 {!finalized && (

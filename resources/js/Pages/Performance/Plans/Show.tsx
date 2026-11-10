@@ -11,6 +11,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Target = {
     id: string; target_value: string | null; target_numerator: string | null; target_denominator: string | null; baseline_value: string | null;
     weight: string; achievement_cap: string | null; tolerance: string | null; zero_score_deviation: string | null; version_no: number; parent_target_id: string | null;
@@ -254,7 +256,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
 
             {objective.targets.length > 0 && (
                 <div className="mt-3">
-                    <Table head={<>
+                    <TableTools id="performance-plans-show"><Table head={<>
                         <th className={thCls}>{t('performance.fields.kpi')}</th>
                         <th className={thCls}>{t('performance.fields.target')}</th>
                         <th className={thCls}>{t('performance.fields.period')}</th>
@@ -288,7 +290,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                                 </td>
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </div>
             )}
         </article>
@@ -516,7 +518,7 @@ function PlanTraceView({ trace }: { trace: PlanTrace }) {
                         <span className="font-medium">{objective.code} — {(locale === 'am' && objective.title_am) || objective.title_en}</span>
                         <span className="tabular-nums">{formatScore(objective.score)}% × {formatScore(objective.weight)} = {formatScore(objective.contribution)}</span>
                     </div>
-                    <Table head={<>
+                    <TableTools id="performance-plans-show-2"><Table head={<>
                         <th className={thCls}>{t('performance.fields.kpi')}</th>
                         <th className={thCls}>{t('performance.fields.target')}</th>
                         <th className={thCls}>{t('performance.fields.actual')}</th>
@@ -532,7 +534,7 @@ function PlanTraceView({ trace }: { trace: PlanTrace }) {
                                 <td className={tdCls}><Pill group="health" value={row.health} />{row.lineage?.source === 'contributors' && <span className="block text-[11px] text-(--app-muted-foreground)">{label('source', 'FORMULA')}</span>}</td>
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </div>
             ))}
             {trace.formula && (

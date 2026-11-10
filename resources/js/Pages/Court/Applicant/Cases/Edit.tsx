@@ -7,6 +7,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import {
     Alert, Button, Card, FieldError, FormField, Input, Select, actionLinkClassName, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { CASE_STATUS_TONES, useApplicantCaseText } from '@/court/i18n/useApplicantCaseText';
@@ -209,7 +210,7 @@ export default function ApplicantCaseEdit({ case: kase, editable, types, docs, w
                             <p className="text-sm text-(--app-muted-foreground)">{t('cm.cases.empty.no_documents')}</p>
                         ) : (
                             <div className="-mx-2 overflow-x-auto">
-                                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <TableTools id="court-applicant-cases-edit"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                     <thead className={tableHeadClassName}>
                                         <tr>
                                             <th className={tableHeaderCellClassName}>{t('cm.cases.table.title')}</th>
@@ -239,7 +240,7 @@ export default function ApplicantCaseEdit({ case: kase, editable, types, docs, w
                                             );
                                         })}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
                         )}
                     </Card>

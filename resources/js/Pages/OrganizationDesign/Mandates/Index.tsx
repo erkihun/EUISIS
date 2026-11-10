@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MandateForm, { emptyMandate, type InstrumentType, type LegalSourceOption } from '@/Components/organizationDesign/MandateForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -94,7 +94,7 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                     {mandates.data.length === 0 ? (
                         <EmptyState title={tt('mandates.noMandates')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('mandates.noMandatesHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-mandates-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -130,7 +130,7 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={mandates} />
                 </TableCard>

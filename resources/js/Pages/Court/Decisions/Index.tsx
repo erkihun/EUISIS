@@ -7,6 +7,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     FilterField, FilterPanel, Input, ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -53,7 +54,7 @@ export default function DecisionsIndex({ decisions, filters, canCreate }: Decisi
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-decisions-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
@@ -104,7 +105,7 @@ export default function DecisionsIndex({ decisions, filters, canCreate }: Decisi
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {decisions.data.length === 0 && <EmptyState title={t('cm.decisions.index.empty')} />}
                     <ListPagination meta={decisions} />

@@ -65,7 +65,9 @@ export default function Login({
     const customMsg = locale === 'am'
         ? getString('general.login_page_message_am', '')
         : getString('general.login_page_message_en', '');
-    const systemLogoUrl = getString('general.identity_system_logo_url', '');
+    // A configured logo that fails to load gives way to the built-in mark instead of a broken-image glyph.
+    const [logoFailed, setLogoFailed] = useState(false);
+    const systemLogoUrl = logoFailed ? '' : getString('general.identity_system_logo_url', '');
     // Sample photos uploaded for the sign-in card in System Settings (never employee registry photos).
     const cardPhotos = getStringArray('general.login_card_photo_urls');
 
@@ -95,7 +97,7 @@ export default function Login({
         key, label: t(`auth.stage.services.${key}`),
     })), [t]);
     const cardLogo = systemLogoUrl
-        ? <img src={systemLogoUrl} alt="" width={36} height={36} decoding="async" className="h-9 w-9 object-contain" />
+        ? <img src={systemLogoUrl} onError={() => setLogoFailed(true)} alt="" width={36} height={36} decoding="async" className="h-9 w-9 object-contain" />
         : <ApplicationLogo className="h-7 w-7 fill-white" />;
 
     const fieldClass = (invalid: boolean) =>
@@ -118,7 +120,7 @@ export default function Login({
                         <div className="mb-7 flex items-center gap-3">
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center">
                                 {systemLogoUrl ? (
-                                    <img src={systemLogoUrl} alt="" width={48} height={48} decoding="async" className="h-12 w-12 object-contain" />
+                                    <img src={systemLogoUrl} onError={() => setLogoFailed(true)} alt="" width={48} height={48} decoding="async" className="h-12 w-12 object-contain" />
                                 ) : (
                                     <ApplicationLogo className="h-10 w-10 fill-primary" />
                                 )}
@@ -312,7 +314,7 @@ export default function Login({
                 <div className="login-rise flex min-w-0 items-center gap-3">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center">
                         {systemLogoUrl ? (
-                            <img src={systemLogoUrl} alt={systemName} width={48} height={48} decoding="async" className="h-12 w-12 object-contain" />
+                            <img src={systemLogoUrl} onError={() => setLogoFailed(true)} alt={systemName} width={48} height={48} decoding="async" className="h-12 w-12 object-contain" />
                         ) : (
                             <ApplicationLogo className="h-10 w-10 fill-white" />
                         )}

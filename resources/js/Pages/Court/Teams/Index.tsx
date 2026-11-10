@@ -6,6 +6,7 @@ import EmptyState from '@/Components/EmptyState';
 import {
     buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -39,7 +40,7 @@ export default function TeamsIndex({ teams }: TeamsIndexProps) {
 
             <div className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="court-teams-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {['team', 'members', 'leader', 'description', 'actions'].map((key) => (
@@ -78,7 +79,7 @@ export default function TeamsIndex({ teams }: TeamsIndexProps) {
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
                 {teams.length === 0 && <EmptyState title={t('cm.teams.empty')} />}
             </div>

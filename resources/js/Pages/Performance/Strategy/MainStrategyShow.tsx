@@ -6,6 +6,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 
+import { TableTools } from '@/Components/ui';
+
 /** WLMS "Main Strategy Detail". */
 export default function MainStrategyShow({ main, can, context }: { main: MainRow; can: Can; context: Context }) {
     const { t, locale } = useLocale();
@@ -42,7 +44,7 @@ export default function MainStrategyShow({ main, can, context }: { main: MainRow
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                     <h2 className="mb-2 text-sm font-semibold">{m('strategies')}</h2>
                     <div className="overflow-x-auto">
-                        <table className={`${wTable} min-w-[720px]`}>
+                        <TableTools id="performance-strategy-main-strategy-show"><table className={`${wTable} min-w-[720px]`}>
                             <thead>
                                 <tr>
                                     <th className={`${wTh} w-16`}>{m('serialNo')}</th>
@@ -72,7 +74,7 @@ export default function MainStrategyShow({ main, can, context }: { main: MainRow
                                     </tr>
                                 </tfoot>
                             )}
-                        </table>
+                        </table></TableTools>
                     </div>
                 </section>
 

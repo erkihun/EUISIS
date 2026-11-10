@@ -3,7 +3,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight, Inbox, SearchIcon, X } from '@/Components/Icons';
 import PageHeader from '@/Components/PageHeader';
 import { FeedbackStatusBadge, statusLabelKey } from '@/Components/ServiceFeedback/feedbackUi';
-import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { Input, Select, cx } from '@euisis/ui';
@@ -225,7 +225,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                         </div>
                     ) : (
                         <>
-                            <table className={cx(tableClassName, 'hidden md:table')}>
+                            <TableTools id="service-feedback-all-submissions"><table className={cx(tableClassName, 'hidden md:table')}>
                                 <thead className={tableHeadClassName}>
                                     <tr className="text-left">
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnReference')}</th>
@@ -268,7 +268,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
 
                             <ul className="divide-y divide-(--app-border) md:hidden">
                                 {entries.data.map((entry) => (

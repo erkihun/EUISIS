@@ -3,7 +3,7 @@ import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -89,7 +89,7 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                     {result.rows.length === 0 ? (
                         <EmptyState title={tt('reports.noRows')} description={hasActiveFilters ? t('common.noMatchingRecords') : ''} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-reports-index"><Table>
                             <THead>
                                 <tr>{result.columns.map((c) => <Th key={c} align={NUMERIC.test(c) ? 'right' : undefined}>{label(c)}</Th>)}</tr>
                             </THead>
@@ -100,7 +100,7 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </TableCard>
 
@@ -108,7 +108,7 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                     <Card>
                         <CardHeader><CardTitle>{tt('reports.exports')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('reports.exportsHelp')}</p></CardHeader>
                         {exports.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('reports.noExports')}</p> : (
-                            <Table>
+                            <TableTools id="organization-design-reports-index-2"><Table>
                                 <THead>
                                     <tr>
                                         <Th>{tt('reports.report')}</Th>
@@ -139,7 +139,7 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
                 )}

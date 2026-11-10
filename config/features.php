@@ -20,6 +20,8 @@ return [
     'transport' => (bool) env('FEATURE_TRANSPORT', true),
     // service_monitoring — Service Delivery Monitoring & Support (docs/service-monitoring.md).
     'service_monitoring' => (bool) env('FEATURE_SERVICE_MONITORING', true),
+    // letters — official correspondence: registry, templates, numbering (ADR 0037, docs/letters.md).
+    'letters' => (bool) env('FEATURE_LETTERS', true),
 
     /*
     | structural_reporting — supervisor resolution from the organization
@@ -58,6 +60,7 @@ return [
         ],
         'transport_gps' => ['api.transport.positions.'],
         'service_monitoring' => ['service-monitoring.'],
+        'letters' => ['letters.'],
     ],
 
     /*

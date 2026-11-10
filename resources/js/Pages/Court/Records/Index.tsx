@@ -11,6 +11,7 @@ import {
     FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
     type Tone,
+    TableTools,
 } from '@/Components/ui';
 import { useInspectionPagesText } from '@/court/i18n/useInspectionPagesText';
 import type { RecordListFilters, RecordsIndexProps } from '@/court/types/records';
@@ -97,7 +98,7 @@ export default function RecordsIndex({ cases, filters, statuses, types, users }:
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-records-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'w-10 text-left')}>{t('cm.cases.table.number')}</th>
@@ -161,7 +162,7 @@ export default function RecordsIndex({ cases, filters, statuses, types, users }:
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {cases.data.length === 0 && <EmptyState title={t('cm.recordes.messages.no_cases')} />}
                     <ListPagination meta={cases} />

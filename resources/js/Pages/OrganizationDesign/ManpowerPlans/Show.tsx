@@ -6,7 +6,7 @@ import PlanForm, { type MethodologyOption, type PlanFormValues, type StudyOption
 import PlanLineForm, { type LineRecord, type Named, type ProposalOption } from '@/Components/organizationDesign/PlanLineForm';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -123,7 +123,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                             </div>
                         </CardHeader>
                         {lines.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('plans.noLines')}</p> : (
-                            <Table>
+                            <TableTools id="organization-design-manpower-plans-show"><Table>
                                 <THead>
                                     <tr>
                                         <Th>{tt('plans.unitOrProposal')}</Th>
@@ -168,14 +168,14 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
 
                     <Card>
                         <CardHeader><CardTitle>{tt('plans.requirements')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('plans.requirementsHelp')}</p></CardHeader>
                         {requirements.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('plans.noRequirements')}</p> : (
-                            <Table>
+                            <TableTools id="organization-design-manpower-plans-show-2"><Table>
                                 <THead>
                                     <tr>
                                         <Th>{tt('plans.unitOrProposal')}</Th>
@@ -201,7 +201,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
                 </div>

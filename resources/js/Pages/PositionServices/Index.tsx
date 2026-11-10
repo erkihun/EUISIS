@@ -5,7 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState, type JSX } from 'react';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 /**
  * Feedback services per position.
@@ -100,7 +100,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full')}>
+                    <TableTools id="position-services-index"><table className={cx(tableClassName, 'min-w-full')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 <Th>{t('serviceFeedback.serviceIdNo')}</Th>
@@ -177,7 +177,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                     </div>
                     <ListPagination meta={records} />
                 </div>

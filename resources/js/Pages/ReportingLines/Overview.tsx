@@ -4,7 +4,7 @@ import EmptyState from '@/Components/EmptyState';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
-import { Alert, FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { Alert, FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useState } from 'react';
 
 type OrganizationOption = { id: string; name_en: string; name_am: string | null; code: string | null };
@@ -145,7 +145,7 @@ export default function ReportingLinesIndex({ organizations, selected_organizati
                                 <EmptyState title={t('reportingLines.noUnits')} />
                             ) : (
                                 <div className="overflow-x-auto">
-                                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                    <TableTools id="reporting-lines-overview"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 {[t('reportingLines.unit'), t('reportingLines.headPosition'), t('reportingLines.holder'), t('reportingLines.reportsTo'), t('reportingLines.state')].map((h, i) => (
@@ -185,7 +185,7 @@ export default function ReportingLinesIndex({ organizations, selected_organizati
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </section>
@@ -204,7 +204,7 @@ export default function ReportingLinesIndex({ organizations, selected_organizati
                                 <EmptyState title={t('reportingLines.noFindings')} />
                             ) : (
                                 <div className="overflow-x-auto">
-                                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                    <TableTools id="reporting-lines-overview-2"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 {[t('reportingLines.severity'), t('reportingLines.finding'), t('reportingLines.unit'), t('reportingLines.position'), t('reportingLines.detail')].map((h, i) => (
@@ -227,7 +227,7 @@ export default function ReportingLinesIndex({ organizations, selected_organizati
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </section>

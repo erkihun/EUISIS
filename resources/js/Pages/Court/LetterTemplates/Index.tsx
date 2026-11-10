@@ -8,6 +8,7 @@ import {
     AppActionMenu, ListPagination, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
     type AppActionItem,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import type { LetterTemplateRow, LetterTemplatesIndexProps } from '@/court/types/letters';
@@ -56,7 +57,7 @@ export default function LetterTemplatesIndex({ templates, can }: LetterTemplates
 
             <div className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="court-letter-templates-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {headings.map((heading) => (
@@ -84,7 +85,7 @@ export default function LetterTemplatesIndex({ templates, can }: LetterTemplates
                                 );
                             })}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
                 {templates.data.length === 0 && (
                     <EmptyState

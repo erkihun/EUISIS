@@ -389,6 +389,27 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        /*
+         * Letters (ADR 0037, docs/letters.md): the registry of official correspondence
+         * across institutions, composing from templates, numbering. Each entry is gated
+         * by the permission its page checks; the page re-checks permission and scope.
+         */
+        key: 'letters',
+        labelKey: 'letters.nav.group',
+        icon: MailIcon,
+        items: [
+            { routeName: 'letters.dashboard', labelKey: 'letters.nav.dashboard', icon: LayoutDashboard, anyPermission: ['letters.view', 'letters.handle'] },
+            { routeName: 'letters.index', labelKey: 'letters.nav.registry', icon: FolderFilesIcon, anyPermission: ['letters.view', 'letters.handle'] },
+            { routeName: 'letters.register', labelKey: 'letters.nav.register', icon: InboxInIcon, permission: 'letters.register' },
+            { routeName: 'letters.compose', labelKey: 'letters.nav.compose', icon: PenNewIcon, permission: 'letters.compose' },
+            { routeName: 'letters.templates.index', labelKey: 'letters.nav.templates', icon: DocumentsIcon, anyPermission: ['letters.templates.view', 'letters.templates.manage', 'letters.templates.manage_platform'] },
+            { routeName: 'letters.numbering.index', labelKey: 'letters.nav.numbering', icon: HashIcon, permission: 'letters.numbering.manage' },
+            { routeName: 'letters.letterheads.index', labelKey: 'letters.nav.letterhead', icon: FileTextIcon, permission: 'letters.letterhead.manage' },
+            { routeName: 'letters.standards.edit', labelKey: 'letters.nav.standards', icon: ClipboardClockIcon, permission: 'letters.standards.manage' },
+            { routeName: 'letters.reports', labelKey: 'letters.nav.reports', icon: PieChartIcon, permission: 'letters.reports.view' },
+        ],
+    },
+    {
         key: 'organization',
         labelKey: 'nav.groupOrganization',
         icon: CityIcon,
@@ -942,7 +963,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceMonitoring', 'institutionServices', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'letters', 'serviceMonitoring', 'institutionServices', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
     // What the public sends in: feedback, Tip-offs and complaints — three separate modules, nothing shared.
     { labelKey: 'nav.sidebarPublicVoice', keys: ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'grievanceSetup', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
@@ -1038,6 +1059,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
         || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
+        || (!features.letters && routeName.startsWith('letters.'))
         || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
     // Keep the existing permission contract, including independently permitted child links.
@@ -1288,7 +1310,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                     </PopoverButton>
                     <PopoverPanel anchor="right start" transition
-                        className="z-50 w-64 rounded-lg border border-(--sidebar-border) bg-(--sidebar-bg) p-2 text-(--sidebar-fg) shadow-xl outline-hidden transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-closed:-translate-x-1 data-closed:opacity-0">
+                        className="z-50 w-64 rounded-panel border border-(--sidebar-border) bg-(--sidebar-bg) p-2 text-(--sidebar-fg) shadow-lg outline-hidden transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-closed:-translate-x-1 data-closed:opacity-0">
                         {({ close }) => (
                             <>
                                 <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-(--sidebar-muted)">{label}</p>
@@ -1337,7 +1359,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         title={collapsed ? appName : undefined}
                         className={['flex min-w-0 flex-1 gap-3 rounded-md', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
                     >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-(--sidebar-bg) p-1 ring-1 ring-(--sidebar-border)">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-(--sidebar-bg) p-1 ring-1 ring-(--sidebar-border)">
                             <ApplicationLogo className="h-full w-full object-contain" />
                         </span>
                         {!collapsed && <div className="min-w-0">

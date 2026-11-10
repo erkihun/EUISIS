@@ -83,6 +83,25 @@ export function BrandingPreview({ values, fields, sidebarColor }: { values: Valu
 const RADIUS: Record<string, number> = { sm: 2, md: 4, lg: 6, xl: 8, '2xl': 12 };
 const ROW_HEIGHT: Record<string, number> = { compact: 28, comfortable: 36, spacious: 44 };
 const BUTTON_RADIUS: Record<string, string> = { rounded: '6px', soft: '8px', square: '0' };
+type PreviewPalette = { page: string; surface: string; border: string; text: string; muted: string };
+const STYLE_PALETTES: Record<string, { light: PreviewPalette; dark: PreviewPalette }> = {
+    swiss: {
+        light: { page: '#F6F6F6', surface: '#FFFFFF', border: '#DCDCDC', text: '#141414', muted: '#5C5C5C' },
+        dark: { page: '#111112', surface: '#19191B', border: '#2E2E32', text: '#F4F4F5', muted: '#A3A3AA' },
+    },
+    classic: {
+        light: { page: '#F4F6FB', surface: '#EDF1FB', border: '#D5DDF1', text: '#0F172A', muted: '#5B6472' },
+        dark: { page: '#0B1020', surface: '#111827', border: '#1F2937', text: '#F8FAFC', muted: '#94A3B8' },
+    },
+    soft: {
+        light: { page: '#E8EBF0', surface: '#E8EBF0', border: '#C9CED6', text: '#1C1F26', muted: '#555B66' },
+        dark: { page: '#2B2E35', surface: '#2B2E35', border: '#3D414A', text: '#F1F3F6', muted: '#B4B9C2' },
+    },
+    contrast: {
+        light: { page: '#FFFFFF', surface: '#FFFFFF', border: '#000000', text: '#000000', muted: '#262626' },
+        dark: { page: '#000000', surface: '#000000', border: '#FFFFFF', text: '#FFFFFF', muted: '#E0E0E0' },
+    },
+};
 
 /** A small app shell drawn with the chosen colours, radius, density and theme. */
 export function AppearancePreview({ values }: { values: Values }) {
@@ -98,9 +117,9 @@ export function AppearancePreview({ values }: { values: Values }) {
     const rowHeight = ROW_HEIGHT[String(values.table_density)] ?? 36;
     const buttonRadius = BUTTON_RADIUS[String(values.button_style)] ?? '8px';
     const sidebarText = textOn(sidebar);
-    const palette = dark
-        ? { page: '#020617', surface: '#0F172A', border: '#1E293B', text: '#E2E8F0', muted: '#94A3B8' }
-        : { page: '#F8FAFC', surface: '#FFFFFF', border: '#E2E8F0', text: '#0F172A', muted: '#64748B' };
+    // The interface style's neutrals (app.css "Interface style presets"), so the preview changes with the choice.
+    const style = String(values.ui_style ?? 'swiss');
+    const palette = (STYLE_PALETTES[style] ?? STYLE_PALETTES.swiss)[dark ? 'dark' : 'light'];
     const rows = [t('settings.previewPlaceholders.rowOne'), t('settings.previewPlaceholders.rowTwo'), t('settings.previewPlaceholders.rowThree')];
 
     return (

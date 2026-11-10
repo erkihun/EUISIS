@@ -9,7 +9,7 @@ import CodeRuleStatusBadge from '@/Components/code-rules/CodeRuleStatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
 import { usesRandomToken } from '@/Components/code-rules/randomTokens';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 type CodeRuleView = {
     id: string;
     entity_type: string;
@@ -171,7 +171,7 @@ export default function CodeRulesShow({
                                 <p className="text-sm text-(--app-muted-foreground)">{t('codeRules.noSequencesYet')}</p>
                             ) : (
                                 <div className="overflow-x-auto">
-                                    <table className={tableClassName}>
+                                    <TableTools id="code-rules-show"><table className={tableClassName}>
                                         <thead className={tableHeadClassName}>
                                             <tr className="text-left">
                                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('codeRules.scopeKey')}</th>
@@ -209,7 +209,7 @@ export default function CodeRulesShow({
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </div>

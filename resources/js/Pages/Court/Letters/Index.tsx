@@ -8,6 +8,7 @@ import {
     AppActionMenu, AppMetricCard, FilterField, FilterPanel, Input, ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
     type AppActionItem,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -96,7 +97,7 @@ export default function LettersIndex({ letters, stats, filters, can }: LettersIn
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-letters-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[t('cm.letters.table.reference'), t('cm.letters.table.applicant'), t('cm.letters.table.respondent'), t('cm.letters.table.author'), t('cm.letters.table.created'), t('cm.app.Status'), t('cm.letters.table.actions')].map((heading) => (
@@ -140,7 +141,7 @@ export default function LettersIndex({ letters, stats, filters, can }: LettersIn
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {letters.data.length === 0 && <EmptyState title={t('cm.letters.cards.no_letters_yet')} description={t('cm.letters.cards.empty_description')} />}
                     <ListPagination meta={letters} />

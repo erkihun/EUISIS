@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type ReportRun = {
     id: string;
@@ -141,7 +141,7 @@ export default function ReportsIndex({
                         <EmptyState title={t('common.noResults')} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-reports-index"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.reportNumber')}</th>
@@ -176,7 +176,7 @@ export default function ReportsIndex({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} label={t('cafeteria.reportHistory')} />

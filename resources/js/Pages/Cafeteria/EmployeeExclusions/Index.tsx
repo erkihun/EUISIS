@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Exclusion = {
     id: string; employee_name: string | null; employee_number: string | null;
@@ -86,7 +86,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                 <div className={tableContainerClassName}>
                     {exclusions.length === 0 ? <EmptyState title={t('cafeteria.noExclusionsFound')} /> : (
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-employee-exclusions-index"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.employee')}</th>
@@ -130,7 +130,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} />

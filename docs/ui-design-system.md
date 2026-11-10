@@ -29,13 +29,27 @@ draw in the app's theme rather than the operating system's.
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `--app-background` | `#f6f7f9` | `#0b1020` | Page background |
-| `--app-surface` | `#ffffff` | `#111827` | Cards, panels, inputs, dialogs |
-| `--app-surface-muted` | `#f1f3f6` | `#171f31` | Table heads, hover rows, segmented controls, disabled fills |
-| `--app-border` | `#e2e5ea` | `#1f2937` | Dividers and card borders |
-| `--app-border-strong` | `#cbd2dc` | `#334155` | Input and outline-button borders |
-| `--app-foreground` | `#0f172a` | `#f8fafc` | Body text, titles |
-| `--app-muted-foreground` | `#5b6472` | `#94a3b8` | Helper text, labels, icons at rest |
+| `--app-background` | `#f6f6f6` | `#111112` | Page background |
+| `--app-surface` | `#ffffff` | `#19191b` | Cards, panels, inputs, dialogs |
+| `--app-surface-muted` | `#ededed` | `#222225` | Table heads, hover rows, segmented controls, disabled fills |
+| `--app-border` | `#dcdcdc` | `#2e2e32` | Dividers and card borders |
+| `--app-border-strong` | `#767676` | `#6e6e75` | Input and outline-button borders (4.5:1 light / 3.5:1 dark on the surface, WCAG 1.4.11) |
+| `--app-foreground` | `#141414` | `#f4f4f5` | Body text, titles (18:1 / 16:1) |
+| `--app-muted-foreground` | `#5c5c5c` | `#a3a3aa` | Helper text, labels, icons at rest (6.7:1 / 7:1) |
+| `--elev-sm`, `--elev-md`, `--elev-lg`, `--elev-xl` | hairline + short sharp shadow | same | Elevation; the `shadow-*` utilities resolve to these |
+| `--neu-raised*`, `--neu-inset` | none | none | Soft-UI light sources read by the kit's buttons and inputs; only the `soft` preset sets them |
+
+These are the values of the **Swiss** interface style, the default. System
+Settings › Appearance › Interface style (`appearance.ui_style`) switches the
+whole app to another preset, each an `html[data-ui-style="…"]` block in
+`app.css` that restates the neutrals, cards, radii and elevation for light and
+dark: `classic` (the tonal navy admin with the dot-grid band), `soft` (Soft UI:
+one grey for page and surfaces, raised cards, inset bordered controls) and
+`contrast` (black on white, 2px rules, 3px focus outline). Brand colours and
+the light/dark theme apply on top of any preset. Values and contrast figures:
+`docs/ui-ux-refresh-plan-2026-11.md` §6–§8; the guard is
+`tests/Unit/UiStylePresetsTest.php`. A `card-tone-*` class draws a 3px rule on
+the card's start edge in every preset except `classic`, which tints the card.
 
 ### Brand (`--color-*`)
 
@@ -103,9 +117,14 @@ for layout; the few remaining ones size icons and printed card faces.
 
 | Token | Value | Utility | Use |
 | --- | --- | --- | --- |
-| `--radius-control` | `6px` | `rounded-control`, `rounded-md` | Buttons, inputs, menu items, toolbar controls |
-| `--radius-card` | `8px` | `rounded-card` | Cards, table cards |
-| `--radius-panel` | `10px` | `rounded-panel` | Dialogs, popovers, large panels |
+| `--radius-control` | `2px` (Swiss), `6px` classic, `10px` soft | `rounded-control`, `rounded-md` | Buttons, inputs, menu items, toolbar controls (Button Style: `square` 0, `soft` preset value + 6px) |
+| `--radius-card` | `2px` (Swiss), `8px` classic, `16px` soft | `rounded-card` | Cards, table cards |
+| `--radius-panel` | `4px` (Swiss), `10px` classic, `20px` soft | `rounded-panel` | Dialogs, popovers, large panels |
+
+Each interface style sets `--radius-*-base`; the Card Radius setting scales
+it (`sm` ½, `md` ¾, `lg` and `xl` 1, `2xl` 1½), so "Large" means large for
+that style. Elevation comes from the preset's `--elev-*` tokens through the
+`shadow-*` utilities, so no component chooses an elevation of its own.
 
 `rounded-full` is for badges, avatars and dots only. `rounded-xl` and larger are
 not used on admin surfaces.
@@ -141,7 +160,7 @@ Ethiopic for Amharic, switched by `<html lang>`), weights 400–700 only
 
 | Utility | Size / weight | Use |
 | --- | --- | --- |
-| `text-page-title` | `1.375rem` / 700 | The one `<h1>` of a page, in the heading band |
+| `text-page-title` | `1.5rem` / 700, tracking `-0.02em` in English (none in Amharic) | The one `<h1>` of a page, in the heading band |
 | `text-section-title` | `1.125rem` / 600 | Section and card titles |
 | `text-base` | `1rem` | Long-form text |
 | `text-body`, `text-sm` | `0.875rem` | Body, table cells, buttons |
@@ -161,6 +180,7 @@ Section labels in the sidebar are `11px`, semibold, uppercase, tracked.
 | Cards | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardFooter` | `card-tone-info/success/warning/danger` |
 | KPI cards | `KpiCard` (dashboard), `StatCard`, `AppMetricCard`; laid out by `MetricGrid` | tonal; see consolidation note in the consistency document. `MetricGrid` picks its column count from its own width (container queries: 2 columns from 512px, 3 from 768px, 4 from 1024px), not the window |
 | Tables | `TableCard`, `Table`, `THead`, `TBody`, `Tr`, `Th`, `Td`; `AppDataTable` | density follows `html[data-table-density]` |
+| Table tools | `TableTools id="…"` around any table (every admin list since November 2026; `AppDataTable` and the kit `DataTable` wrap themselves) | click a header to sort the page's rows (asc, desc, off; `data-sort` + `serverSort` for a server-sorted column), a Columns menu to show/hide, a density toggle and a kept header; remembered per `id` in localStorage |
 | Row actions | `AppActionMenu` (app: Inertia links, translated label) over the kit `ActionMenu` | 32px ⋮ trigger; anchored list on `--app-surface`; item tones `default`, `warning` (amber), `danger` (red); `disabled` + `title`; `show` hides an item |
 | Filters | `FilterPanel`, `FilterField`, `AppFilterBar`, `SearchInput` | |
 | Pagination | `ListPagination` (Laravel paginators), `Pagination` (client callback) | |

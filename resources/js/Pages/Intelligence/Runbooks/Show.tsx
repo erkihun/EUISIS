@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { SeverityBadge } from '@/Components/intelligence/Badges';
 import { IncidentStatusBadge } from '@/Components/intelligence/StatusBadges';
 import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
-import { Alert, Card, CardTitle, TBody, THead, Table, Td, Th, Tr, badgeClassName } from '@/Components/ui';
+import { Alert, Card, CardTitle, TBody, THead, Table, Td, Th, Tr, badgeClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 import type { SrLabels } from '@/types/situationRoom';
@@ -56,7 +56,7 @@ export default function RunbookShow({ runbook, incidents, execution_enabled }: P
                         {incidents.length === 0 ? (
                             <p className="px-(--card-padding) py-4 text-sm text-(--app-muted-foreground)">{t('intelligence.runbooks.noActive')}</p>
                         ) : (
-                            <Table>
+                            <TableTools id="intelligence-runbooks-show"><Table>
                                 <THead><Tr><Th>{t('intelligence.incidents.reference')}</Th><Th>{t('intelligence.incidents.severity')}</Th><Th>{t('intelligence.incidents.status')}</Th><Th>{t('intelligence.incidents.lastSeen')}</Th></Tr></THead>
                                 <TBody>
                                     {incidents.map((i) => (
@@ -68,7 +68,7 @@ export default function RunbookShow({ runbook, incidents, execution_enabled }: P
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
                 </div>

@@ -5,6 +5,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Milestone = { key: string; label_en: string; label_am?: string | null; percent: number | string; requires_verification?: boolean };
 
 type Kpi = {
@@ -166,7 +168,7 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                 </AppFilterBar>
 
                 <TablePanel page={kpis} empty={t('performance.kpis.empty')}>
-                        <Table head={<>
+                        <TableTools id="performance-kpis-index"><Table head={<>
                             <th className={thCls}>{t('performance.fields.kpi')}</th>
                             <th className={thCls}>{t('performance.fields.direction')}</th>
                             <th className={thCls}>{t('performance.fields.aggregation')}</th>
@@ -189,7 +191,7 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                                     {can.update && <td className={`${tdCls} text-right`}><button type="button" className={linkBtn} onClick={() => startEdit(kpi)}>{t('performance.actions.edit')}</button></td>}
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                 </TablePanel>
             </div>
         </AuthenticatedLayout>

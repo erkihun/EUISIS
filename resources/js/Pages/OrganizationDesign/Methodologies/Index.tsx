@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MethodologyForm, { type MethodologyRecord, type Strategy } from '@/Components/organizationDesign/MethodologyForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -57,7 +57,7 @@ export default function MethodologiesIndex({ methodologies, filters, strategies,
                     {methodologies.data.length === 0 ? (
                         <EmptyState title={tt('methodologies.noMethodologies')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('methodologies.noMethodologiesHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-methodologies-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -97,7 +97,7 @@ export default function MethodologiesIndex({ methodologies, filters, strategies,
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={methodologies} />
                 </TableCard>

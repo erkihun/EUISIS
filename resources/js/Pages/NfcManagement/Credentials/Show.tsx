@@ -11,7 +11,7 @@ import NfcStatusBadge, {
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 
-import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 type Props = {
     credential: {
         credential_id: string;
@@ -232,7 +232,7 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
                     <p className="text-sm text-(--app-muted-foreground)">{t('nfc.noActivity')}</p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full')}>
+                        <TableTools id="nfc-management-credentials-show"><table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.time')}</th>
@@ -265,7 +265,7 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </section>

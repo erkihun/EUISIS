@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import BaselineForm, { emptyBaseline } from '@/Components/organizationDesign/BaselineForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -66,7 +66,7 @@ export default function LegacyBaselinesIndex({ baselines, filters, organizations
                     {baselines.data.length === 0 ? (
                         <EmptyState title={tt('legacyBaselines.none')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('legacyBaselines.noneHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-legacy-baselines-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.reference')}</Th>
@@ -98,7 +98,7 @@ export default function LegacyBaselinesIndex({ baselines, filters, organizations
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={baselines} />
                 </TableCard>

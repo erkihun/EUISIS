@@ -83,6 +83,7 @@ const users = {
         performance: 'አፈጻጸም እና ምዘና',
         feedback: 'የሕዝብ አስተያየት',
         grievances: 'ቅሬታዎች፣ ዲሲፕሊን እና አስተዳደራዊ ፍርድ ቤት',
+        letters: 'ደብዳቤዎችና የመልእክት ልውውጥ',
         court: 'የፍርድ ቤት ጉዳዮች',
         services: 'ካፌቴሪያ፣ ትራንስፖርት እና አገልግሎቶች',
         other: 'ሌሎች ሚናዎች',

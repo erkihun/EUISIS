@@ -4,7 +4,7 @@ import Modal from '@/Components/Modal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { AdminForm, choices, handlerFields, today, type AdminField } from '@/Components/grievances/AdminForm';
 import { Section, Table, Empty, Pager, HandlerName, GPill, nameOf, fmt, pageCls, thCls, tdCls, primaryBtn, inputCls, useEnumLabel } from '@/Components/grievances/ui';
-import { AppActionMenu, AppMetricCard, FilterField, FilterPanel } from '@/Components/ui';
+import { AppActionMenu, AppMetricCard, FilterField, FilterPanel, TableTools } from '@/Components/ui';
 import { AlertTriangle, CheckCircle, ChevronRight, ClockIcon, PencilIcon, Plus, XCircle } from '@/Components/Icons';
 import { SignpostIcon } from '@/Components/NavIcons';
 import { useLocale } from '@/hooks/useLocale';
@@ -72,7 +72,7 @@ export default function Index({ routes, filters, options, summary, can }: Routin
             </FilterPanel>
             {Object.values(action.errors).map((error, index) => <p role="alert" key={index} className="text-sm text-red-600">{error}</p>)}
 
-            <Section title={t('grievanceAdmin.routing')} flush>{routes.data.length ? <Table head={<>{['source', 'target', 'movement_type', 'priority', 'status', 'effective_from', 'actions'].map(key => <th key={key} className={thCls}>{t(`grievanceAdmin.fields.${key}`)}</th>)}</>}>{routes.data.map(item => <tr key={item.id} className={item.is_active ? '' : 'opacity-60'}>
+            <Section title={t('grievanceAdmin.routing')} flush>{routes.data.length ? <TableTools id="grievances-routing-index"><Table head={<>{['source', 'target', 'movement_type', 'priority', 'status', 'effective_from', 'actions'].map(key => <th key={key} className={thCls}>{t(`grievanceAdmin.fields.${key}`)}</th>)}</>}>{routes.data.map(item => <tr key={item.id} className={item.is_active ? '' : 'opacity-60'}>
                 <td className={tdCls}>{item.source_all ? <span className="font-medium text-(--app-foreground)">{item.source_kind === "team" ? r("allTeams") : item.source_kind === "directorate" ? r("theDirectorate") : item.source.type === "organization" ? r("allOrganizations") : r("allCommittees")}<span className="block text-xs font-normal text-(--app-muted-foreground)">{label("handler_type", item.source_kind ?? item.source.type)}</span></span> : <HandlerName handler={withKind(item.source, item.source_kind)} showType />}{item.include_descendants && <p className="text-xs text-(--app-muted-foreground)">{t('grievanceAdmin.fields.include_descendants')}</p>}</td>
                 <td className={tdCls}>
                     <div className="flex items-start gap-2"><ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden /><div className="min-w-0">
@@ -90,7 +90,7 @@ export default function Index({ routes, filters, options, summary, can }: Routin
                     { label: r('edit'), icon: <PencilIcon className="h-4 w-4" />, onClick: () => setEditing(item), show: can.manage },
                     { label: r('deactivate'), icon: <XCircle className="h-4 w-4" />, variant: 'danger', onClick: () => action.patch(route('grievances.routes.update', item.id), { preserveScroll: true }), show: can.manage && item.is_active, separatorBefore: true, disabled: action.processing },
                 ]} /></td>
-            </tr>)}</Table> : <Empty>{t('grievanceAdmin.empty')}</Empty>}<Pager page={routes} /></Section>
+            </tr>)}</Table></TableTools> : <Empty>{t('grievanceAdmin.empty')}</Empty>}<Pager page={routes} /></Section>
         </div>
 
         <Modal show={editing !== null && can.manage} onClose={close} maxWidth="2xl">

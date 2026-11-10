@@ -7,6 +7,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { ApplicantRow, ApplicantsIndexProps } from '@/court/types/people';
@@ -51,7 +52,7 @@ export default function ApplicantsIndex({ applicants, filters, canManage }: Appl
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-applicants-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {['applicant', 'email', 'phone', 'organization', 'status', 'verified', 'created', 'actions'].map((key) => (
@@ -86,7 +87,7 @@ export default function ApplicantsIndex({ applicants, filters, canManage }: Appl
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {applicants.data.length === 0 && <EmptyState title={t('cm.applicants.empty')} />}
                     <ListPagination meta={applicants} />

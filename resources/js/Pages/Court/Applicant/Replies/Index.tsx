@@ -6,6 +6,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { REVIEW_STATUS_TONES, useApplicantCaseText } from '@/court/i18n/useApplicantCaseText';
 import type { ApplicantReplyIndexProps } from '@/court/types/applicantCases';
@@ -29,7 +30,7 @@ export default function ApplicantRepliesIndex({ replies }: ApplicantReplyIndexPr
             <div className={tableContainerClassName}>
                 {replies.data.length === 0 ? <EmptyState title={t('cm.respondent.no_applicant_response_replies')} /> : (
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-applicant-replies-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={tableHeaderCellClassName}>{t('cm.cases.case_number')}</th>
@@ -57,7 +58,7 @@ export default function ApplicantRepliesIndex({ replies }: ApplicantReplyIndexPr
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
                 <ListPagination meta={replies} />

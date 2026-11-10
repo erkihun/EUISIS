@@ -58,6 +58,9 @@ Schedule::command('assessments:evaluator-reminders')->dailyAt('07:00')->withoutO
 // Idempotent: the reminder log keeps each reminder to one per participant, subject and day.
 Schedule::command('service-monitoring:send-reminders')->dailyAt('06:15')->withoutOverlapping()->onOneServer();
 
+// Letters: routing steps due soon or overdue, letters awaiting receipt, drafts awaiting signature (docs/letters.md §Reminders).
+Schedule::command('letters:send-reminders')->dailyAt('06:30')->withoutOverlapping()->onOneServer();
+
 // Communication: re-check automatic channel memberships (the assignment observer covers moves as they happen).
 Schedule::command('communication:sync-memberships --queue')->dailyAt('03:40')->withoutOverlapping()->onOneServer();
 Schedule::command('communication:publish-scheduled')->everyMinute()->withoutOverlapping()->onOneServer();

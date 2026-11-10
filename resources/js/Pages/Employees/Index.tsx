@@ -12,7 +12,7 @@ import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClampClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 const SYSTEM_STATUSES = ['draft', 'active', 'suspended', 'transferred', 'retired', 'terminated', 'deceased'] as const;
@@ -267,7 +267,7 @@ export default function EmployeesIndex({
                                     onClick={() => toast.error(t('employees.positionOccupiedCannotCreate'))}
                                     title={t('employees.positionOccupiedCannotCreate')}
                                     aria-disabled="true"
-                                    className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-300 px-3 py-2 text-sm font-medium text-(--app-muted-foreground) dark:bg-slate-700"
+                                    className={buttonClassName({ variant: 'secondary', className: 'cursor-not-allowed opacity-60' })}
                                 >
                                     <Plus className="h-4 w-4" />
                                     {t('employees.addNewEmployee')}
@@ -366,7 +366,7 @@ export default function EmployeesIndex({
                     ) : (
                         <>
                         <div className="hidden overflow-x-auto md:block">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="employees-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <caption className="sr-only">{t('employees.registryTitle')}</caption>
                                 <thead className={tableHeadClassName}>
                                     <tr>
@@ -413,6 +413,15 @@ export default function EmployeesIndex({
                                     {employees.map((employee) => {
                                         const assignment = employee.current_assignment;
                                         const contact = employee.phone ?? employee.email ?? t('employees.notAvailable');
+                                        const organizationLabel = assignment?.organization
+                                            ? organizationName(assignment.organization.name_en, assignment.organization.name_am)
+                                            : t('common.unassigned');
+                                        const unitLabel = assignment?.organization_unit
+                                            ? `${assignment.organization_unit.code ? `${assignment.organization_unit.code} - ` : ''}${localizedName(assignment.organization_unit.name_en, assignment.organization_unit.name_am, locale)}`
+                                            : t('common.unassigned');
+                                        const positionLabel = assignment?.position
+                                            ? `${assignment.position.job_position_code ? `${assignment.position.job_position_code} - ` : ''}${localizedName(assignment.position.title_en, assignment.position.title_am, locale)}`
+                                            : t('employees.notAvailable');
 
                                         return (
                                             <tr key={employee.id} className={tableRowClassName}>
@@ -439,32 +448,17 @@ export default function EmployeesIndex({
                                                         </div>
                                                     </div>
                                                 </td>
+                                                {/* Long names are held to two lines (full text in the tooltip) so a row stays a row, not a paragraph. */}
                                                 {showOrganizationColumn && (
-                                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
-                                                        {assignment?.organization
-                                                            ? organizationName(assignment.organization.name_en, assignment.organization.name_am)
-                                                            : t('common.unassigned')}
+                                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')} title={organizationLabel}>
+                                                        <span className={tableCellClampClassName()}>{organizationLabel}</span>
                                                     </td>
                                                 )}
-                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
-                                                    {assignment?.organization_unit ? (
-                                                        <>
-                                                            {assignment.organization_unit.code ? `${assignment.organization_unit.code} - ` : ''}
-                                                            {localizedName(assignment.organization_unit.name_en, assignment.organization_unit.name_am, locale)}
-                                                        </>
-                                                    ) : (
-                                                        t('common.unassigned')
-                                                    )}
+                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')} title={unitLabel}>
+                                                    <span className={tableCellClampClassName()}>{unitLabel}</span>
                                                 </td>
-                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
-                                                    {assignment?.position ? (
-                                                        <>
-                                                            {assignment.position.job_position_code ? `${assignment.position.job_position_code} - ` : ''}
-                                                            {localizedName(assignment.position.title_en, assignment.position.title_am, locale)}
-                                                        </>
-                                                    ) : (
-                                                        t('employees.notAvailable')
-                                                    )}
+                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')} title={positionLabel}>
+                                                    <span className={tableCellClampClassName()}>{positionLabel}</span>
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     <div className="space-y-1">
@@ -521,7 +515,7 @@ export default function EmployeesIndex({
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
 
                         {/*

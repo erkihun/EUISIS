@@ -8,7 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type OccupationRow = {
     id: string;
@@ -153,7 +153,7 @@ export default function OccupationsIndex({
                         <EmptyState title={t('occupations.noOccupationsFound')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="occupations-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'w-24 text-left')}>{t('occupations.iscoCode')}</th>
@@ -223,7 +223,7 @@ export default function OccupationsIndex({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} />

@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { ActionButton, Money, StatusPill, useNames } from '@/Components/Cafeteria/PolicyUi';
 import { usageRule, type PolicySummary } from './Index';
 
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type Terms = Record<string, string | number | boolean | null>;
 type Side = { id: string; version_no: number; effective_from: string | null; effective_to: string | null; terms: Terms } | null;
 
@@ -77,7 +77,7 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                     <Card className="p-5">
                         <h2 className="mb-2 text-base font-semibold">{tt('preview')}</h2>
                         {!preview.current ? <p className="text-sm text-(--app-muted-foreground)">{tt('noCurrentPolicy')}</p> : (
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-policies-show"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('changes')}</th>
@@ -95,14 +95,14 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         )}
                     </Card>
                 </div>
 
                 <Card className="p-5">
                     <h2 className="mb-2 text-base font-semibold">{tt('versionHistory')}</h2>
-                    <table className={tableClassName}>
+                    <TableTools id="cafeteria-policies-show-2"><table className={tableClassName}>
                         <thead className={tableHeadClassName}><tr>
                             <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('version')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('dailySubsidy')}</th>
                             <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('effectiveFrom')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('effectiveTo')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('status')}</th>
@@ -118,7 +118,7 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </Card>
             </div>
         </AuthenticatedLayout>

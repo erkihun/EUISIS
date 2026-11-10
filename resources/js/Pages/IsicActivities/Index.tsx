@@ -10,7 +10,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import type { CSSProperties } from 'react';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Row = {
     id: string;
@@ -178,7 +178,7 @@ export default function IsicActivitiesIndex({
                         <EmptyState title={t('isicActivities.noIsicActivitiesFound')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="isic-activities-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'w-24 text-left')}>{t('isicActivities.isicCode')}</th>
@@ -238,7 +238,7 @@ export default function IsicActivitiesIndex({
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} />

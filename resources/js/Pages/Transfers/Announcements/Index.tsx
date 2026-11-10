@@ -9,7 +9,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useState } from 'react';
 
 import EmptyState from '@/Components/EmptyState';
-import { AppActionMenu, FilterField, FilterPanel, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, buttonClassName, type LaravelPageMeta } from '@/Components/ui';
+import { AppActionMenu, FilterField, FilterPanel, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, buttonClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type AnnouncementCan = {
     update: boolean;
     publish: boolean;
@@ -156,7 +156,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                 </FilterPanel>
 
                 <TableCard>
-                    <Table>
+                    <TableTools id="transfers-announcements-index"><Table>
                         <THead>
                             <Tr>
                                 <Th>{t('transfers.position')}</Th>
@@ -209,7 +209,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                     {announcements.data.length === 0 && (
                         <EmptyState
                             title={t('transfers.noAnnouncements')}

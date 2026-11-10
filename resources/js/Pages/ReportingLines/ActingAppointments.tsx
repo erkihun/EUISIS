@@ -7,7 +7,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
-import { Button, FilterField, FilterPanel, FormField, Input, ListPagination, Select, Textarea, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, FormField, Input, ListPagination, Select, Textarea, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useEffect, useState } from 'react';
 
 type OrganizationOption = { id: string; name_en: string; name_am: string | null };
@@ -130,7 +130,7 @@ export default function ActingAppointmentsPage({ organizations, filters, appoint
                         <EmptyState title={t('reportingLines.noActingAppointments')} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="reporting-lines-acting-appointments"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         {[t('reportingLines.position'), t('reportingLines.actingEmployee'), t('reportingLines.period'), t('reportingLines.reason'), t('common.status'), ''].map((h, i) => (
@@ -165,7 +165,7 @@ export default function ActingAppointmentsPage({ organizations, filters, appoint
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                     <ListPagination meta={meta} />

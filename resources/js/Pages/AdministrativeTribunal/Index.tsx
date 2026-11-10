@@ -7,7 +7,7 @@ import { useState, type JSX } from 'react';
 import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type TribunalCase = {
     id: string; case_number: string; status: string; hearing_date: string | null; decision_date: string | null;
     court_case_number: string | null;
@@ -57,7 +57,7 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="administrative-tribunal-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('grievances.caseNumber'), t('grievances.grievance'), t('grievances.organization'), t('grievances.hearingDate'), t('grievances.decisionDate'), t('grievances.status')].map(h => (
@@ -87,7 +87,7 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                     </div>
                     {cases.data.length === 0 && (
                         <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />

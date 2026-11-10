@@ -4,6 +4,8 @@ import { Empty, Section, Stat, Table, fmt, nameOf, secondaryBtn, tdCls, thCls, u
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { ReportsIndexProps } from '@/types/grievances';
 
+import { TableTools } from '@/Components/ui';
+
 const ENUM_COLUMNS: Record<string, string> = { key: 'status', status: 'letter_status', movement_type: 'movement_type', handler_type: 'handler_type', type: 'handler_type', letter_type: 'letter_type' };
 
 /**
@@ -39,9 +41,9 @@ export default function Index({ report, reports, result, filters, minGroupSize, 
             {report === 'summary' && result.totals
                 ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{Object.entries(result.totals).map(([k, v]) => <Stat key={k} label={w(`col_${k}`)} value={v} />)}</div>
                 : result.rows.length
-                    ? <Table head={<>{result.columns.map(c => <th key={c} className={thCls}>{w(`col_${c}`)}</th>)}</>}>
+                    ? <TableTools id="grievances-reports-index"><Table head={<>{result.columns.map(c => <th key={c} className={thCls}>{w(`col_${c}`)}</th>)}</>}>
                         {result.rows.map((row, i) => <tr key={i}>{result.columns.map(c => <td key={c} className={tdCls}>{c === 'name_en' ? nameOf(row as { name_en?: string; name_am?: string }, locale) : cell(c, row[c])}</td>)}</tr>)}
-                    </Table>
+                    </Table></TableTools>
                     : <Empty>{w('no_rows')}</Empty>}
         </Section>
         {result.suppressed > 0 && <p role="note" className="text-sm text-(--app-muted-foreground)">{fmt(w('suppressed'), { count: result.suppressed, min: minGroupSize })}</p>}

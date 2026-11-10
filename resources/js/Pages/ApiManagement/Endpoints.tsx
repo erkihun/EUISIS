@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 interface Endpoint {
     id: string;
@@ -128,7 +128,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
             </div>
 
             <section className="overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)">
-                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                <TableTools id="api-management-endpoints"><table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>
                             <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.method')}</th>
@@ -208,7 +208,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                             ))
                         )}
                     </tbody>
-                </table>
+                </table></TableTools>
             </section>
         </AuthenticatedLayout>
     );

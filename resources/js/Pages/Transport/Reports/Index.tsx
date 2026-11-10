@@ -8,6 +8,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { DateText, Percent } from '@/Components/transport/TransportShared';
 import type { DailyUsageRow, ProviderOption, ProviderPerformanceRow, ReportFilters, RouteRef, RouteUtilizationRow, TransportReport, VehicleUtilizationRow } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 type Props = {
     report: TransportReport;
     dailyUsage: DailyUsageRow[];
@@ -42,7 +44,7 @@ export default function Index({ report, dailyUsage, routeUtilization, vehicleUti
     ) : undefined);
 
     const table = (rows: unknown[], head: ReactNode, body: ReactNode) => (rows.length === 0 ? <EmptyState title={t('transport.noRecords')} /> : (
-        <div className="relative overflow-x-auto"><table className={tableClassName}><thead className={tableHeadClassName}><tr>{head}</tr></thead><tbody className={tableBodyClassName}>{body}</tbody></table></div>
+        <div className="relative overflow-x-auto"><TableTools id="transport-reports-index"><table className={tableClassName}><thead className={tableHeadClassName}><tr>{head}</tr></thead><tbody className={tableBodyClassName}>{body}</tbody></table></TableTools></div>
     ));
 
     return (

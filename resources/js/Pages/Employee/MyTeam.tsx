@@ -6,7 +6,7 @@ import type { ActionOption, DelegationRow, EmployeePage, EmployeeRow } from '@/C
 import { Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
-import { Button, ListPagination, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { Button, ListPagination, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useState } from 'react';
 
 /**
@@ -33,7 +33,7 @@ export default function MyTeam({ employee, direct, indirect, indirect_total, ind
         <>
             {page.data.length === 0 ? <EmptyState title={t('reportingLines.noReports')} /> : (
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="employee-my-team"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('reportingLines.employee'), t('reportingLines.position'), t('reportingLines.unit')].map((h, i) => (
@@ -53,7 +53,7 @@ export default function MyTeam({ employee, direct, indirect, indirect_total, ind
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
             )}
             <ListPagination meta={page.meta} onPageChange={(p) => router.get(route('employee.my-team'), { [pageName]: p, indirect: indirect ? 1 : undefined }, { preserveState: true, preserveScroll: true })} />

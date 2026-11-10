@@ -8,6 +8,8 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
+import { TableTools } from '@/Components/ui';
+
 type Pending = { id: string; level: ReportingLevel; form_type: FormType; revision_no: number; submitted_at: string | null; submitted_late: boolean; period_label: string; organization: Named; can_review: boolean };
 type Correction = { id: string; reason: string; requested_by: string | null; created_at: string | null; submission_id: string; period_label: string; organization: Named };
 type Comment = { section: SectionNumber; line_reference: string; body: string };
@@ -33,7 +35,7 @@ export default function ReviewQueue({ pending, corrections }: { pending: Pending
             <div className="space-y-4">
                 {pending.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('review.empty')}</p> : (
                     <div className={scrollCls}>
-                        <table className={tableCls}>
+                        <TableTools id="service-monitoring-review-queue"><table className={tableCls}>
                             <thead><tr>{['common.institution', 'common.level', 'common.period', 'common.submittedAt', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                             <tbody>
                                 {pending.map((p) => (
@@ -53,7 +55,7 @@ export default function ReviewQueue({ pending, corrections }: { pending: Pending
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
 

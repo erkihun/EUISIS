@@ -8,6 +8,7 @@ import {
     Button, Card, FilterField, FilterPanel, FormField, Input, ListPagination, Select, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
     type LaravelPageMeta,
+    TableTools,
 } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -141,7 +142,7 @@ export default function LawyersIndex({ lawyers, search, canManage }: LawyersInde
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-lawyers-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {['name', 'license', 'contact', 'status', 'cases', 'actions'].map((key) => (
@@ -189,7 +190,7 @@ export default function LawyersIndex({ lawyers, search, canManage }: LawyersInde
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {lawyers.data.length === 0 && <EmptyState title={r('none')} />}
                     <ListPagination meta={lawyers} />

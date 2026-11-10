@@ -595,6 +595,13 @@ class SystemSettingsRegistry
             ],
 
             self::GROUP_APPEARANCE => [
+                /*
+                 * The interface style: a preset of neutrals, card treatment, radii
+                 * and elevation (resources/css/app.css, "Interface style presets").
+                 * Brand colours and the light/dark theme are separate settings and
+                 * apply on top of whichever style is chosen.
+                 */
+                'ui_style' => self::field(type: 'select', default: 'swiss', labelEn: 'Interface Style', labelAm: 'የገጽታ ቅጥ', descriptionEn: 'The look of the whole interface: Swiss (clean and flat, recommended), Classic (tonal navy cards), Soft UI (raised surfaces) or High contrast (black on white, for low vision). Colours and light/dark mode apply on top.', descriptionAm: 'የመላው ገጽታ መልክ፦ ስዊስ (ንጹህና ጠፍጣፋ፣ የሚመከር)፣ ክላሲክ (በቀለም የተነከሩ ካርዶች)፣ ለስላሳ (ከፍ ያሉ ገጾች) ወይም ከፍተኛ ንጽጽር (ጥቁር በነጭ፣ ለደካማ እይታ)። ቀለሞችና የብርሃን/ጨለማ ሁኔታ በላዩ ይተገበራሉ።', isPublic: true, options: ['swiss', 'classic', 'soft', 'contrast'], validationRules: ['required', 'in:swiss,classic,soft,contrast'], sortOrder: 5),
                 'default_theme' => self::field(type: 'select', default: 'system', labelEn: 'Default Theme', labelAm: 'ነባሪ ገጽታ', isPublic: true, options: ['light', 'dark', 'system'], validationRules: ['required', 'in:light,dark,system'], sortOrder: 10),
                 'table_density' => self::field(type: 'select', default: 'comfortable', labelEn: 'Table Density', labelAm: 'የሰንጠረዥ ጥግግት', isPublic: true, options: ['compact', 'comfortable', 'spacious'], validationRules: ['required', 'in:compact,comfortable,spacious'], sortOrder: 20),
                 'button_style' => self::field(type: 'select', default: 'rounded', labelEn: 'Button Style', labelAm: 'የአዝራር ቅጥ', isPublic: true, options: ['rounded', 'soft', 'square'], validationRules: ['required', 'in:rounded,soft,square'], sortOrder: 30),
@@ -1185,6 +1192,7 @@ class SystemSettingsRegistry
             'localization.timezone',
             'localization.date_format',
             'localization.datetime_format',
+            'appearance.ui_style',
             'appearance.default_theme',
             'appearance.primary_color',
             'appearance.secondary_color',

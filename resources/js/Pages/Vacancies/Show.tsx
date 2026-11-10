@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 type Application = {
     id: string;
     application_number: string;
@@ -159,7 +159,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                     <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
                         <h4 className="mb-3 text-sm font-semibold text-(--app-foreground)">{t('vacancies.includedPositions')}</h4>
                         <div className="overflow-hidden rounded-lg border border-(--app-border)">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="vacancies-show"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('positionEstablishments.organization')}</th>
@@ -209,7 +209,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     </section>
                 </div>

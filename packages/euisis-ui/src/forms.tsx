@@ -18,7 +18,8 @@ import { useUiMessages } from './context';
  * `w-full`. Callers add their own width.
  */
 const controlBase = cx(
-    'rounded-control border border-(--app-border-strong)',
+    // Neumorphic: a concave (inset) field; the border stays so the boundary meets 3:1.
+    'rounded-control border border-(--app-border-strong) shadow-(--neu-inset)',
     'bg-(--app-surface) px-3 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground)',
     'focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/20',
     'disabled:cursor-not-allowed disabled:bg-(--app-surface-muted) disabled:opacity-70',

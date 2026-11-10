@@ -10,7 +10,7 @@ import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { localizedName } from '@/utils/localizedName';
-import { Table, TBody, Td, Th, THead, Tr, buttonClassName } from '@/Components/ui';
+import { Table, TBody, Td, Th, THead, Tr, buttonClassName, TableTools } from '@/Components/ui';
 import { Alert, Button, Card, CardHeader, CardTitle } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
@@ -164,7 +164,7 @@ export default function TransferAnnouncementShow({ announcement, readiness, appl
                             {readiness.positions.length === 0 ? (
                                 <p className="text-sm text-(--app-muted-foreground)">{t('transfers.noPositionsConfigured')}</p>
                             ) : (
-                                <Table>
+                                <TableTools id="transfers-announcements-show"><Table>
                                     <THead>
                                         <Tr>
                                             <Th>{t('transfers.position')}</Th>
@@ -188,7 +188,7 @@ export default function TransferAnnouncementShow({ announcement, readiness, appl
                                             </Tr>
                                         ))}
                                     </TBody>
-                                </Table>
+                                </Table></TableTools>
                             )}
                         </Card>
 

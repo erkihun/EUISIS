@@ -5,6 +5,8 @@ import { Empty, Pager, Pill, Section, Table, employeeName, formatScore, pageCls,
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link } from '@inertiajs/react';
 
+import { TableTools } from '@/Components/ui';
+
 export type AppealRow = {
     id: string; appeal_no: string; status: string; decision: string | null; submitted_at: string; decided_at: string | null;
     employee: { name: string | null; name_en: string | null; number: string | null };
@@ -19,7 +21,7 @@ export default function AppealsIndex({ appeals }: { appeals: Paginator<AppealRow
             <div className={pageCls}>
                 <Section title={t('performance.appeals.title')}>
                     {appeals.data.length === 0 ? <Empty>{t('performance.appeals.empty')}</Empty> : (
-                        <Table head={<>
+                        <TableTools id="performance-appeals-index"><Table head={<>
                             <th className={thCls}>{t('performance.reports.columns.appeal_no')}</th>
                             <th className={thCls}>{t('performance.fields.employee')}</th>
                             <th className={thCls}>{t('performance.fields.score')}</th>
@@ -35,7 +37,7 @@ export default function AppealsIndex({ appeals }: { appeals: Paginator<AppealRow
                                     <td className={`${tdCls} text-xs`}><LocalizedDateDisplay value={a.submitted_at} withTime /></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <Pager page={appeals} />
                 </Section>

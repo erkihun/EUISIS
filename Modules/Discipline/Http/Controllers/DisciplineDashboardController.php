@@ -50,11 +50,14 @@ class DisciplineDashboardController extends Controller
 
         $byStatus = $open()->toBase()->selectRaw('status, count(*) as n')->groupBy('status')->pluck('n', 'status');
         // Open cases ordered by their nearest open statutory deadline; cases without one last.
+        // PostgreSQL does not accept a select alias inside an ORDER BY expression, so the
+        // "no deadline last" sort repeats the subquery instead of writing `next_due is null`.
+        $nextDue = fn () => DB::table('statutory_deadlines')->select('due_at')
+            ->whereColumn('subject_id', 'disciplinary_cases.id')->where('subject_type', (new DisciplinaryCase)->getMorphClass())
+            ->whereNull('completed_at')->whereNull('superseded_at')->orderBy('due_at')->limit(1);
         $byDeadline = fn (): Builder => $open()->select('disciplinary_cases.*')
-            ->addSelect(['next_due' => DB::table('statutory_deadlines')->select('due_at')
-                ->whereColumn('subject_id', 'disciplinary_cases.id')->where('subject_type', (new DisciplinaryCase)->getMorphClass())
-                ->whereNull('completed_at')->whereNull('superseded_at')->orderBy('due_at')->limit(1)])
-            ->orderByRaw('next_due is null')->orderBy('next_due')
+            ->addSelect(['next_due' => $nextDue()])
+            ->orderByRaw('('.$nextDue()->toSql().') is null', $nextDue()->getBindings())->orderBy('next_due')
             ->with(['accused', 'organization']);
         $row = fn (DisciplinaryCase $case): array => $this->presenter->row($case, $locale);
 

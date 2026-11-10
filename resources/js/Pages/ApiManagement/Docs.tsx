@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -101,7 +101,7 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
                                 </h4>
 
                                 <div className="overflow-x-auto">
-                                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                    <TableTools id="api-management-docs"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>
@@ -152,7 +152,7 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             </div>
                         ))}

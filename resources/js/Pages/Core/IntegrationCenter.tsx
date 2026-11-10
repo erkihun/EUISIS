@@ -5,7 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import DashboardSection from '@/Components/dashboard/DashboardSection';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { CodeIcon, NetworkIcon } from '@/Components/NavIcons';
-import { AppMetricCard, Table, TableCard, TBody, Td, Th, THead, Tr, buttonClassName } from '@/Components/ui';
+import { AppMetricCard, Table, TableCard, TBody, Td, Th, THead, Tr, buttonClassName, TableTools } from '@/Components/ui';
 import { Card, EmptyState } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatNumber } from '@/utils/displayFormat';
@@ -76,7 +76,7 @@ export default function CoreIntegrationCenter({ applications, events, can, cente
                             {!applications || applications.length === 0 ? (
                                 <EmptyState icon={<CodeIcon className="h-8 w-8" />} title={t('core.integration.noApplications')} description={t('core.integration.noApplicationsHint')} />
                             ) : (
-                                <Table>
+                                <TableTools id="core-integration-center"><Table>
                                     <THead>
                                         <Tr>
                                             <Th>{t('core.integration.application')}</Th>
@@ -104,7 +104,7 @@ export default function CoreIntegrationCenter({ applications, events, can, cente
                                             </Tr>
                                         ))}
                                     </TBody>
-                                </Table>
+                                </Table></TableTools>
                             )}
                         </TableCard>
                     </DashboardSection>

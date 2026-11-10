@@ -11,6 +11,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState, type FormEvent } from 'react';
 import type { TipOffBreakdown, TipTypeBucket } from '@/types/publicSubmissions';
 
+import { TableTools } from '@/Components/ui';
+
 type NamePair = { id: string | null; name_en: string | null; name_am: string | null; total: number };
 type Filters = Partial<Record<'organization_id' | 'submission_type' | 'tip_type' | 'target_type' | 'status' | 'date_from' | 'date_to' | 'handler_type' | 'handler_id', string>>;
 type Summary = { total: number; by_type: Record<'feedback' | 'suggestion' | 'complaint', number>; by_target: Record<'employee' | 'organization', number>; by_status: Record<string, number> };
@@ -170,7 +172,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
 
                     <TableCard title={t('serviceFeedback.tipOffsByInstitution')}>
                         {tipOffsByOrganization.length === 0 ? <EmptyState title={t('serviceFeedback.noSubmissions')} /> : (
-                            <Table>
+                            <TableTools id="service-feedback-submission-reports"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('serviceFeedback.filterOrganization')}</Th>
@@ -187,13 +189,13 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </TableCard>
 
                     <TableCard title={t('serviceFeedback.employeeTargetedTipOffs')} description={t('serviceFeedback.employeeTargetedTipOffsHint')}>
                         {!filters.organization_id || employeeTargetedTipOffs.length === 0 ? <EmptyState title={t(filters.organization_id ? 'serviceFeedback.noSubmissions' : 'serviceFeedback.employeeTargetedTipOffsHint')} /> : (
-                            <Table>
+                            <TableTools id="service-feedback-submission-reports-2"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('serviceFeedback.targetEmployee')}</Th>
@@ -210,7 +212,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </TableCard>
                 </section>
@@ -230,7 +232,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                         )}
                     >
                         {exports.length === 0 ? <EmptyState title={t('serviceFeedback.noExports')} /> : (
-                            <Table>
+                            <TableTools id="service-feedback-submission-reports-3"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('serviceFeedback.submittedDate')}</Th>
@@ -254,7 +256,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </TableCard>
                 )}

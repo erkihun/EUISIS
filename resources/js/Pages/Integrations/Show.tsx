@@ -7,7 +7,7 @@ import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import StatusBadge from '@/Components/StatusBadge';
-import { Button, Card, FormField, Input, ListPagination, Select, Table, TBody, THead, Td, Textarea, Th, Tr, cx } from '@/Components/ui';
+import { Button, Card, FormField, Input, ListPagination, Select, Table, TBody, THead, Td, Textarea, Th, Tr, cx, TableTools } from '@/Components/ui';
 
 interface DeliveryRow {
     id: string;
@@ -159,7 +159,7 @@ export default function IntegrationsShow({ subscription, deliveries, statusFilte
                         {deliveries.data.length === 0 ? (
                             <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">{t('integrations.noDeliveries')}</p>
                         ) : (
-                            <Table>
+                            <TableTools id="integrations-show"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('integrations.event')}</Th>
@@ -192,7 +192,7 @@ export default function IntegrationsShow({ subscription, deliveries, statusFilte
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                         <div className="px-5 pb-4"><ListPagination meta={deliveries} /></div>
                     </Card>
@@ -240,7 +240,7 @@ export default function IntegrationsShow({ subscription, deliveries, statusFilte
                         <div className="border-b border-(--app-border) px-5 py-4">
                             <h2 className="text-base font-semibold text-(--app-foreground)">{t('integrations.replayHistory')}</h2>
                         </div>
-                        <Table>
+                        <TableTools id="integrations-show-2"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('integrations.created')}</Th>
@@ -259,7 +259,7 @@ export default function IntegrationsShow({ subscription, deliveries, statusFilte
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     </Card>
                 )}
             </div>

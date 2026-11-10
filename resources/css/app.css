@@ -50,12 +50,14 @@
   --text-sm--line-height: var(--lh-sm);
   --text-base: 1rem;
   --text-base--line-height: var(--lh-base);
-  --text-page-title: 1.375rem;
+  --text-page-title: 1.5rem;
   --text-page-title--line-height: var(--lh-title);
   --text-page-title--font-weight: 700;
+  --text-page-title--letter-spacing: var(--tracking-title);
   --text-section-title: 1.125rem;
   --text-section-title--line-height: var(--lh-section);
   --text-section-title--font-weight: 600;
+  --text-section-title--letter-spacing: var(--tracking-section);
   --text-body: 0.875rem;
   --text-body--line-height: var(--lh-sm);
   --text-label: 0.875rem;
@@ -106,6 +108,16 @@
   /* Only 400–700 are shipped; the heaviest utilities are pinned to the heaviest real face. */
   --font-weight-extrabold: 700;
   --font-weight-black: 700;
+
+  /* Every shadow utility resolves to the preset's elevation tokens, which
+     switch with the interface style and the theme. The utilities keep their
+     names (shadow-sm on toolbars, shadow-lg on menus, shadow-xl on dialogs),
+     so no component changes. */
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+  --shadow-xl: var(--elev-xl);
+  --shadow-2xl: var(--elev-xl);
 
   /* Tailwind's stock blue repointed at the institutional navy (see the note in the design tokens below). */
   --color-blue-50: #eef1fa;
@@ -222,24 +234,40 @@
     /* ── Surfaces ──────────────────────────────────────────────
        Four levels, used consistently: the page sits one step below the
        cards on it, so borders stay thin and shadows stay unnecessary. */
-    --app-background:      #f4f6fb;
-    --app-foreground:      #0f172a;
+    /* Base interface style: "swiss", the recommended default (true greys,
+       hairline depth, one accent). System Settings › Appearance › Interface
+       style switches to the other presets, which override these tokens under
+       `html[data-ui-style="…"]` further down. Text 18:1, muted text 6.7:1,
+       control boundaries 4.5:1 on white and 3.9:1 on the muted surface. */
+    --app-background:      #f6f6f6;
+    --app-foreground:      #141414;
     --app-surface:         #ffffff;
-    --app-surface-muted:   #f1f3f6;
-    --app-border:          #e2e5ea;
-    --app-border-strong:   #cbd2dc;
-    --app-muted-foreground:#5b6472;
+    --app-surface-muted:   #ededed;
+    --app-border:          #dcdcdc;
+    --app-border-strong:   #767676;
+    --app-muted-foreground:#5c5c5c;
+
+    /* Elevation per preset; the Tailwind shadow utilities resolve to these
+       (see the @theme block), so no component picks an elevation itself. */
+    --elev-sm: 0 1px 0 0 rgb(0 0 0 / 0.06);
+    --elev-md: 0 1px 2px 0 rgb(0 0 0 / 0.1), 0 0 0 1px rgb(0 0 0 / 0.04);
+    --elev-lg: 0 2px 6px -1px rgb(0 0 0 / 0.14), 0 0 0 1px rgb(0 0 0 / 0.05);
+    --elev-xl: 0 8px 24px -10px rgb(0 0 0 / 0.28), 0 0 0 1px rgb(0 0 0 / 0.05);
+    /* Soft-UI light sources, read by the kit's buttons and inputs; nothing
+       unless the "soft" preset sets them. */
+    --neu-raised:    0 0 #0000;
+    --neu-raised-sm: 0 0 #0000;
+    --neu-raised-lg: 0 0 #0000;
+    --neu-inset:     0 0 #0000;
 
     /* ── Cards (light theme) ───────────────────────────────────
-       Admin cards are tonal, not white: a soft navy tint for content
-       panels, and a tint per meaning for KPI cards (card-tone-*). Form
-       fields, menus and dialogs stay on --app-surface so they read as
-       controls. Dark theme keeps its surfaces; see "Tonal cards" below. */
-    --app-card:            #edf1fb;
-    --app-card-border:     #d5ddf1;
-    --app-card-hover:      #e3e9f8;
-    --app-card-inset:      #e0e7f7;
-    --app-card-muted-text: #5b6472;
+       Flat with a hairline border; meaning is a 3px rule on the start edge
+       (card-tone-*). The classic preset tints them instead. */
+    --app-card:            #ffffff;
+    --app-card-border:     #dcdcdc;
+    --app-card-hover:      #f6f6f6;
+    --app-card-inset:      #f3f3f3;
+    --app-card-muted-text: #5c5c5c;
 
     --tone-info-bg:        #e6ecfb;
     --tone-info-border:    #c9d4f2;
@@ -276,9 +304,14 @@
     /* ── Radius ────────────────────────────────────────────────
        One scale, 6–10px. `--radius-card` is the only value a card should
        use; controls use `--radius-control`. */
-    --radius-control:      6px;
-    --radius-card:         8px;
-    --radius-panel:        10px;
+    /* Each preset sets the *-base values; the Card Radius and Button Style
+       settings scale them (see their rules below). */
+    --radius-control-base: 2px;
+    --radius-card-base:    2px;
+    --radius-panel-base:   4px;
+    --radius-control:      var(--radius-control-base);
+    --radius-card:         var(--radius-card-base);
+    --radius-panel:        var(--radius-panel-base);
 
     /* ── Control heights ───────────────────────────────────────
        Inputs and buttons share these so a filter row lines up without
@@ -324,6 +357,11 @@
     --lh-table: 1.25rem;
     --fs-helper: 0.75rem;
     --lh-helper: 1rem;
+
+    /* Swiss type: titles set tight. Ethiopic keeps its natural fit (the
+       [lang|="am"] rule zeroes these). */
+    --tracking-title: -0.02em;
+    --tracking-section: -0.01em;
 }
 
 /*
@@ -362,16 +400,25 @@
     --lh-table: 1.3125rem;
     --fs-helper: 0.8rem;
     --lh-helper: 1.25rem;
+    --tracking-title: 0;
+    --tracking-section: 0;
 }
 
 .dark {
-    --app-background:      #0b1020;
-    --app-foreground:      #f8fafc;
-    --app-surface:         #111827;
-    --app-surface-muted:   #171f31;
-    --app-border:          #1f2937;
-    --app-border-strong:   #334155;
-    --app-muted-foreground:#94a3b8;
+    /* Neutral darks for the base style: text 16:1, muted text 7:1, control
+       boundaries 3.5:1 on the surface and 3.1:1 on the muted surface. */
+    --app-background:      #111112;
+    --app-foreground:      #f4f4f5;
+    --app-surface:         #19191b;
+    --app-surface-muted:   #222225;
+    --app-border:          #2e2e32;
+    --app-border-strong:   #6e6e75;
+    --app-muted-foreground:#a3a3aa;
+    --app-card:            #19191b;
+    --app-card-border:     #2e2e32;
+    --app-card-hover:      #222225;
+    --app-card-inset:      #222225;
+    --app-card-muted-text: #a3a3aa;
 
     /* On a dark surface the 700 navy has too little contrast to read as an
        action colour, so the interactive primary steps up the scale. */
@@ -388,6 +435,174 @@
     --sidebar-bg: var(--sidebar-bg-dark, #0b1020);
     --sidebar-fg: var(--sidebar-fg-dark, #f1f5f9);
     --sidebar-accent: var(--sidebar-accent-dark, var(--color-primary));
+}
+
+/* ── Interface style presets ───────────────────────────────────
+ *
+ * System Settings › Appearance › Interface style writes `data-ui-style` on
+ * <html> (app.blade.php for the first paint, AuthenticatedLayout afterwards).
+ * The base tokens above are the "swiss" preset. Each preset below redefines
+ * only neutrals, cards, radii, elevation and type tracking; brand colours,
+ * spacing, typography scale and every component stay the same. Each preset
+ * has a light and a `.dark` block, and `html[data-ui-style]` outranks the
+ * plain `.dark` block, so the dark block must restate every token the light
+ * block sets. Values and contrast figures: docs/ui-ux-refresh-plan-2026-11.md §8.
+ */
+
+/* classic — the original tonal navy admin: tinted cards, dot-grid heading band, 6–10px radii. */
+html[data-ui-style="classic"] {
+    --app-background:      #f4f6fb;
+    --app-foreground:      #0f172a;
+    --app-surface:         #ffffff;
+    --app-surface-muted:   #f1f3f6;
+    --app-border:          #e2e5ea;
+    --app-border-strong:   #7a8597;
+    --app-muted-foreground:#5b6472;
+    --app-card:            #edf1fb;
+    --app-card-border:     #d5ddf1;
+    --app-card-hover:      #e3e9f8;
+    --app-card-inset:      #e0e7f7;
+    --app-card-muted-text: #5b6472;
+    --radius-control-base: 6px;
+    --radius-card-base:    8px;
+    --radius-panel-base:   10px;
+    --elev-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --elev-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --elev-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --elev-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --tracking-title: 0;
+    --tracking-section: 0;
+}
+html[data-ui-style="classic"].dark {
+    --app-background:      #0b1020;
+    --app-foreground:      #f8fafc;
+    --app-surface:         #111827;
+    --app-surface-muted:   #171f31;
+    --app-border:          #1f2937;
+    --app-border-strong:   #5b6b85;
+    --app-muted-foreground:#94a3b8;
+    --app-card:            #111827;
+    --app-card-border:     #1f2937;
+    --app-card-hover:      #171f31;
+    --app-card-inset:      #171f31;
+    --app-card-muted-text: #94a3b8;
+}
+html[data-ui-style="classic"] .app-dot-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, currentColor 16%, transparent) 1px, transparent 1.6px);
+    background-size: 16px 16px;
+    -webkit-mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+    mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+}
+/* Classic tones are tinted fills, not start-edge rules. */
+html[data-ui-style="classic"]:not(.dark) [class*="card-tone-"] { border-inline-start-width: 1px; }
+html[data-ui-style="classic"]:not(.dark) .card-tone-neutral { background-color: var(--app-card);       border-color: var(--app-card-border); }
+html[data-ui-style="classic"]:not(.dark) .card-tone-info    { background-color: var(--tone-info-bg);    border-color: var(--tone-info-border); }
+html[data-ui-style="classic"]:not(.dark) .card-tone-success { background-color: var(--tone-success-bg); border-color: var(--tone-success-border); }
+html[data-ui-style="classic"]:not(.dark) .card-tone-warning { background-color: var(--tone-warning-bg); border-color: var(--tone-warning-border); }
+html[data-ui-style="classic"]:not(.dark) .card-tone-danger  { background-color: var(--tone-danger-bg);  border-color: var(--tone-danger-border); }
+
+/* soft — Soft UI: one grey for page and surfaces, depth from two light sources,
+   10–20px radii. Text 13.8:1, muted 5.7:1; controls keep a 3.3:1 border on top
+   of the inset shadow, because a shadow alone does not meet WCAG 1.4.11. */
+html[data-ui-style="soft"] {
+    --app-background:      #e8ebf0;
+    --app-foreground:      #1c1f26;
+    --app-surface:         #e8ebf0;
+    --app-surface-muted:   #dfe3ea;
+    --app-border:          #c9ced6;
+    --app-border-strong:   #7a8089;
+    --app-muted-foreground:#555b66;
+    --app-card:            #e8ebf0;
+    --app-card-border:     transparent;
+    --app-card-hover:      #eef0f4;
+    --app-card-inset:      #dfe3ea;
+    --app-card-muted-text: #555b66;
+    --radius-control-base: 10px;
+    --radius-card-base:    16px;
+    --radius-panel-base:   20px;
+    --neu-raised:    6px 6px 14px rgb(163 170 182 / 0.55), -6px -6px 14px rgb(255 255 255 / 0.9);
+    --neu-raised-sm: 3px 3px 8px rgb(163 170 182 / 0.5), -3px -3px 8px rgb(255 255 255 / 0.9);
+    --neu-raised-lg: 12px 12px 28px rgb(163 170 182 / 0.55), -12px -12px 28px rgb(255 255 255 / 0.9);
+    --neu-inset:     inset 3px 3px 7px rgb(163 170 182 / 0.5), inset -3px -3px 7px rgb(255 255 255 / 0.85);
+    --elev-sm: var(--neu-raised-sm);
+    --elev-md: var(--neu-raised-sm);
+    --elev-lg: var(--neu-raised);
+    --elev-xl: var(--neu-raised-lg);
+}
+html[data-ui-style="soft"][lang|="en"] {
+    --tracking-title: -0.01em;
+    --tracking-section: 0;
+}
+html[data-ui-style="soft"].dark {
+    --app-background:      #2b2e35;
+    --app-foreground:      #f1f3f6;
+    --app-surface:         #2b2e35;
+    --app-surface-muted:   #33373f;
+    --app-border:          #3d414a;
+    --app-border-strong:   #8b9099;
+    --app-muted-foreground:#b4b9c2;
+    --app-card:            #2b2e35;
+    --app-card-border:     transparent;
+    --app-card-hover:      #30343c;
+    --app-card-inset:      #33373f;
+    --app-card-muted-text: #b4b9c2;
+    --neu-raised:    6px 6px 14px rgb(0 0 0 / 0.45), -6px -6px 14px rgb(255 255 255 / 0.05);
+    --neu-raised-sm: 3px 3px 8px rgb(0 0 0 / 0.4), -3px -3px 8px rgb(255 255 255 / 0.05);
+    --neu-raised-lg: 12px 12px 28px rgb(0 0 0 / 0.5), -12px -12px 28px rgb(255 255 255 / 0.05);
+    --neu-inset:     inset 3px 3px 7px rgb(0 0 0 / 0.5), inset -3px -3px 7px rgb(255 255 255 / 0.04);
+}
+
+/* contrast — High contrast for low vision and bright rooms: black on white
+   (white on black in the dark theme), 2px rules instead of shadows, square
+   corners, a 3px focus outline. Text 21:1, muted text 15:1. */
+html[data-ui-style="contrast"] {
+    --app-background:      #ffffff;
+    --app-foreground:      #000000;
+    --app-surface:         #ffffff;
+    --app-surface-muted:   #f0f0f0;
+    --app-border:          #000000;
+    --app-border-strong:   #000000;
+    --app-muted-foreground:#262626;
+    --app-card:            #ffffff;
+    --app-card-border:     #000000;
+    --app-card-hover:      #f0f0f0;
+    --app-card-inset:      #f0f0f0;
+    --app-card-muted-text: #262626;
+    --radius-control-base: 2px;
+    --radius-card-base:    2px;
+    --radius-panel-base:   2px;
+    --elev-sm: 0 0 #0000;
+    --elev-md: 0 0 0 2px #000000;
+    --elev-lg: 0 0 0 2px #000000;
+    --elev-xl: 0 0 0 2px #000000;
+    --tracking-title: 0;
+    --tracking-section: 0;
+}
+html[data-ui-style="contrast"].dark {
+    --app-background:      #000000;
+    --app-foreground:      #ffffff;
+    --app-surface:         #000000;
+    --app-surface-muted:   #1a1a1a;
+    --app-border:          #ffffff;
+    --app-border-strong:   #ffffff;
+    --app-muted-foreground:#e0e0e0;
+    --app-card:            #000000;
+    --app-card-border:     #ffffff;
+    --app-card-hover:      #1a1a1a;
+    --app-card-inset:      #1a1a1a;
+    --app-card-muted-text: #e0e0e0;
+    --elev-md: 0 0 0 2px #ffffff;
+    --elev-lg: 0 0 0 2px #ffffff;
+    --elev-xl: 0 0 0 2px #ffffff;
+}
+html[data-ui-style="contrast"] *:focus-visible {
+    outline: 3px solid var(--app-foreground);
+    outline-offset: 2px;
 }
 
 html,
@@ -468,16 +683,11 @@ html [data-sonner-toaster] {
     position: relative;
     isolation: isolate;
 }
+/* Swiss (November 2026): flat surfaces, no texture. The class stays on the
+   heading band and the sidebar brand block so the texture can return by
+   restoring this rule alone. */
 .app-dot-grid::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, currentColor 16%, transparent) 1px, transparent 1.6px);
-    background-size: 16px 16px;
-    -webkit-mask-image: linear-gradient(to left, #000 15%, transparent 70%);
-    mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+    content: none;
 }
 
 /* ── Sticky table headers (controlled by setting) ───────────── */
@@ -492,6 +702,127 @@ html[data-sticky-tables="true"] thead th {
     top: 0;
     z-index: 1;
     background: inherit;
+}
+
+/* ── Table tools (TableTools in the kit) ──────────────────────
+ *
+ * Sorting, columns, density and a kept header for any table the kit wraps.
+ * The wrapper carries `data-table-tools`, `data-density` and `data-sticky`;
+ * sortable headers carry `data-sortable` and, when sorted, `aria-sort`. The
+ * indicator is a pseudo-element, so no markup is added to a page's header.
+ */
+[data-table-tools] table:not(table table) > thead th[data-sortable] {
+    cursor: pointer;
+    user-select: none;
+}
+[data-table-tools] table:not(table table) > thead th[data-sortable]:hover,
+[data-table-tools] table:not(table table) > thead th[data-sortable]:focus-visible {
+    color: var(--app-foreground);
+}
+[data-table-tools] table:not(table table) > thead th[data-sortable]::after {
+    content: '';
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    margin-inline-start: 0.25rem;
+    vertical-align: -0.1em;
+    background-color: currentColor;
+    opacity: 0;
+    transition: opacity 150ms;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5M7 9l5-5 5 5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+[data-table-tools] table:not(table table) > thead th[data-sortable]:hover::after,
+[data-table-tools] table:not(table table) > thead th[data-sortable]:focus-visible::after {
+    opacity: 0.5;
+}
+[data-table-tools] table:not(table table) > thead th[aria-sort]::after {
+    opacity: 1;
+    color: var(--color-primary);
+}
+[data-table-tools] table:not(table table) > thead th[aria-sort='ascending']::after {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 15 6-6 6 6'/%3E%3C/svg%3E");
+}
+[data-table-tools] table:not(table table) > thead th[aria-sort='descending']::after {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Row density chosen on one table outranks the global Table Density setting. */
+[data-table-tools][data-density='compact'] table:not(table table) > :is(thead, tbody) > tr > :is(th, td) {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+}
+[data-table-tools][data-density='comfortable'] table:not(table table) > :is(thead, tbody) > tr > :is(th, td) {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}
+
+/* Kept header: the rows scroll inside the card and the header row stays put. */
+[data-table-tools][data-sticky='true'] :is(.overflow-x-auto, .overflow-auto):has(> table) {
+    max-height: calc(100vh - 14rem);
+    overflow-y: auto;
+}
+[data-table-tools][data-sticky='true']:not(:has(:is(.overflow-x-auto, .overflow-auto) > table)) {
+    max-height: calc(100vh - 14rem);
+    overflow: auto;
+}
+[data-table-tools][data-sticky='true'] table:not(table table) > thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--app-surface-muted);
+    box-shadow: 0 1px 0 var(--app-border);
+}
+
+/* ── Soft-UI shell: top bar and sidebar (soft preset only) ─────
+ *
+ * The bar is a raised slab over the page; its command-palette field and the
+ * language switch are wells; icon controls lift on hover and sink while
+ * pressed. The sidebar derives its own light and shade from whatever colour
+ * the Appearance setting gives it (navy, white, anything), so the soft look
+ * survives a configured sidebar colour. The current page is pressed into the
+ * rail; the brand tile is raised; the filter field is a well.
+ */
+html[data-ui-style="soft"] [data-admin-header] {
+    border-bottom-color: transparent;
+    box-shadow: 0 6px 14px -8px color-mix(in srgb, var(--app-foreground) 35%, transparent);
+}
+html[data-ui-style="soft"] [data-admin-header] button.border {
+    border-color: transparent;
+    background-color: var(--app-surface);
+    box-shadow: var(--neu-inset);
+}
+html[data-ui-style="soft"] [data-admin-header] [role="group"] {
+    background-color: var(--app-surface);
+    box-shadow: var(--neu-inset);
+}
+html[data-ui-style="soft"] [data-admin-header] button.h-9.w-9:hover {
+    box-shadow: var(--neu-raised-sm);
+}
+html[data-ui-style="soft"] [data-admin-header] button.h-9.w-9:active {
+    box-shadow: var(--neu-inset);
+}
+
+html[data-ui-style="soft"] [data-sidebar] {
+    --sidebar-shade: color-mix(in srgb, var(--sidebar-bg) 72%, black);
+    --sidebar-light: color-mix(in srgb, var(--sidebar-bg) 78%, white);
+    --sidebar-raised: 4px 4px 10px var(--sidebar-shade), -4px -4px 10px var(--sidebar-light);
+    --sidebar-inset: inset 3px 3px 6px var(--sidebar-shade), inset -3px -3px 6px var(--sidebar-light);
+    border-inline-end-color: transparent;
+    box-shadow: 6px 0 16px -8px color-mix(in srgb, black 35%, transparent);
+}
+html[data-ui-style="soft"] [data-sidebar] .rounded-control.ring-1 {
+    box-shadow: var(--sidebar-raised);
+}
+html[data-ui-style="soft"] [data-sidebar] div.border.rounded-md:has(> input[type="search"]) {
+    border-color: transparent;
+    background-color: var(--sidebar-bg);
+    box-shadow: var(--sidebar-inset);
+}
+html[data-ui-style="soft"] [data-sidebar] nav a[aria-current="page"] {
+    box-shadow: var(--sidebar-inset);
+}
+html[data-ui-style="soft"] [data-sidebar] nav :is(a, button):not([aria-current="page"]):hover {
+    box-shadow: var(--sidebar-raised);
 }
 
 /* ── Disable animations (setting) ──────────────────────────── */
@@ -537,12 +868,14 @@ html[data-table-density="spacious"] th {
  * `rounded-card` / `rounded-panel` follows; controls keep their own
  * `--radius-control` and stay put, which is what "card radius" should mean.
  */
-html[data-card-radius="sm"]  { --radius-card: 2px;  --radius-panel: 3px;  }
-html[data-card-radius="md"]  { --radius-card: 4px;  --radius-panel: 6px;  }
-html[data-card-radius="lg"]  { --radius-card: 6px;  --radius-panel: 8px;  }
-/* xl is the shipped default — declared for completeness, not as an override. */
-html[data-card-radius="xl"]  { --radius-card: 8px;  --radius-panel: 10px; }
-html[data-card-radius="2xl"] { --radius-card: 12px; --radius-panel: 16px; }
+/* The setting scales the preset's own radius: half, three quarters, the
+   preset value ("xl", what AuthenticatedLayout writes by default) or one and
+   a half times it. So "Large" means large for that interface style. */
+html[data-card-radius="sm"]  { --radius-card: calc(var(--radius-card-base) * 0.5);  --radius-panel: calc(var(--radius-panel-base) * 0.5); }
+html[data-card-radius="md"]  { --radius-card: calc(var(--radius-card-base) * 0.75); --radius-panel: calc(var(--radius-panel-base) * 0.75); }
+html[data-card-radius="lg"]  { --radius-card: var(--radius-card-base);                --radius-panel: var(--radius-panel-base); }
+html[data-card-radius="xl"]  { --radius-card: var(--radius-card-base);                --radius-panel: var(--radius-panel-base); }
+html[data-card-radius="2xl"] { --radius-card: calc(var(--radius-card-base) * 1.5);  --radius-panel: calc(var(--radius-panel-base) * 1.5); }
 
 /* ── Button style (controlled by setting) ─────────────────────
  *
@@ -551,7 +884,7 @@ html[data-card-radius="2xl"] { --radius-card: 12px; --radius-panel: 16px; }
  * avatars and pill toggles along with the buttons.
  */
 html[data-button-style="square"]  { --radius-control: 0; }
-html[data-button-style="soft"]    { --radius-control: 8px; }
+html[data-button-style="soft"]    { --radius-control: calc(var(--radius-control-base) + 6px); }
 
 /* ── Tonal cards (admin layout, light theme) ──────────────────
  *
@@ -605,12 +938,27 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 }
 
 /* KPI cards tinted by meaning (KpiCard `tone`). Light theme only. */
-:root:not(.dark) .card-tone-neutral { background-color: var(--app-card);       border-color: var(--app-card-border); }
-:root:not(.dark) .card-tone-info    { background-color: var(--tone-info-bg);    border-color: var(--tone-info-border); }
-:root:not(.dark) .card-tone-success { background-color: var(--tone-success-bg); border-color: var(--tone-success-border); }
-:root:not(.dark) .card-tone-warning { background-color: var(--tone-warning-bg); border-color: var(--tone-warning-border); }
-:root:not(.dark) .card-tone-danger  { background-color: var(--tone-danger-bg);  border-color: var(--tone-danger-border); }
-:root:not(.dark) a[class*="card-tone-"]:hover { filter: brightness(0.97); }
+/* soft preset: every card is extruded from the page — same colour, no border,
+   the raised shadow — in both themes. The selector is the one the tonal rule
+   above uses, so "card" means the same thing in both. */
+html[data-ui-style="soft"] .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"], [class*="card-tone-"], .app-card):not(input, select, textarea, button, .fixed, .absolute, .inline-flex, table *) {
+    background-color: var(--app-card);
+    border-color: transparent;
+    box-shadow: var(--neu-raised);
+}
+/* A card inside a card is concave, so the layers still read. */
+html[data-ui-style="soft"] .admin-shell #main-content :is(.rounded-card, .rounded-panel, [class*="card-tone-"]) :is(.rounded-card, .rounded-panel):is([class*="bg-(--app-surface)"], .bg-white):not(input, select, textarea, button, .fixed, .absolute, .inline-flex) {
+    box-shadow: var(--neu-inset);
+}
+
+/* A tone is a 3px rule on the start edge, in both themes. */
+:root:not(.dark) [class*="card-tone-"] { background-color: var(--app-card); border-color: var(--app-card-border); }
+.card-tone-neutral { border-inline-start: 3px solid var(--app-border-strong); }
+.card-tone-info    { border-inline-start: 3px solid var(--color-primary); }
+.card-tone-success { border-inline-start: 3px solid var(--color-success); }
+.card-tone-warning { border-inline-start: 3px solid var(--color-warning); }
+.card-tone-danger  { border-inline-start: 3px solid var(--color-danger); }
+:root:not(.dark) a[class*="card-tone-"]:hover { background-color: var(--app-card-hover); }
 
 /* ── Focus ring ─────────────────────────────────────────────── */
 @layer base {

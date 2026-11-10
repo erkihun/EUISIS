@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { Table, TableCard, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { Table, TableCard, TBody, Td, Th, THead, Tr, TableTools } from '@/Components/ui';
 import { Button, Card, CardHeader, CardTitle, EmptyState } from '@euisis/ui';
 
 type Check = { key: string; status: 'ok' | 'warning' | 'error' | 'unknown'; details: Record<string, unknown> };
@@ -84,16 +84,16 @@ export default function SystemHealth({ checks, failed_jobs, observability, confi
                     </TableCard>
                     <TableCard className="lg:col-span-2" title={label('apiRoutes')} description={`${label('verification')}: ${observability.verification.calls} · ${observability.verification.mean_ms} ms · max ${observability.verification.max_ms} ms`}>
                         {observability.api_routes.length === 0 ? <EmptyState title={label('none')} /> : (
-                            <Table>
+                            <TableTools id="core-system-health"><Table>
                                 <THead><Tr><Th>{label('route')}</Th><Th align="right">{label('calls')}</Th><Th align="right">{label('mean')}</Th><Th align="right">{label('max')}</Th><Th align="right">{label('errors')}</Th></Tr></THead>
                                 <TBody>{observability.api_routes.map((r) => <Tr key={r.route}><Td className="font-mono text-xs">{r.route}</Td><Td numeric>{r.calls}</Td><Td numeric>{r.mean_ms}</Td><Td numeric>{r.max_ms}</Td><Td numeric>{r.errors}</Td></Tr>)}</TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </TableCard>
                 </div>
 
                 <TableCard title={label('configuration')} description={label('configurationNote')}>
-                    <Table className="min-w-[40rem]">
+                    <TableTools id="core-system-health-2"><Table className="min-w-[40rem]">
                         <TBody>
                             {configuration.map((row) => (
                                 <Tr key={row.key}>
@@ -104,7 +104,7 @@ export default function SystemHealth({ checks, failed_jobs, observability, confi
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                 </TableCard>
             </div>
         </AuthenticatedLayout>
@@ -115,8 +115,8 @@ function Figures({ rows, empty }: { rows: Figure[]; empty: string }) {
     if (rows.length === 0) return <EmptyState title={empty} />;
 
     return (
-        <Table>
+        <TableTools id="core-system-health-3"><Table>
             <TBody>{rows.map((row) => <Tr key={row.name}><Td className="font-mono text-xs">{row.name}</Td><Td numeric>{row.count}×</Td><Td numeric>{row.mean_ms} ms</Td><Td numeric>max {row.max_ms} ms</Td>{row.failed !== undefined && <Td numeric>{row.failed} ✗</Td>}</Tr>)}</TBody>
-        </Table>
+        </Table></TableTools>
     );
 }

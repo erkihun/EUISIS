@@ -13,6 +13,8 @@ import { Head, router } from '@inertiajs/react';
 import { useState, type JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
+import { TableTools } from '@/Components/ui';
+
 interface Props {
     sub_cities: NamedWithId[];
     selection: Selection;
@@ -60,7 +62,7 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
                             <section aria-labelledby="sm-woredas" className="space-y-2">
                                 <h2 id="sm-woredas" className="text-sm font-semibold">{sm('consolidation.woredas')}</h2>
                                 <div className={scrollCls}>
-                                    <table className={tableCls}>
+                                    <TableTools id="service-monitoring-consolidation-sub-city"><table className={tableCls}>
                                         <thead><tr>{['common.institution', 'common.status', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                                         <tbody>
                                             {woredas.map((w) => (
@@ -78,7 +80,7 @@ export default function SubCityConsolidation({ sub_cities, selection, years, per
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             </section>
                         )}

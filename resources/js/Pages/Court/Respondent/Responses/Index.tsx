@@ -8,6 +8,7 @@ import { EyeIcon, PencilIcon, Plus, ScrollText, TrashIcon } from '@/Components/I
 import {
     badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useRespondentText } from '@/court/i18n/useRespondentText';
@@ -55,7 +56,7 @@ export default function RespondentResponsesIndex({ responses }: RespondentRespon
             ) : (
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-respondent-responses-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cm.respondent.responses')}</th>
@@ -104,7 +105,7 @@ export default function RespondentResponsesIndex({ responses }: RespondentRespon
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 </div>
             )}

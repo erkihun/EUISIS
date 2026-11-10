@@ -6,6 +6,7 @@ import EmptyState from '@/Components/EmptyState';
 import {
     FilterField, FilterPanel, Input, ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -48,7 +49,7 @@ export default function CaseTypesIndex({ types, filters }: CaseTypesIndexProps) 
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-case-types-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[t('cm.json.Name'), t('cm.json.Prefix'), t('cm.json.Cases Using'), t('cm.cases.table.actions')].map((heading) => (
@@ -73,7 +74,7 @@ export default function CaseTypesIndex({ types, filters }: CaseTypesIndexProps) 
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {types.data.length === 0 && <EmptyState title={t('cm.cases.types.empty')} description={t('cm.cases.types.adjust_search_hint')} />}
                     <ListPagination meta={types} />

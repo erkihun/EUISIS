@@ -5,6 +5,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Alert, Card, EmptyState, Select, TBody, THead, Table, Td, Th, Tr, buttonClassName } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 
+import { TableTools } from '@/Components/ui';
+
 type EmployeeRow = { id: string; latest_at: string | null } & Name & Counts;
 type Props = {
     scope: ScopeProps;
@@ -51,7 +53,7 @@ export default function SituationRoomEmployees({ scope, filters, filterOptions, 
                     </div>
                     {employees.rows.length === 0 ? <EmptyState title={t('situationRoom.employeesEmpty')} /> : (
                         <div className="overflow-x-auto">
-                            <Table>
+                            <TableTools id="situation-room-employees"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('situationRoom.employeeColumn')}</Th>
@@ -74,7 +76,7 @@ export default function SituationRoomEmployees({ scope, filters, filterOptions, 
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         </div>
                     )}
                     {pages > 1 && (

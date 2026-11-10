@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { FilterChips } from '@/Components/intelligence/StatusBadges';
-import { Button, Card, CardTitle, FormField, Input, ListPagination, Select, TBody, THead, Table, Td, Textarea, Th, Tr, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardTitle, FormField, Input, ListPagination, Select, TBody, THead, Table, Td, Textarea, Th, Tr, badgeClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 import { SUPPORT_PRIORITY_TONE, SUPPORT_STATUS_TONE } from '@/types/support';
@@ -49,7 +49,7 @@ export default function SupportTicketsIndex({ filters, options, tickets, can }: 
                         <Card><p className="text-sm text-(--app-muted-foreground)">{t('support.index.none')}</p></Card>
                     ) : (
                         <Card className="p-0">
-                            <Table>
+                            <TableTools id="support-tickets-index"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('support.index.reference')}</Th>
@@ -77,7 +77,7 @@ export default function SupportTicketsIndex({ filters, options, tickets, can }: 
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                             <ListPagination meta={tickets} />
                         </Card>
                     )}

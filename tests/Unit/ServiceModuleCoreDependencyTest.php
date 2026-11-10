@@ -36,6 +36,7 @@ const SERVICE_MODULES = [
     'provider_portal' => '#(ProviderPortal|Nfc)#i',
     'organization_design' => '#OrganizationDesign#i',
     'service_monitoring' => '#ServiceMonitoring#i',
+    'letters' => '#Modules/Letters/#i',
 ];
 
 /** Backbone and integration-platform code is Core, not a service module. */
@@ -139,6 +140,12 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         // every report row), the HR-count prefill and the employee picker. Lower as Core
         // publishes an organization read model and a workforce-count contract.
         'service_monitoring' => 11,
+        // 2026-11-09: 12 for the new module (ADR 0037): Organization and OrganizationUnit relations
+        // on its models (institution names on every registry row, the routing unit, the copy
+        // recipient, the letterhead), the numbering service reading the institution code, the
+        // letterhead resolver and page, the routing check and the form pick-lists. Lower as Core
+        // publishes an organization read model.
+        'letters' => 14,
     ];
 
     $current = serviceModuleCoreImports();

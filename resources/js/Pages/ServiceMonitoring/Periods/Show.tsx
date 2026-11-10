@@ -11,6 +11,8 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
+import { TableTools } from '@/Components/ui';
+
 type Row = {
     participant_id: string;
     level: ReportingLevel;
@@ -100,7 +102,7 @@ export default function PeriodShow({ period, rows, extensions, tally, can }: Pro
                 </section>
 
                 <div className={scrollCls}>
-                    <table className={tableCls}>
+                    <TableTools id="service-monitoring-periods-show"><table className={tableCls}>
                         <thead>
                             <tr>{['common.institution', 'common.level', 'participants.parent', 'common.status', 'periods.certified', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k, { date: '' })}</th>)}</tr>
                         </thead>
@@ -122,7 +124,7 @@ export default function PeriodShow({ period, rows, extensions, tally, can }: Pro
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
 
                 {extending && (

@@ -6,6 +6,8 @@ import { Link, router } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { TableTools } from '@/Components/ui';
+
 type Provider = { id: string; code: string; name_en: string; name_am?: string | null };
 type Order = {
     id: string; order_number: string; order_date: string; status: string; quantity: number;
@@ -73,7 +75,7 @@ export default function OrdersIndex({ providers, selected_provider_id, orders, f
                 {/* Table */}
                 <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <TableTools id="provider-portal-orders-index"><table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 dark:text-slate-400">{t('providerPortal.orderNumber')}</th>
@@ -106,7 +108,7 @@ export default function OrdersIndex({ providers, selected_provider_id, orders, f
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 </div>
             </div>

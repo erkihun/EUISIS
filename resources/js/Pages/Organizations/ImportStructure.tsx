@@ -8,7 +8,7 @@ import EmptyState from '@/Components/EmptyState';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 
-import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type SheetDefinition = {
     name: string;
     required: boolean;
@@ -113,7 +113,7 @@ function IssueTable({
                 <div key={sheet} className="mt-3">
                     <p className="text-xs font-semibold text-(--app-muted-foreground)">{sheet}</p>
                     <div className="mt-1 overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full')}>
+                        <TableTools id="organizations-import-structure"><table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={headCls}>{t('organizationStructureImport.columns.row')}</th>
@@ -130,7 +130,7 @@ function IssueTable({
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 </div>
             ))}
@@ -150,7 +150,7 @@ function CodeTable({ codes }: { codes: CodeAssignment[] }) {
 
     return (
         <div className="overflow-x-auto">
-            <table className={cx(tableClassName, 'min-w-full')}>
+            <TableTools id="organizations-import-structure-2"><table className={cx(tableClassName, 'min-w-full')}>
                 <thead className={tableHeadClassName}>
                     <tr>
                         <th className={headCls}>{t('organizationStructureImport.columns.sheet')}</th>
@@ -188,7 +188,7 @@ function CodeTable({ codes }: { codes: CodeAssignment[] }) {
                         </tr>
                     ))}
                 </tbody>
-            </table>
+            </table></TableTools>
         </div>
     );
 }

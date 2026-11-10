@@ -7,6 +7,7 @@ import {
     type ReactElement,
     type ReactNode,
 } from 'react';
+import { useActionIcon } from './context';
 
 export function cx(...classes: Array<string | false | null | undefined>): string {
     return classes.filter(Boolean).join(' ');
@@ -17,14 +18,16 @@ export type ButtonSize = 'xs' | 'sm' | 'default' | 'md' | 'lg' | 'icon';
 
 const buttonVariants: Record<ButtonVariant, string> = {
     // --color-on-primary: readable text on the theme's primary (dark text on a bright dark-mode variant)
-    default: 'bg-primary text-(--color-on-primary,#fff) hover:bg-primary-hover',
-    primary: 'bg-primary text-(--color-on-primary,#fff) hover:bg-primary-hover',
-    secondary: 'bg-(--app-surface-muted) text-(--app-foreground) hover:brightness-95',
-    outline: 'border border-(--app-border-strong) bg-(--app-surface) text-(--app-foreground) hover:bg-(--app-surface-muted)',
-    ghost: 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)',
-    destructive: 'bg-red-700 text-white hover:bg-red-800 dark:bg-red-700 dark:hover:bg-red-600',
+    // Neumorphic: filled buttons sit raised and press flat; soft buttons are
+    // extruded from the surface at rest and sink (inset) while pressed.
+    default: 'bg-primary text-(--color-on-primary,#fff) shadow-(--neu-raised-sm) hover:bg-primary-hover active:shadow-none',
+    primary: 'bg-primary text-(--color-on-primary,#fff) shadow-(--neu-raised-sm) hover:bg-primary-hover active:shadow-none',
+    secondary: 'bg-(--app-surface) text-(--app-foreground) shadow-(--neu-raised-sm) hover:shadow-(--neu-raised) active:shadow-(--neu-inset)',
+    outline: 'border border-(--app-border-strong) bg-(--app-surface) text-(--app-foreground) shadow-(--neu-raised-sm) hover:bg-(--app-surface-muted) active:shadow-(--neu-inset)',
+    ghost: 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) active:shadow-(--neu-inset)',
+    destructive: 'bg-red-700 text-white shadow-(--neu-raised-sm) hover:bg-red-800 active:shadow-none dark:bg-red-700 dark:hover:bg-red-600',
     // A harmful action that is not the page's main one (Remove, Revoke next to Save).
-    destructiveOutline: 'border border-red-300 bg-(--app-surface) text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30',
+    destructiveOutline: 'border border-red-300 bg-(--app-surface) text-red-700 shadow-(--neu-raised-sm) hover:bg-red-50 active:shadow-(--neu-inset) dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30',
     link: 'h-auto p-0 text-primary underline-offset-4 hover:underline',
 };
 
@@ -44,7 +47,7 @@ export function buttonClassName({ variant = 'default', size = 'default', classNa
     className?: string;
 } = {}): string {
     return cx(
-        'inline-flex shrink-0 items-center justify-center rounded-control font-medium transition-colors',
+        'inline-flex shrink-0 items-center justify-center rounded-control font-medium transition-[color,background-color,border-color,box-shadow] duration-150',
         'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         'disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
         buttonVariants[variant],
@@ -89,7 +92,12 @@ export type ButtonProps<T extends ElementType = 'button'> = {
     variant?: ButtonVariant;
     size?: ButtonSize;
     loading?: boolean;
-    icon?: ReactNode;
+    /**
+     * The glyph before the label. Left out, a text label that matches one of the
+     * app's action-icon rules (Save, Delete, Export, …) gets that rule's glyph;
+     * pass `null` to show no icon at all.
+     */
+    icon?: ReactNode | null;
     iconPosition?: 'left' | 'right';
     children?: ReactNode;
     className?: string;
@@ -104,12 +112,17 @@ function ButtonInner<T extends ElementType = 'button'>(
         ? { type: 'button', disabled: loading || Boolean((props as ButtonHTMLAttributes<HTMLButtonElement>).disabled) }
         : { 'aria-disabled': loading || undefined };
 
+    // Text-only buttons borrow their glyph from the app's rules; link-styled and icon-only buttons do not.
+    const inferred = useActionIcon(children);
+    const shownIcon = icon !== undefined ? icon : (variant === 'link' || size === 'icon' ? null : inferred);
+    const glyphClass = size === 'xs' ? '[&>svg]:h-3.5 [&>svg]:w-3.5' : '[&>svg]:h-4 [&>svg]:w-4';
+
     return (
         <Component ref={ref} className={buttonClassName({ variant, size, className })} {...buttonProps} {...props}>
             {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />}
-            {!loading && icon && iconPosition === 'left' && <span className="shrink-0" aria-hidden="true">{icon}</span>}
+            {!loading && shownIcon && iconPosition === 'left' && <span className={cx('shrink-0', glyphClass)} aria-hidden="true">{shownIcon}</span>}
             {children && <span>{children}</span>}
-            {!loading && icon && iconPosition === 'right' && <span className="shrink-0" aria-hidden="true">{icon}</span>}
+            {!loading && shownIcon && iconPosition === 'right' && <span className={cx('shrink-0', glyphClass)} aria-hidden="true">{shownIcon}</span>}
         </Component>
     );
 }

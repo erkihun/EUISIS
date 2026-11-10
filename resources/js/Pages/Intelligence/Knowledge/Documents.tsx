@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { FilterChips } from '@/Components/intelligence/StatusBadges';
 import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
-import { Alert, Button, Card, CardTitle, FormField, Input, ListPagination, Select, TBody, THead, Table, TableCard, Td, Textarea, Th, Tr, badgeClassName, type Tone } from '@/Components/ui';
+import { Alert, Button, Card, CardTitle, FormField, Input, ListPagination, Select, TBody, THead, Table, TableCard, Td, Textarea, Th, Tr, badgeClassName, type Tone, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
@@ -103,7 +103,7 @@ export default function KnowledgeDocuments({ filters, options, counts, documents
                     {documents.data.length === 0 ? (
                         <p className="px-4 py-8 text-center text-sm text-(--app-muted-foreground)">{t('intelligenceKnowledge.documents.none')}</p>
                     ) : (
-                        <Table>
+                        <TableTools id="intelligence-knowledge-documents"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('intelligenceKnowledge.documents.titleColumn')}</Th>
@@ -147,7 +147,7 @@ export default function KnowledgeDocuments({ filters, options, counts, documents
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </TableCard>
 

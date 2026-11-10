@@ -48,6 +48,8 @@ final class PermissionCatalog
         'Field Work Management' => ['field_work'],
         // The quarterly service-delivery report and its support (docs/service-monitoring.md).
         'Service Delivery Monitoring' => ['service_monitoring'],
+        // Official correspondence: registry, templates, numbering (ADR 0037, docs/letters.md).
+        'Letters & Correspondence' => ['letters'],
         'Performance Management' => [
             'performance_cycles', 'strategic_goals', 'performance_plans', 'kpis', 'performance_agreements', 'performance_reviews',
             'performance_calibration', 'performance_appeals', 'performance_reports', 'performance_settings',
