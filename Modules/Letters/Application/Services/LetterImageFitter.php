@@ -20,8 +20,11 @@ use Modules\Letters\Domain\Models\LetterLetterhead;
  */
 class LetterImageFitter
 {
-    /** Longest side of a fitted image (ImageKind::Print). */
+    /** Longest side of a fitted emblem or stamp (ImageKind::Print). */
     public const MAX_PX = 600;
+
+    /** Longest side of a picture that prints across the whole page width (ImageKind::PrintWide). */
+    public const WIDE_PX = 1600;
 
     /**
      * An image above this many pixels that could not be fitted is refused at
@@ -40,11 +43,11 @@ class LetterImageFitter
         return $info === false || $info[0] < 1 || $info[1] < 1 ? null : [(int) $info[0], (int) $info[1]];
     }
 
-    public function needsFitting(string $file): bool
+    public function needsFitting(string $file, bool $wide = false): bool
     {
         $size = $this->dimensions($file);
 
-        return $size !== null && max($size) > self::MAX_PX;
+        return $size !== null && max($size) > ($wide ? self::WIDE_PX : self::MAX_PX);
     }
 
     /** Whether an unfitted image is too large to hand to the PDF engine. */
@@ -60,9 +63,9 @@ class LetterImageFitter
      *
      * @return array{bytes: string, extension: string}|null
      */
-    public function fitted(string $file): ?array
+    public function fitted(string $file, bool $wide = false): ?array
     {
-        $result = $this->optimizer->optimize($file, ImageKind::Print);
+        $result = $this->optimizer->optimize($file, $wide ? ImageKind::PrintWide : ImageKind::Print);
         if ($result === null) {
             return null;
         }
@@ -87,17 +90,20 @@ class LetterImageFitter
         $report = ['checked' => 0, 'fitted' => 0, 'failed' => []];
 
         foreach (LetterLetterhead::query()->cursor() as $layout) {
+            $wideKeys = LetterLayout::wideImages((array) $layout->header, (array) $layout->footer);
+            $widePaths = array_column(array_filter($layout->imageList(), fn (array $image): bool => in_array($image['key'], $wideKeys, true)), 'path');
             $paths = [...array_column($layout->imageList(), 'path'), ...array_filter([$layout->stamp_path])];
             foreach (array_unique($paths) as $path) {
+                $wide = in_array($path, $widePaths, true);
                 if (! $disk->exists($path)) {
                     continue;
                 }
                 $report['checked']++;
                 $file = $disk->path($path);
-                if (! $this->needsFitting($file)) {
+                if (! $this->needsFitting($file, $wide)) {
                     continue;
                 }
-                $fit = $dryRun ? ['bytes' => '', 'extension' => ''] : $this->fitted($file);
+                $fit = $dryRun ? ['bytes' => '', 'extension' => ''] : $this->fitted($file, $wide);
                 if ($fit === null) {
                     $report['failed'][] = $layout->name.': '.$path;
 

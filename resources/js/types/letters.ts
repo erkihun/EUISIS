@@ -258,6 +258,8 @@ export interface LayoutItem {
     color?: string;
     image?: string;
     width_mm?: number;
+    /** The picture prints across the whole width between the margins. */
+    full?: boolean;
 }
 
 export interface LayoutCell {
@@ -290,7 +292,8 @@ export interface LayoutPage {
     font_family: string;
     font_size: number;
     text_color: string;
-    reference_align: 'left' | 'right';
+    number_align: 'left' | 'center' | 'right' | 'none';
+    date_align: 'left' | 'center' | 'right' | 'none';
 }
 
 export interface LetterLayoutData {

@@ -55,8 +55,10 @@ final class SaveLetterhead
             }
         }
         $names = (array) ($data['image_names'] ?? []);
+        // A picture that prints across the page is kept larger than an emblem.
+        $wide = LetterLayout::wideImages((array) ($layout['header'] ?? []), (array) ($layout['footer'] ?? []));
         foreach ($newImages as $key => $file) {
-            $images[] = ['key' => (string) $key, 'path' => $this->store($file, 'new_images'), 'name' => mb_substr((string) ($names[$key] ?? $file->getClientOriginalName()), 0, 120)];
+            $images[] = ['key' => (string) $key, 'path' => $this->store($file, 'new_images', in_array((string) $key, $wide, true)), 'name' => mb_substr((string) ($names[$key] ?? $file->getClientOriginalName()), 0, 120)];
         }
         $images = array_values($images);
         if (count($images) > LetterLayout::MAX_IMAGES) {
@@ -151,7 +153,7 @@ final class SaveLetterhead
             ->whereKeyNot($letterhead->id)->where('is_default', true)->update(['is_default' => false]);
     }
 
-    private function store(UploadedFile $file, string $field): string
+    private function store(UploadedFile $file, string $field, bool $wide = false): string
     {
         $path = $file->getRealPath();
         $mime = $path !== false ? (string) (new \finfo(FILEINFO_MIME_TYPE))->file($path) : '';
@@ -160,8 +162,8 @@ final class SaveLetterhead
             throw ValidationException::withMessages([$field => __('letters.validation.logo_type', ['max' => self::MAX_IMAGE_BYTES / 1024 / 1024])]);
         }
         // A raster image is stored at the size it prints: a 7,000-pixel logo would exhaust memory every time it is shown or printed.
-        if ($mime !== 'image/svg+xml' && $path !== false && $this->fitter->needsFitting($path)) {
-            $fit = $this->fitter->fitted($path);
+        if ($mime !== 'image/svg+xml' && $path !== false && $this->fitter->needsFitting($path, $wide)) {
+            $fit = $this->fitter->fitted($path, $wide);
             if ($fit !== null) {
                 $name = 'letters/letterheads/'.Str::random(40).'.'.$fit['extension'];
                 Storage::disk(LetterLetterhead::DISK)->put($name, $fit['bytes']);

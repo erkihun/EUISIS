@@ -134,7 +134,7 @@ it('prints the chosen layout as composed: placeholders, styles, language-only li
     expect($en)->toContain('Trade Bureau')->toContain('font-size: 15pt')->toContain('color: #AA0000')->toContain('font-weight: bold')->toContain('text-decoration: underline')
         ->toContain('Noto Sans Ethiopic')->toContain('Addis Ababa City Administration')->not->toContain('የአዲስ አበባ ከተማ አስተዳደር')
         ->toContain('Ref LT-A/0007/2019 · page <span class="lh-page"></span>')
-        ->toContain('margin-left: 45%')->not->toContain('class="stamp"><img')
+        ->toContain('<td style="width: 100%; text-align: right;">')->not->toContain('class="stamp"><img')
         ->and(substr_count($en, '<div style="'))->toBeGreaterThanOrEqual(3);
     expect(renderLetterPdfHtml($this->s, null, 'am', 'draft'))->toContain('የአዲስ አበባ ከተማ አስተዳደር')->not->toContain('Addis Ababa City Administration');
     expect(renderLetterPdfHtml($this->s, null, 'en', 'dispatched'))->toContain('class="stamp"><img');
@@ -291,4 +291,72 @@ it('fits images stored before fitting existed, and leaves an undecodable one out
     expect($resolved['images'])->toHaveKey('img_old')->not->toHaveKey('img_broken')
         ->and($resolved['stamp'])->toStartWith('data:image/');
     $this->actingAs($this->s->administrator('A'))->get(route('letters.letterheads.edit', $layout))->assertOk();
+});
+
+it('places the letter number and the date separately, and hides one only when the header or footer prints it', function (): void {
+    $admin = $this->s->administrator('A');
+    $org = $this->s->org['A']->id;
+    $save = fn (string $name, array $page, array $footer = []) => $this->actingAs($admin)->post(route('letters.letterheads.store'), [
+        'organization_id' => $org, 'name' => $name, 'active' => 1, 'layout' => lhLayout([lhText('HEAD')], $footer, $page),
+    ]);
+
+    // A layout saved before the two could be placed apart keeps its side for both.
+    expect(LetterLayout::page(['reference_align' => 'right']))->toMatchArray(['number_align' => 'right', 'date_align' => 'right'])
+        ->and(LetterLayout::page([]))->toMatchArray(['number_align' => 'left', 'date_align' => 'left'])
+        ->and(LetterLayout::page(['number_align' => 'sideways', 'date_align' => 'center']))->toMatchArray(['number_align' => 'left', 'date_align' => 'center']);
+
+    // Different sides: one line, the number at the left edge and the date at the right edge.
+    $save('Split', ['number_align' => 'left', 'date_align' => 'right'])->assertSessionHasNoErrors();
+    $split = LetterLetterhead::query()->where('name', 'Split')->firstOrFail();
+    $html = renderLetterPdfHtml($this->s, $split->id, 'en', 'draft');
+    expect($html)->toContain('<td style="width: 50%; text-align: left;">')->toContain('<td style="width: 50%; text-align: right;">')
+        ->and(strpos($html, 'Ref. No.:'))->toBeLessThan(strpos($html, 'Date:'));
+
+    // The centre keeps the centre: three columns even when one side is empty.
+    $save('Centre', ['number_align' => 'center', 'date_align' => 'right'])->assertSessionHasNoErrors();
+    $centre = LetterLetterhead::query()->where('name', 'Centre')->firstOrFail();
+    expect(renderLetterPdfHtml($this->s, $centre->id, 'en', 'draft'))->toContain('<td style="width: 33.33%; text-align: center;">');
+
+    // Hidden while nothing prints it: refused. Hidden while the footer prints it: saved, and not printed twice.
+    $save('Hidden', ['number_align' => 'none'])->assertSessionHasErrors('layout');
+    $save('Hidden', ['date_align' => 'none'])->assertSessionHasErrors('layout');
+    expect(LetterLetterhead::query()->where('name', 'Hidden')->exists())->toBeFalse();
+    $save('Hidden', ['number_align' => 'none', 'date_align' => 'none'], [lhText('No. {{letter.number}} of {{letter.date_ec}}')])->assertSessionHasNoErrors();
+    $hidden = LetterLetterhead::query()->where('name', 'Hidden')->firstOrFail();
+    $html = renderLetterPdfHtml($this->s, $hidden->id, 'en', 'draft');
+    expect($html)->toContain('No. LT-A/0007/2019 of 01/03/2019')->not->toContain('class="meta"');
+});
+
+it('prints a header or footer uploaded as one picture across the page, and keeps it sharper than an emblem', function (): void {
+    if (! function_exists('imagecreatetruecolor')) {
+        $this->markTestSkipped('GD is not loaded.');
+    }
+    $admin = $this->s->administrator('A');
+    $picture = fn (string $key): array => ['type' => 'image', 'image' => $key, 'width_mm' => 120, 'full' => true];
+
+    $this->actingAs($admin)->post(route('letters.letterheads.store'), [
+        'organization_id' => $this->s->org['A']->id, 'name' => 'Pictures', 'active' => 1,
+        'layout' => lhLayout([$picture('img_head')], [$picture('img_foot')]),
+        'new_images' => [
+            'img_head' => UploadedFile::fake()->createWithContent('header.png', gdPng(2400, 300)),
+            'img_foot' => UploadedFile::fake()->createWithContent('footer.png', gdPng(1200, 120)),
+        ],
+    ])->assertSessionHasNoErrors();
+
+    $layout = LetterLetterhead::query()->where('name', 'Pictures')->firstOrFail();
+    $paths = array_column($layout->imageList(), 'path', 'key');
+    $size = fn (string $key): array => array_slice(getimagesize(Storage::disk('local')->path($paths[$key])), 0, 2);
+    expect($layout->header['rows'][0]['cells'][0]['items'][0]['full'])->toBeTrue()
+        ->and($size('img_head'))->toBe([1600, 200])
+        ->and($size('img_foot'))->toBe([1200, 120]);
+
+    $html = renderLetterPdfHtml($this->s, $layout->id, 'en', 'draft');
+    expect(substr_count($html, 'style="width: 100%;"></div>'))->toBe(2);
+
+    // The repair command leaves a full-width picture at its own size; the edit page and the sample PDF open.
+    $this->artisan('letters:fit-images')->assertSuccessful();
+    expect($size('img_head'))->toBe([1600, 200]);
+    $this->actingAs($admin)->get(route('letters.letterheads.edit', $layout))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('layout.header.rows.0.cells.0.items.0.full', true)->has('previews.img_head'));
+    $this->actingAs($admin)->get(route('letters.letterheads.preview', $layout))->assertOk();
 });

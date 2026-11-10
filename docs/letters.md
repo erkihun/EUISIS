@@ -68,7 +68,18 @@ What the registries of the world add, and the module has since the second cut
   upload when it is above 4 megapixels, and left out of a PDF rather than
   failing it. Files stored before that are fitted by the migration
   `2026_11_10_110000` and by `php artisan letters:fit-images` (`--dry-run`
-  counts only; safe to repeat). A line is text or an image; text lines carry
+  counts only; safe to repeat). The header or the footer can instead be one
+  uploaded picture (PNG or JPEG): an image line with `full: true`, printed at
+  100% of the width between the margins and kept at 1,600 px
+  (`ImageKind::PrintWide`) instead of 600. The form warns when a footer
+  picture is taller than the bottom margin and offers the margin that fits.
+  The page also says where the letter number and the date print under the
+  header, each on its own (`number_align`, `date_align`: left, center, right
+  or none): on the same side they stack, on different sides they share a
+  line. "none" is accepted only when a header or footer line prints that
+  field (`LetterLayout::hiddenReferences`), so no letter goes out without
+  its number or date; a layout saved with the old single `reference_align`
+  keeps that side for both. A line is text or an image; text lines carry
   their own font (Abyssinica SIL or Noto Sans Ethiopic, the only bundled
   fonts with both scripts; Abyssinica has no bold, neither has italic),
   size, bold, underline, colour and the letter language they print on.

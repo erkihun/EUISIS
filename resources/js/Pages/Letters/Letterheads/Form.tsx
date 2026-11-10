@@ -37,7 +37,12 @@ type Area = Record<Position, Block>;
  * stored as the rows of LetterLayout (fromLayout / toLayout), so the PDF and
  * the data stay exactly as before.
  */
-type Simple = { header: Area; headerRule: Rule; below: Area; footer: Area; footerRule: Rule };
+type Simple = {
+    header: Area; headerRule: Rule; below: Area; footer: Area; footerRule: Rule;
+    /** The header or the footer can instead be one picture printed across the page. */
+    headerMode: Mode; headerPicture: string | null; footerMode: Mode; footerPicture: string | null;
+};
+type Mode = 'parts' | 'picture';
 
 const POSITIONS: Position[] = ['left', 'center', 'right'];
 const PAPER_MM: Record<string, [number, number]> = { a4: [210, 297], a5: [148, 210], letter: [215.9, 279.4], legal: [215.9, 355.6] };
@@ -79,15 +84,34 @@ function areaOf(rows: LayoutRow[]): Area {
     return area;
 }
 
+/** The image of a row that is nothing but one full-width picture. */
+function pictureOf(row?: LayoutRow): string | null {
+    const item = row && row.cells.length === 1 && row.cells[0].items.length === 1 ? row.cells[0].items[0] : null;
+    return item && item.type === 'image' && item.full && item.image ? item.image : null;
+}
+
+function pictureRow(image: string, border: LayoutRow['border_position'], rule: Rule): LayoutRow {
+    return {
+        cells: [{ items: [{ type: 'image', image, width_mm: 120, full: true, language: 'both' }], align: 'center', valign: 'middle', width: 0 }],
+        border_position: border, border_style: rule.style, border_color: rule.color, space_after: 3,
+    };
+}
+
 function fromLayout(header: LayoutSection, footer: LayoutSection): Simple {
     const [first, ...rest] = header.rows;
     const foot = footer.rows[0];
+    const headerPicture = pictureOf(first);
+    const footerPicture = footer.rows.length === 1 ? pictureOf(foot) : null;
 
     return {
-        header: areaOf(first ? [first] : []),
+        headerMode: headerPicture ? 'picture' : 'parts',
+        headerPicture,
+        footerMode: footerPicture ? 'picture' : 'parts',
+        footerPicture,
+        header: areaOf(first && !headerPicture ? [first] : []),
         headerRule: { on: first ? ['bottom', 'both'].includes(first.border_position) : true, style: first?.border_style ?? 'thick', color: first?.border_color ?? '#122170' },
         below: areaOf(rest),
-        footer: areaOf(footer.rows),
+        footer: areaOf(footerPicture ? [] : footer.rows),
         footerRule: { on: foot ? ['top', 'both'].includes(foot.border_position) : true, style: foot?.border_style ?? 'thin', color: foot?.border_color ?? '#C7CBE0' },
     };
 }
@@ -128,11 +152,15 @@ function rowOf(area: Area, border: LayoutRow['border_position'], rule: Rule, con
 function toLayout(s: Simple, page: LayoutPage): { header: LayoutSection; footer: LayoutSection } {
     const [w, h] = PAPER_MM[page.paper] ?? PAPER_MM.a4;
     const content = Math.max(60, (page.orientation === 'landscape' ? h : w) - page.margin_left - page.margin_right);
-    const headerRow = rowOf(s.header, s.headerRule.on ? 'bottom' : 'none', s.headerRule, content);
+    const headerRow = s.headerMode === 'picture'
+        ? (s.headerPicture ? pictureRow(s.headerPicture, s.headerRule.on ? 'bottom' : 'none', s.headerRule) : null)
+        : rowOf(s.header, s.headerRule.on ? 'bottom' : 'none', s.headerRule, content);
     const belowRow = rowOf(s.below, 'none', s.headerRule, content);
     // With nothing above it, the dividing line still prints, on an empty row.
     const top = headerRow ?? (s.headerRule.on && belowRow ? { cells: [{ items: [], align: 'center', valign: 'middle', width: 0 } as LayoutCell], border_position: 'bottom', border_style: s.headerRule.style, border_color: s.headerRule.color, space_after: 3 } as LayoutRow : null);
-    const footerRow = rowOf(s.footer, s.footerRule.on ? 'top' : 'none', s.footerRule, content);
+    const footerRow = s.footerMode === 'picture'
+        ? (s.footerPicture ? pictureRow(s.footerPicture, s.footerRule.on ? 'top' : 'none', s.footerRule) : null)
+        : rowOf(s.footer, s.footerRule.on ? 'top' : 'none', s.footerRule, content);
 
     return { header: { rows: [top, belowRow].filter((r): r is LayoutRow => r !== null) }, footer: { rows: footerRow ? [footerRow] : [] } };
 }
@@ -148,6 +176,7 @@ export default function LetterheadForm({ organizations, platform, organization, 
     const [stampUrl, setStampUrl] = useState<string | null>(null);
     const [previewLanguage, setPreviewLanguage] = useState<'am' | 'en'>('am');
     const [imageError, setImageError] = useState<string | null>(null);
+    const [footerRatio, setFooterRatio] = useState<number | null>(null);
     const snapshot = (name: string, isDefault: boolean, active: boolean, p: LayoutPage, s: Simple) => JSON.stringify([name, isDefault, active, p, s]);
     const [baseline, setBaseline] = useState(() => snapshot(layout.name, layout.is_default, layout.active, layout.page, fromLayout(layout.header, layout.footer)));
 
@@ -182,9 +211,22 @@ export default function LetterheadForm({ organizations, platform, organization, 
         setBlock(area, position, (block) => ({ ...block, width: undefined, logo: { image: key, width: block.logo?.width ?? 22 } }));
     }
 
+    function uploadPicture(section: 'header' | 'footer', file: File | null) {
+        if (!file) return;
+        if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > MAX_IMAGE_BYTES) {
+            setImageError(lt('letterheads.simple.pictureRule'));
+            return;
+        }
+        setImageError(null);
+        const key = randomKey();
+        setNewImages((list) => [...list, { key, name: file.name, file, url: URL.createObjectURL(file) }]);
+        setSimple((s) => (section === 'header' ? { ...s, headerPicture: key } : { ...s, footerPicture: key }));
+    }
+
     function save(event?: FormEvent) {
         event?.preventDefault();
-        const inUse = (['header', 'below', 'footer'] as const).flatMap((a) => POSITIONS.map((p) => simple[a][p].logo?.image)).filter(Boolean) as string[];
+        // Only what the page prints is sent and kept: a logo left behind in "text and logos" while the picture is used is not.
+        const inUse = [...rows.header.rows, ...rows.footer.rows].flatMap((r) => r.cells.flatMap((c) => c.items.flatMap((i) => (i.type === 'image' && i.image ? [i.image] : []))));
         const uploads = newImages.filter((i) => inUse.includes(i.key));
         form.transform((d) => ({
             ...d,
@@ -220,13 +262,25 @@ export default function LetterheadForm({ organizations, platform, organization, 
 
     // A click on a printed line puts the cursor in the box that holds it.
     function focusLine(section: 'header' | 'footer', r: number, c: number, i: number) {
-        const area: AreaKey = section === 'footer' ? 'footer' : r === 0 && placesOf(simple.header).length > 0 ? 'header' : 'below';
+        const area: AreaKey = section === 'footer' ? 'footer' : r === 0 && simple.headerMode === 'parts' && placesOf(simple.header).length > 0 ? 'header' : 'below';
         const position = placesOf(simple[area])[c];
         if (!position) return;
         const el = document.getElementById(`lf-${area}-${position}-${i}`);
         el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
         el?.focus({ preventScroll: true });
     }
+
+    // What the header and footer print, to warn when the number or the date is switched off but printed nowhere.
+    const printedText = [...rows.header.rows, ...rows.footer.rows].flatMap((r) => r.cells.flatMap((c) => c.items.map((i) => i.text ?? ''))).join(' ');
+    const numberMissing = page.number_align === 'none' && !printedText.includes('letter.number');
+    const dateMissing = page.date_align === 'none' && !printedText.includes('letter.date_ec') && !printedText.includes('letter.date_gc');
+    // A footer picture must fit inside the bottom margin (it sits 6 mm above the paper's edge).
+    const [paperW, paperH] = PAPER_MM[page.paper] ?? PAPER_MM.a4;
+    const contentMm = Math.max(60, (page.orientation === 'landscape' ? paperH : paperW) - page.margin_left - page.margin_right);
+    const footerHeight = simple.footerMode === 'picture' && simple.footerPicture && footerRatio ? Math.round(contentMm * footerRatio) : 0;
+    const footerNeeds = footerHeight > 0 ? footerHeight + 8 : 0;
+    const modeOptions: SegmentOption[] = [['parts', lt('letterheads.simple.modeParts')], ['picture', lt('letterheads.simple.modePicture')]];
+    const placeOptions: SegmentOption[] = (['left', 'center', 'right', 'none'] as const).map((a) => [a, lt(`letterheads.referenceAligns.${a}`)]);
 
     const title = editing ? lt('letterheads.editTitle') : lt('letterheads.createTitle');
     const scope = layout.organization_id ? { organization_id: layout.organization_id } : {};
@@ -289,7 +343,11 @@ export default function LetterheadForm({ organizations, platform, organization, 
 
                     {/* 2. Header */}
                     <Step number={2} title={lt('letterheads.simple.stepHeader')} help={lt('letterheads.simple.areaHelp')}>
-                        <AreaEditor {...areaProps('header')} />
+                        <Segmented label={lt('letterheads.simple.modeLabel')} value={simple.headerMode} options={modeOptions} onChange={(v) => setSimple((s) => ({ ...s, headerMode: v as Mode }))} />
+                        {simple.headerMode === 'picture'
+                            ? <PictureEditor id="lf-header-picture" title={lt('letterheads.simple.stepHeader')} url={imageUrl(simple.headerPicture ?? undefined)}
+                                onUpload={(file) => uploadPicture('header', file)} onRemove={() => setSimple((s) => ({ ...s, headerPicture: null }))} />
+                            : <AreaEditor {...areaProps('header')} />}
                         {(imageError || errors.new_images) && <p className={errorCls} role="alert">{imageError ?? errors.new_images}</p>}
                         <RuleControl label={lt('letterheads.simple.ruleUnderHeader')} rule={simple.headerRule} onChange={(headerRule) => setSimple((s) => ({ ...s, headerRule }))} />
                         <div>
@@ -302,11 +360,42 @@ export default function LetterheadForm({ organizations, platform, organization, 
                     {/* 3. Footer */}
                     <Step number={3} title={lt('letterheads.simple.stepFooter')} help={lt('letterheads.footerHelp')}>
                         <RuleControl label={lt('letterheads.simple.ruleAboveFooter')} rule={simple.footerRule} onChange={(footerRule) => setSimple((s) => ({ ...s, footerRule }))} />
-                        <AreaEditor {...areaProps('footer')} />
+                        <Segmented label={lt('letterheads.simple.modeLabel')} value={simple.footerMode} options={modeOptions} onChange={(v) => setSimple((s) => ({ ...s, footerMode: v as Mode }))} />
+                        {simple.footerMode === 'picture'
+                            ? (
+                                <>
+                                    <PictureEditor id="lf-footer-picture" title={lt('letterheads.simple.stepFooter')} url={imageUrl(simple.footerPicture ?? undefined)}
+                                        onUpload={(file) => uploadPicture('footer', file)} onRemove={() => { setFooterRatio(null); setSimple((s) => ({ ...s, footerPicture: null })); }} onRatio={setFooterRatio} />
+                                    {footerNeeds > page.margin_bottom && (
+                                        <div className="rounded-control border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100" role="status">
+                                            {footerNeeds > 70
+                                                ? lt('letterheads.simple.footerTooTall')
+                                                : (
+                                                    <>
+                                                        <p>{lt('letterheads.simple.footerTall', { height: footerHeight, margin: page.margin_bottom })}</p>
+                                                        <button type="button" className={cx(secondaryBtn, 'mt-2')} onClick={() => setPage({ ...page, margin_bottom: footerNeeds })}>{lt('letterheads.simple.footerTallFix', { needed: footerNeeds })}</button>
+                                                    </>
+                                                )}
+                                        </div>
+                                    )}
+                                </>
+                            )
+                            : <AreaEditor {...areaProps('footer')} />}
                     </Step>
 
-                    {/* 4. Stamp */}
-                    <Step number={4} title={lt('letterheads.stamp')} help={lt('letterheads.stampHelp')}>
+                    {/* 4. Where the number and the date print */}
+                    <Step number={4} title={lt('letterheads.simple.stepReference')} help={lt('letterheads.referenceHelp')}>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Segmented label={lt('letterheads.numberPlace')} value={page.number_align} options={placeOptions} onChange={(v) => setPage({ ...page, number_align: v as LayoutPage['number_align'] })} />
+                            <Segmented label={lt('letterheads.datePlace')} value={page.date_align} options={placeOptions} onChange={(v) => setPage({ ...page, date_align: v as LayoutPage['date_align'] })} />
+                        </div>
+                        <p className="text-xs text-(--app-muted-foreground)">{lt('letterheads.referenceNoneHelp')}</p>
+                        {numberMissing && <p className={errorCls} role="alert">{lt('letterheads.referenceHiddenNumber')}</p>}
+                        {dateMissing && <p className={errorCls} role="alert">{lt('letterheads.referenceHiddenDate')}</p>}
+                    </Step>
+
+                    {/* 5. Stamp */}
+                    <Step number={5} title={lt('letterheads.stamp')} help={lt('letterheads.stampHelp')}>
                         <div className="flex flex-wrap items-center gap-4">
                             <div className="flex size-24 shrink-0 items-center justify-center rounded-full border border-dashed border-(--app-border) bg-white dark:bg-gray-100">
                                 {stampPreview ? <img src={stampPreview} alt="" className="max-h-20 max-w-20 object-contain" /> : <span className="px-2 text-center text-xs text-gray-500">{lt('letterheads.noStamp')}</span>}
@@ -322,10 +411,10 @@ export default function LetterheadForm({ organizations, platform, organization, 
                         </div>
                     </Step>
 
-                    {/* 5. Page set-up, folded away: the defaults suit most letters */}
+                    {/* 6. Page set-up, folded away: the defaults suit most letters */}
                     <details className={cx(panelCls, 'group')}>
                         <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 px-4 focus-visible:outline-2 focus-visible:outline-[#122170] [&::-webkit-details-marker]:hidden">
-                            <StepBadge number={5} />
+                            <StepBadge number={6} />
                             <span className="min-w-0">
                                 <span className="block text-base font-semibold">{lt('letterheads.simple.stepPage')}</span>
                                 <span className="block text-xs text-(--app-muted-foreground)">{lt('letterheads.simple.pageHelp')}</span>
@@ -347,8 +436,6 @@ export default function LetterheadForm({ organizations, platform, organization, 
                             </fieldset>
                             <SelectField id="lf-body-font" label={lt('letterheads.bodyFont')} value={page.font_family} onChange={(v) => setPage({ ...page, font_family: v })} options={options.fonts.map((f) => [f.key, f.family])} />
                             <Stepper id="lf-body-size" label={lt('letterheads.fontSize')} value={page.font_size} min={8} max={16} step={0.5} onChange={(v) => setPage({ ...page, font_size: v })} />
-                            <Segmented label={lt('letterheads.referenceAlign')} value={page.reference_align} onChange={(v) => setPage({ ...page, reference_align: v as LayoutPage['reference_align'] })}
-                                options={(['left', 'right'] as const).map((a) => [a, lt(`letterheads.referenceAligns.${a}`)])} />
                         </div>
                     </details>
                     {errors.layout && <p className={errorCls} role="alert">{errors.layout}</p>}
@@ -380,6 +467,51 @@ export default function LetterheadForm({ organizations, platform, organization, 
 /* ------------------------------------------------------------------ */
 /* Form parts                                                          */
 /* ------------------------------------------------------------------ */
+
+/** The number and the date as the letter prints them: each on its own side, stacked when they share one. */
+function ReferencePreview({ page, number, date }: { page: LayoutPage; number: [string, string]; date: [string, string] }): JSX.Element | null {
+    const slots: Record<Position, [string, string][]> = { left: [], center: [], right: [] };
+    if (page.number_align !== 'none') slots[page.number_align].push(number);
+    if (page.date_align !== 'none') slots[page.date_align].push(date);
+    const usedSlots = POSITIONS.filter((p) => slots[p].length > 0);
+    const columns: Position[] = usedSlots.length <= 1 ? usedSlots : usedSlots.includes('center') ? POSITIONS : ['left', 'right'];
+    if (columns.length === 0) return null;
+
+    return (
+        <div className="mt-4 flex w-full">
+            {columns.map((p) => (
+                <div key={p} style={{ width: `${100 / columns.length}%`, textAlign: p }}>
+                    {slots[p].map(([label, value]) => <div key={label}>{label}: <strong>{value}</strong></div>)}
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/** The header or the footer as one uploaded picture. */
+function PictureEditor({ id, title, url, onUpload, onRemove, onRatio }: {
+    id: string; title: string; url: string | null; onUpload: (file: File | null) => void; onRemove: () => void; onRatio?: (ratio: number) => void;
+}): JSX.Element {
+    const { lt } = useLetters();
+
+    return (
+        <div className="space-y-3">
+            <p className="text-xs text-(--app-muted-foreground)">{lt('letterheads.simple.pictureHelp')}</p>
+            {url
+                ? <img src={url} alt={title} className="max-h-48 w-full rounded-control border border-(--app-border) bg-white object-contain"
+                    onLoad={(e) => { const img = e.currentTarget; if (img.naturalWidth > 0) onRatio?.(img.naturalHeight / img.naturalWidth); }} />
+                : <p className="flex min-h-24 items-center justify-center rounded-control border border-dashed border-(--app-border) px-3 text-sm text-(--app-muted-foreground)">{lt('letterheads.simple.noPicture')}</p>}
+            <div className="flex flex-wrap items-center gap-2">
+                <label className={cx(url ? secondaryBtn : primaryBtn, 'inline-flex cursor-pointer items-center gap-1.5 focus-within:outline-2 focus-within:outline-[#122170]')}>
+                    <ImageAddIcon className="size-4" aria-hidden="true" />{url ? lt('letterheads.simple.changePicture') : lt('letterheads.simple.choosePicture')}
+                    <input id={id} type="file" accept="image/png,image/jpeg" className="sr-only" aria-label={`${title}: ${url ? lt('letterheads.simple.changePicture') : lt('letterheads.simple.choosePicture')}`}
+                        onChange={(e) => { onUpload(e.target.files?.[0] ?? null); e.target.value = ''; }} />
+                </label>
+                {url && <button type="button" className={cx(secondaryBtn, 'inline-flex items-center gap-1.5')} onClick={onRemove}><TrashIcon className="size-4" aria-hidden="true" />{lt('letterheads.simple.removePicture')}</button>}
+            </div>
+        </div>
+    );
+}
 
 function StepBadge({ number }: { number: number }): JSX.Element {
     return <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#122170] text-sm font-semibold text-white dark:bg-blue-300 dark:text-slate-900" aria-hidden="true">{number}</span>;
@@ -655,7 +787,7 @@ function Rows({ section, rows, page, vars, language, imageUrl, onPick }: {
                                         if (item.type === 'image') {
                                             const url = imageUrl(item.image);
                                             return url
-                                                ? <div key={i} style={{ textAlign: cell.align }}><img src={url} alt="" style={{ width: `${item.width_mm}mm`, maxHeight: `${(item.width_mm ?? 22) * 1.4}mm`, display: 'inline-block' }} /></div>
+                                                ? <div key={i} style={{ textAlign: cell.align }}><img src={url} alt="" style={item.full ? { width: '100%', display: 'block' } : { width: `${item.width_mm}mm`, maxHeight: `${(item.width_mm ?? 22) * 1.4}mm`, display: 'inline-block' }} /></div>
                                                 : <div key={i} style={{ textAlign: cell.align }}><span className="inline-flex items-center justify-center rounded border border-dashed border-gray-300 text-gray-400" style={{ width: `${item.width_mm}mm`, height: `${item.width_mm}mm` }}><GalleryIcon className="size-6" aria-hidden="true" /></span></div>;
                                         }
                                         const index = textIndex;
@@ -712,10 +844,7 @@ function Sheet({ page, header, footer, vars, language, imageUrl, stamp, onPick }
                     fontFamily: FONT_CSS[page.font_family] ?? FONT_CSS.abyssinica, fontSize: `${page.font_size}pt`, color: page.text_color,
                 }}>
                     <Rows section="header" rows={header.rows} page={page} vars={vars} language={language} imageUrl={imageUrl} onPick={onPick} />
-                    <div className="mt-4" style={{ width: page.reference_align === 'right' ? '55%' : '100%', marginLeft: page.reference_align === 'right' ? '45%' : 0 }}>
-                        <div>{lt('common.number')}: <strong>{vars['letter.number']}</strong></div>
-                        <div>{lt('common.date')}: <strong>{vars['letter.date_ec']}</strong></div>
-                    </div>
+                    <ReferencePreview page={page} number={[lt('common.number'), vars['letter.number']]} date={[lt('common.date'), vars['letter.date_ec']]} />
                     <div className="mt-6 space-y-2" aria-hidden="true">
                         {[92, 100, 96, 88, 100, 70].map((width, i) => <div key={i} className="h-2 rounded bg-gray-200" style={{ width: `${width}%` }} />)}
                     </div>
