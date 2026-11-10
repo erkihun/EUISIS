@@ -61,6 +61,8 @@ final class LettersDashboardController extends Controller
                 'compose' => $user->can('letters.compose'),
                 'templates' => $access->canViewTemplates($user),
                 'numbering' => $user->can('letters.numbering.manage'),
+                'letterheads' => $user->can('letters.letterhead.manage'),
+                'standards' => $user->can('letters.standards.manage'),
                 'reports' => $user->can('letters.reports.view'),
             ],
         ]);

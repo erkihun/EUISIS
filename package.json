@@ -8,6 +8,7 @@
         "build": "tsc && vite build",
         "dev": "vite",
         "i18n:audit": "node scripts/i18n-audit.mjs --strict",
+        "i18n:letters": "node scripts/letters-i18n-keys.mjs",
         "typecheck": "tsc --noEmit -p ."
     },
     "devDependencies": {

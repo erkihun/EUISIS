@@ -32,42 +32,71 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::table('letter_letterheads', function (Blueprint $table): void {
-            $table->string('name', 120)->nullable()->after('organization_id');
-            $table->boolean('is_default')->default(false)->after('name');
-            $table->boolean('active')->default(true)->after('is_default');
-            $table->json('page')->nullable()->after('active');
-            $table->json('header')->nullable()->after('page');
-            $table->json('footer')->nullable()->after('header');
-            $table->json('images')->nullable()->after('footer');
-            $table->foreignId('created_by')->nullable()->after('stamp_path')->constrained('users', 'id', 'ltr_lh_created_by_fk')->nullOnDelete();
-            // Several layouts per institution: a plain index for the foreign key first (MySQL 1553), the unique one goes below.
-            $table->index('organization_id', 'ltr_lh_org_idx');
-        });
-        Schema::table('letter_letterheads', function (Blueprint $table): void {
-            $table->dropUnique('ltr_lh_org_uq');
-        });
+        // Every step checks what is already there: MySQL does not roll back a failed migration, so a retry must resume.
+        $has = fn (string $column): bool => Schema::hasColumn('letter_letterheads', $column);
+        $indexes = fn (): array => array_column(Schema::getIndexes('letter_letterheads'), 'name');
 
-        foreach (DB::table('letter_letterheads')->get() as $row) {
-            $converted = $this->convert((array) $row);
-            DB::table('letter_letterheads')->where('id', $row->id)->update([
-                'name' => $row->organization_id === null ? 'Platform default · የመድረኩ ነባሪ' : 'Standard · መደበኛ',
-                'is_default' => true,
-                'active' => true,
-                'page' => json_encode($converted['page'], JSON_UNESCAPED_UNICODE),
-                'header' => json_encode($converted['header'], JSON_UNESCAPED_UNICODE),
-                'footer' => json_encode($converted['footer'], JSON_UNESCAPED_UNICODE),
-                'images' => json_encode($converted['images'], JSON_UNESCAPED_UNICODE),
-            ]);
+        Schema::table('letter_letterheads', function (Blueprint $table) use ($has): void {
+            if (! $has('name')) {
+                $table->string('name', 120)->nullable()->after('organization_id');
+            }
+            if (! $has('is_default')) {
+                $table->boolean('is_default')->default(false)->after('organization_id');
+            }
+            if (! $has('active')) {
+                $table->boolean('active')->default(true)->after('organization_id');
+            }
+            foreach (['page', 'header', 'footer', 'images'] as $column) {
+                if (! $has($column)) {
+                    $table->json($column)->nullable();
+                }
+            }
+        });
+        if (! $has('created_by')) {
+            Schema::table('letter_letterheads', function (Blueprint $table): void {
+                $table->foreignId('created_by')->nullable()->constrained('users', 'id', 'ltr_lh_created_by_fk')->nullOnDelete();
+            });
+        }
+        // Several layouts per institution: a plain index for the foreign key first (MySQL 1553), then the unique one goes.
+        if (! in_array('ltr_lh_org_idx', $indexes(), true)) {
+            Schema::table('letter_letterheads', function (Blueprint $table): void {
+                $table->index('organization_id', 'ltr_lh_org_idx');
+            });
+        }
+        if (in_array('ltr_lh_org_uq', $indexes(), true)) {
+            Schema::table('letter_letterheads', function (Blueprint $table): void {
+                $table->dropUnique('ltr_lh_org_uq');
+            });
         }
 
-        Schema::table('letter_letterheads', function (Blueprint $table): void {
-            $table->dropColumn(self::LEGACY_COLUMNS);
-        });
+        // Rows still in the fixed shape (no composed header yet) become the institution's first layout.
+        if ($has('name_am')) {
+            foreach (DB::table('letter_letterheads')->whereNull('header')->get() as $row) {
+                $converted = $this->convert((array) $row);
+                DB::table('letter_letterheads')->where('id', $row->id)->update([
+                    'name' => $row->organization_id === null ? 'Platform default · የመድረኩ ነባሪ' : 'Standard · መደበኛ',
+                    'is_default' => true,
+                    'active' => true,
+                    'page' => json_encode($converted['page'], JSON_UNESCAPED_UNICODE),
+                    'header' => json_encode($converted['header'], JSON_UNESCAPED_UNICODE),
+                    'footer' => json_encode($converted['footer'], JSON_UNESCAPED_UNICODE),
+                    'images' => json_encode($converted['images'], JSON_UNESCAPED_UNICODE),
+                ]);
+            }
+        }
 
-        Schema::table('letters', function (Blueprint $table): void {
-            $table->foreignUuid('letterhead_id')->nullable()->after('organization_id')->constrained('letter_letterheads', 'id', 'ltr_letters_lh_fk')->nullOnDelete();
-        });
+        $legacy = array_values(array_filter(self::LEGACY_COLUMNS, $has));
+        if ($legacy !== []) {
+            Schema::table('letter_letterheads', function (Blueprint $table) use ($legacy): void {
+                $table->dropColumn($legacy);
+            });
+        }
+
+        if (! Schema::hasColumn('letters', 'letterhead_id')) {
+            Schema::table('letters', function (Blueprint $table): void {
+                $table->foreignUuid('letterhead_id')->nullable()->after('organization_id')->constrained('letter_letterheads', 'id', 'ltr_letters_lh_fk')->nullOnDelete();
+            });
+        }
 
         if (Schema::hasTable('letter_settings') && ! Schema::hasTable('letter_standards')) {
             Schema::rename('letter_settings', 'letter_standards');

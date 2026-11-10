@@ -18,7 +18,8 @@ use Throwable;
  * memory limit is left exactly as uploaded.
  *
  * Encodings: logos and seals become lossless WebP (transparency and crisp edges
- * kept), photos lossy WebP, favicons PNG. Without WebP support in GD the
+ * kept), photos lossy WebP, favicons PNG, images for print PNG or JPEG as
+ * uploaded (dompdf embeds no WebP). Without WebP support in GD the
  * original format is kept and only the size is reduced.
  */
 final class ImageOptimizer
@@ -277,7 +278,7 @@ final class ImageOptimizer
         if ($kind === ImageKind::Favicon) {
             $written = imagepng($image, $tempPath, 9);
             $extension = 'png';
-        } elseif (self::supportsWebp()) {
+        } elseif (self::supportsWebp() && $kind !== ImageKind::Print) {
             $written = $kind === ImageKind::Photo
                 ? imagewebp($image, $tempPath, self::PHOTO_QUALITY)
                 : (defined('IMG_WEBP_LOSSLESS') && imagewebp($image, $tempPath, IMG_WEBP_LOSSLESS)) || imagewebp($image, $tempPath, 90);

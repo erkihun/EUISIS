@@ -1,4 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
+import ActionErrors from '@/Components/letters/ActionErrors';
 import RichTextEditor from '@/Components/forms/RichTextEditor';
 import { dangerBtn, errorCls, inputCls, labelCls, mutedCls, panelCls, primaryBtn, secondaryBtn, sectionTitleCls, useLetters } from '@/Components/letters/helpers';
 import { cx } from '@/Components/ui';
@@ -51,6 +52,7 @@ export default function TemplateForm({ mode, template, owners, categories, built
     return (
         <AuthenticatedLayout header={<PageHeader title={title} description={lt('templates.description')} backHref={editing ? route('letters.templates.show', template.id) : route('letters.templates.index')} />}>
             <Head title={title} />
+            <ActionErrors />
             <form onSubmit={save} className="space-y-5" aria-label={title}>
                 <section className={cx(panelCls, 'grid gap-4 p-4 sm:grid-cols-2')}>
                     <h2 className={cx(sectionTitleCls, 'sm:col-span-2')}>{lt('templates.identity')}</h2>

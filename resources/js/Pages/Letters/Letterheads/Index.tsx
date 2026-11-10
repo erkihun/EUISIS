@@ -3,7 +3,7 @@ import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import PageHeader from '@/Components/PageHeader';
 import ActionErrors from '@/Components/letters/ActionErrors';
 import { inputCls, labelCls, mutedCls, panelCls, primaryBtn, secondaryBtn, useLetters } from '@/Components/letters/helpers';
-import { TBody, Table, Td, Th, THead, Tr, badgeClassName, cx } from '@/Components/ui';
+import { AppActionMenu, badgeClassName, cx } from '@/Components/ui';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { LetterLayoutRow, OrganizationOption } from '@/types/letters';
 import { Head, Link, router } from '@inertiajs/react';
@@ -50,45 +50,34 @@ export default function LetterheadsIndex({ organizations, platform, selected_org
                         {addNew}
                     </div>
                 ) : (
-                    <div className={cx(panelCls, 'overflow-x-auto')}>
-                        <Table>
-                            <THead>
-                                <Tr>
-                                    <Th>{lt('letterheads.columns.name')}</Th>
-                                    <Th>{lt('letterheads.columns.paper')}</Th>
-                                    <Th>{lt('letterheads.columns.rows')}</Th>
-                                    <Th>{lt('letterheads.columns.letters')}</Th>
-                                    <Th>{lt('letterheads.columns.status')}</Th>
-                                    <Th>{lt('letterheads.columns.updated')}</Th>
-                                    <Th>{lt('letterheads.columns.actions')}</Th>
-                                </Tr>
-                            </THead>
-                            <TBody>
-                                {layouts.map((l) => (
-                                    <Tr key={l.id}>
-                                        <Td className="font-medium">
-                                            <Link className="underline" href={route('letters.letterheads.edit', l.id)}>{l.name}</Link>
-                                            {l.is_default && <span className={badgeClassName('info', 'ms-2')}>{lt('letterheads.isDefault')}</span>}
-                                        </Td>
-                                        <Td>{lt(`letterheads.papers.${l.paper}`)} · {lt(`letterheads.orientations.${l.orientation}`)}</Td>
-                                        <Td>{l.header_rows} / {l.footer_rows}{l.has_stamp && <span className={mutedCls}> · {lt('letterheads.withStamp')}</span>}</Td>
-                                        <Td>{l.letters_count}</Td>
-                                        <Td><span className={badgeClassName(l.active ? 'success' : 'neutral')}>{lt(l.active ? 'letterheads.active' : 'letterheads.inactive')}</span></Td>
-                                        <Td>{l.updated_at ? <LocalizedDateDisplay value={l.updated_at} /> : '—'}{l.updated_by && <span className={mutedCls}> · {l.updated_by}</span>}</Td>
-                                        <Td>
-                                            <div className="flex flex-wrap gap-2">
-                                                <Link className={secondaryBtn} href={route('letters.letterheads.edit', l.id)}>{lt('letterheads.edit')}</Link>
-                                                <a className={secondaryBtn} href={route('letters.letterheads.preview', l.id)} target="_blank" rel="noopener">{lt('letterheads.previewPdf')}</a>
-                                                <button type="button" className={secondaryBtn} onClick={() => router.post(route('letters.letterheads.duplicate', l.id))}>{lt('letterheads.duplicate')}</button>
-                                                {!l.is_default && <button type="button" className={secondaryBtn} onClick={() => router.post(route('letters.letterheads.default', l.id), {}, { preserveScroll: true })}>{lt('letterheads.makeDefault')}</button>}
-                                                {l.letters_count === 0 && <button type="button" className={cx(secondaryBtn, 'text-red-700 dark:text-red-400')} onClick={() => setDeleting(l)}>{lt('letterheads.delete')}</button>}
-                                            </div>
-                                        </Td>
-                                    </Tr>
-                                ))}
-                            </TBody>
-                        </Table>
-                    </div>
+                    <ul className="space-y-3">
+                        {layouts.map((l) => (
+                            <li key={l.id} className={cx(panelCls, 'flex flex-wrap items-center gap-x-4 gap-y-3 p-4')}>
+                                <div className="min-w-0 flex-1">
+                                    <p className="flex flex-wrap items-center gap-2">
+                                        <Link className="text-base font-semibold underline-offset-2 hover:underline" href={route('letters.letterheads.edit', l.id)}>{l.name}</Link>
+                                        {l.is_default && <span className={badgeClassName('info')}>{lt('letterheads.isDefault')}</span>}
+                                        {!l.active && <span className={badgeClassName('neutral')}>{lt('letterheads.inactive')}</span>}
+                                    </p>
+                                    <p className={cx(mutedCls, 'mt-0.5 text-xs')}>
+                                        {lt(`letterheads.papers.${l.paper}`)} · {lt(`letterheads.orientations.${l.orientation}`)}
+                                        {l.has_stamp && <> · {lt('letterheads.withStamp')}</>}
+                                        {l.letters_count > 0 && <> · {lt('letterheads.usedBy', { count: l.letters_count })}</>}
+                                        {l.updated_at && <> · <LocalizedDateDisplay value={l.updated_at} /></>}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Link className={primaryBtn} href={route('letters.letterheads.edit', l.id)}>{lt('letterheads.edit')}</Link>
+                                    <a className={secondaryBtn} href={route('letters.letterheads.preview', l.id)} target="_blank" rel="noopener">{lt('letterheads.previewPdf')}</a>
+                                    <AppActionMenu items={[
+                                        { label: lt('letterheads.makeDefault'), onClick: () => router.post(route('letters.letterheads.default', l.id), {}, { preserveScroll: true }), show: !l.is_default },
+                                        { label: lt('letterheads.duplicate'), onClick: () => router.post(route('letters.letterheads.duplicate', l.id)) },
+                                        { label: lt('letterheads.delete'), variant: 'danger', onClick: () => setDeleting(l), show: l.letters_count === 0, separatorBefore: true },
+                                    ]} />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 )}
             </div>
             <ConfirmationDialog open={deleting !== null} onClose={() => setDeleting(null)} loading={busy} variant="danger" title={lt('letterheads.deleteTitle')}

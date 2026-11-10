@@ -92,6 +92,7 @@ return [
         'pattern_unknown_tokens' => 'Unknown tokens in the pattern: :tokens.',
         'reply_organization' => 'Choose the institution that received the letter.',
         'logo_type' => 'Only PNG, JPEG and SVG images up to :max MB are accepted; the type is read from the file itself.',
+        'image_pixels' => 'The image is :width × :height pixels, too large for this server to prepare for printing. Upload one of at most :max × :max pixels.',
         'layout_invalid' => 'The header and footer could not be read. Reload the page and try again.',
         'layout_placeholders' => 'These placeholders are not known: :keys.',
         'layout_images' => 'A header and footer can hold at most :max images.',

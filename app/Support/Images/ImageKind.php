@@ -19,6 +19,9 @@ enum ImageKind: string
     /** Employee and user photographs. */
     case Photo = 'photo';
 
+    /** Emblems and stamps printed on letters: kept as PNG or JPEG, the only formats the PDF engine embeds. */
+    case Print = 'print';
+
     /** Longest side after optimisation, in pixels. */
     public function maxDimension(): int
     {
@@ -26,6 +29,8 @@ enum ImageKind: string
             self::Logo => 512,
             self::Favicon => 256,
             self::Photo => 1024,
+            // 600 px is about 300 dpi at 50 mm, the largest an emblem prints.
+            self::Print => 600,
         };
     }
 }

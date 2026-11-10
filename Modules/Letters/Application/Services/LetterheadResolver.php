@@ -7,18 +7,18 @@ namespace Modules\Letters\Application\Services;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Storage;
 use Modules\Letters\Domain\Models\LetterLetterhead;
+use Throwable;
 
 /**
  * Which header-and-footer layout a letter prints on, and that layout ready
  * for the PDF: the layout the letter chose (when it belongs to the letter's
  * institution or the platform and is active), else the institution's default
  * layout, else the platform's default, else the built-in layout. Images are
- * returned as data URIs, scaled to print size, so dompdf can embed them.
+ * returned as data URIs at print size, so dompdf can embed them.
  */
 class LetterheadResolver
 {
-    /** Longest side of an emblem or stamp in the PDF: 600 px is about 300 dpi at 50 mm. */
-    public const PRINT_MAX_PX = 600;
+    public function __construct(private readonly LetterImageFitter $fitter) {}
 
     /** @return array<string, mixed> */
     public function for(Organization $organization, ?string $layoutId = null): array
@@ -63,8 +63,8 @@ class LetterheadResolver
         $images = [];
         foreach (LetterLayout::usedImages($header, $footer) as $key) {
             $uri = $key === LetterLayout::ORG_LOGO
-                ? ($organization !== null ? $this->dataUri($organization->logo_path, 'public') : null)
-                : $this->dataUri($paths[$key] ?? null, LetterLetterhead::DISK);
+                ? ($organization !== null ? $this->dataUri($organization->logo_path, 'public', true) : null)
+                : $this->dataUri($paths[$key] ?? null, LetterLetterhead::DISK, true);
             if ($uri !== null) {
                 $images[$key] = $uri;
             }
@@ -77,7 +77,7 @@ class LetterheadResolver
             'header' => $header,
             'footer' => $footer,
             'images' => $images,
-            'stamp' => $this->dataUri($layout?->stamp_path, LetterLetterhead::DISK),
+            'stamp' => $this->dataUri($layout?->stamp_path, LetterLetterhead::DISK, true),
             'source' => $layout === null ? 'default' : ($layout->organization_id === null ? 'platform' : 'institution'),
         ];
     }
@@ -99,8 +99,13 @@ class LetterheadResolver
         return $rows->map(fn (LetterLetterhead $l): array => ['id' => $l->id, 'name' => (string) $l->name, 'is_default' => $l->is_default, 'platform' => $l->organization_id === null])->values()->all();
     }
 
-    /** The image file as a data URI, or null when it is missing or not an image dompdf can embed. */
-    public function dataUri(?string $path, string $disk): ?string
+    /**
+     * The image file as a data URI at print size, or null when it is missing or
+     * not an image. With $forPrint, an image this server cannot bring down to
+     * print size and that is too large for the PDF engine is left out (null)
+     * rather than allowed to exhaust the request's memory.
+     */
+    public function dataUri(?string $path, string $disk, bool $forPrint = false): ?string
     {
         if ($path === null || $path === '') {
             return null;
@@ -110,7 +115,7 @@ class LetterheadResolver
                 return null;
             }
             $bytes = Storage::disk($disk)->get($path);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
         if ($bytes === null || $bytes === '') {
@@ -122,25 +127,29 @@ class LetterheadResolver
         }
 
         if ($mime !== 'image/svg+xml') {
-            $bytes = $this->printSize($bytes, $mime, $disk);
+            $fitted = $this->printSize($bytes, $mime, $disk, $path);
+            if ($fitted === null && $forPrint) {
+                return null;
+            }
+            $bytes = $fitted ?? $bytes;
         }
 
         return 'data:'.$mime.';base64,'.base64_encode($bytes);
     }
 
     /**
-     * A raster emblem or stamp scaled down to print size. dompdf walks every
-     * pixel of a transparent PNG, so a phone photo of a 7000-pixel emblem
-     * makes each letter take minutes. The scaled copy is cached on the same
-     * disk, keyed by its content; without GD the original is used.
+     * A raster emblem or stamp at print size: the stored bytes when they are
+     * small already, else a fitted copy cached on the same disk by content.
+     * Null when the image is too large to print and cannot be fitted here.
      */
-    private function printSize(string $bytes, string $mime, string $disk): string
+    private function printSize(string $bytes, string $mime, string $disk, string $path): ?string
     {
-        if (! function_exists('imagecreatefromstring')) {
+        try {
+            $file = Storage::disk($disk)->path($path);
+        } catch (Throwable) {
             return $bytes;
         }
-        $size = @getimagesizefromstring($bytes);
-        if ($size === false || max($size[0], $size[1]) <= self::PRINT_MAX_PX) {
+        if (! $this->fitter->needsFitting($file)) {
             return $bytes;
         }
         $cache = 'letters/letterheads/print/'.sha1($bytes).($mime === 'image/png' ? '.png' : '.jpg');
@@ -148,34 +157,20 @@ class LetterheadResolver
             if (Storage::disk($disk)->exists($cache)) {
                 return (string) Storage::disk($disk)->get($cache);
             }
-        } catch (\Throwable) {
+        } catch (Throwable) {
+            // The cache is a convenience; fall through and fit again.
         }
 
-        $source = @imagecreatefromstring($bytes);
-        if ($source === false) {
-            return $bytes;
-        }
-        $scale = self::PRINT_MAX_PX / max($size[0], $size[1]);
-        $width = max(1, (int) round($size[0] * $scale));
-        $height = max(1, (int) round($size[1] * $scale));
-        $target = imagecreatetruecolor($width, $height);
-        if ($mime === 'image/png') {
-            imagealphablending($target, false);
-            imagesavealpha($target, true);
-            imagefill($target, 0, 0, imagecolorallocatealpha($target, 0, 0, 0, 127));
-        }
-        imagecopyresampled($target, $source, 0, 0, 0, 0, $width, $height, $size[0], $size[1]);
-        ob_start();
-        $mime === 'image/png' ? imagepng($target, null, 9) : imagejpeg($target, null, 90);
-        $scaled = (string) ob_get_clean();
-        if ($scaled === '') {
-            return $bytes;
+        $fit = $this->fitter->fitted($file);
+        if ($fit === null) {
+            return $this->fitter->unsafe($file) ? null : $bytes;
         }
         try {
-            Storage::disk($disk)->put($cache, $scaled);
-        } catch (\Throwable) {
+            Storage::disk($disk)->put($cache, $fit['bytes']);
+        } catch (Throwable) {
+            // Not cached this time; the next request fits it again.
         }
 
-        return $scaled;
+        return $fit['bytes'];
     }
 }

@@ -16,7 +16,7 @@ interface Props {
     counts: { awaiting_receipt: number; open: number; overdue: number; registered_today: number; my_routings: number; my_overdue: number; drafts: number; awaiting_signature: number };
     recent: LetterRow[];
     my_routings: MyRouting[];
-    can: { register: boolean; compose: boolean; templates: boolean; numbering: boolean; reports: boolean };
+    can: { register: boolean; compose: boolean; templates: boolean; numbering: boolean; letterheads: boolean; standards: boolean; reports: boolean };
 }
 
 /** The letters desk: what waits for the institutions in scope and for the signed-in person. */
@@ -34,7 +34,7 @@ export default function Dashboard({ counts, recent, my_routings, can }: Props): 
             <Head title={lt('dashboard.title')} />
             <ActionErrors />
             <div className="space-y-6">
-                <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label={lt('dashboard.title')}>
+                <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" aria-label={lt('dashboard.title')}>
                     <Link href={route('letters.index', { tab: 'inbox' })}><AppMetricCard label={lt('dashboard.awaitingReceipt')} value={counts.awaiting_receipt} variant={counts.awaiting_receipt > 0 ? 'warning' : 'neutral'} /></Link>
                     <Link href={route('letters.index')}><AppMetricCard label={lt('dashboard.open')} value={counts.open} variant="primary" detail={lt('dashboard.registeredToday', { count: counts.registered_today })} /></Link>
                     <Link href={route('letters.index')}><AppMetricCard label={lt('dashboard.overdue')} value={counts.overdue} variant={counts.overdue > 0 ? 'danger' : 'neutral'} /></Link>
@@ -76,11 +76,16 @@ export default function Dashboard({ counts, recent, my_routings, can }: Props): 
                     <LetterTable rows={recent} empty={lt('dashboard.recentEmpty')} />
                 </section>
 
-                {(can.templates || can.numbering || can.reports) && (
-                    <section className="flex flex-wrap gap-2" aria-label={lt('dashboard.quickActions')}>
-                        {can.templates && <Link className={secondaryBtn} href={route('letters.templates.index')}>{lt('nav.templates')}</Link>}
-                        {can.numbering && <Link className={secondaryBtn} href={route('letters.numbering.index')}>{lt('nav.numbering')}</Link>}
-                        {can.reports && <Link className={secondaryBtn} href={route('letters.reports')}>{lt('nav.reports')}</Link>}
+                {(can.templates || can.numbering || can.letterheads || can.standards || can.reports) && (
+                    <section aria-labelledby="letters-setup">
+                        <h2 id="letters-setup" className={cx(sectionTitleCls, 'mb-2')}>{lt('dashboard.quickActions')}</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {can.templates && <Link className={secondaryBtn} href={route('letters.templates.index')}>{lt('nav.templates')}</Link>}
+                            {can.numbering && <Link className={secondaryBtn} href={route('letters.numbering.index')}>{lt('nav.numbering')}</Link>}
+                            {can.letterheads && <Link className={secondaryBtn} href={route('letters.letterheads.index')}>{lt('nav.letterhead')}</Link>}
+                            {can.standards && <Link className={secondaryBtn} href={route('letters.standards.edit')}>{lt('nav.standards')}</Link>}
+                            {can.reports && <Link className={secondaryBtn} href={route('letters.reports')}>{lt('nav.reports')}</Link>}
+                        </div>
                     </section>
                 )}
             </div>

@@ -6,9 +6,10 @@ import type { JSX } from 'react';
  * Validation errors of the action buttons (submit, dispatch, route…), which post
  * without a form of their own, so the page shows them in one place.
  */
-export default function ActionErrors({ only }: { only?: string[] }): JSX.Element | null {
+export default function ActionErrors({ only, except }: { only?: string[]; except?: string[] }): JSX.Element | null {
     const errors = (usePage().props.errors ?? {}) as Record<string, string>;
-    const entries = Object.entries(errors).filter(([key]) => !only || only.includes(key));
+    // `except` lists the fields a page already shows beside their inputs; everything else must surface here, or a refusal is silent.
+    const entries = Object.entries(errors).filter(([key]) => (!only || only.includes(key)) && !except?.includes(key));
     if (entries.length === 0) return null;
 
     return (

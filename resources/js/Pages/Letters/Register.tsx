@@ -1,5 +1,7 @@
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import PageHeader from '@/Components/PageHeader';
+import ActionErrors from '@/Components/letters/ActionErrors';
+import FilePicker from '@/Components/letters/FilePicker';
 import { errorCls, inputCls, labelCls, mutedCls, panelCls, primaryBtn, secondaryBtn, sectionTitleCls, textareaCls, useLetters } from '@/Components/letters/helpers';
 import SearchableSelect from '@/Components/ui/SearchableSelect';
 import { cx } from '@/Components/ui';
@@ -71,6 +73,7 @@ export default function Register({ organizations, selected_organization_id, unit
     return (
         <AuthenticatedLayout header={<PageHeader title={lt('register.title')} description={lt('register.description')} backHref={route('letters.index')} />}>
             <Head title={lt('register.title')} />
+            <ActionErrors />
             <form onSubmit={save} className="space-y-5" aria-label={lt('register.title')}>
                 <section className={cx(panelCls, 'grid gap-4 p-4 sm:grid-cols-2')}>
                     <h2 className={cx(sectionTitleCls, 'sm:col-span-2')}>{lt('common.institution')}</h2>
@@ -185,12 +188,12 @@ export default function Register({ organizations, selected_organization_id, unit
                         <label htmlFor="lr-due" className={labelCls}>{lt('common.dueOn')} <span className={mutedCls}>({lt('common.optional')})</span></label>
                         <LocalizedDatePicker id="lr-due" className={inputCls} value={form.data.due_on} onChange={(iso) => form.setData('due_on', iso)} />
                         {standard && !form.data.due_on && (
-                            <p className={cx(mutedCls, 'mt-1')}>{lt('dashboard.dueDefault', { date: `${form.data.priority === 'very_urgent' ? standard.reply_days_very_urgent : form.data.priority === 'urgent' ? standard.reply_days_urgent : standard.reply_days_normal} ${lt('settings.workingDays')}` })}</p>
+                            <p className={cx(mutedCls, 'mt-1')}>{lt('dashboard.dueDefault', { date: `${form.data.priority === 'very_urgent' ? standard.reply_days_very_urgent : form.data.priority === 'urgent' ? standard.reply_days_urgent : standard.reply_days_normal} ${lt('standards.workingDays')}` })}</p>
                         )}
                     </div>
                     <div className="sm:col-span-2">
                         <label htmlFor="lr-files" className={labelCls}>{lt('register.scans')}</label>
-                        <input id="lr-files" type="file" multiple accept="application/pdf,image/jpeg,image/png" className="block w-full text-sm" onChange={(e) => form.setData('files', Array.from(e.target.files ?? []).slice(0, 10))} />
+                        <FilePicker id="lr-files" multiple accept="application/pdf,image/jpeg,image/png" onChange={(files) => form.setData('files', files.slice(0, 10))} />
                         <p className={cx(mutedCls, 'mt-1')}>{lt('register.scansHelp')}</p>
                         {(form.errors as Record<string, string>)['files.0'] && <p className={errorCls}>{(form.errors as Record<string, string>)['files.0']}</p>}
                         {form.errors.files && <p className={errorCls}>{form.errors.files}</p>}
