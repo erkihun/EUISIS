@@ -6,6 +6,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 
+import { TableTools } from '@/Components/ui';
+
 type Named = { id: string; name_en: string; name_am?: string | null };
 type Cycle = Named & { code: string; organization_id: string | null; status: string; is_current: boolean };
 type GoalSummary = { id: string; code: string; status: string; objectives_count: number; activities_count: number; objectives_total: string };
@@ -98,7 +100,7 @@ export default function StrategyIndex({ mains, summary, filters, cycles, organiz
                                 {can.update && <Link href={route('performance.strategy.main.edit', main.id)} className={linkBtn}>{t('performance.strategy.common.edit')}</Link>}
                                 {can.delete && <button type="button" className={dangerLinkBtn} onClick={() => remove(main)}>{t('performance.strategy.common.delete')}</button>}
                             </>}>
-                            <Table head={<>
+                            <TableTools id="performance-strategy-index"><Table head={<>
                                 <th className={thCls}>{t('performance.strategy.serialNo')}</th>
                                 <th className={thCls}>{t('performance.strategy.strategy')}</th>
                                 <th className={thCls}>{t('performance.strategy.givenWeight')}</th>
@@ -140,7 +142,7 @@ export default function StrategyIndex({ mains, summary, filters, cycles, organiz
                                         {formatScore(main.strategies_total)}% / {formatScore(main.weight_percent)}%
                                     </td>
                                 </tr>
-                            </Table>
+                            </Table></TableTools>
                         </Section>
                     );
                 })}

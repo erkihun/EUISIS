@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Lookup from '@/Components/performance/Lookup';
 import { Empty, Field, FilterField, Pager, employeeName, Pill, Section, Table, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, useEnumLabel, type Bilingual, type Paginator } from '@/Components/performance/ui';
-import { FilterPanel, Input, Select } from '@/Components/ui';
+import { FilterPanel, Input, Select, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -100,7 +100,7 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
 
                 <Section title={t('performance.agreements.title')}>
                     {agreements.data.length === 0 ? <Empty>{t('performance.agreements.empty')}</Empty> : (
-                        <Table head={<>
+                        <TableTools id="performance-agreements-index"><Table head={<>
                             <th className={thCls}>{t('performance.fields.employee')}</th>
                             <th className={thCls}>{t('performance.fields.unit')}</th>
                             <th className={thCls}>{t('performance.fields.cycle')}</th>
@@ -119,7 +119,7 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
                                     <td className={tdCls}><Pill group="agreement" value={a.status} /></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <Pager page={agreements} />
                 </Section>

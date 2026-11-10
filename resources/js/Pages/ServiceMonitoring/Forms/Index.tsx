@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppActionMenu, AppFilterBar, Button, FilterField, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { AppActionMenu, AppFilterBar, Button, FilterField, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, TableTools } from '@/Components/ui';
 import { nameOf } from '@/Components/serviceMonitoring/builder/helpers';
 import type { Named, Paginated } from '@/Components/serviceMonitoring/builder/types';
 import { useLocale } from '@/hooks/useLocale';
@@ -49,7 +49,7 @@ export default function FormTemplatesIndex({ templates, filters }: { templates: 
 
                 <TableCard footer={<ListPagination meta={templates} />}>
                     <div className="overflow-x-auto">
-                        <Table>
+                        <TableTools id="service-monitoring-forms-index"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{tt('nameAm')}</Th>
@@ -82,7 +82,7 @@ export default function FormTemplatesIndex({ templates, filters }: { templates: 
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     </div>
                 </TableCard>
             </div>

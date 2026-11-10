@@ -5,7 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
-import { inputClassName } from '@/Components/ui';
+import { inputClassName, TableTools } from '@/Components/ui';
 type Unit = Metrics & { unit: { id: string; name_en: string; name_am: string | null } | null };
 type FormUse = { version_id: string; code: string | null; form_en: string | null; form_am: string | null; version_no: number | null; version_status: string | null; targets: string[]; expected: number; assigned: number; assessed: number; unassessed: number; completion_percent: string | null };
 type Peer = { version_id: string; name_en: string; name_am: string | null; version_no: number; records: number; required: number; assigned: number; completed: number; aggregate_ready: number; aggregate_not_ready: number };
@@ -81,7 +81,7 @@ export default function OversightInstitution(props: Props) {
                     </div>
 
                     <Section title={t('assessmentOversight.sections.units')} description={t('assessmentOversight.unitsHelp')} flush>
-                        <Table head={<>
+                        <TableTools id="assessments-oversight-institution"><Table head={<>
                             <th className={thCls}>{t('assessmentOversight.unit')}</th>
                             <th className={thCls}>{t('assessmentOversight.eligible')}</th>
                             <th className={thCls}>{t('assessmentOversight.assessed')}</th>
@@ -99,11 +99,11 @@ export default function OversightInstitution(props: Props) {
                                     <td className={tdCls}><CoverageBar value={u.coverage_percent} /></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     </Section>
 
                     <Section title={t('assessmentOversight.sections.forms')} description={t('assessmentOversight.formsHelp')} flush>
-                        <Table head={<>
+                        <TableTools id="assessments-oversight-institution-2"><Table head={<>
                             <th className={thCls}>{t('assessmentOversight.form')}</th>
                             <th className={thCls}>{t('assessmentOversight.targetGroup')}</th>
                             <th className={thCls}>{t('assessmentOversight.expected')}</th>
@@ -123,12 +123,12 @@ export default function OversightInstitution(props: Props) {
                                     <td className={tdCls}>{pct(f.completion_percent)}</td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     </Section>
 
                     {props.peers.length > 0 && (
                         <Section title={t('assessmentOversight.sections.peers')} flush>
-                            <Table head={<>
+                            <TableTools id="assessments-oversight-institution-3"><Table head={<>
                                 <th className={thCls}>{t('assessmentOversight.form')}</th>
                                 <th className={thCls}>{t('assessmentOversight.peers.required')}</th>
                                 <th className={thCls}>{t('assessmentOversight.peers.assigned')}</th>
@@ -146,7 +146,7 @@ export default function OversightInstitution(props: Props) {
                                         <td className={`${tdCls} tabular-nums`}>{p.aggregate_not_ready}</td>
                                     </tr>
                                 ))}
-                            </Table>
+                            </Table></TableTools>
                         </Section>
                     )}
 
@@ -248,7 +248,7 @@ function Exclusions({ rows }: { rows: Exclusion[] }) {
     const decide = (id: string, approve: boolean) => router.post(route('assessment-oversight.exclusions.decide', id), { approve, note: notes[id] ?? '' }, { preserveScroll: true });
     return (
         <Section title={t('assessmentOversight.sections.exclusions')} description={t('assessmentOversight.exclusionsHelp')} flush>
-            <Table head={<>
+            <TableTools id="assessments-oversight-institution-4"><Table head={<>
                 <th className={thCls}>{t('assessmentOversight.employee')}</th>
                 <th className={thCls}>{t('assessmentOversight.reason')}</th>
                 <th className={thCls}>{t('assessmentOversight.status')}</th>
@@ -273,7 +273,7 @@ function Exclusions({ rows }: { rows: Exclusion[] }) {
                         </td>
                     </tr>
                 ))}
-            </Table>
+            </Table></TableTools>
         </Section>
     );
 }

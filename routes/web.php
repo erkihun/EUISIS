@@ -1838,6 +1838,9 @@ require __DIR__.'/field-work.php';
 // Service Delivery Monitoring & Support (docs/service-monitoring.md).
 require __DIR__.'/service-monitoring.php';
 
+// Letters: the registry, templates and numbering of official correspondence (ADR 0037, docs/letters.md).
+require __DIR__.'/letters.php';
+
 // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
 require __DIR__.'/organization-design.php';
 

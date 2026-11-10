@@ -5,6 +5,7 @@ import EmptyState from '@/Components/EmptyState';
 import {
     ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { AppealsIndexProps } from '@/court/types/misc';
@@ -27,7 +28,7 @@ export default function AppealsIndex({ appeals, canCreate }: AppealsIndexProps) 
 
             <div className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="court-appeals-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('court.appeals.number'), t('cm.cases.table.case_number'), t('cm.json.Title'), t('cm.json.Status'), t('court.appeals.decidedBy'), t('cm.cases.table.actions')].map((heading) => (
@@ -49,7 +50,7 @@ export default function AppealsIndex({ appeals, canCreate }: AppealsIndexProps) 
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
                 {appeals.data.length === 0 && <EmptyState title={t('court.appeals.empty')} />}
                 <ListPagination meta={appeals} />

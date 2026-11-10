@@ -10,7 +10,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, router } from '@inertiajs/react';
 import type { JSX, ReactNode } from 'react';
 
-import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type Report = {
     type: string;
     columns: string[];
@@ -113,7 +113,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                 ) : (
                     // A report is inherently tabular; only the table scrolls sideways, never the page.
                     <div className={`${panelCls} overflow-x-auto`}>
-                        <table className={cx(tableClassName, 'min-w-max')}>
+                        <TableTools id="daily-activities-reports"><table className={cx(tableClassName, 'min-w-max')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {report.columns.map((column) => (
@@ -134,7 +134,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
 

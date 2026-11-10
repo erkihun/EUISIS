@@ -5,7 +5,7 @@ import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
-import { ListPagination, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Card, StatusBadge, TBody, THead, Table, Td, Th, Tr, buttonClassName } from '@euisis/ui';
 
 type CourtLetter = {
@@ -56,7 +56,7 @@ export default function CourtLetters({ letters, filters }: Props): JSX.Element {
                 {letters.data.length === 0 ? (
                     <EmptyState title={label('none')} />
                 ) : (
-                    <Table>
+                    <TableTools id="administrative-tribunal-court-letters"><Table>
                         <THead>
                             <Tr>
                                 {(['received', 'caseNumber', 'subject', 'institution', 'approvedBy', 'actions'] as const).map((column) => (
@@ -92,7 +92,7 @@ export default function CourtLetters({ letters, filters }: Props): JSX.Element {
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                 )}
             </Card>
 

@@ -1,4 +1,4 @@
-import { FilterField } from '@/Components/ui';
+import { FilterField, TableTools } from '@/Components/ui';
 import { ExportButtons, Filters, OUTCOMES, OversightLayout, StatusBadge, named, pct, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Table, TablePanel, filterInputCls, inputCls, smallBtn, smallPrimaryBtn, tdCls, thCls, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
@@ -94,7 +94,7 @@ export default function OversightEmployees(props: Props) {
 
             {rows && (
                 <TablePanel page={rows} empty={t('assessmentOversight.noEmployees')}>
-                    <Table head={<>
+                    <TableTools id="assessments-oversight-employees"><Table head={<>
                         <th className={thCls}>{t('assessmentOversight.employeeNumber')}</th>
                         <th className={thCls}>{t('assessmentOversight.employee')}</th>
                         {can.demographics && <th className={thCls}>{t('assessmentOversight.gender')}</th>}
@@ -130,7 +130,7 @@ export default function OversightEmployees(props: Props) {
                                 )}
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </TablePanel>
             )}
         </OversightLayout>

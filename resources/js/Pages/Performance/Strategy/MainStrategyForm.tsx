@@ -6,6 +6,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type StrategyInput = { key: string; id: string | null; title: string; description: string; weight_percent: string; goal_status: string | null };
 type Props = {
     main: { id: string; title: string; description: string | null; weight_percent: string; strategies: { id: string; title: string; description: string | null; weight_percent: string; goal_status: string | null }[] } | null;
@@ -100,7 +102,7 @@ export default function MainStrategyForm({ main, context }: Props) {
                         </div>
                     </div>
                     <div className="overflow-x-auto">
-                        <table className={`${wTable} min-w-[920px]`}>
+                        <TableTools id="performance-strategy-main-strategy-form"><table className={`${wTable} min-w-[920px]`}>
                             <thead>
                                 <tr>
                                     <th className={`${wTh} w-[70px]`}>{m('serialNo')}</th>
@@ -146,7 +148,7 @@ export default function MainStrategyForm({ main, context }: Props) {
                                     <td className={`${wTd} text-xs text-(--app-muted-foreground)`} colSpan={2}>{m('strategiesWeightHint')}</td>
                                 </tr>
                             </tfoot>
-                        </table>
+                        </table></TableTools>
                     </div>
                     <FieldError message={errors.strategies} />
                 </div>

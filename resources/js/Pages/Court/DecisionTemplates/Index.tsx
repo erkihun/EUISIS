@@ -7,6 +7,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     ListPagination, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import type { DecisionTemplatesIndexProps } from '@/court/types/decisions';
@@ -48,7 +49,7 @@ export default function DecisionTemplatesIndex({ templates, can }: DecisionTempl
                 ) : (
                     <>
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="court-decision-templates-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
@@ -85,7 +86,7 @@ export default function DecisionTemplatesIndex({ templates, can }: DecisionTempl
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                         <ListPagination meta={templates} />
                     </>

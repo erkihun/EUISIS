@@ -7,7 +7,7 @@ import KpiCard from '@/Components/dashboard/KpiCard';
 import MetricGrid from '@/Components/dashboard/MetricGrid';
 import { ConfigurationHealthPanel, type Health } from '@/Components/Cafeteria/PolicyUi';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type ProviderSummary = {
     provider_id: string;
     provider_name: string;
@@ -114,7 +114,7 @@ export default function CafeteriaDashboard({
                 <DashboardSection title={t('cafeteria.todayTransactions')}>
                     <div className="overflow-hidden rounded-panel border border-(--app-border)/80 bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
                         <div className="overflow-x-auto">
-                            <table className={tableClassName}>
+                            <TableTools id="cafeteria-dashboard"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.provider')}</th>
@@ -140,7 +140,7 @@ export default function CafeteriaDashboard({
                                         </tr>
                                     )}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     </div>
                 </DashboardSection>

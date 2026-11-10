@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 
 type Props = {
@@ -7,13 +8,16 @@ type Props = {
 export default function ApplicationLogo({ className = 'h-8 w-8' }: Props) {
     const { getString } = useSystemSettings();
     const logoUrl = getString('general.identity_system_logo_url');
+    // A configured logo that does not load (moved, blocked, 403) falls back to the built-in mark, never a broken-image glyph.
+    const [failed, setFailed] = useState(false);
 
-    if (logoUrl) {
+    if (logoUrl && !failed) {
         return (
             <img
                 src={logoUrl}
                 alt=""
                 decoding="async"
+                onError={() => setFailed(true)}
                 className={className}
                 style={{ objectFit: 'contain', objectPosition: 'center' }}
             />

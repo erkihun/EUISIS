@@ -6,6 +6,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Paginated<T> = { data: T[]; links: { url: string | null; label: string; active: boolean }[] };
 
 type Props = {
@@ -53,7 +55,7 @@ export default function DisciplineIndex({ cases, filters, statuses, canCreate }:
                     <p className={`${panelCls} p-4 text-sm text-gray-500 dark:text-slate-400`}>{t('discipline.empty')}</p>
                 ) : (
                     <div className={`${panelCls} overflow-x-auto`}>
-                        <table className="min-w-full text-sm">
+                        <TableTools id="discipline-index"><table className="min-w-full text-sm">
                             <thead className="text-left text-xs text-gray-500 dark:text-slate-400">
                                 <tr>
                                     <th className="px-4 py-2 font-medium">{t('discipline.caseNumber')}</th>
@@ -82,7 +84,7 @@ export default function DisciplineIndex({ cases, filters, statuses, canCreate }:
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
 

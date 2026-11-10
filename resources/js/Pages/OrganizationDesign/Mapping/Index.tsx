@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import DesignLookup from '@/Components/organizationDesign/DesignLookup';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -78,7 +78,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                             <Card>
                                 <CardHeader><div><CardTitle>{tt('mapping.positionTasks')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('mapping.positionTasksHelp')}</p></div></CardHeader>
                                 {unmapped.position_tasks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noPositionTasks')}</p> : (
-                                    <Table>
+                                    <TableTools id="organization-design-mapping-index"><Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.suggestions')}</Th><Th>{tt('mapping.masterTask')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                         <TBody>
                                             {unmapped.position_tasks.map((task) => (
@@ -112,14 +112,14 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                 </Tr>
                                             ))}
                                         </TBody>
-                                    </Table>
+                                    </Table></TableTools>
                                 )}
                             </Card>
 
                             <Card>
                                 <CardHeader><CardTitle>{tt('mapping.positionServices')}</CardTitle></CardHeader>
                                 {unmapped.position_services.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noPositionServices')}</p> : (
-                                    <Table>
+                                    <TableTools id="organization-design-mapping-index-2"><Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.masterService')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                         <TBody>
                                             {unmapped.position_services.map((s) => (
@@ -148,14 +148,14 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                 </Tr>
                                             ))}
                                         </TBody>
-                                    </Table>
+                                    </Table></TableTools>
                                 )}
                             </Card>
 
                             <Card>
                                 <CardHeader><CardTitle>{tt('mapping.positions')}</CardTitle></CardHeader>
                                 {unmapped.positions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noPositions')}</p> : (
-                                    <Table>
+                                    <TableTools id="organization-design-mapping-index-3"><Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.unit')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                         <TBody>
                                             {unmapped.positions.map((p) => (
@@ -175,7 +175,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                 </Tr>
                                             ))}
                                         </TBody>
-                                    </Table>
+                                    </Table></TableTools>
                                 )}
                             </Card>
 
@@ -198,7 +198,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                         <div>
                                             <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('mapping.occupations')}</p>
                                             {catalog.occupations.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('mapping.noOccupations')}</p> : (
-                                                <Table>
+                                                <TableTools id="organization-design-mapping-index-4"><Table>
                                                     <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('fields.occupation')}</Th><Th>{tt('mapping.iscoGroup')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                                     <TBody>
                                                         {catalog.occupations.map((o) => (
@@ -225,13 +225,13 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                             </Tr>
                                                         ))}
                                                     </TBody>
-                                                </Table>
+                                                </Table></TableTools>
                                             )}
                                         </div>
                                         <div>
                                             <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('mapping.competencies')}</p>
                                             {catalog.competencies.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('mapping.noCompetencies')}</p> : (
-                                                <Table>
+                                                <TableTools id="organization-design-mapping-index-5"><Table>
                                                     <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('fields.competency')}</Th><Th>{tt('mapping.competencyType')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                                     <TBody>
                                                         {catalog.competencies.map((c) => (
@@ -258,7 +258,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                             </Tr>
                                                         ))}
                                                     </TBody>
-                                                </Table>
+                                                </Table></TableTools>
                                             )}
                                         </div>
                                     </div>

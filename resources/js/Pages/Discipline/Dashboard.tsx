@@ -7,6 +7,8 @@ import { cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX, ReactNode } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Stage = 'draft' | 'charged' | 'under_investigation' | 'report_submitted' | 'decided' | 'decision_delivered';
 
 type Props = {
@@ -124,7 +126,7 @@ export default function Dashboard({ figures, stages, attention, queue, dueSoonDa
                     {queue.length === 0
                         ? <p className={cx(panel, 'p-4 text-sm', muted)}>{t('discipline.empty')}</p>
                         : <div className={cx(panel, 'overflow-x-auto')}>
-                            <table className="min-w-full text-sm">
+                            <TableTools id="discipline-dashboard"><table className="min-w-full text-sm">
                                 <thead className={cx('text-left text-xs', muted)}>
                                     <tr>
                                         <th className="px-4 py-2 font-medium">{t('discipline.caseNumber')}</th>
@@ -148,7 +150,7 @@ export default function Dashboard({ figures, stages, attention, queue, dueSoonDa
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>}
                 </section>
 

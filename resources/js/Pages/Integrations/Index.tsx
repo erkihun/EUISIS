@@ -8,6 +8,8 @@ import { useLocale } from '@/hooks/useLocale';
 import StatusBadge from '@/Components/StatusBadge';
 import { Button, Card, EmptyState, Table, TBody, THead, Td, Th, Tr } from '@euisis/ui';
 
+import { TableTools } from '@/Components/ui';
+
 type Kpis = Record<string, number | string | null>;
 
 interface SubscriptionRow {
@@ -108,7 +110,7 @@ export default function IntegrationsIndex({ kpis, subscriptions, failedDeliverie
                     {subscriptions.length === 0 ? (
                         <EmptyState icon={<NetworkIcon className="h-8 w-8" />} title={t('integrations.noSubscriptions')} description={t('integrations.noSubscriptionsHint')} action={actions} />
                     ) : (
-                        <Table>
+                        <TableTools id="integrations-index"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('integrations.name')}</Th>
@@ -140,7 +142,7 @@ export default function IntegrationsIndex({ kpis, subscriptions, failedDeliverie
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </Card>
 
@@ -152,7 +154,7 @@ export default function IntegrationsIndex({ kpis, subscriptions, failedDeliverie
                         {failedDeliveries.length === 0 ? (
                             <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">{t('integrations.noFailedDeliveries')}</p>
                         ) : (
-                            <Table>
+                            <TableTools id="integrations-index-2"><Table>
                                 <THead>
                                     <Tr>
                                         <Th>{t('integrations.event')}</Th>
@@ -177,7 +179,7 @@ export default function IntegrationsIndex({ kpis, subscriptions, failedDeliverie
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
                 )}
@@ -190,7 +192,7 @@ export default function IntegrationsIndex({ kpis, subscriptions, failedDeliverie
                     {consumers.length === 0 ? (
                         <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">{t('integrations.noConsumers')}</p>
                     ) : (
-                        <Table>
+                        <TableTools id="integrations-index-3"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('integrations.application')}</Th>
@@ -209,7 +211,7 @@ export default function IntegrationsIndex({ kpis, subscriptions, failedDeliverie
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </Card>
             </div>

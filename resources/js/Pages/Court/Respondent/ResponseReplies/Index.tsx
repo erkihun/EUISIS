@@ -6,6 +6,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     ListPagination, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useRespondentText } from '@/court/i18n/useRespondentText';
 import type { RespondentRepliesIndexProps } from '@/court/types/respondent';
@@ -29,7 +30,7 @@ export default function RespondentResponseRepliesIndex({ replies }: RespondentRe
             ) : (
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-respondent-response-replies-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[t('cm.cases.case_number'), t('cm.respondent.response_number_label'), t('cm.cases.applicant_full_name'), t('cm.respondent.uploaded')].map((heading) => (
@@ -51,7 +52,7 @@ export default function RespondentResponseRepliesIndex({ replies }: RespondentRe
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     <ListPagination meta={replies} />
                 </div>

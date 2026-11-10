@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type CardRow = {
     id: string;
@@ -189,7 +189,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                     />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className={tableClassName}>
+                        <TableTools id="id-cards-index"><table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>
@@ -269,7 +269,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
                 <ListPagination meta={cards.meta} />

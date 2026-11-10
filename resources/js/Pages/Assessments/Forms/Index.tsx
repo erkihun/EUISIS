@@ -6,7 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
-import { tableRowClassName } from '@/Components/ui';
+import { tableRowClassName, TableTools } from '@/Components/ui';
 type Row = {
     id: string;
     code: string;
@@ -136,7 +136,7 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                 </div>
 
                 <TablePanel page={forms} empty={t('assessments.empty')}>
-                    <Table head={<>
+                    <TableTools id="assessments-forms-index"><Table head={<>
                         <th className={thCls}>{t('assessments.fields.code')}</th>
                         <th className={thCls}>{t('assessments.fields.name')}</th>
                         <th className={thCls}>{t('assessments.fields.type')}</th>
@@ -170,7 +170,7 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                                 <td className={`${tdCls} text-right`}><Link href={route('assessment-forms.show', row.id)} className={linkBtn}>{row.has_draft ? t('assessments.actions.continueDraft') : t('assessments.actions.open')}</Link></td>
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </TablePanel>
             </div>
         </AuthenticatedLayout>

@@ -7,6 +7,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import {
     FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useInspectionPagesText } from '@/court/i18n/useInspectionPagesText';
 import type { InspectionRequestsIndexProps } from '@/court/types/inspections';
@@ -57,7 +58,7 @@ export default function InspectionRequestsIndex({ requests, cases, filters, stat
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-inspections-requests-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
@@ -91,7 +92,7 @@ export default function InspectionRequestsIndex({ requests, cases, filters, stat
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {requests.data.length === 0 && <EmptyState title={t('cm.case_inspections.requests.empty')} />}
                     <ListPagination meta={requests} />

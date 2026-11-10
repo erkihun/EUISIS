@@ -14,6 +14,15 @@ export const tableHeaderCellClassName = 'px-4 py-3 text-xs font-medium text-(--a
 export const tableBodyClassName = 'divide-y divide-(--app-border)';
 export const tableRowClassName = 'transition-colors hover:bg-(--app-surface-muted)';
 export const tableCellClassName = 'px-4 py-3';
+/**
+ * Long text in a cell (an institution's full name, a position title) held to
+ * a few lines so rows keep a readable height; callers put the full text in
+ * `title`. Two lines by default, three at most. The clamp sets its own display
+ * (`-webkit-box`), so never add `block` or `flex` beside it.
+ */
+export function tableCellClampClassName(lines: 2 | 3 = 2): string {
+    return lines === 3 ? 'line-clamp-3 max-w-xs' : 'line-clamp-2 max-w-xs';
+}
 
 type Align = 'left' | 'center' | 'right';
 const alignClass: Record<Align, string> = { left: 'text-left', center: 'text-center', right: 'text-right' };
@@ -43,12 +52,15 @@ export function Th({ align = 'left', className, ...props }: ThHTMLAttributes<HTM
     return <th scope="col" className={cx(tableHeaderCellClassName, alignClass[align], className)} {...props} />;
 }
 
-export function Td({ align = 'left', numeric = false, muted = false, className, ...props }: TdHTMLAttributes<HTMLTableCellElement> & {
+export function Td({ align = 'left', numeric = false, muted = false, clamp, title, className, children, ...props }: TdHTMLAttributes<HTMLTableCellElement> & {
     align?: Align;
     /** Tabular figures, right-aligned unless `align` says otherwise. */
     numeric?: boolean;
     muted?: boolean;
+    /** Limit text to this many lines (2 or 3); the full text goes in `title` (defaults to the text itself when it is a string). */
+    clamp?: 2 | 3;
 }) {
+    const clampTitle = clamp && title === undefined && typeof children === 'string' ? children : title;
     return (
         <td
             className={cx(
@@ -58,8 +70,11 @@ export function Td({ align = 'left', numeric = false, muted = false, className, 
                 muted && 'text-(--app-muted-foreground)',
                 className,
             )}
+            title={clampTitle}
             {...props}
-        />
+        >
+            {clamp ? <span className={tableCellClampClassName(clamp)}>{children}</span> : children}
+        </td>
     );
 }
 

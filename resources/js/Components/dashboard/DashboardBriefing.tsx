@@ -51,7 +51,7 @@ export default function DashboardBriefing({ alerts, queues, kpis }: { alerts: Al
     const canIntelligence = permissions.includes('intelligence.view');
 
     return (
-        <section aria-label={t('dashboard.briefing.title')} className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3">
+        <section aria-label={t('dashboard.briefing.title')} className="flex flex-col items-start gap-x-5 gap-y-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center">
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-(--app-foreground)">
                 <Layers className="h-4 w-4 text-primary" aria-hidden="true" />
                 {t('dashboard.briefing.title')}
@@ -59,10 +59,10 @@ export default function DashboardBriefing({ alerts, queues, kpis }: { alerts: Al
             {signals.length === 0 ? (
                 <p className="m-0 flex-1 text-sm text-(--app-muted-foreground)">{t('dashboard.briefing.allClear')}</p>
             ) : (
-                <ul className="m-0 flex flex-1 list-none flex-wrap gap-x-6 gap-y-2 p-0 text-sm">
+                <ul className="m-0 flex w-full flex-1 list-none flex-col gap-y-2 p-0 text-sm sm:w-auto sm:flex-row sm:flex-wrap sm:gap-x-6">
                     {signals.map((s) => (
-                        <li key={s.key} className="flex items-center gap-2">
-                            <span className={`h-2 w-2 shrink-0 rounded-full ${toneDot[s.tone]}`} aria-hidden="true" />
+                        <li key={s.key} className="flex items-start gap-2 sm:items-center">
+                            <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full sm:mt-0 ${toneDot[s.tone]}`} aria-hidden="true" />
                             {s.href ? <Link href={s.href} className="text-(--app-foreground) hover:text-primary hover:underline">{s.text}</Link> : <span className="text-(--app-foreground)">{s.text}</span>}
                         </li>
                     ))}

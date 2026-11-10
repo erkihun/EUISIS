@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta, TableTools } from '@/Components/ui';
 import { AppDialog, Button, Card, CardDescription, CardHeader, CardTitle, cx, EmptyState, FieldError, FormField, Input, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Option = { id: string; code?: string; name_en?: string; name_am?: string | null; version_name?: string; status?: string };
@@ -136,7 +136,7 @@ export default function Reports({ reports, report, definition, filters, preview,
                             {preview && (
                                 <TableCard>
                                     {preview.rows.length === 0 ? <EmptyState title={label('noRows')} /> : (
-                                        <Table className="min-w-[48rem]">
+                                        <TableTools id="core-reports"><Table className="min-w-[48rem]">
                                             <THead>
                                                 <Tr>{preview.columns.map((column) => <Th key={column.key}>{column.label}</Th>)}</Tr>
                                             </THead>
@@ -145,7 +145,7 @@ export default function Reports({ reports, report, definition, filters, preview,
                                                     <Tr key={index}>{preview.columns.map((column) => <Td key={column.key}>{row[column.key] ?? ''}</Td>)}</Tr>
                                                 ))}
                                             </TBody>
-                                        </Table>
+                                        </Table></TableTools>
                                     )}
                                     <ListPagination meta={laravelPageMeta(preview.meta)} onPageChange={(page) => router.get(url, { report, filters, page }, { preserveScroll: true, preserveState: true })} />
                 </TableCard>

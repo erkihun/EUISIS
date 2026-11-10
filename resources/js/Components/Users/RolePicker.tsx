@@ -18,6 +18,7 @@ const ROLE_CATEGORIES = [
     { key: 'performance', names: /^(Performance |Assessment )/ },
     { key: 'feedback', names: /^Public Feedback / },
     { key: 'grievances', names: /^(Grievance |Administrative Tribunal |Discipline |Disciplinary )/ },
+    { key: 'letters', names: /^(Letter |Correspondence Officer$)/ },
     { key: 'court', names: /^Court / },
     { key: 'services', names: /^(Cafeteria |Transport |Service Provider |Settlement |Service Entitlement |Reception |Information Officer$)/ },
     { key: 'other', names: /.*/ },

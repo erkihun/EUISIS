@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, ListPagination, TBody, THead, Table, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
+import { AppTabNav, ListPagination, TBody, THead, Table, Td, Th, Tr, laravelPageMeta, TableTools } from '@/Components/ui';
 import { AppDialog, Button, Card, EmptyState, FormField, Select, Textarea, toneSurfaceClassName, type PaginationMeta } from '@euisis/ui';
 
 type Side = {
@@ -107,7 +107,7 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
                             )}
                         </div>
 
-                        <Table className="min-w-[32rem]">
+                        <TableTools id="core-duplicate-reviews"><Table className="min-w-[32rem]">
                             <THead>
                                 <Tr>
                                     <Th className="w-40"><span className="sr-only">{label('field')}</span></Th>
@@ -131,7 +131,7 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
                                     );
                                 })}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
 
                         <div className="space-y-2 border-t border-(--app-border) px-4 py-3">
                             {(review.flagged?.url || review.matched?.url) && (

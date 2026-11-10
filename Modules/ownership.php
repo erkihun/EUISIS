@@ -460,6 +460,25 @@ return [
             'Modules\PublicComplaints\Domain\Models\PublicComplaint',
         ],
     ],
+    'Letters' => [
+        'home' => 'Modules/Letters',
+        // Every official letter, registry entry, routing step, template and numbering rule (ADR 0037).
+        'models' => [
+            'Modules\Letters\Domain\Models\Letter',
+            'Modules\Letters\Domain\Models\LetterRegistration',
+            'Modules\Letters\Domain\Models\LetterRouting',
+            'Modules\Letters\Domain\Models\LetterRecipient',
+            'Modules\Letters\Domain\Models\LetterLetterhead',
+            'Modules\Letters\Domain\Models\LetterStandard',
+            'Modules\Letters\Domain\Models\LetterFileClass',
+            'Modules\Letters\Domain\Models\LetterAttachment',
+            'Modules\Letters\Domain\Models\LetterEvent',
+            'Modules\Letters\Domain\Models\LetterTemplate',
+            'Modules\Letters\Domain\Models\LetterTemplateVersion',
+            'Modules\Letters\Domain\Models\LetterNumberingRule',
+            'Modules\Letters\Domain\Models\LetterSequence',
+        ],
+    ],
     'Feedback' => [
         'home' => 'Modules/Feedback',
         // Public and service feedback: submissions, questionnaires, routing, referrals, employee and institution QR codes.

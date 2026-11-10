@@ -18,7 +18,7 @@ import { buttonClassName, cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import { useState, type JSX, type ReactNode } from 'react';
 
-import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type PerformanceRow = {
     id: string | null;
     name: string | null;
@@ -173,7 +173,7 @@ export default function ServiceFeedbackReports({
                         <p className="px-5 py-12 text-center text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noFeedbackYet')}</p>
                     ) : (
                         <div className="max-h-144 overflow-auto">
-                            <table className={cx(tableClassName, 'min-w-160')}>
+                            <TableTools id="service-feedback-reports"><table className={cx(tableClassName, 'min-w-160')}>
                                 <thead className={cx(tableHeadClassName, 'sticky top-0 z-1')}>
                                     <tr>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-12')}>#</th>
@@ -218,7 +218,7 @@ export default function ServiceFeedbackReports({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </section>

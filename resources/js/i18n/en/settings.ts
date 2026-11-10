@@ -429,6 +429,7 @@ const settings = {
         mail_mailer: { smtp: 'SMTP server', log: 'Log only (no delivery)', sendmail: 'Sendmail', ses: 'Amazon SES' },
         mail_encryption: { tls: 'TLS', ssl: 'SSL', none: 'None' },
         sms_provider: { disabled: 'Disabled', generic_http: 'Generic HTTP API', local_gateway: 'Local gateway', ethio_telecom: 'Ethio Telecom', custom: 'Custom' },
+        ui_style: { swiss: 'Swiss (clean, flat; recommended)', classic: 'Classic (tonal navy)', soft: 'Soft UI (raised surfaces)', contrast: 'High contrast' },
         default_theme: { light: 'Light', dark: 'Dark', system: 'Follow the device' },
         table_density: { compact: 'Compact', comfortable: 'Comfortable', spacious: 'Spacious' },
         button_style: { rounded: 'Rounded', soft: 'Soft', square: 'Square' },

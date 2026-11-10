@@ -5,6 +5,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { TableTools } from '@/Components/ui';
+
 type Pass = {
     id: string;
     status: string;
@@ -92,7 +94,7 @@ export default function Index({
                         <EmptyState title={t('transport.noRecords')} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <TableTools id="transport-passes-index"><table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
                                         <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">
@@ -150,7 +152,7 @@ export default function Index({
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </div>

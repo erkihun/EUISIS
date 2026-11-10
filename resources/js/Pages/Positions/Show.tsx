@@ -9,7 +9,7 @@ import { localizedName } from '@/utils/localizedName';
 import { Empty, formatScore, Pill, Section, Table, tdCls, thCls } from '@/Components/performance/ui';
 import PositionLifecyclePanel, { type PositionLifecycle } from '@/Components/positions/PositionLifecyclePanel';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type Movement = {
     id: string;
     from_organization_unit: { name_en: string; name_am: string | null } | null;
@@ -88,7 +88,7 @@ export default function PositionsShow({ position, movementHistory, positionServi
             {lifecycle && <PositionLifecyclePanel lifecycle={lifecycle} />}
 
             {canViewPositionServices && <div className="mt-6"><Section title={t('positions.positionServices')}>
-                {positionServices.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <Table head={<>
+                {positionServices.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <TableTools id="positions-show"><Table head={<>
                     <th className={thCls}>{t('performance.fields.code')}</th><th className={thCls}>{t('performance.fields.titleEn')}</th>
                     <th className={thCls}>{t('performance.fields.description')}</th><th className={thCls}>{t('common.status')}</th>
                 </>}>
@@ -98,7 +98,7 @@ export default function PositionsShow({ position, movementHistory, positionServi
                         <td className={tdCls}>{service.description ?? '—'}</td>
                         <td className={tdCls}><StatusBadge status={service.is_active ? 'active' : 'inactive'} /></td>
                     </tr>)}
-                </Table>}
+                </Table></TableTools>}
             </Section></div>}
             {canViewPerformancePlans && <div className="mt-6 space-y-6">
                 <PositionPlans title={t('positions.currentPerformancePlan')} plans={currentPerformancePlans} />
@@ -113,7 +113,7 @@ export default function PositionsShow({ position, movementHistory, positionServi
                     <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">{t('positions.noMovementHistory')}</p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="positions-show-2"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={cx(tableHeadClassName, 'uppercase')}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('positions.currentOrganizationUnit')}</th>
@@ -134,7 +134,7 @@ export default function PositionsShow({ position, movementHistory, positionServi
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </section>
@@ -147,7 +147,7 @@ function PositionPlans({ title, plans }: { title: string; plans: PositionPlan[] 
     const name = (value: Named | null) => value ? localizedName(value.name_en, value.name_am, locale) : '—';
 
     return <Section title={title}>
-        {plans.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <Table head={<>
+        {plans.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <TableTools id="positions-show-3"><Table head={<>
             <th className={thCls}>{t('performance.fields.titleEn')}</th><th className={thCls}>{t('performance.fields.cycle')}</th>
             <th className={thCls}>{t('performance.fields.organization')}</th><th className={thCls}>{t('performance.fields.unit')}</th>
             <th className={thCls}>{t('performance.fields.version')}</th><th className={thCls}>{t('common.status')}</th>
@@ -166,6 +166,6 @@ function PositionPlans({ title, plans }: { title: string; plans: PositionPlan[] 
                         </span>}
                     </li>)}</ul>}</td>
             </tr>)}
-        </Table>}
+        </Table></TableTools>}
     </Section>;
 }

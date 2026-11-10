@@ -9,6 +9,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { TableTools } from '@/Components/ui';
+
 export type QuestionnaireStatus = 'draft' | 'published' | 'retired';
 
 type Version = {
@@ -77,7 +79,7 @@ export default function QuestionnaireIndex({ versions, hasDraft }: { versions: V
                     <Card><EmptyState title={t('serviceFeedback.questionnaireEmpty')} /></Card>
                 ) : (
                     <TableCard>
-                        <Table>
+                        <TableTools id="service-feedback-questionnaire-index"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('serviceFeedback.questionnaireName')}</Th>
@@ -118,7 +120,7 @@ export default function QuestionnaireIndex({ versions, hasDraft }: { versions: V
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     </TableCard>
                 )}
             </div>

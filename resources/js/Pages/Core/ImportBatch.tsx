@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppMetricCard, AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
+import { AppMetricCard, AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, AppDialog, Button, EmptyState, FieldError, FormField, Textarea, toneSurfaceClassName, type PaginationMeta } from '@euisis/ui';
 import type { ImportBatchSummary } from './Imports';
@@ -89,7 +89,7 @@ export default function ImportBatch({ batch, columns, rows, filter, can, urls }:
 
                 <TableCard>
                     {rows.data.length === 0 ? <EmptyState title={label('noRows')} /> : (
-                        <Table>
+                        <TableTools id="core-import-batch"><Table>
                             <THead>
                                 <Tr>
                                     <Th align="right">{label('row')}</Th>
@@ -115,7 +115,7 @@ export default function ImportBatch({ batch, columns, rows, filter, can, urls }:
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={laravelPageMeta(rows.meta)} onPageChange={(page) => router.get(urls.page, { rows: filter, page }, { preserveScroll: true, preserveState: true })} />
                 </TableCard>

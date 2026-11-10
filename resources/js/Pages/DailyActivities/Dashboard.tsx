@@ -11,7 +11,7 @@ import { Alert, Card, cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
-import { actionLinkClassName, tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
+import { actionLinkClassName, tableBodyClassName, tableClassName, tableHeadClassName, TableTools } from '@/Components/ui';
 type DayFigures = { date: string; expected: number; submitted: number; missing: number; late: number; leave: number };
 
 type Props = {
@@ -106,7 +106,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                     <Card className="overflow-hidden p-0">
                         <h2 className="border-b border-(--app-border) px-4 py-2.5 text-sm font-semibold text-(--app-foreground)">{t('dailyActivities.dashboard.lastSevenDays')}</h2>
                         <div className="overflow-x-auto">
-                        <table className={tableClassName}>
+                        <TableTools id="daily-activities-dashboard"><table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th scope="col" className={th}>{t('dailyActivities.columns.date')}</th>
@@ -127,7 +127,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                         </div>
                     </Card>
 

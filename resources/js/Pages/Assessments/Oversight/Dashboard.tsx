@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { FilterField, buttonClassName, selectClassName } from '@/Components/ui';
+import { FilterField, buttonClassName, selectClassName, TableTools } from '@/Components/ui';
 type InstitutionRow = {
     organization: { id: string; code: string; name_en: string; name_am: string | null };
     eligible: number; assessed: number; unassessed: number; coverage_percent: string | null; status: string; submission_status: string;
@@ -135,7 +135,7 @@ export default function OversightDashboard(props: Props) {
                     </div>
 
                     <Section title={t('assessmentOversight.comparison.title')} description={t('assessmentOversight.comparison.help')} flush>
-                        <Table head={<>
+                        <TableTools id="assessments-oversight-dashboard"><Table head={<>
                             <th className={thCls}>{t('assessmentOversight.institution')}</th>
                             <th className={thCls}>{t('assessmentOversight.eligible')}</th>
                             <th className={thCls}>{t('assessmentOversight.assessed')}</th>
@@ -155,7 +155,7 @@ export default function OversightDashboard(props: Props) {
                                     <td className={tdCls}><StatusBadge group="institutionStatuses" value={row.status} /></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                         <Pager page={data.institutionPage} />
                     </Section>
 

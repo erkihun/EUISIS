@@ -8,6 +8,8 @@ import { useBranding } from '@/hooks/useBranding';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, Button, Card, FormField, Select, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, buttonClassName } from '@euisis/ui';
 
+import { TableTools } from '@/Components/ui';
+
 type CourtCase = {
     id: number;
     case_number: string;
@@ -225,7 +227,7 @@ export default function EmployeeCourtCases({ state, summary, error, filed, parti
                         {summary.cases.length === 0 ? (
                             <EmptyState title={label('noCases')} />
                         ) : (
-                            <Table>
+                            <TableTools id="employee-court-cases"><Table>
                                 <THead>
                                     <Tr>
                                         {(['caseNumber', 'respondent', 'type', 'status', 'review', 'filed', 'nextHearing', 'actions'] as const).map((column) => (
@@ -256,7 +258,7 @@ export default function EmployeeCourtCases({ state, summary, error, filed, parti
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
 

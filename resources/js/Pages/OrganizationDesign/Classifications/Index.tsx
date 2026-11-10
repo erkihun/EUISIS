@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Alert, Button, Card, CardHeader, CardTitle, FileUpload, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Alert, Button, Card, CardHeader, CardTitle, FileUpload, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -73,7 +73,7 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
                     {rows.data.length === 0 ? (
                         <EmptyState title={tt('classifications.noRows')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('classifications.noRowsHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-classifications-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -104,7 +104,7 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={rows} />
                 </TableCard>

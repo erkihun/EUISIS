@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import RichTextViewer from '@/Components/forms/RichTextViewer';
 import { PrinterIcon, ScaleIcon } from '@/Components/Icons';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Alert, Button, Card, FormField, Input, Select, Textarea, badgeClassName, buttonClassName, cx, type Tone } from '@/Components/ui';
+import { Alert, Button, Card, FormField, Input, Select, Textarea, badgeClassName, buttonClassName, cx, type Tone, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInspectionPagesText } from '@/court/i18n/useInspectionPagesText';
 import type { AppealOutcome, RecordAppeal, RecordSection, RecordShowProps } from '@/court/types/records';
@@ -149,7 +149,7 @@ export default function RecordShow(props: RecordShowProps) {
 
                         <Section id="case" number={2} title={labels.case}>
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
+                                <TableTools id="court-records-show"><table className="w-full text-left text-sm">
                                     <thead className="text-xs uppercase tracking-wide text-(--app-muted-foreground)">
                                         <tr><th className="py-2 pr-4 font-medium">{b('name')}</th><th className="py-2 pr-4 font-medium">{b('role')}</th><th className="py-2 font-medium">{b('lawyer')}</th></tr>
                                     </thead>
@@ -167,7 +167,7 @@ export default function RecordShow(props: RecordShowProps) {
                                             <td className="py-2 text-(--app-muted-foreground)">{kase.respondent_address ?? '—'}</td>
                                         </tr>
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-sm font-semibold text-(--app-foreground)">{b('claim')}</h3>

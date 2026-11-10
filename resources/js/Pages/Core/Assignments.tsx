@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ClipboardListIcon } from '@/Components/NavIcons';
-import { FilterField, FilterPanel, Input, ListPagination, Select, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { EmptyState, Table, TableCard, TBody, THead, Td, Th, Tr } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -83,7 +83,7 @@ export default function CoreAssignments({ assignments, meta, filters, statuses }
                             description={hasFilters ? t('core.assignments.noMatchHint') : t('core.assignments.emptyHint')}
                         />
                     ) : (
-                        <Table>
+                        <TableTools id="core-assignments"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('core.assignments.employee')}</Th>
@@ -122,7 +122,7 @@ export default function CoreAssignments({ assignments, meta, filters, statuses }
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={meta} onPageChange={(page) => router.get(route('core.assignments'), { ...form.data, page }, { preserveState: true, preserveScroll: true })} />
                 </TableCard>

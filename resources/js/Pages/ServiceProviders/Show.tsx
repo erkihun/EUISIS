@@ -17,7 +17,7 @@ import { Button, buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState, type JSX, type ReactNode } from 'react';
 
-import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 type Provider = {
     id: string;
     name: string;
@@ -168,7 +168,7 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                             </p>
                         ) : (
                             <div className="max-h-160 overflow-auto">
-                                <table className={cx(tableClassName, 'min-w-136')}>
+                                <TableTools id="service-providers-show"><table className={cx(tableClassName, 'min-w-136')}>
                                     <thead className={cx(tableHeadClassName, 'sticky top-0 z-1')}>
                                         <tr className="text-left">
                                             <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-40')}>{t('providers.columnWhen')}</th>
@@ -197,7 +197,7 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                                             );
                                         })}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
                         )}
                         {transactions.length > 0 && (

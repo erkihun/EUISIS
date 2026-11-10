@@ -7,7 +7,7 @@ import { Details, Empty, GPill, HandlerName, Section, SlaBadge, Table, employeeN
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { CaseShowProps, ReasonCode } from '@/types/grievances';
 
-import { actionLinkClassName, cx, inputClassName, selectClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName, selectClassName, TableTools } from '@/Components/ui';
 type Tab = { id: string; label: string; content: ReactNode };
 
 /**
@@ -107,9 +107,9 @@ export default function Show(props: CaseShowProps) {
         ]} /></Section>
         {g.intake_notes && <Section title={c('intake_notes')}><p className="whitespace-pre-wrap">{g.intake_notes}</p></Section>}
         {g.withdrawal_reason && <Section title={c('withdrawal')}><p className="whitespace-pre-wrap">{g.withdrawal_reason}</p></Section>}
-        {!!tabs.amendments?.length && <Section title={c('amendments')} flush><Table head={<><th className={thCls}>{t('grievances.common.date')}</th><th className={thCls}>{c('changes')}</th><th className={thCls}>{t('grievances.common.reason')}</th></>}>
+        {!!tabs.amendments?.length && <Section title={c('amendments')} flush><TableTools id="grievances-cases-show"><Table head={<><th className={thCls}>{t('grievances.common.date')}</th><th className={thCls}>{c('changes')}</th><th className={thCls}>{t('grievances.common.reason')}</th></>}>
             {tabs.amendments.map(a => <tr key={a.id}><td className={tdCls}><DateDisplay value={a.at} withTime /><span className="block text-xs">{a.by}</span></td><td className={tdCls}>{Object.entries(a.changes).map(([f, v]) => <p key={f} className="text-xs"><strong>{f}</strong>: {String(v.from ?? '—')} → {String(v.to ?? '—')}</p>)}</td><td className={tdCls}>{a.reason ?? '—'}</td></tr>)}
-        </Table></Section>}
+        </Table></TableTools></Section>}
     </div> });
 
     if (tabs.timeline) list.push({ id: 'timeline', label: c('tab_timeline'), content: <Section title={c('tab_timeline')}>{tabs.timeline.length ? <Timeline events={tabs.timeline} /> : <Empty>{c('empty')}</Empty>}</Section> });
@@ -128,25 +128,25 @@ export default function Show(props: CaseShowProps) {
             {stage.panel.length > 0 && <div className="mt-4"><h4 className="mb-2 text-sm font-semibold">{c('panel')}</h4><ul className="space-y-1 text-sm">{stage.panel.map(p => <li key={p.id}>{employeeName(p.employee, locale)} · {label('committee_role', p.role)}{p.source === 'replacement' ? ` · ${c('replacement')}` : ''}{p.recused_at ? ` · ${c('recused')}` : !p.is_active ? ` · ${c('left')}` : ''}</li>)}</ul></div>}
             {stage.officers.length > 0 && <div className="mt-4"><h4 className="mb-2 text-sm font-semibold">{c('officers')}</h4><ul className="space-y-2 text-sm">{stage.officers.map(o => <li key={o.id} className="flex flex-wrap items-center gap-2">{(locale === 'am' && o.name_am) || o.name} · {label('officer_role', o.role)}{o.released_at ? ` · ${c('released')}` : ''}{can.assign_officers && !o.released_at && <ActionForm url={r('officers.destroy', [o.id])} method="delete" submitLabel={c('release')} />}</li>)}</ul></div>}
         </Section>}
-        {g.pauses.length > 0 && <Section title={c('pauses')} flush><Table head={<>{['reason', 'status', 'requested', 'period', 'due_change', 'actions'].map(k => <th key={k} className={thCls}>{c(`pause_${k}`)}</th>)}</>}>
+        {g.pauses.length > 0 && <Section title={c('pauses')} flush><TableTools id="grievances-cases-show-2"><Table head={<>{['reason', 'status', 'requested', 'period', 'due_change', 'actions'].map(k => <th key={k} className={thCls}>{c(`pause_${k}`)}</th>)}</>}>
             {g.pauses.map(p => <tr key={p.id}><td className={tdCls}>{label('pause_reason', p.reason)}<span className="block text-xs">{p.notes}</span></td><td className={tdCls}><GPill group="pause_status" value={p.status} /></td><td className={tdCls}>{p.requested_by}<span className="block text-xs"><DateDisplay value={p.requested_at} withTime /></span></td><td className={tdCls}><DateDisplay value={p.started_at} /> – <DateDisplay value={p.ended_at} />{p.paused_days !== null && <span className="block text-xs">{p.paused_days} {t('grievances.common.working_days_short')}</span>}</td><td className={tdCls}><DateDisplay value={p.due_at_before} /> → <DateDisplay value={p.due_at_after} /></td>
                 <td className={tdCls}>{can.decide_pause && p.status === 'requested' && <div className="flex gap-2"><ActionForm url={r('pauses.decide', [p.id])} initial={{ action: 'approve' }} submitLabel={c('approve')} /><ActionForm url={r('pauses.decide', [p.id])} initial={{ action: 'reject' }} submitLabel={c('reject')} /></div>}{can.decide_pause && p.status === 'active' && <ActionForm url={r('pauses.decide', [p.id])} initial={{ action: 'resume' }} submitLabel={c('resume')} />}</td></tr>)}
-        </Table></Section>}
-        <Section title={c('stage_history')} flush><Table head={<>{['stage', 'handler', 'movement', 'status', 'received', 'due', 'completed'].map(k => <th key={k} className={thCls}>{c(`col_${k}`)}</th>)}</>}>
+        </Table></TableTools></Section>}
+        <Section title={c('stage_history')} flush><TableTools id="grievances-cases-show-3"><Table head={<>{['stage', 'handler', 'movement', 'status', 'received', 'due', 'completed'].map(k => <th key={k} className={thCls}>{c(`col_${k}`)}</th>)}</>}>
             {g.stages.map(s => <tr key={s.id}><td className={tdCls}>{s.stage_no}</td><td className={tdCls}><HandlerName handler={s.handler} showType /></td><td className={tdCls}>{label('movement_type', s.movement_type)}{s.movement_reason && <span className="block text-xs">{s.movement_reason}</span>}</td><td className={tdCls}><GPill group="stage_status" value={s.status} /></td><td className={tdCls}><DateDisplay value={s.received_at ?? s.created_at} /></td><td className={tdCls}><DateDisplay value={s.sla.due_at} /><div className="mt-1"><SlaBadge sla={s.sla} compact /></div></td><td className={tdCls}><DateDisplay value={s.completed_at} /></td></tr>)}
-        </Table></Section>
-        {!!tabs.recusals?.length && <Section title={c('recusals')} flush><Table head={<>{['member', 'reason', 'status', 'decision', 'actions'].map(k => <th key={k} className={thCls}>{c(`recusal_${k}`)}</th>)}</>}>
+        </Table></TableTools></Section>
+        {!!tabs.recusals?.length && <Section title={c('recusals')} flush><TableTools id="grievances-cases-show-4"><Table head={<>{['member', 'reason', 'status', 'decision', 'actions'].map(k => <th key={k} className={thCls}>{c(`recusal_${k}`)}</th>)}</>}>
             {tabs.recusals.map(x => <tr key={x.id}><td className={tdCls}>{employeeName(x.employee, locale)}<span className="block text-xs"><DateDisplay value={x.declared_at} /></span></td><td className={tdCls}>{x.reason}</td><td className={tdCls}><GPill group="recusal_status" value={x.status} /></td><td className={tdCls}>{x.decided_by}{x.replacement && <span className="block text-xs">{c('replacement')}: {employeeName(x.replacement, locale)}</span>}{x.decision_notes && <span className="block text-xs">{x.decision_notes}</span>}</td>
                 <td className={tdCls}>{can.decide_recusal && x.status === 'declared' && <RecusalDecision url={r('recusals.decide', [x.id])} organizationId={g.organization?.id} />}</td></tr>)}
-        </Table></Section>}
+        </Table></TableTools></Section>}
     </div> });
 
     if (tabs.evidence) list.push({ id: 'evidence', label: c('tab_evidence'), content: <div className="space-y-4">
-        <Section title={c('tab_evidence')} flush>{tabs.evidence.length ? <Table head={<>{['title', 'type', 'size', 'classification', 'status', 'submitted', 'actions'].map(k => <th key={k} className={thCls}>{c(`ev_${k}`)}</th>)}</>}>
+        <Section title={c('tab_evidence')} flush>{tabs.evidence.length ? <TableTools id="grievances-cases-show-5"><Table head={<>{['title', 'type', 'size', 'classification', 'status', 'submitted', 'actions'].map(k => <th key={k} className={thCls}>{c(`ev_${k}`)}</th>)}</>}>
             {tabs.evidence.map(e => <tr key={e.id}><td className={tdCls}><a className="text-primary underline" href={r('evidence.download', [e.id])}>{e.title}</a><span className="block text-xs">{e.original_name} · v{e.version_no}</span><span className="block font-mono text-[11px] text-(--app-muted-foreground)" title={e.sha256}>SHA-256 {e.sha256.slice(0, 12)}…</span></td><td className={tdCls}>{label('evidence_type', e.evidence_type)}</td><td className={tdCls}>{fileSize(e.size_bytes)}</td><td className={tdCls}><GPill group="confidentiality" value={e.classification} /></td><td className={tdCls}><GPill group="evidence_status" value={e.status} /></td><td className={tdCls}>{e.submitted_by_complainant ? c('by_complainant') : e.submitted_by}<span className="block text-xs"><DateDisplay value={e.submitted_at} withTime /></span></td>
                 <td className={tdCls}><div className="space-y-2"><CustodyButton url={r('evidence.custody', [e.id])} />{can.review && e.status === 'submitted' && <div className="flex gap-2"><ActionForm url={r('evidence.decide', [e.id])} initial={{ action: 'accept' }} submitLabel={c('accept')} /><ActionForm url={r('evidence.decide', [e.id])} initial={{ action: 'reject' }} submitLabel={c('reject')} fields={[{ name: 'reason', label: t('grievances.common.reason') }]} /></div>}
                     {can.review && e.status !== 'superseded' && <details><summary className="cursor-pointer text-xs">{c('more')}</summary><div className="mt-2 space-y-2"><ActionForm url={r('evidence.classify', [e.id])} initial={{ classification: e.classification }} submitLabel={c('classify')} fields={[{ name: 'classification', label: t('grievances.common.confidentiality'), type: 'select', required: true, options: opts(['normal_confidential', 'restricted', 'highly_restricted'], 'confidentiality') }]} /><ActionForm url={r('evidence.supersede', [e.id])} submitLabel={c('new_version')} fields={[{ name: 'file', label: t('grievances.common.file'), type: 'file', required: true, accept: (options.evidence_extensions ?? []).map(x => `.${x}`).join(',') }, { name: 'description', label: t('grievances.common.description'), type: 'textarea' }]} /></div></details>}</div></td></tr>)}
-        </Table> : <Empty>{c('empty')}</Empty>}</Section>
+        </Table></TableTools> : <Empty>{c('empty')}</Empty>}</Section>
         {can.upload_evidence && <Section title={c('upload_evidence')}><ActionForm url={r('evidence.store')} fields={[
             { name: 'title', label: c('ev_title'), required: true }, { name: 'evidence_type', label: c('ev_type'), type: 'select', required: true, options: opts(options.evidence_types, 'evidence_type') },
             { name: 'classification', label: t('grievances.common.confidentiality'), type: 'select', options: opts(['normal_confidential', 'restricted', 'highly_restricted'], 'confidentiality') },
@@ -214,9 +214,9 @@ export default function Show(props: CaseShowProps) {
 
     if (tabs.letters) list.push({ id: 'letters', label: c('tab_letters'), content: <Letters props={props} r={r} /> });
 
-    if (tabs.appeals) list.push({ id: 'appeals', label: c('tab_appeals'), content: <Section title={c('tab_appeals')} flush>{tabs.appeals.length ? <Table head={<>{['status', 'filed', 'deadline', 'stages', 'reason'].map(k => <th key={k} className={thCls}>{c(`ap_${k}`)}</th>)}</>}>
+    if (tabs.appeals) list.push({ id: 'appeals', label: c('tab_appeals'), content: <Section title={c('tab_appeals')} flush>{tabs.appeals.length ? <TableTools id="grievances-cases-show-6"><Table head={<>{['status', 'filed', 'deadline', 'stages', 'reason'].map(k => <th key={k} className={thCls}>{c(`ap_${k}`)}</th>)}</>}>
         {tabs.appeals.map(a => <tr key={a.id}><td className={tdCls}><GPill group="appeal_status" value={a.status} /></td><td className={tdCls}><DateDisplay value={a.filed_at} withTime /></td><td className={tdCls}><DateDisplay value={a.deadline_at} /></td><td className={tdCls}>{a.from_stage_no ?? '—'} → {a.to_stage_no ?? '—'}</td><td className={`${tdCls} whitespace-pre-wrap`}>{a.reason}</td></tr>)}
-    </Table> : <Empty>{c('empty')}</Empty>}</Section> });
+    </Table></TableTools> : <Empty>{c('empty')}</Empty>}</Section> });
 
     if (tabs.notes || tabs.tasks) list.push({ id: 'notes', label: c('tab_notes'), content: <div className="grid gap-4 lg:grid-cols-2">
         <Section title={c('notes')} description={c('notes_help')}>
@@ -241,9 +241,9 @@ export default function Show(props: CaseShowProps) {
         </Section>
     </div> });
 
-    if (tabs.audit) list.push({ id: 'audit', label: c('tab_audit'), content: <Section title={c('tab_audit')} flush>{tabs.audit.length ? <Table head={<>{['event', 'actor', 'when', 'values'].map(k => <th key={k} className={thCls}>{c(`au_${k}`)}</th>)}</>}>
+    if (tabs.audit) list.push({ id: 'audit', label: c('tab_audit'), content: <Section title={c('tab_audit')} flush>{tabs.audit.length ? <TableTools id="grievances-cases-show-7"><Table head={<>{['event', 'actor', 'when', 'values'].map(k => <th key={k} className={thCls}>{c(`au_${k}`)}</th>)}</>}>
         {tabs.audit.map(a => <tr key={a.id}><td className={tdCls}>{a.event_type.replace(/^grievance\./, '').replace(/_/g, ' ')}{a.reason && <span className="block text-xs">{a.reason}</span>}</td><td className={tdCls}>{a.actor ?? c('system')}<span className="block text-xs text-(--app-muted-foreground)">{a.request_ip}</span></td><td className={tdCls}><DateDisplay value={a.created_at} withTime /></td><td className={tdCls}><details><summary className="cursor-pointer text-xs">{c('show_values')}</summary><pre className="mt-1 max-w-md overflow-x-auto whitespace-pre-wrap text-[11px]">{JSON.stringify({ new: a.new_values, old: a.old_values }, null, 1)}</pre></details></td></tr>)}
-    </Table> : <Empty>{c('empty')}</Empty>}</Section> });
+    </Table></TableTools> : <Empty>{c('empty')}</Empty>}</Section> });
 
     const active = list.find(x => x.id === tab) ?? list[0];
 

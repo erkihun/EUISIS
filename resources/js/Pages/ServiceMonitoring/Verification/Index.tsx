@@ -1,6 +1,6 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { FilterField, FilterPanel, ListPagination, Select } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, TableTools } from '@/Components/ui';
 import { panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import ReasonDialog from '@/Components/serviceMonitoring/ReasonDialog';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -37,7 +37,7 @@ export default function VerificationIndex({ services, filters }: { services: Pag
                 </FilterPanel>
                 {services.data.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('verification.empty')}</p> : (
                     <div className={scrollCls}>
-                        <table className={tableCls}>
+                        <TableTools id="service-monitoring-verification-index"><table className={tableCls}>
                             <thead><tr>{['common.institution', 'edit.section3.nameAm', 'edit.section3.technology', 'edit.section3.goLive', 'common.status', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr></thead>
                             <tbody>
                                 {services.data.map((r) => (
@@ -59,7 +59,7 @@ export default function VerificationIndex({ services, filters }: { services: Pag
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                         <ListPagination meta={services} />
                     </div>
                 )}

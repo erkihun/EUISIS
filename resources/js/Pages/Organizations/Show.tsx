@@ -13,7 +13,7 @@ import OrganizationStructureTree, { type OrganizationStructureTreeData } from '@
 import StatusDistribution from '@/Components/dashboard/StatusDistribution';
 import { useState } from 'react';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 /** Keys returned by OrganizationDeletionGuard::reasons(), mapped to i18n labels below. */
 type DeletionBlockerKey =
@@ -631,7 +631,7 @@ export default function OrganizationShow({
                         </Link>)}
                     </div>
                     <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="organizations-show"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
@@ -684,7 +684,7 @@ export default function OrganizationShow({
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 </section>
             )}
@@ -750,7 +750,7 @@ export default function OrganizationShow({
                         <div className="mt-6">
                             <h4 className="text-sm font-semibold text-(--app-foreground)">{t('organizations.employeesByUnit')}</h4>
                             <div className="mt-3 overflow-x-auto rounded-card border border-(--app-border)">
-                                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <TableTools id="organizations-show-2"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                     <thead className={tableHeadClassName}>
                                         <tr>
                                             <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('organizations.organizationUnits')}</th>
@@ -768,7 +768,7 @@ export default function OrganizationShow({
                                             </tr>
                                         ))}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
                         </div>
                     )}
@@ -782,7 +782,7 @@ export default function OrganizationShow({
             <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 <h3 className="font-semibold text-(--app-foreground)">{t('organizations.nameHistory')}</h3>
                 <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="organizations-show-3"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('common.name'), t('common.effectiveFrom'), t('common.effectiveTo')].map((h) => (
@@ -817,7 +817,7 @@ export default function OrganizationShow({
                                 </tr>
                             ))}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </div>
             </section>
         </AuthenticatedLayout>

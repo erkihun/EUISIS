@@ -8,6 +8,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { DateText, Pill } from '@/Components/transport/TransportShared';
 import type { Manifest, TransportDriver, TransportException, TransportTrip, TransportVehicle } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 export default function Show({ trip, manifest, exceptions, vehicles, drivers, can }: { trip: TransportTrip; manifest: Manifest | null; exceptions: TransportException[]; vehicles: TransportVehicle[]; drivers: TransportDriver[]; can: { dispatch: boolean; manifest: boolean; void: boolean } }) {
     const { t, name, label } = useTransportLabels();
     const title = `${trip.trip_number} · ${trip.route?.route_code ?? ''}`;
@@ -22,8 +24,8 @@ export default function Show({ trip, manifest, exceptions, vehicles, drivers, ca
                 {manifest && <ManifestTable manifest={manifest} staffTier voidUrl={can.void ? (row) => route('transport.transactions.void', row.id) : undefined} />}
                 {exceptions.length > 0 && (
                     <TableCard title={t('transport.exceptions')}>
-                        <table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.occurredAt')}</th><th className={tableHeaderCellClassName}>{t('transport.type')}</th><th className={tableHeaderCellClassName}>{t('transport.severity')}</th><th className={tableHeaderCellClassName}>{t('transport.employee')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
-                            <tbody className={tableBodyClassName}>{exceptions.map((e) => <tr key={e.id} className={tableRowClassName}><td className={tableCellClassName}><DateText value={e.occurred_at} withTime /></td><td className={tableCellClassName}>{label('exceptionTypes', e.type)}</td><td className={tableCellClassName}><Pill group="severities" value={e.severity} /></td><td className={tableCellClassName}>{e.employee?.full_name ?? '—'}</td><td className={tableCellClassName}><Pill value={e.status} /></td></tr>)}</tbody></table>
+                        <TableTools id="transport-trips-show"><table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.occurredAt')}</th><th className={tableHeaderCellClassName}>{t('transport.type')}</th><th className={tableHeaderCellClassName}>{t('transport.severity')}</th><th className={tableHeaderCellClassName}>{t('transport.employee')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
+                            <tbody className={tableBodyClassName}>{exceptions.map((e) => <tr key={e.id} className={tableRowClassName}><td className={tableCellClassName}><DateText value={e.occurred_at} withTime /></td><td className={tableCellClassName}>{label('exceptionTypes', e.type)}</td><td className={tableCellClassName}><Pill group="severities" value={e.severity} /></td><td className={tableCellClassName}>{e.employee?.full_name ?? '—'}</td><td className={tableCellClassName}><Pill value={e.status} /></td></tr>)}</tbody></table></TableTools>
                     </TableCard>
                 )}
             </div>

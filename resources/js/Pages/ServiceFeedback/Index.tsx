@@ -17,7 +17,7 @@ import { buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import type { JSX } from 'react';
 
-import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type Props = {
     feedback: LaravelPageMeta & { data: FeedbackSummary[] };
     statusCounts: Record<string, number>;
@@ -144,7 +144,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                         <>
                             {/* Wide screens: a scannable table. `md:table` must stay: the phone list below
                                 is `md:hidden`, so without it a desktop shows no rows at all. */}
-                            <table className={cx(tableClassName, 'hidden md:table')}>
+                            <TableTools id="service-feedback-index"><table className={cx(tableClassName, 'hidden md:table')}>
                                 <thead className={tableHeadClassName}>
                                     <tr className="text-left">
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-20')}>{t('serviceFeedback.filterRating')}</th>
@@ -203,7 +203,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                         );
                                     })}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
 
                             {/* Phones: one card per entry, comment first. */}
                             <ul className="divide-y divide-(--app-border) md:hidden">

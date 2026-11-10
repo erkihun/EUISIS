@@ -7,7 +7,7 @@ import type { ActingAppointmentRow, DelegationRow, EmployeePage, EmployeeRow, Su
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
-import { FilterField, FilterPanel, Input, ListPagination, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useState } from 'react';
 
 export default function ReportingLineEmployee({ employee, as_of, supervisor, chain, reports, indirect, acting_appointments, delegations, can }: {
@@ -73,7 +73,7 @@ export default function ReportingLineEmployee({ employee, as_of, supervisor, cha
                             <EmptyState title={t('reportingLines.noReports')} />
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <TableTools id="reporting-lines-employee"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                     <thead className={tableHeadClassName}>
                                         <tr>
                                             {[t('reportingLines.employee'), t('reportingLines.position'), t('reportingLines.unit'), t('common.status')].map((h, i) => (
@@ -97,7 +97,7 @@ export default function ReportingLineEmployee({ employee, as_of, supervisor, cha
                                             </tr>
                                         ))}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
                         )}
                         <ListPagination meta={reports.meta} />

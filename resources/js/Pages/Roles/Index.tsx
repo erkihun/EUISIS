@@ -8,7 +8,7 @@ import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { permissionModuleLabel, type PermissionModule } from '@/lib/permissionGroups';
 
-import { FilterField, FilterPanel, Input, ListPagination, TableCard, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, TableCard, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type RoleRow = {
     id: number;
@@ -167,7 +167,7 @@ export default function RolesIndex({
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <TableTools id="roles-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                     <thead className={tableHeadClassName}>
                                         <tr>
                                             {[
@@ -271,7 +271,7 @@ export default function RolesIndex({
                                             );
                                         })}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
                             </div>
                         )}
                     </TableCard>

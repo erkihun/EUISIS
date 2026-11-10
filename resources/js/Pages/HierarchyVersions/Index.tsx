@@ -9,7 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type Version = {
     id: string;
     version_name: string;
@@ -121,7 +121,7 @@ export default function HierarchyVersionsIndex({
                     />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="hierarchy-versions-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
@@ -231,7 +231,7 @@ export default function HierarchyVersionsIndex({
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
                 <ListPagination meta={versions.meta} />

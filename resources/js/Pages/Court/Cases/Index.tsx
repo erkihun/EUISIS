@@ -9,6 +9,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import {
     FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { CaseListFilters, CaseListProps } from '@/court/types/cases';
@@ -89,7 +90,7 @@ export default function CasesIndex({ cases, filters, statuses, types, users, can
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-cases-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
@@ -129,7 +130,7 @@ export default function CasesIndex({ cases, filters, statuses, types, users, can
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                     {cases.data.length === 0 && <EmptyState title={t('cm.cases.table.no_cases_found')} />}
                     <ListPagination meta={cases} />

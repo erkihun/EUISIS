@@ -6,7 +6,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ConfidenceBadge, SeverityBadge } from '@/Components/intelligence/Badges';
 import { IncidentStatusBadge, ReviewBadge, RiskBadge } from '@/Components/intelligence/StatusBadges';
 import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
-import { Alert, Button, Card, CardTitle, FormField, Select, TBody, THead, Table, Td, Textarea, Th, Tr, badgeClassName } from '@/Components/ui';
+import { Alert, Button, Card, CardTitle, FormField, Select, TBody, THead, Table, Td, Textarea, Th, Tr, badgeClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 import type { SrLabels } from '@/types/situationRoom';
@@ -175,7 +175,7 @@ export default function IncidentShow({ incident, events, recommendations, finger
 
                     {fingerprints.length > 0 && (
                         <Section title={t('intelligence.incidents.relatedErrors')}>
-                            <Table>
+                            <TableTools id="intelligence-incidents-show"><Table>
                                 <THead><Tr><Th>{t('intelligence.incidents.exception')}</Th><Th>{t('intelligence.incidents.route')}</Th><Th align="right">{t('intelligence.incidents.occurrences')}</Th><Th>{t('intelligence.incidents.lastSeen')}</Th></Tr></THead>
                                 <TBody>
                                     {fingerprints.map((f, i) => (
@@ -192,7 +192,7 @@ export default function IncidentShow({ incident, events, recommendations, finger
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         </Section>
                     )}
 

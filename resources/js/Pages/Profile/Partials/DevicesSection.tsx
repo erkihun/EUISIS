@@ -27,6 +27,8 @@ import { formatRelative } from "@/lib/relativeTime";
 import SectionCard from "./SectionCard";
 import type { DeviceKind, DeviceSession, DevicesInfo, SignIn } from "./types";
 
+import { TableTools } from '@/Components/ui';
+
 function DeviceGlyph({
     kind,
     className,
@@ -221,7 +223,7 @@ export default function DevicesSection({ devices }: { devices: DevicesInfo }) {
                         {t("profile.noRecentSignIns")}
                     </p>
                 ) : (
-                    <Table>
+                    <TableTools id="profile-partials-devices-section"><Table>
                         <THead>
                             <Tr>
                                 <Th>{t("profile.when")}</Th>
@@ -253,7 +255,7 @@ export default function DevicesSection({ devices }: { devices: DevicesInfo }) {
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                 )}
             </SectionCard>
         </div>

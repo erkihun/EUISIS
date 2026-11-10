@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
+import { AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta, TableTools } from '@/Components/ui';
 import { Button, Card, CardHeader, CardTitle, EmptyState, FileUpload, FormField, Select, type PaginationMeta } from '@euisis/ui';
 
 type Tab = 'validation' | 'ready' | 'processing' | 'completed' | 'failed';
@@ -99,7 +99,7 @@ export default function Imports({ tab, counts, batches, types, urls }: {
 
                 <TableCard>
                     {batches.data.length === 0 ? <EmptyState title={label('empty')} /> : (
-                        <Table>
+                        <TableTools id="core-imports"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{label('fileName')}</Th>
@@ -124,7 +124,7 @@ export default function Imports({ tab, counts, batches, types, urls }: {
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={laravelPageMeta(batches.meta)} onPageChange={(page) => router.get(urls.page, { tab, page }, { preserveScroll: true, preserveState: true })} />
                 </TableCard>

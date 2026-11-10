@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { SeverityBadge } from '@/Components/intelligence/Badges';
 import { FilterChips, IncidentStatusBadge } from '@/Components/intelligence/StatusBadges';
 import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
-import { Card, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr } from '@/Components/ui';
+import { Card, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 import type { SrLabels } from '@/types/situationRoom';
@@ -65,7 +65,7 @@ export default function IncidentsIndex({ filters, options, counts, incidents }: 
                     {incidents.data.length === 0 ? (
                         <p className="px-4 py-8 text-center text-sm text-(--app-muted-foreground)">{t('intelligence.incidents.none')}</p>
                     ) : (
-                        <Table>
+                        <TableTools id="intelligence-incidents-index"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('intelligence.incidents.reference')}</Th>
@@ -95,7 +95,7 @@ export default function IncidentsIndex({ filters, options, counts, incidents }: 
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </TableCard>
             </div>

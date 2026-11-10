@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { ClassificationOption, Option } from '@/Components/organizationDesign/ServiceForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -70,7 +70,7 @@ export default function ServicesIndex({ services, filters, organizations, classi
                     {services.data.length === 0 ? (
                         <EmptyState title={tt('services.noServices')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('services.noServicesHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-services-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -108,7 +108,7 @@ export default function ServicesIndex({ services, filters, organizations, classi
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={services} />
                 </TableCard>

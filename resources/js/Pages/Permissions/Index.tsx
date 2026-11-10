@@ -10,7 +10,7 @@ import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { permissionGroupLabel, permissionModuleLabel } from '@/lib/permissionGroups';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, type Tone, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, type Tone, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Permission = {
     id: number;
@@ -519,7 +519,7 @@ function TableView({
     return (
         <div className="rounded-card border border-(--app-border) bg-(--app-surface)">
             <div className="overflow-x-auto">
-                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                <TableTools id="permissions-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>
                             {[
@@ -576,7 +576,7 @@ function TableView({
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                </table></TableTools>
             </div>
         </div>
     );

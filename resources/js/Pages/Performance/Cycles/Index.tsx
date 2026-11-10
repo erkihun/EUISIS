@@ -8,6 +8,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Window = [string | null, string | null];
 
 type Cycle = {
@@ -118,7 +120,7 @@ export default function CyclesIndex({ cycles, organizations, canCreateGlobal, ca
                 )}
 
                 <TablePanel page={cycles} empty={t('performance.cycles.empty')}>
-                    <Table head={<>
+                    <TableTools id="performance-cycles-index"><Table head={<>
                         <th className={thCls}>{t('performance.fields.name')}</th>
                         <th className={thCls}>{t('performance.fields.period')}</th>
                         <th className={thCls}>{t('performance.fields.planning')}</th>
@@ -153,7 +155,7 @@ export default function CyclesIndex({ cycles, organizations, canCreateGlobal, ca
                                 )}
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </TablePanel>
             </div>
         </AuthenticatedLayout>

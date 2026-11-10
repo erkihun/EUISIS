@@ -14,6 +14,7 @@ use Modules\Entitlements\Providers\EntitlementsServiceProvider;
 use Modules\Feedback\Providers\FeedbackServiceProvider;
 use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Grievance\Providers\GrievanceServiceProvider;
+use Modules\Letters\Providers\LettersServiceProvider;
 use Modules\Performance\Providers\PerformanceServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\PublicComplaints\Providers\PublicComplaintsServiceProvider;
@@ -51,6 +52,7 @@ return [
     ServiceFeedbackServiceProvider::class,
     TipOffsServiceProvider::class,
     PublicComplaintsServiceProvider::class,
+    LettersServiceProvider::class,
     PublicSiteServiceProvider::class,
     RecruitmentServiceProvider::class,
     TransferServiceProvider::class,

@@ -1,7 +1,7 @@
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import { ListPagination } from '@/Components/ui';
+import { ListPagination, TableTools } from '@/Components/ui';
 import { errorCls, inputCls, labelCls, panelCls, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { Named, NamedWithId, Paginated, ReportingLevel } from '@/types/serviceMonitoring';
@@ -157,7 +157,7 @@ export default function ParticipantsIndex({ participants, filters, sub_cities, o
 
                 {participants.data.length === 0 ? <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{sm('participants.none')}</p> : (
                     <div className={scrollCls}>
-                        <table className={tableCls}>
+                        <TableTools id="service-monitoring-participants-index"><table className={tableCls}>
                             <thead>
                                 <tr>{['participants.organization', 'common.level', 'participants.parent', 'participants.activeFrom', 'participants.activeTo', 'participants.support', 'common.actions'].map((k) => <th key={k} scope="col" className={thCls}>{sm(k)}</th>)}</tr>
                             </thead>
@@ -181,7 +181,7 @@ export default function ParticipantsIndex({ participants, filters, sub_cities, o
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                         <ListPagination meta={participants} />
                     </div>
                 )}

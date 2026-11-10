@@ -6,6 +6,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Cell = string | number | null;
 
 type Props = {
@@ -65,13 +67,13 @@ export default function ReportsIndex({ reports, report, filters, cycles, rows, c
 
                 <Section title={t(`performance.reports.names.${report}`)} description={t(`performance.reports.help.${report}`)} flush>
                     {rows.data.length === 0 ? <Empty>{t('performance.reports.empty')}</Empty> : (
-                        <Table head={<>{columns.map((c) => <th key={c} scope="col" className={thCls}>{header(c)}</th>)}</>}>
+                        <TableTools id="performance-reports-index"><Table head={<>{columns.map((c) => <th key={c} scope="col" className={thCls}>{header(c)}</th>)}</>}>
                             {rows.data.map((row, i) => (
                                 <tr key={i}>
                                     {columns.map((c) => <td key={c} className={`${tdCls} ${numeric(c, row[c]) ? 'whitespace-nowrap tabular-nums' : ''}`}>{cell(c, row[c])}</td>)}
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <Pager page={rows} />
                 </Section>

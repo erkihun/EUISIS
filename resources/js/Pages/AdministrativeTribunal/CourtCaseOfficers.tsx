@@ -6,6 +6,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { Button, Card, Select, StatusBadge, TBody, THead, Table, Td, Th, Tr, buttonClassName } from '@euisis/ui';
 
+import { TableTools } from '@/Components/ui';
+
 type Row = {
     id: string;
     name_en: string;
@@ -35,7 +37,7 @@ export default function CourtCaseOfficers({ organizations }: { organizations: Ro
 
             <Card className="p-0">
                 {organizations.length === 0 ? <EmptyState title={label('none')} /> : (
-                    <Table>
+                    <TableTools id="administrative-tribunal-court-case-officers"><Table>
                         <THead>
                             <Tr>
                                 {(['institution', 'officer', 'actions'] as const).map((column) => <Th key={column} scope="col">{label(`table.${column}`)}</Th>)}
@@ -63,7 +65,7 @@ export default function CourtCaseOfficers({ organizations }: { organizations: Ro
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                 )}
             </Card>
         </AuthenticatedLayout>

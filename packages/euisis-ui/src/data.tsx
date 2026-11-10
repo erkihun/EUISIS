@@ -19,10 +19,11 @@ import {
     type ColumnDef as FeatureColumnDef,
     type RowData,
 } from '@tanstack/react-table';
-import { useUiMessages } from './context';
+import { useActionIcon, useUiMessages } from './context';
 import { EmptyState } from './feedback';
 import { Button, Skeleton, cx } from './primitives';
 import { tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from './table';
+import { TableTools } from './tableTools';
 import { controlClassName, selectClassName } from './forms';
 
 /**
@@ -121,7 +122,9 @@ export function Pagination({ meta, onPageChange, onPerPageChange, pageSizes = [1
     );
 }
 
-export function DataTable<T extends RowData>({ data, columns, loading = false, emptyTitle, emptyDescription, emptyAction, pagination, onPageChange, onPerPageChange, className }: {
+export function DataTable<T extends RowData>({ id = 'data-table', data, columns, loading = false, emptyTitle, emptyDescription, emptyAction, pagination, onPageChange, onPerPageChange, className }: {
+    /** Name under which TableTools remembers the viewer's columns and density. */
+    id?: string;
     data: T[];
     columns: ColumnDef<T, any>[];
     loading?: boolean;
@@ -134,7 +137,7 @@ export function DataTable<T extends RowData>({ data, columns, loading = false, e
     className?: string;
 }) {
     const table = useTable({ features, data, columns });
-    return <div className={cx(tableContainerClassName, className)}>
+    return <TableTools id={id} className={cx(tableContainerClassName, className)}>
             {!loading && data.length === 0 ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} /> : <div className="overflow-x-auto">
                 <table className={tableClassName}>
                     <thead className={tableHeadClassName}>
@@ -146,7 +149,7 @@ export function DataTable<T extends RowData>({ data, columns, loading = false, e
                 </table>
             </div>}
         {pagination && onPageChange && <Pagination meta={pagination} onPageChange={onPageChange} onPerPageChange={onPerPageChange} className="border-t border-(--app-border) px-4 py-3" />}
-    </div>;
+    </TableTools>;
 }
 
 /** The filter panel's frame, for a page whose filter markup must stay its own. */
@@ -293,6 +296,13 @@ const actionItemTones: Record<ActionMenuTone, { text: string; focus: string }> =
     warning: { text: 'text-amber-700 dark:text-amber-400', focus: 'bg-amber-50 dark:bg-amber-900/20' },
     danger: { text: 'text-red-700 dark:text-red-400', focus: 'bg-red-50 dark:bg-red-900/20' },
 };
+/** The item's own icon, else the glyph the app's action-icon rules give its label; a span keeps the row's gap even when there is none. */
+function ActionItemGlyph({ item }: { item: ActionItem }) {
+    const inferred = useActionIcon(item.label);
+    const icon = item.icon !== undefined ? item.icon : inferred;
+    return <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center [&>svg]:h-4 [&>svg]:w-4" aria-hidden="true">{icon}</span>;
+}
+
 /**
  * The ⋮ menu that holds a record's actions: one 32px trigger at the end of a table row or card and a
  * floating list (anchored, so a scrolling table card never clips it) with one tone per intent. Links
@@ -315,9 +325,11 @@ export function ActionMenu({ items, label, renderLink }: { items: ActionItem[]; 
                         {item.separatorBefore && <div className="my-1 border-t border-(--app-border)" />}
                         <MenuItem disabled={item.disabled}>{({ focus }) => {
                             const itemClass = cx('flex w-full items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-left text-sm [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0', tone.text, focus && tone.focus, item.disabled && 'cursor-not-allowed opacity-50');
-                            if (item.href && renderLink) return renderLink(item, itemClass);
-                            if (item.href) return <a href={item.href} className={itemClass} title={item.title} aria-disabled={item.disabled || undefined}>{item.icon}{item.label}</a>;
-                            return <button type="button" className={itemClass} onClick={item.onClick} disabled={item.disabled} title={item.title}>{item.icon}{item.label}</button>;
+                            // An item without its own icon borrows the app's rule for its label (View, Edit, Delete, …).
+                            const glyph = <ActionItemGlyph item={item} />;
+                            if (item.href && renderLink) return renderLink({ ...item, icon: glyph }, itemClass);
+                            if (item.href) return <a href={item.href} className={itemClass} title={item.title} aria-disabled={item.disabled || undefined}>{glyph}{item.label}</a>;
+                            return <button type="button" className={itemClass} onClick={item.onClick} disabled={item.disabled} title={item.title}>{glyph}{item.label}</button>;
                         }}</MenuItem>
                     </Fragment>;
                 })}

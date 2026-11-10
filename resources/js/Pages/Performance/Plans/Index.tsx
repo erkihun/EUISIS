@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import Lookup from '@/Components/performance/Lookup';
 import { Empty, Field, FilterField, Pager, Pill, Section, Table, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type BilingualTitle, type Paginator } from '@/Components/performance/ui';
-import { FilterPanel, Select } from '@/Components/ui';
+import { FilterPanel, Select, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -142,7 +142,7 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
 
                 <Section title={t('performance.plans.title')}>
                     {plans.data.length === 0 ? <Empty>{t('performance.plans.empty')}</Empty> : (
-                        <Table head={<>
+                        <TableTools id="performance-plans-index"><Table head={<>
                             <th className={thCls}>{t('performance.fields.title')}</th>
                             <th className={thCls}>{t('performance.fields.type')}</th>
                             <th className={thCls}>{t('performance.fields.cycle')}</th>
@@ -161,7 +161,7 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
                                     <td className={tdCls}><Pill group="plan" value={plan.status} /></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <Pager page={plans} />
                 </Section>

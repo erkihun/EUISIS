@@ -6,7 +6,7 @@ import SectionForm from '@/Components/organizationDesign/SectionForm';
 import RichTextViewer from '@/Components/forms/RichTextViewer';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -85,28 +85,28 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
             case 'competencies': {
                 const rows = (payload ?? []) as CompetencyRow[];
                 return rows.length === 0 ? empty : (
-                    <Table>
+                    <TableTools id="organization-design-job-descriptions-show"><Table>
                         <THead><tr><Th>{tt('fields.competency')}</Th><Th>{tt('fields.minimumLevel')}</Th><Th>{tt('positionDesign.mandatory')}</Th></tr></THead>
                         <TBody>{rows.map((r, i) => <Tr key={i}><Td>{r.competency ? `${r.competency.code} · ${nameOf(r.competency, locale)}` : '—'}</Td><Td muted>{r.level ? `${r.level.rank} · ${nameOf(r.level, locale)}` : '—'}</Td><Td muted>{r.is_mandatory ? tt('positionDesign.mandatory') : tt('positionDesign.optional')}</Td></Tr>)}</TBody>
-                    </Table>
+                    </Table></TableTools>
                 );
             }
             case 'qualifications': {
                 const rows = (payload ?? []) as QualificationRow[];
                 return rows.length === 0 ? empty : (
-                    <Table>
+                    <TableTools id="organization-design-job-descriptions-show-2"><Table>
                         <THead><tr><Th>{tt('fields.educationLevel')}</Th><Th>{tt('fields.fieldOfStudy')}</Th><Th>{tt('fields.certification')}</Th><Th>{tt('fields.license')}</Th><Th align="right">{tt('fields.experienceYears')}</Th></tr></THead>
                         <TBody>{rows.map((r, i) => <Tr key={i}><Td>{nameOf(r.education_level, locale) || '—'}</Td><Td muted>{r.field_of_study ?? '—'}</Td><Td muted>{r.certification ?? '—'}</Td><Td muted>{r.license ?? '—'}</Td><Td align="right">{r.experience_years}</Td></Tr>)}</TBody>
-                    </Table>
+                    </Table></TableTools>
                 );
             }
             case 'standards': {
                 const rows = (payload ?? []) as StandardRow[];
                 return rows.length === 0 ? empty : (
-                    <Table>
+                    <TableTools id="organization-design-job-descriptions-show-3"><Table>
                         <THead><tr><Th>{tt('positionDesign.jd.standards.task')}</Th><Th align="right">{tt('positionDesign.jd.standards.quantity')}</Th><Th align="right">{tt('positionDesign.jd.standards.time')}</Th><Th align="right">{tt('positionDesign.jd.standards.quality')}</Th><Th>{tt('positionDesign.jd.standards.from')}</Th></tr></THead>
                         <TBody>{rows.map((r, i) => <Tr key={i}><Td className="font-mono text-xs">{r.task_code ?? '—'} <span className="text-(--app-muted-foreground)">v{r.version_no}</span></Td><Td align="right">{num(r.planned_quantity)} {r.quantity_unit ?? ''}</Td><Td align="right">{num(r.planned_time_minutes)}</Td><Td align="right">{num(r.planned_quality)} {r.quality_unit ?? ''}</Td><Td muted><LocalizedDateDisplay value={r.effective_from} /></Td></Tr>)}</TBody>
-                    </Table>
+                    </Table></TableTools>
                 );
             }
             default: {

@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, Table, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { AppTabNav, Table, TBody, Td, Th, THead, Tr, TableTools } from '@/Components/ui';
 import { AppDialog, Button, Card, EmptyState, FormField, Input, Textarea } from '@euisis/ui';
 
 type MasterValue = {
@@ -65,7 +65,7 @@ export default function JobMasters({ kind, kinds, values, can_manage, store_url,
 
                 <Card className="overflow-hidden p-0">
                     {values.length === 0 ? <EmptyState title={label('empty')} /> : (
-                        <Table>
+                        <TableTools id="core-job-masters"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{label('code')}</Th>
@@ -91,7 +91,7 @@ export default function JobMasters({ kind, kinds, values, can_manage, store_url,
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                 </Card>
             </div>

@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import NfcStatusBadge, { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -117,7 +117,7 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                 <>
                     {/* Desktop table */}
                     <div className="hidden overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface) md:block">
-                        <table className={cx(tableClassName, 'min-w-full')}>
+                        <TableTools id="nfc-management-credentials-index"><table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.credentialId')}</th>
@@ -188,7 +188,7 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
 
                     {/* Mobile cards — the table would overflow the viewport */}

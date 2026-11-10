@@ -110,9 +110,24 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     }
     if (crumbs.length < 2) return null;
 
+    // Phones show only the way back ("‹ Parent"); the full trail is still read out (sr-only) and shown from `sm` up.
+    const parent = crumbs[crumbs.length - 2];
+    const parentClass = 'inline-flex max-w-full items-center gap-1 rounded-sm font-medium text-(--app-foreground) sm:hidden';
+
     return (
         <nav aria-label="Breadcrumb" className={'min-w-0 overflow-x-auto text-xs text-(--app-muted-foreground) ' + className}>
-            <ol className="flex min-w-max items-center gap-1.5 whitespace-nowrap">
+            {parent.href ? (
+                <Link href={parent.href} className={parentClass + ' transition-colors hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary'} aria-hidden="true" tabIndex={-1}>
+                    <ChevronRight className="h-3 w-3 shrink-0 rotate-180 opacity-60 rtl:rotate-0" aria-hidden="true" />
+                    <span className="truncate">{parent.label}</span>
+                </Link>
+            ) : (
+                <span className={parentClass} aria-hidden="true">
+                    <ChevronRight className="h-3 w-3 shrink-0 rotate-180 opacity-60 rtl:rotate-0" aria-hidden="true" />
+                    <span className="truncate">{parent.label}</span>
+                </span>
+            )}
+            <ol className="sr-only flex min-w-max items-center gap-1.5 whitespace-nowrap sm:not-sr-only sm:flex">
                 {crumbs.map((crumb, index) => {
                     const last = index === crumbs.length - 1;
                     return (

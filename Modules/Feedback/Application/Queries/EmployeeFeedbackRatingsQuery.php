@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Feedback\Application\Queries;
 
-use App\Models\Employee;
 use App\Models\User;
 use Modules\Feedback\Application\Services\PublicFeedbackVisibility;
 use Modules\Feedback\Application\Services\ServiceFeedbackQueryService;
@@ -20,10 +19,10 @@ final class EmployeeFeedbackRatingsQuery implements EmployeeFeedbackRatings
         private readonly PublicFeedbackVisibility $visibility,
     ) {}
 
-    public function summaryFor(Employee $employee, User $viewer): ?EmployeeFeedbackRatingSummary
+    public function summaryFor(int|string $employeeId, User $viewer): ?EmployeeFeedbackRatingSummary
     {
         // Reading your own clients' verdicts is a conflict of interest the policy refuses too.
-        if ($viewer->employee_id !== null && $viewer->employee_id === $employee->getKey()) {
+        if ($viewer->employee_id !== null && (string) $viewer->employee_id === (string) $employeeId) {
             return null;
         }
 
@@ -35,7 +34,7 @@ final class EmployeeFeedbackRatingsQuery implements EmployeeFeedbackRatings
         // One grouped query; scopedQuery() is the feedback screens' own type, target and organization scope.
         $counts = $this->queries->scopedQuery($viewer)
             ->visible()
-            ->where('employee_id', $employee->getKey())
+            ->where('employee_id', $employeeId)
             ->whereBetween('rating', [EmployeeFeedbackRatingSummary::MIN_STARS, EmployeeFeedbackRatingSummary::MAX_STARS])
             ->toBase()
             ->selectRaw('rating, COUNT(*) AS aggregate')

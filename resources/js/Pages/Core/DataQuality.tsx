@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { AppMetricCard, AppTabNav, FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
+import { AppMetricCard, AppTabNav, FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta, TableTools } from '@/Components/ui';
 import { AppDialog, Button, Card, EmptyState, FieldError, FormField, Input, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info';
@@ -77,7 +77,7 @@ export default function DataQuality({ tab, tabs, filters, summary, checks, issue
                     return (
                         <Card className="overflow-hidden p-0">
                             {shown.length === 0 ? <EmptyState title={label('clean')} /> : (
-                                <Table>
+                                <TableTools id="core-data-quality"><Table>
                                     <THead>
                                         <Tr>
                                             <Th>{label('check')}</Th>
@@ -98,7 +98,7 @@ export default function DataQuality({ tab, tabs, filters, summary, checks, issue
                                             </Tr>
                                         ))}
                                     </TBody>
-                                </Table>
+                                </Table></TableTools>
                             )}
                         </Card>
                     );

@@ -11,6 +11,8 @@ import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import type { HandlerType, OrganizationOption, RuleRecord } from './Form';
 
+import { TableTools } from '@/Components/ui';
+
 type NamePair = { en: string; am: string | null } | null;
 
 type Rule = RuleRecord & {
@@ -103,7 +105,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                     <Card><EmptyState title={t('serviceFeedback.noRules')} description={t('serviceFeedback.noRulesHint')} /></Card>
                 ) : (
                     <TableCard>
-                        <Table>
+                        <TableTools id="service-feedback-routing-rules-index"><Table>
                             <THead>
                                 <Tr>
                                     <Th>{t('serviceFeedback.categoryScope')}</Th>
@@ -160,7 +162,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     </TableCard>
                 )}
             </div>

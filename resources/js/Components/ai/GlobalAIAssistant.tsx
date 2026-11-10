@@ -59,7 +59,8 @@ class AssistantErrorBoundary extends Component<{ fallback: (reset: () => void) =
 
 export default function GlobalAIAssistant() {
     const { t } = useLocale();
-    const enabled = usePage<PageProps>().props.assistant?.enabled === true;
+    const { props: pageProps, url: pageUrl } = usePage<PageProps>();
+    const enabled = pageProps.assistant?.enabled === true;
     const triggerRef = useRef<HTMLButtonElement>(null);
     const [open, setOpenState] = useState<boolean>(() => {
         if (shell.open === null) shell.open = readStoredOpen();
@@ -121,6 +122,24 @@ export default function GlobalAIAssistant() {
         return () => window.removeEventListener('resize', place);
     }, [dock, panelVisible]);
 
+    // A page's sticky action bar (`data-sticky-actions`, e.g. a form's Save/Cancel row) owns the bottom
+    // edge: the trigger lifts itself above the bar's measured height so it never covers Cancel or Save.
+    const [barHeight, setBarHeight] = useState(0);
+    useEffect(() => {
+        const bar = document.querySelector<HTMLElement>('[data-sticky-actions]');
+        if (!bar) {
+            setBarHeight(0);
+            return;
+        }
+        const measure = () => setBarHeight(Math.round(bar.getBoundingClientRect().height));
+        measure();
+        if (typeof ResizeObserver === 'undefined') return;
+        const observer = new ResizeObserver(measure);
+        observer.observe(bar);
+        return () => observer.disconnect();
+    }, [pageUrl]);
+    const liftedBottom = `calc(${barHeight}px + 1rem + env(safe-area-inset-bottom))`;
+
     if (!enabled) return null;
 
     const trigger = dock
@@ -131,7 +150,7 @@ export default function GlobalAIAssistant() {
                 variant="primary"
                 size="icon"
                 className="fixed z-40 h-11 w-11 rounded-full shadow-lg"
-                style={{ right: 'calc(1rem + env(safe-area-inset-right))', bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+                style={{ right: 'calc(1rem + env(safe-area-inset-right))', bottom: liftedBottom }}
                 onClick={toggle}
                 aria-label={t('assistant.title')}
                 title={t('assistant.title')}
@@ -150,7 +169,7 @@ export default function GlobalAIAssistant() {
                         <div
                             role="alert"
                             className="fixed z-40 flex items-center gap-2 rounded-card border border-(--app-border) bg-(--app-surface) px-3 py-2 text-xs text-(--app-foreground) shadow-lg"
-                            style={{ right: 'calc(1rem + env(safe-area-inset-right))', ...(anchorTop !== null && dock ? { top: anchorTop } : { bottom: 'calc(4.75rem + env(safe-area-inset-bottom))' }) }}
+                            style={{ right: 'calc(1rem + env(safe-area-inset-right))', ...(anchorTop !== null && dock ? { top: anchorTop } : { bottom: `calc(${barHeight}px + 4.75rem + env(safe-area-inset-bottom))` }) }}
                         >
                             <span>{t('assistant.errors.panelFailed')}</span>
                             <Button variant="outline" size="xs" onClick={() => { reset(); close(); }}>{t('assistant.close')}</Button>

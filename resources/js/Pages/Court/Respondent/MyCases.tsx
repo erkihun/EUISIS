@@ -6,6 +6,7 @@ import { EyeIcon, SearchIcon } from '@/Components/Icons';
 import {
     badgeClassName, buttonClassName, cx,
     tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
+    TableTools,
 } from '@/Components/ui';
 import { useRespondentText } from '@/court/i18n/useRespondentText';
 import type { RespondentMyCasesProps } from '@/court/types/respondent';
@@ -30,7 +31,7 @@ export default function RespondentMyCases({ cases }: RespondentMyCasesProps) {
             ) : (
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <TableTools id="court-respondent-my-cases"><table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cm.cases.case_number')}</th>
@@ -57,7 +58,7 @@ export default function RespondentMyCases({ cases }: RespondentMyCasesProps) {
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 </div>
             )}

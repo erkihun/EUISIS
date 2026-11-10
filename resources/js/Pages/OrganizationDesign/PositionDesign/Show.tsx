@@ -6,7 +6,7 @@ import PositionRequirementsForm, { type PositionRequirementCatalog } from '@/Com
 import ProfileForm, { emptyProfile, type ProfileFormValues } from '@/Components/organizationDesign/ProfileForm';
 import WorkLinksForm, { type WorkObject, type WorkObjectType } from '@/Components/organizationDesign/WorkLinksForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -143,7 +143,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                             {can.design && catalog && <Button size="sm" variant="outline" onClick={() => setLinksOpen(true)}>{tt('positionDesign.editWorkLinks')}</Button>}
                         </CardHeader>
                         {workLinks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('positionDesign.noWorkLinks')}</p> : (
-                            <Table>
+                            <TableTools id="organization-design-position-design-show"><Table>
                                 <THead><tr><Th>{tt('fields.objectType')}</Th><Th>{tt('fields.object')}</Th><Th>{tt('positionDesign.primary')}</Th></tr></THead>
                                 <TBody>
                                     {workLinks.map((l) => (
@@ -154,7 +154,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
 
@@ -172,7 +172,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                             <div>
                                 <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('positionDesign.competencies')}</p>
                                 {competencies.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('positionDesign.noCompetencies')}</p> : (
-                                    <Table>
+                                    <TableTools id="organization-design-position-design-show-2"><Table>
                                         <THead><tr><Th>{tt('fields.competency')}</Th><Th>{tt('fields.minimumLevel')}</Th><Th>{tt('positionDesign.mandatory')}</Th><Th>{tt('fields.kind')}</Th></tr></THead>
                                         <TBody>
                                             {competencies.map((r) => (
@@ -184,13 +184,13 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                                 </Tr>
                                             ))}
                                         </TBody>
-                                    </Table>
+                                    </Table></TableTools>
                                 )}
                             </div>
                             <div>
                                 <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('positionDesign.qualifications')}</p>
                                 {qualifications.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('positionDesign.noQualifications')}</p> : (
-                                    <Table>
+                                    <TableTools id="organization-design-position-design-show-3"><Table>
                                         <THead><tr><Th>{tt('fields.educationLevel')}</Th><Th>{tt('fields.fieldOfStudy')}</Th><Th>{tt('fields.certification')}</Th><Th>{tt('fields.license')}</Th><Th align="right">{tt('fields.experienceYears')}</Th><Th>{tt('fields.kind')}</Th></tr></THead>
                                         <TBody>
                                             {qualifications.map((r) => (
@@ -204,7 +204,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                                 </Tr>
                                             ))}
                                         </TBody>
-                                    </Table>
+                                    </Table></TableTools>
                                 )}
                             </div>
                         </div>
@@ -215,7 +215,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                             <div><CardTitle>{tt('positionDesign.jobDescriptions')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('positionDesign.jobDescriptionsHelp')}</p></div>
                         </CardHeader>
                         {jobDescriptions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('positionDesign.noJobDescriptions')}</p> : (
-                            <Table>
+                            <TableTools id="organization-design-position-design-show-4"><Table>
                                 <THead><tr><Th>{tt('fields.reference')}</Th><Th>{tt('positionDesign.version')}</Th><Th>{tt('fields.effectiveFrom')}</Th><Th>{tt('positionDesign.jd.preparedBy')}</Th><Th>{tt('fields.status')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                 <TBody>
                                     {jobDescriptions.map((jd) => (
@@ -237,7 +237,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                         </Tr>
                                     ))}
                                 </TBody>
-                            </Table>
+                            </Table></TableTools>
                         )}
                     </Card>
                 </div>

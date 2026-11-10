@@ -4,5 +4,6 @@ export * from './forms';
 export * from './feedback';
 export * from './data';
 export * from './table';
+export * from './tableTools';
 export * from './overlays';
 export { Toaster, toast } from 'sonner';

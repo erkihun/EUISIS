@@ -8,7 +8,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type CardRequestRow = {
     id: string;
@@ -130,7 +130,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                     />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className={tableClassName}>
+                        <TableTools id="card-requests-index"><table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>
@@ -195,7 +195,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
                 <ListPagination meta={cardRequests} />

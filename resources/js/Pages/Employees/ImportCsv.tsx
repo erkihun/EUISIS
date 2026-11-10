@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 
-import { badgeClassName, buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 type BatchSummary = {
     id: string;
     file_name: string;
@@ -238,7 +238,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                         </div>
 
                         <div className="hidden overflow-x-auto md:block">
-                            <table className={cx(tableClassName, 'min-w-full')}>
+                            <TableTools id="employees-import-csv"><table className={cx(tableClassName, 'min-w-full')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         <Th>#</Th>
@@ -252,7 +252,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                                 <tbody className={tableBodyClassName}>
                                     {preview.map((row) => <PreviewTableRow key={row.row_number} row={row} validLabel={t('employees.import.rowValid')} generatedLabel={t('employees.import.systemGenerated')} />)}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
 
                         <ul className="divide-y divide-(--app-border) md:hidden">

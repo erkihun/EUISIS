@@ -29,6 +29,17 @@ import { RefreshIcon as SolarRefreshIcon } from '@solar-icons/react/linear/refre
 import { DangerCircleIcon as SolarDangerCircleIcon } from '@solar-icons/react/linear/danger-circle';
 import { ChecklistMinimalisticIcon as SolarChecklistMinimalisticIcon } from '@solar-icons/react/linear/checklist-minimalistic';
 import { AltArrowDownIcon as SolarAltArrowDownIcon } from '@solar-icons/react/linear/alt-arrow-down';
+import { AltArrowUpIcon as SolarAltArrowUpIcon } from '@solar-icons/react/linear/alt-arrow-up';
+import { TextSquareIcon as SolarTextSquareIcon } from '@solar-icons/react/linear/text-square';
+import { GalleryAddIcon as SolarGalleryAddIcon } from '@solar-icons/react/linear/gallery-add';
+import { GalleryIcon as SolarGalleryIcon } from '@solar-icons/react/linear/gallery';
+import { RulerIcon as SolarRulerIcon } from '@solar-icons/react/linear/ruler';
+import { TextBoldIcon as SolarTextBoldIcon } from '@solar-icons/react/linear/text-bold';
+import { TextUnderlineIcon as SolarTextUnderlineIcon } from '@solar-icons/react/linear/text-underline';
+import { AlignLeftIcon as SolarAlignLeftIcon } from '@solar-icons/react/linear/align-left';
+import { AlignHorizontalCenterIcon as SolarAlignHorizontalCenterIcon } from '@solar-icons/react/linear/align-horizontal-center';
+import { AlignRightIcon as SolarAlignRightIcon } from '@solar-icons/react/linear/align-right';
+import { WidgetAddIcon as SolarWidgetAddIcon } from '@solar-icons/react/linear/widget-add';
 import { AltArrowLeftIcon as SolarAltArrowLeftIcon } from '@solar-icons/react/linear/alt-arrow-left';
 import { AltArrowRightIcon as SolarAltArrowRightIcon } from '@solar-icons/react/linear/alt-arrow-right';
 import { BellIcon as SolarBellIcon } from '@solar-icons/react/linear/bell';
@@ -385,3 +396,16 @@ export const LikeIcon = adapt(SolarLikeIcon);
 export const DislikeIcon = adapt(SolarDislikeIcon);
 export const MaximizeIcon = adapt(SolarMaximizeSquareMinimalisticIcon);
 export const MinimizeIcon = adapt(SolarMinimizeSquareIcon);
+
+// Letters › header and footer editor.
+export const ChevronUp = adapt(SolarAltArrowUpIcon);
+export const TextLineIcon = adapt(SolarTextSquareIcon);
+export const ImageAddIcon = adapt(SolarGalleryAddIcon);
+export const GalleryIcon = adapt(SolarGalleryIcon);
+export const RulerIcon = adapt(SolarRulerIcon);
+export const BoldIcon = adapt(SolarTextBoldIcon);
+export const UnderlineIcon = adapt(SolarTextUnderlineIcon);
+export const AlignLeftIcon = adapt(SolarAlignLeftIcon);
+export const AlignCenterIcon = adapt(SolarAlignHorizontalCenterIcon);
+export const AlignRightIcon = adapt(SolarAlignRightIcon);
+export const RowAddIcon = adapt(SolarWidgetAddIcon);

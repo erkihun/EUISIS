@@ -1472,6 +1472,8 @@ return [
 
     // Service Delivery Monitoring & Support (docs/service-monitoring-security.md).
     ...require database_path('seeders/data/service-monitoring-permissions.php'),
+    // Letters (ADR 0037).
+    ...require database_path('seeders/data/letters-permissions.php'),
 
     // Employee Discipline — Regulation 201/2018 (docs/employee-discipline.md).
     ...require database_path('seeders/data/discipline-permissions.php'),

@@ -9,7 +9,7 @@ import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 // ─── shared types ────────────────────────────────────────────────────────────
 type Settings = Record<string, unknown>;
@@ -709,7 +709,7 @@ export default function CafeteriaSettingsIndex({
                         <div className={tableCls}>
                             {holidays.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                                 <div className="overflow-x-auto">
-                                    <table className={tableClassName}>
+                                    <TableTools id="cafeteria-settings-index"><table className={tableClassName}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 <th className={thCls}>{t('cafeteria.holidayDate')}</th>
@@ -739,7 +739,7 @@ export default function CafeteriaSettingsIndex({
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </div>
@@ -759,7 +759,7 @@ export default function CafeteriaSettingsIndex({
                         <div className={tableCls}>
                             {subsidyRules.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                                 <div className="overflow-x-auto">
-                                    <table className={tableClassName}>
+                                    <TableTools id="cafeteria-settings-index-2"><table className={tableClassName}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 <th className={thCls}>{t('cafeteria.subsidyRule')}</th>
@@ -794,7 +794,7 @@ export default function CafeteriaSettingsIndex({
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </div>
@@ -1049,7 +1049,7 @@ export default function CafeteriaSettingsIndex({
                         <div className={tableCls}>
                             {providerUsers.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                                 <div className="overflow-x-auto">
-                                    <table className={tableClassName}>
+                                    <TableTools id="cafeteria-settings-index-3"><table className={tableClassName}>
                                         <thead className={tableHeadClassName}>
                                             <tr>
                                                 <th className={thCls}>{t('cafeteria.providerUser')}</th>
@@ -1141,7 +1141,7 @@ export default function CafeteriaSettingsIndex({
                                                 </tr>
                                             ))}
                                         </tbody>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                             )}
                         </div>

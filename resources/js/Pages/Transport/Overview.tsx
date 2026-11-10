@@ -6,6 +6,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { DateText, Kpi, Percent } from '@/Components/transport/TransportShared';
 import type { DailyUsageRow, DataQualityCheck, ProviderPerformanceRow, ReportFilters } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 type Today = { trips: number; completed: number; cancelled: number; in_service: number; verified_boardings: number; morning: number; evening: number; riders: number; rejected: number; vehicles_active: number; open_exceptions: number; stale_devices: number; settlements_in_review: number };
 
 export default function Overview({ today, month, dataQuality, can }: { today: Today; month: { filters: ReportFilters; daily: DailyUsageRow[]; providers: ProviderPerformanceRow[] }; dataQuality: DataQualityCheck[]; can: Record<string, boolean> }) {
@@ -37,18 +39,18 @@ export default function Overview({ today, month, dataQuality, can }: { today: To
                 <div className="grid gap-6 xl:grid-cols-2">
                     <TableCard title={t('transport.dailyUsage')} description={`${month.filters.date_from} – ${month.filters.date_to}`}>
                         {month.daily.length === 0 ? <p className="p-4 text-sm text-(--app-muted-foreground)">{t('transport.noBoardings')}</p> : (
-                            <div className="relative overflow-x-auto"><table className={tableClassName}>
+                            <div className="relative overflow-x-auto"><TableTools id="transport-overview"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.date')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.riders')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.morningRiders')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.eveningRiders')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.boardings')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.completedTrips')}</th></tr></thead>
                                 <tbody className={tableBodyClassName}>{month.daily.slice(-14).map((d) => <tr key={d.date} className={tableRowClassName}><td className={tableCellClassName}><DateText value={d.date} /></td><td className={`${tableCellClassName} text-right tabular-nums`}>{d.unique_riders}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{d.morning_riders}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{d.evening_riders}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{d.boardings}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{d.completed_trips}</td></tr>)}</tbody>
-                            </table></div>
+                            </table></TableTools></div>
                         )}
                     </TableCard>
                     <TableCard title={t('transport.providerPerformance')}>
                         {month.providers.length === 0 ? <p className="p-4 text-sm text-(--app-muted-foreground)">{t('transport.noRecords')}</p> : (
-                            <div className="relative overflow-x-auto"><table className={tableClassName}>
+                            <div className="relative overflow-x-auto"><TableTools id="transport-overview-2"><table className={tableClassName}>
                                 <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.provider')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.completedTrips')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.cancelledTrips')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.verifiedBoardings')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.utilization')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.exceptions')}</th></tr></thead>
                                 <tbody className={tableBodyClassName}>{month.providers.map((p) => <tr key={p.provider_id} className={tableRowClassName}><td className={tableCellClassName}>{p.provider_code} — {name(p)}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{p.completed_trips}/{p.scheduled_trips}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{p.cancelled_trips}</td><td className={`${tableCellClassName} text-right tabular-nums`}>{p.verified_boardings}</td><td className={`${tableCellClassName} text-right`}><Percent value={p.utilization_percent} /></td><td className={`${tableCellClassName} text-right tabular-nums`}>{p.exceptions}</td></tr>)}</tbody>
-                            </table></div>
+                            </table></TableTools></div>
                         )}
                     </TableCard>
                 </div>

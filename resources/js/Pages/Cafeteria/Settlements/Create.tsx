@@ -8,7 +8,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, SelectOptions, useNames, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 type Line = { employee_organization: NamePair; cafeteria: NamePair; transaction_count: number; subsidy_amount: string; employee_amount: string; provider_amount: string };
 type Preview = { lines: Line[]; totals: { transaction_count: number; total_subsidy_amount: string; total_employee_amount: string; total_provider_amount: string; currency_code: string } };
 
@@ -70,7 +70,7 @@ export default function SettlementCreate({ providers, filters, preview }: {
 
                 {preview && (
                     <div className="overflow-x-auto rounded-card border border-(--app-border)">
-                        <table className={tableClassName}>
+                        <TableTools id="cafeteria-settlements-create"><table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('employeeOrganization')}</th>
@@ -103,7 +103,7 @@ export default function SettlementCreate({ providers, filters, preview }: {
                                     <td className={tableCellClassName}><Money value={preview.totals.total_provider_amount} currency={currency} /></td>
                                 </tr>
                             </tfoot>
-                        </table>
+                        </table></TableTools>
                     </div>
                 )}
             </form>

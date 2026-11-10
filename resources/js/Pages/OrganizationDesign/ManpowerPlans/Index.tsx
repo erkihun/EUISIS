@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PlanForm, { emptyPlan, type MethodologyOption, type Option } from '@/Components/organizationDesign/PlanForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -55,7 +55,7 @@ export default function ManpowerPlansIndex({ plans, filters, organizations, meth
                     {plans.data.length === 0 ? (
                         <EmptyState title={tt('plans.noPlans')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('plans.noPlansHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-manpower-plans-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.reference')}</Th>
@@ -93,7 +93,7 @@ export default function ManpowerPlansIndex({ plans, filters, organizations, meth
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={plans} />
                 </TableCard>

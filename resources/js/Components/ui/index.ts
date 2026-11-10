@@ -44,12 +44,15 @@ export {
     // The one table style (packages/euisis-ui/src/table.tsx).
     Table,
     TableCard,
+    // Sorting, columns menu, density and kept header for any table (packages/euisis-ui/src/tableTools.tsx).
+    TableTools,
     TBody,
     Td,
     Th,
     THead,
     Tr,
     tableBodyClassName,
+    tableCellClampClassName,
     tableCellClassName,
     tableClassName,
     tableContainerClassName,

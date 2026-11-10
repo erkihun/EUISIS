@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import ProcessForm, { emptyProcess, type Option, type ServiceOption } from '@/Components/organizationDesign/ProcessForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -76,7 +76,7 @@ export default function ProcessesIndex({ processes, filters, organizations, serv
                     {processes.data.length === 0 ? (
                         <EmptyState title={tt('processes.noProcesses')} description={hasActiveFilters ? t('common.noMatchingRecords') : tt('processes.noProcessesHint')} />
                     ) : (
-                        <Table>
+                        <TableTools id="organization-design-processes-index"><Table>
                             <THead>
                                 <tr>
                                     <Th>{tt('fields.code')}</Th>
@@ -113,7 +113,7 @@ export default function ProcessesIndex({ processes, filters, organizations, serv
                                     </Tr>
                                 ))}
                             </TBody>
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <ListPagination meta={processes} />
                 </TableCard>

@@ -11,6 +11,7 @@ use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Modules\Discipline\Contracts\Data\DisciplineRoles;
 use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Letters\Contracts\Data\LettersRoles;
 use Modules\Performance\Contracts\Data\PerformanceRoles;
 use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
 
@@ -729,6 +730,25 @@ final class DefaultRoleMatrix
                 'Support expert (ደጋፊ ባለሙያ): answers the clarifications of the institutions assigned to them and records monitoring visits, findings and action items.',
                 'ደጋፊ ባለሙያ፡ የተመደቡለትን ተቋማት የማብራሪያ ጥያቄዎች ይመልሳል፤ የክትትል ጉብኝቶችን፣ ግኝቶችንና የድርጊት ተግባሮችን ይመዘግባል።'),
 
+            // ── Letters (ADR 0037, docs/letters.md) ─
+            // A role makes a user eligible; the registry entry's institution must be in
+            // scope. Platform templates and the platform numbering default need city-wide reach.
+            LettersRoles::REGISTRAR_ROLE => self::role(self::SCOPE_SCOPED, LettersRoles::REGISTRAR_PERMISSIONS,
+                'Registry desk: registers incoming letters, receives letters from other institutions, dispatches signed letters, routes them inside the institution and files them.',
+                'የመዝገብ ክፍል፡ ገቢ ደብዳቤዎችን ይመዘግባል፣ ከሌሎች ተቋማት የመጡትን ይቀበላል፣ የተፈረሙትን ይልካል፣ በተቋሙ ውስጥ ይመራል፣ ያስቀምጣል።'),
+            LettersRoles::OFFICER_ROLE => self::role(self::SCOPE_SCOPED, LettersRoles::OFFICER_PERMISSIONS,
+                'Drafts outgoing and internal letters from templates and works the routing steps addressed to them.',
+                'ወጪና የውስጥ ደብዳቤዎችን ከአብነት ይረቅቃል፤ ለእርሱ የተመሩ የመምራት ደረጃዎችን ይሠራል።'),
+            LettersRoles::SIGNATORY_ROLE => self::role(self::SCOPE_SCOPED, LettersRoles::SIGNATORY_PERMISSIONS,
+                'Head of institution or delegate: signs or returns letters awaiting signature; may also draft and dispatch.',
+                'የተቋም ኃላፊ ወይም ወኪል፡ ፊርማ የሚጠብቁ ደብዳቤዎችን ይፈርማል ወይም ይመልሳል፤ መርቀቅና መላክም ይችላል።'),
+            LettersRoles::ADMINISTRATOR_ROLE => self::role(self::SCOPE_SCOPED, LettersRoles::ADMINISTRATOR_PERMISSIONS,
+                'Everything in the letters module for the institutions in scope: registry, composing, signing, dispatch, routing, the institution\'s templates and numbering, reports and exports. Not the platform templates.',
+                'በወሰን ውስጥ ላሉ ተቋማት በደብዳቤ ሞጁል ውስጥ ያለው ሁሉ፡ መዝገብ፣ ማዘጋጀት፣ መፈረም፣ መላክ፣ መምራት፣ የተቋሙ አብነቶችና ቁጥር አሰጣጥ፣ ሪፖርቶችና ወደ ውጭ መላክ። የመድረኩን አብነቶች አይደለም።'),
+            LettersRoles::TEMPLATE_STEWARD_ROLE => self::role(self::SCOPE_GLOBAL, LettersRoles::TEMPLATE_STEWARD_PERMISSIONS,
+                'Keeps the letter templates offered to every institution, city-wide.',
+                'ለሁሉም ተቋማት የሚቀርቡ የደብዳቤ አብነቶችን በከተማ አቀፍ ደረጃ ይጠብቃል።'),
+
             // ── Public feedback, suggestions, tip-offs and complaints (docs/admin-public-feedback-access-control.md) ─
             // Scope decides which institutions; the submitter's identity and evidence files are a
             // separate, audited grant held only by the investigator.
@@ -969,6 +989,11 @@ final class DefaultRoleMatrix
         'Service Monitoring Coordinator' => 'የአገልግሎት ክትትል አስተባባሪ',
         'Innovation & Technology Verifier' => 'የኢኖቬሽንና ቴክኖሎጂ አረጋጋጭ',
         'Support Officer' => 'የድጋፍ ባለሙያ',
+        'Letter Registrar' => 'የደብዳቤ መዝጋቢ',
+        'Correspondence Officer' => 'የደብዳቤ ባለሙያ',
+        'Letter Signatory' => 'የደብዳቤ ፈራሚ',
+        'Letter Administrator' => 'የደብዳቤ አስተዳዳሪ',
+        'Letter Template Steward' => 'የደብዳቤ አብነት ጠባቂ',
         'Public Feedback Coordinator' => 'የሕዝብ አስተያየት አስተባባሪ',
         'Public Feedback Handler' => 'የሕዝብ አስተያየት አስተናጋጅ',
         'Public Feedback Investigator' => 'የሕዝብ አስተያየት መርማሪ',

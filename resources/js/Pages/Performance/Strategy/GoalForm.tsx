@@ -6,6 +6,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type ActivityInput = { key: string; id: string | null; title: string; weight_percent: string; time_minutes: string };
 type ObjectiveInput = { key: string; id: string | null; title: string; weight_percent: string; activities: ActivityInput[] };
 type Group = { id: string; number: number; title: string; weight_percent: string; strategies: { id: string; title: string; weight_percent: string; order_no: number }[] };
@@ -171,7 +173,7 @@ export default function GoalForm({ goal, strategyId, groups, plan, editable, can
                                     </div>
                                 </div>
                                 <div className="overflow-x-auto">
-                                    <table className={`${wTable} min-w-[820px]`}>
+                                    <TableTools id="performance-strategy-goal-form"><table className={`${wTable} min-w-[820px]`}>
                                         <thead>
                                             <tr>
                                                 <th className={`${wTh} w-24`}>{g('serialNo')}</th>
@@ -218,7 +220,7 @@ export default function GoalForm({ goal, strategyId, groups, plan, editable, can
                                                 <td className={wTd} />
                                             </tr>
                                         </tfoot>
-                                    </table>
+                                    </table></TableTools>
                                 </div>
                                 <FieldError message={errors[`objectives.${oIndex}.activities`]} />
                                 <div className="flex gap-2">

@@ -11,6 +11,8 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
+import { TableTools } from '@/Components/ui';
+
 type Props = SubmissionProps & {
     diff: { section: number; field: string; before: number | string | null; after: number | string | null }[];
     form: OfficialForm;
@@ -110,10 +112,10 @@ export default function SubmissionShow({ submission, definition, revisions, hist
                     <section aria-labelledby="sm-diff" className="space-y-2">
                         <h2 id="sm-diff" className="text-sm font-semibold">{sm('show.changes')}</h2>
                         <div className={scrollCls}>
-                            <table className={tableCls}>
+                            <TableTools id="service-monitoring-submissions-show"><table className={tableCls}>
                                 <thead><tr>{['common.quarter', 'show.field', 'show.before', 'show.after'].map((k) => <th key={k} scope="col" className={thCls}>{k === 'common.quarter' ? sm('edit.section', { n: '' }) : sm(k)}</th>)}</tr></thead>
                                 <tbody>{diff.map((d, i) => <tr key={i}><td className={tdCls}>{d.section}</td><td className={tdCls}>{fieldLabel(d.field)}</td><td className={tdCls}>{d.before ?? '—'}</td><td className={tdCls}>{d.after ?? '—'}</td></tr>)}</tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     </section>
                 )}

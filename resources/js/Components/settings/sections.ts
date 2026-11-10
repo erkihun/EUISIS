@@ -51,7 +51,7 @@ const CARDS: Record<string, CardDefinition[]> = {
     ],
     appearance: [
         { key: 'colors', fields: ['primary_color', 'secondary_color', 'accent_color', 'sidebar_color'] },
-        { key: 'theme', fields: ['default_theme', 'allow_user_theme_switching', 'enable_ui_animations'] },
+        { key: 'theme', fields: ['ui_style', 'default_theme', 'allow_user_theme_switching', 'enable_ui_animations'] },
         { key: 'layout', fields: ['table_density', 'button_style', 'card_radius', 'logo_position', 'sidebar_compact_default', 'show_breadcrumbs', 'show_language_switcher'] },
         { key: 'dashboard', fields: ['dashboard_layout', 'dashboard_refresh_seconds', 'default_page_size', 'sticky_table_headers'] },
     ],

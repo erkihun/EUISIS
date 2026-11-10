@@ -69,7 +69,20 @@ export default function DateRangeFilter({ filters, t }: Props) {
 
     return (
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center" aria-busy={applying}>
-            <div role="group" aria-label={t('dashboard.dateRange')} className="inline-flex max-w-full overflow-x-auto rounded-control border border-(--app-border) bg-(--app-surface-muted) p-0.5">
+            {/* Phones: the five periods as one select, so nothing scrolls sideways in the heading band. */}
+            <div className="w-full sm:hidden">
+                <Select
+                    aria-label={t('dashboard.dateRange')}
+                    value={form.data.date_range}
+                    disabled={applying}
+                    onChange={(event) => applyNow({ date_range: event.target.value })}
+                >
+                    {PERIODS.map(([value, labelKey]) => (
+                        <option key={value} value={value}>{t(labelKey)}</option>
+                    ))}
+                </Select>
+            </div>
+            <div role="group" aria-label={t('dashboard.dateRange')} className="hidden max-w-full rounded-control border border-(--app-border) bg-(--app-surface-muted) p-0.5 sm:inline-flex">
                 {PERIODS.map(([value, labelKey]) => {
                     const active = form.data.date_range === value;
                     return (

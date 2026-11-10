@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, FilterField, ListPagination, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
@@ -123,7 +123,7 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
             ) : (
                 <>
                     <div className="hidden overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface) md:block">
-                        <table className={cx(tableClassName, 'min-w-full')}>
+                        <TableTools id="nfc-management-terminals-index"><table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
                                     <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.terminalCode')}</th>
@@ -178,7 +178,7 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                                     </tr>
                                 ))}
                             </tbody>
-                        </table>
+                        </table></TableTools>
                     </div>
 
                     <div className="space-y-3 md:hidden">

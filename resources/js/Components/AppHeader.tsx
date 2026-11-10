@@ -47,7 +47,7 @@ export default function AppHeader({ onMenuClick, onToggleSidebar, sidebarCollaps
     return (
         <>
             <AppCommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
-            <header data-admin-header className="sticky top-0 z-20 flex h-16 min-w-0 shrink-0 items-center justify-between gap-2 border-b border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_88%,transparent)] px-3 backdrop-blur-md sm:gap-4 sm:px-6 lg:px-8">
+            <header data-admin-header className="sticky top-0 z-20 flex h-16 min-w-0 shrink-0 items-center justify-between gap-2 border-b border-(--app-border) bg-(--app-surface) px-3 sm:gap-4 sm:px-6 lg:px-8">
                 <div className="flex min-w-0 items-center gap-1 sm:flex-1 sm:gap-2">
                     <button type="button" onClick={onMenuClick} aria-label={t('nav.openMenu')} className={iconButton + ' lg:hidden ' + focusRing}>
                         <MenuIcon className="h-5 w-5" aria-hidden="true" />

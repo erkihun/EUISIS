@@ -7,6 +7,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
+import { TableTools } from '@/Components/ui';
+
 type Option = { id: string; name_en: string; name_am: string | null };
 
 type Props = {
@@ -59,7 +61,7 @@ export default function CalibrationIndex({ sessions, cycles, organizations, comm
                 )}
                 <Section title={t('performance.calibration.title')}>
                     {sessions.data.length === 0 ? <Empty>{t('performance.calibration.empty')}</Empty> : (
-                        <Table head={<>
+                        <TableTools id="performance-calibration-index"><Table head={<>
                             <th className={thCls}>{t('performance.fields.title')}</th>
                             <th className={thCls}>{t('performance.fields.organization')}</th>
                             <th className={thCls}>{t('performance.fields.sessionDate')}</th>
@@ -75,7 +77,7 @@ export default function CalibrationIndex({ sessions, cycles, organizations, comm
                                     <td className={tdCls}><Pill group="session" value={s.status} /></td>
                                 </tr>
                             ))}
-                        </Table>
+                        </Table></TableTools>
                     )}
                     <Pager page={sessions} />
                 </Section>

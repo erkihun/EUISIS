@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import { nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FieldError, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FieldError, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -120,7 +120,7 @@ export default function DesignImportShow({ batch, columns, referenceColumns, row
                 </FilterPanel>
 
                 <TableCard title={tt('designImports.rows')} description={tt('designImports.rowsHelp')}>
-                    <Table>
+                    <TableTools id="organization-design-imports-show"><Table>
                         <THead>
                             <tr>
                                 <Th>#</Th>
@@ -153,7 +153,7 @@ export default function DesignImportShow({ batch, columns, referenceColumns, row
                                 </Tr>
                             ))}
                         </TBody>
-                    </Table>
+                    </Table></TableTools>
                     <ListPagination meta={rows} />
                 </TableCard>
             </div>

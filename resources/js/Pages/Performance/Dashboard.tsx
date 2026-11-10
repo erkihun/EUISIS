@@ -7,7 +7,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { ActivityIcon, AlertTriangle, CalendarIcon, CheckCircle, ChevronRight, ClipboardCheckIcon, Layers, LayoutDashboard, RefreshIcon, TrendingUpIcon, Users } from '@/Components/Icons';
 import type { JSX, ReactNode, SVGProps } from 'react';
 
-import { buttonClassName } from '@/Components/ui';
+import { buttonClassName, TableTools } from '@/Components/ui';
 type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;
 
 type Cycle = {
@@ -254,7 +254,7 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                         <div className="grid gap-4 xl:grid-cols-2">
                             <Section title={t('performance.dashboard.units')} description={t('performance.dashboard.unitsHelp')} flush>
                                 {plans.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : (
-                                    <Table head={<><th className={thCls}>{t('performance.dashboard.plan')}</th><th className={`${thCls} w-40`}>{t('performance.fields.score')}</th>{can.recalculate && <th className={thCls}><span className="sr-only">{t('performance.actions.recalculate')}</span></th>}</>}>
+                                    <TableTools id="performance-dashboard"><Table head={<><th className={thCls}>{t('performance.dashboard.plan')}</th><th className={`${thCls} w-40`}>{t('performance.fields.score')}</th>{can.recalculate && <th className={thCls}><span className="sr-only">{t('performance.actions.recalculate')}</span></th>}</>}>
                                         {plans.map((plan) => (
                                             <tr key={plan.id}>
                                                 <td className={tdCls}>
@@ -269,14 +269,14 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                                                 {can.recalculate && <td className={`${tdCls} text-right`}><button type="button" className={linkBtn} onClick={() => recalculate(plan.id)}>{t('performance.actions.recalculate')}</button></td>}
                                             </tr>
                                         ))}
-                                    </Table>
+                                    </Table></TableTools>
                                 )}
                             </Section>
 
                             <div id="attention">
                                 <Section title={t('performance.dashboard.atRisk')} description={t('performance.dashboard.atRiskHelp')} flush>
                                     {atRisk.length === 0 ? <Empty>{t('performance.dashboard.noRisk')}</Empty> : (
-                                        <Table head={<><th className={thCls}>{t('performance.fields.kpi')}</th><th className={thCls}>{t('performance.fields.target')}</th><th className={thCls}>{t('performance.fields.actual')}</th><th className={thCls}>{t('performance.fields.status')}</th></>}>
+                                        <TableTools id="performance-dashboard-2"><Table head={<><th className={thCls}>{t('performance.fields.kpi')}</th><th className={thCls}>{t('performance.fields.target')}</th><th className={thCls}>{t('performance.fields.actual')}</th><th className={thCls}>{t('performance.fields.status')}</th></>}>
                                             {atRisk.map((row, index) => (
                                                 <tr key={`${row.plan_id}-${row.kpi_code}-${index}`}>
                                                     <td className={tdCls}>
@@ -288,7 +288,7 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                                                     <td className={tdCls}><Pill group="health" value={row.health} /></td>
                                                 </tr>
                                             ))}
-                                        </Table>
+                                        </Table></TableTools>
                                     )}
                                 </Section>
                             </div>

@@ -7,7 +7,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type Establishment = {
     id: string;
     establishment_number: string;
@@ -76,7 +76,7 @@ export default function PositionEstablishmentsIndex({ establishments, filters, f
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <TableTools id="position-establishments-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
@@ -112,7 +112,7 @@ export default function PositionEstablishmentsIndex({ establishments, filters, f
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     )}
                 </TableCard>

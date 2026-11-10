@@ -1,4 +1,4 @@
-import { FilterField } from '@/Components/ui';
+import { FilterField, TableTools } from '@/Components/ui';
 import { ExportButtons, Filters, OversightLayout, named, pct, type Distribution, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Section, Table, filterInputCls, tdCls, thCls } from '@/Components/performance/ui';
 import { useChartColors } from '@/hooks/useChartColors';
@@ -39,7 +39,7 @@ export default function OversightDistribution(props: Props) {
                 <>
                     <div className="grid gap-4 xl:grid-cols-2">
                         <Section title={`${named(data.policy, locale)} v${data.policy.version_no}`} description={t('assessmentOversight.distributionBase').replace(':assessed', String(data.assessed))} flush>
-                            <Table head={<>
+                            <TableTools id="assessments-oversight-distribution"><Table head={<>
                                 <th className={thCls}>{t('assessmentOversight.band')}</th>
                                 <th className={thCls}>{t('assessmentOversight.range')}</th>
                                 <th className={thCls}>{t('assessmentOversight.employees')}</th>
@@ -54,7 +54,7 @@ export default function OversightDistribution(props: Props) {
                                     </tr>
                                 ))}
                                 {data.unclassified > 0 && <tr><td className={`${tdCls} text-amber-700`} colSpan={2}>{t('assessmentOversight.unclassified')}</td><td className={tdCls}>{data.unclassified}</td><td className={tdCls} /></tr>}
-                            </Table>
+                            </Table></TableTools>
                         </Section>
                         <Section title={t('assessmentOversight.charts.resultDistribution')}>
                             <div className="h-64">
@@ -73,7 +73,7 @@ export default function OversightDistribution(props: Props) {
 
                     {filters.breakdown && Object.keys(data.breakdown).length > 0 && (
                         <Section title={t('assessmentOversight.breakdownBy').replace(':dimension', t(filters.breakdown === 'organization_id' ? 'assessmentOversight.institution' : filters.breakdown === 'organization_unit_id' ? 'assessmentOversight.unit' : filters.breakdown === 'gender' ? 'assessmentOversight.gender' : 'assessmentOversight.form'))} flush>
-                            <Table head={<>
+                            <TableTools id="assessments-oversight-distribution-2"><Table head={<>
                                 <th className={thCls}>{t('assessmentOversight.group')}</th>
                                 {data.bands.map((b) => <th key={b.code} className={thCls}>{bandLabel(b)}</th>)}
                                 <th className={thCls}>{t('assessmentOversight.total')}</th>
@@ -85,7 +85,7 @@ export default function OversightDistribution(props: Props) {
                                         <td className={`${tdCls} tabular-nums font-medium`}>{Object.values(counts).reduce((a, n) => a + n, 0)}</td>
                                     </tr>
                                 ))}
-                            </Table>
+                            </Table></TableTools>
                         </Section>
                     )}
                 </>

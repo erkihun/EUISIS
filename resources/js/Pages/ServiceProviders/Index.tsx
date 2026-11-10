@@ -20,7 +20,7 @@ import { Input, Select, buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 
-import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type ProviderRow = {
     id: string;
     name: string;
@@ -233,7 +233,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </div>
                         ) : (
                             <>
-                                <table className={cx(tableClassName, 'hidden md:table')}>
+                                <TableTools id="service-providers-index"><table className={cx(tableClassName, 'hidden md:table')}>
                                     <thead className={tableHeadClassName}>
                                         <tr className="text-left">
                                             <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.columnProvider')}</th>
@@ -284,7 +284,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                             );
                                         })}
                                     </tbody>
-                                </table>
+                                </table></TableTools>
 
                                 <ul className="divide-y divide-(--app-border) md:hidden">
                                     {providers.data.map((provider) => (

@@ -5,6 +5,8 @@ import { useTransportLabels } from '@/Components/transport/labels';
 import { ActionDialogButton, DateText, Field, Kpi, Money, Pill } from '@/Components/transport/TransportShared';
 import { DISPUTE_TYPES, type Reconciliation, type RouteRef, type TransportSettlement } from '@/types/transport';
 
+import { TableTools } from '@/Components/ui';
+
 /** The city's statement as the provider reads it: verified usage, the amount, and the provider's own disputes. Nothing here is editable. */
 export default function Show({ settlement, reconciliation, routes, canDispute }: { settlement: TransportSettlement; reconciliation: Reconciliation; routes: RouteRef[]; canDispute: boolean }) {
     const { t, name, label } = useTransportLabels();
@@ -43,7 +45,7 @@ export default function Show({ settlement, reconciliation, routes, canDispute }:
                     </dl>
                 </Card>
                 <TableCard title={t('transport.reconciliation')}>
-                    <table className={tableClassName}>
+                    <TableTools id="provider-portal-transport-settlements-show"><table className={tableClassName}>
                         <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.unit')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.claimed')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.verified')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.difference')}</th></tr></thead>
                         <tbody className={tableBodyClassName}>
                             <tr className={tableRowClassName}><td className={tableCellClassName}>{t('transport.boardings')}</td><td className={num}>{reconciliation.claimed_boardings ?? '—'}</td><td className={num}>{reconciliation.verified_boardings}</td><td className={num}>{reconciliation.boardings_difference ?? '—'}</td></tr>
@@ -51,28 +53,28 @@ export default function Show({ settlement, reconciliation, routes, canDispute }:
                             <tr className={tableRowClassName}><td className={tableCellClassName}>{t('transport.completedTrips')}</td><td className={num}>{reconciliation.claimed_trips ?? '—'}</td><td className={num}>{reconciliation.completed_trips}</td><td className={num}>{reconciliation.claimed_trips !== null ? reconciliation.claimed_trips - reconciliation.completed_trips : '—'}</td></tr>
                             <tr className={tableRowClassName}><td className={tableCellClassName}>{t('transport.uniqueRiders')}</td><td className={num}>—</td><td className={num}>{s.unique_riders}</td><td className={tableCellClassName} /></tr>
                         </tbody>
-                    </table>
+                    </table></TableTools>
                 </TableCard>
                 <TableCard title={t('transport.calculation')}>
                     {(s.basis?.lines ?? []).length === 0 ? <p className="p-4 text-sm text-amber-700">{t('transport.statementNoAmount')}</p> : (
-                        <table className={tableClassName}>
+                        <TableTools id="provider-portal-transport-settlements-show-2"><table className={tableClassName}>
                             <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.line')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.quantity')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.rate')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.amount')}</th></tr></thead>
                             <tbody className={tableBodyClassName}>{(s.basis?.lines ?? []).map((line, i) => <tr key={i} className={tableRowClassName}><td className={tableCellClassName}>{t(`transport.lines.${line.label}`)}</td><td className={num}>{line.quantity ?? '—'}</td><td className={`${tableCellClassName} text-right`}>{line.rate ? <Money value={line.rate} currency={cur} /> : '—'}</td><td className={`${tableCellClassName} text-right`}><Money value={line.amount} currency={cur} /></td></tr>)}</tbody>
-                        </table>
+                        </table></TableTools>
                     )}
                 </TableCard>
                 <TableCard title={t('transport.adjustmentsAndDisputes')}>
                     {(s.adjustments ?? []).length === 0 ? <p className="p-4 text-sm text-(--app-muted-foreground)">{t('transport.noAdjustments')}</p> : (
-                        <table className={tableClassName}>
+                        <TableTools id="provider-portal-transport-settlements-show-3"><table className={tableClassName}>
                             <thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.origin')}</th><th className={tableHeaderCellClassName}>{t('transport.reason')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.amount')}</th><th className={tableHeaderCellClassName}>{t('transport.status')}</th></tr></thead>
                             <tbody className={tableBodyClassName}>{(s.adjustments ?? []).map((a) => <tr key={a.id} className={tableRowClassName}><td className={tableCellClassName}>{label('adjustmentOrigins', a.origin)}{a.dispute_type ? <div className="text-xs text-(--app-muted-foreground)">{label('disputeTypes', a.dispute_type)}</div> : null}</td><td className={tableCellClassName}>{a.reason}{a.decision_notes ? <div className="text-xs text-(--app-muted-foreground)">{a.decision_notes}</div> : null}</td><td className={`${tableCellClassName} text-right`}><Money value={a.amount} currency={cur} /></td><td className={tableCellClassName}><Pill value={a.status} /></td></tr>)}</tbody>
-                        </table>
+                        </table></TableTools>
                     )}
                 </TableCard>
                 {(s.basis?.by_route ?? []).length > 0 && (
                     <TableCard title={t('transport.byRoute')}>
-                        <table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.route')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.boardings')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.uniqueRiders')}</th></tr></thead>
-                            <tbody className={tableBodyClassName}>{(s.basis?.by_route ?? []).map((r) => <tr key={r.route_id} className={tableRowClassName}><td className={tableCellClassName}>{routeName(r.route_id)}</td><td className={num}>{r.boardings}</td><td className={num}>{r.riders}</td></tr>)}</tbody></table>
+                        <TableTools id="provider-portal-transport-settlements-show-4"><table className={tableClassName}><thead className={tableHeadClassName}><tr><th className={tableHeaderCellClassName}>{t('transport.route')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.boardings')}</th><th className={`${tableHeaderCellClassName} text-right`}>{t('transport.uniqueRiders')}</th></tr></thead>
+                            <tbody className={tableBodyClassName}>{(s.basis?.by_route ?? []).map((r) => <tr key={r.route_id} className={tableRowClassName}><td className={tableCellClassName}>{routeName(r.route_id)}</td><td className={num}>{r.boardings}</td><td className={num}>{r.riders}</td></tr>)}</tbody></table></TableTools>
                     </TableCard>
                 )}
             </div>

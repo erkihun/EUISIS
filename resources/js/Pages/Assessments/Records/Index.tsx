@@ -4,7 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
 import { AppFilterBar, Field, FilterField, Section, Stat, Table, TablePanel, filterInputCls, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, formatScore, type Paginator } from '@/Components/performance/ui';
-import { cx } from '@/Components/ui';
+import { cx, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -124,7 +124,7 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                 )}
 
                 <TablePanel page={records} empty={t('assessments.records.empty')}>
-                    <Table head={<>
+                    <TableTools id="assessments-records-index"><Table head={<>
                         <th className={thCls}>{t('assessments.records.employee')}</th>
                         <th className={thCls}>{t('assessments.records.formPeriod')}</th>
                         <th className={thCls}>{t('assessments.records.evaluators')}</th>
@@ -142,7 +142,7 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                                 <td className={`${tdCls} text-right`}><div className="flex justify-end"><AppActionMenu items={[{ label: t('common.view'), href: route('assessment-records.show', r.id) }]} /></div></td>
                             </tr>
                         ))}
-                    </Table>
+                    </Table></TableTools>
                 </TablePanel>
             </div>
         </AuthenticatedLayout>

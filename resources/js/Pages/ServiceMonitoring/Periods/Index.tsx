@@ -8,6 +8,8 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent, JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
 
+import { TableTools } from '@/Components/ui';
+
 /** Fiscal years and their four periods; the coordinator creates a year (its schedule follows D5). */
 export default function PeriodsIndex({ years, can }: { years: FiscalYearRow[]; can: { manage: boolean } }): JSX.Element {
     const { sm } = useSm();
@@ -40,7 +42,7 @@ export default function PeriodsIndex({ years, can }: { years: FiscalYearRow[]; c
                             {sm('common.fiscalYear')} {year.ec_year} · <LocalizedDateDisplay value={year.starts_on} /> – <LocalizedDateDisplay value={year.ends_on} />
                         </h2>
                         <div className={scrollCls}>
-                            <table className={tableCls}>
+                            <TableTools id="service-monitoring-periods-index"><table className={tableCls}>
                                 <thead>
                                     <tr>
                                         {['common.quarter', 'periods.starts', 'periods.ends', 'periods.opens', 'periods.submissionDue', 'periods.subcityReviewDue', 'periods.cityReviewDue', 'common.status'].map((key) => (
@@ -59,7 +61,7 @@ export default function PeriodsIndex({ years, can }: { years: FiscalYearRow[]; c
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                            </table></TableTools>
                         </div>
                     </section>
                 ))}

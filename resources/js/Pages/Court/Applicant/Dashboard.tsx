@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatCard from '@/Components/StatCard';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Briefcase, CheckCircle, ClipboardListIcon, ClockIcon, InfoIcon, Plus, ScaleIcon, ScrollText, MessageSquareIcon, ArchiveIcon } from '@/Components/Icons';
-import { Card, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, badgeClassName, buttonClassName, cx, type Tone } from '@/Components/ui';
+import { Card, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, badgeClassName, buttonClassName, cx, type Tone, TableTools } from '@/Components/ui';
 import { useApplicantPagesText } from '@/court/i18n/useApplicantPagesText';
 import type { ApplicantDashboardProps } from '@/court/types/applicant';
 
@@ -156,7 +156,7 @@ export default function ApplicantDashboard({ applicant, today, counts, recent, l
                                 ) : (
                                     <>
                                         <div className="hidden overflow-hidden rounded-card border border-(--app-border) lg:block">
-                                            <Table>
+                                            <TableTools id="court-applicant-dashboard"><Table>
                                                 <THead>
                                                     <tr>
                                                         <Th>{t('cm.dashboard.case_number')}</Th>
@@ -182,7 +182,7 @@ export default function ApplicantDashboard({ applicant, today, counts, recent, l
                                                         </Tr>
                                                     ))}
                                                 </TBody>
-                                            </Table>
+                                            </Table></TableTools>
                                         </div>
                                         <ul className="space-y-3 lg:hidden">
                                             {recent.slice(0, 3).map((row) => (

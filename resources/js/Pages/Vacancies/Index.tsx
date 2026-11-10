@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState, type JSX } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 type Announcement = {
     id: string;
     announcement_number: string;
@@ -84,7 +84,7 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
 
                 <div className={tableContainerClassName}>
                     <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <TableTools id="vacancies-index"><table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
                                 {[
@@ -148,7 +148,7 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                 );
                             })}
                         </tbody>
-                    </table>
+                    </table></TableTools>
                     </div>
                     {announcements.data.length === 0 && (
                         <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />
