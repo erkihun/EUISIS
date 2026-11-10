@@ -19,7 +19,7 @@ class LetterRouting extends Model
     protected $table = 'letter_routings';
 
     protected $fillable = [
-        'registration_id', 'letter_id', 'step', 'from_user_id', 'to_user_id', 'to_unit_id', 'instruction', 'due_on', 'status',
+        'registration_id', 'letter_id', 'parent_id', 'step', 'from_user_id', 'from_unit_id', 'to_user_id', 'to_unit_id', 'instruction', 'due_on', 'status',
         'acknowledged_at', 'completed_at', 'outcome', 'reminded_at',
     ];
 
@@ -42,6 +42,18 @@ class LetterRouting extends Model
     public function letter(): BelongsTo
     {
         return $this->belongsTo(Letter::class);
+    }
+
+    /** The step this one was passed on from; null for a step the registry office started. */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    /** The unit the step was sent from: the registry office for a first step. */
+    public function fromUnit(): BelongsTo
+    {
+        return $this->belongsTo(OrganizationUnit::class, 'from_unit_id');
     }
 
     public function fromUser(): BelongsTo

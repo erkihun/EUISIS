@@ -165,7 +165,10 @@ class LetterPresenter
                 'from' => $r->fromUser?->name, 'to_user' => $r->toUser !== null ? ['id' => $r->toUser->id, 'name' => $r->toUser->name] : null,
                 'to_unit' => $r->toUnit !== null ? $this->named($r->toUnit) + ['id' => $r->to_unit_id] : null,
                 'acknowledged_at' => $r->acknowledged_at?->toIso8601String(), 'completed_at' => $r->completed_at?->toIso8601String(), 'outcome' => $r->outcome,
+                'from_unit' => $r->fromUnit !== null ? $this->named($r->fromUnit) + ['id' => $r->from_unit_id] : null,
+                'parent_step' => $r->parent_id !== null ? $registration->routings->firstWhere('id', $r->parent_id)?->step : null,
                 'can_act' => $this->access->canActOnRouting($user, $r),
+                'can_forward' => $this->access->canForwardOnward($user, $r->setRelation('registration', $registration)),
             ])->values()->all(),
             'can' => [
                 'receive' => $this->access->canReceive($user, $registration),

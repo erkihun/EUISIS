@@ -1,60 +1,115 @@
-import { FormEvent, ReactNode, useRef, useState } from 'react';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { FormEvent, ReactNode, useEffect, useRef, useState } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import type { JSX } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { AlertTriangle, CheckReadIcon, DownloadIcon, FileSpreadsheetIcon, UploadIcon } from '@/Components/NavIcons';
 import { useLocale } from '@/hooks/useLocale';
-import type { JSX } from 'react';
+import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
+import {
+    Alert,
+    buttonClassName,
+    cx,
+    selectClassName,
+    tableBodyClassName,
+    tableCellClassName,
+    tableClassName,
+    tableHeadClassName,
+    tableHeaderCellClassName,
+    TableTools,
+} from '@/Components/ui';
 
-import { badgeClassName, buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
-type BatchSummary = {
+type Calendar = 'gregorian' | 'ethiopian';
+
+type Batch = {
     id: string;
     file_name: string;
     total_rows: number;
     valid_rows: number;
     failed_rows: number;
+    unfilled_rows: number;
+    over_limit_rows: number;
+    imported_rows: number;
+    calendar: Calendar;
     status: string;
     importable: boolean;
+    finished: boolean;
 };
 
-type PreviewRow = {
+type Row = {
     row_number: number;
     name: string;
     employee_number: string | null;
     organization: string | null;
     organization_unit: string | null;
     position: string | null;
-    status: string;
+    start_date: string | null;
+    status: 'valid' | 'invalid' | 'imported';
     errors: string[];
 };
 
 type Organization = { id: string; code: string; name_en: string; name_am: string | null };
 
 type Props = {
-    batch: BatchSummary | null;
-    preview: PreviewRow[];
-    columns: string[];
-    skippedRows: number;
+    batch: Batch | null;
+    rows: Row[];
     maxRows: number;
-    allowedOrganizations: Organization[];
-    can: { upload: boolean; confirm: boolean };
+    organizations: Organization[];
+    can: { upload: boolean; confirm: boolean; viewEmployees: boolean };
 };
 
-export default function ImportCsv({ batch, preview, columns, skippedRows, maxRows, allowedOrganizations, can }: Props): JSX.Element {
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+/** Fills `{name}` placeholders of a dictionary string. */
+function fill(text: string, values: Record<string, string | number>): string {
+    return Object.entries(values).reduce((result, [key, value]) => result.split(`{${key}}`).join(String(value)), text);
+}
+
+export default function ImportCsv({ batch, rows, maxRows, organizations, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
     const am = locale === 'am';
+    const displayCalendar = useCalendarSystem() as Calendar;
     const fileInput = useRef<HTMLInputElement>(null);
-    const [confirming, setConfirming] = useState(false);
+    const result = useRef<HTMLElement>(null);
     const [dragging, setDragging] = useState(false);
-    const [templateOrganization, setTemplateOrganization] = useState(allowedOrganizations.length === 1 ? allowedOrganizations[0].id : '');
-    const templateError = usePage().props.errors.organization_id;
-    const form = useForm<{ file: File | null }>({ file: null });
+    const [importing, setImporting] = useState(false);
+    const [organizationId, setOrganizationId] = useState(organizations.length === 1 ? organizations[0].id : '');
+    const form = useForm<{ file: File | null; calendar: Calendar }>({
+        file: null,
+        calendar: batch?.calendar ?? displayCalendar,
+    });
+
+    /*
+     * The result is the next thing to read once a file was checked or
+     * imported. Only the window is scrolled: scrollIntoView() also moves the
+     * app shell's clipped containers, which pushes the whole layout down.
+     */
+    useEffect(() => {
+        if (!batch || !result.current) return;
+
+        const top = result.current.getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
+    }, [batch?.id, batch?.finished]);
 
     const organizationLabel = (organization: Organization): string =>
-        `${organization.code} — ${am ? (organization.name_am || organization.name_en) : organization.name_en}`;
+        `${am ? (organization.name_am || organization.name_en) : (organization.name_en || organization.name_am)} (${organization.code})`;
+
+    const templateHref = (format: 'xlsx' | 'csv'): string =>
+        route('employees.import.template', { organization_id: organizationId, locale, format });
 
     const chooseFile = (file: File | null) => {
-        form.setData('file', file);
         form.clearErrors('file');
+        form.setData('file', file);
+
+        if (file === null) return;
+
+        // Said at once, before a large or unusable file is sent.
+        if (!/\.(xlsx|csv)$/i.test(file.name)) {
+            form.setError('file', t('employees.import.fileTypeError'));
+        } else if (file.size > MAX_FILE_BYTES) {
+            form.setError('file', t('employees.import.fileSizeError'));
+        }
     };
 
     const submit = (event: FormEvent) => {
@@ -71,9 +126,15 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
 
     const confirmImport = () => {
         if (!batch) return;
-        setConfirming(true);
-        router.post(route('employees.import.confirm', batch.id), {}, { onFinish: () => setConfirming(false) });
+        setImporting(true);
+        router.post(route('employees.import.confirm', batch.id), {}, { preserveScroll: true, onFinish: () => setImporting(false) });
     };
+
+    const startOver = () => router.post(route('employees.import.cancel'));
+
+    const failedRows = rows.filter((row) => row.status === 'invalid');
+    const readyRows = rows.filter((row) => row.status === 'valid');
+    const fileBlocked = Boolean(form.errors.file) && form.data.file !== null && (!/\.(xlsx|csv)$/i.test(form.data.file.name) || form.data.file.size > MAX_FILE_BYTES);
 
     return (
         <AuthenticatedLayout header={<PageHeader
@@ -83,299 +144,348 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                 />}>
             <Head title={t('employees.import.title')} />
 
-            <div className="space-y-6">
+            <div className="space-y-5">
+                <StepCard number={1} title={t('employees.import.step1Title')} description={t('employees.import.step1Description')}>
+                    {organizations.length === 0 ? (
+                        <Alert tone="warning">{t('employees.import.noOrganizations')}</Alert>
+                    ) : (
+                        <>
+                            <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
+                                {t('employees.import.organization')}
+                            </label>
+                            <select
+                                id="template-organization"
+                                value={organizationId}
+                                onChange={(event) => setOrganizationId(event.target.value)}
+                                className={cx(selectClassName, 'w-full sm:max-w-xl')}
+                            >
+                                <option value="">{t('employees.import.selectOrganization')}</option>
+                                {organizations.map((organization) => (
+                                    <option key={organization.id} value={organization.id}>{organizationLabel(organization)}</option>
+                                ))}
+                            </select>
 
-                <ol className="grid overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) sm:grid-cols-3">
-                    <Step number="1" label={t('employees.import.stepTemplate')} active />
-                    <Step number="2" label={t('employees.import.stepUpload')} active={batch === null} complete={batch !== null} />
-                    <Step number="3" label={t('employees.import.stepReview')} active={batch !== null} />
-                </ol>
-
-                <div className={`grid gap-5 ${can.upload ? 'lg:grid-cols-2' : ''}`}>
-                    <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
-                        <SectionHeading
-                            icon={<DownloadIcon />}
-                            number="01"
-                            title={t('employees.import.prepareTitle')}
-                            description={t('employees.import.prepareDescription')}
-                        />
-                        <form method="get" action={route('employees.import.template')} className="space-y-4 p-5">
-                            {/* The template's name columns follow the language
-                                the page is being viewed in. */}
-                            <input type="hidden" name="locale" value={locale} />
-                            <div>
-                                <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
-                                    {t('employees.import.templateOrganization')}
-                                </label>
-                                <select
-                                    id="template-organization"
-                                    name="organization_id"
-                                    required
-                                    value={templateOrganization}
-                                    onChange={(event) => setTemplateOrganization(event.target.value)}
-                                    aria-describedby="template-help"
-                                    aria-invalid={Boolean(templateError)}
-                                    className={cx(selectClassName, 'w-full')}
-                                >
-                                    <option value="">{t('employees.import.selectTemplateOrganization')}</option>
-                                    {allowedOrganizations.map((organization) => (
-                                        <option key={organization.id} value={organization.id}>{organizationLabel(organization)}</option>
-                                    ))}
-                                </select>
-                                {templateError && <p role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">{templateError}</p>}
-                            </div>
-
-                            <button type="submit" disabled={!templateOrganization} className={buttonClassName({ variant: 'primary', className: 'w-full' })}>
-                                <DownloadIcon small />
-                                {t('employees.import.downloadTemplate')}
-                            </button>
-
-                            <p id="template-help" className="text-xs leading-5 text-(--app-muted-foreground)">
-                                {t('employees.import.templateOrganizationHelp').replace(':max', String(maxRows))}
-                            </p>
-                            {allowedOrganizations.length === 0 && <Notice tone="warning">{t('employees.import.noTemplateOrganizations')}</Notice>}
-                        </form>
-                    </section>
-
-                    {can.upload && (
-                        <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
-                            <SectionHeading
-                                icon={<UploadIcon />}
-                                number="02"
-                                title={t('employees.import.uploadTitle')}
-                                description={t('employees.import.uploadDescription')}
-                            />
-                            <form onSubmit={submit} className="p-5">
-                                <input
-                                    ref={fileInput}
-                                    id="file"
-                                    type="file"
-                                    accept=".csv,text/csv"
-                                    onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
-                                    className="sr-only"
-                                />
-                                <label
-                                    htmlFor="file"
-                                    onDragEnter={() => setDragging(true)}
-                                    onDragLeave={() => setDragging(false)}
-                                    onDragOver={(event) => event.preventDefault()}
-                                    onDrop={(event) => {
-                                        event.preventDefault();
-                                        setDragging(false);
-                                        chooseFile(event.dataTransfer.files?.[0] ?? null);
-                                    }}
-                                    className={`flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-panel border-2 border-dashed px-5 py-6 text-center transition ${dragging ? 'border-primary bg-blue-50 dark:bg-blue-950/20' : form.data.file ? 'border-emerald-300 bg-emerald-50/60 dark:border-emerald-700 dark:bg-emerald-950/20' : 'border-(--app-border-strong) bg-gray-50/70 hover:border-primary hover:bg-blue-50/50 dark:bg-slate-950/40 dark:hover:bg-blue-950/10'}`}
-                                >
-                                    <span className={`flex h-11 w-11 items-center justify-center rounded-full ${form.data.file ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-(--app-surface) text-(--app-muted-foreground) shadow-xs'}`}>
-                                        {form.data.file ? <CheckIcon /> : <UploadIcon />}
-                                    </span>
-                                    <span className="mt-3 max-w-full truncate text-sm font-semibold text-(--app-foreground)">
-                                        {form.data.file?.name ?? t('employees.import.dropTitle')}
-                                    </span>
-                                    <span className="mt-1 text-xs text-(--app-muted-foreground)">
-                                        {form.data.file ? formatFileSize(form.data.file.size) : t('employees.import.dropHint')}
-                                    </span>
-                                </label>
-
-                                {form.errors.file && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{form.errors.file}</p>}
-
-                                <button type="submit" disabled={form.processing || !form.data.file} className={buttonClassName({ variant: 'primary', className: 'mt-4 w-full' })}>
-                                    {form.processing ? <Spinner /> : <CheckDocumentIcon />}
-                                    {form.processing ? t('employees.import.validating') : t('employees.import.validate')}
-                                </button>
-
-                                <p className="mt-3 rounded-control bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-800 dark:bg-blue-950/30 dark:text-blue-300">
-                                    {t('employees.import.numberGenerationHelp')}
-                                </p>
-
-                                <details className="mt-4 rounded-control bg-(--app-surface-muted) px-3 py-2 text-xs">
-                                    <summary className="cursor-pointer font-medium text-(--app-foreground)">{t('employees.import.requiredColumns')}</summary>
-                                    <p className="mt-2 wrap-break-word font-mono leading-5 text-(--app-muted-foreground)">{columns.join(', ')}</p>
-                                </details>
-                            </form>
-                        </section>
-                    )}
-                </div>
-
-                {allowedOrganizations.length > 0 && (
-                    <details className="rounded-panel border border-(--app-border) bg-(--app-surface) px-5 py-4">
-                        <summary className="cursor-pointer text-sm font-medium text-(--app-foreground)">
-                            {t('employees.import.allowedOrganizations')} <span className="ml-1 text-xs text-(--app-muted-foreground)">({allowedOrganizations.length})</span>
-                        </summary>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {allowedOrganizations.map((organization) => (
-                                <span key={organization.id} className="rounded-full border border-(--app-border) bg-(--app-surface-muted) px-3 py-1 text-xs text-(--app-muted-foreground)">
-                                    {organizationLabel(organization)}
-                                </span>
-                            ))}
-                        </div>
-                    </details>
-                )}
-
-                {skippedRows > 0 && (
-                    <Notice tone="warning" title={t('employees.import.truncatedTitle')}>
-                        {t('employees.import.truncatedBody').replace(':skipped', String(skippedRows)).replace(':max', String(maxRows))}
-                    </Notice>
-                )}
-
-                {batch && (
-                    <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
-                        <div className="border-b border-(--app-border) p-5">
-                            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                                <div className="min-w-0">
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-primary">{t('employees.import.stepReview')}</p>
-                                    <h2 className="mt-1 text-lg font-semibold text-(--app-foreground)">{t('employees.import.preview')}</h2>
-                                    <p className="mt-1 truncate text-sm text-(--app-muted-foreground)">{batch.file_name}</p>
-                                </div>
-                                <StatusPill importable={batch.importable} label={batch.importable ? t('employees.import.readyToImport') : t('employees.import.fixErrors')} />
-                            </div>
-
-                            <div className="mt-5 grid grid-cols-3 gap-3">
-                                <Metric label={t('employees.import.totalRows')} value={batch.total_rows} />
-                                <Metric label={t('employees.import.validRows')} value={batch.valid_rows} tone="success" />
-                                <Metric label={t('employees.import.invalidRows')} value={batch.failed_rows} tone="danger" />
-                            </div>
-                        </div>
-
-                        <div className="hidden overflow-x-auto md:block">
-                            <TableTools id="employees-import-csv"><table className={cx(tableClassName, 'min-w-full')}>
-                                <thead className={tableHeadClassName}>
-                                    <tr>
-                                        <Th>#</Th>
-                                        <Th>{t('employees.employee')}</Th>
-                                        <Th>{t('employees.employeeNumber')}</Th>
-                                        <Th>{t('employees.organization')}</Th>
-                                        <Th>{t('employees.position')}</Th>
-                                        <Th>{t('common.status')}</Th>
-                                    </tr>
-                                </thead>
-                                <tbody className={tableBodyClassName}>
-                                    {preview.map((row) => <PreviewTableRow key={row.row_number} row={row} validLabel={t('employees.import.rowValid')} generatedLabel={t('employees.import.systemGenerated')} />)}
-                                </tbody>
-                            </table></TableTools>
-                        </div>
-
-                        <ul className="divide-y divide-(--app-border) md:hidden">
-                            {preview.map((row) => (
-                                <PreviewCard
-                                    key={row.row_number}
-                                    row={row}
-                                    validLabel={t('employees.import.rowValid')}
-                                    generatedLabel={t('employees.import.systemGenerated')}
-                                    organizationLabel={t('employees.organization')}
-                                    positionLabel={t('employees.position')}
-                                />
-                            ))}
-                        </ul>
-
-                        <div className="flex flex-col gap-3 border-t border-(--app-border) bg-gray-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-slate-950/40">
-                            <div className="text-xs">
-                                {batch.importable ? (
-                                    <span className="text-emerald-700 dark:text-emerald-300">{t('employees.import.reviewDescription')}</span>
+                            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                {organizationId ? (
+                                    <a href={templateHref('xlsx')} className={buttonClassName({ variant: 'primary' })}>
+                                        <DownloadIcon className="h-4 w-4" />
+                                        {t('employees.import.downloadExcel')}
+                                    </a>
                                 ) : (
-                                    <span className="text-red-600 dark:text-red-400">{t('employees.import.notImportable')}</span>
-                                )}
-                            </div>
-                            <div className="flex flex-col-reverse gap-2 sm:flex-row">
-                                <button type="button" onClick={() => router.post(route('employees.import.cancel'))} className={buttonClassName({ variant: 'outline' })}>
-                                    {t('employees.import.cancel')}
-                                </button>
-                                {can.confirm && (
-                                    <button type="button" onClick={confirmImport} disabled={!batch.importable || confirming} className={buttonClassName({ variant: 'primary' })}>
-                                        {confirming ? <Spinner /> : <CheckIcon />}
-                                        {t('employees.import.confirm')}
+                                    <button type="button" disabled className={buttonClassName({ variant: 'primary' })}>
+                                        <DownloadIcon className="h-4 w-4" />
+                                        {t('employees.import.downloadExcel')}
                                     </button>
                                 )}
+                                {organizationId && (
+                                    <a href={templateHref('csv')} className="text-sm font-medium text-primary underline-offset-2 hover:underline">
+                                        {t('employees.import.downloadCsv')}
+                                    </a>
+                                )}
+                            </div>
+
+                            <ul className="mt-4 max-w-3xl list-disc space-y-1.5 pl-5 text-sm leading-6 text-(--app-muted-foreground)">
+                                <li>{t('employees.import.tipRows')}</li>
+                                <li>{t('employees.import.tipKeep')}</li>
+                                <li>{t('employees.import.tipValues')}</li>
+                                <li>{t('employees.import.tipNumbers')}</li>
+                            </ul>
+                        </>
+                    )}
+                </StepCard>
+
+                {can.upload && (
+                    <StepCard number={2} title={t('employees.import.step2Title')} description={t('employees.import.step2Description')}>
+                        <form onSubmit={submit}>
+                            <input
+                                ref={fileInput}
+                                id="file"
+                                type="file"
+                                accept=".xlsx,.csv"
+                                onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
+                                className="sr-only"
+                                aria-describedby={form.errors.file ? 'file-error' : undefined}
+                            />
+                            <label
+                                htmlFor="file"
+                                onDragEnter={() => setDragging(true)}
+                                onDragLeave={() => setDragging(false)}
+                                onDragOver={(event) => event.preventDefault()}
+                                onDrop={(event) => {
+                                    event.preventDefault();
+                                    setDragging(false);
+                                    chooseFile(event.dataTransfer.files?.[0] ?? null);
+                                }}
+                                className={cx(
+                                    'flex max-w-3xl cursor-pointer flex-col items-center justify-center rounded-panel border-2 border-dashed px-5 py-7 text-center transition focus-within:border-primary',
+                                    dragging
+                                        ? 'border-primary bg-primary-50 dark:bg-primary-950/20'
+                                        : form.errors.file
+                                            ? 'border-red-300 bg-red-50/60 dark:border-red-800 dark:bg-red-950/20'
+                                            : form.data.file
+                                                ? 'border-emerald-300 bg-emerald-50/60 dark:border-emerald-700 dark:bg-emerald-950/20'
+                                                : 'border-(--app-border-strong) bg-(--app-surface-muted) hover:border-primary',
+                                )}
+                            >
+                                {form.data.file ? <FileSpreadsheetIcon className="h-8 w-8 text-(--app-muted-foreground)" /> : <UploadIcon className="h-8 w-8 text-(--app-muted-foreground)" />}
+                                <span className="mt-2 max-w-full truncate text-sm font-semibold text-(--app-foreground)">
+                                    {form.data.file?.name ?? t('employees.import.dropTitle')}
+                                </span>
+                                <span className="mt-1 text-xs text-(--app-muted-foreground)">
+                                    {form.data.file ? `${formatFileSize(form.data.file.size)} · ${t('employees.import.changeFile')}` : t('employees.import.dropHint')}
+                                </span>
+                            </label>
+
+                            {form.errors.file && (
+                                <p id="file-error" role="alert" className="mt-2 flex items-start gap-2 text-sm text-red-600 dark:text-red-400">
+                                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                                    <span>{form.errors.file}</span>
+                                </p>
+                            )}
+
+                            <div className="mt-4 sm:max-w-xl">
+                                <label htmlFor="calendar" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
+                                    {t('employees.import.calendarLabel')}
+                                </label>
+                                <select
+                                    id="calendar"
+                                    value={form.data.calendar}
+                                    onChange={(event) => form.setData('calendar', event.target.value as Calendar)}
+                                    className={cx(selectClassName, 'w-full')}
+                                >
+                                    <option value="ethiopian">{t('employees.import.calendarEthiopian')}</option>
+                                    <option value="gregorian">{t('employees.import.calendarGregorian')}</option>
+                                </select>
+                                <p className="mt-1.5 text-xs leading-5 text-(--app-muted-foreground)">{t('employees.import.calendarHelp')}</p>
+                            </div>
+
+                            <button type="submit" disabled={form.processing || !form.data.file || fileBlocked} className={buttonClassName({ variant: 'primary', className: 'mt-4' })}>
+                                {form.processing ? <Spinner /> : <CheckReadIcon className="h-4 w-4" />}
+                                {form.processing ? t('employees.import.checking') : t('employees.import.check')}
+                            </button>
+                            <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('employees.import.checkHelp')}</p>
+                        </form>
+                    </StepCard>
+                )}
+
+                <StepCard
+                    ref={result}
+                    number={3}
+                    title={batch?.finished ? t('employees.import.resultTitle') : t('employees.import.step3Title')}
+                    description={batch ? batch.file_name : t('employees.import.step3Empty')}
+                    muted={batch === null}
+                >
+                    {batch && (
+                        <div className="space-y-5">
+                            {batch.finished && (
+                                <Alert tone={batch.imported_rows > 0 ? 'success' : 'warning'} title={fill(t('employees.import.importedTitle'), { count: batch.imported_rows })}>
+                                    {batch.failed_rows > 0 ? fill(t('employees.import.importedWithLeftOut'), { count: batch.failed_rows }) : t('employees.import.importedAll')}
+                                </Alert>
+                            )}
+
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                {batch.finished
+                                    ? <Count label={t('employees.import.countImported')} value={batch.imported_rows} tone="success" />
+                                    : <Count label={t('employees.import.countReady')} value={batch.valid_rows} tone="success" />}
+                                <Count label={batch.finished ? t('employees.import.countNotImported') : t('employees.import.countToFix')} value={batch.failed_rows} tone={batch.failed_rows > 0 ? 'danger' : 'neutral'} />
+                                <Count label={t('employees.import.countEmpty')} value={batch.unfilled_rows} tone="neutral" hint={t('employees.import.countEmptyHint')} />
+                            </div>
+
+                            <p className="text-xs text-(--app-muted-foreground)">
+                                {fill(t('employees.import.calendarUsed'), {
+                                    calendar: batch.calendar === 'ethiopian' ? t('employees.import.calendarEthiopian') : t('employees.import.calendarGregorian'),
+                                })}
+                            </p>
+
+                            {batch.over_limit_rows > 0 && (
+                                <Alert tone="warning" title={t('employees.import.overLimitTitle')}>
+                                    {fill(t('employees.import.overLimitBody'), { max: maxRows, skipped: batch.over_limit_rows })}
+                                </Alert>
+                            )}
+
+                            {!batch.finished && batch.valid_rows === 0 && batch.failed_rows === 0 && (
+                                <Alert tone="warning" title={t('employees.import.nothingFilledTitle')}>{t('employees.import.nothingFilledBody')}</Alert>
+                            )}
+
+                            {failedRows.length > 0 && (
+                                <section aria-labelledby="rows-to-fix">
+                                    <div className="flex flex-wrap items-end justify-between gap-3">
+                                        <div>
+                                            <h3 id="rows-to-fix" className="text-sm font-semibold text-(--app-foreground)">
+                                                {fill(t('employees.import.toFixTitle'), { count: failedRows.length })}
+                                            </h3>
+                                            <p className="mt-1 max-w-2xl text-sm leading-6 text-(--app-muted-foreground)">
+                                                {batch.finished || batch.valid_rows === 0 ? t('employees.import.toFixHelpOnly') : t('employees.import.toFixHelp')}
+                                            </p>
+                                        </div>
+                                        <a href={route('employees.import.errors', batch.id)} className={buttonClassName({ variant: 'outline' })}>
+                                            <DownloadIcon className="h-4 w-4" />
+                                            {t('employees.import.downloadToFix')}
+                                        </a>
+                                    </div>
+                                    <div className="mt-3 overflow-x-auto rounded-panel border border-(--app-border)">
+                                        <TableTools id="employees-import-to-fix" toolbar={false}>
+                                            <table className={cx(tableClassName, 'min-w-full')}>
+                                                <thead className={tableHeadClassName}>
+                                                    <tr>
+                                                        <HeadCell>{t('employees.import.columnRow')}</HeadCell>
+                                                        <HeadCell>{t('employees.employee')}</HeadCell>
+                                                        <HeadCell>{t('employees.import.columnProblem')}</HeadCell>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className={tableBodyClassName}>
+                                                    {failedRows.map((row) => (
+                                                        <tr key={row.row_number} className="align-top">
+                                                            <td className={cx(tableCellClassName, 'whitespace-nowrap font-medium tabular-nums text-(--app-foreground)')}>{row.row_number}</td>
+                                                            <td className={cx(tableCellClassName, 'min-w-40 text-(--app-foreground)')}>
+                                                                <div>{row.name || '—'}</div>
+                                                                {row.position && <div className="mt-0.5 text-xs text-(--app-muted-foreground)">{row.position}</div>}
+                                                            </td>
+                                                            <td className={tableCellClassName}>
+                                                                <ul className="space-y-1.5 text-sm text-red-700 dark:text-red-300">
+                                                                    {row.errors.map((error, index) => <li key={index}>{error}</li>)}
+                                                                </ul>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </TableTools>
+                                    </div>
+                                </section>
+                            )}
+
+                            {!batch.finished && readyRows.length > 0 && (
+                                <details open={failedRows.length === 0} className="group">
+                                    <summary className="cursor-pointer text-sm font-semibold text-(--app-foreground)">
+                                        {fill(t('employees.import.readyTitle'), { count: readyRows.length })}
+                                    </summary>
+                                    <div className="mt-3 overflow-x-auto rounded-panel border border-(--app-border)">
+                                        <TableTools id="employees-import-ready" toolbar={false}>
+                                            <table className={cx(tableClassName, 'min-w-full')}>
+                                                <thead className={tableHeadClassName}>
+                                                    <tr>
+                                                        <HeadCell>{t('employees.import.columnRow')}</HeadCell>
+                                                        <HeadCell>{t('employees.employee')}</HeadCell>
+                                                        <HeadCell>{t('employees.position')}</HeadCell>
+                                                        <HeadCell className="hidden md:table-cell">{t('employees.organizationUnit')}</HeadCell>
+                                                        <HeadCell>{t('employees.import.columnStartDate')}</HeadCell>
+                                                        <HeadCell className="hidden md:table-cell">{t('employees.employeeNumber')}</HeadCell>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className={tableBodyClassName}>
+                                                    {readyRows.map((row) => (
+                                                        <tr key={row.row_number}>
+                                                            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>{row.row_number}</td>
+                                                            <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}>{row.name}</td>
+                                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{row.position ?? '—'}</td>
+                                                            <td className={cx(tableCellClassName, 'hidden text-(--app-muted-foreground) md:table-cell')}>{row.organization_unit ?? '—'}</td>
+                                                            <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-foreground)')}>
+                                                                <LocalizedDateDisplay value={row.start_date} fallback={t('employees.import.startsToday')} />
+                                                            </td>
+                                                            <td className={cx(tableCellClassName, 'hidden whitespace-nowrap text-(--app-muted-foreground) md:table-cell')}>
+                                                                {row.employee_number ?? t('employees.import.numberOnImport')}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </TableTools>
+                                    </div>
+                                </details>
+                            )}
+
+                            <div className="flex flex-col gap-3 border-t border-(--app-border) pt-4 sm:flex-row sm:items-center">
+                                {batch.finished ? (
+                                    <>
+                                        {can.viewEmployees && (
+                                            <Link href={route('employees.index')} className={buttonClassName({ variant: 'primary' })}>
+                                                {t('employees.import.viewEmployees')}
+                                            </Link>
+                                        )}
+                                        <button type="button" onClick={startOver} className={buttonClassName({ variant: 'outline' })}>
+                                            {t('employees.import.importAnother')}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        {can.confirm && batch.importable && (
+                                            <button type="button" onClick={confirmImport} disabled={importing} className={buttonClassName({ variant: 'primary' })}>
+                                                {importing ? <Spinner /> : <CheckReadIcon className="h-4 w-4" />}
+                                                {importing ? t('employees.import.importing') : fill(t('employees.import.importButton'), { count: batch.valid_rows })}
+                                            </button>
+                                        )}
+                                        <button type="button" onClick={startOver} disabled={importing} className={buttonClassName({ variant: 'outline' })}>
+                                            {t('employees.import.discard')}
+                                        </button>
+                                        {batch.importable && !can.confirm && (
+                                            <p className="text-sm text-(--app-muted-foreground)">{t('employees.import.cannotConfirm')}</p>
+                                        )}
+                                    </>
+                                )}
                             </div>
                         </div>
-                    </section>
-                )}
+                    )}
+                </StepCard>
             </div>
         </AuthenticatedLayout>
     );
 }
 
-function Step({ number, label, active = false, complete = false }: { number: string; label: string; active?: boolean; complete?: boolean }): JSX.Element {
-    return (
-        <li className={`flex items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${active ? 'bg-blue-50/70 dark:bg-blue-950/20' : ''} border-(--app-border)`}>
-            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${complete ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : active ? 'bg-primary text-white' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
-                {complete ? '✓' : number}
-            </span>
-            <span className={`text-sm font-medium ${active || complete ? 'text-(--app-foreground)' : 'text-(--app-muted-foreground)'}`}>{label}</span>
-        </li>
-    );
-}
+type StepCardProps = {
+    number: number;
+    title: string;
+    description: string;
+    children?: ReactNode;
+    muted?: boolean;
+    ref?: React.Ref<HTMLElement>;
+};
 
-function SectionHeading({ icon, number, title, description }: { icon: ReactNode; number: string; title: string; description: string }): JSX.Element {
+function StepCard({ number, title, description, children, muted = false, ref }: StepCardProps): JSX.Element {
     return (
-        <div className="flex gap-3 border-b border-(--app-border) px-5 py-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-blue-50 text-primary dark:bg-blue-950/40">{icon}</span>
-            <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-(--app-muted-foreground)">{number}</p>
-                <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
-                <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{description}</p>
+        <section ref={ref} className="scroll-mt-24 rounded-panel border border-(--app-border) bg-(--app-surface) p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+                <span className={cx(
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                    muted ? 'bg-(--app-surface-muted) text-(--app-muted-foreground)' : 'bg-primary text-white',
+                )}>
+                    {number}
+                </span>
+                <div className="min-w-0">
+                    <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
+                    <p className="mt-0.5 wrap-break-word text-sm text-(--app-muted-foreground)">{description}</p>
+                </div>
             </div>
+            {children && <div className="mt-5">{children}</div>}
+        </section>
+    );
+}
+
+function Count({ label, value, tone, hint }: { label: string; value: number; tone: 'neutral' | 'success' | 'danger'; hint?: string }): JSX.Element {
+    const colors = {
+        neutral: 'text-(--app-foreground)',
+        success: 'text-emerald-600 dark:text-emerald-400',
+        danger: 'text-red-600 dark:text-red-400',
+    };
+
+    return (
+        <div className="rounded-control border border-(--app-border) bg-(--app-surface-muted) px-4 py-3">
+            <p className={cx('text-2xl font-bold tabular-nums', colors[tone])}>{value}</p>
+            <p className="mt-0.5 text-sm text-(--app-foreground)">{label}</p>
+            {hint && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{hint}</p>}
         </div>
     );
 }
 
-function Metric({ label, value, tone = 'neutral' }: { label: string; value: number; tone?: 'neutral' | 'success' | 'danger' }): JSX.Element {
-    const colors = { neutral: 'text-(--app-foreground)', success: 'text-emerald-600 dark:text-emerald-400', danger: 'text-red-600 dark:text-red-400' };
-    return (
-        <div className="rounded-control border border-(--app-border) bg-(--app-surface-muted) px-3 py-3">
-            <p className={`text-xl font-bold tabular-nums ${colors[tone]}`}>{value}</p>
-            <p className="mt-0.5 truncate text-xs text-(--app-muted-foreground)">{label}</p>
-        </div>
-    );
+function HeadCell({ children, className }: { children: ReactNode; className?: string }): JSX.Element {
+    return <th className={cx(tableHeaderCellClassName, 'whitespace-nowrap text-left', className)}>{children}</th>;
 }
 
-function StatusPill({ importable, label }: { importable: boolean; label: string }): JSX.Element {
-    return <span className={`inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-3 py-1 text-xs font-semibold ${importable ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300'}`}><span className={`h-1.5 w-1.5 rounded-full ${importable ? 'bg-emerald-500' : 'bg-red-500'}`} />{label}</span>;
-}
-
-function PreviewTableRow({ row, validLabel, generatedLabel }: { row: PreviewRow; validLabel: string; generatedLabel: string }): JSX.Element {
-    return (
-        <tr className={row.status === 'invalid' ? 'bg-red-50/60 dark:bg-red-950/20' : 'hover:bg-gray-50/70 dark:hover:bg-slate-800/30'}>
-            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>{row.row_number}</td>
-            <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}>{row.name || '—'}</td>
-            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>{row.employee_number ?? generatedLabel}</td>
-            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}><div>{row.organization ?? '—'}</div>{row.organization_unit && <div className="mt-0.5 text-xs text-(--app-muted-foreground)">{row.organization_unit}</div>}</td>
-            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{row.position ?? '—'}</td>
-            <td className={tableCellClassName}><RowStatus row={row} validLabel={validLabel} /></td>
-        </tr>
-    );
-}
-
-function PreviewCard({ row, validLabel, generatedLabel, organizationLabel, positionLabel }: { row: PreviewRow; validLabel: string; generatedLabel: string; organizationLabel: string; positionLabel: string }): JSX.Element {
-    return (
-        <li className={`p-4 ${row.status === 'invalid' ? 'bg-red-50/60 dark:bg-red-950/20' : ''}`}>
-            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium text-(--app-foreground)">{row.name || '—'}</p><p className="mt-0.5 font-mono text-xs text-(--app-muted-foreground)">#{row.row_number} · {row.employee_number ?? generatedLabel}</p></div><RowStatus row={row} validLabel={validLabel} compact /></div>
-            <dl className="mt-3 grid gap-2 text-xs"><div><dt className="text-(--app-muted-foreground)">{organizationLabel}</dt><dd className="text-(--app-foreground)">{row.organization ?? '—'}{row.organization_unit ? ` · ${row.organization_unit}` : ''}</dd></div><div><dt className="text-(--app-muted-foreground)">{positionLabel}</dt><dd className="text-(--app-foreground)">{row.position ?? '—'}</dd></div></dl>
-            {row.status === 'invalid' && <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-red-600 dark:text-red-400">{row.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
-        </li>
-    );
-}
-
-function RowStatus({ row, validLabel, compact = false }: { row: PreviewRow; validLabel: string; compact?: boolean }): JSX.Element {
-    if (row.status !== 'invalid') return <span className={badgeClassName('success')}><CheckIcon small />{validLabel}</span>;
-    if (compact) return <span className={badgeClassName('danger')}>{row.errors.length}</span>;
-    return <ul className="space-y-1 text-xs text-red-600 dark:text-red-400">{row.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>;
-}
-
-function Notice({ children, title }: { children: ReactNode; title?: string; tone: 'warning' }): JSX.Element {
-    return <div role="alert" className="rounded-panel border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">{title && <p className="font-semibold">{title}</p>}<div className={title ? 'mt-1 text-xs leading-5' : ''}>{children}</div></div>;
-}
-
-function Th({ children }: { children: ReactNode }): JSX.Element {
-    return <th className={cx(tableHeaderCellClassName, 'text-left whitespace-nowrap')}>{children}</th>;
+/** A busy mark drawn with borders, so it needs no icon. */
+function Spinner(): JSX.Element {
+    return <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />;
 }
 
 function formatFileSize(bytes: number): string {
-    return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB · CSV` : `${(bytes / 1024 / 1024).toFixed(1)} MB · CSV`;
+    return bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
-
-function DownloadIcon({ small = false }: { small?: boolean }): JSX.Element { return <svg className={small ? 'h-4 w-4' : 'h-5 w-5'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M5 20h14" /></svg>; }
-function UploadIcon(): JSX.Element { return <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L8 8m4-4 4 4M5 20h14" /></svg>; }
-function CheckDocumentIcon(): JSX.Element { return <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 3h7l4 4v14H7zM14 3v5h5M9 14l2 2 4-4" /></svg>; }
-function CheckIcon({ small = false }: { small?: boolean }): JSX.Element { return <svg className={small ? 'h-3 w-3' : 'h-5 w-5'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="m5 12 4 4L19 6" /></svg>; }
-function Spinner(): JSX.Element { return <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" /><path className="opacity-75" d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>; }

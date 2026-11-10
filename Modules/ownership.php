@@ -466,6 +466,7 @@ return [
         'models' => [
             'Modules\Letters\Domain\Models\Letter',
             'Modules\Letters\Domain\Models\LetterRegistration',
+            'Modules\Letters\Domain\Models\LetterRegistryOffice',
             'Modules\Letters\Domain\Models\LetterRouting',
             'Modules\Letters\Domain\Models\LetterRecipient',
             'Modules\Letters\Domain\Models\LetterLetterhead',

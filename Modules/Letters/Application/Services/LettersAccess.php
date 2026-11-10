@@ -234,6 +234,18 @@ class LettersAccess
             && ($this->canActFor($user, 'letters.route', $registration->organization_id) || $this->canActFor($user, 'letters.register', $registration->organization_id));
     }
 
+    /**
+     * The person a letter was forwarded to may pass it on inside the institution
+     * (a head to a team, a team leader to an officer) while their own step is open.
+     */
+    public function canForwardOnward(User $user, LetterRouting $routing): bool
+    {
+        return $routing->status->isOpen()
+            && $routing->to_user_id === $user->id
+            && $user->can('letters.handle')
+            && ($routing->registration?->status->isOpen() ?? false);
+    }
+
     /** The addressee acts on a routing step; the registry desk (letters.route) may act for a unit. */
     public function canActOnRouting(User $user, LetterRouting $routing): bool
     {

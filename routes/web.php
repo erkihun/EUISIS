@@ -906,6 +906,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/employees/import/template', [EmployeeImportController::class, 'template'])->name('employees.import.template');
     Route::post('/employees/import/cancel', [EmployeeImportController::class, 'cancel'])->name('employees.import.cancel');
     Route::post('/employees/import/{batch}/confirm', [EmployeeImportController::class, 'confirm'])->name('employees.import.confirm');
+    Route::get('/employees/import/{batch}/errors', [EmployeeImportController::class, 'errors'])->name('employees.import.errors');
 
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
     Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');

@@ -76,7 +76,9 @@ final class LetterController extends Controller
         $user = $request->user();
         $letter->load(['registrations.routings', 'routings']);
 
-        $routable = $letter->registrations->filter(fn (LetterRegistration $r): bool => $this->access->canRoute($user, $r));
+        // The registry desk forwards; so does the person a letter was forwarded to, who passes it on.
+        $routable = $letter->registrations->filter(fn (LetterRegistration $r): bool => $this->access->canRoute($user, $r)
+            || $r->routings->contains(fn ($step): bool => $this->access->canForwardOnward($user, $step->setRelation('registration', $r))));
         $lookups = [];
         foreach ($routable as $registration) {
             $lookups[$registration->organization_id] = [

@@ -25,6 +25,15 @@ final class RoutingController extends Controller
         return back()->with('success', __('letters.flash.routed'));
     }
 
+    /** The person a letter was forwarded to passes it on; the new step hangs under theirs. */
+    public function forward(RouteLetterRequest $request, LetterRouting $routing, RouteLetter $route): RedirectResponse
+    {
+        $this->authorize('forward', $routing);
+        $route->execute($routing->registration, $request->validated(), $request->user(), $routing);
+
+        return back()->with('success', __('letters.flash.routed'));
+    }
+
     public function acknowledge(Request $request, LetterRouting $routing, ResolveRouting $resolve): RedirectResponse
     {
         $this->authorize('act', $routing);

@@ -15,6 +15,7 @@ use Modules\Letters\Http\Controllers\LookupController;
 use Modules\Letters\Http\Controllers\NumberingController;
 use Modules\Letters\Http\Controllers\RegisterLetterController;
 use Modules\Letters\Http\Controllers\RegistrationController;
+use Modules\Letters\Http\Controllers\RegistryOfficeController;
 use Modules\Letters\Http\Controllers\ReportController;
 use Modules\Letters\Http\Controllers\RoutingController;
 use Modules\Letters\Http\Controllers\StandardsController;
@@ -75,6 +76,12 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', 
         Route::post('/standards/file-classes', [StandardsController::class, 'storeClass'])->middleware('throttle:60,1')->name('file-classes.store');
         Route::put('/standards/file-classes/{fileClass}', [StandardsController::class, 'updateClass'])->whereUuid('fileClass')->middleware('throttle:60,1')->name('file-classes.update');
 
+        // Registry offices (መዝገብ ቤት): units of the structure designated as the institution's registry.
+        Route::get('/registry-offices', [RegistryOfficeController::class, 'index'])->name('registry-offices.index');
+        Route::post('/registry-offices', [RegistryOfficeController::class, 'store'])->middleware('throttle:30,1')->name('registry-offices.store');
+        Route::put('/registry-offices/{registryOffice}', [RegistryOfficeController::class, 'update'])->whereUuid('registryOffice')->middleware('throttle:30,1')->name('registry-offices.update');
+        Route::delete('/registry-offices/{registryOffice}', [RegistryOfficeController::class, 'destroy'])->whereUuid('registryOffice')->middleware('throttle:30,1')->name('registry-offices.destroy');
+
         Route::get('/numbering', [NumberingController::class, 'index'])->name('numbering.index');
         Route::put('/numbering', [NumberingController::class, 'save'])->middleware('throttle:30,1')->name('numbering.save');
         Route::post('/numbering/preview', [NumberingController::class, 'preview'])->middleware('throttle:120,1')->name('numbering.preview');
@@ -87,6 +94,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', 
         Route::post('/routings/{routing}/acknowledge', [RoutingController::class, 'acknowledge'])->whereUuid('routing')->middleware('throttle:60,1')->name('routings.acknowledge');
         Route::post('/routings/{routing}/complete', [RoutingController::class, 'complete'])->whereUuid('routing')->middleware('throttle:60,1')->name('routings.complete');
         Route::post('/routings/{routing}/return', [RoutingController::class, 'return'])->whereUuid('routing')->middleware('throttle:60,1')->name('routings.return');
+        Route::post('/routings/{routing}/forward', [RoutingController::class, 'forward'])->whereUuid('routing')->middleware('throttle:60,1')->name('routings.forward');
         Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'])->whereUuid('attachment')->middleware('throttle:120,1')->name('attachments.download');
 
         // The letter itself.

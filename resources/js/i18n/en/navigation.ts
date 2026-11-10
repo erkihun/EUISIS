@@ -60,7 +60,7 @@ const navigation = {
     institutionOffices: 'Institution Offices',
     hierarchyVersions: 'Hierarchy Versions',
     employees: 'Employees',
-    employeeImport: 'Upload Employees CSV',
+    employeeImport: 'Import Employees',
     employeeTransfers: 'Employee Transfers',
     transferManagement: 'Transfer Management',
     transferDashboard: 'Dashboard',

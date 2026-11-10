@@ -407,6 +407,7 @@ const navGroups: NavGroup[] = [
             { routeName: 'letters.templates.index', labelKey: 'letters.nav.templates', icon: DocumentsIcon, anyPermission: ['letters.templates.view', 'letters.templates.manage', 'letters.templates.manage_platform'] },
             { routeName: 'letters.numbering.index', labelKey: 'letters.nav.numbering', icon: HashIcon, permission: 'letters.numbering.manage' },
             { routeName: 'letters.letterheads.index', labelKey: 'letters.nav.letterhead', icon: FileTextIcon, permission: 'letters.letterhead.manage' },
+            { routeName: 'letters.registry-offices.index', labelKey: 'letters.nav.registryOffices', icon: Building2, permission: 'letters.standards.manage' },
             { routeName: 'letters.standards.edit', labelKey: 'letters.nav.standards', icon: ClipboardClockIcon, permission: 'letters.standards.manage' },
             { routeName: 'letters.reports', labelKey: 'letters.nav.reports', icon: PieChartIcon, permission: 'letters.reports.view' },
         ],

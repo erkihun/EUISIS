@@ -65,11 +65,32 @@ class EmployeeImportBatch extends Model
         return $this->belongsTo(Organization::class);
     }
 
-    /** Only a fully valid batch may be committed. */
+    /**
+     * A checked batch with at least one valid row may be committed. Rows with
+     * problems do not block it: they are left out and can be corrected and
+     * uploaded again.
+     */
     public function isImportable(): bool
     {
         return $this->status === self::STATUS_VALIDATED
-            && $this->failed_rows === 0
             && $this->valid_rows > 0;
+    }
+
+    /** Template rows whose employee cells were all left empty. */
+    public function unfilledRows(): int
+    {
+        return (int) ($this->error_summary['unfilled'] ?? 0);
+    }
+
+    /** Rows beyond the reader's cap, which were never checked. */
+    public function overLimitRows(): int
+    {
+        return (int) ($this->error_summary['over_limit'] ?? 0);
+    }
+
+    /** Employees created when the batch was committed. */
+    public function importedRows(): int
+    {
+        return (int) ($this->error_summary['imported'] ?? 0);
     }
 }

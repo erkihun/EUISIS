@@ -247,6 +247,8 @@ function Row({ label, value }: { label: string; value: JSX.Element | string }): 
 function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, onReturn }: { registration: Registration; lookup?: Lookup; busy: boolean; onClose: () => void; onComplete: (r: Routing) => void; onReturn: (r: Routing) => void }): JSX.Element {
     const { lt, pick } = useLetters();
     const [routing, setRouting] = useState(false);
+    /** The step being passed on by the person it was forwarded to; null when the registry desk forwards. */
+    const [passing, setPassing] = useState<Routing | null>(null);
     const [receiving, setReceiving] = useState(false);
     const [acknowledging, setAcknowledging] = useState(false);
     const today = new Date().toISOString().slice(0, 10);
@@ -263,7 +265,7 @@ function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, on
     function sendRouting(event: FormEvent) {
         event.preventDefault();
         routeForm.transform((d) => ({ to_user_id: d.to_user_id ? Number(d.to_user_id) : null, to_unit_id: d.to_unit_id || null, instruction: d.instruction, due_on: d.due_on || null }));
-        routeForm.post(route('letters.routings.store', registration.id), { preserveScroll: true, onSuccess: () => { routeForm.reset(); setRouting(false); } });
+        routeForm.post(passing ? route('letters.routings.forward', passing.id) : route('letters.routings.store', registration.id), { preserveScroll: true, onSuccess: () => { routeForm.reset(); setRouting(false); setPassing(null); } });
     }
 
     function receive(event: FormEvent) {
@@ -284,7 +286,7 @@ function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, on
                 </div>
                 <div className="flex flex-wrap gap-2">
                     {registration.can.receive && <button type="button" className={primaryBtn} onClick={() => setReceiving((v) => !v)}>{lt('show.receive')}</button>}
-                    {registration.can.route && <button type="button" className={secondaryBtn} onClick={() => setRouting((v) => !v)}>{lt('show.route')}</button>}
+                    {registration.can.route && <button type="button" className={secondaryBtn} onClick={() => { setPassing(null); setRouting((v) => !v || passing !== null); }}>{lt('show.route')}</button>}
                     {registration.can.acknowledge && <button type="button" className={secondaryBtn} onClick={() => setAcknowledging((v) => !v)}>{lt('show.acknowledgeReceipt')}</button>}
                     {registration.can.close && <button type="button" className={secondaryBtn} disabled={busy} onClick={onClose}>{lt('show.close')}</button>}
                 </div>
@@ -338,8 +340,9 @@ function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, on
             )}
 
             {routing && lookup && (
-                <form onSubmit={sendRouting} className="mt-3 grid gap-3 border-t border-(--app-border) pt-3 sm:grid-cols-2" aria-label={lt('show.route')}>
-                    <p className={cx(mutedCls, 'sm:col-span-2')}>{lt('show.routeHelp')}</p>
+                <form onSubmit={sendRouting} className="mt-3 grid gap-3 border-t border-(--app-border) pt-3 sm:grid-cols-2" aria-label={passing ? lt('show.forwardOn') : lt('show.route')}>
+                    {passing && <h3 className="text-sm font-semibold sm:col-span-2">{lt('show.forwardOn')} · {lt('common.step')} {passing.step}</h3>}
+                    <p className={cx(mutedCls, 'sm:col-span-2')}>{passing ? lt('show.forwardOnHelp') : lt('show.routeHelp')}</p>
                     <div>
                         <label htmlFor={`rt-unit-${registration.id}`} className={labelCls}>{lt('show.routeToUnit')}</label>
                         <select id={`rt-unit-${registration.id}`} className={inputCls} value={routeForm.data.to_unit_id} onChange={(e) => routeForm.setData('to_unit_id', e.target.value)}>
@@ -366,8 +369,8 @@ function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, on
                         <LocalizedDatePicker id={`rt-due-${registration.id}`} className={inputCls} value={routeForm.data.due_on} onChange={(iso) => routeForm.setData('due_on', iso)} />
                     </div>
                     <div className="flex items-end gap-2">
-                        <button type="submit" className={primaryBtn} disabled={routeForm.processing}>{lt('show.route')}</button>
-                        <button type="button" className={secondaryBtn} onClick={() => setRouting(false)}>{lt('common.cancel')}</button>
+                        <button type="submit" className={primaryBtn} disabled={routeForm.processing}>{passing ? lt('show.forwardOn') : lt('show.route')}</button>
+                        <button type="button" className={secondaryBtn} onClick={() => { setRouting(false); setPassing(null); }}>{lt('common.cancel')}</button>
                     </div>
                 </form>
             )}
@@ -380,23 +383,25 @@ function RegistrationPanel({ registration, lookup, busy, onClose, onComplete, on
                             const overdue = r.due_on !== null && (r.status === 'pending' || r.status === 'acknowledged') && daysUntil(r.due_on) < 0;
 
                             return (
-                                <li key={r.id} className="rounded-control border border-(--app-border) p-3 text-sm">
+                                <li key={r.id} className={cx('rounded-control border border-(--app-border) p-3 text-sm', r.parent_step !== null && 'ms-5 border-s-2 border-s-[#122170]/40')}>
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                         <p className="font-medium">{lt('common.step')} {r.step} → {r.to_user ? r.to_user.name : r.to_unit ? pick({ name_en: r.to_unit.name_en ?? '', name_am: r.to_unit.name_am, code: r.to_unit.code }) : '—'}</p>
                                         <StatusBadge kind="routingStatus" value={r.status} />
                                     </div>
                                     <p className="mt-1 whitespace-pre-line">{r.instruction}</p>
                                     <p className="mt-1 text-xs text-(--app-muted-foreground)">
-                                        {r.from ?? '—'}{r.due_on && <> · {lt('common.dueOn')}: <span className={cx(overdue && 'font-semibold text-red-700 dark:text-red-400')}><LocalizedDateDisplay value={r.due_on} /></span></>}
+                                        {r.parent_step !== null && <>{lt('show.fromStep', { step: r.parent_step })} · </>}
+                                        {lt('show.fromLabel')}: {r.from_unit ? `${pick({ name_en: r.from_unit.name_en ?? '', name_am: r.from_unit.name_am, code: r.from_unit.code })} · ` : ''}{r.from ?? '—'}{r.due_on && <> · {lt('common.dueOn')}: <span className={cx(overdue && 'font-semibold text-red-700 dark:text-red-400')}><LocalizedDateDisplay value={r.due_on} /></span></>}
                                         {r.acknowledged_at && <> · {lt('routingStatus.acknowledged')}: <LocalizedDateDisplay value={r.acknowledged_at} withTime /></>}
                                         {r.completed_at && <> · <LocalizedDateDisplay value={r.completed_at} withTime /></>}
                                     </p>
                                     {r.outcome && <p className="mt-1 whitespace-pre-line text-(--app-foreground)"><span className={labelCls}>{lt('common.outcome')}</span>{r.outcome}</p>}
-                                    {r.can_act && (
+                                    {(r.can_act || r.can_forward) && (
                                         <div className="mt-2 flex flex-wrap gap-2">
-                                            {r.status === 'pending' && <button type="button" className={secondaryBtn} disabled={busy} onClick={() => router.post(route('letters.routings.acknowledge', r.id), {}, { preserveScroll: true })}>{lt('show.acknowledge')}</button>}
-                                            <button type="button" className={primaryBtn} disabled={busy} onClick={() => onComplete(r)}>{lt('show.complete')}</button>
-                                            <button type="button" className={secondaryBtn} disabled={busy} onClick={() => onReturn(r)}>{lt('show.returnRouting')}</button>
+                                            {r.can_forward && lookup && <button type="button" className={secondaryBtn} disabled={busy} onClick={() => { setPassing(r); setRouting(true); }}>{lt('show.forwardOn')}</button>}
+                                            {r.can_act && r.status === 'pending' && <button type="button" className={secondaryBtn} disabled={busy} onClick={() => router.post(route('letters.routings.acknowledge', r.id), {}, { preserveScroll: true })}>{lt('show.acknowledge')}</button>}
+                                            {r.can_act && <button type="button" className={primaryBtn} disabled={busy} onClick={() => onComplete(r)}>{lt('show.complete')}</button>}
+                                            {r.can_act && <button type="button" className={secondaryBtn} disabled={busy} onClick={() => onReturn(r)}>{lt('show.returnRouting')}</button>}
                                         </div>
                                     )}
                                 </li>
