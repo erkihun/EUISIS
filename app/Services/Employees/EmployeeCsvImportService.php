@@ -25,6 +25,7 @@ use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\OrganizationUnits\OrganizationUnitTreeService;
 use App\Services\Positions\PositionCapacityService;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -616,13 +617,13 @@ class EmployeeCsvImportService
      * the file we just handed out impossible to upload back. Only the
      * human-readable name columns follow the locale.
      */
-    public function templateCsv(Organization $organization, string $locale = 'en'): string
+    public function templateCsv(Organization $organization, string $locale = 'en', ?OrganizationUnit $unit = null): string
     {
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
         fputcsv($stream, self::templateColumns(), ',', '"', '');
 
-        foreach ($this->templateRows($organization, $locale) as $row) {
+        foreach ($this->templateRows($organization, $locale, $unit) as $row) {
             // Treat codes as text when opened in spreadsheet software.
             $values = array_map(static fn ($value) => preg_match('/^[\s]*[=+@-]/u', (string) $value) ? "'".$value : $value, array_values($row));
             fputcsv($stream, $values, ',', '"', '');
@@ -642,10 +643,10 @@ class EmployeeCsvImportService
      * a phone number nor rewrites a typed date into its own format — the two
      * ways a CSV edited in Excel most often comes back damaged.
      */
-    public function templateXlsx(Organization $organization, string $locale = 'en'): string
+    public function templateXlsx(Organization $organization, string $locale = 'en', ?OrganizationUnit $unit = null): string
     {
         $columns = self::templateColumns();
-        $rows = $this->templateRows($organization, $locale);
+        $rows = $this->templateRows($organization, $locale, $unit);
 
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
@@ -735,17 +736,19 @@ class EmployeeCsvImportService
 
     /**
      * One template row per position with a free slot under the capacity rule
-     * (CON-5); an organization with none still gets one starter row.
+     * (CON-5); an organization with none still gets one starter row. With
+     * `$only`, the positions are those of that unit and the units below it.
      *
      * @return array<int, array<string, string>>
      */
-    private function templateRows(Organization $organization, string $locale): array
+    private function templateRows(Organization $organization, string $locale, ?OrganizationUnit $only = null): array
     {
         $amharic = $locale === 'am';
 
         $positions = app(PositionCapacityService::class)->whereHasFreeSlot(Position::query()
             ->where('organization_id', $organization->id)
-            ->where('is_active', true))
+            ->where('is_active', true)
+            ->when($only !== null, fn ($query) => $query->whereIn('organization_unit_id', app(OrganizationUnitTreeService::class)->activeSubtreeIds($only))))
             ->where(fn ($query) => $query->whereNull('organization_unit_id')->orWhereHas('organizationUnit', fn ($unit) => $unit->where('organization_id', $organization->id)->where('status', 'active')))
             ->with('organizationUnit:id,code,name_en,name_am')
             ->orderBy('job_position_code')->orderBy('id')

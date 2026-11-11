@@ -20,6 +20,7 @@ use App\Models\User;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\OrganizationUnits\OrganizationUnitTreeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -468,11 +469,12 @@ class PositionImportService
     /**
      * The starter CSV for an organization. The header stays in the canonical
      * English keys whatever the locale, because the reader matches them
-     * exactly; only the name columns follow the locale.
+     * exactly; only the name columns follow the locale. With a unit, the
+     * template lists that unit and the units below it only.
      */
-    public function templateCsv(Organization $organization, string $locale = 'en'): string
+    public function templateCsv(Organization $organization, string $locale = 'en', ?OrganizationUnit $unit = null): string
     {
-        return $this->csv(self::COLUMNS, array_map('array_values', $this->templateRows($organization, $locale)));
+        return $this->csv(self::COLUMNS, array_map('array_values', $this->templateRows($organization, $locale, $unit)));
     }
 
     /**
@@ -480,12 +482,12 @@ class PositionImportService
      * more sheets list the occupation codes and grade levels a row may use;
      * only the first sheet is read back.
      */
-    public function templateXlsx(Organization $organization, string $locale = 'en'): string
+    public function templateXlsx(Organization $organization, string $locale = 'en', ?OrganizationUnit $unit = null): string
     {
         $amharic = $locale === 'am';
         $spreadsheet = new Spreadsheet;
 
-        $this->fillSheet($spreadsheet->getActiveSheet()->setTitle('positions'), self::COLUMNS, array_map('array_values', $this->templateRows($organization, $locale)));
+        $this->fillSheet($spreadsheet->getActiveSheet()->setTitle('positions'), self::COLUMNS, array_map('array_values', $this->templateRows($organization, $locale, $unit)));
 
         $occupations = Occupation::query()
             ->orderBy('isco_code')->orderBy('code')
@@ -522,9 +524,13 @@ class PositionImportService
      * unit) and one per active unit. A row may be copied to add more
      * positions to the same unit.
      *
+     * With `$only`, the rows are that unit and the active units below it, and
+     * the row for the organization itself is left out: whoever asks for one
+     * directorate's template is not placing positions above it.
+     *
      * @return array<int, array<string, string>>
      */
-    private function templateRows(Organization $organization, string $locale): array
+    private function templateRows(Organization $organization, string $locale, ?OrganizationUnit $only = null): array
     {
         $amharic = $locale === 'am';
         $name = static fn (?string $en, ?string $am): string => (string) ($amharic ? ($am ?: $en) : ($en ?: $am));
@@ -532,13 +538,14 @@ class PositionImportService
         $units = OrganizationUnit::query()
             ->where('organization_id', $organization->id)
             ->active()
+            ->when($only !== null, fn ($query) => $query->whereIn('id', app(OrganizationUnitTreeService::class)->activeSubtreeIds($only)))
             ->orderBy('code')
             ->limit(self::MAX_ROWS - 1)
             ->get(['id', 'code', 'name_en', 'name_am']);
 
         $rows = [];
 
-        foreach ([null, ...$units->all()] as $unit) {
+        foreach ($only === null ? [null, ...$units->all()] : $units->all() as $unit) {
             $row = array_fill_keys(self::COLUMNS, '');
             $row['organization_code'] = (string) $organization->code;
             $row['organization_name'] = $name($organization->name_en, $organization->name_am);

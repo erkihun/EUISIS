@@ -222,7 +222,12 @@ const employees = {
         description: 'Add many employees at once from an Excel or CSV file. The file is checked first; nothing is saved until you press Import.',
 
         step1Title: 'Get the template',
-        step1Description: 'The template lists the vacant positions of one organization, one position per row.',
+        step1Description: 'The template lists the vacant positions of one organization, or of one of its units, one position per row.',
+        unit: 'Organization unit',
+        allUnits: 'All units of the organization',
+        unitHelp: 'Choose a unit to get only the vacant positions of that unit and the units under it. Leave it on all units for the whole organization.',
+        unitsLoading: 'Loading units…',
+        unitsFailed: 'The units could not be loaded. Choose the organization again.',
         organization: 'Organization',
         selectOrganization: 'Select an organization',
         noOrganizations: 'No active organization is available in your scope, so there is no template to download.',

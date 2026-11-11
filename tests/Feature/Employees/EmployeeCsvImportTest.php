@@ -1373,3 +1373,50 @@ it('lists the accepted values on a second sheet of the excel template', function
 
     expect($batch->valid_rows)->toBe(1)->and($batch->failed_rows)->toBe(0);
 });
+
+it('makes a template for the vacant positions of one unit and the units below it', function (): void {
+    $org = $this->alpha['org'];
+    $team = OrganizationUnit::query()->create([
+        'organization_id' => $org->id,
+        'parent_unit_id' => $this->alpha['unit']->id,
+        'code' => 'ALPHA-U1-T1',
+        'name_en' => 'ALPHA Team',
+        'unit_type' => 'team',
+        'status' => 'active',
+    ]);
+    $other = OrganizationUnit::query()->create([
+        'organization_id' => $org->id,
+        'code' => 'ALPHA-U2',
+        'name_en' => 'ALPHA Other Unit',
+        'unit_type' => 'department',
+        'status' => 'active',
+    ]);
+    $teamPosition = Position::query()->create(['organization_id' => $org->id, 'organization_unit_id' => $team->id, 'job_position_code' => 'ALPHA-T-P1', 'title_en' => 'Team Officer', 'is_active' => true]);
+    $otherPosition = Position::query()->create(['organization_id' => $org->id, 'organization_unit_id' => $other->id, 'job_position_code' => 'ALPHA-O-P1', 'title_en' => 'Other Officer', 'is_active' => true]);
+
+    $references = function (string $csv): array {
+        $lines = array_values(array_filter(explode("\n", (string) preg_replace('/^\xEF\xBB\xBF/', '', $csv))));
+        $column = array_search('position_reference', str_getcsv($lines[0]), true);
+
+        return array_map(static fn (string $line): string => str_getcsv($line)[$column], array_slice($lines, 1));
+    };
+
+    // The whole organization: all four vacant positions.
+    expect($references($this->service->templateCsv($org)))->toHaveCount(4);
+
+    // The first unit: its own two positions and its team's, not the other unit's.
+    $forUnit = $references($this->service->templateCsv($org, 'en', $this->alpha['unit']));
+    expect($forUnit)->toHaveCount(3)->toContain($teamPosition->id)->not->toContain($otherPosition->id);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $org->id, 'organization_unit_id' => $team->id, 'format' => 'csv', 'locale' => 'en']))
+        ->assertOk();
+
+    expect($references($response->getContent()))->toBe([$teamPosition->id])
+        ->and($response->headers->get('Content-Disposition'))->toContain('alpha-u1-t1-template-en.csv');
+
+    // A unit of another organization is not a unit of this one.
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $org->id, 'organization_unit_id' => $this->beta['unit']->id]))
+        ->assertNotFound();
+});

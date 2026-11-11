@@ -17,8 +17,9 @@ import {
     Spinner,
     SplitBar,
     StepSection,
+    TemplateChooser,
 } from '@/Components/ImportFlow';
-import type { ResultTab, StepState } from '@/Components/ImportFlow';
+import type { ResultTab, StepState, TemplateOrganization } from '@/Components/ImportFlow';
 import { useLocale } from '@/hooks/useLocale';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import {
@@ -67,7 +68,7 @@ type Row = {
     errors: string[];
 };
 
-type Organization = { id: string; code: string; name_en: string; name_am: string | null };
+type Organization = TemplateOrganization;
 
 type Props = {
     batch: Batch | null;
@@ -90,7 +91,6 @@ export default function ImportCsv({ batch, rows, maxRows, maxFileBytes, organiza
     const result = useRef<HTMLElement>(null);
     const [importing, setImporting] = useState(false);
     const [list, setList] = useState<ListKey | null>(null);
-    const [organizationId, setOrganizationId] = useState(organizations.length === 1 ? organizations[0].id : '');
     const form = useForm<{ file: File | null; calendar: Calendar }>({
         file: null,
         calendar: batch?.calendar ?? displayCalendar,
@@ -110,12 +110,6 @@ export default function ImportCsv({ batch, rows, maxRows, maxFileBytes, organiza
 
     // A new file, or the end of an import, starts on the list that matters most again.
     useEffect(() => setList(null), [batch?.id, batch?.finished]);
-
-    const organizationLabel = (organization: Organization): string =>
-        `${am ? (organization.name_am || organization.name_en) : (organization.name_en || organization.name_am)} (${organization.code})`;
-
-    const templateHref = (format: 'xlsx' | 'csv'): string =>
-        route('employees.import.template', { organization_id: organizationId, locale, format });
 
     const chooseFile = (file: File | null) => {
         form.clearErrors('file');
@@ -221,48 +215,27 @@ export default function ImportCsv({ batch, rows, maxRows, maxFileBytes, organiza
                         {organizations.length === 0 ? (
                             <Alert tone="warning">{t('employees.import.noOrganizations')}</Alert>
                         ) : (
-                            <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
-                                <div className="min-w-0 flex-1">
-                                    <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
-                                        {t('employees.import.organization')}
-                                    </label>
-                                    <select
-                                        id="template-organization"
-                                        value={organizationId}
-                                        onChange={(event) => setOrganizationId(event.target.value)}
-                                        className={cx(selectClassName, 'w-full')}
-                                    >
-                                        <option value="">{t('employees.import.selectOrganization')}</option>
-                                        {organizations.map((organization) => (
-                                            <option key={organization.id} value={organization.id}>{organizationLabel(organization)}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {organizationId ? (
-                                        <>
-                                            <a href={templateHref('xlsx')} className={buttonClassName({ variant: 'primary' })}>
-                                                <DownloadIcon className="h-4 w-4" />
-                                                {t('employees.import.downloadExcel')}
-                                            </a>
-                                            <a href={templateHref('csv')} className={buttonClassName({ variant: 'outline' })}>
-                                                {t('employees.import.downloadCsv')}
-                                            </a>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button type="button" disabled className={buttonClassName({ variant: 'primary' })}>
-                                                <DownloadIcon className="h-4 w-4" />
-                                                {t('employees.import.downloadExcel')}
-                                            </button>
-                                            <button type="button" disabled className={buttonClassName({ variant: 'outline' })}>
-                                                {t('employees.import.downloadCsv')}
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
+                            <TemplateChooser
+                                organizations={organizations}
+                                amharic={am}
+                                labels={{
+                                    organization: t('employees.import.organization'),
+                                    selectOrganization: t('employees.import.selectOrganization'),
+                                    unit: t('employees.import.unit'),
+                                    allUnits: t('employees.import.allUnits'),
+                                    unitHelp: t('employees.import.unitHelp'),
+                                    unitsLoading: t('employees.import.unitsLoading'),
+                                    unitsFailed: t('employees.import.unitsFailed'),
+                                    downloadExcel: t('employees.import.downloadExcel'),
+                                    downloadCsv: t('employees.import.downloadCsv'),
+                                }}
+                                hrefFor={(format, organizationId, unitId) => route('employees.import.template', {
+                                    organization_id: organizationId,
+                                    locale,
+                                    format,
+                                    ...(unitId ? { organization_unit_id: unitId } : {}),
+                                })}
+                            />
                         )}
                     </StepSection>
 

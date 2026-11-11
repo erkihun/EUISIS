@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\Organization;
+use App\Models\OrganizationUnit;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
@@ -46,19 +47,43 @@ trait ServesImportFiles
      * The Content-Disposition of a template download, named after the
      * organization's code as it is written. A code in Ethiopic letters has no
      * ASCII spelling (ማ-001 and ከአ-001 would both come out as "001"), so the
-     * plain-ASCII fallback uses the start of the id instead.
+     * plain-ASCII fallback uses the start of the id instead. A template made
+     * for one unit carries that unit's code as well.
      */
-    protected function templateDisposition(string $prefix, Organization $organization, string $locale, string $extension): string
+    protected function templateDisposition(string $prefix, Organization $organization, string $locale, string $extension, ?OrganizationUnit $unit = null): string
     {
         $code = trim((string) preg_replace('/[^\p{L}\p{M}\p{N}]+/u', '-', (string) $organization->code), '-');
         $ascii = Str::slug((string) $organization->code);
         $ascii = preg_match('/[a-z]/', $ascii) === 1 ? $ascii : substr((string) $organization->id, 0, 8);
+
+        if ($unit !== null) {
+            $unitAscii = Str::slug((string) $unit->code);
+            $code .= '-'.trim((string) preg_replace('/[^\p{L}\p{M}\p{N}]+/u', '-', (string) $unit->code), '-');
+            $ascii .= '-'.($unitAscii !== '' ? $unitAscii : substr((string) $unit->id, 0, 8));
+        }
 
         return HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_ATTACHMENT,
             $prefix.'-'.$code.'-template-'.$locale.'.'.$extension,
             $prefix.'-'.$ascii.'-template-'.$locale.'.'.$extension,
         );
+    }
+
+    /**
+     * The unit a template was asked for, or null for the whole organization.
+     * It must be an active unit of that organization: anything else is a
+     * hand-built address and is answered with "not found".
+     */
+    protected function templateUnit(Organization $organization, ?string $unitId): ?OrganizationUnit
+    {
+        if ($unitId === null || $unitId === '') {
+            return null;
+        }
+
+        return OrganizationUnit::query()
+            ->where('organization_id', $organization->id)
+            ->active()
+            ->findOrFail($unitId);
     }
 
     /** "2M", "512K", "1G" or a plain number of bytes; 0 means no limit. */

@@ -431,3 +431,52 @@ it('is closed to a user who may not create positions and to another user\'s batc
     $this->actingAs($other)->post(route('positions.import.confirm', $batch))->assertForbidden();
     $this->actingAs($other)->get(route('positions.import.errors', $batch))->assertForbidden();
 });
+
+it('makes a template for one unit and the units below it', function (): void {
+    $org = $this->alpha['org'];
+    $team = OrganizationUnit::query()->create([
+        'organization_id' => $org->id,
+        'parent_unit_id' => $this->alpha['unit']->id,
+        'code' => 'PALPHA-U1-T1',
+        'name_en' => 'PALPHA Team',
+        'unit_type' => 'team',
+        'status' => 'active',
+    ]);
+    OrganizationUnit::query()->create([
+        'organization_id' => $org->id,
+        'parent_unit_id' => $this->alpha['unit']->id,
+        'code' => 'PALPHA-U1-OLD',
+        'name_en' => 'PALPHA Closed Team',
+        'unit_type' => 'team',
+        'status' => 'inactive',
+    ]);
+    $other = OrganizationUnit::query()->create([
+        'organization_id' => $org->id,
+        'code' => 'PALPHA-U2',
+        'name_en' => 'PALPHA Other Unit',
+        'unit_type' => 'department',
+        'status' => 'active',
+    ]);
+
+    $lines = array_values(array_filter(explode("\n", (string) preg_replace('/^\xEF\xBB\xBF/', '', $this->service->templateCsv($org, 'en', $this->alpha['unit'])))));
+    $unitCodes = array_map(static fn (string $line): string => str_getcsv($line)[2], array_slice($lines, 1));
+
+    // The unit and its active team; not the organization's own row, the closed team or the other unit.
+    expect($unitCodes)->toBe(['PALPHA-U1', 'PALPHA-U1-T1']);
+
+    // Without a unit the template still covers the whole organization.
+    $all = array_values(array_filter(explode("\n", $this->service->templateCsv($org))));
+    expect($all)->toHaveCount(1 + 1 + 3);
+
+    $response = $this->actingAs($this->admin)
+        ->get(route('positions.import.template', ['organization_id' => $org->id, 'organization_unit_id' => $team->id, 'format' => 'csv', 'locale' => 'en']))
+        ->assertOk();
+
+    expect($response->headers->get('Content-Disposition'))->toContain('position-import-palpha-org-palpha-u1-t1-template-en.csv')
+        ->and($response->getContent())->toContain('PALPHA-U1-T1')->not->toContain($other->code);
+
+    // A unit of another organization is not a unit of this one.
+    $this->actingAs($this->admin)
+        ->get(route('positions.import.template', ['organization_id' => $org->id, 'organization_unit_id' => $this->beta['unit']->id]))
+        ->assertNotFound();
+});
