@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\ServesImportFiles;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeImportBatch;
 use App\Models\Organization;
 use App\Services\Employees\EmployeeCsvImportService;
 use App\Services\Employees\EmployeeImportFileException;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -35,6 +34,21 @@ use Throwable;
  */
 class EmployeeImportController extends Controller
 {
+    use ServesImportFiles;
+
+    /** The largest file the importer accepts, before the server's own upload limits. */
+    private const MAX_FILE_KILOBYTES = 5120;
+
+    /**
+     * Seconds of importing per request. Short enough to finish inside PHP's
+     * usual 30-second limit and a proxy's timeout; the page asks again until
+     * no row is left.
+     */
+    private const IMPORT_SECONDS_PER_PASS = 10.0;
+
+    /** Flashed between two passes of one import: the page then needs the counts only, not every row again. */
+    private const BETWEEN_PASSES_KEY = 'employee_import_between_passes';
+
     public function __construct(
         private readonly EmployeeCsvImportService $importService,
         private readonly OrganizationScopeService $scope,
@@ -56,7 +70,9 @@ class EmployeeImportController extends Controller
 
             if ($candidate !== null && $this->ownsBatch($candidate)) {
                 $batch = $this->batchPayload($candidate);
-                $rows = $this->importService->preview($candidate, app()->getLocale());
+                // A 2,000-row list is about a megabyte; while the passes run the page shows the progress only.
+                $betweenPasses = (bool) $request->session()->get(self::BETWEEN_PASSES_KEY) && $candidate->isInProgress();
+                $rows = $betweenPasses ? [] : $this->importService->preview($candidate, app()->getLocale());
             }
         }
 
@@ -64,6 +80,7 @@ class EmployeeImportController extends Controller
             'batch' => $batch,
             'rows' => $rows,
             'maxRows' => $this->importService->maxRows(),
+            'maxFileBytes' => $this->maxUploadKilobytes(self::MAX_FILE_KILOBYTES) * 1024,
             // The organizations the actor may import into, for the template.
             'organizations' => $this->allowedOrganizations($user),
             'can' => [
@@ -79,18 +96,24 @@ class EmployeeImportController extends Controller
     {
         $this->authorizePermission('employees.import.upload');
 
+        $maxKilobytes = $this->maxUploadKilobytes(self::MAX_FILE_KILOBYTES);
+        $tooLarge = __('employees.import.errors.tooLarge', ['max' => $this->formatMegabytes($maxKilobytes)]);
+
         $data = $request->validate([
             // `zip` because some servers report an Excel workbook as a plain
             // archive; the reader then refuses anything that is not a workbook.
-            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,zip', 'max:5120'],
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,zip', 'max:'.$maxKilobytes],
             'calendar' => ['nullable', 'string', 'in:gregorian,ethiopian'],
         ], [
             'file.required' => __('employees.import.errors.noFile'),
             'file.file' => __('employees.import.errors.noFile'),
-            'file.uploaded' => __('employees.import.errors.tooLarge'),
+            'file.uploaded' => $tooLarge,
             'file.mimes' => __('employees.import.errors.notCsv'),
-            'file.max' => __('employees.import.errors.tooLarge'),
+            'file.max' => $tooLarge,
         ]);
+
+        // Reading and checking 2,000 rows of a workbook can take longer than the default limit.
+        @set_time_limit(120);
 
         try {
             $batch = $this->importService->validate(
@@ -122,6 +145,15 @@ class EmployeeImportController extends Controller
 
         abort_unless($this->ownsBatch($batch), 403);
 
+        // The batch stays in the session so the page can show what happened
+        // and offer the rows that were left out.
+        $request->session()->put('employee_import_batch', $batch->id);
+
+        // A second click or a second tab arriving after the import ended: show the result, do not complain.
+        if ($batch->isFinished()) {
+            return to_route('employees.import.create');
+        }
+
         if (! $batch->isImportable()) {
             return back()->with('flash', [
                 'message' => __('employees.import.notImportable'),
@@ -129,31 +161,29 @@ class EmployeeImportController extends Controller
             ]);
         }
 
+        @set_time_limit(120);
+
         try {
-            $result = $this->importService->import($batch, Auth::user(), $request);
-        } catch (QueryException $e) {
-            // A database failure carries SQL, bindings and connection details: log it, never show it.
+            $result = $this->importService->import($batch, Auth::user(), $request, self::IMPORT_SECONDS_PER_PASS);
+        } catch (Throwable $e) {
+            // This pass was rolled back; what earlier passes imported stays. A failure
+            // may carry SQL, bindings or file paths: log it, never show it.
             report($e);
 
             return back()->with('flash', [
-                'message' => trim(__('employees.import.failed', ['reason' => ''])),
-                'type' => 'error',
-            ]);
-        } catch (Throwable $e) {
-            // The service rolls back on any failure, so nothing was written.
-            return back()->with('flash', [
-                'message' => __('employees.import.failed', ['reason' => $e->getMessage()]),
+                'message' => __('employees.import.failed'),
                 'type' => 'error',
             ]);
         }
 
-        // The batch stays in the session so the page can show what happened
-        // and offer the rows that were left out.
-        $request->session()->put('employee_import_batch', $batch->id);
+        // Rows still waiting: the page sends the next pass by itself, so no message yet.
+        if ($result['remaining'] > 0) {
+            return to_route('employees.import.create')->with(self::BETWEEN_PASSES_KEY, true);
+        }
 
         return to_route('employees.import.create')->with('flash', [
-            'message' => __('employees.import.imported', ['count' => $result['imported']]),
-            'type' => $result['imported'] > 0 ? 'success' : 'warning',
+            'message' => __('employees.import.imported', ['count' => $result['total_imported']]),
+            'type' => $result['total_imported'] > 0 ? 'success' : 'warning',
         ]);
     }
 
@@ -197,18 +227,19 @@ class EmployeeImportController extends Controller
             ->findOrFail($data['organization_id']);
 
         $locale = $this->templateLocale($data['locale'] ?? null);
-        $fileName = 'employee-import-'.Str::slug($organization->code).'-template-'.$locale;
+        $extension = ($data['format'] ?? 'csv') === 'xlsx' ? 'xlsx' : 'csv';
+        $disposition = $this->templateDisposition('employee-import', $organization, $locale, $extension);
 
-        if (($data['format'] ?? 'csv') === 'xlsx') {
+        if ($extension === 'xlsx') {
             return response($this->importService->templateXlsx($organization, $locale), 200, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="'.$fileName.'.xlsx"',
+                'Content-Disposition' => $disposition,
             ]);
         }
 
         return response($this->importService->templateCsv($organization, $locale), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$fileName.'.csv"',
+            'Content-Disposition' => $disposition,
         ]);
     }
 
@@ -267,11 +298,14 @@ class EmployeeImportController extends Controller
             'unfilled_rows' => $batch->unfilledRows(),
             'over_limit_rows' => $batch->overLimitRows(),
             'imported_rows' => $batch->importedRows(),
+            'remaining_rows' => $batch->remainingRows(),
             'calendar' => (string) ($batch->error_summary['calendar'] ?? EmployeeCsvImportService::CALENDAR_GREGORIAN),
             'status' => $batch->status,
             'importable' => $batch->isImportable(),
-            // True once the confirmation ran, whether or not every row went in.
-            'finished' => array_key_exists('imported', $batch->error_summary ?? []),
+            // True once the import ran to its last row, whether or not every row went in.
+            'finished' => $batch->isFinished(),
+            // True when an import started and rows still wait for the next pass.
+            'in_progress' => $batch->isInProgress(),
         ];
     }
 

@@ -10,6 +10,7 @@ use App\Enums\EmployeeStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationScopeType;
 use App\Models\CodeRule;
+use App\Models\EducationLevel;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeImportBatch;
@@ -21,10 +22,13 @@ use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Employees\EmployeeCsvImportService;
 use App\Services\Employees\EmployeeImportFileException;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
@@ -1158,4 +1162,214 @@ it('does not show database error details when an import fails in the database', 
         ->and($message)->not->toContain('SQLSTATE')
         ->and($message)->not->toContain('cache_locks');
     expect(Employee::query()->count())->toBe(0);
+});
+
+it('imports a large file over several passes and can be continued', function (): void {
+    $batch = $this->service->validate(csvUpload([
+        importRow($this->alpha, 1),
+        importRow($this->alpha, 2, ['first_name' => 'Sara', 'phone' => '0911000001', 'email' => 'sara@example.et']),
+        importRow($this->beta, 1, ['first_name' => 'Dawit', 'phone' => '0911000002', 'email' => 'dawit@example.et']),
+    ]), $this->admin);
+
+    // No time at all: each pass still handles one row, so the batch always moves forward.
+    $pass = $this->service->import($batch, $this->admin, null, 0.0);
+
+    expect($pass['imported'])->toBe(1)
+        ->and($pass['remaining'])->toBe(2)
+        ->and($batch->refresh()->status)->toBe(EmployeeImportBatch::STATUS_VALIDATED)
+        ->and($batch->isInProgress())->toBeTrue()
+        ->and($batch->isFinished())->toBeFalse()
+        ->and($batch->isImportable())->toBeTrue()
+        ->and(Employee::query()->count())->toBe(1);
+
+    $this->service->import($batch, $this->admin, null, 0.0);
+    $last = $this->service->import($batch, $this->admin, null, 0.0);
+
+    expect($last['remaining'])->toBe(0)
+        ->and($last['total_imported'])->toBe(3)
+        ->and($batch->refresh()->status)->toBe(EmployeeImportBatch::STATUS_IMPORTED)
+        ->and($batch->isFinished())->toBeTrue()
+        ->and(Employee::query()->pluck('first_name')->sort()->values()->all())->toBe(['Abebe', 'Dawit', 'Sara']);
+
+    // A finished batch is never imported a second time.
+    expect(fn () => $this->service->import($batch, $this->admin))->toThrow(RuntimeException::class);
+    expect(Employee::query()->count())->toBe(3);
+});
+
+it('shows a finished batch again instead of importing it twice', function (): void {
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha)]), $this->admin);
+
+    $this->actingAs($this->admin)->post(route('employees.import.confirm', $batch))->assertRedirect(route('employees.import.create'));
+    $this->actingAs($this->admin)->post(route('employees.import.confirm', $batch))
+        ->assertRedirect(route('employees.import.create'))
+        ->assertSessionMissing('flash');
+
+    expect(Employee::query()->count())->toBe(1);
+
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.create'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('batch.finished', true)
+            ->where('batch.in_progress', false)
+            ->where('batch.imported_rows', 1)
+            ->where('batch.remaining_rows', 0)
+            ->has('maxFileBytes')
+            ->where('rows.0.status', 'imported'));
+});
+
+it('names the template after the organization code, also when it has no ASCII spelling', function (): void {
+    $this->alpha['org']->forceFill(['code' => 'ማ-001'])->save();
+    $this->beta['org']->forceFill(['code' => 'ከአ-001'])->save();
+
+    $names = collect([$this->alpha, $this->beta])->map(fn (array $ctx): string => (string) $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $ctx['org']->id, 'format' => 'xlsx', 'locale' => 'en']))
+        ->assertOk()
+        ->headers->get('Content-Disposition'));
+
+    expect($names[0])->not->toBe($names[1])
+        ->and($names[0])->toContain("filename*=utf-8''".rawurlencode('employee-import-ማ-001-template-en.xlsx'));
+});
+
+it('imports the optional details the employee form records', function (): void {
+    $level = EducationLevel::query()->create(['code' => 'BA', 'name_en' => 'Bachelor Degree', 'name_am' => 'የመጀመሪያ ዲግሪ', 'rank' => 5, 'is_active' => true]);
+
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha, 1, [
+        'name_en' => 'Abebe Kebede Tesfaye',
+        'national_id' => '1234 5678 9012 3456',
+        'date_of_birth' => '15/03/1990',
+        'marital_status' => 'Married',
+        'education_level' => 'bachelor degree',
+        'field_of_study' => 'Accounting',
+        'disability_type' => 'visual',
+        'service_start_date' => '2015-07-08',
+        'address' => 'Arada Woreda 01',
+        'emergency_contact_name' => 'Sara Kebede',
+        'emergency_contact_phone' => '+251 911 000 111',
+    ])]), $this->admin);
+
+    expect($batch->valid_rows)->toBe(1)->and($batch->failed_rows)->toBe(0);
+
+    // Kept encrypted on the batch row, as the employee record keeps it.
+    $stored = EmployeeImportBatchRow::query()->where('batch_id', $batch->id)->firstOrFail()->getRawOriginal('row_data');
+    expect($stored)->toContain('sealed:')->not->toContain('1234567890123456')->not->toContain('1234 5678');
+
+    $this->service->import($batch, $this->admin);
+
+    $employee = Employee::query()->firstOrFail();
+
+    expect($employee->name_en)->toBe('Abebe Kebede Tesfaye')
+        ->and($employee->getRawOriginal('national_id_hash'))->toBe(NationalIdHash::of('1234567890123456'))
+        ->and(Carbon::parse($employee->getRawOriginal('date_of_birth'))->toDateString())->toBe('1990-03-15')
+        ->and($employee->getRawOriginal('marital_status'))->toBe('married')
+        ->and($employee->education_level_id)->toBe($level->id)
+        ->and($employee->field_of_study)->toBe('Accounting')
+        ->and((bool) $employee->has_disability)->toBeTrue()
+        ->and($employee->getRawOriginal('disability_type'))->toBe('visual')
+        ->and(Carbon::parse($employee->getRawOriginal('service_start_date'))->toDateString())->toBe('2015-07-08')
+        ->and($employee->address)->toBe('Arada Woreda 01')
+        ->and($employee->emergency_contact_name)->toBe('Sara Kebede')
+        ->and($employee->emergency_contact_phone)->toBe('+251 911 000 111');
+});
+
+it('reports a problem in an optional detail on its row', function (): void {
+    $batch = $this->service->validate(csvUpload([
+        importRow($this->alpha, 1, ['national_id' => '12345']),
+        importRow($this->alpha, 1, ['date_of_birth' => '31/02/1990']),
+        importRow($this->alpha, 1, ['date_of_birth' => '01/01/2990']),
+        importRow($this->alpha, 1, ['date_of_birth' => '01/01/1990', 'service_start_date' => '01/01/1980']),
+        importRow($this->alpha, 1, ['marital_status' => 'engaged']),
+        importRow($this->alpha, 1, ['education_level' => 'No such level']),
+        importRow($this->alpha, 1, ['has_disability' => 'maybe']),
+        importRow($this->alpha, 1, ['has_disability' => 'yes']),
+        importRow($this->alpha, 1, ['has_disability' => 'no', 'disability_type' => 'hearing']),
+        importRow($this->alpha, 1, ['emergency_contact_phone' => 'call me']),
+    ]), $this->admin);
+
+    expect($batch->valid_rows)->toBe(0)->and($batch->failed_rows)->toBe(10);
+
+    $errors = $batch->rows()->orderBy('row_number')->get()->mapWithKeys(
+        fn (EmployeeImportBatchRow $row): array => [$row->row_number => implode(' ', $row->errors ?? [])],
+    );
+
+    expect($errors[2])->toContain('national_id')
+        ->and($errors[3])->toContain('date_of_birth')
+        ->and($errors[4])->toContain('date_of_birth')->toContain('not in the past')
+        ->and($errors[5])->toContain('service_start_date must be later')
+        ->and($errors[6])->toContain('marital_status')
+        ->and($errors[7])->toContain('education_level')
+        ->and($errors[8])->toContain('has_disability')
+        ->and($errors[9])->toContain('disability_type is empty')
+        ->and($errors[10])->toContain('has_disability says no')
+        ->and($errors[11])->toContain('emergency_contact_phone');
+});
+
+it('refuses a national id that is already registered or repeated in the file', function (): void {
+    $first = $this->service->validate(csvUpload([importRow($this->alpha, 1, ['national_id' => '1111222233334444'])]), $this->admin);
+    $this->service->import($first, $this->admin);
+
+    $batch = $this->service->validate(csvUpload([
+        importRow($this->alpha, 2, ['first_name' => 'Sara', 'phone' => '0911000001', 'email' => 'sara@example.et', 'national_id' => '1111-2222-3333-4444']),
+        importRow($this->beta, 1, ['first_name' => 'Dawit', 'phone' => '0911000002', 'email' => 'dawit@example.et', 'national_id' => '5555666677778888']),
+        importRow($this->beta, 2, ['first_name' => 'Hana', 'phone' => '0911000003', 'email' => 'hana@example.et', 'national_id' => '5555666677778888']),
+    ]), $this->admin);
+
+    $errors = $batch->rows()->orderBy('row_number')->get()->mapWithKeys(
+        fn (EmployeeImportBatchRow $row): array => [$row->row_number => implode(' ', $row->errors ?? [])],
+    );
+
+    expect($batch->valid_rows)->toBe(1)
+        ->and($errors[2])->toContain('already registered')
+        ->and($errors[3])->toBe('')
+        ->and($errors[4])->toContain('earlier row');
+
+    // The rows to fix come back with the number as it was typed.
+    expect($this->service->failedRowsCsv($batch))->toContain('1111-2222-3333-4444');
+});
+
+it('reads the birth date in the calendar chosen for the file', function (): void {
+    $batch = $this->service->validate(
+        csvUpload([importRow($this->alpha, 1, ['assignment_start_date' => '', 'date_of_birth' => '05/01/1980'])]),
+        $this->admin,
+        null,
+        EmployeeCsvImportService::CALENDAR_ETHIOPIAN,
+    );
+
+    expect($batch->valid_rows)->toBe(1);
+
+    $this->service->import($batch, $this->admin);
+
+    $expected = app(EthiopianCalendarService::class)->ethiopianToGregorian(1980, 1, 5)->toDateString();
+
+    expect(Carbon::parse(Employee::query()->firstOrFail()->getRawOriginal('date_of_birth'))->toDateString())->toBe($expected)
+        ->and($expected)->toStartWith('1987-09');
+});
+
+it('lists the accepted values on a second sheet of the excel template', function (): void {
+    EducationLevel::query()->create(['code' => 'DIP', 'name_en' => 'Diploma', 'name_am' => 'ዲፕሎማ', 'rank' => 3, 'is_active' => true]);
+
+    $path = tempnam(sys_get_temp_dir(), 'imp').'.xlsx';
+    file_put_contents($path, $this->service->templateXlsx($this->alpha['org']));
+    $workbook = IOFactory::load($path);
+
+    expect($workbook->getSheetNames())->toBe(['employees', 'allowed_values']);
+
+    $values = $workbook->getSheet(1)->toArray(null, false, false, false);
+
+    expect($values[0])->toBe(['gender', 'employment_status', 'employment_type', 'marital_status', 'education_level', 'has_disability', 'disability_type'])
+        ->and(array_column($values, 4))->toContain('Diploma')
+        ->and(array_column($values, 3))->toContain('married');
+
+    // The workbook still uploads: only its first sheet is read.
+    $sheet = $workbook->getSheet(0);
+    $header = $sheet->toArray(null, false, false, false)[0];
+
+    foreach (['first_name' => 'Marta', 'father_name' => 'Alemu', 'grandfather_name' => 'Bekele', 'gender' => 'female', 'education_level' => 'Diploma'] as $column => $value) {
+        $sheet->setCellValue([array_search($column, $header, true) + 1, 2], $value);
+    }
+
+    (new Xlsx($workbook))->save($path);
+
+    $batch = $this->service->validate(new UploadedFile($path, 'employees.xlsx', null, null, true), $this->admin);
+
+    expect($batch->valid_rows)->toBe(1)->and($batch->failed_rows)->toBe(0);
 });

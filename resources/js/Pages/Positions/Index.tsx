@@ -141,7 +141,14 @@ export default function PositionsIndex({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('positions.title')} />}>
+        <AuthenticatedLayout header={<PageHeader
+                    title={t('positions.title')}
+                    actions={can.create ? (
+                        <Link href={route('positions.import.create')} className={buttonClassName({ variant: 'outline' })}>
+                            {t('positions.import.open')}
+                        </Link>
+                    ) : undefined}
+                />}>
             <Head title={t('positions.title')} />
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">

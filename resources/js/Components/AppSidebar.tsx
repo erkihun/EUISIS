@@ -451,6 +451,7 @@ const navGroups: NavGroup[] = [
         items: [
             { routeName: 'positions.index', labelKey: 'nav.positions', icon: Briefcase,          permission: 'positions.viewAny' },
             { routeName: 'positions.status', labelKey: 'nav.newJobPositionsStatus', icon: SuitcaseTagIcon, permission: 'positions.viewAny' },
+            { routeName: 'positions.import.create', labelKey: 'nav.positionImport', icon: ImportIcon, permission: 'positions.create' },
             { routeName: 'position-establishments.index', labelKey: 'nav.positionEstablishments', icon: ClipboardTextIcon, permission: 'position-establishments.viewAny' },
             { routeName: 'position-services.index', labelKey: 'nav.positionServices', icon: Layers,             permission: 'service_feedback.settings.manage' },
             { routeName: 'grade-levels.index', labelKey: 'nav.gradeLevels', icon: RankingIcon,     permission: 'grade-levels.viewAny' },

@@ -46,4 +46,31 @@ return [
     'organization_required' => 'ይህ የሥራ መደብ የሚገኝበትን ተቋም ይምረጡ።',
     'lifecycle_changed' => 'የሥራ መደቡ ሁኔታ ተቀይሯል።',
     'job_master_saved' => 'የሥራ መሠረታዊ መረጃው ተቀምጧል።',
+
+    // Position import from a CSV or Excel file
+    'import' => [
+        'checked' => 'ፋይሉ ተፈትሿል፦ :valid ረድፎች ለምዝገባ ዝግጁ ናቸው፤ :invalid ረድፎች መስተካከል አለባቸው።',
+        'imported' => ':count የሥራ መደቦች ተመዝግበዋል።',
+        'notImportable' => 'በዚህ ፋይል ውስጥ ሊመዘገብ የሚችል ረድፍ የለም። የተዘረዘሩትን ረድፎች አስተካክለው ፋይሉን እንደገና ይጫኑ።',
+        'failed' => 'ምዝገባው በስህተት ምክንያት ቆሟል። እስካሁን የተመዘገቡት የሥራ መደቦች ተጠብቀዋል። እንደገና ይሞክሩ፤ እንደገና ከቆመ ለሲስተም አስተዳዳሪው ያሳውቁ።',
+        'errors' => [
+            'noFile' => 'መጀመሪያ የሞሉትን ፋይል ይምረጡ።',
+            'notCsv' => 'የዚህ ዓይነት ፋይል ሊነበብ አይችልም። ከአብነቱ የሞሉትን የExcel (.xlsx) ወይም የCSV ፋይል ይጫኑ።',
+            'tooLarge' => 'ፋይሉ ከ:max MB ይበልጣል። ወደ ትናንሽ ፋይሎች ከፋፍለው አንድ በአንድ ይጫኑ።',
+            'unreadable' => 'ፋይሉ ሊከፈት አልቻለም። እንደ Excel ፋይል (.xlsx) እንደገና አስቀምጠው ይጫኑ።',
+            'notUtf8' => 'በዚህ የCSV ፋይል ውስጥ ያሉት ፊደላት ተበላሽተዋል፤ ስለዚህ መጠሪያዎች ሊነበቡ አይችሉም። በExcel ውስጥ Save As ብለው "CSV UTF-8" ይምረጡ ወይም ፋይሉን እንደ Excel ፋይል (.xlsx) አስቀምጠው እንደገና ይጫኑ።',
+            'emptyFile' => 'ፋይሉ ከርዕስ ረድፉ በታች ምንም ረድፍ የለውም። ቢያንስ አንድ የሥራ መደብ ሞልተው እንደገና ይጫኑ።',
+            'missingColumns' => 'በርዕስ ረድፉ ውስጥ እነዚህ ዓምዶች የሉም፦ :columns። አብነቱን እንደገና ያውርዱ፤ የመጀመሪያውን ረድፍ አይቀይሩ።',
+            'required' => ':field ባዶ ነው። ይህን ሕዋስ ይሙሉ።',
+            'tooLong' => ':field ከ:max ፊደላት ይበልጣል። ያሳጥሩት።',
+            'organizationNotFound' => 'organization_code፦ ተቋም :code አልተገኘም። አዲስ አብነት ያውርዱ፤ ይህን ዓምድ አይቀይሩ።',
+            'organizationNotActive' => 'organization_code፦ ተቋም :code ንቁ አይደለም፤ ስለዚህ አዲስ የሥራ መደብ ሊመዘገብበት አይችልም።',
+            'outsideScope' => 'organization_code፦ ተቋም :code ከተፈቀደልዎ ወሰን ውጭ ነው። መመዝገብ የሚችሉት በራስዎ ተቋማት ውስጥ ብቻ ነው።',
+            'unitNotInOrganization' => 'organization_unit_code፦ በዚህ ተቋም ውስጥ :code የሚል ንቁ የሥራ ክፍል የለም። ኮዱን ያስተካክሉ፤ የሥራ መደቡ የተቋሙ ራሱ ከሆነ ሕዋሱን ባዶ ይተዉት።',
+            'occupationNotFound' => 'occupation_code፦ ሙያ :code አልተገኘም። በአብነቱ occupations ሉህ ላይ ካሉት ኮዶች አንዱን ይጠቀሙ።',
+            'gradeLevelNotFound' => 'grade_level፦ ":value" የተመዘገበ ደረጃ አይደለም። በአብነቱ grade_levels ሉህ ላይ ካሉት አንዱን ይጠቀሙ ወይም ሕዋሱን ባዶ ይተዉት።',
+            'unitHead' => 'is_unit_head፦ ":value" አይታወቅም። አዎ ወይም አይ (yes ወይም no) ብለው ይጻፉ፤ ወይም ሕዋሱን ባዶ ይተዉት።',
+            'headDuplicatedInFile' => 'is_unit_head፦ በዚህ ፋይል ውስጥ ቀደም ያለ ረድፍ እዚህ የኃላፊ የሥራ መደብ ምልክት አድርጓል። አዎ የሚለውን በአንድ ረድፍ ላይ ብቻ ያቆዩ።',
+        ],
+    ],
 ];

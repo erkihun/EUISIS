@@ -88,9 +88,29 @@ class EmployeeImportBatch extends Model
         return (int) ($this->error_summary['over_limit'] ?? 0);
     }
 
-    /** Employees created when the batch was committed. */
+    /** Employees created so far. A large file is imported over several passes. */
     public function importedRows(): int
     {
         return (int) ($this->error_summary['imported'] ?? 0);
+    }
+
+    /** Checked rows still waiting to become employees. */
+    public function remainingRows(): int
+    {
+        return $this->rows()->where('status', EmployeeImportBatchRow::STATUS_VALID)->count();
+    }
+
+    /** True once the import ran to its last row, whether or not every row went in. */
+    public function isFinished(): bool
+    {
+        return $this->status !== self::STATUS_VALIDATED
+            && array_key_exists('imported', $this->error_summary ?? []);
+    }
+
+    /** True when an import started and rows are still waiting: it was interrupted, or the next pass is due. */
+    public function isInProgress(): bool
+    {
+        return $this->status === self::STATUS_VALIDATED
+            && array_key_exists('imported', $this->error_summary ?? []);
     }
 }

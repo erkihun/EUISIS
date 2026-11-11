@@ -1,8 +1,17 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+
+/*
+ * Use the folder's real spelling.  On Windows a shell may start in `c:\…`
+ * while the linked @euisis/ui package resolves to `C:\…`; the bundler then
+ * sees two different `react` paths and ships React twice, which breaks every
+ * hook in the shared components ("Cannot read properties of null").
+ */
+process.chdir(fs.realpathSync.native(process.cwd()));
 
 /*
  * Keep the development server private by default.  When testing on a phone,

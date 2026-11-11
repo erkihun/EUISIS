@@ -61,6 +61,7 @@ const navigation = {
     hierarchyVersions: 'Hierarchy Versions',
     employees: 'Employees',
     employeeImport: 'Import Employees',
+    positionImport: 'Import Positions',
     employeeTransfers: 'Employee Transfers',
     transferManagement: 'Transfer Management',
     transferDashboard: 'Dashboard',

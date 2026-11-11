@@ -56,6 +56,7 @@ use App\Http\Controllers\Web\OrganizationUnitRelationshipController;
 use App\Http\Controllers\Web\OrganizationUnitTypeController;
 use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
+use App\Http\Controllers\Web\PositionImportController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\PublicHolidayController;
@@ -941,6 +942,12 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     // Positions
     Route::get('/positions', [PositionController::class, 'index'])->name('positions.index');
     Route::get('/positions/status', [PositionController::class, 'status'])->name('positions.status');
+    Route::get('/positions/import', [PositionImportController::class, 'create'])->name('positions.import.create');
+    Route::post('/positions/import', [PositionImportController::class, 'store'])->name('positions.import.store');
+    Route::get('/positions/import/template', [PositionImportController::class, 'template'])->name('positions.import.template');
+    Route::post('/positions/import/cancel', [PositionImportController::class, 'cancel'])->name('positions.import.cancel');
+    Route::post('/positions/import/{batch}/confirm', [PositionImportController::class, 'confirm'])->name('positions.import.confirm');
+    Route::get('/positions/import/{batch}/errors', [PositionImportController::class, 'errors'])->name('positions.import.errors');
     Route::get('/positions/create', [PositionController::class, 'create'])->name('positions.create');
     Route::post('/positions', [PositionController::class, 'store'])->name('positions.store');
     Route::get('/positions/{position}/move', [PositionController::class, 'move'])->name('positions.move');
