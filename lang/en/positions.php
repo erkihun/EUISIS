@@ -46,4 +46,31 @@ return [
     'organization_required' => 'Select the organization this position belongs to.',
     'lifecycle_changed' => 'The position status was changed.',
     'job_master_saved' => 'The job master value was saved.',
+
+    // Position import from a CSV or Excel file
+    'import' => [
+        'checked' => 'File checked. Ready to import: :valid. Need fixing: :invalid.',
+        'imported' => 'Positions imported: :count.',
+        'notImportable' => 'This file has no rows that can be imported. Fix the rows listed and upload the file again.',
+        'failed' => 'The import stopped because of an error. Positions already imported are kept. Try again; if it stops again, tell the system administrator.',
+        'errors' => [
+            'noFile' => 'Choose the filled-in file first.',
+            'notCsv' => 'This file type cannot be read. Upload the Excel file (.xlsx) or the CSV file you filled in from the template.',
+            'tooLarge' => 'The file is larger than :max MB. Split it into smaller files and upload them one at a time.',
+            'unreadable' => 'The file could not be opened. Save it again as an Excel workbook (.xlsx) and upload it.',
+            'notUtf8' => 'The letters in this CSV file are damaged, so titles cannot be read. In Excel choose Save As and pick "CSV UTF-8", or save the file as an Excel workbook (.xlsx), then upload it again.',
+            'emptyFile' => 'The file has no rows below the heading row. Fill in at least one position and upload it again.',
+            'missingColumns' => 'The heading row is missing these columns: :columns. Download the template again and keep its first row unchanged.',
+            'required' => ':field is empty. Fill in this cell.',
+            'tooLong' => ':field is longer than :max characters. Shorten it.',
+            'organizationNotFound' => 'organization_code: organization :code was not found. Download a fresh template and keep this column unchanged.',
+            'organizationNotActive' => 'organization_code: organization :code is not active, so it cannot take new positions.',
+            'outsideScope' => 'organization_code: organization :code is outside your organization scope. You can import only into your own organizations.',
+            'unitNotInOrganization' => 'organization_unit_code: no active unit :code belongs to this organization. Correct the code, or leave the cell empty for a position of the organization itself.',
+            'occupationNotFound' => 'occupation_code: occupation :code was not found. Use a code from the occupations sheet of the template.',
+            'gradeLevelNotFound' => 'grade_level: ":value" is not a registered grade level. Use one from the grade_levels sheet of the template, or leave the cell empty.',
+            'unitHead' => 'is_unit_head: ":value" is not recognised. Write yes or no, or leave the cell empty.',
+            'headDuplicatedInFile' => 'is_unit_head: an earlier row of this file already marks the head position here. Keep yes on one row only.',
+        ],
+    ],
 ];

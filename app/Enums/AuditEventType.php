@@ -589,6 +589,8 @@ enum AuditEventType: string
      */
     case EmployeeImportValidated = 'employee_import.validated';
     case EmployeeImportCompleted = 'employee_import.completed';
+    case PositionImportValidated = 'position_import.validated';
+    case PositionImportCompleted = 'position_import.completed';
     case ServiceFeedbackSettingsUpdated = 'service_feedback.settings_updated';
 
     /*

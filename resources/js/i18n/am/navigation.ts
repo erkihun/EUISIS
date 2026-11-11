@@ -61,6 +61,7 @@ const navigation = {
     hierarchyVersions: 'የመዋቅር ስሪቶች',
     employees: 'ሠራተኞች',
     employeeImport: 'ሠራተኞችን ከፋይል ይመዝግቡ',
+    positionImport: 'መደብ ከፋይል ይመዝግቡ',
     employeeTransfers: 'የሠራተኛ ዝውውሮች',
     transferManagement: 'የዝውውር አስተዳደር',
     transferDashboard: 'ዳሽቦርድ',
