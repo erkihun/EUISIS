@@ -187,6 +187,44 @@ class OrganizationUnitTreeService
      *
      * @return array<int, array{id: string, name_en: string, name_am: string|null, code: string, depth: int}>
      */
+    /**
+     * The unit and every active unit below it, as ids. One query for the
+     * organization's units; the walk down the tree is done in memory.
+     *
+     * @return array<int, string>
+     */
+    public function activeSubtreeIds(OrganizationUnit $unit): array
+    {
+        $childrenByParent = [];
+
+        foreach (OrganizationUnit::query()->active()->forOrganization((string) $unit->organization_id)->get(['id', 'parent_unit_id']) as $candidate) {
+            if ($candidate->parent_unit_id !== null) {
+                $childrenByParent[(string) $candidate->parent_unit_id][] = (string) $candidate->id;
+            }
+        }
+
+        $collected = [(string) $unit->id];
+        $frontier = $collected;
+
+        while ($frontier !== []) {
+            $next = [];
+
+            foreach ($frontier as $parentId) {
+                foreach ($childrenByParent[$parentId] ?? [] as $childId) {
+                    // A loop in the data must not become a loop here.
+                    if (! in_array($childId, $collected, true)) {
+                        $collected[] = $childId;
+                        $next[] = $childId;
+                    }
+                }
+            }
+
+            $frontier = $next;
+        }
+
+        return $collected;
+    }
+
     public function optionsForOrganization(string $organizationId): array
     {
         $all = OrganizationUnit::query()

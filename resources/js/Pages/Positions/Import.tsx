@@ -16,8 +16,9 @@ import {
     Spinner,
     SplitBar,
     StepSection,
+    TemplateChooser,
 } from '@/Components/ImportFlow';
-import type { ResultTab, StepState } from '@/Components/ImportFlow';
+import type { ResultTab, StepState, TemplateOrganization } from '@/Components/ImportFlow';
 import { useLocale } from '@/hooks/useLocale';
 import {
     Alert,
@@ -25,7 +26,6 @@ import {
     badgeClassName,
     buttonClassName,
     cx,
-    selectClassName,
     tableBodyClassName,
     tableCellClassName,
     tableClassName,
@@ -67,7 +67,7 @@ type Row = {
     errors: string[];
 };
 
-type Organization = { id: string; code: string; name_en: string; name_am: string | null };
+type Organization = TemplateOrganization;
 
 type Props = {
     batch: Batch | null;
@@ -88,7 +88,6 @@ export default function Import({ batch, rows, maxRows, maxFileBytes, organizatio
     const result = useRef<HTMLElement>(null);
     const [importing, setImporting] = useState(false);
     const [list, setList] = useState<ListKey | null>(null);
-    const [organizationId, setOrganizationId] = useState(organizations.length === 1 ? organizations[0].id : '');
     const form = useForm<{ file: File | null }>({ file: null });
 
     /*
@@ -105,12 +104,6 @@ export default function Import({ batch, rows, maxRows, maxFileBytes, organizatio
 
     // A new file, or the end of an import, starts on the list that matters most again.
     useEffect(() => setList(null), [batch?.id, batch?.finished]);
-
-    const organizationLabel = (organization: Organization): string =>
-        `${am ? (organization.name_am || organization.name_en) : (organization.name_en || organization.name_am)} (${organization.code})`;
-
-    const templateHref = (format: 'xlsx' | 'csv'): string =>
-        route('positions.import.template', { organization_id: organizationId, locale, format });
 
     const chooseFile = (file: File | null) => {
         form.clearErrors('file');
@@ -216,48 +209,27 @@ export default function Import({ batch, rows, maxRows, maxFileBytes, organizatio
                         {organizations.length === 0 ? (
                             <Alert tone="warning">{t('positions.import.noOrganizations')}</Alert>
                         ) : (
-                            <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
-                                <div className="min-w-0 flex-1">
-                                    <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
-                                        {t('positions.import.organization')}
-                                    </label>
-                                    <select
-                                        id="template-organization"
-                                        value={organizationId}
-                                        onChange={(event) => setOrganizationId(event.target.value)}
-                                        className={cx(selectClassName, 'w-full')}
-                                    >
-                                        <option value="">{t('positions.import.selectOrganization')}</option>
-                                        {organizations.map((organization) => (
-                                            <option key={organization.id} value={organization.id}>{organizationLabel(organization)}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-2">
-                                    {organizationId ? (
-                                        <>
-                                            <a href={templateHref('xlsx')} className={buttonClassName({ variant: 'primary' })}>
-                                                <DownloadIcon className="h-4 w-4" />
-                                                {t('positions.import.downloadExcel')}
-                                            </a>
-                                            <a href={templateHref('csv')} className={buttonClassName({ variant: 'outline' })}>
-                                                {t('positions.import.downloadCsv')}
-                                            </a>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button type="button" disabled className={buttonClassName({ variant: 'primary' })}>
-                                                <DownloadIcon className="h-4 w-4" />
-                                                {t('positions.import.downloadExcel')}
-                                            </button>
-                                            <button type="button" disabled className={buttonClassName({ variant: 'outline' })}>
-                                                {t('positions.import.downloadCsv')}
-                                            </button>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
+                            <TemplateChooser
+                                organizations={organizations}
+                                amharic={am}
+                                labels={{
+                                    organization: t('positions.import.organization'),
+                                    selectOrganization: t('positions.import.selectOrganization'),
+                                    unit: t('positions.import.unit'),
+                                    allUnits: t('positions.import.allUnits'),
+                                    unitHelp: t('positions.import.unitHelp'),
+                                    unitsLoading: t('positions.import.unitsLoading'),
+                                    unitsFailed: t('positions.import.unitsFailed'),
+                                    downloadExcel: t('positions.import.downloadExcel'),
+                                    downloadCsv: t('positions.import.downloadCsv'),
+                                }}
+                                hrefFor={(format, organizationId, unitId) => route('positions.import.template', {
+                                    organization_id: organizationId,
+                                    locale,
+                                    format,
+                                    ...(unitId ? { organization_unit_id: unitId } : {}),
+                                })}
+                            />
                         )}
                     </StepSection>
 

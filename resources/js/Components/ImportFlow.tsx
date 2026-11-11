@@ -1,7 +1,7 @@
 import { KeyboardEvent, ReactNode, Ref, useEffect, useRef, useState } from 'react';
 import type { JSX } from 'react';
-import { AlertTriangle, CheckReadIcon, FileSpreadsheetIcon, LightbulbIcon, UploadIcon, XMarkIcon } from '@/Components/NavIcons';
-import { buttonClassName, cx, tableHeaderCellClassName } from '@/Components/ui';
+import { AlertTriangle, CheckReadIcon, DownloadIcon, FileSpreadsheetIcon, LightbulbIcon, UploadIcon, XMarkIcon } from '@/Components/NavIcons';
+import { buttonClassName, cx, selectClassName, tableHeaderCellClassName } from '@/Components/ui';
 
 /*
  * The parts the file-import screens share (employees, positions): the step
@@ -128,6 +128,146 @@ export function GuidePanel({ title, tips, footer, className }: { title: string; 
             </ul>
             {footer && <p className="mt-4 border-t border-(--app-border) pt-3 text-xs leading-5 text-(--app-muted-foreground)">{footer}</p>}
         </aside>
+    );
+}
+
+export type TemplateOrganization = { id: string; code: string; name_en: string; name_am: string | null };
+
+type TemplateUnit = { id: string; code: string; name_en: string; name_am: string | null; depth: number };
+
+type TemplateChooserProps = {
+    organizations: TemplateOrganization[];
+    amharic: boolean;
+    labels: {
+        organization: string;
+        selectOrganization: string;
+        unit: string;
+        allUnits: string;
+        unitHelp: string;
+        unitsLoading: string;
+        unitsFailed: string;
+        downloadExcel: string;
+        downloadCsv: string;
+    };
+    /** The download address for the chosen organization and unit; an empty unit means the whole organization. */
+    hrefFor: (format: 'xlsx' | 'csv', organizationId: string, unitId: string) => string;
+};
+
+/**
+ * What the template is made for: the organization, then, if wanted, one of
+ * its units. With a unit the template covers that unit and the units below
+ * it; without one, the whole organization. The units are fetched when the
+ * organization is chosen, and listed indented by their place in the tree.
+ */
+export function TemplateChooser({ organizations, amharic, labels, hrefFor }: TemplateChooserProps): JSX.Element {
+    const [organizationId, setOrganizationId] = useState(organizations.length === 1 ? organizations[0].id : '');
+    const [unitId, setUnitId] = useState('');
+    const [units, setUnits] = useState<TemplateUnit[]>([]);
+    const [unitsState, setUnitsState] = useState<'idle' | 'loading' | 'failed'>('idle');
+
+    useEffect(() => {
+        setUnitId('');
+        setUnits([]);
+
+        if (organizationId === '') {
+            setUnitsState('idle');
+
+            return;
+        }
+
+        const request = new AbortController();
+        setUnitsState('loading');
+
+        fetch(route('organizations.units.options', organizationId), {
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+            signal: request.signal,
+        })
+            .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+            .then((list: TemplateUnit[]) => {
+                setUnits(Array.isArray(list) ? list : []);
+                setUnitsState('idle');
+            })
+            .catch(() => {
+                // A newer choice cancelled this request: that one reports for itself.
+                if (!request.signal.aborted) setUnitsState('failed');
+            });
+
+        return () => request.abort();
+    }, [organizationId]);
+
+    const name = (item: { name_en: string; name_am: string | null }): string =>
+        (amharic ? (item.name_am || item.name_en) : (item.name_en || item.name_am)) ?? '';
+
+    return (
+        <div>
+            <div className="grid gap-4 sm:grid-cols-2">
+                <div className="min-w-0">
+                    <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
+                        {labels.organization}
+                    </label>
+                    <select
+                        id="template-organization"
+                        value={organizationId}
+                        onChange={(event) => setOrganizationId(event.target.value)}
+                        className={cx(selectClassName, 'w-full')}
+                    >
+                        <option value="">{labels.selectOrganization}</option>
+                        {organizations.map((organization) => (
+                            <option key={organization.id} value={organization.id}>{`${name(organization)} (${organization.code})`}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className="min-w-0">
+                    <label htmlFor="template-unit" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
+                        {labels.unit}
+                    </label>
+                    <select
+                        id="template-unit"
+                        value={unitId}
+                        onChange={(event) => setUnitId(event.target.value)}
+                        disabled={organizationId === '' || unitsState === 'loading'}
+                        aria-describedby="template-unit-help"
+                        className={cx(selectClassName, 'w-full')}
+                    >
+                        <option value="">{unitsState === 'loading' ? labels.unitsLoading : labels.allUnits}</option>
+                        {units.map((unit) => (
+                            // Two non-breaking spaces per level: an option cannot be indented any other way.
+                            <option key={unit.id} value={unit.id}>{`${'  '.repeat(unit.depth)}${name(unit)} (${unit.code})`}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            <p id="template-unit-help" className={cx('mt-2 text-xs leading-5', unitsState === 'failed' ? 'text-red-600 dark:text-red-400' : 'text-(--app-muted-foreground)')} role={unitsState === 'failed' ? 'alert' : undefined}>
+                {unitsState === 'failed' ? labels.unitsFailed : labels.unitHelp}
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+                {organizationId ? (
+                    <>
+                        <a href={hrefFor('xlsx', organizationId, unitId)} className={buttonClassName({ variant: 'primary' })}>
+                            <DownloadIcon className="h-4 w-4" aria-hidden="true" />
+                            {labels.downloadExcel}
+                        </a>
+                        <a href={hrefFor('csv', organizationId, unitId)} className={buttonClassName({ variant: 'outline' })}>
+                            {labels.downloadCsv}
+                        </a>
+                    </>
+                ) : (
+                    <>
+                        <button type="button" disabled className={buttonClassName({ variant: 'primary' })}>
+                            <DownloadIcon className="h-4 w-4" aria-hidden="true" />
+                            {labels.downloadExcel}
+                        </button>
+                        <button type="button" disabled className={buttonClassName({ variant: 'outline' })}>
+                            {labels.downloadCsv}
+                        </button>
+                    </>
+                )}
+            </div>
+        </div>
     );
 }
 

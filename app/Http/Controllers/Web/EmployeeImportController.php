@@ -219,6 +219,8 @@ class EmployeeImportController extends Controller
             'organization_id' => ['required', 'uuid'],
             'locale' => ['nullable', 'string', 'in:en,am'],
             'format' => ['nullable', 'string', 'in:csv,xlsx'],
+            // Optional: only the vacant positions of this unit and the units below it.
+            'organization_unit_id' => ['nullable', 'uuid'],
         ]);
         $user = Auth::user();
         $organization = Organization::query()
@@ -228,16 +230,17 @@ class EmployeeImportController extends Controller
 
         $locale = $this->templateLocale($data['locale'] ?? null);
         $extension = ($data['format'] ?? 'csv') === 'xlsx' ? 'xlsx' : 'csv';
-        $disposition = $this->templateDisposition('employee-import', $organization, $locale, $extension);
+        $unit = $this->templateUnit($organization, $data['organization_unit_id'] ?? null);
+        $disposition = $this->templateDisposition('employee-import', $organization, $locale, $extension, $unit);
 
         if ($extension === 'xlsx') {
-            return response($this->importService->templateXlsx($organization, $locale), 200, [
+            return response($this->importService->templateXlsx($organization, $locale, $unit), 200, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'Content-Disposition' => $disposition,
             ]);
         }
 
-        return response($this->importService->templateCsv($organization, $locale), 200, [
+        return response($this->importService->templateCsv($organization, $locale, $unit), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => $disposition,
         ]);
