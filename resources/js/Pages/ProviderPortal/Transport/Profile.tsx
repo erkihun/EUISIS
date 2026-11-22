@@ -44,7 +44,7 @@ export default function Profile({ user }: { user: PortalUser }) {
                         <FormField label={t('providerPortal.confirmNewPassword')} required error={password.errors.password_confirmation}>
                             {({ id, invalid }) => <Input id={id} type="password" autoComplete="new-password" value={password.data.password_confirmation} onChange={(e) => password.setData('password_confirmation', e.target.value)} aria-invalid={invalid} />}
                         </FormField>
-                        <PasswordPolicyChecklist password={password.data.password} confirmation={password.data.password_confirmation} />
+                        <PasswordPolicyChecklist password={password.data.password} />
                         <div className="flex justify-end"><Button type="submit" variant="primary" disabled={password.processing}>{t('providerPortal.updatePassword')}</Button></div>
                     </Card>
                 </form>

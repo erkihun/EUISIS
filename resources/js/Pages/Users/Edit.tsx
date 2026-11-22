@@ -372,7 +372,7 @@ export default function EditUser({
                                         <PasswordPolicyChecklist
                                             className="mt-3"
                                             password={form.data.password}
-                                            confirmation={form.data.password_confirmation}
+                                           
                                             personal={[form.data.name, form.data.email, form.data.phone_number]}
                                         />
                                     )}

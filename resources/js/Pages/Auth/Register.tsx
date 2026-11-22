@@ -268,7 +268,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                             <input id="password_confirmation" type={showPassword ? 'text' : 'password'} value={form.data.password_confirmation} onChange={(e) => form.setData('password_confirmation', e.target.value)} autoComplete="new-password" aria-invalid={Boolean(form.errors.password_confirmation)} aria-describedby={form.errors.password_confirmation ? 'confirmation-error' : undefined} className={inputClass(Boolean(form.errors.password_confirmation))} />
                                             {form.errors.password_confirmation && <p id="confirmation-error" role="alert" className={errorClass}>{form.errors.password_confirmation}</p>}
                                         </div>
-                                        <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} personal={[form.data.employee_number]} />
+                                        <PasswordPolicyChecklist password={form.data.password} personal={[form.data.employee_number]} />
                                     </>}
 
                                     <button type="submit" disabled={form.processing || !form.data.employee_number.trim()} className={primaryClass}>

@@ -65,7 +65,7 @@ export default function ResetPassword() {
                     {errors.password_confirmation && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{errors.password_confirmation}</p>}
                 </div>
 
-                <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} />
+                <PasswordPolicyChecklist password={form.data.password} />
 
                 <button type="submit" disabled={form.processing} className={courtAuthButtonClass}>
                     {t('cm.auth.reset_password_button')}

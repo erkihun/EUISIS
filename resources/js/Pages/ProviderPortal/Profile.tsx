@@ -161,7 +161,7 @@ function ChangePasswordForm() {
                 />
                 {form.errors.password_confirmation && <p className={errorCls}>{form.errors.password_confirmation}</p>}
             </div>
-            <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} />
+            <PasswordPolicyChecklist password={form.data.password} />
             <div className="flex justify-end pt-1">
                 <button
                     type="submit"
