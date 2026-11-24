@@ -740,6 +740,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {
         Route::get('/', [BackupRecoveryController::class, 'index'])->name('index');
         Route::post('/refresh', [BackupRecoveryController::class, 'refresh'])->middleware('throttle:6,1')->name('refresh');
+        // The refresh address stays in the browser when the action ends on an error page or a
+        // sign-in; reloading it is a GET, which used to answer 405. It opens the page instead.
+        Route::get('/refresh', fn () => to_route('backups.index'));
         Route::post('/requests', [BackupRecoveryController::class, 'store'])->name('requests.store');
         Route::post('/requests/{restoreRequest}', [BackupRecoveryController::class, 'transition'])->whereUuid('restoreRequest')->name('requests.transition');
     });

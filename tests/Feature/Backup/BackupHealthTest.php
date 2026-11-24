@@ -223,7 +223,9 @@ it('caches probes briefly and re-probes on an explicit refresh', function () {
     $user = User::factory()->create();
     Permission::findOrCreate('backups.view_status', 'web');
     $user->givePermissionTo('backups.view_status');
-    $this->actingAs($user)->post(route('backups.refresh'))->assertRedirect();
+    $this->actingAs($user)->post(route('backups.refresh'))->assertRedirect(route('backups.index'));
+    // Reloading the refresh address (a GET) opens the page instead of answering 405.
+    $this->actingAs($user)->get('/system/backup-recovery/refresh')->assertRedirect(route('backups.index'));
     Process::assertRanTimes(ranCommand('info'), 2);
     $this->actingAs(User::factory()->create())->post(route('backups.refresh'))->assertForbidden();
 });
