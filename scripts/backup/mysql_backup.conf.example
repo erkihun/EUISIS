@@ -1,0 +1,54 @@
+# Configuration for scripts/backup/mysql_backup.sh (a shell fragment).
+# Copy to /etc/euisis-backup.conf, chmod 600, owned by the account that runs the cron job.
+
+# The database and how to reach it. The option file holds the credentials:
+#   [client]
+#   user=euisis_backup
+#   password=...            # a read-only account: SELECT, LOCK TABLES, SHOW VIEW, TRIGGER, EVENT, PROCESS
+#   host=127.0.0.1
+# chmod 600 /etc/euisis-backup.my.cnf
+MYSQLDUMP=/usr/bin/mysqldump
+MYSQL_DEFAULTS=/etc/euisis-backup.my.cnf
+DB_NAME=euisis_production
+
+# The application's private files (employee photos, uploads, letter assets, logos).
+APP_STORAGE=/var/www/euisis/shared/storage/app
+
+# Repository 1: a private directory on this host.
+REPO1=/var/backups/euisis
+RETENTION_DAYS=14
+
+# Repository 2: the independent off-site copy. A command that receives one file path
+# and copies it elsewhere; leave empty until the second location exists (the report
+# then shows repository 2 as unavailable, which the readiness check flags, as it should).
+#   rclone:  REPO2_COPY="rclone copy --quiet"            # add the remote: REPO2_COPY="rclone copyto ... " or wrap in a script
+#   rsync:   REPO2_COPY="/usr/local/bin/euisis-copy-offsite"   # a two-line script: rsync -a "$1" backup@offsite:/srv/euisis-backup/
+REPO2_COPY=""
+# Optional: a command that exits 0 when repository 2 is reachable, and its fill level (a number) if known.
+REPO2_AVAILABLE_CMD=""
+REPO2_USAGE_PERCENT=""
+# Optional: a command that receives the local file and exits 0 when the off-site copy matches
+# (rclone: "rclone check --one-way"; rsync: compare sha256sum over SSH). Without it the report
+# shows repository 2 as "verify not recorded".
+REPO2_VERIFY_CMD=""
+
+# Encryption at rest with GPG (recommended when repository 2 is a third-party service).
+# Import the public key into the backup account's keyring first; keep the private key
+# and its passphrase in the key escrow, never on this host.
+ENCRYPT_RECIPIENT=""
+
+# Where the application reads the status report (BACKUP_STATUS_PATH in .env) and
+# where a manual restore test records its result.
+STATUS_PATH=/var/lib/euisis-backup/status.json
+RESTORE_TEST_FILE=/var/lib/euisis-backup/restore-test.json
+
+# Controls, reported exactly as they stand. Set each to true only once it is real.
+CONTROL_INDEPENDENT_COPY=false     # repository 2 exists on other hardware / another provider
+CONTROL_ENCRYPTED=false            # ENCRYPT_RECIPIENT is set and the key is escrowed
+CONTROL_PRIVATE_STORAGE=true       # REPO1 is mode 700 and outside the web root
+CONTROL_KEY_RECOVERY=false         # APP_KEY and the GPG private key are escrowed separately
+CONTROL_FILE_RECOVERY=false        # a files archive has been restored once and checked
+CONTROL_RETENTION_CONFIGURED=true
+CONTROL_OWNER_ASSIGNED=false       # a named person owns backups (docs/governance/roles-register.md)
+CONTROL_ALERTS_TESTED=false        # BACKUP_ALERT_USER_IDS set and a failure alert received
+CONTROL_RUNBOOKS_REVIEWED=false    # docs/runbooks/database-backup.md adapted for MySQL and read by the owner
