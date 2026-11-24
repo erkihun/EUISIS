@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8f15d9940a8e8471b89f1f79e0b19c95",
+    "content-hash": "40948bce2bb27fa6c61abd23a6eaff84",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -4749,6 +4749,56 @@
                 }
             ],
             "time": "2026-08-24T00:54:40+00:00"
+        },
+        {
+            "name": "plesk/ext-laravel-integration",
+            "version": "v8.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/plesk/ext-laravel-integration.git",
+                "reference": "b3be60ab73bb92309d013640ad178a92ebf0f783"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/plesk/ext-laravel-integration/zipball/b3be60ab73bb92309d013640ad178a92ebf0f783",
+                "reference": "b3be60ab73bb92309d013640ad178a92ebf0f783",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": ">=7.0.0",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "orchestra/testbench": "10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "PleskExtLaravel\\Providers\\ConsoleServiceProvider"
+                    ]
+                },
+                "component": "package"
+            },
+            "autoload": {
+                "psr-4": {
+                    "PleskExtLaravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Plesk Laravel Toolkit integration with Laravel applications.",
+            "keywords": [
+                "laravel",
+                "plesk"
+            ],
+            "support": {
+                "issues": "https://github.com/plesk/ext-laravel-integration/issues",
+                "source": "https://github.com/plesk/ext-laravel-integration/tree/v8.0.0"
+            },
+            "time": "2026-07-28T12:41:45+00:00"
         },
         {
             "name": "pragmarx/google2fa",
