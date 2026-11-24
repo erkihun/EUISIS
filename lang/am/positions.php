@@ -6,7 +6,7 @@ return [
     'title' => 'የሥራ መደቦች',
     'new_position' => 'አዲስ የሥራ መደብ',
     'create_position' => 'አዲስ የሥራ መደብ ይመዝግቡ',
-    'edit_position' => 'የሥራ መደብን ያርትዑ',
+    'edit_position' => 'የሥራ መደብን ያስተካክሉ',
     'position_details' => 'የሥራ መደብ ዝርዝር',
     'job_position_code' => 'የሥራ መደብ ኮድ',
     'old_code' => 'የቀድሞ ኮድ',

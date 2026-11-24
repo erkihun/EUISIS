@@ -2,7 +2,7 @@ const common = {
     submit: 'ያስገቡ',
     create: 'ይፍጠሩ',
     view: 'ይመልከቱ',
-    edit: 'ያርትዑ',
+    edit: 'ያስተካክሉ',
     update: 'ያዘምኑ',
     save: 'ያስቀምጡ',
     cancel: 'ይቅር',

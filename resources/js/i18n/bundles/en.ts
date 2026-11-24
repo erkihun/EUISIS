@@ -9,6 +9,7 @@ import enDailyActivities from '@/i18n/en/dailyActivities';
 import enFieldWork from '@/i18n/en/fieldWork';
 import enServiceMonitoring from '@/i18n/en/serviceMonitoring';
 import enLetters from '@/i18n/en/letters';
+import enReporting from '@/modules/reporting/i18n/en';
 import enPerformance from '@/i18n/en/performance';
 import enCommunication from '@/i18n/en/communication';
 import enRichText from '@/i18n/en/richText';
@@ -95,6 +96,7 @@ const tree: TranslationTree = {
     fieldWork: enFieldWork,
     serviceMonitoring: enServiceMonitoring,
     letters: enLetters,
+    reporting: enReporting,
     dailyActivities: enDailyActivities,
     performance: enPerformance,
     communication: enCommunication,

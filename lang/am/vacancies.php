@@ -23,7 +23,7 @@ return [
     'statusClosed' => 'ተዘግቷል',
     'statusCancelled' => 'ተሰርዟል',
     'createAnnouncement' => 'አዲስ ማስታወቂያ ይመዝግቡ',
-    'editAnnouncement' => 'ማስታወቂያውን ያርትዑ',
+    'editAnnouncement' => 'ማስታወቂያውን ያስተካክሉ',
     'publishAnnouncement' => 'ይፋ ያድርጉ',
     'closeAnnouncement' => 'ይዝጉ',
     'deleteAnnouncement' => 'ይሰርዙ',

@@ -19,7 +19,7 @@ const vacancies = {
     statusClosed: 'ተዘግቷል',
     statusCancelled: 'ተሰርዟል',
     createAnnouncement: 'ማስታወቂያ ይፍጠሩ',
-    editAnnouncement: 'ማስታወቂያ ያርትዑ',
+    editAnnouncement: 'ማስታወቂያ ያስተካክሉ',
     publishAnnouncement: 'ይፋ ያድርጉ',
     closeAnnouncement: 'ይዝጉ',
     deleteAnnouncement: 'ይሰርዙ',

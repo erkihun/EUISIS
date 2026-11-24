@@ -361,7 +361,7 @@ size; keep them short (for example ማብቂያ, not የሚያበቃበት ቀ�
 | Save | ያስቀምጡ |  | Approved |  |
 | Cancel (dismiss a form) | ይቅር |  | Approved | Never ይሰርዙ, which deletes. |
 | Delete | ይሰርዙ |  | Approved |  |
-| Edit | ያርትዑ |  | Approved |  |
+| Edit | ያስተካክሉ |  | Approved |  |
 | Create | ይፍጠሩ |  | Approved |  |
 | Update | ያዘምኑ |  | Approved |  |
 | Submit (a form) | ያስገቡ |  | Approved |  |

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\CodeRuleEntityType;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\CodeRule;
 use App\Models\Employee;
@@ -11,6 +12,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Services\OrganizationStructureImport\StructureSheet;
 use Illuminate\Support\Facades\DB;
 
@@ -314,6 +316,44 @@ it('reports a row error when the code rule forbids hand-entered codes', function
 
     expect($messages)->toContain(
         'The code rule for this record type does not allow codes to be entered by hand, so "U-HQ" cannot be used. Leave the cell empty to generate the code automatically.',
+    );
+});
+
+it('accepts the code of an organization that already exists when the rule forbids hand-entered codes', function (): void {
+    // The pilot setting: every code rule forbids manual codes. A file that
+    // names an existing organization by its code is updating it, not inventing
+    // a code, so the override rule must not block it.
+    CodeRule::query()->update(['allow_manual_override' => false]);
+
+    $type = OrganizationType::query()->where('code', 'IMPTYPE')->firstOrFail();
+    Organization::query()->create([
+        'organization_type_id' => $type->id,
+        'code' => 'IMP-ORG',
+        'name_en' => 'Import Bureau',
+        'name_am' => 'የማስመጣት ቢሮ',
+        'status' => OrganizationStatus::Active,
+        'effective_from' => now()->toDateString(),
+    ]);
+
+    $importer = structureImporterUser();
+    UserOrganizationScope::query()->create([
+        'user_id' => $importer->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
+
+    $sheets = blankCodeSheets([
+        StructureSheet::Organization->value => [
+            structureHeaders(StructureSheet::Organization),
+            ['IMP-ORG', 'Import Bureau', 'የማስመጣት ቢሮ', 'IMPTYPE', null, 'active'],
+        ],
+    ]);
+
+    $messages = previewErrorMessages($sheets, $importer);
+
+    expect($messages)->not->toContain(
+        'The code rule for this record type does not allow codes to be entered by hand, so "IMP-ORG" cannot be used. Leave the cell empty to generate the code automatically.',
     );
 });
 

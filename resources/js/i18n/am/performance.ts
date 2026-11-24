@@ -53,10 +53,10 @@ const performance = {
         back: 'ወደ አጠቃላይ እይታ ተመለስ',
         workflow: 'የሂደት ደረጃ',
         // የWLMS ገጾች አጻጻፍ (ADR 0019)።
-        common: { create: 'ፍጠር', update: 'አዘምን', delete: 'ሰርዝ', view: 'ተመልከት', edit: 'አርትዕ', cancel: 'ይቅር', actions: 'እርምጃዎች', none: 'የለም', select: 'ይምረጡ' },
+        common: { create: 'ፍጠር', update: 'አዘምን', delete: 'ሰርዝ', view: 'ተመልከት', edit: 'ያስተካክሉ', cancel: 'ይቅር', actions: 'እርምጃዎች', none: 'የለም', select: 'ይምረጡ' },
         main: {
             title: 'ዋና ስትራቴጂዎች', subtitle: 'ዋና ስትራቴጂዎችን ይፍጠሩ እና እያንዳንዱን ወደ ንኡስ ስትራቴጂዎች በክብደት ይከፋፍሉ።', add: 'ዋና ስትራቴጂ ጨምር',
-            createTitle: 'ዋና ስትራቴጂ ፍጠር', createSubtitle: 'ዋና ስትራቴጂ እና ንኡስ ስትራቴጂዎቹን ይግለጹ።', editTitle: 'ዋና ስትራቴጂ አርትዕ',
+            createTitle: 'ዋና ስትራቴጂ ፍጠር', createSubtitle: 'ዋና ስትራቴጂ እና ንኡስ ስትራቴጂዎቹን ይግለጹ።', editTitle: 'ዋና ስትራቴጂ ያስተካክሉ',
             showTitle: 'የዋና ስትራቴጂ ዝርዝር', backToList: 'ወደ ዋና ስትራቴጂዎች ተመለስ', mainTitle: 'ዋና ስትራቴጂ', strategyTitle: 'ስትራቴጂ',
             strategies: 'ስትራቴጂዎች', givenWeight: 'የተሰጠ', weight: 'ክብደት (%)', description: 'መግለጫ', serialNo: 'ተ.ቁ.',
             addStrategy: 'ስትራቴጂ ጨምር', removeStrategy: 'ስትራቴጂ አስወግድ', mainWeightTotal: 'ጠቅላላ የዋና ክብደት',
@@ -91,7 +91,7 @@ const performance = {
     of: 'ከ',
     confirm: 'እርግጠኛ ነዎት?',
     actions: {
-        save: 'ያስቀምጡ', create: 'ይፍጠሩ', add: 'ያክሉ', remove: 'ያስወግዱ', cancel: 'ይቅር', edit: 'ያርትዑ',
+        save: 'ያስቀምጡ', create: 'ይፍጠሩ', add: 'ያክሉ', remove: 'ያስወግዱ', cancel: 'ይቅር', edit: 'ያስተካክሉ',
         submit: 'ለግምገማ ያቅርቡ', return: 'ይመልሱ', approve: 'ያጽድቁ', publish: 'ይፋ ያድርጉ', newVersion: 'አዲስ ስሪት ይፍጠሩ',
         cascade: 'አስተላልፍ', decline: 'ውድቅ ያድርጉ', calculate: 'ውጤት ያስሉ', finalize: 'አጽድቅ (የመጨረሻ)', release: 'ለሠራተኛው ይልቀቁ',
         verify: 'ያረጋግጡ', sync: 'ከምንጩ አምጣ', decide: 'ወስን', recalculate: 'እንደገና ያስሉ', export: 'በCSV ያውጡ',

@@ -54,7 +54,6 @@ class ExportLoadTestData extends Command
             ->inRandomOrder()->limit(2000)->get(['t.token', 'ps.id as service_id'])
             ->map(fn ($r): array => ['token' => $r->token, 'serviceId' => $r->service_id])->values()->all();
         $data['organizationTokens'] = DB::table('organization_feedback_qr_codes')->where('status', 'active')->pluck('public_token')->all();
-        $data['categories'] = DB::table('public_feedback_categories')->whereNull('organization_id')->where('is_active', true)->pluck('id')->all();
         $data['openSubmissions'] = DB::table('employee_service_feedback')
             ->whereIn('type', ['suggestion', 'complaint'])->whereIn('status', ['assigned', 'under_review', 'unrouted'])
             ->where('comment', 'like', 'Synthetic scale submission%')->inRandomOrder()->limit(2000)->get(['id', 'type', 'organization_id'])

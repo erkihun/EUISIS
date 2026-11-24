@@ -6,7 +6,7 @@ return [
     'isic_activities' => 'የኢኮኖሚ እንቅስቃሴ ምደባዎች',
     'isic_activity' => 'የISIC Rev.4 ምደባ',
     'create' => 'አዲስ የISIC ምደባ ይመዝግቡ',
-    'edit' => 'የISIC ምደባውን ያርትዑ',
+    'edit' => 'የISIC ምደባውን ያስተካክሉ',
     'details' => 'የISIC ምደባ ዝርዝር',
     'isic_code' => 'የISIC ኮድ',
     'section_code' => 'የክፍል ኮድ',

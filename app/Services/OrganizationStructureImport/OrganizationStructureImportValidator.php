@@ -251,6 +251,8 @@ class OrganizationStructureImportValidator
             isDuplicate: fn (string $candidate): bool => $existing === null
                 && Organization::query()->where('code', $candidate)->exists(),
             actor: $actor,
+            // Naming the organization the file updates is not inventing a code.
+            providedCodeIsExisting: $existing !== null,
         );
 
         $issues = [...$issues, ...$codeIssues];
@@ -390,6 +392,8 @@ class OrganizationStructureImportValidator
      *
      * @param  callable(string): bool  $isDuplicate  does this code already exist in the DB?
      * @param  bool  $canGenerate  false when the context the rule needs is itself invalid
+     * @param  bool  $providedCodeIsExisting  the code names the record this file updates, so
+     *                                        it is a reference, not a hand-entered new code
      * @return array{0: list<ImportIssue>, 1: CodeAssignment|null}
      */
     private function resolveCode(
@@ -404,6 +408,7 @@ class OrganizationStructureImportValidator
         bool $canGenerate,
         callable $isDuplicate,
         ?User $actor = null,
+        bool $providedCodeIsExisting = false,
     ): array {
         $column = $sheet->codeColumn();
 
@@ -421,8 +426,10 @@ class OrganizationStructureImportValidator
             // A typed-in code IS a manual override, and the Code Rule decides
             // whether one is allowed. Check that here rather than letting the
             // import blow up half-way through the transaction — GenerateCodeAction
-            // throws on exactly these two conditions at write time.
-            $rule = $projector->rule($entityType, $context);
+            // throws on exactly these two conditions at write time. The code of
+            // the organization the file updates is exempt: nothing is generated
+            // for it, so there is nothing to override.
+            $rule = $providedCodeIsExisting ? null : $projector->rule($entityType, $context);
 
             if ($rule !== null && ! $this->actorMayOverride($rule, $actor)) {
                 return [[ImportIssue::error(

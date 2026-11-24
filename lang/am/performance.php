@@ -29,7 +29,7 @@ return [
         'mandatory_cannot_be_removed' => 'ግዴታ የሆነ ዓላማ ሊወገድ አይችልም።',
         'mandatory_cannot_be_declined' => 'ግዴታ የሆነ የበላይ ዓላማ ውድቅ ሊደረግ አይችልም።',
         'kpi_other_organization' => 'ይህ KPI የሌላ ተቋም ነው።',
-        'kpi_already_targeted' => 'ይህ ዓላማ ለዚህ KPI ዒላማ አለው። ያንኑ ዒላማ ያርትዑ።',
+        'kpi_already_targeted' => 'ይህ ዓላማ ለዚህ KPI ዒላማ አለው። ያንኑ ዒላማ ያስተካክሉ።',
         'period_outside_cycle' => 'የዒላማው ጊዜ በዑደቱ ውስጥ መሆን አለበት።',
         'parent_target_invalid' => 'የበላይ ዒላማው በበላይ ዕቅዱ ውስጥ ያለ ተመሳሳይ KPI መሆን አለበት።',
         'plan_locked' => 'ሊስተካከል የሚችለው ረቂቅ ዕቅድ ብቻ ነው። ይፋ የሆነን ዕቅድ ለመቀየር አዲስ ስሪት ይፍጠሩ።',

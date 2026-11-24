@@ -6,7 +6,7 @@ return [
     'page_header' => [
         'index' => 'የቡድን አስተዳደር',
         'create' => 'ቡድን ፍጠር',
-        'edit' => 'ቡድን አርትዕ',
+        'edit' => 'ቡድን ያስተካክሉ',
         'show' => 'የቡድን ዝርዝር',
     ],
 
@@ -49,7 +49,7 @@ return [
     'buttons' => [
         'add_new' => 'አዲስ ቡድን ጨምር',
         'view' => 'ተመልከት',
-        'edit' => 'አርትዕ',
+        'edit' => 'ያስተካክሉ',
         'delete' => 'ሰርዝ',
         'manage_members' => 'አባላትን አስተዳድር',
         'create' => 'ቡድን ፍጠር',

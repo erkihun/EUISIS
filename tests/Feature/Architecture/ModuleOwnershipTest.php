@@ -18,6 +18,10 @@ function concreteModels(): array
     foreach ([['app/Models', 'App\\Models'], ...array_map(
         fn (string $dir): array => [substr($dir, strlen($root) + 1), 'Modules\\'.basename(dirname($dir, 2)).'\\Domain\\Models'],
         glob($root.'/Modules/*/Domain/Models', GLOB_ONLYDIR) ?: [],
+    ), ...array_map(
+        // A module whose Domain is kept free of the framework keeps its models in Infrastructure\Persistence (Reporting).
+        fn (string $dir): array => [substr($dir, strlen($root) + 1), 'Modules\\'.basename(dirname($dir, 3)).'\\Infrastructure\\Persistence\\Models'],
+        glob($root.'/Modules/*/Infrastructure/Persistence/Models', GLOB_ONLYDIR) ?: [],
     )] as [$dir, $namespace]) {
         $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($dir), FilesystemIterator::SKIP_DOTS));
         foreach ($iterator as $file) {
@@ -58,7 +62,8 @@ it('keeps the models of a migrated module inside that module', function (): void
         }
         expect(is_dir(base_path($entry['home'])))->toBeTrue("{$entry['home']} does not exist");
         foreach ($entry['models'] as $model) {
-            expect($model)->toStartWith("Modules\\{$module}\\Domain\\", "{$model} belongs to the migrated {$module} module but lives outside it");
+            expect(str_starts_with($model, "Modules\\{$module}\\Domain\\") || str_starts_with($model, "Modules\\{$module}\\Infrastructure\\Persistence\\"))
+                ->toBeTrue("{$model} belongs to the migrated {$module} module but lives outside it");
         }
     }
 });

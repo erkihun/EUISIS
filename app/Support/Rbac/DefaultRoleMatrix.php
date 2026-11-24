@@ -12,6 +12,7 @@ use Modules\Discipline\Contracts\Data\DisciplineRoles;
 use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
 use Modules\Letters\Contracts\Data\LettersRoles;
+use Modules\Reporting\Contracts\Data\ReportingRoles;
 use Modules\Performance\Contracts\Data\PerformanceRoles;
 use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
 
@@ -749,6 +750,28 @@ final class DefaultRoleMatrix
                 'Keeps the letter templates offered to every institution, city-wide.',
                 'ለሁሉም ተቋማት የሚቀርቡ የደብዳቤ አብነቶችን በከተማ አቀፍ ደረጃ ይጠብቃል።'),
 
+            // ── Institutional Reporting & Compliance (Modules/Reporting/README.md) ─
+            // A role makes a user eligible; the institution on the reporting or the receiving
+            // side must also be in the user's scope. Oversight is city-wide.
+            ReportingRoles::PREPARER_ROLE => self::role(self::SCOPE_SCOPED, ReportingRoles::PREPARER,
+                'Drafts the institution\'s narrative reports and uploads their files. Cannot submit.',
+                'የተቋሙን የጽሑፍ ሪፖርቶች ይረቅቃል፤ ፋይሎቻቸውን ይጭናል። ማቅረብ አይችልም።'),
+            ReportingRoles::OFFICER_ROLE => self::role(self::SCOPE_SCOPED, ReportingRoles::OFFICER,
+                'The institution\'s accountable officer for reporting: prepares and submits its reports, asks for extensions and exports its own register.',
+                'የተቋሙ የሪፖርት ተጠሪ ኃላፊ፡ ሪፖርቶቹን ያዘጋጃል፣ ያቀርባል፣ የጊዜ ማራዘሚያ ይጠይቃል፣ የራሱን መዝገብ ወደ ፋይል ያወጣል።'),
+            ReportingRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, ReportingRoles::REVIEWER,
+                'Reviews reports submitted to the institutions in scope: comments, returns for revision, passes to approval and raises follow-up actions.',
+                'በወሰን ውስጥ ላሉ ተቋማት የቀረቡ ሪፖርቶችን ይገመግማል፡ አስተያየት ይሰጣል፣ ለማስተካከያ ይመልሳል፣ ወደ ማጽደቅ ያስተላልፋል፣ የክትትል ተግባራትን ያስነሳል።'),
+            ReportingRoles::APPROVER_ROLE => self::role(self::SCOPE_SCOPED, ReportingRoles::APPROVER,
+                'Approves, returns or rejects reviewed reports for the institutions in scope and may reopen a decided report with a reason.',
+                'በወሰን ውስጥ ላሉ ተቋማት የተገመገሙ ሪፖርቶችን ያጸድቃል፣ ይመልሳል ወይም ውድቅ ያደርጋል፤ የተወሰነ ሪፖርትን በምክንያት እንደገና መክፈት ይችላል።'),
+            ReportingRoles::OVERSIGHT_ROLE => self::role(self::SCOPE_GLOBAL, ReportingRoles::OVERSIGHT,
+                'Leadership oversight, city-wide: who reported, who did not and who was late; consolidated reports, extensions and exemptions, exports.',
+                'በከተማ አቀፍ ደረጃ የአመራር ክትትል፡ ማን አቀረበ፣ ማን አላቀረበም፣ ማን ዘገየ፤ የተጠቃለሉ ሪፖርቶች፣ የጊዜ ማራዘሚያና ነፃ ማድረግ፣ ወደ ፋይል ማውጣት።'),
+            ReportingRoles::ADMINISTRATOR_ROLE => self::role(self::SCOPE_GLOBAL, ReportingRoles::ADMINISTRATOR,
+                'Configures institutional reporting: report types and templates, schedules and periods, and the module\'s settings.',
+                'የተቋም ሪፖርት ሥርዓቱን ያዋቅራል፡ የሪፖርት ዓይነቶችና አብነቶች፣ መርሐ ግብሮችና የሪፖርት ጊዜዎች፣ የሞጁሉ ቅንብሮች።'),
+
             // ── Public feedback, suggestions, tip-offs and complaints (docs/admin-public-feedback-access-control.md) ─
             // Scope decides which institutions; the submitter's identity and evidence files are a
             // separate, audited grant held only by the investigator.
@@ -994,6 +1017,12 @@ final class DefaultRoleMatrix
         'Letter Signatory' => 'የደብዳቤ ፈራሚ',
         'Letter Administrator' => 'የደብዳቤ አስተዳዳሪ',
         'Letter Template Steward' => 'የደብዳቤ አብነት ጠባቂ',
+        'Report Preparer' => 'የሪፖርት አዘጋጅ',
+        'Reporting Officer' => 'የሪፖርት ተጠሪ ኃላፊ',
+        'Report Reviewer' => 'የሪፖርት ገምጋሚ',
+        'Report Approver' => 'የሪፖርት አጽዳቂ',
+        'Reporting Oversight Officer' => 'የሪፖርት ክትትል ኃላፊ',
+        'Reporting Administrator' => 'የሪፖርት ሥርዓት አስተዳዳሪ',
         'Public Feedback Coordinator' => 'የሕዝብ አስተያየት አስተባባሪ',
         'Public Feedback Handler' => 'የሕዝብ አስተያየት አስተናጋጅ',
         'Public Feedback Investigator' => 'የሕዝብ አስተያየት መርማሪ',

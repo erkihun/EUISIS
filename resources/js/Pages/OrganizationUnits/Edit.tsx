@@ -34,7 +34,21 @@ export default function OrganizationUnitsEdit({
     statusOptions,
     parentOptions,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
+
+    const localizedName = (item: { name_en?: string | null; name_am?: string | null; code?: string | null }): string => {
+        const primary = locale === 'am' ? item.name_am : item.name_en;
+        const fallback = locale === 'am' ? item.name_en : item.name_am;
+
+        return primary || fallback || item.code || '';
+    };
+
+    const localizedStatus = (value: string, fallback: string): string => {
+        const key = `common.${value}`;
+        const label = t(key);
+
+        return label === key ? fallback : label;
+    };
     const { data, setData, patch, processing, errors } = useForm({
         organization_id: unit.organization_id,
         parent_unit_id: unit.parent_unit_id,
@@ -59,7 +73,7 @@ export default function OrganizationUnitsEdit({
         <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
-                    title={`${t('organizationUnits.editOrganizationUnit')}: ${unit.name_en}`}
+                    title={`${t('organizationUnits.editOrganizationUnit')}: ${localizedName(unit)}`}
                 />
             }
         >
@@ -78,7 +92,7 @@ export default function OrganizationUnitsEdit({
                         <div>
                             <FormLabel>{`${t('organizationUnits.organization')} *`}</FormLabel>
                             <div className={`${inputCls} bg-(--app-surface-muted) text-(--app-muted-foreground)`}>
-                                {unit.organization?.name_en ?? unit.organization_id}
+                                {unit.organization ? localizedName(unit.organization) : unit.organization_id}
                                 {unit.organization?.code && (
                                     <span className="ml-1 font-mono text-xs text-(--app-muted-foreground)">
                                         ({unit.organization.code})
@@ -105,7 +119,7 @@ export default function OrganizationUnitsEdit({
                                     <option value="">{t('organizationUnitTypes.selectUnitType')}</option>
                                     {unitTypes.map((ut) => (
                                         <option key={ut.id} value={ut.id}>
-                                            {ut.name_en}
+                                            {localizedName(ut)}
                                         </option>
                                     ))}
                                 </select>
@@ -128,7 +142,7 @@ export default function OrganizationUnitsEdit({
                                     .filter((opt) => opt.id !== unit.id)
                                     .map((opt) => (
                                         <option key={opt.id} value={opt.id}>
-                                            {'—'.repeat(opt.depth)} {opt.name_en} ({opt.code})
+                                            {'—'.repeat(opt.depth)} {localizedName(opt)} ({opt.code})
                                         </option>
                                     ))}
                             </select>
@@ -185,7 +199,7 @@ export default function OrganizationUnitsEdit({
                             >
                                 {statusOptions.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
-                                        {opt.label}
+                                        {localizedStatus(opt.value, opt.label)}
                                     </option>
                                 ))}
                             </select>

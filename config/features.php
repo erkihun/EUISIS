@@ -22,6 +22,8 @@ return [
     'service_monitoring' => (bool) env('FEATURE_SERVICE_MONITORING', true),
     // letters — official correspondence: registry, templates, numbering (ADR 0037, docs/letters.md).
     'letters' => (bool) env('FEATURE_LETTERS', true),
+    // reporting - Institutional Reporting & Compliance: narrative reports, schedules, review (Modules/Reporting/README.md).
+    'reporting' => (bool) env('FEATURE_REPORTING', true),
 
     /*
     | structural_reporting — supervisor resolution from the organization
@@ -61,6 +63,7 @@ return [
         'transport_gps' => ['api.transport.positions.'],
         'service_monitoring' => ['service-monitoring.'],
         'letters' => ['letters.'],
+        'reporting' => ['reporting.'],
     ],
 
     /*

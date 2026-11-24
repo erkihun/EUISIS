@@ -2,7 +2,7 @@ const occupations = {
     occupations: 'የሙያ ምድቦች',
     occupation: 'የሙያ ምድብ',
     createOccupation: 'አዲስ የሙያ ምድብ ይመዝግቡ',
-    editOccupation: 'የሙያ ምድቡን ያርትዑ',
+    editOccupation: 'የሙያ ምድቡን ያስተካክሉ',
     occupationDetails: 'የሙያ ምድብ ዝርዝር',
     occupationCode: 'የሙያ ምድብ ኮድ',
     iscoCode: 'የISCO-08 ኮድ',

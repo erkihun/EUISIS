@@ -9,7 +9,7 @@ const positions = {
     jobPositions: 'የሥራ መደቦች',
     newPosition: 'አዲስ መደብ',
     createPosition: 'መደብ ይፍጠሩ',
-    editPosition: 'መደብ ያርትዑ',
+    editPosition: 'መደብ ያስተካክሉ',
     positionDetails: 'የመደብ ዝርዝሮች',
     positionList: 'የመደቦች ዝርዝር',
     code: 'የሥራ መደብ ኮድ',

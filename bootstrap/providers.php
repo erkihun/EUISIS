@@ -20,6 +20,7 @@ use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\PublicComplaints\Providers\PublicComplaintsServiceProvider;
 use Modules\PublicSite\Providers\PublicSiteServiceProvider;
 use Modules\Reception\Providers\ReceptionServiceProvider;
+use Modules\Reporting\Providers\ReportingServiceProvider;
 use Modules\Recruitment\Providers\RecruitmentServiceProvider;
 use Modules\ServiceFeedback\Providers\ServiceFeedbackServiceProvider;
 use Modules\ServiceMonitoring\Providers\ServiceMonitoringServiceProvider;
@@ -53,6 +54,8 @@ return [
     TipOffsServiceProvider::class,
     PublicComplaintsServiceProvider::class,
     LettersServiceProvider::class,
+    // Institutional Reporting & Compliance (Modules/Reporting/README.md): the module's single entry point.
+    ReportingServiceProvider::class,
     PublicSiteServiceProvider::class,
     RecruitmentServiceProvider::class,
     TransferServiceProvider::class,

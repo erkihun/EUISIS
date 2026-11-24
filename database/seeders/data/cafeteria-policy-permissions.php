@@ -64,7 +64,7 @@ return [
     $entry('cafeteria_policies.create', 'cafeteria-policies', 20, 'Create Cafeteria Service Policies', 'የካፌቴሪያ አገልግሎት ፖሊሲ ይፍጠሩ',
         'Draft a new policy or a new version of an existing policy.',
         'አዲስ ፖሊሲ ወይም የነባር ፖሊሲ አዲስ ስሪት ማርቀቅ ያስችላል።'),
-    $entry('cafeteria_policies.update_draft', 'cafeteria-policies', 30, 'Edit Draft Cafeteria Policies', 'ረቂቅ የካፌቴሪያ ፖሊሲዎችን ያርትዑ',
+    $entry('cafeteria_policies.update_draft', 'cafeteria-policies', 30, 'Edit Draft Cafeteria Policies', 'ረቂቅ የካፌቴሪያ ፖሊሲዎችን ያስተካክሉ',
         'Edit a policy while it is a draft. Approved policies are never edited.',
         'ፖሊሲው ረቂቅ ሲሆን ማሻሻል ያስችላል። የጸደቁ ፖሊሲዎች አይሻሻሉም።'),
     $entry('cafeteria_policies.submit', 'cafeteria-policies', 40, 'Submit Cafeteria Policies for Review', 'የካፌቴሪያ ፖሊሲዎችን ለግምገማ ያቅርቡ',

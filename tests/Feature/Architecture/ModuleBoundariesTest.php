@@ -34,9 +34,12 @@ foreach ($modules as $module) {
 
 it('has every module laid out in the six layers', function () use ($modules): void {
     expect($modules)->not->toBeEmpty();
+    // Beside the six code layers a module may carry its own resources, loaded by its provider:
+    // migrations and seeders, routes, configuration and translations (no PHP classes live there).
+    $resources = ['Database', 'Routes', 'Config', 'Lang'];
     foreach ($modules as $module) {
         foreach (glob(dirname(__DIR__, 3)."/Modules/{$module}/*", GLOB_ONLYDIR) ?: [] as $layer) {
-            expect(basename($layer))->toBeIn(['Contracts', 'Domain', 'Application', 'Infrastructure', 'Http', 'Providers'], "Modules/{$module}/".basename($layer).' is not one of the six layers');
+            expect(basename($layer))->toBeIn(['Contracts', 'Domain', 'Application', 'Infrastructure', 'Http', 'Providers', ...$resources], "Modules/{$module}/".basename($layer).' is not one of the six layers or a resource directory');
         }
         expect(is_file(dirname(__DIR__, 3)."/Modules/{$module}/Providers/{$module}ServiceProvider.php"))->toBeTrue("Modules/{$module} has no {$module}ServiceProvider")
             ->and(require dirname(__DIR__, 3).'/bootstrap/providers.php')->toContain("Modules\\{$module}\\Providers\\{$module}ServiceProvider");

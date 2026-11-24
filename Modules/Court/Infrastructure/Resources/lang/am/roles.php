@@ -19,7 +19,7 @@ return [
         'cancel' => 'ሰርዝ',
     ],
     'edit' => [
-        'title' => 'ኃላፊነትን አርትዕ',
+        'title' => 'ኃላፊነትን ያስተካክሉ',
         'save' => 'አስቀምጥ',
         'cancel' => 'ሰርዝ',
         'back' => 'ወደ ኃላፊነቶች ተመለስ',
@@ -66,7 +66,7 @@ return [
         'total_roles' => 'ኃላፊነቶች',
         'search_placeholder' => 'ኃላፊነቶችን ይፈልጉ…',
         'actions' => 'ድርጊቶች',
-        'edit' => 'አርትዕ',
+        'edit' => 'ያስተካክሉ',
         'delete' => 'አጥፋ',
         'delete_title' => 'ኃላፊነትን አጥፋ',
         'delete_confirm' => 'ለማጥፋት እርግጠኛ ነዎት',

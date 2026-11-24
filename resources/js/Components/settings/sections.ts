@@ -32,7 +32,7 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'delivery', fields: ['email_test_recipient'] },
     ],
     sms: [
-        { key: 'provider', fields: ['sms_provider', 'sms_api_url', 'sms_api_key'] },
+        { key: 'provider', fields: ['sms_provider', 'sms_api_url', 'sms_account_id', 'sms_api_key'] },
         { key: 'sender', fields: ['sms_sender_id', 'sms_default_country_code'] },
         { key: 'delivery', fields: ['sms_timeout_seconds', 'sms_rate_limit_per_minute', 'sms_test_phone'] },
     ],

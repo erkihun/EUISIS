@@ -73,7 +73,7 @@ const cafeteria = {
     providerArchived: 'የካፌቴሪያ አቅራቢ ተቀርፏል።',
     providerRestored: 'የካፌቴሪያ አቅራቢ ተመልሷል።',
     addProvider: 'አቅራቢ ይጨምሩ',
-    editProvider: 'አቅራቢ ያርትዑ',
+    editProvider: 'አቅራቢ ያስተካክሉ',
     contactPerson: 'አስተዋዋቂ',
     phoneNumber: 'ስልክ',
     email: 'ኢሜይል',
@@ -97,7 +97,7 @@ const cafeteria = {
     subsidyRuleUpdated: 'የድጎማ ደንብ ተዘምኗል።',
     subsidyRuleArchived: 'የድጎማ ደንብ ተቀርፏል።',
     addSubsidyRule: 'ደንብ ይጨምሩ',
-    editSubsidyRule: 'ደንብ ያርትዑ',
+    editSubsidyRule: 'ደንብ ያስተካክሉ',
     notes: 'ማስታወሻ',
 
     // Public Holidays
@@ -113,7 +113,7 @@ const cafeteria = {
     holidayUpdated: 'በዓል ተዘምኗል።',
     holidayArchived: 'በዓል ተሰርዟል።',
     addHoliday: 'በዓል ይጨምሩ',
-    editHoliday: 'በዓል ያርትዑ',
+    editHoliday: 'በዓል ያስተካክሉ',
     year: 'ዓመት',
 
     // Transactions
@@ -406,7 +406,7 @@ const cafeteria = {
     specialDayArchived: 'ልዩ ቀን ተሰርዟል።',
     specialDayRestored: 'ልዩ ቀን ተመልሷል።',
     addSpecialDay: 'ልዩ ቀን ይጨምሩ',
-    editSpecialDay: 'ልዩ ቀን ያርትዑ',
+    editSpecialDay: 'ልዩ ቀን ያስተካክሉ',
     specialDayTypeOpenDay: 'ክፍት ቀን',
     specialDayTypeClosedDay: 'ዝግ ቀን',
     specialDayTypeSubsidyDay: 'ድጎማ ቀን',
@@ -427,7 +427,7 @@ const cafeteria = {
     exclusionArchived: 'ሠራተኛ ማግለል ተሰርዟል።',
     exclusionRestored: 'ሠራተኛ ማግለል ተመልሷል።',
     addExclusion: 'ማግለል ይጨምሩ',
-    editExclusion: 'ማግለል ያርትዑ',
+    editExclusion: 'ማግለል ያስተካክሉ',
     endExclusion: 'ማግለል ጨርስ',
     startsOn: 'ጀምሮ',
     endsOn: 'እስከ',
@@ -487,7 +487,7 @@ const cafeteria = {
     noAdminUsers: 'ለዚህ አቅራቢ ምንም አስተዳዳሪ ተጠቃሚ አልተሰጠም።',
     branches: 'ቅርንጫፎች',
     addBranch: 'ቅርንጫፍ ይጨምሩ',
-    editBranch: 'ቅርንጫፍ ያርትዑ',
+    editBranch: 'ቅርንጫፍ ያስተካክሉ',
     branchCode: 'የቅርንጫፍ ኮድ',
     noBranches: 'ለዚህ አቅራቢ ምንም ቅርንጫፍ አልተገለጸም።',
     branchCreated: 'ቅርንጫፍ ተፈጥሯል።',

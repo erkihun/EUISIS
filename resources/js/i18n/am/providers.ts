@@ -23,7 +23,7 @@ const providers = {
     unknownProvider: 'ያልታወቀ አቅራቢ',
     noOrg: 'ተቋም የለም',
     createProvider: 'አዲስ አገልግሎት አቅራቢ',
-    editProvider: 'አገልግሎት አቅራቢ ያርትዑ',
+    editProvider: 'አገልግሎት አቅራቢ ያስተካክሉ',
     addProvider: 'አቅራቢ ይጨምሩ',
     save: 'ያስቀምጡ',
     saving: 'እየተቀመጠ ነው…',
@@ -38,7 +38,7 @@ const providers = {
     noOrgRestriction: 'ተቋም አይመረጥ',
     confirmDelete: 'ይህን አቅራቢ ለመሰረዝ እርግጠኛ ነዎት? ይህ ሊቀለበስ አይችልም።',
     delete: 'አቅራቢ ይሰርዙ',
-    edit: 'ያርትዑ',
+    edit: 'ያስተካክሉ',
     created: 'አገልግሎት አቅራቢ ተፈጥሯል።',
     updated: 'አገልግሎት አቅራቢ ተዘምኗል።',
     deleted: 'አገልግሎት አቅራቢ ተሰርዟል።',
@@ -79,7 +79,7 @@ const providers = {
     txReversed: 'ተቀልብሷል',
 
     // Redesign — detail
-    editProviderAction: 'አቅራቢውን ያርትዑ',
+    editProviderAction: 'አቅራቢውን ያስተካክሉ',
     valueProcessed: 'የተስተናገደ ዋጋ · :days ቀናት',
     deniedRecent: 'ውድቅ · :days ቀናት',
     lastActivity: 'የመጨረሻ እንቅስቃሴ',

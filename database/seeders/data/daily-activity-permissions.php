@@ -29,7 +29,7 @@ return [
     $entry('daily_activities.create', 20, 'Register daily activity', 'ዕለታዊ የሥራ እንቅስቃሴ ይመዝግቡ',
         'Create your own daily activity log for a working day.',
         'ለሥራ ቀን የራስዎን ዕለታዊ የሥራ እንቅስቃሴ መዝገብ ይፍጠሩ።'),
-    $entry('daily_activities.update_draft', 30, 'Edit own daily activity draft', 'የራስን ረቂቅ ዕለታዊ እንቅስቃሴ ያርትዑ',
+    $entry('daily_activities.update_draft', 30, 'Edit own daily activity draft', 'የራስን ረቂቅ ዕለታዊ እንቅስቃሴ ያስተካክሉ',
         'Edit your own daily activity while it is a draft or returned for correction.',
         'ዕለታዊ እንቅስቃሴዎ ረቂቅ ወይም ለእርማት የተመለሰ ሲሆን ያሻሽሉ።'),
     $entry('daily_activities.submit', 40, 'Submit daily activity', 'ዕለታዊ እንቅስቃሴ ያስገቡ',

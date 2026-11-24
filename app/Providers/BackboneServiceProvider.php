@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Backbone\Adapters\ApplicationAuditTrail;
 use App\Backbone\Adapters\BackboneCredentialVerification;
+use App\Backbone\Adapters\CalendarWorkingDays;
 use App\Backbone\Adapters\CardBasedServiceEligibility;
 use App\Backbone\Adapters\ClosurePathOrganizationHierarchy;
+use App\Backbone\Adapters\DatabaseUserNotifier;
+use App\Backbone\Adapters\EloquentAccessScopeReader;
 use App\Backbone\Adapters\EloquentAssignmentContextReader;
 use App\Backbone\Adapters\EloquentEmployeeDirectory;
 use App\Backbone\Adapters\EloquentOrganizationDirectory;
+use App\Backbone\Adapters\EloquentOrganizationLookup;
 use App\Backbone\Adapters\EloquentPositionDirectory;
 use App\Backbone\Adapters\EloquentUnitDirectory;
 use App\Backbone\Adapters\IdCardCredentialLookup;
 use App\Backbone\Adapters\IdCardCredentialStatus;
 use App\Backbone\Adapters\NoEmployeeFeedbackLinks;
 use App\Backbone\Adapters\NoProviderCodeLookup;
+use App\Backbone\Contracts\AccessScopeReader;
 use App\Backbone\Contracts\AssignmentContextReader;
+use App\Backbone\Contracts\AuditTrail;
 use App\Backbone\Contracts\CardCredentialStatus;
 use App\Backbone\Contracts\CredentialLookup;
 use App\Backbone\Contracts\CredentialVerification;
@@ -24,11 +31,14 @@ use App\Backbone\Contracts\EmployeeDirectory;
 use App\Backbone\Contracts\EmployeeFeedbackLinks;
 use App\Backbone\Contracts\OrganizationDirectory;
 use App\Backbone\Contracts\OrganizationHierarchy;
+use App\Backbone\Contracts\OrganizationLookup;
 use App\Backbone\Contracts\PositionDirectory;
 use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Backbone\Contracts\ReportingLines;
 use App\Backbone\Contracts\ServiceEligibility;
 use App\Backbone\Contracts\UnitDirectory;
+use App\Backbone\Contracts\UserNotifier;
+use App\Backbone\Contracts\WorkingDays;
 use App\Backbone\Observers\BackboneDomainEventObserver;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -63,6 +73,13 @@ class BackboneServiceProvider extends ServiceProvider
         // Who supervises whom (ADR 0025). The graph repository keeps one graph per organization and date for the request.
         ReportingLines::class => ReportingLineResolver::class,
         ReportingGraphRepository::class => ReportingGraphRepository::class,
+        // Narrow facades for modules that hold references only (no Core model): scope and users by id,
+        // organizations in batches, the working calendar, the audit log and notifications.
+        AccessScopeReader::class => EloquentAccessScopeReader::class,
+        OrganizationLookup::class => EloquentOrganizationLookup::class,
+        WorkingDays::class => CalendarWorkingDays::class,
+        AuditTrail::class => ApplicationAuditTrail::class,
+        UserNotifier::class => DatabaseUserNotifier::class,
     ];
 
     public function boot(): void

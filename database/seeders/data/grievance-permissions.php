@@ -27,7 +27,7 @@ return [
         'See the progress, safe timeline and issued letters of grievances the user filed.', 'ተጠቃሚው ያቀረባቸውን ቅሬታዎች ሂደት፣ የጊዜ መስመር እና የወጡ ደብዳቤዎችን ማየት።'),
     $entry('grievances.create', 'grievances', 120, 'Create Grievances', 'ቅሬታ ይፍጠሩ',
         'Start a grievance draft for the user\'s own employee record.', 'ለራሱ የሠራተኛ መዝገብ የቅሬታ ረቂቅ መጀመር።'),
-    $entry('grievances.update_draft', 'grievances', 130, 'Edit Own Grievance Drafts', 'የራስን የቅሬታ ረቂቅ ያርትዑ',
+    $entry('grievances.update_draft', 'grievances', 130, 'Edit Own Grievance Drafts', 'የራስን የቅሬታ ረቂቅ ያስተካክሉ',
         'Edit or delete the user\'s own draft, and correct a grievance returned at intake.', 'የራስን ረቂቅ ማሻሻል ወይም መሰረዝ፣ በመቀበያ የተመለሰን ቅሬታ ማስተካከል።'),
     $entry('grievances.submit', 'grievances', 140, 'Submit Grievances', 'ቅሬታ ያቅርቡ',
         'Formally submit an own grievance, appeal a decision and answer information requests.', 'የራስን ቅሬታ በይፋ ማቅረብ፣ በውሳኔ ላይ ይግባኝ ማለት እና ለመረጃ ጥያቄዎች መልስ መስጠት።'),

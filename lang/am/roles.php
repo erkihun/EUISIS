@@ -6,7 +6,7 @@ return [
     'title' => 'ሚናዎች',
     'role' => 'ሚና',
     'create' => 'አዲስ ሚና ይመዝግቡ',
-    'edit' => 'ሚናን ያርትዑ',
+    'edit' => 'ሚናን ያስተካክሉ',
     'role_name' => 'የሚና ስም',
     'permissions' => 'የመዳረሻ መብቶች',
     'users_count' => 'ተጠቃሚዎች',

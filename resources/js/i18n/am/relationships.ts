@@ -25,7 +25,7 @@ export default {
     status: 'ሁኔታ',
     primary: 'ዋና',
     addRelationship: 'ግንኙነት ይጨምሩ',
-    editRelationship: 'ግንኙነት ያርትዑ',
+    editRelationship: 'ግንኙነት ያስተካክሉ',
     types: {
         reports_to: 'ሪፖርት ያደርጋል',
         geographically_under: 'በጂኦግራፊ ስር',

@@ -2,7 +2,7 @@ const organizationUnitTypes = {
     organizationUnitTypes: 'የሥራ ክፍል ዓይነቶች',
     organizationUnitType: 'የሥራ ክፍል ዓይነት',
     createOrganizationUnitType: 'አዲስ የሥራ ክፍል ዓይነት ይመዝግቡ',
-    editOrganizationUnitType: 'የሥራ ክፍል ዓይነቱን ያርትዑ',
+    editOrganizationUnitType: 'የሥራ ክፍል ዓይነቱን ያስተካክሉ',
     organizationUnitTypeDetails: 'የሥራ ክፍል ዓይነት ዝርዝሮች',
     unitTypeCode: 'የሥራ ክፍል ዓይነት ኮድ',
     unitTypeName: 'የሥራ ክፍል ዓይነት ስም',

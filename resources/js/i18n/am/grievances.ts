@@ -90,7 +90,7 @@ const grievances = {
         details: 'ዝርዝር',
         view: 'ይመልከቱ',
         open: 'ይክፈቱ',
-        edit: 'ያርትዑ',
+        edit: 'ያስተካክሉ',
         save: 'ያስቀምጡ',
         cancel: 'ይቅር',
         submit: 'ያቅርቡ',

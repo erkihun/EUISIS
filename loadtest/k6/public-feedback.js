@@ -155,19 +155,19 @@ export function employeeFeedbackSubmit() {
     submit(`/service-feedback/${e.token}/feedback`, 'C_employee_feedback', { rating: 1 + Math.floor(Math.random() * 5), message: MESSAGE, position_service_id: e.serviceId });
 }
 export function employeeSuggestionSubmit() {
-    submit(`/service-feedback/${pick(data.employeeFeedback).token}/suggestion`, 'D_employee_suggestion', { message: MESSAGE, category_id: pick(data.categories) });
+    submit(`/service-feedback/${pick(data.employeeFeedback).token}/suggestion`, 'D_employee_suggestion', { message: MESSAGE });
 }
 export function employeeComplaintSubmit() {
-    submit(`/service-feedback/${pick(data.employeeFeedback).token}/complaint`, 'E_employee_complaint', { message: MESSAGE, category_id: pick(data.categories) });
+    submit(`/service-feedback/${pick(data.employeeFeedback).token}/complaint`, 'E_employee_complaint', { message: MESSAGE });
 }
 export function organizationFeedbackSubmit() {
     submit(`/feedback/${pick(data.organizationTokens)}/feedback`, 'F_organization_feedback', { rating: 1 + Math.floor(Math.random() * 5), message: MESSAGE });
 }
 export function organizationSuggestionSubmit() {
-    submit(`/feedback/${pick(data.organizationTokens)}/suggestion`, 'G_organization_suggestion', { message: MESSAGE, category_id: pick(data.categories) });
+    submit(`/feedback/${pick(data.organizationTokens)}/suggestion`, 'G_organization_suggestion', { message: MESSAGE });
 }
 export function organizationComplaintSubmit() {
-    submit(`/feedback/${pick(data.organizationTokens)}/complaint`, 'H_organization_complaint', { message: MESSAGE, category_id: pick(data.categories) });
+    submit(`/feedback/${pick(data.organizationTokens)}/complaint`, 'H_organization_complaint', { message: MESSAGE });
 }
 
 // ---- I, J: internal ------------------------------------------------------------

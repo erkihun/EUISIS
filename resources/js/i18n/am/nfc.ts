@@ -139,7 +139,7 @@ export default {
     certificateFingerprint: 'የምስክር ወረቀት አሻራ',
     certificateHint: 'አሻራ ብቻ። የቁልፍ ቁስ ከመተግበሪያው ውጭ የተያዘ ሲሆን ፈጽሞ አይታይም።',
     registerTerminal: 'ተርሚናል ይመዝግቡ',
-    editTerminal: 'ተርሚናል ያርትዑ',
+    editTerminal: 'ተርሚናል ያስተካክሉ',
     terminalSaved: 'ተርሚናል ተቀምጧል።',
     terminalDeleted: 'ተርሚናል ተወግዷል።',
     terminalRevoked: 'ተርሚናል ተሽሯል። የማረጋገጫ ታሪኩ ተጠብቆ ይቆያል።',

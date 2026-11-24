@@ -30,7 +30,7 @@ return [
     'employment_date' => 'የቅጥር ቀን',
     'employment_status' => 'የቅጥር ሁኔታ',
     'create' => 'አዲስ ሠራተኛ ይመዝግቡ',
-    'edit' => 'የሠራተኛ መረጃን ያርትዑ',
+    'edit' => 'የሠራተኛ መረጃን ያስተካክሉ',
     'view' => 'ሠራተኛ ይመልከቱ',
     'no_employees' => 'ምንም ሠራተኛ አልተገኘም።',
     'personal_info' => 'የግል መረጃ',

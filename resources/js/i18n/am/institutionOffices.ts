@@ -2,7 +2,7 @@ const institutionOffices = {
     title: 'የተቋም ጽሕፈት ቤቶች',
     office: 'ጽሕፈት ቤት',
     create: 'ጽሕፈት ቤት ይፍጠሩ',
-    edit: 'ጽሕፈት ቤት ያርትዑ',
+    edit: 'ጽሕፈት ቤት ያስተካክሉ',
     show: 'የጽሕፈት ቤት ዝርዝሮች',
     deleteOffice: 'ጽሕፈት ቤት ይሰርዙ',
     restoreOffice: 'ጽሕፈት ቤት ይመልሱ',

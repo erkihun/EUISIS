@@ -35,7 +35,7 @@ return [
     $entry('field_work.create_team', 25, 'Request team field work', 'የቡድን የመስክ ሥራ ይጠይቁ',
         'Add colleagues from your own unit as participants of your field work request.',
         'ከራስዎ ክፍል የሥራ ባልደረቦችን በመስክ ሥራ ጥያቄዎ ላይ ተሳታፊ አድርገው ይጨምሩ።'),
-    $entry('field_work.edit_own_draft', 30, 'Edit own field work draft', 'የራስን ረቂቅ የመስክ ሥራ ያርትዑ',
+    $entry('field_work.edit_own_draft', 30, 'Edit own field work draft', 'የራስን ረቂቅ የመስክ ሥራ ያስተካክሉ',
         'Edit your own field work request while it is a draft or returned for correction.',
         'የመስክ ሥራ ጥያቄዎ ረቂቅ ወይም ለእርማት የተመለሰ ሲሆን ያሻሽሉ።'),
     $entry('field_work.submit_own', 40, 'Submit field work request', 'የመስክ ሥራ ጥያቄ ያስገቡ',
