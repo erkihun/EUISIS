@@ -69,7 +69,8 @@ class BackupRecoveryController extends Controller
         abort_unless($request->user()->can('backups.view_status'), 403);
         $service->health(fresh: true);
 
-        return back();
+        // Always the page itself: back() depends on the Referer header, which a proxy may drop.
+        return to_route('backups.index');
     }
 
     public function store(Request $request)
