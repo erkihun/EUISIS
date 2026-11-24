@@ -584,10 +584,17 @@ class OrganizationStructureImportValidator
 
             $code = $this->str($row['unit_code'] ?? null);
             $nameEn = $this->str($row['unit_name_en'] ?? null);
+            $nameAm = $this->str($row['unit_name_am'] ?? null);
             $typeCode = $this->upper($row['unit_type_code'] ?? null);
 
             if ($nameEn === null) {
                 $issues[] = ImportIssue::error($sheet, $rowNumber, __('organization-structure-import.errors.unit_name_required'), 'unit_name_en');
+            }
+
+            // The unit form requires both names; a unit imported without its
+            // Amharic name shows its English name on every Amharic screen.
+            if ($nameAm === null) {
+                $issues[] = ImportIssue::error($sheet, $rowNumber, __('organization-structure-import.errors.unit_name_am_required'), 'unit_name_am');
             }
 
             $unitTypeId = null;

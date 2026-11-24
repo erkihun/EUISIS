@@ -14,6 +14,7 @@ type Props = {
     request?: ChangeRequestDetail;
     options: FormOptions;
     allowedTypes: string[];
+    initial?: { organization_id: string; request_type: string };
 };
 
 const inputCls = cx(inputClassName, 'w-full min-w-0');
@@ -27,7 +28,7 @@ const labelCls = 'block space-y-1.5 text-xs font-medium text-(--app-muted-foregr
  * type are locked: changing either would make the review history refer to
  * something that no longer exists.
  */
-export default function RequestForm({ request, options, allowedTypes }: Props): JSX.Element {
+export default function RequestForm({ request, options, allowedTypes, initial }: Props): JSX.Element {
     const { t, locale } = useLocale();
     const am = locale === 'am';
     const isEdit = Boolean(request);
@@ -48,8 +49,8 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
      * submit instead.
      */
     const form = useForm({
-        organization_id: request?.organization?.id ?? '',
-        request_type: String(request?.request_type ?? ''),
+        organization_id: request?.organization?.id ?? initial?.organization_id ?? '',
+        request_type: String(request?.request_type ?? initial?.request_type ?? ''),
         reason: request?.reason ?? '',
         priority: request?.priority ?? 'normal',
         requested_effective_date: request?.requested_effective_date ?? '',

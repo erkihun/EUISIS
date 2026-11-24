@@ -14,6 +14,9 @@ interface Props {
     expanded: boolean;
     onToggle: (id: string) => void;
     canCreate: boolean;
+    canRequestCreate?: boolean;
+    /** The requester's "add unit" link (a prefilled change request). */
+    addHref?: string;
     canUpdate: boolean;
     canDelete: boolean;
     canRestore: boolean;
@@ -21,7 +24,7 @@ interface Props {
 }
 
 /** One unit of the tree as a table row: indented by depth, with the same columns and row menu as the other registers. */
-export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canCreate, canUpdate, canDelete, canRestore, selectedOrgId }: Props) {
+export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canCreate, canRequestCreate = false, addHref, canUpdate, canDelete, canRestore, selectedOrgId }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const deleted = Boolean(node.is_deleted);
@@ -51,15 +54,17 @@ export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canC
     }
 
     const status = deleted ? 'archived' : node.status;
+    // The other language's name under the main one, as the unit types register shows it.
+    const primaryName = localizedName(node.name_en, node.name_am, locale);
+    const otherName = locale === 'am' ? node.name_en : node.name_am;
+    const secondaryName = otherName && otherName !== primaryName ? otherName : null;
     const statusKey = `common.${status}`;
     const statusLabel = t(statusKey) === statusKey ? undefined : t(statusKey);
 
     return (
         <tr className={cx(tableRowClassName, deleted && 'text-(--app-muted-foreground)')}>
-            <td className={cx(tableCellClassName, 'font-mono text-xs')}>
-                <Link href={route('organization-units.show', node.id)} className={cx('hover:underline', deleted ? 'line-through' : 'text-primary dark:text-primary')}>
-                    {node.code}
-                </Link>
+            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-(--app-muted-foreground)', deleted && 'line-through')}>
+                {node.code}
             </td>
             <td className={tableCellClassName}>
                 <div className="flex items-center gap-1.5" style={{ paddingLeft: `${node.depth * 20}px` }}>
@@ -76,9 +81,12 @@ export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canC
                     ) : (
                         <span className="h-5 w-5 shrink-0" aria-hidden="true" />
                     )}
-                    <Link href={route('organization-units.show', node.id)} className={cx('font-medium hover:underline', deleted && 'line-through')}>
-                        {localizedName(node.name_en, node.name_am, locale)}
-                    </Link>
+                    <div className="min-w-0">
+                        <Link href={route('organization-units.show', node.id)} className={cx('font-medium hover:underline', deleted && 'line-through')}>
+                            {localizedName(node.name_en, node.name_am, locale)}
+                        </Link>
+                        {secondaryName && <p className="text-xs text-(--app-muted-foreground)">{secondaryName}</p>}
+                    </div>
                 </div>
             </td>
             <td className={tableCellClassName}>
@@ -100,8 +108,10 @@ export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canC
                             {
                                 label: t('organizations.addChild'),
                                 icon: <Plus className="h-4 w-4" />,
-                                href: route('organization-units.create', { organization_id: selectedOrgId, parent_unit_id: node.id }),
-                                show: canCreate && !deleted,
+                                href: canCreate || !addHref
+                                    ? route('organization-units.create', { organization_id: selectedOrgId, parent_unit_id: node.id })
+                                    : addHref,
+                                show: (canCreate || canRequestCreate) && !deleted,
                             },
                             { label: t('common.view'), href: route('organization-units.show', node.id) },
                             { label: t('common.edit'), href: route('organization-units.edit', node.id), show: (canUpdate || node.can?.update) && !deleted },

@@ -238,6 +238,22 @@ class OrganizationUnitTreeService
     }
 
     /**
+     * Parent choices for editing $unit: every active unit of its organization
+     * except the unit itself and its whole subtree, which can never be its parent.
+     *
+     * @return array<int, array{id: string, name_en: string, name_am: string|null, code: string, depth: int}>
+     */
+    public function parentOptionsForUnit(OrganizationUnit $unit): array
+    {
+        $excluded = [$unit->getKey(), ...$this->getDescendants($unit)->pluck('id')->all()];
+
+        return array_values(array_filter(
+            $this->optionsForOrganization($unit->organization_id),
+            fn (array $option): bool => ! in_array($option['id'], $excluded, true),
+        ));
+    }
+
+    /**
      * @param  Collection<int, OrganizationUnit>  $all
      * @return array<int, array{id: string, name_en: string, name_am: string|null, code: string, depth: int}>
      */

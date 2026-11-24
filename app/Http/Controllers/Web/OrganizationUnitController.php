@@ -23,6 +23,7 @@ use App\Http\Resources\OrganizationUnitResource;
 use App\Models\HierarchyVersion;
 use App\Models\InstitutionOffice;
 use App\Models\Organization;
+use App\Models\OrganizationalChangeRequest;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
@@ -181,8 +182,17 @@ class OrganizationUnitController extends Controller
         $selectedOrganization = null;
         $organizationUnits = [];
 
-        if ($request->filled('organization_id')) {
-            $orgId = $request->get('organization_id');
+        // A scoped user opens straight on their own organization's units: the
+        // organization their scope names, or the only one they may see. With a
+        // single organization in reach the structure panel has nothing to pick.
+        $scopeService = app(OrganizationScopeService::class);
+        $scopedToOwnOrganization = $restricted && count($accessibleOrgIds) <= 1;
+        $ownOrganizationId = $restricted && $user !== null
+            ? ($scopeService->assignedOrganizationIds($user)[0] ?? ($scopedToOwnOrganization ? ($accessibleOrgIds[0] ?? null) : null))
+            : null;
+
+        if ($request->filled('organization_id') || $ownOrganizationId !== null) {
+            $orgId = $request->filled('organization_id') ? $request->get('organization_id') : $ownOrganizationId;
 
             if ($restricted && ! in_array($orgId, $accessibleOrgIds, true)) {
                 abort(403);
@@ -228,6 +238,7 @@ class OrganizationUnitController extends Controller
             'selectedVersion' => $selectedVersion,
             'availableVersions' => $availableVersions,
             'selectedOrganization' => $selectedOrganization,
+            'scopedToOwnOrganization' => $scopedToOwnOrganization,
             'organizationUnits' => $organizationUnits,
             'organizations' => $organizations->map(fn ($org) => [
                 'id' => $org->id,
@@ -243,6 +254,9 @@ class OrganizationUnitController extends Controller
             'can' => [
                 'viewAny' => $user?->can('viewAny', OrganizationUnit::class) ?? false,
                 'create' => $user?->can('create', OrganizationUnit::class) ?? false,
+                // A scoped user without direct create rights adds a unit through a change request.
+                'requestCreate' => ($user?->can('organization-units.request_create') ?? false)
+                    && ($user?->can('create', OrganizationalChangeRequest::class) ?? false),
             ],
         ]);
     }
@@ -265,11 +279,17 @@ class OrganizationUnitController extends Controller
         $selectedOrg = null;
         $parentUnits = [];
 
-        if ($request->filled('organization_id')) {
-            $selectedOrg = Organization::query()->find(
-                $request->get('organization_id'),
-                ['id', 'code', 'name_en', 'name_am'],
-            );
+        // A scoped user creates under their own organization unless the link named one.
+        $orgId = $request->filled('organization_id')
+            ? $request->get('organization_id')
+            : ($restricted && $user !== null ? (app(OrganizationScopeService::class)->assignedOrganizationIds($user)[0] ?? null) : null);
+
+        if ($orgId !== null) {
+            if ($restricted && ! in_array($orgId, $accessibleOrgIds, true)) {
+                abort(403);
+            }
+
+            $selectedOrg = Organization::query()->find($orgId, ['id', 'code', 'name_en', 'name_am']);
         }
 
         if ($selectedOrg !== null) {
@@ -383,7 +403,7 @@ class OrganizationUnitController extends Controller
                 fn ($c) => ['value' => $c->value, 'label' => ucfirst($c->value)],
                 OrganizationUnitStatus::cases(),
             ),
-            'parentOptions' => $treeService->optionsForOrganization($organizationUnit->organization_id),
+            'parentOptions' => $treeService->parentOptionsForUnit($organizationUnit),
         ]);
     }
 

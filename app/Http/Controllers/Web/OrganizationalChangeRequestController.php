@@ -132,9 +132,22 @@ class OrganizationalChangeRequestController extends Controller
     {
         $this->authorize('create', OrganizationalChangeRequest::class);
 
+        $options = $this->formOptions($request);
+        $allowedTypes = $this->allowedTypes($request);
+
+        // A link from a structure page may preset the organization and the type
+        // (for example "Add Organization Unit" on a scoped user's units page).
+        // Anything outside this user's reach is dropped, not refused.
+        $presetOrganization = $request->string('organization_id')->toString();
+        $presetType = $request->string('request_type')->toString();
+
         return Inertia::render('OrganizationalChangeRequests/Create', [
-            'options' => $this->formOptions($request),
-            'allowedTypes' => $this->allowedTypes($request),
+            'options' => $options,
+            'allowedTypes' => $allowedTypes,
+            'initial' => [
+                'organization_id' => $options['organizations']->contains('id', $presetOrganization) ? $presetOrganization : '',
+                'request_type' => in_array($presetType, $allowedTypes, true) ? $presetType : '',
+            ],
         ]);
     }
 

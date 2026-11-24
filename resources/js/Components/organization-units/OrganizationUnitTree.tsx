@@ -6,14 +6,19 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationUnitTreeNode } from '@/types/organizationUnit';
 
-import { TableCard, buttonClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { TableCard, TableTools, buttonClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 
 export type UnitFilters = { search: string; unitType: string; status: string };
 
 interface Props {
     units: OrganizationUnitTreeNode[];
     filters: UnitFilters;
+    /** The direct right to create units (the create form). */
     canCreate: boolean;
+    /** May only raise an "add unit" change request; `addHref` then opens that form. */
+    canRequestCreate?: boolean;
+    /** Where the "Add" buttons go for a requester; defaults to the unit create form. */
+    addHref?: string;
     canUpdate: boolean;
     canDelete: boolean;
     canRestore: boolean;
@@ -60,7 +65,7 @@ function countNodes(nodes: OrganizationUnitTreeNode[]): number {
 function renderRows(nodes: OrganizationUnitTreeNode[], expanded: Set<string>, onToggle: (id: string) => void, props: Omit<Props, 'units' | 'filters' | 'title'>): ReactNode[] {
     const rows: ReactNode[] = [];
     for (const node of nodes) {
-        rows.push(<OrganizationUnitTreeRow key={node.id} node={node} expanded={expanded.has(node.id)} onToggle={onToggle} {...props} />);
+        rows.push(<OrganizationUnitTreeRow key={node.id} node={node} expanded={expanded.has(node.id)} onToggle={onToggle} {...props} canRequestCreate={props.canRequestCreate ?? false} />);
         if (expanded.has(node.id) && node.children && node.children.length > 0) {
             rows.push(...renderRows(node.children, expanded, onToggle, props));
         }
@@ -69,7 +74,7 @@ function renderRows(nodes: OrganizationUnitTreeNode[], expanded: Set<string>, on
 }
 
 /** The selected organization's units as a tree inside the shared list frame, filtered by the page's filter panel. */
-export default function OrganizationUnitTree({ units, filters, canCreate, canUpdate, canDelete, canRestore, selectedOrgId, title }: Props) {
+export default function OrganizationUnitTree({ units, filters, canCreate, canRequestCreate = false, canUpdate, canDelete, canRestore, selectedOrgId, title, addHref }: Props) {
     const { t } = useLocale();
     const allIds = useMemo(() => collectAllIds(units), [units]);
     const [expanded, setExpanded] = useState<Set<string>>(() => new Set(allIds));
@@ -106,8 +111,8 @@ export default function OrganizationUnitTree({ units, filters, canCreate, canUpd
             {filtered.length === 0 ? (
                 <EmptyState
                     title={filtering ? t('organizationUnits.noUnitsMatchFilters') : t('organizationUnits.noOrganizationUnitsFound')}
-                    action={!filtering && canCreate ? (
-                        <Link href={route('organization-units.create', { organization_id: selectedOrgId })} className={buttonClassName({ variant: 'primary' })}>
+                    action={!filtering && (canCreate || canRequestCreate) ? (
+                        <Link href={addHref ?? route('organization-units.create', { organization_id: selectedOrgId })} className={buttonClassName({ variant: 'primary' })}>
                             <Plus className="h-4 w-4" aria-hidden="true" />
                             {t('organizationUnits.addOrganizationUnit')}
                         </Link>
@@ -115,22 +120,25 @@ export default function OrganizationUnitTree({ units, filters, canCreate, canUpd
                 />
             ) : (
                 <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full')}>
+                    {/* Rows keep their tree order, so headers are not click-sortable; the columns and density menu still applies. */}
+                    <TableTools id="organization-units-index" sortable={false}>
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
-                                <th className={tableHeaderCellClassName}>{t('common.code')}</th>
-                                <th className={tableHeaderCellClassName}>{t('common.name')}</th>
-                                <th className={tableHeaderCellClassName}>{t('organizationUnits.unitType')}</th>
-                                <th className={tableHeaderCellClassName}>{t('common.status')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.code')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.name')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('organizationUnits.unitType')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.status')}</th>
                                 <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('organizationUnits.childUnits')}</th>
-                                <th className={tableHeaderCellClassName}>{t('common.effectiveFrom')}</th>
-                                <th className={tableHeaderCellClassName}><span className="sr-only">{t('common.actions')}</span></th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.effectiveFrom')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className={tableBodyClassName}>
-                            {renderRows(filtered, effectiveExpanded, toggleNode, { canCreate, canUpdate, canDelete, canRestore, selectedOrgId })}
+                            {renderRows(filtered, effectiveExpanded, toggleNode, { canCreate, canRequestCreate, addHref, canUpdate, canDelete, canRestore, selectedOrgId })}
                         </tbody>
                     </table>
+                    </TableTools>
                 </div>
             )}
         </TableCard>

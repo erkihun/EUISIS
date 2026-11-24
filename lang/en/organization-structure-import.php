@@ -76,6 +76,7 @@ return [
         'invalid_status' => 'Invalid status ":value".',
 
         'unit_name_required' => 'Unit name (English) is required.',
+        'unit_name_am_required' => 'Unit name (Amharic) is required.',
         'unit_type_required' => 'Unit type code is required.',
         'unit_type_not_found' => 'Unit type ":code" does not exist.',
         'duplicate_unit_code' => 'Duplicate unit code ":code" (already used on row :row).',
