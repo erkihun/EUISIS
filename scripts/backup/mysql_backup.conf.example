@@ -38,9 +38,12 @@ REPO2_VERIFY_CMD=""
 ENCRYPT_RECIPIENT=""
 
 # Where the application reads the status report (BACKUP_STATUS_PATH in .env) and
-# where a manual restore test records its result.
-STATUS_PATH=/var/lib/euisis-backup/status.json
-RESTORE_TEST_FILE=/var/lib/euisis-backup/restore-test.json
+# where a manual restore test records its result. The web PHP must be allowed to read
+# the report: on Plesk, open_basedir limits PHP to the domain's webspace, so keep both
+# files inside it, e.g. /var/www/vhosts/<domain>/private/euisis-backup/ (never under
+# httpdocs). Elsewhere /var/lib/euisis-backup/ is fine.
+STATUS_PATH=/var/www/vhosts/example.gov.et/private/euisis-backup/status.json
+RESTORE_TEST_FILE=/var/www/vhosts/example.gov.et/private/euisis-backup/restore-test.json
 
 # Controls, reported exactly as they stand. Set each to true only once it is real.
 CONTROL_INDEPENDENT_COPY=false     # repository 2 exists on other hardware / another provider
