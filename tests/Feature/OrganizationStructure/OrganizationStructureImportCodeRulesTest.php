@@ -72,7 +72,7 @@ function blankCodeSheets(array $overrides = []): array
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
             // unit_code blank → generated
-            [null, 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Head Office', 'የሥራ ክፍል 12', 'IMPUNIT', null, null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -142,8 +142,8 @@ it('lets a child unit reference a parent whose own code was generated', function
     $sheets = blankCodeSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-ROOT', 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
-            [null, 'Finance Department', null, 'IMPUNIT', 'U-ROOT', null, null, 'active'],
+            ['U-ROOT', 'Head Office', 'የሥራ ክፍል 13', 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Finance Department', 'የሥራ ክፍል 14', 'IMPUNIT', 'U-ROOT', null, null, 'active'],
         ],
     ]);
 
@@ -172,7 +172,7 @@ it('generates a direct position code as OWNER/SEQUENCE', function (): void {
         ],
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-ROOT', 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
+            ['U-ROOT', 'Head Office', 'የሥራ ክፍል 15', 'IMPUNIT', null, null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -213,7 +213,7 @@ it('generates a hosted-unit position code as OWNER/HOST/SEQUENCE', function (): 
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
             // The unit sits inside K-01 but its mandate is owned by MA-01.
-            ['U-HOSTED', 'Hosted Office', null, 'IMPUNIT', null, 'K-01', 'MA-01', 'active'],
+            ['U-HOSTED', 'Hosted Office', 'የሥራ ክፍል 16', 'IMPUNIT', null, 'K-01', 'MA-01', 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -308,7 +308,7 @@ it('reports a row error when the code rule forbids hand-entered codes', function
     $sheets = blankCodeSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-HQ', 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
+            ['U-HQ', 'Head Office', 'የሥራ ክፍል 17', 'IMPUNIT', null, null, null, 'active'],
         ],
     ]);
 
@@ -367,7 +367,7 @@ it('blocks a hand-entered code when the rule needs override approval the user la
     $sheets = blankCodeSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-HQ', 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
+            ['U-HQ', 'Head Office', 'የሥራ ክፍል 18', 'IMPUNIT', null, null, null, 'active'],
         ],
     ]);
 
@@ -390,11 +390,11 @@ it('wires up a fully auto-generated file using #N row references', function (): 
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
             // row 2: Head Office (root)
-            [null, 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Head Office', 'የሥራ ክፍል 19', 'IMPUNIT', null, null, null, 'active'],
             // row 3: Finance Dept, child of row 2
-            [null, 'Finance Department', null, 'IMPUNIT', '#2', null, null, 'active'],
+            [null, 'Finance Department', 'የሥራ ክፍል 20', 'IMPUNIT', '#2', null, null, 'active'],
             // row 4: Accounts Team, child of row 3
-            [null, 'Accounts Team', null, 'IMPUNIT', '#3', null, null, 'active'],
+            [null, 'Accounts Team', 'የሥራ ክፍል 21', 'IMPUNIT', '#3', null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -435,7 +435,7 @@ it('reports a row error for an #N reference that points nowhere', function (): v
     $sheets = blankCodeSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            [null, 'Head Office', null, 'IMPUNIT', '#99', null, null, 'active'],
+            [null, 'Head Office', 'የሥራ ክፍል 22', 'IMPUNIT', '#99', null, null, 'active'],
         ],
     ]);
 
@@ -463,8 +463,8 @@ it('blocks a generated code that collides with a provided one', function (): voi
     $sheets = blankCodeSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['FIXED', 'Provided Unit', null, 'IMPUNIT', null, null, null, 'active'],
-            [null, 'Generated Unit', null, 'IMPUNIT', null, null, null, 'active'],
+            ['FIXED', 'Provided Unit', 'የሥራ ክፍል 23', 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Generated Unit', 'የሥራ ክፍል 24', 'IMPUNIT', null, null, null, 'active'],
         ],
     ]);
 
@@ -544,9 +544,9 @@ it('projects distinct codes for several blank rows in one sheet', function (): v
     $sheets = blankCodeSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            [null, 'Unit One', null, 'IMPUNIT', null, null, null, 'active'],
-            [null, 'Unit Two', null, 'IMPUNIT', null, null, null, 'active'],
-            [null, 'Unit Three', null, 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Unit One', 'የሥራ ክፍል 25', 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Unit Two', 'የሥራ ክፍል 26', 'IMPUNIT', null, null, null, 'active'],
+            [null, 'Unit Three', 'የሥራ ክፍል 27', 'IMPUNIT', null, null, null, 'active'],
         ],
     ]);
 

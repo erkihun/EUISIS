@@ -127,7 +127,7 @@ it('reports an error when a required column is missing', function (): void {
     $sheets = validStructureSheets([
         StructureSheet::OrganizationUnits->value => [
             array_values($headers),
-            ['U-ROOT', null, 'IMPUNIT', null, null, null, 'active'],
+            ['U-ROOT', 'የሥራ ክፍል 3', 'IMPUNIT', null, null, null, 'active'],
         ],
     ]);
 
@@ -136,6 +136,21 @@ it('reports an error when a required column is missing', function (): void {
     expect($preview['can_import'])->toBeFalse()
         ->and($preview['errors']['Organization Units'][0]['message'])
         ->toBe('Required column missing: unit_name_en (sheet Organization Units)');
+});
+
+it('reports a row error when a unit has no Amharic name', function (): void {
+    $sheets = validStructureSheets([
+        StructureSheet::OrganizationUnits->value => [
+            structureHeaders(StructureSheet::OrganizationUnits),
+            ['U-ROOT', 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
+        ],
+    ]);
+
+    $preview = previewProps($sheets, structureImporterUser());
+
+    expect($preview['can_import'])->toBeFalse()
+        ->and(collect($preview['errors']['Organization Units'])->pluck('message')->all())
+        ->toContain('Unit name (Amharic) is required.');
 });
 
 it('rejects a file that is not a spreadsheet', function (): void {
@@ -152,8 +167,8 @@ it('reports a row error for a duplicate unit code', function (): void {
     $sheets = validStructureSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-DUP', 'First', null, 'IMPUNIT', null, null, null, 'active'],
-            ['U-DUP', 'Second', null, 'IMPUNIT', null, null, null, 'active'],
+            ['U-DUP', 'First', 'የሥራ ክፍል 4', 'IMPUNIT', null, null, null, 'active'],
+            ['U-DUP', 'Second', 'የሥራ ክፍል 5', 'IMPUNIT', null, null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -174,7 +189,7 @@ it('reports a row error for an unknown parent unit', function (): void {
     $sheets = validStructureSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-ROOT', 'Head Office', null, 'IMPUNIT', 'U-GHOST', null, null, 'active'],
+            ['U-ROOT', 'Head Office', 'የሥራ ክፍል 6', 'IMPUNIT', 'U-GHOST', null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -195,8 +210,8 @@ it('reports an error for a circular parent unit relationship', function (): void
     $sheets = validStructureSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-A', 'Unit A', null, 'IMPUNIT', 'U-B', null, null, 'active'],
-            ['U-B', 'Unit B', null, 'IMPUNIT', 'U-A', null, null, 'active'],
+            ['U-A', 'Unit A', 'የሥራ ክፍል 7', 'IMPUNIT', 'U-B', null, null, 'active'],
+            ['U-B', 'Unit B', 'የሥራ ክፍል 8', 'IMPUNIT', 'U-A', null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -272,7 +287,7 @@ it('blocks positions under an inactive unit', function (): void {
     $sheets = validStructureSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-OFF', 'Closed Department', null, 'IMPUNIT', null, null, null, 'inactive'],
+            ['U-OFF', 'Closed Department', 'የሥራ ክፍል 9', 'IMPUNIT', null, null, null, 'inactive'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),
@@ -469,8 +484,8 @@ it('refuses to import a workbook that still has errors', function (): void {
     $sheets = validStructureSheets([
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
-            ['U-DUP', 'First', null, 'IMPUNIT', null, null, null, 'active'],
-            ['U-DUP', 'Second', null, 'IMPUNIT', null, null, null, 'active'],
+            ['U-DUP', 'First', 'የሥራ ክፍል 10', 'IMPUNIT', null, null, null, 'active'],
+            ['U-DUP', 'Second', 'የሥራ ክፍል 11', 'IMPUNIT', null, null, null, 'active'],
         ],
         StructureSheet::Employees->value => null,
     ]);

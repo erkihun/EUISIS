@@ -243,6 +243,23 @@ test('1. a scoped organizational user can create an allowed request', function (
     expect(OrganizationUnit::query()->where('name_en', 'Planning Directorate')->exists())->toBeFalse();
 });
 
+test('1b. the create page takes a preset organization and type from the link, dropping what is out of reach', function (): void {
+    $this->actingAs($this->requester)
+        ->get(route('organizational-change-requests.create', ['organization_id' => $this->org->id, 'request_type' => 'add_organization_unit']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('OrganizationalChangeRequests/Create')
+            ->where('initial.organization_id', $this->org->id)
+            ->where('initial.request_type', 'add_organization_unit'));
+
+    $this->actingAs($this->requester)
+        ->get(route('organizational-change-requests.create', ['organization_id' => $this->otherOrg->id, 'request_type' => 'not_a_type']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('initial.organization_id', '')
+            ->where('initial.request_type', ''));
+});
+
 test('2. a requester cannot raise a request outside their organization scope', function (): void {
     $this->actingAs($this->requester)
         ->post(route('organizational-change-requests.store'), [

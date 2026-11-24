@@ -98,6 +98,117 @@ test('test_index_lists_accessible_organizations', function (): void {
         );
 });
 
+test('a user scoped to one organization opens on its units with the structure panel hidden', function (): void {
+    Permission::findOrCreate('organization-units.viewAny', 'web');
+    $role = Role::findOrCreate('OUIndexScopedViewer', 'web');
+    $role->syncPermissions(['organization-units.viewAny']);
+
+    $own = makeOrgForIndexTest();
+    $other = makeOrgForIndexTest();
+    $ownUnit = OrganizationUnit::query()->create([
+        'organization_id' => $own->id,
+        'unit_type' => 'department',
+        'code' => 'OWN-'.uniqid(),
+        'name_en' => 'Own Unit',
+        'name_am' => 'የራስ ክፍል',
+        'status' => OrganizationUnitStatus::Active,
+    ]);
+
+    $user = User::factory()->create();
+    $user->assignRole('OUIndexScopedViewer');
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Self,
+        'organization_id' => $own->id,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('organization-units.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('OrganizationUnits/Index')
+            ->where('scopedToOwnOrganization', true)
+            ->where('selectedOrganization.id', $own->id)
+            ->where('organizationUnits.0.id', $ownUnit->id),
+        );
+
+    // Asking for another organization is still refused.
+    $this->actingAs($user)
+        ->get(route('organization-units.index', ['organization_id' => $other->id]))
+        ->assertForbidden();
+
+    // An unrestricted user keeps the picker and nothing preselected.
+    $this->actingAs(ouIndexViewerUser())
+        ->get(route('organization-units.index'))
+        ->assertInertia(fn ($page) => $page
+            ->where('scopedToOwnOrganization', false)
+            ->where('selectedOrganization', null),
+        );
+});
+
+test('a scoped creator opens the create page on their own organization', function (): void {
+    Permission::findOrCreate('organization-units.viewAny', 'web');
+    Permission::findOrCreate('organization-units.create', 'web');
+    $role = Role::findOrCreate('OUIndexScopedCreator', 'web');
+    $role->syncPermissions(['organization-units.viewAny', 'organization-units.create']);
+
+    $own = makeOrgForIndexTest();
+    $other = makeOrgForIndexTest();
+    $user = User::factory()->create();
+    $user->assignRole('OUIndexScopedCreator');
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Self,
+        'organization_id' => $own->id,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('organization-units.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('OrganizationUnits/Create')
+            ->where('selectedOrg.id', $own->id),
+        );
+
+    $this->actingAs($user)
+        ->get(route('organization-units.create', ['organization_id' => $other->id]))
+        ->assertForbidden();
+});
+
+test('a scoped change requester gets the add-unit button without the direct create right', function (): void {
+    foreach (['organization-units.viewAny', 'organization-units.request_create', 'organizational-change-requests.create'] as $perm) {
+        Permission::findOrCreate($perm, 'web');
+    }
+    $role = Role::findOrCreate('OUIndexScopedRequester', 'web');
+    $role->syncPermissions(['organization-units.viewAny', 'organization-units.request_create', 'organizational-change-requests.create']);
+
+    $own = makeOrgForIndexTest();
+    $user = User::factory()->create();
+    $user->assignRole('OUIndexScopedRequester');
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Self,
+        'organization_id' => $own->id,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('organization-units.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('can.create', false)
+            ->where('can.requestCreate', true)
+            ->where('selectedOrganization.id', $own->id),
+        );
+
+    // A plain viewer gets neither.
+    $this->actingAs(ouIndexViewerUser())
+        ->get(route('organization-units.index'))
+        ->assertInertia(fn ($page) => $page->where('can.requestCreate', false));
+});
+
 test('the KPI row counts live, inactive and archived units and the organizations holding them', function (): void {
     $user = ouIndexViewerUser();
     $org = makeOrgForIndexTest();

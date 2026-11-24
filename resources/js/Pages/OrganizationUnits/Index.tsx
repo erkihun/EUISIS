@@ -37,9 +37,11 @@ interface Props {
     selectedVersion?: VersionInfo | null;
     availableVersions?: VersionInfo[];
     selectedOrganization: OrganizationSummary | null;
+    /** The user may see one organization only: it is preselected and the structure panel is not shown. */
+    scopedToOwnOrganization?: boolean;
     organizationUnits: OrganizationUnitTreeNode[];
     unitTypes?: OrganizationUnitTypeModel[];
-    can: { viewAny: boolean; create: boolean };
+    can: { viewAny: boolean; create: boolean; requestCreate?: boolean };
     organizations?: OrgOption[];
 }
 
@@ -60,6 +62,7 @@ export default function OrganizationUnitsIndex({
     selectedVersion = null,
     availableVersions = [],
     selectedOrganization,
+    scopedToOwnOrganization = false,
     organizationUnits,
     unitTypes = [],
     can,
@@ -99,7 +102,11 @@ export default function OrganizationUnitsIndex({
     const displayOrg = localSelected ?? selectedOrganization;
     const displayOrgName = displayOrg ? localizedName(displayOrg.name_en, displayOrg.name_am, locale) : '';
     const filtersActive = Boolean(filters.search.trim() || filters.unitType || filters.status);
-    const createHref = route('organization-units.create', displayOrg ? { organization_id: displayOrg.id } : {});
+    // Direct creators open the unit form; change requesters open a prefilled "add unit" request.
+    const createHref = can.create
+        ? route('organization-units.create', displayOrg ? { organization_id: displayOrg.id } : {})
+        : route('organizational-change-requests.create', { request_type: 'add_organization_unit', ...(displayOrg ? { organization_id: displayOrg.id } : {}) });
+    const canAdd = can.create || Boolean(can.requestCreate);
 
     return (
         <AuthenticatedLayout
@@ -135,19 +142,21 @@ export default function OrganizationUnitsIndex({
             </div>
 
             <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-stretch">
-                <div className="w-full lg:w-[34%] lg:min-h-[600px]">
-                    <OrganizationTreePreview
-                        tree={organizationTree}
-                        selectedId={displayOrg?.id ?? null}
-                        hasPublishedHierarchy={hasPublishedHierarchy}
-                        usingDraftFallback={usingDraftFallback}
-                        usingFlatFallback={usingFlatFallback}
-                        selectedVersion={selectedVersion}
-                        availableVersions={availableVersions}
-                        onSelect={selectOrganization}
-                        onVersionChange={switchVersion}
-                    />
-                </div>
+                {!scopedToOwnOrganization && (
+                    <div className="w-full lg:w-[34%] lg:min-h-[600px]">
+                        <OrganizationTreePreview
+                            tree={organizationTree}
+                            selectedId={displayOrg?.id ?? null}
+                            hasPublishedHierarchy={hasPublishedHierarchy}
+                            usingDraftFallback={usingDraftFallback}
+                            usingFlatFallback={usingFlatFallback}
+                            selectedVersion={selectedVersion}
+                            availableVersions={availableVersions}
+                            onSelect={selectOrganization}
+                            onVersionChange={switchVersion}
+                        />
+                    </div>
+                )}
 
                 <div className="w-full lg:flex-1">
                     {displayOrg ? (
@@ -176,7 +185,7 @@ export default function OrganizationUnitsIndex({
                                         </p>
                                     </div>
                                 </div>
-                                {can.create && (
+                                {canAdd && (
                                     <Link href={createHref} className={buttonClassName({ variant: 'primary', size: 'sm' })}>
                                         <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                         {t('organizationUnits.addOrganizationUnit')}
@@ -214,7 +223,8 @@ export default function OrganizationUnitsIndex({
                                 title={t('organizationUnits.unitsInOrganization')}
                                 units={organizationUnits}
                                 filters={filters}
-                                canCreate={can.create}
+                                canCreate={canAdd}
+                                addHref={createHref}
                                 canUpdate={can.create}
                                 canDelete={can.create}
                                 canRestore={can.create}

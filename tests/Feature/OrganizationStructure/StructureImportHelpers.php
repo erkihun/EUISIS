@@ -70,8 +70,8 @@ function validStructureSheets(array $overrides = []): array
         StructureSheet::OrganizationUnits->value => [
             structureHeaders(StructureSheet::OrganizationUnits),
             // unit_code, name_en, name_am, type_code, parent_unit, host_org, owner_org, status
-            ['U-ROOT', 'Head Office', null, 'IMPUNIT', null, null, null, 'active'],
-            ['U-CHILD', 'Finance Department', null, 'IMPUNIT', 'U-ROOT', null, null, 'active'],
+            ['U-ROOT', 'Head Office', 'የሥራ ክፍል 1', 'IMPUNIT', null, null, null, 'active'],
+            ['U-CHILD', 'Finance Department', 'የሥራ ክፍል 2', 'IMPUNIT', 'U-ROOT', null, null, 'active'],
         ],
         StructureSheet::Positions->value => [
             structureHeaders(StructureSheet::Positions),

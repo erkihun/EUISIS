@@ -76,6 +76,7 @@ return [
         'invalid_status' => 'ልክ ያልሆነ ሁኔታ ":value"።',
 
         'unit_name_required' => 'የክፍል ስም (እንግሊዝኛ) ያስፈልጋል።',
+        'unit_name_am_required' => 'የክፍል ስም (አማርኛ) ያስፈልጋል።',
         'unit_type_required' => 'የክፍል ዓይነት ኮድ ያስፈልጋል።',
         'unit_type_not_found' => 'የክፍል ዓይነት ":code" የለም።',
         'duplicate_unit_code' => 'የተደገመ የክፍል ኮድ ":code" (በረድፍ :row ላይ ተጠቅሟል)።',

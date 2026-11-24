@@ -212,7 +212,7 @@ ORG_COMMENTS = {
 UNIT_HELPER = "ረድፍ (#)"
 UNIT_COLS = [UNIT_HELPER, "unit_code", "unit_name_en", "unit_name_am", "unit_type_code", "parent_unit_code",
              "host_organization_code", "functional_owner_organization_code", "status"]
-UNIT_REQUIRED = {"unit_name_en", "unit_type_code"}
+UNIT_REQUIRED = {"unit_name_en", "unit_name_am", "unit_type_code"}
 UNIT_COMMENTS = {
     UNIT_HELPER: "ይህ ዓምድ የሚያሳየው የዚህ ረድፍ ማጣቀሻ ነው (#2፣ #3 …)። ለparent_unit_code እና በPositions ሉህ ለunit_code ይህን ይቀዱ። አይጻፉበት፤ ሥርዓቱ አያነበውም።",
     "unit_code": "ባዶ ይተዉ፤ ሥርዓቱ ኮድ ያመነጫል (ለምሳሌ UNIT-0095)። በእጅ የተጻፈ ኮድ አይፈቀድም።",
@@ -343,7 +343,7 @@ def build_structure(path: Path, test_fill: str | None = None):
                 ("ረድፍ (#)", "የረድፉ ማጣቀሻ (በራስ-ሰር)", "—", "አይጻፉበት። #2፣ #3 … ያሳያል"),
                 ("unit_code", "የክፍል ኮድ", "አይ", "ባዶ (ይመነጫል)"),
                 ("unit_name_en", "የክፍሉ ስም በእንግሊዝኛ", "አዎ", "Human Resource Management Directorate"),
-                ("unit_name_am", "የክፍሉ ስም በአማርኛ", "ይመከራል", "የሰው ሀብት አስተዳደር ዳይሬክቶሬት"),
+                ("unit_name_am", "የክፍሉ ስም በአማርኛ", "አዎ", "የሰው ሀብት አስተዳደር ዳይሬክቶሬት"),
                 ("unit_type_code", "የክፍል ዓይነት ኮድ", "አዎ", "UT-04 (ዳይሬክቶሬት)፣ UT-05 (ቡድን) … ከ«ኮዶች» ሉህ"),
                 ("parent_unit_code", "የበላይ ክፍል", "አይ", "#2 (የበላይ ክፍሉ ረድፍ)። ለከፍተኛ ክፍል ባዶ"),
                 ("host_organization_code", "አስተናጋጅ ተቋም ኮድ", "አይ", "በተለምዶ ባዶ"),

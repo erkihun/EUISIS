@@ -138,13 +138,11 @@ export default function OrganizationUnitsEdit({
                                 }
                             >
                                 <option value="">{t('organizationUnits.noParentUnit')}</option>
-                                {parentOptions
-                                    .filter((opt) => opt.id !== unit.id)
-                                    .map((opt) => (
-                                        <option key={opt.id} value={opt.id}>
-                                            {'—'.repeat(opt.depth)} {localizedName(opt)} ({opt.code})
-                                        </option>
-                                    ))}
+                                {parentOptions.map((opt) => (
+                                    <option key={opt.id} value={opt.id}>
+                                        {'—'.repeat(opt.depth)} {localizedName(opt)} ({opt.code})
+                                    </option>
+                                ))}
                             </select>
                             <FieldError>{errors.parent_unit_id}</FieldError>
                         </div>

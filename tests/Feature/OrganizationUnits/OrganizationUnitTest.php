@@ -257,6 +257,37 @@ test('circular_unit_hierarchy_is_rejected', function (): void {
         ->assertSessionHasErrors('parent_unit_id');
 });
 
+test('edit page parent options leave out the unit itself and its whole subtree', function (): void {
+    $org = makeOrganizationForUnitTest();
+
+    $make = fn (string $name, ?string $parentId = null): OrganizationUnit => OrganizationUnit::query()->create([
+        'organization_id' => $org->id,
+        'parent_unit_id' => $parentId,
+        'unit_type' => 'department',
+        'code' => 'OPT-'.uniqid(),
+        'name_en' => $name,
+        'status' => 'active',
+    ]);
+
+    $root = $make('Root');
+    $sibling = $make('Sibling', $root->id);
+    $edited = $make('Edited', $root->id);
+    $child = $make('Child', $edited->id);
+    $grandchild = $make('Grandchild', $child->id);
+
+    $this->actingAs(ouAdminUser())
+        ->get(route('organization-units.edit', $edited->id))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('OrganizationUnits/Edit')
+            ->where('parentOptions', fn ($options) => collect($options)->pluck('id')->all() === [$root->id, $sibling->id]));
+
+    expect(app(OrganizationUnitTreeService::class)->parentOptionsForUnit($edited))
+        ->toHaveCount(2)
+        ->and(collect(app(OrganizationUnitTreeService::class)->parentOptionsForUnit($edited))->pluck('id')->all())
+        ->not->toContain($edited->id, $child->id, $grandchild->id);
+});
+
 // ── 7. Employee assignment can store organization_unit_id ────────────────────
 
 test('employee_assignment_can_store_organization_unit_id', function (): void {
