@@ -89,6 +89,14 @@ log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 json_str() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
 file_size() { stat -c %s "$1" 2>/dev/null || stat -f %z "$1"; }
 file_mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1"; }
+# The report is JSON the application validates strictly: anything that is not a plain
+# number or a plain true/false would make the whole report invalid, so it is normalised here.
+num_or_null() { case "$1" in ''|*[!0-9.]*|*.*.*|.*|*.) printf 'null' ;; *) printf '%s' "$1" ;; esac; }
+int_or_null() { case "$1" in ''|*[!0-9]*) printf 'null' ;; *) printf '%s' "$1" ;; esac; }
+bool() { case "$1" in true|TRUE|True|yes|YES|1) printf 'true' ;; *) printf 'false' ;; esac; }
+json_field() { # name, json text -> the field's bare value (number or string content), empty if absent
+    printf '%s' "$2" | sed -nE "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"?([^\",}[:space:]]*)\"?.*/\1/p" | head -1
+}
 uuid() { # version-4 form, from the kernel's random source (works without uuidgen or /proc)
     local h; h="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"
     printf '%s-%s-4%s-%x%s-%s\n' "${h:0:8}" "${h:8:4}" "${h:13:3}" "$(( (0x${h:16:1} & 0x3) | 0x8 ))" "${h:17:3}" "${h:20:12}"
@@ -110,7 +118,8 @@ unsink() { if [ -n "$ENCRYPT_RECIPIENT" ]; then gpg --batch --quiet --decrypt "$
 OPS=""   # JSON fragments of operations, comma-separated
 add_op() { # type status started completed reference size failure
     local id; id="$(uuid)"
-    local size="${6:-null}" ref="null" fail="null"
+    local size ref="null" fail="null"
+    size="$(int_or_null "${6:-}")"
     [ -n "${5:-}" ] && ref="\"$(json_str "$5")\""
     [ -n "${7:-}" ] && fail="\"$(json_str "$7")\""
     local op="{\"id\":\"$id\",\"type\":\"$1\",\"repository\":${8:-1},\"status\":\"$2\",\"started_at\":$3,\"completed_at\":$4,\"backup_reference\":$ref,\"backup_size\":$size,\"recovery_target\":null,\"failure_summary\":$fail}"
@@ -187,11 +196,21 @@ fi
 
 # Last restore test, if one was recorded.
 if [ -r "$RESTORE_TEST_FILE" ]; then
-    rt="$(tr -d '\n' < "$RESTORE_TEST_FILE")"
-    rid="$(uuid)"
-    rrepo=1; case "$rt" in *'"repository": 2'*|*'"repository":2'*) rrepo=2 ;; esac
-    rt="$(printf '%s' "$rt" | sed -E 's/"repository" *: *[12] *,? *//')"
-    OPS="${OPS:+$OPS,}{\"id\":\"$rid\",\"type\":\"RESTORE_TEST\",\"repository\":$rrepo,\"backup_size\":null,\"recovery_target\":null,\"failure_summary\":null,${rt#\{}"
+    # The file is written by hand, so its fields are read one by one and the operation is
+    # rebuilt; a file that does not hold a usable record is skipped, never copied in as is.
+    rt="$(tr -d '\r\n' < "$RESTORE_TEST_FILE")"
+    rstatus="$(json_field status "$rt")"
+    rstart="$(int_or_null "$(json_field started_at "$rt")")"
+    rdone="$(int_or_null "$(json_field completed_at "$rt")")"
+    rref="$(json_field backup_reference "$rt")"
+    rrepo=1; [ "$(json_field repository "$rt")" = 2 ] && rrepo=2
+    case "$rref" in [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]F) rref="\"$rref\"" ;; *) rref=null ;; esac
+    if { [ "$rstatus" = SUCCEEDED ] || [ "$rstatus" = FAILED ]; } && [ "$rstart" != null ] && [ "$rdone" != null ] \
+            && [ "$rdone" -ge "$rstart" ] && [ "$rdone" -le "$(( $(now) + 60 ))" ]; then
+        OPS="${OPS:+$OPS,}{\"id\":\"$(uuid)\",\"type\":\"RESTORE_TEST\",\"repository\":$rrepo,\"status\":\"$rstatus\",\"started_at\":$rstart,\"completed_at\":$rdone,\"backup_reference\":$rref,\"backup_size\":null,\"recovery_target\":null,\"failure_summary\":null}"
+    else
+        log "restore test record in $RESTORE_TEST_FILE is not usable (needs status SUCCEEDED or FAILED, started_at and completed_at as epoch seconds); skipped"
+    fi
 fi
 
 # 6. Status report: repositories with their backups, controls, no WAL (MySQL dumps are not PITR).
@@ -200,15 +219,18 @@ backups_json() { # dir
     for d in "$1"/*/; do
         [ -d "$d" ] || continue
         ref="$(basename "$d")"
-        case "$ref" in *F) ;; *) continue ;; esac
-        f="$(ls "$d"db-*.sql* 2>/dev/null | head -1)"; [ -n "$f" ] || continue
-        ts="$(file_mtime "$f")"; size="$(file_size "$f")"
+        # Only run directories in the label form; anything else in the repository is ignored.
+        case "$ref" in [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9]F) ;; *) continue ;; esac
+        f="$(ls "$d"db-*.sql* 2>/dev/null | head -1 || true)"; [ -n "$f" ] || continue
+        ts="$(int_or_null "$(file_mtime "$f")")"; size="$(int_or_null "$(file_size "$f")")"
+        [ "$ts" != null ] && [ "$size" != null ] || continue
         out="${out:+$out,}{\"reference\":\"$ref\",\"type\":\"full\",\"completed_at\":$ts,\"size\":$size}"
     done
     printf '%s' "$out"
 }
-usage1="$(df -P "$REPO1" | awk 'NR==2 {gsub("%","",$5); print $5}')"
-usage2="${REPO2_USAGE_PERCENT:-null}"
+# Fill level: some hosts (containers, quota mounts) print "-" or nothing; that reads as unknown.
+usage1="$(num_or_null "$(df -P "$REPO1" 2>/dev/null | awk 'NR==2 {gsub("%","",$5); print $5}' || true)")"
+usage2="$(num_or_null "${REPO2_USAGE_PERCENT%\%}")"
 repo2_backups=""; [ -n "$REPO2_COPY" ] && [ "$repo2_available" = true ] && repo2_backups="$(backups_json "$REPO1")"
 db_state=HEALTHY; [ "$overall" = FAILED ] && db_state=DEGRADED
 
@@ -220,26 +242,39 @@ cat > "$tmp" <<EOF
   "database": "$db_state",
   "engine": "mysql",
   "repositories": [
-    {"id": 1, "available": true, "usage_percent": ${usage1:-null}, "backups": [$(backups_json "$REPO1")]},
+    {"id": 1, "available": true, "usage_percent": $usage1, "backups": [$(backups_json "$REPO1")]},
     {"id": 2, "available": $repo2_available, "usage_percent": $usage2, "backups": [$repo2_backups]}
   ],
   "wal": {"enabled": false, "last_archived_at": null, "failed_count": 0, "failing": false, "backlog": 0},
   "operations": [$OPS],
   "controls": {
-    "independent_copy": $CONTROL_INDEPENDENT_COPY,
-    "encrypted": $CONTROL_ENCRYPTED,
-    "private_storage": $CONTROL_PRIVATE_STORAGE,
-    "key_recovery": $CONTROL_KEY_RECOVERY,
-    "file_recovery": $CONTROL_FILE_RECOVERY,
-    "retention_configured": $CONTROL_RETENTION_CONFIGURED,
-    "owner_assigned": $CONTROL_OWNER_ASSIGNED,
-    "alerts_tested": $CONTROL_ALERTS_TESTED,
-    "runbooks_reviewed": $CONTROL_RUNBOOKS_REVIEWED
+    "independent_copy": $(bool "$CONTROL_INDEPENDENT_COPY"),
+    "encrypted": $(bool "$CONTROL_ENCRYPTED"),
+    "private_storage": $(bool "$CONTROL_PRIVATE_STORAGE"),
+    "key_recovery": $(bool "$CONTROL_KEY_RECOVERY"),
+    "file_recovery": $(bool "$CONTROL_FILE_RECOVERY"),
+    "retention_configured": $(bool "$CONTROL_RETENTION_CONFIGURED"),
+    "owner_assigned": $(bool "$CONTROL_OWNER_ASSIGNED"),
+    "alerts_tested": $(bool "$CONTROL_ALERTS_TESTED"),
+    "runbooks_reviewed": $(bool "$CONTROL_RUNBOOKS_REVIEWED")
   },
   "controls_checked_at": $(now),
   "dry_run": $([ "$DRY_RUN" = 1 ] && echo true || echo false)
 }
 EOF
+# Never publish a report the application cannot read: the previous one stays in place.
+# (Checked only where a working python3 exists; the first call proves the checker itself runs.)
+json_check() { python3 -c 'import json,sys; json.load(sys.stdin)' < "$1" > /dev/null 2>&1; }
+printf '{}' > "$tmp.probe"
+if json_check "$tmp.probe"; then
+    rm -f "$tmp.probe"
+    if ! json_check "$tmp"; then
+        mv -f "$tmp" "$STATUS_PATH.rejected"
+        log "the new report is not valid JSON; kept as $STATUS_PATH.rejected, the published report is unchanged"
+        exit 3
+    fi
+fi
+rm -f "$tmp.probe"
 chmod 640 "$tmp"
 mv -f "$tmp" "$STATUS_PATH"
 log "status report written: $STATUS_PATH ($overall)"
