@@ -13,14 +13,29 @@ class BackupReportReader
     {
         // Local files only: no URL wrappers, HTTP parameters, subprocesses or credential access.
         $path = (string) config('backup.report_path');
-        match (true) {
-            $path === '' => throw new BackupReportException('REPORT_NOT_CONFIGURED'),
-            str_contains($path, '://') => throw new BackupReportException('INVALID_CONFIGURATION'),
-            ! is_file($path) => throw new BackupReportException('REPORT_NOT_FOUND'),
-            ! is_readable($path) => throw new BackupReportException('PERMISSION_DENIED'),
-            default => null,
-        };
-        $contents = file_get_contents($path, false, null, 0, 1048577);
+        if ($path === '') {
+            throw new BackupReportException('REPORT_NOT_CONFIGURED');
+        }
+        if (str_contains($path, '://')) {
+            throw new BackupReportException('INVALID_CONFIGURATION');
+        }
+
+        // A path outside PHP's open_basedir (a Plesk host with the report under /var/lib)
+        // raises a warning on every filesystem call; the application turns warnings into
+        // exceptions, which took the dashboard down. Such a path is reported, not thrown.
+        try {
+            if (! is_file($path)) {
+                throw new BackupReportException('REPORT_NOT_FOUND');
+            }
+            if (! is_readable($path)) {
+                throw new BackupReportException('PERMISSION_DENIED');
+            }
+            $contents = file_get_contents($path, false, null, 0, 1048577);
+        } catch (BackupReportException $e) {
+            throw $e;
+        } catch (\Throwable) {
+            throw new BackupReportException('PERMISSION_DENIED');
+        }
         if ($contents === false || strlen($contents) > 1048576) {
             throw new BackupReportException('INVALID_REPORT');
         }

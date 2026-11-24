@@ -45,7 +45,7 @@ class SecurityHeaders
         // page visited after it.
         $response->headers->set(
             'Permissions-Policy',
-            'camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()'
+            'camera=(self), microphone=(), geolocation=(self), payment=(), usb=()'
         );
 
         // ── Cross-domain policy files ─────────────────────────────────────────
