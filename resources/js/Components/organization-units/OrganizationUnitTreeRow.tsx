@@ -14,6 +14,9 @@ interface Props {
     expanded: boolean;
     onToggle: (id: string) => void;
     canCreate: boolean;
+    canRequestCreate?: boolean;
+    /** The requester's "add unit" link (a prefilled change request). */
+    addHref?: string;
     canUpdate: boolean;
     canDelete: boolean;
     canRestore: boolean;
@@ -21,7 +24,7 @@ interface Props {
 }
 
 /** One unit of the tree as a table row: indented by depth, with the same columns and row menu as the other registers. */
-export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canCreate, canUpdate, canDelete, canRestore, selectedOrgId }: Props) {
+export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canCreate, canRequestCreate = false, addHref, canUpdate, canDelete, canRestore, selectedOrgId }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const deleted = Boolean(node.is_deleted);
@@ -105,8 +108,10 @@ export default function OrganizationUnitTreeRow({ node, expanded, onToggle, canC
                             {
                                 label: t('organizations.addChild'),
                                 icon: <Plus className="h-4 w-4" />,
-                                href: route('organization-units.create', { organization_id: selectedOrgId, parent_unit_id: node.id }),
-                                show: canCreate && !deleted,
+                                href: canCreate || !addHref
+                                    ? route('organization-units.create', { organization_id: selectedOrgId, parent_unit_id: node.id })
+                                    : addHref,
+                                show: (canCreate || canRequestCreate) && !deleted,
                             },
                             { label: t('common.view'), href: route('organization-units.show', node.id) },
                             { label: t('common.edit'), href: route('organization-units.edit', node.id), show: (canUpdate || node.can?.update) && !deleted },

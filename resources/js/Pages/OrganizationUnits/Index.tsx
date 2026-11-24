@@ -3,7 +3,6 @@ import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatCard from '@/Components/StatCard';
-import StatusBadge from '@/Components/StatusBadge';
 import OrganizationTreePreview from '@/Components/organization-units/OrganizationTreePreview';
 import OrganizationUnitTree, { type UnitFilters } from '@/Components/organization-units/OrganizationUnitTree';
 import { Building2, CheckCircle, Layers, Plus, XCircle } from '@/Components/Icons';
@@ -12,7 +11,7 @@ import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary, OrganizationTreeNode, OrganizationUnitTreeNode, OrganizationUnitTypeModel } from '@/types/organizationUnit';
 import CopyStructureModal from './CopyStructureModal';
 
-import { FilterField, FilterPanel, Input, Select, buttonClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx } from '@/Components/ui';
 interface OrgOption {
     id: string;
     code: string;
@@ -92,15 +91,13 @@ export default function OrganizationUnitsIndex({
         router.get(route('organization-units.index'), { hierarchy_version_id: versionId }, { preserveState: false, preserveScroll: false });
     }
 
-    /** Localized status label, falling back to StatusBadge's own default when a key is missing. */
-    function statusLabel(status: string): string | undefined {
-        const key = `common.${status}`;
-        const translated = t(key);
-        return translated === key ? undefined : translated;
-    }
-
     const displayOrg = localSelected ?? selectedOrganization;
-    const displayOrgName = displayOrg ? localizedName(displayOrg.name_en, displayOrg.name_am, locale) : '';
+    const orgNames = displayOrg
+        ? [...new Set((locale === 'am' ? [displayOrg.name_am, displayOrg.name_en] : [displayOrg.name_en, displayOrg.name_am]).filter((name): name is string => Boolean(name)))]
+        : [];
+    // A logo whose file is missing is left out rather than shown broken.
+    const [logoFailed, setLogoFailed] = useState(false);
+    useEffect(() => { setLogoFailed(false); }, [displayOrg?.id]);
     const filtersActive = Boolean(filters.search.trim() || filters.unitType || filters.status);
     // Direct creators open the unit form; change requesters open a prefilled "add unit" request.
     const createHref = can.create
@@ -162,27 +159,17 @@ export default function OrganizationUnitsIndex({
                     {displayOrg ? (
                         <div className="space-y-4">
                             <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3">
-                                <div className="flex min-w-0 items-center gap-3">
-                                    {displayOrg.has_logo && displayOrg.logo_url ? (
-                                        <img src={displayOrg.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-card object-cover" />
-                                    ) : (
-                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                            {displayOrgName.charAt(0).toUpperCase()}
-                                        </span>
+                                {/* The organization as its letterhead shows it: the whole logo and the name in both languages. */}
+                                <div className="flex min-w-0 items-center gap-4">
+                                    {/* The logo as uploaded: no frame, no rounding, no background; nothing stands in for a missing one. */}
+                                    {displayOrg.has_logo && displayOrg.logo_url && !logoFailed && (
+                                        <img src={displayOrg.logo_url} alt="" className="h-16 w-auto max-w-40 shrink-0 object-contain" onError={() => setLogoFailed(true)} />
                                     )}
                                     <div className="min-w-0">
-                                        <p className="flex flex-wrap items-center gap-1.5 text-xs text-(--app-muted-foreground)">
-                                            <span>{t('organizationUnits.selectedOrganization')}</span>
-                                            <span className="font-mono">{displayOrg.code}</span>
-                                            <StatusBadge status={displayOrg.status} label={statusLabel(displayOrg.status)} />
-                                        </p>
-                                        <p className="truncate text-sm font-semibold text-(--app-foreground)">{displayOrgName}</p>
-                                        <p className="truncate text-xs text-(--app-muted-foreground)">
-                                            {[
-                                                displayOrg.type ? localizedName(displayOrg.type.name_en, displayOrg.type.name_am, locale) : null,
-                                                `${displayOrg.organization_units_count ?? 0} ${t('organizationUnits.unitCount').toLowerCase()}`,
-                                            ].filter(Boolean).join(' · ')}
-                                        </p>
+                                        {/* The viewer's language first, the other language under it; one line when both names are the same. */}
+                                        {orgNames.map((name, index) => (
+                                            <p key={index} className={cx('text-(--app-foreground)', index === 0 ? 'text-base font-semibold' : 'text-sm')}>{name}</p>
+                                        ))}
                                     </div>
                                 </div>
                                 {canAdd && (
@@ -223,7 +210,8 @@ export default function OrganizationUnitsIndex({
                                 title={t('organizationUnits.unitsInOrganization')}
                                 units={organizationUnits}
                                 filters={filters}
-                                canCreate={canAdd}
+                                canCreate={can.create}
+                                canRequestCreate={Boolean(can.requestCreate)}
                                 addHref={createHref}
                                 canUpdate={can.create}
                                 canDelete={can.create}
