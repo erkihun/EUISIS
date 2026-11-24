@@ -34,7 +34,8 @@ final class ReportBackupAdapter implements BackupInfrastructureAdapter
         try {
             $raw = $this->reader->read();
         } catch (BackupReportException $e) {
-            return InfrastructureSnapshot::failure($e->reasonCode, $this->driver(), binary: 'NOT_CHECKED', diagnostics: ['report' => $e->reasonCode]);
+            return InfrastructureSnapshot::failure($e->reasonCode, $this->driver(), binary: 'NOT_CHECKED',
+                diagnostics: ['report' => $e->reasonCode === 'INVALID_REPORT' ? 'NOT_JSON_OR_TOO_LARGE' : $e->reasonCode]);
         }
         $validator = Validator::make($raw, [
             'version' => ['required', 'integer', 'in:1'],
@@ -50,7 +51,11 @@ final class ReportBackupAdapter implements BackupInfrastructureAdapter
             'repositories.*.usage_percent' => ['nullable', 'numeric', 'between:0,100'],
         ]);
         if ($validator->fails()) {
-            return InfrastructureSnapshot::failure('INVALID_REPORT', $this->driver(), binary: 'NOT_CHECKED', diagnostics: ['report' => 'SCHEMA_INVALID']);
+            // Field names only (never values), so the operator can see what the runner got wrong.
+            return InfrastructureSnapshot::failure('INVALID_REPORT', $this->driver(), binary: 'NOT_CHECKED', diagnostics: [
+                'report' => 'SCHEMA_INVALID',
+                'report_fields' => implode(', ', array_slice($validator->errors()->keys(), 0, 5)),
+            ]);
         }
         $observed = $raw['observed_at'];
         if ($observed > time() + 60 || time() - $observed > config('backup.report_stale_minutes') * 60) {
