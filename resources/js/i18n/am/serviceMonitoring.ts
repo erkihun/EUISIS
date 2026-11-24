@@ -382,7 +382,7 @@ export default {
         officialSectionsSimpleHelp: 'ተቋሙ ማቅረብ ያለበትን መደበኛ መረጃ ይምረጡ። ደንቦችንና ስሌቶችን ሲስተሙ ራሱ ይተገብራል።',
         includedAutomatically: 'ከማረጋገጫና ስሌት ጋር ተካትቷል',
         sectionName: 'የክፍሉ ስም',
-        sectionNameHelp: 'ሪፖርት ለሚያቀርቡ ተቋማት የሚታየውን ስም ያርትዑ። ይፋዊውን ስም ለመጠቀም ባዶ ይተዉት።',
+        sectionNameHelp: 'ሪፖርት ለሚያቀርቡ ተቋማት የሚታየውን ስም ያስተካክሉ። ይፋዊውን ስም ለመጠቀም ባዶ ይተዉት።',
         notCollected: 'በዚህ የሪፖርት አወቃቀር አይሰበሰብም',
         optionalQuestions: 'ተጨማሪ ጥያቄ ያስፈልጋል?',
         optionalQuestionsHelp: 'አብዛኛው ሪፖርት አያስፈልገውም። ከላይ ያልተሰበሰበ መረጃ ለውሳኔ ሲያስፈልግ ብቻ ይክፈቱት።',

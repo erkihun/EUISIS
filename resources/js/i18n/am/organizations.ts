@@ -21,7 +21,7 @@ const organizations = {
     versionHistoryChildren: 'በሥሩ ያሉ ተቋማት',
     organizationHierarchy: 'የተቋም ተዋረድ',
     createOrganization: 'ተቋም ይፍጠሩ',
-    editOrganization: 'ተቋም ያርትዑ',
+    editOrganization: 'ተቋም ያስተካክሉ',
     organizationDetails: 'የተቋም ዝርዝሮች',
     code: 'የተቋም ኮድ',
     nameEn: 'ስም (እንግሊዝኛ)',

@@ -3,7 +3,7 @@ const gradeLevels = {
     gradeLevels: 'የሥራ ደረጃዎች',
     newGradeLevel: 'አዲስ የሥራ ደረጃ',
     createGradeLevel: 'የሥራ ደረጃ ይፍጠሩ',
-    editGradeLevel: 'የሥራ ደረጃ ያርትዑ',
+    editGradeLevel: 'የሥራ ደረጃ ያስተካክሉ',
     gradeLevelDetails: 'የሥራ ደረጃ ዝርዝሮች',
     name: 'የሥራ ደረጃ',
     statusActive: 'ንቁ',

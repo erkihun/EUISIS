@@ -2,7 +2,7 @@ const isicActivities = {
     isicActivities: 'የኢኮኖሚ ዘርፍ ምደባዎች',
     isicActivity: 'የISIC Rev.4 ምደባ',
     createIsicActivity: 'የISIC ምደባ ይፍጠሩ',
-    editIsicActivity: 'የISIC ምደባ ያርትዑ',
+    editIsicActivity: 'የISIC ምደባ ያስተካክሉ',
     isicActivityDetails: 'የISIC ምደባ ዝርዝሮች',
     isicCode: 'የISIC ኮድ',
     sectionCode: 'የክፍል ኮድ',

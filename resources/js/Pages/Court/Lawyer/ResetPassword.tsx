@@ -42,7 +42,7 @@ export default function LawyerResetPassword({ token, email }: { token: string; e
                     <input id="password_confirmation" type="password" name="password_confirmation" value={form.data.password_confirmation}
                         onChange={(event) => form.setData('password_confirmation', event.target.value)} required autoComplete="new-password" className={courtAuthInputClass(false)} />
                 </div>
-                <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} />
+                <PasswordPolicyChecklist password={form.data.password} />
                 <button type="submit" disabled={form.processing} className={courtAuthButtonClass}>{text('submit')}</button>
             </form>
         </CourtAuthShell>

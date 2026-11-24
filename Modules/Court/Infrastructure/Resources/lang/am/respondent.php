@@ -106,7 +106,7 @@ return [
     'response_of_response' => 'የመልስ መልስ',
     'response_of_response_description' => 'የመልስ መልስ መግለጫ',
     'give_response_of_response' => 'የመልስ መልስ ያቅርቡ',
-    'edit_response_of_response' => 'የመልስ መልስ አርትዕ',
+    'edit_response_of_response' => 'የመልስ መልስ ያስተካክሉ',
     'applicant_response_replies' => 'የመልስ መልስ መዝገቦች',
     'no_applicant_response_replies' => 'እስካሁን የመልስ መልስ መዝገቦች የሉም።',
     'response_reply_attachment_hint' => 'PDF ብቻ፣ ቢበዛ 2 ሜባ።',

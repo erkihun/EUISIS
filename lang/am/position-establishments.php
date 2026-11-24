@@ -24,7 +24,7 @@ return [
     'statusApproved' => 'ጸድቋል',
     'statusArchived' => 'በማህደር',
     'create' => 'አዲስ ምደባ ይመዝግቡ',
-    'edit' => 'ምደባውን ያርትዑ',
+    'edit' => 'ምደባውን ያስተካክሉ',
     'approve' => 'ያጽድቁ',
     'archive' => 'ወደ ማህደር ያዛውሩ',
     'created' => 'የጸደቀ የሥራ መደብ በተሳካ ሁኔታ ተፈጥሯል።',

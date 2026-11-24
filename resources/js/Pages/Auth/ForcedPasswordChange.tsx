@@ -73,7 +73,7 @@ export default function ForcedPasswordChange(): JSX.Element {
                     onChange={(value) => setData('password_confirmation', value)}
                 />
 
-                <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
+                <PasswordPolicyChecklist password={data.password} personal={[account?.name, account?.email]} />
 
                 <button
                     type="submit"

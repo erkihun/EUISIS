@@ -7,7 +7,7 @@ return [
     'new_transfer' => 'አዲስ ዝውውር',
     'create_transfer' => 'አዲስ ዝውውር ይመዝግቡ',
     'transfer_details' => 'የዝውውር ዝርዝሮች',
-    'edit_transfer' => 'የዝውውር መረጃን ያርትዑ',
+    'edit_transfer' => 'የዝውውር መረጃን ያስተካክሉ',
     'from_organization' => 'ከተቋም',
     'to_organization' => 'ወደ ተቋም',
     'from_position' => 'ከመደብ',

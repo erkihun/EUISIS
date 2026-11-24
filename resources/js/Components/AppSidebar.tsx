@@ -392,6 +392,29 @@ const navGroups: NavGroup[] = [
     },
     {
         /*
+         * Institutional Reporting & Compliance (Modules/Reporting/README.md): narrative reports
+         * institutions owe on a schedule, their review and the compliance register. Each entry is
+         * gated by the permission its page checks; every page re-checks permission and scope.
+         */
+        key: 'reporting',
+        labelKey: 'reporting.nav.group',
+        icon: ClipboardClockIcon,
+        items: [
+            { routeName: 'reporting.overview', labelKey: 'reporting.nav.overview', icon: LayoutDashboard, permission: 'reporting.view' },
+            { routeName: 'reporting.assignments', labelKey: 'reporting.nav.assignments', icon: InboxInIcon, anyPermission: ['reporting.prepare', 'reporting.submit'], owns: ['reporting.prepare.edit'] },
+            { routeName: 'reporting.calendar', labelKey: 'reporting.nav.calendar', icon: CalendarIcon, permission: 'reporting.view' },
+            { routeName: 'reporting.register', labelKey: 'reporting.nav.register', icon: FolderFilesIcon, permission: 'reporting.view', owns: ['reporting.obligations.show'] },
+            { routeName: 'reporting.review.index', labelKey: 'reporting.nav.review', icon: DocumentsIcon, anyPermission: ['reporting.review', 'reporting.approve', 'reporting.extensions.grant'], owns: ['reporting.review.show'] },
+            { routeName: 'reporting.follow-ups.index', labelKey: 'reporting.nav.followUps', icon: ClipboardClockIcon, permission: 'reporting.view' },
+            { routeName: 'reporting.consolidations.index', labelKey: 'reporting.nav.consolidation', icon: PieChartIcon, permission: 'reporting.consolidate', owns: ['reporting.consolidations.show'] },
+            { routeName: 'reporting.types.index', labelKey: 'reporting.nav.types', icon: FileTextIcon, permission: 'reporting.templates.manage', owns: ['reporting.types.create', 'reporting.types.edit'] },
+            { routeName: 'reporting.schedules.index', labelKey: 'reporting.nav.schedules', icon: CalendarIcon, permission: 'reporting.schedules.publish', owns: ['reporting.schedules.create', 'reporting.schedules.edit'] },
+            { routeName: 'reporting.archive', labelKey: 'reporting.nav.archive', icon: FolderFilesIcon, permission: 'reporting.view' },
+            { routeName: 'reporting.settings.edit', labelKey: 'reporting.nav.settings', icon: SettingsIcon, anyPermission: ['reporting.settings.manage', 'reporting.audit.view'] },
+        ],
+    },
+    {
+        /*
          * Letters (ADR 0037, docs/letters.md): the registry of official correspondence
          * across institutions, composing from templates, numbering. Each entry is gated
          * by the permission its page checks; the page re-checks permission and scope.
@@ -967,7 +990,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'letters', 'serviceMonitoring', 'institutionServices', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'letters', 'reporting', 'serviceMonitoring', 'institutionServices', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
     // What the public sends in: feedback, Tip-offs and complaints — three separate modules, nothing shared.
     { labelKey: 'nav.sidebarPublicVoice', keys: ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'grievanceSetup', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
@@ -1066,6 +1089,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         (!features.transport && routeName.startsWith('transport.'))
         || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
         || (!features.letters && routeName.startsWith('letters.'))
+        || (!features.reporting && routeName.startsWith('reporting.'))
         || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
     // Keep the existing permission contract, including independently permitted child links.

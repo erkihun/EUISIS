@@ -44,7 +44,7 @@ const transfers = {
     announcementDeleted: 'የዝውውር ማስታወቂያ ተሰርዟል።',
     createAnnouncement: 'ማስታወቂያ ይፍጠሩ',
     cancelAnnouncement: 'ማስታወቂያውን ይሰርዙ',
-    editAnnouncement: 'ማስታወቂያ ያርትዑ',
+    editAnnouncement: 'ማስታወቂያ ያስተካክሉ',
     publishAnnouncement: 'ይፋ ያድርጉ',
     closeAnnouncement: 'ይዝጉ',
     deleteAnnouncement: 'ይሰርዙ',

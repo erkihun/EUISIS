@@ -391,7 +391,7 @@ const assessmentOversight = {
         sendRequest: 'ጥያቄውን ይላኩ',
         cancel: 'ይቅር',
         save: 'ያስቀምጡ',
-        edit: 'ያርትዑ',
+        edit: 'ያስተካክሉ',
         remove: 'ያስወግዱ',
     },
     cycleActions: {

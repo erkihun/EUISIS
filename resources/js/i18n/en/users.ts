@@ -84,6 +84,7 @@ const users = {
         feedback: 'Public Feedback',
         grievances: 'Grievances, Discipline & Tribunal',
         letters: 'Letters & Correspondence',
+        institutionalReporting: 'Institutional Reporting',
         court: 'Court Cases',
         services: 'Cafeteria, Transport & Services',
         other: 'Other Roles',

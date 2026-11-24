@@ -123,7 +123,7 @@ const providerUsers = {
 
     // Actions
     view: 'ይመልከቱ',
-    edit: 'ያርትዑ',
+    edit: 'ያስተካክሉ',
     resetPassword: 'የይለፍ ቃል ዳግም ያስጀምሩ',
     suspend: 'ያግዱ',
     activate: 'ገቢር ያድርጉ',

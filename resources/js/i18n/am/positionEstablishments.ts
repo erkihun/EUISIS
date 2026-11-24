@@ -21,7 +21,7 @@ const positionEstablishments = {
     statusArchived: 'ወደ ማህደር የገባ',
     selectOrganizationFirst: 'መጀመሪያ ተቋም ይምረጡ',
     create: 'ምደባ ይፍጠሩ',
-    edit: 'ምደባ ያርትዑ',
+    edit: 'ምደባ ያስተካክሉ',
     approve: 'ያጽድቁ',
     archive: 'ወደ ማህደር ያስቀምጡ',
     created: 'የጸደቀው የሥራ መደብ ተመዝግቧል።',

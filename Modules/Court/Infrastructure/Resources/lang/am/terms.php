@@ -2,7 +2,7 @@
 
 return [
     'action_delete' => 'ሰርዝ',
-    'action_edit' => 'አርትዕ',
+    'action_edit' => 'ያስተካክሉ',
     'applicant_card_help' => 'ጉዳዩን ከማስገባትዎ በፊት የቅርብ ጊዜውን ውል ያንብቡ።',
     'applicant_card_title' => 'ውሎች እና ሁኔታዎች',
     'applicant_checkbox' => 'የውሉን መስፈርቶች **አንብቤ እንደተስማማሁ** አረጋግጣለሁ።',
@@ -10,7 +10,7 @@ return [
     'confirm_delete' => 'ይህን ውል ማስወገድ **ይፈልጋሉ**?',
     'create_heading' => 'አዲስ ውሎች እና ሁኔታዎች ፍጠር',
     'create_new' => 'አዲስ ፍጠር',
-    'edit_heading' => 'ውሎች እና ሁኔታዎች አርትዕ',
+    'edit_heading' => 'ውሎች እና ሁኔታዎች ያስተካክሉ',
     'empty_state' => 'ገና ምንም ውል **አልተፈጠረም**።',
     'form_body_label' => 'ዋና ጽሑፍ',
     'form_cancel' => 'ሰርዝ',

@@ -121,7 +121,7 @@ export default {
         new: 'አዲስ የመስክ ሥራ ጥያቄ',
         saveDraft: 'ረቂቅ ያስቀምጡ',
         submit: 'ለቅርብ ኃላፊ ያስገቡ',
-        edit: 'ያርትዑ',
+        edit: 'ያስተካክሉ',
         cancel: 'ጥያቄውን ይሰርዙ',
         back: 'ይመለሱ',
         close: 'ይዝጉ',

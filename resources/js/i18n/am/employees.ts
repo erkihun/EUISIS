@@ -16,7 +16,7 @@ const employees = {
     title: 'ሠራተኞች',
     employee: 'ሠራተኛ',
     createEmployee: 'ሠራተኛ ይፍጠሩ',
-    editEmployee: 'ሠራተኛ ያርትዑ',
+    editEmployee: 'ሠራተኛ ያስተካክሉ',
     saveEmployee: 'ሠራተኛ ያስቀምጡ',
     employeeDetails: 'የሠራተኛ ዝርዝር',
     employeeId: 'የሠራተኛ መታወቂያ',

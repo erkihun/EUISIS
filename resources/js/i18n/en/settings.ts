@@ -428,7 +428,7 @@ const settings = {
         employee_name_display: { full_name: 'Full name', first_last: 'First and last name' },
         mail_mailer: { smtp: 'SMTP server', log: 'Log only (no delivery)', sendmail: 'Sendmail', ses: 'Amazon SES' },
         mail_encryption: { tls: 'TLS', ssl: 'SSL', none: 'None' },
-        sms_provider: { disabled: 'Disabled', generic_http: 'Generic HTTP API', local_gateway: 'Local gateway', ethio_telecom: 'Ethio Telecom', custom: 'Custom' },
+        sms_provider: { disabled: 'Disabled', generic_http: 'Generic HTTP API', local_gateway: 'Local gateway', ethio_telecom: 'Ethio Telecom (SMPP gateway)', afromessage: 'AfroMessage', custom: 'Custom' },
         ui_style: { swiss: 'Swiss (clean, flat; recommended)', classic: 'Classic (tonal navy)', soft: 'Soft UI (raised surfaces)', contrast: 'High contrast' },
         default_theme: { light: 'Light', dark: 'Dark', system: 'Follow the device' },
         table_density: { compact: 'Compact', comfortable: 'Comfortable', spacious: 'Spacious' },

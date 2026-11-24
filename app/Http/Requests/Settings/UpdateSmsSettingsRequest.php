@@ -17,8 +17,9 @@ class UpdateSmsSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sms_provider' => ['required', Rule::in(['disabled', 'generic_http', 'local_gateway', 'ethio_telecom', 'custom'])],
+            'sms_provider' => ['required', Rule::in(['disabled', 'ethio_telecom', 'afromessage', 'generic_http', 'local_gateway', 'custom'])],
             'sms_api_url' => ['nullable', 'url', 'max:500'],
+            'sms_account_id' => ['nullable', 'string', 'max:100'],
             'sms_api_key' => ['nullable', 'string', 'max:500'],
             'sms_sender_id' => ['nullable', 'string', 'max:40'],
             'sms_default_country_code' => ['nullable', 'string', 'max:8', 'regex:/^\\+?[0-9]{1,7}$/'],

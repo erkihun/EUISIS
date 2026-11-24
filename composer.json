@@ -28,6 +28,7 @@
         "laravel/tinker": "^3.0.2",
         "league/flysystem-aws-s3-v3": "^3.0",
         "maatwebsite/excel": "^4.0.6",
+        "phpoffice/phpword": "^1.4",
         "pragmarx/google2fa-qrcode": "^4.0",
         "setasign/fpdf": "~1.9.0",
         "setasign/fpdi": "~2.6.9",

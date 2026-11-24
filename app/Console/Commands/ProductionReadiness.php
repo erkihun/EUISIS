@@ -143,7 +143,7 @@ class ProductionReadiness extends Command
         try {
             $feedbackTables = [
                 // ADR 0032: one table per submission type (employee_service_feedback is now a view over them).
-                'public_service_feedback', 'public_tip_offs', 'public_complaints', 'employee_feedback_tokens', 'organization_feedback_qr_codes', 'public_feedback_categories',
+                'public_service_feedback', 'public_tip_offs', 'public_complaints', 'employee_feedback_tokens', 'organization_feedback_qr_codes',
                 'public_feedback_routing_rules', 'public_feedback_assignments', 'public_feedback_status_history', 'public_feedback_report_exports',
                 'public_feedback_subject_employees', 'public_feedback_referrals',
             ];

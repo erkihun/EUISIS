@@ -61,6 +61,7 @@ final class Features
             'transport_gps' => self::enabled('transport') && self::enabled('transport_gps'),
             'service_monitoring' => self::enabled('service_monitoring'),
             'letters' => self::enabled('letters'),
+            'reporting' => self::enabled('reporting'),
             // My Portal > My court cases (court-ms Flow 4): the connection is configured and the portal section switched on.
             'court_portal' => app(CourtMsClient::class)->employeePortalEnabled(),
         ];

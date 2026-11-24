@@ -34,13 +34,10 @@ function personalTokens(values: (string | null | undefined)[]): string[] {
  */
 export default function PasswordPolicyChecklist({
     password,
-    confirmation,
     personal = [],
     className = '',
 }: {
     password: string;
-    /** Omit when the form has no confirmation field. */
-    confirmation?: string;
     /** Name, username, email, employee number... of the account (local check only). */
     personal?: (string | null | undefined)[];
     className?: string;
@@ -72,9 +69,6 @@ export default function PasswordPolicyChecklist({
     if (policy.history_count > 0) {
         items.push({ key: 'history', state: 'server', text: label('history', { count: policy.history_count }) });
     }
-    if (confirmation !== undefined) {
-        items.push({ key: 'confirmation', state: password !== '' && password === confirmation ? 'pass' : 'fail', text: label('confirmation') });
-    }
 
     const icon = { pass: '✓', fail: '○', server: '•' } as const;
     const tone = {
@@ -92,7 +86,6 @@ export default function PasswordPolicyChecklist({
                         <span aria-hidden="true" className="w-3 shrink-0 text-center font-bold">{icon[item.state]}</span>
                         <span>
                             {item.text}
-                            {item.state === 'server' && <span className="text-(--app-muted-foreground)"> — {label('checkedOnSave')}</span>}
                             <span className="sr-only"> ({label(`state_${item.state}`)})</span>
                         </span>
                     </li>

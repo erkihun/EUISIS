@@ -6,7 +6,7 @@ const organizationUnits = {
     organizationUnits: 'የሥራ ክፍሎች',
     organizationUnit: 'የሥራ ክፍል',
     createOrganizationUnit: 'አዲስ የሥራ ክፍል ይመዝግቡ',
-    editOrganizationUnit: 'የሥራ ክፍሉን ያርትዑ',
+    editOrganizationUnit: 'የሥራ ክፍሉን ያስተካክሉ',
     organizationUnitDetails: 'የሥራ ክፍሉ ዝርዝር መረጃ',
     unitCode: 'የሥራ ክፍል ኮድ',
     unitType: 'የሥራ ክፍል ዓይነት',

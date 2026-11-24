@@ -2,7 +2,7 @@ const codeRules = {
     title: 'የኮድ ደንቦች',
     description: 'በሥርዓቱ ውስጥ ለተለያዩ አካላት የሚጠቀሙ የኮድ ማመንጫ ደንቦችን ያስተዳድሩ።',
     createTitle: 'የኮድ ደንብ ይፍጠሩ',
-    editTitle: 'የኮድ ደንብ ያርትዑ',
+    editTitle: 'የኮድ ደንብ ያስተካክሉ',
     detailsTitle: 'የኮድ ደንብ ዝርዝር',
     noRules: 'ምንም የኮድ ደንብ አልተገኘም',
     searchPlaceholder: 'የኮድ ደንቦችን ይፈልጉ',

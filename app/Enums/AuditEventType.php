@@ -1034,4 +1034,27 @@ enum AuditEventType: string
     case SupervisorDelegationCreated = 'reporting_lines.delegation_created';
     case SupervisorDelegationRevoked = 'reporting_lines.delegation_revoked';
     case UnitHeadApplied = 'reporting_lines.unit_head_applied';
+
+    /*
+     * Institutional Reporting & Compliance (Modules/Reporting): configuration,
+     * every workflow decision, deadline and applicability changes, and each
+     * file or export handed out.
+     */
+    case ReportingTypeSaved = 'reporting.type_saved';
+    case ReportingTemplatePublished = 'reporting.template_published';
+    case ReportingScheduleSaved = 'reporting.schedule_saved';
+    case ReportingCyclePublished = 'reporting.cycle_published';
+    case ReportingSubmitted = 'reporting.submitted';
+    case ReportingReviewDecided = 'reporting.review_decided';
+    case ReportingReviewReassigned = 'reporting.review_reassigned';
+    case ReportingReopened = 'reporting.reopened';
+    case ReportingExtensionRequested = 'reporting.extension_requested';
+    case ReportingExtensionDecided = 'reporting.extension_decided';
+    case ReportingApplicabilityChanged = 'reporting.applicability_changed';
+    case ReportingObligationReassigned = 'reporting.obligation_reassigned';
+    case ReportingFollowUpSaved = 'reporting.follow_up_saved';
+    case ReportingConsolidated = 'reporting.consolidated';
+    case ReportingFileDownloaded = 'reporting.file_downloaded';
+    case ReportingExported = 'reporting.exported';
+    case ReportingSettingsChanged = 'reporting.settings_changed';
 }

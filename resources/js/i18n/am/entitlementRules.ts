@@ -1,7 +1,7 @@
 const entitlementRules = {
     title: 'የጥቅማ ጥቅም ደንቦች',
     createTitle: 'የጥቅማ ጥቅም ደንብ ይፍጠሩ',
-    editTitle: 'የጥቅማ ጥቅም ደንብ ያርትዑ',
+    editTitle: 'የጥቅማ ጥቅም ደንብ ያስተካክሉ',
     detailsTitle: 'የጥቅማ ጥቅም ደንብ ዝርዝር',
     noRules: 'ምንም የጥቅማ ጥቅም ደንብ አልተገኘም',
     searchPlaceholder: 'የጥቅማ ጥቅም ደንቦችን ይፈልጉ',

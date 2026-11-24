@@ -6,7 +6,7 @@ return [
     'occupations' => 'የሙያ ምድቦች',
     'occupation' => 'የሙያ ምድብ',
     'create_occupation' => 'አዲስ የሙያ ምድብ ይመዝግቡ',
-    'edit_occupation' => 'የሙያ ምድቡን ያርትዑ',
+    'edit_occupation' => 'የሙያ ምድቡን ያስተካክሉ',
     'occupation_details' => 'የሙያ ምድብ ዝርዝር',
     'occupation_code' => 'የሙያ ምድብ ኮድ',
     'isco_code' => 'የISCO-08 ኮድ',

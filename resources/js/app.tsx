@@ -39,6 +39,14 @@ let brandNames: Record<'en' | 'am', string> = {
 };
 const currentBrand = (): string => (document.documentElement.lang === 'am' ? brandNames.am : brandNames.en);
 const pages = import.meta.glob<{ default: ResolvedComponent }>('./Pages/**/*.tsx');
+// Feature modules that keep their pages, components and types together (resources/js/modules/<name>/).
+// The server names such a page "modules/<name>/<Page>"; it lives at ./modules/<name>/pages/<Page>.tsx.
+const modulePages = import.meta.glob<{ default: ResolvedComponent }>('./modules/*/pages/*.tsx');
+const resolveModulePage = (name: string) => {
+    const [, module, page] = name.split('/');
+
+    return resolvePageComponent(`./modules/${module}/pages/${page}.tsx`, modulePages);
+};
 
 /**
  * A page chunk that 404s almost always means a deploy replaced public/build
@@ -95,7 +103,7 @@ function mount() {
                 const courtText = name.startsWith('Court/')
                     ? ensureCourtLocale(resolveInitialLocale()).catch((error: unknown) => console.error('Court translations failed to load', error))
                     : Promise.resolve();
-                const [page] = await Promise.all([resolvePageComponent(`./Pages/${name}.tsx`, pages), courtText]);
+                const [page] = await Promise.all([name.startsWith('modules/') ? resolveModulePage(name) : resolvePageComponent(`./Pages/${name}.tsx`, pages), courtText]);
                 return page.default;
             } catch (error) {
                 if (import.meta.env.DEV) throw error;

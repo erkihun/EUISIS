@@ -31,7 +31,7 @@ const cafeteriaPolicy = {
     save: 'ያስቀምጡ',
     cancel: 'ይቅር',
     create: 'ይፍጠሩ',
-    edit: 'ያርትዑ',
+    edit: 'ያስተካክሉ',
     view: 'ይመልከቱ',
     approve: 'ያጽድቁ',
     end: 'አቋርጥ',

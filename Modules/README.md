@@ -104,6 +104,12 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Transfer | `ReadModels\TransferApplicationRecord`; `Data\TransferAnnouncementStatus`, `TransferApplicationStatus` | read-only model; published values | the Core employee's relation |
 | Service monitoring | `ServiceMonitoringIndicators::snapshot($organizationIds, $from, $to)`; `Data\ServiceMonitoringRoles` | `Data\ServiceMonitoringIndicatorSnapshot` (counts only); published permission sets | Situation Room `service_monitoring` category; the default role matrix |
 
+| Reporting | `ReportingCompliance::summary($organizationIds, $asOf)`; `Data\ReportingRoles`; `Events\ReportSubmittedV1`, `ReportApprovedV1`, `ReportingDeadlineMissedV1` | `Data\ComplianceSummary` (counts and rates only); published permission sets; integration events (at-least-once, through the module's outbox) | the default role matrix; no other caller yet |
+
+Reporting ([its README](Reporting/README.md), ADR 0038) keeps its models in `Infrastructure/Persistence` so
+that its `Domain` is pure PHP, and carries its own `Database`, `Routes`, `Config` and `Lang` directories,
+loaded by its provider. It reaches the Core only through `App\Backbone\Contracts`.
+
 Transport reacts to the Core's `AssignmentChanged` and `EmployeeChanged` events and reads people and
 cards through `App\Backbone` contracts (`CredentialLookup`, `ServiceEligibility`, `EmployeeDirectory`).
 

@@ -93,7 +93,7 @@ return [
     ],
     'download_pdf' => 'PDF አውርድ',
     'edit_case' => 'አስተካክል',
-    'edit_title' => 'ክስ አርትዕ · :no',
+    'edit_title' => 'ክስ ያስተካክሉ · :no',
     'edit_your_case' => 'መዝገብዎን ያርሙ',
     'email_pdf' => 'PDF በኢሜይል ላክ',
     'empty' => [
@@ -130,7 +130,7 @@ return [
         'provide_details' => 'የምላሽ ዝርዝሮችን ያቅርቡ',
     ],
     'general' => [
-        'edit' => 'አርትዕ',
+        'edit' => 'ያስተካክሉ',
         'delete' => 'ሰርዝ',
         'save' => 'አስቀምጥ',
         'cancel' => 'ሰርዝ',
@@ -141,7 +141,7 @@ return [
         'title' => 'ችሎት የሚሰማበት ቀኖች',
         'total' => 'ጠቅላላ',
         'no_hearings' => 'ምንም ችሎት የሚሰማበት ቀን አልተመዘገበም።',
-        'edit' => 'አርትዕ',
+        'edit' => 'ያስተካክሉ',
         'type_placeholder' => 'ዓይነት (ለምሳሌ መጀመሪያ)',
         'location_placeholder' => 'ቦታ',
         'notes_placeholder' => 'ማስታወሻዎች (ውስጣዊ)',
@@ -153,7 +153,7 @@ return [
     ],
     'hints' => [
         'edit_only_pending' => 'ክስ በመጠባበቅ ላይ ሳለ ብቻ መርማሪያ ይችላሉ።',
-        'editing_disabled' => 'ክስ በመጠባበቅ ላይ ስለማይሆን አርትዕ ተከልክሏል።',
+        'editing_disabled' => 'ክስ በመጠባበቅ ላይ ስለማይሆን ያስተካክሉ ተከልክሏል።',
         'edit_page_subtitle' => 'የመዝገቡን መረጃ ያስተካክሉ',
     ],
     'inline' => 'ውስጥ ተገብሯል',

@@ -225,7 +225,7 @@ export default function CreateUser({
                         </Field>
                         <div className="md:col-span-2">
                             {form.data.password !== '' ? (
-                                <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation}
+                                <PasswordPolicyChecklist password={form.data.password}
                                     personal={[form.data.name, form.data.email, form.data.phone_number]} />
                             ) : (
                                 <p id="user-password-help" className="rounded-control border border-dashed border-(--app-border) bg-(--app-surface-muted) px-3 py-2 text-xs text-(--app-muted-foreground)">{c('passwordHelp')}</p>

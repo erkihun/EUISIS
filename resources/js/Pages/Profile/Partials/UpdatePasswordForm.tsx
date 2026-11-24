@@ -90,7 +90,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                     </FormField>
                 </div>
 
-                <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
+                <PasswordPolicyChecklist password={data.password} personal={[account?.name, account?.email]} />
 
                 <CardFooter className="mt-6">
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">

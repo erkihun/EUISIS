@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'create' => 'አዲስ ይመዝግቡ',
     'view' => 'ይመልከቱ',
-    'edit' => 'ያርትዑ',
+    'edit' => 'ያስተካክሉ',
     'update' => 'ያዘምኑ',
     'save' => 'ያስቀምጡ',
     'cancel' => 'ይቅር',

@@ -165,8 +165,6 @@ const auth = {
         personal: 'Does not contain your name, username, email, employee number or phone',
         common: 'Not a common, predictable or breached password',
         history: 'Not your current password or one of your last {count}',
-        confirmation: 'Matches the confirmation',
-        checkedOnSave: 'checked when you save',
         state_pass: 'met',
         state_fail: 'not met yet',
         state_server: 'checked by the server',

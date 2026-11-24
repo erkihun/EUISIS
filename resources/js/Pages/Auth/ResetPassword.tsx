@@ -264,7 +264,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                                     )}
                                 </div>
 
-                                <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[data.email]} />
+                                <PasswordPolicyChecklist password={data.password} personal={[data.email]} />
 
                                 <button
                                     type="submit"

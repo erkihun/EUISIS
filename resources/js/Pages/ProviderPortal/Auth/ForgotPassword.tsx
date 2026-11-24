@@ -171,7 +171,7 @@ function CodeStep({ pending, codeTtlMinutes }: { pending: Pending; codeTtlMinute
                     error={form.errors.password_confirmation}
                 />
 
-                <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} personal={[pending.identifier]} />
+                <PasswordPolicyChecklist password={form.data.password} personal={[pending.identifier]} />
 
                 <SubmitButton processing={form.processing} label={t('providerPortal.resetPassword')} processingLabel={t('providerPortal.resettingPassword')} />
             </form>

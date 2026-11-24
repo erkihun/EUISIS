@@ -1,7 +1,7 @@
 const serviceTypes = {
     title: 'የአገልግሎት ዓይነቶች',
     createTitle: 'የአገልግሎት ዓይነት ይፍጠሩ',
-    editTitle: 'የአገልግሎት ዓይነት ያርትዑ',
+    editTitle: 'የአገልግሎት ዓይነት ያስተካክሉ',
     detailsTitle: 'የአገልግሎት ዓይነት ዝርዝር',
     noServiceTypes: 'ምንም የአገልግሎት ዓይነት አልተገኘም',
     searchPlaceholder: 'የአገልግሎት ዓይነቶችን ይፈልጉ',

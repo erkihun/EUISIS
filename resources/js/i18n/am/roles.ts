@@ -2,7 +2,7 @@ const roles = {
     title: 'ሚናዎች',
     role: 'ሚና',
     createRole: 'ሚና ይፍጠሩ',
-    editRole: 'ሚና ያርትዑ',
+    editRole: 'ሚና ያስተካክሉ',
     roleName: 'የሚና ስም',
     roleNameAm: 'የሚና ስም (በአማርኛ)',
     permissions: 'የመዳረሻ መብቶች',
