@@ -38,3 +38,8 @@ it('is UNKNOWN, never healthy, when the database cannot be inspected', function 
     expect((new WalArchiveInspector)->inspect())->status->toBe('UNKNOWN')->reason_code->toBe('DATABASE_NOT_POSTGRESQL')
         ->and((new WalArchiveInspector)->evaluate(null, 'DATABASE_UNAVAILABLE'))->status->toBe('UNKNOWN');
 });
+
+it('does not warn about WAL on a non-PostgreSQL database when PITR is not required', function () {
+    config(['backup.pitr_required' => false, 'database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:']);
+    expect((new WalArchiveInspector)->inspect())->status->toBe('NOT_REQUIRED')->reason_code->toBe('DATABASE_NOT_POSTGRESQL');
+});

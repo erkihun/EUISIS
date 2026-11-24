@@ -15,7 +15,12 @@ class WalArchiveInspector
     public function inspect(): array
     {
         if (DB::connection()->getDriverName() !== 'pgsql') {
-            return $this->evaluate(null, 'DATABASE_NOT_POSTGRESQL');
+            $wal = $this->evaluate(null, 'DATABASE_NOT_POSTGRESQL');
+
+            // A MySQL/MariaDB host has no WAL to archive. Where point-in-time recovery is not
+            // required this is the same as archive_mode off: not required, not a standing warning.
+            // Where it is required the state stays UNKNOWN, because nothing here can prove it.
+            return config('backup.pitr_required') ? $wal : [...$wal, 'status' => 'NOT_REQUIRED'];
         }
         try {
             $row = (array) DB::selectOne("select current_setting('archive_mode') as archive_mode,
