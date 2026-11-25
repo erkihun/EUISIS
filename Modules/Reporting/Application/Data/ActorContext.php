@@ -22,6 +22,8 @@ final readonly class ActorContext
         public bool $unrestricted,
         public array $organizationIds,
         public array $permissions,
+        /** @var list<string> institutions reached because the actor staffs their report follow-up unit (already part of $organizationIds) */
+        public array $monitoredOrganizationIds = [],
     ) {}
 
     public function can(string $permission): bool

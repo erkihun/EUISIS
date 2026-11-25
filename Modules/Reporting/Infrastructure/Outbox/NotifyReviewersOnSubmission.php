@@ -31,7 +31,7 @@ final readonly class NotifyReviewersOnSubmission
             }
             $recipients = $step->reviewer_user_id !== null
                 ? [(int) $step->reviewer_user_id]
-                : ($obligation->receiving_organization_id === null ? [] : array_map(fn ($user): int => $user->id, $this->access->holdersFor($step->required_permission, $obligation->receiving_organization_id, 10)));
+                : ($obligation->receiving_organization_id === null ? [] : array_map(fn ($user): int => $user->id, $this->access->receiversFor($step->required_permission, $obligation->receiving_organization_id, 10)));
             $cycle = Cycle::query()->find($obligation->cycle_id);
             $type = ReportType::query()->find($obligation->report_type_id);
 

@@ -159,6 +159,27 @@ The Core has no unit-level access scope, so inside one institution a person whos
 institution sees every unit's report. To confine someone to one unit, give them no institution scope
 and name them as the unit's accountable or preparing officer.
 
+## The report follow-up unit of an institution
+
+Every institution has, in its own structure, a work unit that follows up reports. As the Grievance
+module does for its Team and Directorate, an institution **designates one of its existing units**;
+nothing is created in the organization structure. `reporting_monitoring_units` holds one row per
+institution, set on the report settings page by someone who holds `reporting.settings.manage` and
+reaches the institution (`ManageMonitoringUnits`).
+
+Staff of the unit are the active users whose linked employee is currently placed in the unit or in a
+unit beneath it (read through the Core's `AccessScopeReader`). The designation does two things:
+
+- **Reach.** `CoreAccessResolver` adds the institution to the actor's organizations in this module,
+  so its staff see the institution's own reports and the reports it receives whatever their scope
+  rows say. `ActorContext::$monitoredOrganizationIds` says which reach came this way.
+- **Notices.** `ReportingAccessResolver::receiversFor()` sends the notice of a submitted report and
+  the review reminders and escalations to the unit's staff who hold the step's permission. While
+  nobody in the unit holds it, the notice goes to every holder for the institution, as before.
+
+It gives reach, not permissions: what a member may do is still their Reporting role. It does not take
+access away from other people whose scope covers the institution.
+
 ## Workflow and the rules that protect the record
 
 Not started → Draft → Submitted → Under review → Approved / Returned for revision / Rejected.

@@ -47,5 +47,20 @@ interface AccessScopeReader
      * @param  list<string>|null  $withinOrganizationUuids
      * @return list<UserSummaryData>
      */
+    /**
+     * The work unit the user's linked employee is placed in now, then its
+     * parent units, nearest first. Empty without an employee or a current placement.
+     *
+     * @return list<string>
+     */
+    public function unitUuidsOf(int $userId): array;
+
+    /**
+     * Active users whose linked employee is currently placed in the unit or in a unit beneath it, by name.
+     *
+     * @return list<UserSummaryData>
+     */
+    public function usersPlacedIn(string $unitUuid, int $limit = 50): array;
+
     public function searchUsers(string $term, ?array $withinOrganizationUuids = null, int $limit = 20): array;
 }

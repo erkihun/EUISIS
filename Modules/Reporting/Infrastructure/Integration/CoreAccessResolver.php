@@ -10,6 +10,7 @@ use Modules\Reporting\Application\Data\ActorContext;
 use Modules\Reporting\Application\Data\UserSummary;
 use Modules\Reporting\Application\Ports\ReportingAccessResolver;
 use Modules\Reporting\Contracts\Data\ReportingRoles;
+use Modules\Reporting\Infrastructure\Persistence\Models\MonitoringUnit;
 
 /** Identity, permissions and organization scope through the Core's AccessScopeReader contract. */
 final class CoreAccessResolver implements ReportingAccessResolver
@@ -34,6 +35,22 @@ final class CoreAccessResolver implements ReportingAccessResolver
         return array_map(self::summary(...), $this->reader->holdersFor($permission, $organizationId, $limit));
     }
 
+    public function receiversFor(string $permission, string $organizationId, int $limit = 20): array
+    {
+        $unitId = MonitoringUnit::query()->where('organization_id', $organizationId)->value('organization_unit_id');
+        if ($unitId !== null) {
+            $staff = array_values(array_filter(
+                $this->reader->usersPlacedIn((string) $unitId, 200),
+                fn (UserSummaryData $user): bool => $user->active && $this->reader->grantedAmong($user->userId, [$permission]) !== [],
+            ));
+            if ($staff !== []) {
+                return array_map(self::summary(...), array_slice($staff, 0, $limit));
+            }
+        }
+
+        return $this->holdersFor($permission, $organizationId, $limit);
+    }
+
     public function searchUsers(ActorContext $actor, string $term, int $limit = 20): array
     {
         return array_map(self::summary(...), $this->reader->searchUsers($term, $actor->organizationFilter(), $limit));
@@ -47,7 +64,16 @@ final class CoreAccessResolver implements ReportingAccessResolver
         }
         $scope = $this->reader->scopeOf($userId);
 
-        return new ActorContext($userId, $user->name, $scope->unrestricted, $scope->organizationUuids, $this->reader->grantedAmong($userId, ReportingRoles::ALL));
+        // Staff of an institution's report follow-up unit reach that institution in this module, whatever their scope rows say.
+        $units = $this->reader->unitUuidsOf($userId);
+        $monitored = $units === [] ? [] : MonitoringUnit::query()->whereIn('organization_unit_id', $units)->pluck('organization_id')->map(strval(...))->all();
+
+        return new ActorContext(
+            $userId, $user->name, $scope->unrestricted,
+            array_values(array_unique([...$scope->organizationUuids, ...$monitored])),
+            $this->reader->grantedAmong($userId, ReportingRoles::ALL),
+            $monitored,
+        );
     }
 
     private static function summary(UserSummaryData $user): UserSummary

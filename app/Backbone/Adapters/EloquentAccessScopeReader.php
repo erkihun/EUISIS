@@ -7,7 +7,10 @@ namespace App\Backbone\Adapters;
 use App\Backbone\Contracts\AccessScopeReader;
 use App\Backbone\Data\AccessScopeData;
 use App\Backbone\Data\UserSummaryData;
+use App\Enums\AssignmentStatus;
 use App\Enums\OrganizationScopeType;
+use App\Models\EmployeeAssignment;
+use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
@@ -85,6 +88,44 @@ final readonly class EloquentAccessScopeReader implements AccessScopeReader
             });
 
         return $holders;
+    }
+
+    public function unitUuidsOf(int $userId): array
+    {
+        $employeeId = User::query()->whereKey($userId)->value('employee_id');
+        if ($employeeId === null) {
+            return [];
+        }
+        $unitId = EmployeeAssignment::query()->where('employee_id', $employeeId)->where('is_current', true)
+            ->where('assignment_status', AssignmentStatus::Active->value)->value('organization_unit_id');
+        $ids = [];
+        // Bounded walk up the unit tree; a cycle in the data ends it.
+        while ($unitId !== null && ! in_array((string) $unitId, $ids, true) && count($ids) < 20) {
+            $ids[] = (string) $unitId;
+            $unitId = OrganizationUnit::query()->whereKey($unitId)->value('parent_unit_id');
+        }
+
+        return $ids;
+    }
+
+    public function usersPlacedIn(string $unitUuid, int $limit = 50): array
+    {
+        if (! Str::isUuid($unitUuid)) {
+            return [];
+        }
+        $unitIds = [$unitUuid];
+        $frontier = [$unitUuid];
+        for ($depth = 0; $frontier !== [] && $depth < 10; $depth++) {
+            $frontier = array_values(array_diff(OrganizationUnit::query()->whereIn('parent_unit_id', $frontier)->pluck('id')->map(strval(...))->all(), $unitIds));
+            $unitIds = [...$unitIds, ...$frontier];
+        }
+
+        return User::query()->where('status', 'active')
+            ->whereIn('employee_id', EmployeeAssignment::query()->whereIn('organization_unit_id', $unitIds)->where('is_current', true)
+                ->where('assignment_status', AssignmentStatus::Active->value)->select('employee_id'))
+            ->orderBy('name')->limit(max(1, min($limit, 500)))
+            ->get(['id', 'name', 'email', 'default_organization_id', 'status'])
+            ->map(fn (User $user): UserSummaryData => self::summary($user))->values()->all();
     }
 
     public function searchUsers(string $term, ?array $withinOrganizationUuids = null, int $limit = 20): array
