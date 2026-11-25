@@ -663,6 +663,8 @@ export default {
         unitsUnit: 'ሪፖርት የሚከታተል የሥራ ክፍል',
         unitsChoose: 'የሥራ ክፍል ይምረጡ',
         unitsNone: 'ይህ ተቋም ንቁ የሥራ ክፍል የለውም',
+        unitsRemoveTitle: 'ሪፖርት የሚከታተለው ክፍል ይወገድ?',
+        unitsRemoveDescription: '{unit} ከዚህ በኋላ የ{institution} ሪፖርት የሚከታተል ክፍል አይሆንም። ተቋሙ ስለሚቀበላቸው ሪፖርቶች የሚላኩ ማሳወቂያዎች ለተቋሙ ፈቃድ ላላቸው ሁሉ ይሄዳሉ። በማንኛውም ጊዜ ክፍል መልሰው መሰየም ይችላሉ።',
         unitsEmpty: 'እስካሁን ሪፖርት የሚከታተል ክፍሉን የሰየመ ተቋም የለም።',
         sectionSettings: 'ቅንብሮች',
         readOnly: 'እነዚህን ቅንብሮች ማየት ይችላሉ፤ መለወጥ ግን አይችሉም።',

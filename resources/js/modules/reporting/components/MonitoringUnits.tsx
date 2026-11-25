@@ -1,3 +1,4 @@
+import ConfirmationDialog from '@/Components/ConfirmationDialog';
 import { cx } from '@/Components/ui';
 import { OrganizationPicker } from '@/modules/reporting/components/Pickers';
 import { inputCls, labelCls, mutedCls, panelCls, primaryBtn, secondaryBtn, sectionTitleCls, useReporting } from '@/modules/reporting/lib/helpers';
@@ -22,6 +23,7 @@ export default function MonitoringUnits({ rows, canManage }: { rows: MonitoringU
     const [units, setUnits] = useState<UnitRef[]>([]);
     const [unitId, setUnitId] = useState('');
     const [busy, setBusy] = useState(false);
+    const [removing, setRemoving] = useState<MonitoringUnitRow | null>(null);
 
     useEffect(() => {
         setUnits([]);
@@ -50,7 +52,7 @@ export default function MonitoringUnits({ rows, canManage }: { rows: MonitoringU
             onFinish: () => setBusy(false),
         });
     };
-    const remove = (row: MonitoringUnitRow) => router.delete(route('reporting.monitoring-units.destroy', row.organization.id), { preserveScroll: true });
+    const remove = () => removing && router.delete(route('reporting.monitoring-units.destroy', removing.organization.id), { preserveScroll: true, onFinish: () => setRemoving(null) });
 
     return (
         <section className={cx(panelCls, 'space-y-3 p-4')} aria-labelledby="st-units">
@@ -93,13 +95,20 @@ export default function MonitoringUnits({ rows, canManage }: { rows: MonitoringU
                                         {name(row.unit)}
                                         {row.unit.code && <span className={cx(mutedCls, 'block text-xs')}>{row.unit.code}</span>}
                                     </td>
-                                    {canManage && <td className="px-2 py-2 text-end"><button type="button" className={secondaryBtn} onClick={() => remove(row)}>{rt('common.remove')}</button></td>}
+                                    {canManage && <td className="px-2 py-2 text-end"><button type="button" className={secondaryBtn} onClick={() => setRemoving(row)}>{rt('common.remove')}</button></td>}
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
             )}
+            <ConfirmationDialog
+                open={removing !== null} onClose={() => setRemoving(null)}
+                title={rt('settings.unitsRemoveTitle')}
+                description={rt('settings.unitsRemoveDescription', { unit: removing ? name(removing.unit) : '', institution: removing ? name(removing.organization) : '' })}
+                confirmLabel={rt('common.remove')}
+                onConfirm={remove}
+            />
         </section>
     );
 }

@@ -663,6 +663,8 @@ export default {
         unitsUnit: 'Report follow-up unit',
         unitsChoose: 'Choose a work unit',
         unitsNone: 'This institution has no active work unit',
+        unitsRemoveTitle: 'Remove the report follow-up unit?',
+        unitsRemoveDescription: '{unit} will no longer be the report follow-up unit of {institution}. Notices about received reports will go to everyone who holds the permission for the institution. You can name a unit again at any time.',
         unitsEmpty: 'No institution has named its report follow-up unit yet.',
         sectionSettings: 'Settings',
         readOnly: 'You can see these settings but not change them.',
