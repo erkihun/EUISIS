@@ -139,10 +139,10 @@ final readonly class ScheduledWork
                     continue;
                 }
                 $recipients = $step->reviewer_user_id !== null ? [(int) $step->reviewer_user_id]
-                    : ($o->receiving_organization_id === null ? [] : array_map(fn ($u): int => $u->id, $this->access->holdersFor($step->required_permission, $o->receiving_organization_id, 10)));
+                    : ($o->receiving_organization_id === null ? [] : array_map(fn ($u): int => $u->id, $this->access->receiversFor($step->required_permission, $o->receiving_organization_id, 10)));
                 if ($stage === 'escalated' && $o->receiving_organization_id !== null) {
                     // An overdue review goes up to the people who approve at the receiving institution.
-                    $recipients = [...$recipients, ...array_map(fn ($u): int => $u->id, $this->access->holdersFor(ReportingRoles::APPROVE, $o->receiving_organization_id, 5))];
+                    $recipients = [...$recipients, ...array_map(fn ($u): int => $u->id, $this->access->receiversFor(ReportingRoles::APPROVE, $o->receiving_organization_id, 5))];
                 }
                 $sent['review'] += $this->notifications->publish('review', $stage, "review:{$step->id}:{$stage}", $recipients, [...$params, 'due' => $local($step->due_at)], $o->id);
             }

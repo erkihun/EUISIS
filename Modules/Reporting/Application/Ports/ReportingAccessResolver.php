@@ -24,6 +24,16 @@ interface ReportingAccessResolver
      *
      * @return list<UserSummary>
      */
+    /**
+     * Who is told about, and acts on, the reports an institution receives:
+     * the staff of its report follow-up unit who hold the permission, when the
+     * institution has designated one and someone there holds it; otherwise
+     * everyone who holds the permission for the institution.
+     *
+     * @return list<UserSummary>
+     */
+    public function receiversFor(string $permission, string $organizationId, int $limit = 20): array;
+
     public function holdersFor(string $permission, string $organizationId, int $limit = 20): array;
 
     /**

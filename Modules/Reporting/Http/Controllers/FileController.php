@@ -95,9 +95,8 @@ final class FileController extends ReportingController
     public function units(Request $request, OrganizationDirectory $organizations): JsonResponse
     {
         $actor = $this->actor($request);
-        ReportingGuard::require($actor, ReportingRoles::PUBLISH_SCHEDULES);
         $organizationId = (string) $request->query('organization_id', '');
-        if ($organizationId === '' || ! $actor->reaches($organizationId)) {
+        if (! ($actor->can(ReportingRoles::PUBLISH_SCHEDULES) || $actor->can(ReportingRoles::MANAGE_SETTINGS)) || $organizationId === '' || ! $actor->reaches($organizationId)) {
             throw new ReportingAccessDenied(ReportingRoles::PUBLISH_SCHEDULES);
         }
 

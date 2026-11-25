@@ -104,4 +104,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         // Settings and operational health.
         Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::post('/settings/monitoring-units', [SettingsController::class, 'designateUnit'])->name('monitoring-units.store');
+        Route::delete('/settings/monitoring-units/{organization}', [SettingsController::class, 'removeUnit'])->whereUuid('organization')->name('monitoring-units.destroy');
     });

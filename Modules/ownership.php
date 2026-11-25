@@ -500,6 +500,7 @@ return [
             'Modules\Reporting\Infrastructure\Persistence\Models\FollowUpUpdate',
             'Modules\Reporting\Infrastructure\Persistence\Models\InboxMessage',
             'Modules\Reporting\Infrastructure\Persistence\Models\MetricCapture',
+            'Modules\Reporting\Infrastructure\Persistence\Models\MonitoringUnit',
             'Modules\Reporting\Infrastructure\Persistence\Models\NotificationDelivery',
             'Modules\Reporting\Infrastructure\Persistence\Models\Obligation',
             'Modules\Reporting\Infrastructure\Persistence\Models\ObligationEvent',

@@ -76,6 +76,17 @@ anyone whose scope lies outside the institution. The module reads units through 
 reference with a name snapshot, as it does for institutions. A unit-level access scope was not added:
 the Core has none, and adding one is a Core decision.
 
+### Each institution names its report follow-up unit (2026-11-25)
+
+The owner pointed out that every institution's structure has a work unit that follows up reports, and
+asked for it to work like the Grievance module's own unit (ADR 0029). An institution therefore
+designates one existing work unit; its staff (people placed in it or beneath it) reach the
+institution's reports in this module and receive the notices about the reports it receives. The
+designation adds reach and directs notices; it grants no permission and removes nobody's access.
+Unlike the grievance units, no members are named one by one and no signatures are kept: placement in
+the unit through HR is the membership. Two read methods were added to the Core's `AccessScopeReader`
+contract for this (`unitUuidsOf`, `usersPlacedIn`).
+
 ## Not decided here
 
 These need the owner, or people the owner names; nothing in the code invents them:
