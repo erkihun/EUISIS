@@ -151,12 +151,25 @@ class EmployeeCsvImportService
             static fn (string $column): bool => $column !== 'employee_number',
         ));
 
-        return [...array_map(static fn (string $column) => match ($column) {
-            'organization_code' => 'organization_name',
-            'organization_unit_code' => 'organization_unit_name',
-            'position_code' => 'position_name',
-            default => $column,
-        }, $importColumns), 'position_reference'];
+        $columns = [];
+
+        foreach ($importColumns as $column) {
+            $columns[] = match ($column) {
+                'organization_code' => 'organization_name',
+                'organization_unit_code' => 'organization_unit_name',
+                'position_code' => 'position_name',
+                default => $column,
+            };
+
+            // The position's old code, next to its name, so a row can be
+            // matched against the paper records. Shown only: the row is still
+            // placed by `position_reference`, and a file without it reads the same.
+            if ($column === 'position_code') {
+                $columns[] = 'old_code';
+            }
+        }
+
+        return [...$columns, 'position_reference'];
     }
 
     /** Guards against a spreadsheet export with a runaway row count. */
@@ -753,7 +766,7 @@ class EmployeeCsvImportService
             ->with('organizationUnit:id,code,name_en,name_am')
             ->orderBy('job_position_code')->orderBy('id')
             ->limit($this->maxRows())
-            ->get(['id', 'organization_unit_id', 'job_position_code', 'code', 'title_en', 'title_am']);
+            ->get(['id', 'organization_unit_id', 'job_position_code', 'code', 'old_code', 'title_en', 'title_am']);
 
         $rows = [];
 
@@ -771,6 +784,7 @@ class EmployeeCsvImportService
             $row['position_name'] = (string) (($amharic
                 ? ($position?->title_am ?: $position?->title_en)
                 : ($position?->title_en ?: $position?->title_am)) ?? '');
+            $row['old_code'] = (string) ($position?->old_code ?? '');
             $row['position_reference'] = (string) ($position?->id ?? '');
             $row['employment_status'] = 'active';
             $rows[] = $row;
