@@ -601,3 +601,23 @@ test('organization filter names follow the page language', function (): void {
     expect($amharic->firstWhere('id', $organization->id)['name'])->toBe('የማጣሪያ መፈተሻ ቢሮ')
         ->and($english->firstWhere('id', $organization->id)['name'])->toBe('Filter Check Bureau');
 });
+
+test('charts named after a record follow the page language from one cached set of figures', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $type = \App\Models\OrganizationType::query()
+        ->whereIn('id', \App\Models\Organization::query()->select('organization_type_id'))
+        ->firstOrFail();
+    $type->forceFill(['name_en' => 'Chart Check Type', 'name_am' => 'የገበታ መፈተሻ ዓይነት'])->save();
+    $service = app(\App\Services\Dashboard\DashboardDataService::class);
+
+    app()->setLocale('am');
+    $amharic = collect($service->build($user, [])['charts']['organizationsByType']);
+    app()->setLocale('en');
+    $english = collect($service->build($user, [])['charts']['organizationsByType']);
+
+    expect($amharic->pluck('key'))->toContain('የገበታ መፈተሻ ዓይነት')
+        ->and($english->pluck('key'))->toContain('Chart Check Type')
+        ->and($amharic->firstWhere('key', 'የገበታ መፈተሻ ዓይነት')['value'])->toBe($english->firstWhere('key', 'Chart Check Type')['value'])
+        ->and($amharic->first())->not->toHaveKey('key_am')
+        ->and($english->first())->not->toHaveKey('key_am');
+});

@@ -25,6 +25,22 @@ class DashboardChartService
             : "DATE($column)";
     }
 
+    /**
+     * One bar of a chart. A bar named after a record also carries the Amharic
+     * name as `key_am`: the figures are cached once for every language, so the
+     * language is chosen when the page is built, not here.
+     */
+    private function row(object $row): array
+    {
+        $bar = ['key' => $row->key, 'value' => (int) $row->value];
+
+        if (isset($row->key_am) && trim((string) $row->key_am) !== '') {
+            $bar['key_am'] = (string) $row->key_am;
+        }
+
+        return $bar;
+    }
+
     public function charts(array $scope, array $can): array
     {
         return [
@@ -109,7 +125,7 @@ class DashboardChartService
             ->groupBy('key')
             ->orderByDesc('value')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -119,12 +135,12 @@ class DashboardChartService
             ->join('employee_assignments as organization_type_assignment', 'organization_type_assignment.id', '=', 'employees.current_assignment_id')
             ->join('organizations', 'organizations.id', '=', 'organization_type_assignment.organization_id')
             ->join('organization_types', 'organization_types.id', '=', 'organizations.organization_type_id')
-            ->selectRaw('organization_types.name_en as "key", COUNT(*) as "value"')
+            ->selectRaw('organization_types.name_en as "key", MAX(organization_types.name_am) as "key_am", COUNT(*) as "value"')
             ->groupBy('organization_types.name_en')
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -144,12 +160,12 @@ class DashboardChartService
     {
         return $this->metrics->organizationQuery($scope)
             ->join('organization_types', 'organization_types.id', '=', 'organizations.organization_type_id')
-            ->selectRaw('organization_types.name_en as "key", COUNT(*) as "value"')
+            ->selectRaw('organization_types.name_en as "key", MAX(organization_types.name_am) as "key_am", COUNT(*) as "value"')
             ->groupBy('organization_types.name_en')
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -160,7 +176,7 @@ class DashboardChartService
             ->groupBy('organizations.status')
             ->orderBy('organizations.status')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -173,7 +189,7 @@ class DashboardChartService
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -186,7 +202,7 @@ class DashboardChartService
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -194,12 +210,12 @@ class DashboardChartService
     {
         return $this->metrics->positionQuery($scope)
             ->join('organizations', 'organizations.id', '=', 'positions.organization_id')
-            ->selectRaw('organizations.name_en as "key", COUNT(*) as "value"')
+            ->selectRaw('organizations.name_en as "key", MAX(organizations.name_am) as "key_am", COUNT(*) as "value"')
             ->groupBy('organizations.name_en')
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -270,7 +286,7 @@ class DashboardChartService
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -290,11 +306,11 @@ class DashboardChartService
     {
         return $this->metrics->entitlementQuery($scope)
             ->join('service_types', 'service_types.id', '=', 'entitlements.service_type_id')
-            ->selectRaw('service_types.name_en as "key", COUNT(*) as "value"')
+            ->selectRaw('service_types.name_en as "key", MAX(service_types.name_am) as "key_am", COUNT(*) as "value"')
             ->groupBy('service_types.name_en')
             ->orderByDesc('value')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -305,7 +321,7 @@ class DashboardChartService
             ->groupBy('entitlements.status')
             ->orderBy('entitlements.status')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -325,11 +341,11 @@ class DashboardChartService
     {
         return $this->metrics->transactionQuery($scope)
             ->join('service_types', 'service_types.id', '=', 'service_transactions.service_type_id')
-            ->selectRaw('service_types.name_en as "key", COUNT(*) as "value"')
+            ->selectRaw('service_types.name_en as "key", MAX(service_types.name_am) as "key_am", COUNT(*) as "value"')
             ->groupBy('service_types.name_en')
             ->orderByDesc('value')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -340,7 +356,7 @@ class DashboardChartService
             ->groupBy('service_transactions.status')
             ->orderBy('service_transactions.status')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -357,7 +373,7 @@ class DashboardChartService
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -365,11 +381,11 @@ class DashboardChartService
     {
         return $this->metrics->providerQuery($scope)
             ->join('service_types', 'service_types.id', '=', 'service_providers.service_type_id')
-            ->selectRaw('service_types.name_en as "key", COUNT(service_providers.id) as "value"')
+            ->selectRaw('service_types.name_en as "key", MAX(service_types.name_am) as "key_am", COUNT(service_providers.id) as "value"')
             ->groupBy('service_types.name_en')
             ->orderByDesc('value')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -380,7 +396,7 @@ class DashboardChartService
             ->groupBy('employee_transfers.status')
             ->orderBy('employee_transfers.status')
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 
@@ -428,7 +444,7 @@ class DashboardChartService
             ->orderByDesc('value')
             ->limit($scope['top_limit'])
             ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->map($this->row(...))
             ->all();
     }
 }

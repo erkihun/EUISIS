@@ -59,7 +59,7 @@ class DashboardDataService
             'header' => $this->header($user, $scope, $figures['computedAt']),
             'kpis' => $figures['kpis'],
             'cards' => $figures['cards'],
-            'charts' => $figures['charts'],
+            'charts' => $this->localizedCharts($figures['charts']),
             'workflowQueues' => $figures['workflowQueues'],
             'alerts' => $figures['alerts'],
             'recentActivity' => $figures['recentActivity'],
@@ -187,6 +187,37 @@ class DashboardDataService
         }
 
         return false;
+    }
+
+    /**
+     * Name each bar in the language of the page.
+     *
+     * The cached figures hold both names of a record, so one cache entry
+     * serves every language. A record with no Amharic name keeps its English one.
+     */
+    private function localizedCharts(array $charts): array
+    {
+        $amharic = app()->getLocale() === 'am';
+
+        return array_map(static function (mixed $series) use ($amharic): mixed {
+            if (! is_array($series)) {
+                return $series;
+            }
+
+            return array_map(static function (mixed $bar) use ($amharic): mixed {
+                if (! is_array($bar) || ! array_key_exists('key_am', $bar)) {
+                    return $bar;
+                }
+
+                if ($amharic) {
+                    $bar['key'] = $bar['key_am'];
+                }
+
+                unset($bar['key_am']);
+
+                return $bar;
+            }, $series);
+        }, $charts);
     }
 
     private function cacheKey(array $scope, array $can): string
