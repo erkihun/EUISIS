@@ -967,6 +967,19 @@ it('downloads real placement names only for the selected organization', function
         ->and($body)->not->toContain('abebe@example.et');
 });
 
+it('shows the old code of each position in the template', function (): void {
+    $this->alpha['positions'][1]->forceFill(['old_code' => 'OLD-0042'])->save();
+
+    $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
+    $lines = explode("\n", trim(substr($body, 3)));
+    $columns = EmployeeCsvImportService::templateColumns();
+    $row = array_combine($columns, str_getcsv($lines[1]));
+
+    expect($columns[array_search('position_name', $columns, true) + 1])->toBe('old_code')
+        ->and($row['old_code'])->toBe('OLD-0042')
+        ->and($row['position_reference'])->toBe($this->alpha['positions'][1]->id);
+});
+
 it('requires an active accessible organization for template downloads', function (): void {
     $this->actingAs($this->admin)->get(route('employees.import.template'))->assertSessionHasErrors('organization_id');
     $this->alpha['org']->update(['status' => 'inactive']);
