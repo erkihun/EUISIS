@@ -121,17 +121,25 @@ class DashboardScopeService
             return [];
         }
 
+        // Named in the language of the page, with the other language as the
+        // fallback so an organization missing one translation still shows.
+        $amharic = app()->getLocale() === 'am';
+
         return Organization::query()
             ->whereIn('id', $accessibleOrganizationIds)
             ->where('status', OrganizationStatus::Active->value)
             ->orderBy('name_en')
             ->limit(50)
-            ->get(['id', 'name_en', 'code'])
+            ->get(['id', 'name_en', 'name_am', 'code'])
             ->map(fn (Organization $organization): array => [
                 'id' => $organization->id,
-                'name' => $organization->name_en,
+                'name' => (string) ($amharic
+                    ? ($organization->name_am ?: $organization->name_en)
+                    : ($organization->name_en ?: $organization->name_am)),
                 'code' => $organization->code,
             ])
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
             ->all();
     }
 }
