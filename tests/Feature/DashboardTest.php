@@ -583,3 +583,21 @@ test('a kpi without a trend advertises no comparison', function (): void {
         expect($kpi['comparisonLabelKey'])->toBeNull();
     });
 });
+
+test('organization filter names follow the page language', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $scopeService = app(DashboardScopeService::class);
+
+    app()->setLocale('en');
+    $english = collect($scopeService->resolve($user, [])['organization_options']);
+    $organization = \App\Models\Organization::query()->findOrFail($english->first()['id']);
+    $organization->forceFill(['name_en' => 'Filter Check Bureau', 'name_am' => 'የማጣሪያ መፈተሻ ቢሮ'])->save();
+
+    app()->setLocale('am');
+    $amharic = collect($scopeService->resolve($user, [])['organization_options']);
+    app()->setLocale('en');
+    $english = collect($scopeService->resolve($user, [])['organization_options']);
+
+    expect($amharic->firstWhere('id', $organization->id)['name'])->toBe('የማጣሪያ መፈተሻ ቢሮ')
+        ->and($english->firstWhere('id', $organization->id)['name'])->toBe('Filter Check Bureau');
+});
