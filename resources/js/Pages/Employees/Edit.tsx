@@ -198,6 +198,7 @@ export default function EmployeesEdit({
                 <div className="space-y-5">
                     {/* ── 1. Basic Information ──────────────────────────── */}
                     <FormCard
+                        wide
                         icon={<BasicIcon />}
                         title={t('employees.sectionBasic')}
                         description={t('employees.sectionBasicHelp')}
@@ -213,18 +214,6 @@ export default function EmployeesEdit({
                                 value={employee.employee_number}
                                 readOnly
                                 disabled
-                            />
-                        </Field>
-
-                        <Field label={t('employees.nationalId')} error={form.errors.national_id} htmlFor="national_id">
-                            <input
-                                id="national_id"
-                                className={inputCls}
-                                placeholder="XXXX XXXX XXXX XXXX"
-                                inputMode="numeric"
-                                value={formatNationalId(form.data.national_id)}
-                                onChange={(e) => handleNationalIdChange(e.target.value)}
-                                maxLength={19}
                             />
                         </Field>
 
@@ -268,6 +257,18 @@ export default function EmployeesEdit({
                             />
                         </Field>
 
+                        <Field label={t('employees.nationalId')} error={form.errors.national_id} htmlFor="national_id">
+                            <input
+                                id="national_id"
+                                className={inputCls}
+                                placeholder="XXXX XXXX XXXX XXXX"
+                                inputMode="numeric"
+                                value={formatNationalId(form.data.national_id)}
+                                onChange={(e) => handleNationalIdChange(e.target.value)}
+                                maxLength={19}
+                            />
+                        </Field>
+
                         <Field label={t('employees.gender')} error={form.errors.gender} htmlFor="gender">
                             <select
                                 id="gender"
@@ -286,7 +287,7 @@ export default function EmployeesEdit({
                         </Field>
 
                         {/* Photo spans the full card width so the preview has room. */}
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 xl:col-span-3">
                             <label className={labelCls}>{t('employees.photo')}</label>
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                                 <div className="shrink-0 self-start">
@@ -366,6 +367,7 @@ export default function EmployeesEdit({
 
                     {/* ── 2. Contact Information ────────────────────────── */}
                     <FormCard
+                        wide
                         icon={<ContactIcon />}
                         title={t('employees.sectionContact')}
                         description={t('employees.sectionContactHelp')}
@@ -403,7 +405,32 @@ export default function EmployeesEdit({
                         </Field>
 
                         <Field
-                            label={t('employees.employeeStatus')}
+                            label={t('employees.address')}
+                            error={form.errors.address}
+                            className="md:col-span-2 xl:col-span-3"
+                            htmlFor="address"
+                        >
+                            <textarea
+                                id="address"
+                                className={`${inputCls} min-h-16 py-2`}
+                                rows={2}
+                                maxLength={500}
+                                placeholder={t('employees.addressPlaceholder')}
+                                value={form.data.address}
+                                onChange={(e) => form.setData('address', e.target.value)}
+                            />
+                        </Field>
+                    </FormCard>
+
+                    {/* ── 3. Employment Information ─────────────────────── */}
+                    <FormCard
+                        wide
+                        icon={<EmploymentIcon />}
+                        title={t('employees.sectionEmployment')}
+                        description={t('employees.sectionEmploymentHelp')}
+                    >
+                        <Field
+                            label={t('employees.employmentType')}
                             error={form.errors.employment_type}
                             htmlFor="employment_type"
                         >
@@ -422,31 +449,7 @@ export default function EmployeesEdit({
                             </select>
                         </Field>
 
-                        <Field
-                            label={t('employees.address')}
-                            error={form.errors.address}
-                            className="md:col-span-2"
-                            htmlFor="address"
-                        >
-                            <textarea
-                                id="address"
-                                className={`${inputCls} min-h-16 py-2`}
-                                rows={2}
-                                maxLength={1000}
-                                placeholder={t('employees.addressPlaceholder')}
-                                value={form.data.address}
-                                onChange={(e) => form.setData('address', e.target.value)}
-                            />
-                        </Field>
-                    </FormCard>
-
-                    {/* ── 3. Employment Information ─────────────────────── */}
-                    <FormCard
-                        icon={<EmploymentIcon />}
-                        title={t('employees.sectionEmployment')}
-                        description={t('employees.sectionEmploymentHelp')}
-                    >
-                        <Field label={t('employees.employmentStatus')} error={form.errors.status} required htmlFor="status">
+                        <Field label={t('employees.systemStatus')} error={form.errors.status} required htmlFor="status">
                             <select
                                 id="status"
                                 className={inputCls}
@@ -469,7 +472,7 @@ export default function EmployeesEdit({
                           * Transfers workflow, which keeps the assignment
                           * history and the position-occupancy rules intact.
                           */}
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 xl:col-span-3">
                             <div className="rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4">
                                 <dl className="grid gap-4 sm:grid-cols-3">
                                     <ReadOnlyValue
@@ -503,6 +506,7 @@ export default function EmployeesEdit({
 
                     {/* ── 4. Emergency Contact ──────────────────────────── */}
                     <FormCard
+                        wide
                         icon={<EmergencyIcon />}
                         title={t('employees.sectionEmergency')}
                         description={t('employees.sectionEmergencyHelp')}

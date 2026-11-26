@@ -679,7 +679,12 @@ class EmployeeCsvImportService
 
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = max(count($rows) + 1, 2);
-        // Text format on the whole used range, including the cells still empty.
+        /*
+         * Text format on whole columns, not only on the rows handed out: a
+         * date typed into a row added further down would otherwise be turned
+         * into Excel's own date, in the month/day order of that computer.
+         */
+        $sheet->getStyle('A:'.$lastColumn)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
         $sheet->getStyle('A1:'.$lastColumn.$lastRow)->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_TEXT);
         $sheet->getStyle('A1:'.$lastColumn.'1')->getFont()->setBold(true);
         $sheet->freezePane('A2');
@@ -696,7 +701,13 @@ class EmployeeCsvImportService
         $values = $spreadsheet->createSheet()->setTitle('allowed_values');
         $column = 0;
 
-        foreach ($this->allowedValues($locale) as $field => $options) {
+        // The date columns come last, each with how a date is written.
+        $dateNotes = array_fill_keys(self::DATE_COLUMNS, [
+            __('employees.import.template.dateFormat', [], $locale),
+            __('employees.import.template.dateCalendar', [], $locale),
+        ]);
+
+        foreach ($this->allowedValues($locale) + $dateNotes as $field => $options) {
             $column++;
             $values->setCellValueExplicit([$column, 1], $field, DataType::TYPE_STRING);
 

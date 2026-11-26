@@ -25,6 +25,7 @@ type Option = {
     title_en?: string;
     title_am?: string | null;
     job_position_code?: string | null;
+    old_code?: string | null;
     organization_id?: string | null;
     organization_unit_id?: string | null;
 };
@@ -51,7 +52,7 @@ type EmployeeRow = {
         assignment_status?: string | null;
         organization?: { id?: string; name_en: string; name_am?: string | null } | null;
         organization_unit?: { id?: string; code: string | null; name_en: string; name_am?: string | null } | null;
-        position?: { id?: string; job_position_code?: string | null; title_en: string; title_am?: string | null } | null;
+        position?: { id?: string; job_position_code?: string | null; old_code?: string | null; title_en: string; title_am?: string | null } | null;
     } | null;
 };
 
@@ -331,6 +332,7 @@ export default function EmployeesIndex({
                                 <option key={position.id} value={position.id}>
                                     {position.job_position_code ? `${position.job_position_code} - ` : ''}
                                     {localizedName(position.title_en ?? '', position.title_am, locale)}
+                                    {position.old_code ? ` (${t('positions.oldCode')}: ${position.old_code})` : ''}
                                 </option>
                             ))}
                         </Select>
@@ -420,7 +422,7 @@ export default function EmployeesIndex({
                                             ? `${assignment.organization_unit.code ? `${assignment.organization_unit.code} - ` : ''}${localizedName(assignment.organization_unit.name_en, assignment.organization_unit.name_am, locale)}`
                                             : t('common.unassigned');
                                         const positionLabel = assignment?.position
-                                            ? `${assignment.position.job_position_code ? `${assignment.position.job_position_code} - ` : ''}${localizedName(assignment.position.title_en, assignment.position.title_am, locale)}`
+                                            ? `${assignment.position.job_position_code ? `${assignment.position.job_position_code} - ` : ''}${localizedName(assignment.position.title_en, assignment.position.title_am, locale)}${assignment.position.old_code ? ` (${t('positions.oldCode')}: ${assignment.position.old_code})` : ''}`
                                             : t('employees.notAvailable');
 
                                         return (
@@ -532,7 +534,7 @@ export default function EmployeesIndex({
                                     ? localizedName(assignment.organization_unit.name_en, assignment.organization_unit.name_am, locale)
                                     : t('common.unassigned');
                                 const position = assignment?.position
-                                    ? localizedName(assignment.position.title_en, assignment.position.title_am, locale)
+                                    ? `${localizedName(assignment.position.title_en, assignment.position.title_am, locale)}${assignment.position.old_code ? ` (${t('positions.oldCode')}: ${assignment.position.old_code})` : ''}`
                                     : t('employees.notAvailable');
 
                                 return (

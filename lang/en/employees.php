@@ -67,6 +67,10 @@ return [
             'gregorian' => 'Gregorian',
             'ethiopian' => 'Ethiopian',
         ],
+        'template' => [
+            'dateFormat' => 'Write the date as day/month/year, for example 05/01/2018.',
+            'dateCalendar' => 'When you upload the file, choose the calendar the dates are written in: Ethiopian or Gregorian.',
+        ],
         'errors' => [
             'noFile' => 'Choose the filled-in file first.',
             'notCsv' => 'This file type cannot be read. Upload the Excel file (.xlsx) or the CSV file you filled in from the template.',

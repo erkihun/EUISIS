@@ -229,12 +229,13 @@ class EmployeeController extends Controller
                 ]),
             'positions' => ($selectedOrganizationId === null ? collect() : $positionOptionsQuery
                 ->limit(self::OPTION_LIMIT)
-                ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am']))
+                ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'old_code', 'title_en', 'title_am']))
                 ->map(fn (Position $position): array => [
                     'id' => $position->id,
                     'organization_id' => $position->organization_id,
                     'organization_unit_id' => $position->organization_unit_id,
                     'job_position_code' => $position->job_position_code,
+                    'old_code' => $position->old_code,
                     'title_en' => $position->title_en,
                     'title_am' => $position->title_am,
                 ]),
@@ -366,7 +367,7 @@ class EmployeeController extends Controller
                 ->get(['id', 'organization_id', 'name_en', 'name_am', 'code']),
             'educationLevels' => $this->educationLevelOptions(),
             'positions' => $positionQuery
-                ->get(['id', 'job_position_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id']),
+                ->get(['id', 'job_position_code', 'old_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id']),
             'selectedOrganizationId' => $selectedOrganizationId,
             'selectedOrganizationUnitId' => $selectedOrganizationUnitId,
             'selectedPositionId' => $selectedPositionId,
