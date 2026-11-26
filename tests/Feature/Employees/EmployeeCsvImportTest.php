@@ -1368,13 +1368,23 @@ it('lists the accepted values on a second sheet of the excel template', function
 
     $values = $workbook->getSheet(1)->toArray(null, false, false, false);
 
-    expect($values[0])->toBe(['gender', 'employment_status', 'employment_type', 'marital_status', 'education_level', 'has_disability', 'disability_type'])
+    expect($values[0])->toBe([
+        'gender', 'employment_status', 'employment_type', 'marital_status', 'education_level', 'has_disability', 'disability_type',
+        'assignment_start_date', 'date_of_birth', 'service_start_date',
+    ])
         ->and(array_column($values, 4))->toContain('Diploma')
-        ->and(array_column($values, 3))->toContain('married');
+        ->and(array_column($values, 3))->toContain('married')
+        // Each date column says how a date is written.
+        ->and($values[1][8])->toContain('05/01/2018');
 
     // The workbook still uploads: only its first sheet is read.
     $sheet = $workbook->getSheet(0);
     $header = $sheet->toArray(null, false, false, false)[0];
+    $birthColumn = array_search('date_of_birth', $header, true) + 1;
+
+    // The whole column is text, so a row added below the ones handed out is too.
+    $columnStyle = $workbook->getCellXfByIndex($sheet->getColumnDimensionByColumn($birthColumn)->getXfIndex());
+    expect($columnStyle->getNumberFormat()->getFormatCode())->toBe('@');
 
     foreach (['first_name' => 'Marta', 'father_name' => 'Alemu', 'grandfather_name' => 'Bekele', 'gender' => 'female', 'education_level' => 'Diploma'] as $column => $value) {
         $sheet->setCellValue([array_search($column, $header, true) + 1, 2], $value);
