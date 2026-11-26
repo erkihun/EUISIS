@@ -55,6 +55,7 @@ class EmployeeResource extends JsonResource
                 'position' => $this->currentAssignment->position ? [
                     'id' => $this->currentAssignment->position->id,
                     'job_position_code' => $this->currentAssignment->position->job_position_code,
+                    'old_code' => $this->currentAssignment->position->old_code,
                     'title_en' => $this->currentAssignment->position->title_en,
                     'title_am' => $this->currentAssignment->position->title_am,
                 ] : null,

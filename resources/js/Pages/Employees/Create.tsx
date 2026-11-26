@@ -36,6 +36,7 @@ type Option = {
     title_en?: string;
     title_am?: string | null;
     job_position_code?: string;
+    old_code?: string | null;
     code?: string | null;
     organization_id?: string | null;
     organization_unit_id?: string | null;
@@ -176,14 +177,19 @@ export default function EmployeesCreate({
         return filteredPositions.map((position) => {
             const title = titleOf(position);
             const shared = (timesListed.get(title) ?? 0) > 1;
+            // The old code is what the paper records still call the post.
+            const codes = [
+                shared && position.job_position_code ? position.job_position_code : null,
+                position.old_code ? `${t('positions.oldCode')}: ${position.old_code}` : null,
+            ].filter(Boolean);
 
             return {
                 value: position.id,
-                label: shared && position.job_position_code ? `${title} (${position.job_position_code})` : title,
-                keywords: `${position.title_en ?? ''} ${position.title_am ?? ''}`,
+                label: codes.length > 0 ? `${title} (${codes.join(' · ')})` : title,
+                keywords: `${position.title_en ?? ''} ${position.title_am ?? ''} ${position.old_code ?? ''}`,
             };
         });
-    }, [filteredPositions, locale]);
+    }, [filteredPositions, locale, t]);
 
     function handleNationalIdChange(raw: string) {
         const digits = raw.replace(/\D/g, '').slice(0, 16);
