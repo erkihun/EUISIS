@@ -14,7 +14,7 @@ const ROLE_CATEGORIES = [
     { key: 'security', names: /^(Security Settings Manager|System Settings Admin|API Manager|Public Site Manager|Workflow Policy Administrator|Recycle Bin Manager)$/ },
     { key: 'platform', names: /^(Platform Operations Engineer|Help Desk Agent|Backup Operator|Recovery |Intelligence Governance Officer)/ },
     { key: 'executive', names: /^(Situation Room |Intelligence Analyst$)/ },
-    { key: 'reporting', names: /^(Auditor|Report Viewer)$/ },
+    { key: 'reporting', names: /^(Auditor|Report Viewer|City-wide Viewer)$/ },
     { key: 'performance', names: /^(Performance |Assessment )/ },
     { key: 'feedback', names: /^Public Feedback / },
     { key: 'grievances', names: /^(Grievance |Administrative Tribunal |Discipline |Disciplinary )/ },

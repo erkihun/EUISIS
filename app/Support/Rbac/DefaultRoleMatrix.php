@@ -13,8 +13,8 @@ use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
 use Modules\Leave\Contracts\Data\LeaveRoles;
 use Modules\Letters\Contracts\Data\LettersRoles;
-use Modules\Reporting\Contracts\Data\ReportingRoles;
 use Modules\Performance\Contracts\Data\PerformanceRoles;
+use Modules\Reporting\Contracts\Data\ReportingRoles;
 use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
 use Modules\WorkExperience\Contracts\Data\WorkExperienceRoles;
 
@@ -32,6 +32,22 @@ use Modules\WorkExperience\Contracts\Data\WorkExperienceRoles;
  */
 final class DefaultRoleMatrix
 {
+    /** Looks at everything city-wide and changes nothing. */
+    public const CITYWIDE_VIEWER = 'City-wide Viewer';
+
+    /**
+     * View actions the City-wide Viewer does not get: each uncovers a person
+     * (identifiers, medical details, a confidential case, who sent a tip-off,
+     * who answered an assessment, a precise location).
+     */
+    /** Permissions that only open a page to look at, though their action is not named "view". */
+    public const VIEW_GATES = ['dashboard.reports', 'core.access'];
+
+    public const VIEW_WITHHELD = [
+        'viewSensitive', 'viewPii', 'view_confidential', 'view_medical', 'view_submitter_identity',
+        'view_sensitive_attachments', 'view_named', 'view_precise', 'view_responses',
+    ];
+
     public const SCOPE_GLOBAL = 'global';
 
     public const SCOPE_SCOPED = 'scoped';
@@ -502,6 +518,10 @@ final class DefaultRoleMatrix
                 ...DisciplineRoles::REPORT_VIEWER_PERMISSIONS,
             ], 'Views non-sensitive reports within scope. No exports.',
                 'በወሰኑ ውስጥ ስሱ ያልሆኑ ሪፖርቶችን ይመለከታል። ወደ ውጭ መላክ የለም።'),
+            // Everything a City Admin can open, to look at only. Global scope: every institution.
+            self::CITYWIDE_VIEWER => self::role(self::SCOPE_GLOBAL, self::viewOnly(array_diff($cityAdmin, self::ADMIN_ONLY, self::LEGACY_ALIASES)),
+                'Sees every module and every institution city-wide. Creates, changes, approves, exports and deletes nothing. Personal identifiers, medical details, confidential cases and the identity of people who submit tip-offs stay hidden.',
+                'በከተማ አቀፍ ደረጃ ሁሉንም ሞጁሎችና ሁሉንም ተቋማት ይመለከታል። ምንም አይፈጥርም፣ አይቀይርም፣ አያጸድቅም፣ ወደ ውጭ አይልክም፣ አይሰርዝም። የግል መለያ መረጃ፣ የሕክምና ዝርዝር፣ ሚስጥራዊ ጉዳዮች እና የጥቆማ አቅራቢዎች ማንነት ተሸፍነው ይቀራሉ።'),
 
             // ── Executive dashboards and intelligence (aggregates by default; drill-down is a separate role) ─
             'Situation Room Viewer' => self::role(self::SCOPE_SCOPED, [
@@ -930,6 +950,25 @@ final class DefaultRoleMatrix
     }
 
     /**
+     * The look-only part of a permission set: every permission whose action
+     * is a view or a preview, without the ones that uncover a person
+     * (VIEW_WITHHELD). Exports, prints and downloads are not views: they take
+     * data out of the system.
+     *
+     * @param  list<string>  $permissions
+     * @return list<string>
+     */
+    private static function viewOnly(array $permissions): array
+    {
+        return array_values(array_filter($permissions, static function (string $permission): bool {
+            $action = substr($permission, (int) strrpos($permission, '.') + 1);
+
+            return (in_array($permission, self::VIEW_GATES, true) || preg_match('/^(view|preview|oversight_view$)/', $action) === 1)
+                && ! in_array($action, self::VIEW_WITHHELD, true);
+        }));
+    }
+
+    /**
      * @param  list<string>  $permissions
      * @return array{description_en: string, description_am: string, scope: string, permissions: list<string>}
      */
@@ -976,6 +1015,7 @@ final class DefaultRoleMatrix
         'API Manager' => 'የAPI አስተዳዳሪ',
         'Auditor' => 'ኦዲተር',
         'Report Viewer' => 'የሪፖርት ተመልካች',
+        self::CITYWIDE_VIEWER => 'የከተማ አቀፍ ተመልካች',
         'Public Site Manager' => 'የሕዝብ ድረ-ገጽ አስተዳዳሪ',
         'Employee' => 'ሠራተኛ',
         'Communication Moderator' => 'የኮሙኒኬሽን አወያይ',
