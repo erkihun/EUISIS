@@ -28,6 +28,7 @@ const employees = {
     fullNameEnPlaceholder: 'ምሳሌ፦ Erkihun Bewket Yismaw',
     fullName: 'ሙሉ ስም',
     nationalId: 'ብሔራዊ መታወቂያ',
+    nationalIdOnRecordHint: 'የብሔራዊ መታወቂያ ቁጥር ቀድሞ ተመዝግቧል፤ ለእርስዎ ግን አይታይም። እንዳለ እንዲቆይ ከፈለጉ ባዶ ይተዉት፤ መቀየር ከፈለጉ አዲሱን ቁጥር ያስገቡ።',
     phone: 'ስልክ',
     email: 'ኢሜይል',
     photo: 'ፎቶ',

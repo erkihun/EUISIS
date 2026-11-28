@@ -29,6 +29,7 @@ const employees = {
     fullNameEnPlaceholder: 'e.g. Erkihun Bewket Yismaw',
     fullName: 'Full Name',
     nationalId: 'National ID',
+    nationalIdOnRecordHint: 'A national ID is already on record and is hidden from you. Leave this empty to keep it, or type a new number to replace it.',
     phone: 'Phone',
     email: 'Email',
     photo: 'Photo',

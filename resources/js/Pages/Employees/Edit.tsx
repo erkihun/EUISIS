@@ -48,6 +48,7 @@ type Employee = {
     disability_type?: string | null;
     service_start_date?: string | null;
     can_view_sensitive?: boolean;
+    has_national_id?: boolean;
     gender?: string | null;
     address?: string | null;
     nationality?: string | null;
@@ -267,6 +268,9 @@ export default function EmployeesEdit({
                                 onChange={(e) => handleNationalIdChange(e.target.value)}
                                 maxLength={19}
                             />
+                            {!canViewSensitive && employee.has_national_id && (
+                                <p className={helpCls}>{t('employees.nationalIdOnRecordHint')}</p>
+                            )}
                         </Field>
 
                         <Field label={t('employees.gender')} error={form.errors.gender} htmlFor="gender">
@@ -348,13 +352,21 @@ export default function EmployeesEdit({
                                         </div>
                                     )}
                                     {!form.data.remove_photo && (
-                                        <input
-                                            ref={photoInputRef}
-                                            type="file"
-                                            accept="image/jpeg,image/png,image/webp"
-                                            onChange={handlePhotoChange}
-                                            className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
-                                        />
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <input
+                                                ref={photoInputRef}
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp"
+                                                onChange={handlePhotoChange}
+                                                className="sr-only"
+                                            />
+                                            <button type="button" className={buttonClassName({ variant: 'outline', size: 'sm' })} onClick={() => photoInputRef.current?.click()}>
+                                                {t('common.chooseFile')}
+                                            </button>
+                                            <span className="min-w-0 truncate text-sm text-(--app-muted-foreground)" aria-live="polite">
+                                                {form.data.photo?.name ?? t('common.noFileChosen')}
+                                            </span>
+                                        </div>
                                     )}
                                     <p className={helpCls}>{t('employees.photoHint')}</p>
                                     {form.errors.photo && (

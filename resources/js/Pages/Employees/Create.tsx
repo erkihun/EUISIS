@@ -553,14 +553,23 @@ export default function EmployeesCreate({
                                     </div>
                                 )}
                                 <div className="min-w-0 flex-1">
-                                    <input
-                                        id="photo"
-                                        ref={photoInputRef}
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp"
-                                        onChange={handlePhotoChange}
-                                        className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
-                                    />
+                                    {/* The browser's own control always reads "Choose File / No file chosen" in the browser's language, so it is kept for assistive technology and hidden behind a button. */}
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <input
+                                            id="photo"
+                                            ref={photoInputRef}
+                                            type="file"
+                                            accept="image/jpeg,image/png,image/webp"
+                                            onChange={handlePhotoChange}
+                                            className="sr-only"
+                                        />
+                                        <button type="button" className={buttonClassName({ variant: 'outline', size: 'sm' })} onClick={() => photoInputRef.current?.click()}>
+                                            {t('common.chooseFile')}
+                                        </button>
+                                        <span className="min-w-0 truncate text-sm text-(--app-muted-foreground)" aria-live="polite">
+                                            {form.data.photo?.name ?? t('common.noFileChosen')}
+                                        </span>
+                                    </div>
                                     <p className={helpCls}>{t('employees.photoHint')}</p>
                                     {form.errors.photo && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.photo}</p>}
                                 </div>

@@ -31,7 +31,9 @@ class EmployeeUpdateRequest extends FormRequest
         // The edit form receives a blank national ID when the editor may not see it
         // (EmployeeDetailResource), so a blank from such an editor is not a deliberate
         // clear: drop the field and keep the stored value and its uniqueness hash.
-        if (! ($this->user()?->can('employees.viewPii') ?? false)) {
+        // A number such an editor types is a deliberate entry, though, and is saved:
+        // dropping it too showed "updated successfully" while nothing was stored.
+        if (! ($this->user()?->can('employees.viewPii') ?? false) && blank($this->input('national_id'))) {
             $this->offsetUnset('national_id');
             $this->offsetUnset('national_id_hash');
 
