@@ -1057,4 +1057,38 @@ enum AuditEventType: string
     case ReportingFileDownloaded = 'reporting.file_downloaded';
     case ReportingExported = 'reporting.exported';
     case ReportingSettingsChanged = 'reporting.settings_changed';
+
+    /*
+     * Employee leave (Modules/Leave, ADR 0039): every request and decision,
+     * every change to a balance, the legal figures, and each piece of
+     * evidence handed out.
+     */
+    case LeaveRequested = 'leave.requested';
+    case LeaveSupervisorDecided = 'leave.supervisor_decided';
+    case LeaveApproved = 'leave.approved';
+    case LeaveRejected = 'leave.rejected';
+    case LeaveCancelled = 'leave.cancelled';
+    case LeaveEndedEarly = 'leave.ended_early';
+    case LeaveDeliveryRecorded = 'leave.delivery_recorded';
+    case LeaveBalanceAdjusted = 'leave.balance_adjusted';
+    case LeavePostponed = 'leave.postponed';
+    case LeaveRulesChanged = 'leave.rules_changed';
+    case LeaveDocumentDownloaded = 'leave.document_downloaded';
+    case LeavePlanDecided = 'leave.plan_decided';
+
+    /*
+     * Work experience (Modules/WorkExperience, ADR 0040): what the office
+     * recorded about an employee's service, every request for a certificate
+     * and what became of it, each printing, and the signatory settings.
+     */
+    case WorkExperienceRecordSaved = 'work_experience.record_saved';
+    case WorkExperienceRecordDeleted = 'work_experience.record_deleted';
+    case WorkExperienceEvidenceDownloaded = 'work_experience.evidence_downloaded';
+    case WorkExperienceRequested = 'work_experience.requested';
+    case WorkExperienceAccepted = 'work_experience.accepted';
+    case WorkExperienceReturned = 'work_experience.returned';
+    case WorkExperienceCancelled = 'work_experience.cancelled';
+    case WorkExperiencePrinted = 'work_experience.printed';
+    case WorkExperienceSent = 'work_experience.sent';
+    case WorkExperienceSettingsChanged = 'work_experience.settings_changed';
 }

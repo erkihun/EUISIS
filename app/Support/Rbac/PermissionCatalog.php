@@ -52,6 +52,9 @@ final class PermissionCatalog
         'Letters & Correspondence' => ['letters'],
         // Narrative reports institutions owe on a schedule, their review and compliance (Modules/Reporting/README.md).
         'Institutional Reporting' => ['reporting'],
+        // Employee leave: requests, balances and the legal figures (ADR 0039).
+        'Employee Leave' => ['leave'],
+        'Work Experience' => ['work_experience'],
         'Performance Management' => [
             'performance_cycles', 'strategic_goals', 'performance_plans', 'kpis', 'performance_agreements', 'performance_reviews',
             'performance_calibration', 'performance_appeals', 'performance_reports', 'performance_settings',

@@ -263,6 +263,31 @@ return [
             'Modules\FieldWork\Domain\Models\FieldWorkType',
         ],
     ],
+    'Leave' => [
+        'home' => 'Modules/Leave',
+        // Employee leave: types, legal figures, requests and the balance ledger (ADR 0039).
+        'models' => [
+            'Modules\Leave\Domain\Models\LeaveDocument',
+            'Modules\Leave\Domain\Models\LeaveLedgerEntry',
+            'Modules\Leave\Domain\Models\LeavePlan',
+            'Modules\Leave\Domain\Models\LeaveRequest',
+            'Modules\Leave\Domain\Models\LeaveRequestDay',
+            'Modules\Leave\Domain\Models\LeaveRequestEvent',
+            'Modules\Leave\Domain\Models\LeaveRule',
+            'Modules\Leave\Domain\Models\LeaveRuleSet',
+            'Modules\Leave\Domain\Models\LeaveSetting',
+            'Modules\Leave\Domain\Models\LeaveType',
+        ],
+    ],
+    'WorkExperience' => [
+        'home' => 'Modules/WorkExperience',
+        // Recorded work experience, certificate requests and the signatory settings (ADR 0040).
+        'models' => [
+            'Modules\WorkExperience\Domain\Models\WorkExperienceOfficeSetting',
+            'Modules\WorkExperience\Domain\Models\WorkExperienceRecord',
+            'Modules\WorkExperience\Domain\Models\WorkExperienceRequest',
+        ],
+    ],
     'ServiceMonitoring' => [
         'home' => 'Modules/ServiceMonitoring',
         // Service Delivery Monitoring & Support (docs/service-monitoring.md).

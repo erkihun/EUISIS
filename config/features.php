@@ -24,6 +24,10 @@ return [
     'letters' => (bool) env('FEATURE_LETTERS', true),
     // reporting - Institutional Reporting & Compliance: narrative reports, schedules, review (Modules/Reporting/README.md).
     'reporting' => (bool) env('FEATURE_REPORTING', true),
+    // leave - employee leave: requests, approval, balances and the legal figures (ADR 0039, Modules/Leave/README.md).
+    'leave' => (bool) env('FEATURE_LEAVE', true),
+    // work_experience - recorded work experience and the certificate employees ask for (ADR 0040, Modules/WorkExperience/README.md).
+    'work_experience' => (bool) env('FEATURE_WORK_EXPERIENCE', true),
 
     /*
     | structural_reporting — supervisor resolution from the organization
@@ -64,6 +68,8 @@ return [
         'service_monitoring' => ['service-monitoring.'],
         'letters' => ['letters.'],
         'reporting' => ['reporting.'],
+        'leave' => ['leave.', 'employee.leave.'],
+        'work_experience' => ['work-experience.', 'employee.work-experience.'],
     ],
 
     /*

@@ -1476,6 +1476,10 @@ return [
     ...require database_path('seeders/data/letters-permissions.php'),
     // Institutional Reporting & Compliance (Modules/Reporting/README.md).
     ...require database_path('seeders/data/reporting-permissions.php'),
+    // Employee leave (ADR 0039).
+    ...require database_path('seeders/data/leave-permissions.php'),
+    // Work experience (ADR 0040).
+    ...require database_path('seeders/data/work-experience-permissions.php'),
 
     // Employee Discipline — Regulation 201/2018 (docs/employee-discipline.md).
     ...require database_path('seeders/data/discipline-permissions.php'),

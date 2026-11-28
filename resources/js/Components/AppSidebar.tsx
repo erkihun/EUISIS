@@ -142,7 +142,7 @@ import {
     WalletIcon,
     WidgetsIcon,
     WifiRouterIcon,
-    X,
+    X, ClockIcon, TaskIcon,
 } from '@/Components/NavIcons';
 import { type JSX, type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -232,6 +232,16 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 ],
             },
             {
+                // Own leave only (ADR 0039). Deciding and registering leave is the admin "Leave" group.
+                key: 'portalLeave',
+                labelKey: 'leave.nav.group',
+                icon: CalendarIcon,
+                items: [
+                    { routeName: 'employee.leave.index', labelKey: 'leave.nav.myLeave', icon: ClockIcon, permission: 'leave.view_own', owns: ['employee.leave.show'] },
+                    { routeName: 'employee.leave.create', labelKey: 'leave.my.ask', icon: TaskIcon, permission: 'leave.request_own' },
+                ],
+            },
+            {
                 key: 'portalPerformance',
                 labelKey: 'nav.myPerformance',
                 icon: TrendingUpIcon,
@@ -259,6 +269,8 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                     { routeName: 'employee.my-team', labelKey: 'nav.myTeam', icon: Users, permission: 'reporting-lines.view_team', employeeOnly: true },
                     { routeName: 'employee.id-card', labelKey: 'nav.myIdCard', icon: IdCardIcon },
                     { routeName: 'employee.documents', labelKey: 'nav.myDocuments', icon: DocumentsIcon },
+                    // My recorded work experience and my requests for a written certificate (ADR 0040).
+                    { routeName: 'employee.work-experience.index', labelKey: 'workExperience.nav.my', icon: DiplomaIcon, permission: 'work_experience.request_own', employeeOnly: true },
                 ],
             },
         ],
@@ -409,6 +421,7 @@ const navGroups: NavGroup[] = [
             { routeName: 'reporting.consolidations.index', labelKey: 'reporting.nav.consolidation', icon: PieChartIcon, permission: 'reporting.consolidate', owns: ['reporting.consolidations.show'] },
             { routeName: 'reporting.types.index', labelKey: 'reporting.nav.types', icon: FileTextIcon, permission: 'reporting.templates.manage', owns: ['reporting.types.create', 'reporting.types.edit'] },
             { routeName: 'reporting.schedules.index', labelKey: 'reporting.nav.schedules', icon: CalendarIcon, permission: 'reporting.schedules.publish', owns: ['reporting.schedules.create', 'reporting.schedules.edit'] },
+            { routeName: 'reporting.monitoring-units.index', labelKey: 'reporting.nav.units', icon: Building2, anyPermission: ['reporting.settings.manage', 'reporting.audit.view'] },
             { routeName: 'reporting.archive', labelKey: 'reporting.nav.archive', icon: FolderFilesIcon, permission: 'reporting.view' },
             { routeName: 'reporting.settings.edit', labelKey: 'reporting.nav.settings', icon: SettingsIcon, anyPermission: ['reporting.settings.manage', 'reporting.audit.view'] },
         ],
@@ -576,6 +589,10 @@ const navGroups: NavGroup[] = [
             { routeName: 'reporting-lines.overview', labelKey: 'nav.reportingHierarchy', icon: BranchingUpIcon, permission: 'reporting-lines.view_any' },
             { routeName: 'reporting-lines.acting.index', labelKey: 'nav.actingAppointments', icon: UserIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
             { routeName: 'reporting-lines.delegations.index', labelKey: 'nav.supervisorDelegations', icon: UserHandsIcon, anyPermission: ['reporting-lines.view_any', 'reporting-lines.manage'] },
+            // Work experience (ADR 0040): the record of each employee's experience, the certificate requests, who signs.
+            { routeName: 'work-experience.records.index', labelKey: 'workExperience.nav.records', icon: FileCheckIcon, permission: 'work_experience.view' },
+            { routeName: 'work-experience.requests.index', labelKey: 'workExperience.nav.requests', icon: InboxInIcon, permission: 'work_experience.view' },
+            { routeName: 'work-experience.settings', labelKey: 'workExperience.nav.settings', icon: TuningIcon, permission: 'work_experience.settings.manage' },
         ],
     },
     {
@@ -595,6 +612,25 @@ const navGroups: NavGroup[] = [
             { routeName: 'daily-activities.reports', labelKey: 'nav.dailyActivityReports', icon: FileChartIcon, permission: 'daily_activities.view_reports' },
             { routeName: 'daily-activities.reviewers.index', labelKey: 'nav.dailyActivityReviewers', icon: UserCheckIcon, permission: 'daily_activities.manage_reviewers' },
             { routeName: 'daily-activities.settings', labelKey: 'nav.dailyActivitySettings', icon: SettingsIcon, anyPermission: ['daily_activity_settings.view', 'daily_activity_settings.update'] },
+        ],
+    },
+    {
+        /*
+         * Employee leave (ADR 0039, Modules/Leave/README.md): the supervisor's inbox, the
+         * institution's leave register, balances, reports and the legal figures. An employee's
+         * own leave lives in My Portal above. Each entry is gated by the permission its page
+         * checks; the page re-checks permission, scope and the record server-side.
+         */
+        key: 'leave',
+        labelKey: 'leave.nav.group',
+        icon: CalendarIcon,
+        items: [
+            { routeName: 'leave.approvals', labelKey: 'leave.nav.approvals', icon: ClipboardCheckIcon, permission: 'leave.view_team' },
+            { routeName: 'leave.requests.index', labelKey: 'leave.nav.requests', icon: ClipboardListIcon, permission: 'leave.view_org', owns: ['leave.requests.show'] },
+            { routeName: 'leave.balances.index', labelKey: 'leave.nav.balances', icon: Users, permission: 'leave.view_org', owns: ['leave.balances.show'] },
+            { routeName: 'leave.plans.index', labelKey: 'leave.nav.plans', icon: CalendarMarkIcon, anyPermission: ['leave.view_org', 'leave.view_team'] },
+            { routeName: 'leave.reports', labelKey: 'leave.nav.reports', icon: PieChartIcon, permission: 'leave.reports.view' },
+            { routeName: 'leave.settings', labelKey: 'leave.nav.settings', icon: SettingsIcon, permission: 'leave.settings.manage' },
         ],
     },
     {
@@ -989,7 +1025,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  * button with its submenu.
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
-    { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'leave', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
     { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'letters', 'reporting', 'serviceMonitoring', 'institutionServices', 'serviceManagement', 'reception', 'providers', 'cafeteria', 'transport'] },
     // What the public sends in: feedback, Tip-offs and complaints — three separate modules, nothing shared.
     { labelKey: 'nav.sidebarPublicVoice', keys: ['serviceFeedback', 'serviceSuggestions', 'serviceComplaints'] },
@@ -1090,6 +1126,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         || (!features.service_monitoring && routeName.startsWith('service-monitoring.'))
         || (!features.letters && routeName.startsWith('letters.'))
         || (!features.reporting && routeName.startsWith('reporting.'))
+        || (!features.leave && (routeName.startsWith('leave.') || routeName.startsWith('employee.leave.')))
+        || (!features.work_experience && (routeName.startsWith('work-experience.') || routeName.startsWith('employee.work-experience.')))
         || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
     // Keep the existing permission contract, including independently permitted child links.

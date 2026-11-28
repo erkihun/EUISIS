@@ -62,6 +62,8 @@ final class Features
             'service_monitoring' => self::enabled('service_monitoring'),
             'letters' => self::enabled('letters'),
             'reporting' => self::enabled('reporting'),
+            'leave' => self::enabled('leave'),
+            'work_experience' => self::enabled('work_experience'),
             // My Portal > My court cases (court-ms Flow 4): the connection is configured and the portal section switched on.
             'court_portal' => app(CourtMsClient::class)->employeePortalEnabled(),
         ];

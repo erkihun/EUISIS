@@ -13,7 +13,6 @@ use Modules\Reporting\Application\Ports\PdfConverter;
 use Modules\Reporting\Application\Support\MetricSources;
 use Modules\Reporting\Application\Support\ReportingGuard;
 use Modules\Reporting\Application\Support\ReportingSettings;
-use Modules\Reporting\Application\UseCases\ManageMonitoringUnits;
 use Modules\Reporting\Contracts\Data\ReportingRoles;
 use Modules\Reporting\Infrastructure\Persistence\OperationalHealth;
 
@@ -24,7 +23,7 @@ use Modules\Reporting\Infrastructure\Persistence\OperationalHealth;
  */
 final class SettingsController extends ReportingController
 {
-    public function edit(Request $request, ReportingSettings $settings, OperationalHealth $health, PdfConverter $pdf, MetricSources $metrics, ManageMonitoringUnits $units): Response
+    public function edit(Request $request, ReportingSettings $settings, OperationalHealth $health, PdfConverter $pdf, MetricSources $metrics): Response
     {
         $actor = $this->actor($request);
         if (! $actor->can(ReportingRoles::MANAGE_SETTINGS)) {
@@ -40,25 +39,8 @@ final class SettingsController extends ReportingController
                 'malware_scanner' => (array) config('reporting.scanner.command') !== [],
                 'metric_sources' => $metrics->status(),
             ],
-            'monitoring_units' => $units->list($actor),
             'can' => ['manage' => $actor->can(ReportingRoles::MANAGE_SETTINGS)],
         ]);
-    }
-
-    /** Names the work unit that follows up reports in one institution. */
-    public function designateUnit(Request $request, ManageMonitoringUnits $units): RedirectResponse
-    {
-        $data = $request->validate(['organization_id' => ['required', 'uuid'], 'organization_unit_id' => ['required', 'uuid']]);
-        $units->designate($this->actor($request), $data['organization_id'], $data['organization_unit_id']);
-
-        return back()->with('success', __('reporting::messages.flash.saved'));
-    }
-
-    public function removeUnit(Request $request, string $organization, ManageMonitoringUnits $units): RedirectResponse
-    {
-        $units->remove($this->actor($request), $organization);
-
-        return back()->with('success', __('reporting::messages.flash.saved'));
     }
 
     /** The one write the maintenance switch does not block: it is how the module is switched back on. */

@@ -164,8 +164,11 @@ and name them as the unit's accountable or preparing officer.
 Every institution has, in its own structure, a work unit that follows up reports. As the Grievance
 module does for its Team and Directorate, an institution **designates one of its existing units**;
 nothing is created in the organization structure. `reporting_monitoring_units` holds one row per
-institution, set on the report settings page by someone who holds `reporting.settings.manage` and
-reaches the institution (`ManageMonitoringUnits`).
+institution, set on the module's own "Report follow-up units" page (`/reporting/follow-up-units`, a
+sidebar item of its own) by someone who holds `reporting.settings.manage` and reaches the institution
+(`ManageMonitoringUnits`). The page follows the Grievance teams page: figures, a search, then one
+line per unit that opens to the people placed in it, each marked with what they may do; a unit that
+has been closed, has nobody placed in it, or has nobody who can review is flagged.
 
 Staff of the unit are the active users whose linked employee is currently placed in the unit or in a
 unit beneath it (read through the Core's `AccessScopeReader`). The designation does two things:

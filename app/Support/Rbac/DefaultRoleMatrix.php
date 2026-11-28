@@ -11,10 +11,12 @@ use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
 use Modules\Discipline\Contracts\Data\DisciplineRoles;
 use Modules\FieldWork\Contracts\Data\FieldWorkRoles;
 use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Leave\Contracts\Data\LeaveRoles;
 use Modules\Letters\Contracts\Data\LettersRoles;
 use Modules\Reporting\Contracts\Data\ReportingRoles;
 use Modules\Performance\Contracts\Data\PerformanceRoles;
 use Modules\ServiceMonitoring\Contracts\Data\ServiceMonitoringRoles;
+use Modules\WorkExperience\Contracts\Data\WorkExperienceRoles;
 
 /**
  * Default system roles and their permissions (docs/rbac-architecture.md, ADR 0026).
@@ -214,7 +216,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, ServiceMonitoringRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, LeaveRoles::CITY_ADMIN_WITHHELD, ServiceMonitoringRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -254,6 +256,8 @@ final class DefaultRoleMatrix
                 ...ReportingLineRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...FieldWorkRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
+                ...LeaveRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
+                ...WorkExperienceRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS,
@@ -277,6 +281,8 @@ final class DefaultRoleMatrix
                 ...ReportingLineRoles::HR_PERMISSIONS,
                 ...DailyActivityRoles::HR_OVERSIGHT_PERMISSIONS,
                 ...FieldWorkRoles::HR_OVERSIGHT_PERMISSIONS,
+                ...LeaveRoles::HR_PERMISSIONS,
+                ...WorkExperienceRoles::HR_PERMISSIONS,
                 ...PerformanceRoles::HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_HR_PERMISSIONS,
@@ -519,7 +525,7 @@ final class DefaultRoleMatrix
                 'dashboard.view', 'system-settings.view', 'system-settings.manageFieldWorkGps',
                 'daily_activity_settings.view', 'daily_activity_settings.update',
                 'performance_settings.view', 'performance_settings.update',
-                'communication.settings.manage', 'field_work.manage_types',
+                'communication.settings.manage', 'field_work.manage_types', 'leave.settings.manage',
             ], 'Keeps the city-wide policy settings of the workflow modules: daily activity deadlines, performance settings, communication policy, the field work type catalog and GPS policy. Grants no access to the records themselves.',
                 'የሥራ ሂደት ሞጁሎችን የከተማ አቀፍ የፖሊሲ ቅንብሮች ይይዛል፡ የዕለታዊ እንቅስቃሴ የጊዜ ገደቦች፣ የአፈጻጸም ቅንብሮች፣ የኮሙኒኬሽን ፖሊሲ፣ የመስክ ሥራ ዓይነት ካታሎግ እና የGPS ፖሊሲ። ለመዝገቦቹ ራሳቸው መዳረሻ አይሰጥም።'),
             'Recycle Bin Manager' => self::role(self::SCOPE_GLOBAL, [
@@ -560,7 +566,7 @@ final class DefaultRoleMatrix
                 'የተገመገሙ የመልሶ ማግኛ ጥያቄዎችን ያጸድቃል፣ የምትኬ ፖሊሲውን ይይዛል። መጠየቅ ወይም መገምገም አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, ...CommunicationRoles::EMPLOYEE_PERMISSIONS, ...self::EMPLOYEE_SELF_SERVICE],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...LeaveRoles::EMPLOYEE_PERMISSIONS, ...WorkExperienceRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, ...CommunicationRoles::EMPLOYEE_PERMISSIONS, ...self::EMPLOYEE_SELF_SERVICE],
                 'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals, own transfer and vacancy applications. My Portal pages are tied to the linked employee record, not to extra permissions.',
                 'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች፣ የራሱ የዝውውር እና የክፍት የሥራ መደብ ማመልከቻዎች።'),
             // ── Communication oversight: who asks for investigation access never approves it ─
@@ -578,14 +584,14 @@ final class DefaultRoleMatrix
             ReportingLineRoles::SUPERVISOR_ROLE => self::role(self::SCOPE_SCOPED, ReportingLineRoles::SUPERVISOR_PERMISSIONS,
                 'Sees the employees the organization structure places under them (direct and indirect reports) and may lend named supervisor actions to a colleague for a period. Grants nothing over anyone else.',
                 'የተቋሙ መዋቅር በሥራቸው የሚያስቀምጣቸውን ሠራተኞች (ቀጥተኛና ተዘዋዋሪ ሪፖርት አድራጊዎች) ያያል፤ የተሰየሙ የኃላፊ ተግባራትን ለተወሰነ ጊዜ ለባልደረባ ሊያውል ይችላል። በሌላ ማንም ላይ ምንም አይሰጥም።'),
-            DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS],
+            DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS, ...LeaveRoles::SUPERVISOR_PERMISSIONS],
                 'Reviews the daily activity, and decides the field work requests, of the team named in the user\'s reviewer assignment.',
                 'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል፤ የመስክ ሥራ ጥያቄዎቻቸውን ይወስናል።'),
             'Field Work Location Auditor' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', ...FieldWorkRoles::HR_OVERSIGHT_PERMISSIONS, 'field_work.location.view_precise',
             ], 'Privileged: sees the exact coordinates, accuracy and distance of field work check-ins and check-outs in scope, for disputes and audits. Every precise-location view is audited.',
                 'ልዩ መብት፡ ለክርክሮች እና ኦዲቶች በወሰኑ ውስጥ የመስክ ሥራ መግቢያና መውጫ ትክክለኛ መጋጠሚያዎችን፣ ትክክለኛነትን እና ርቀትን ያያል። እያንዳንዱ ትክክለኛ ቦታ እይታ ይመዘገባል።'),
-            PerformanceRoles::MANAGER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::MANAGER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+            PerformanceRoles::MANAGER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::MANAGER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS, ...LeaveRoles::SUPERVISOR_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
                 'Unit manager / supervisor for EPMS: agreements, actuals, check-ins and reviews of the covered team only.',
                 'የክፍል ኃላፊ፡ ለሚመራው ቡድን ብቻ ስምምነቶች፣ ክንውኖች፣ ውይይቶች እና ግምገማዎች።'),
             PerformanceRoles::OFFICER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::OFFICER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_OFFICER_PERMISSIONS],

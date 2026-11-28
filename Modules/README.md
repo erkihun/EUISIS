@@ -75,6 +75,10 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |
 | Cafeteria | `Data\TransactionStatus` constants | the transaction status values | Situation Room reports |
+| Leave | `App\Contracts\EmployeeLeaveProvider::fullDayLeaveDates(...)` (the platform's seam, bound to Leave's `ApprovedLeaveProvider` while the `leave` feature is on) | approved full-day leave dates per employee | the daily-activity calendar, the field-work conflict check |
+| Leave | `EmployeeLeaveSummary::forEmployee($employeeId, $today)` | balances, pending requests and the next leave (array) | My Portal |
+| Leave | `Data\LeaveStatus`, `Data\LeaveRoles` | published values | reports, the default role matrix |
+| WorkExperience | `Data\WorkExperienceStatus`, `Data\WorkExperienceRoles` | published values | the default role matrix |
 | Field work | `FieldWorkGpsPolicy::maxGeofenceRadius()` | int (metres) | map configuration, organization profile validation |
 | Field work | `Data\FieldWorkStatus`, `Data\FieldWorkRoles`; `ReadModels\FieldWorkTypeRecord` | published values; a read-only model | Situation Room reports, the default role matrix |
 | Daily work | `DailyWorkReviewers::coverage($user)`, `directManager($employee, $assignment, $date)` | `Data\DailyActivityCoverage`, `?User` | Performance and Field work team views; Assessment evaluators and Field work supervisors |

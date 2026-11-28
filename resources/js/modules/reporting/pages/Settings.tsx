@@ -1,7 +1,6 @@
 import PageHeader from '@/Components/PageHeader';
 import { cx } from '@/Components/ui';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import MonitoringUnits, { type MonitoringUnitRow } from '@/modules/reporting/components/MonitoringUnits';
 import { ActionErrors, Notice } from '@/modules/reporting/components/Notices';
 import { badge, errorCls, inputCls, labelCls, mutedCls, panelCls, primaryBtn, sectionTitleCls, useReporting } from '@/modules/reporting/lib/helpers';
 import { Head, useForm } from '@inertiajs/react';
@@ -26,7 +25,6 @@ interface Props {
         notifications: { failed: number };
     };
     capabilities: { pdf_preview: boolean; malware_scanner: boolean; metric_sources: { key: string; available: boolean }[] };
-    monitoring_units: MonitoringUnitRow[];
     can: { manage: boolean };
 }
 
@@ -35,7 +33,7 @@ interface Props {
  * switch pauses every write and all scheduled work while the pages stay
  * readable; queued work waits and resumes when the switch is turned off.
  */
-export default function Settings({ report_setting, health, capabilities, monitoring_units, can }: Props): JSX.Element {
+export default function Settings({ report_setting, health, capabilities, can }: Props): JSX.Element {
     const { rt, moment } = useReporting();
     const form = useForm(report_setting);
     const rules = form.data.reminder_rules;
@@ -99,8 +97,6 @@ export default function Settings({ report_setting, health, capabilities, monitor
                         ))}
                     </ul>
                 </section>
-
-                <MonitoringUnits rows={monitoring_units} canManage={can.manage} />
 
                 <form onSubmit={save} className={cx(panelCls, 'space-y-4 p-4')} aria-labelledby="st-settings">
                     <h2 id="st-settings" className={sectionTitleCls}>{rt('settings.sectionSettings')}</h2>
