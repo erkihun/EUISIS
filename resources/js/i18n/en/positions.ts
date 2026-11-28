@@ -105,7 +105,7 @@ const positions = {
     confirmMove: 'Confirm Move',
     moveReason: 'Move Reason',
     movedSuccessfully: 'Position moved successfully',
-    occupiedCannotMove: 'This position is occupied and cannot be moved.',
+    occupiedMovesWithHolder: 'This position has an employee on it. The employee moves to the new work unit together with the position.',
     codeRemainsUnchanged: 'Position code will remain unchanged unless regenerated manually.',
     movementHistory: 'Movement History',
     noMovementHistory: 'No position movements have been recorded.',

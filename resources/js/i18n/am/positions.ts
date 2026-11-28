@@ -105,7 +105,7 @@ const positions = {
     confirmMove: 'ማንቀሳቀሱን ያረጋግጡ',
     moveReason: 'የማንቀሳቀስ ምክንያት',
     movedSuccessfully: 'የሥራ መደቡ በተሳካ ሁኔታ ተንቀሳቅሷል',
-    occupiedCannotMove: 'ይህ የሥራ መደብ ሠራተኛ ስላለበት ሊንቀሳቀስ አይችልም።',
+    occupiedMovesWithHolder: 'ይህ የሥራ መደብ ሠራተኛ አለበት። ሠራተኛው ከመደቡ ጋር አብሮ ወደ አዲሱ የሥራ ክፍል ይንቀሳቀሳል።',
     codeRemainsUnchanged: 'የሥራ መደቡ ኮድ በእጅ እስካልተፈጠረ ድረስ ሳይቀየር ይቆያል።',
     movementHistory: 'የእንቅስቃሴ ታሪክ',
     noMovementHistory: 'ምንም የሥራ መደብ እንቅስቃሴ አልተመዘገበም።',

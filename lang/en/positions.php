@@ -29,7 +29,7 @@ return [
     'target_organization_unit' => 'Target Organization Unit',
     'current_organization_unit' => 'Current Organization Unit',
     'moved_successfully' => 'Position moved successfully',
-    'occupied_cannot_move' => 'This position is occupied and cannot be moved.',
+    'occupied_cannot_move' => 'This position has an employee on it. Use Move Position to change its work unit; the employee moves with it.',
     'code_remains_unchanged' => 'Position code will remain unchanged unless regenerated manually.',
     'movement_history' => 'Movement History',
     'move_reason' => 'Move Reason',

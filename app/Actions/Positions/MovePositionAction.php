@@ -68,18 +68,14 @@ readonly class MovePositionAction
                 ]);
             }
 
-            $hasActiveAssignment = $lockedPosition->assignments()
+            // The holders go with the position: their current assignment
+            // follows it to the new unit, so nobody is left on a unit their
+            // position has left.
+            $holderAssignments = $lockedPosition->assignments()
                 ->where('assignment_status', AssignmentStatus::Active->value)
                 ->where('is_current', true)
                 ->lockForUpdate()
-                ->get(['id'])
-                ->isNotEmpty();
-
-            if ($hasActiveAssignment) {
-                throw ValidationException::withMessages([
-                    'target_organization_unit_id' => __('positions.occupied_cannot_move'),
-                ]);
-            }
+                ->get();
 
             $fromOrganizationUnitId = $lockedPosition->organization_unit_id;
             $movedAt = now();
@@ -89,6 +85,10 @@ readonly class MovePositionAction
                 'organization_unit_id' => $targetUnit->getKey(),
                 'is_unit_head' => false,
             ])->save();
+
+            foreach ($holderAssignments as $assignment) {
+                $assignment->forceFill(['organization_unit_id' => $targetUnit->getKey()])->save();
+            }
 
             $movement = PositionMovement::query()->create([
                 'position_id' => $lockedPosition->getKey(),
@@ -110,6 +110,7 @@ readonly class MovePositionAction
                     'organization_unit_id' => $targetUnit->getKey(),
                     'moved_by' => $actor->getKey(),
                     'moved_at' => $movedAt->toISOString(),
+                    'moved_employee_ids' => $holderAssignments->pluck('employee_id')->values()->all(),
                 ],
                 reason: $reason,
                 request: $request,
