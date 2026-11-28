@@ -12,6 +12,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { PlanSummary } from './Index';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 
 type Line = LineRecord & {
     id: string; calculated_fte: string | null; calculated_at: string | null; headcount: number | null; methodology_version_no: number | null; calculation_trace: Record<string, unknown> | null;
@@ -21,10 +22,10 @@ type Line = LineRecord & {
 type Requirement = {
     id: string; status: string; position_title_en: string; position_title_am: string | null; required_fte: string; approved_headcount: number | null;
     unit: Named | null; proposal: { id: string; name_en: string; name_am: string | null } | null; occupation: (Named & { isco_code: string | null }) | null; profession: Named | null;
-    position: { id: string; job_position_code: string; title_en: string } | null; establishment: { id: string; establishment_number: string; approved_slots: number; status: string } | null;
+    position: { id: string; job_position_code: string; title_en: string ; title_am?: string | null} | null; establishment: { id: string; establishment_number: string; approved_slots: number; status: string } | null;
 };
 type Props = {
-    plan: PlanSummary & { notes: string | null; study_id: string | null; study: { id: string; reference_number: string; title_en: string } | null; submitted_at: string | null; reviewed_by: string | null; review_comment: string | null; approved_by: string | null; approved_at: string | null; implemented_at: string | null; methodology_in_force: { id: string; code: string; version_no: number; calculation_type: string; rounding_rule: string | null; parameters: Record<string, string>; inputs: ParameterSchema } };
+    plan: PlanSummary & { notes: string | null; study_id: string | null; study: { id: string; reference_number: string; title_en: string ; title_am?: string | null} | null; submitted_at: string | null; reviewed_by: string | null; review_comment: string | null; approved_by: string | null; approved_at: string | null; implemented_at: string | null; methodology_in_force: { id: string; code: string; version_no: number; calculation_type: string; rounding_rule: string | null; parameters: Record<string, string>; inputs: ParameterSchema } };
     lines: Line[];
     requirements: Requirement[];
     totals: { calculated_fte: string; headcount: number; lines: number };
@@ -103,7 +104,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                         <dl className="grid gap-4 p-5 sm:grid-cols-2">
                             {detail(tt('plans.methodologyInForce'), `${m.code} v${m.version_no} · ${tt(`methodologies.strategies.${m.calculation_type}`)}${m.rounding_rule ? ` · ${tt(`methodologies.roundingRules.${m.rounding_rule}`)}` : ''}`)}
                             {detail(tt('methodologies.parameters'), Object.entries(m.parameters).map(([k, v]) => `${tt(`methodologies.parameterNames.${k}`)}: ${v}`).join(' · '))}
-                            {detail(tt('fields.study'), plan.study ? `${plan.study.reference_number} · ${plan.study.title_en}` : null)}
+                            {detail(tt('fields.study'), plan.study ? `${plan.study.reference_number} · ${localizedName(plan.study.title_en, plan.study.title_am, locale)}` : null)}
                             {detail(tt('fields.notes'), plan.notes)}
                             {detail(tt('plans.preparedBy'), plan.prepared_by)}
                             {detail(tt('plans.reviewedBy'), plan.reviewed_by)}

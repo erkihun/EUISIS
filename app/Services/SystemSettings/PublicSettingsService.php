@@ -61,7 +61,7 @@ class PublicSettingsService
             'localization.datetime_format' => $settings['localization']['datetime_format'] ?? 'Y-m-d H:i',
             'localization.first_day_of_week' => $settings['localization']['first_day_of_week'] ?? '1',
             'localization.number_format' => $settings['localization']['number_format'] ?? '1,234.56',
-            'localization.organization_name_display' => $settings['localization']['organization_name_display'] ?? 'english',
+            'localization.organization_name_display' => $settings['localization']['organization_name_display'] ?? 'locale_based',
             'localization.employee_name_display' => $settings['localization']['employee_name_display'] ?? 'full_name',
             /*
              * HandleInertiaRequests reads this from the shared payload to pick

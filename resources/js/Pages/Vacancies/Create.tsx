@@ -7,9 +7,10 @@ import { useLocale } from '@/hooks/useLocale';
 import { FormEventHandler, useMemo } from 'react';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
-type Org = { id: string; name_en: string };
-type Unit = { id: string; name_en: string; organization_id: string };
-type Pos = { id: string; title_en: string };
+import { localizedName } from '@/utils/localizedName';
+type Org = { id: string; name_en: string ; name_am?: string | null};
+type Unit = { id: string; name_en: string; name_am?: string | null; organization_id: string };
+type Pos = { id: string; title_en: string ; title_am?: string | null};
 
 type Establishment = {
     id: string;
@@ -46,7 +47,7 @@ const timePart = (value: string): string => value.length >= 16 ? value.slice(11,
 const combineDateTime = (date: string, time: string): string => date ? `${date}T${time || '08:30'}` : '';
 
 export default function VacanciesCreate({ organizations, units, establishments, selectedEstablishmentId }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const selectedEstablishment = selectedEstablishmentId
         ? establishments.find((establishment) => establishment.id === selectedEstablishmentId)
@@ -297,7 +298,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
                                                 <option value="">-</option>
                                                 {filteredEstablishments.map((establishment) => (
                                                     <option key={establishment.id} value={establishment.id}>
-                                                        {establishment.position?.title_en ?? establishment.id}
+                                                        {localizedName(establishment.position?.title_en, establishment.position?.title_am, locale) ?? establishment.id}
                                                     </option>
                                                 ))}
                                             </select>

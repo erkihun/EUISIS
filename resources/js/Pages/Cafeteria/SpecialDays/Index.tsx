@@ -9,6 +9,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type SpecialDay = {
     id: string; special_date: string; name_en: string; name_am: string | null;
     day_type: string; day_type_label: string; is_open: boolean; is_subsidy_day: boolean;
@@ -18,7 +19,7 @@ type SpecialDay = {
 type Meta = { current_page: number; last_page: number; total: number };
 
 export default function SpecialDaysIndex({ days, meta, filters, can }: { days: SpecialDay[]; meta: Meta; filters: Record<string, string>; can: { create: boolean } }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const hasActiveFilters = Object.entries(filters).some(([key, value]) => key !== 'page' && Boolean(value));
 
@@ -78,7 +79,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                     {days.map(d => (
                                         <tr key={d.id} className={`hover:bg-(--app-surface-muted) ${d.deleted_at ? 'opacity-60' : ''}`}>
                                             <td className={cx(tableCellClassName, 'text-(--app-foreground)')}><LocalizedDateDisplay value={d.special_date} /></td>
-                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{d.name_en}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(d.name_en, d.name_am, locale)}</td>
                                             <td className={tableCellClassName}>
                                                 <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
                                                     {d.day_type_label}

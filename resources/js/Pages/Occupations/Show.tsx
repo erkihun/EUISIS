@@ -8,6 +8,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 import { actionLinkClassName, buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type IscoPathRow = { level: string; code: string; name_en: string | null; name_am: string | null };
 
 const ISCO_LEVEL_LABELS: Record<string, string> = {
@@ -18,7 +19,7 @@ const ISCO_LEVEL_LABELS: Record<string, string> = {
 };
 
 export default function OccupationsShow({ occupation, iscoPath = [] }: { occupation: any; iscoPath?: IscoPathRow[] }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
 
     async function handleArchive() {
@@ -82,7 +83,7 @@ export default function OccupationsShow({ occupation, iscoPath = [] }: { occupat
                 />
             }
         >
-            <Head title={occupation.name_en ?? occupation.isco_code} />
+            <Head title={localizedName(occupation.name_en, occupation.name_am, locale) ?? occupation.isco_code} />
             <div className="grid gap-6 lg:grid-cols-3">
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">

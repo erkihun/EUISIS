@@ -16,6 +16,7 @@ import CardPortraitPrintExportModal from '@/Components/IdCards/CardPortraitPrint
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
+import { localizedName } from '@/utils/localizedName';
 
 type CardData = {
     id: string;
@@ -126,7 +127,7 @@ function Modal({
     processing?: boolean;
     children?: React.ReactNode;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const confirmCls: Record<ModalVariant, string> = {
         primary: 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500',
         danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
@@ -497,10 +498,10 @@ export default function IdCardShow({ card, can, nfc, portal_labels, production }
                                 </Field>
                             )}
                             <Field label={t('employees.columnPosition')}>
-                                {card.employee?.current_assignment?.position?.title_en ?? '—'}
+                                {localizedName(card.employee?.current_assignment?.position?.title_en, card.employee?.current_assignment?.position?.title_am, locale) || '—'}
                             </Field>
                             <Field label={t('organizations.organization')}>
-                                {card.employee?.current_assignment?.organization?.name_en ?? '—'}
+                                {localizedName(card.employee?.current_assignment?.organization?.name_en, card.employee?.current_assignment?.organization?.name_am, locale) || '—'}
                             </Field>
                             {card.revoke_reason && (
                                 <div className="col-span-full rounded-card border border-red-100 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-900/10">

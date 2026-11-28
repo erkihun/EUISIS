@@ -56,7 +56,7 @@ class CardPrintStationController extends Controller
                 // Display fields only (SEC-9): never contact or birth data.
                 'employee_number' => $item->card?->employee?->employee_number,
                 'employee_name' => $item->card?->employee?->full_name,
-                'organization' => $item->card?->employee?->currentAssignment?->organization?->name_en,
+                'organization' => localized_name($item->card?->employee?->currentAssignment?->organization),
             ])->values(),
             'toPrepare' => $prepare->stale($batch)->count(),
             'profiles' => CardPrinterProfile::query()->orderByDesc('is_default')->orderBy('name')->get()->map->presentation(),
@@ -204,7 +204,7 @@ class CardPrintStationController extends Controller
                 'card:id,card_number,employee_id,status',
                 'card.employee:id,employee_number,full_name,current_assignment_id',
                 'card.employee.currentAssignment:id,organization_id',
-                'card.employee.currentAssignment.organization:id,name_en',
+                'card.employee.currentAssignment.organization:id,name_en,name_am',
             ])
             ->orderBy('created_at')
             ->orderBy('id')

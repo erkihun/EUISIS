@@ -9,8 +9,9 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type Rule = {
-    id: string; code: string; name_en: string; subsidy_amount: number;
+    id: string; code: string; name_en: string; name_am?: string | null; subsidy_amount: number;
     currency: string; effective_from: string; effective_to: string | null;
     applies_to: string; is_active: boolean; deleted_at: string | null;
     can: { update: boolean; archive: boolean };
@@ -18,7 +19,7 @@ type Rule = {
 type Meta = { current_page: number; last_page: number; total: number; per_page: number };
 
 export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules: Rule[]; meta: Meta; filters: Record<string, string>; can: { create: boolean } }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const hasActiveFilters = Object.entries(filters).some(([key, value]) => key !== 'page' && Boolean(value));
 
@@ -71,7 +72,7 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
                                     {rules.map((rule) => (
                                         <tr key={rule.id} className={tableRowClassName}>
                                             <td className={tableCellClassName}>
-                                                <div className="font-medium text-(--app-foreground)">{rule.name_en}</div>
+                                                <div className="font-medium text-(--app-foreground)">{localizedName(rule.name_en, rule.name_am, locale)}</div>
                                                 <div className="font-mono text-xs text-(--app-muted-foreground)">{rule.code}</div>
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>

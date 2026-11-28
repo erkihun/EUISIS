@@ -234,7 +234,7 @@ class ServiceFeedbackQueryService
             ->get()
             ->map(fn ($row): array => [
                 'id' => $row->organization_id,
-                'name' => $row->organization?->name_en,
+                'name' => localized_name($row->organization),
                 'total' => (int) $row->total_count,
                 'average' => round((float) $row->average_rating, 2),
             ]);
@@ -287,7 +287,7 @@ class ServiceFeedbackQueryService
             ->get()
             ->map(fn ($row): array => [
                 'id' => $row->position_service_id,
-                'name' => $row->positionService?->name_en,
+                'name' => localized_name($row->positionService),
                 'total' => (int) $row->total_count,
                 'average' => round((float) $row->average_rating, 2),
             ]);

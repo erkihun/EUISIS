@@ -10,10 +10,11 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
 import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type TreeNode = {
     id: string;
     code: string;
-    name_en: string;
+    name_en: string; name_am?: string | null;
     children: TreeNode[];
 };
 
@@ -22,8 +23,8 @@ type Edge = {
     relationship_type: string;
     effective_from: string | null;
     effective_to: string | null;
-    parent_organization: { name_en: string; code: string } | null;
-    child_organization: { name_en: string; code: string } | null;
+    parent_organization: { name_en: string; name_am?: string | null; code: string } | null;
+    child_organization: { name_en: string; name_am?: string | null; code: string } | null;
 };
 
 type Version = {
@@ -55,7 +56,7 @@ export default function HierarchyVersionShow({
     /** The governed review and publication steps, where the server offers them. */
     governance?: HierarchyGovernance | null;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const publishForm = useForm({});
     const archiveForm = useForm({});
@@ -243,8 +244,8 @@ export default function HierarchyVersionShow({
                                     key={edge.id}
                                     className={tableRowClassName}
                                 >
-                                    <td className={tableCellClassName}>{edge.parent_organization?.name_en ?? '—'}</td>
-                                    <td className={tableCellClassName}>{edge.child_organization?.name_en ?? '—'}</td>
+                                    <td className={tableCellClassName}>{localizedName(edge.parent_organization?.name_en, edge.parent_organization?.name_am, locale) || '—'}</td>
+                                    <td className={tableCellClassName}>{localizedName(edge.child_organization?.name_en, edge.child_organization?.name_am, locale) || '—'}</td>
                                     <td className={tableCellClassName}>{edge.relationship_type}</td>
                                 </tr>
                             ))}

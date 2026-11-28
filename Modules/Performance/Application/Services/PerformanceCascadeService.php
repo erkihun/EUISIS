@@ -169,16 +169,16 @@ final class PerformanceCascadeService
         $chain = $this->chain($this->graph($objective), $objective);
         $goal = $this->goalFor($objective);
         $allocation = collect($chain)->first(fn ($row) => $row->strategic_goal_allocation_id !== null)?->allocation;
-        $steps = $goal ? [['type' => 'GOAL', 'id' => $goal->getKey(), 'label' => $goal->code.' · '.$goal->name_en, 'weight' => $goal->weight_percent]] : [];
+        $steps = $goal ? [['type' => 'GOAL', 'id' => $goal->getKey(), 'label' => $goal->code.' · '.localized_name($goal), 'weight' => $goal->weight_percent]] : [];
         if ($allocation !== null) {
-            $steps[] = ['type' => 'ALLOCATION', 'id' => $allocation->getKey(), 'label' => $allocation->unit?->name_en, 'weight' => $allocation->organization_contribution_percent];
+            $steps[] = ['type' => 'ALLOCATION', 'id' => $allocation->getKey(), 'label' => localized_name($allocation->unit), 'weight' => $allocation->organization_contribution_percent];
         }
         foreach (array_reverse($chain) as $row) {
-            $steps[] = ['type' => $row->plan->plan_type->value, 'id' => $row->getKey(), 'label' => $row->code.' · '.$row->title_en,
-                'plan_id' => $row->performance_plan_id, 'unit' => $row->plan->organizationUnit?->name_en, 'position' => $row->plan->position?->title_en];
+            $steps[] = ['type' => $row->plan->plan_type->value, 'id' => $row->getKey(), 'label' => $row->code.' · '.localized_name($row, 'title'),
+                'plan_id' => $row->performance_plan_id, 'unit' => localized_name($row->plan->organizationUnit), 'position' => localized_name($row->plan->position, 'title')];
         }
         if ($objective->position_service_id !== null) {
-            $steps[] = ['type' => 'SERVICE', 'id' => $objective->position_service_id, 'label' => $objective->positionService?->name_en];
+            $steps[] = ['type' => 'SERVICE', 'id' => $objective->position_service_id, 'label' => localized_name($objective->positionService)];
         }
 
         return $steps;
@@ -375,8 +375,8 @@ final class PerformanceCascadeService
 
         return $objectives->whereIn('id', $ids)->map(fn ($row) => [
             'id' => $row->getKey(), 'plan_id' => $row->performance_plan_id, 'level' => $row->plan->plan_type->value,
-            'title' => $row->title_en, 'unit' => $row->plan->organizationUnit?->name_en,
-            'position' => $row->plan->position?->title_en, 'service' => $row->positionService?->name_en,
+            'title' => localized_name($row, 'title'), 'unit' => localized_name($row->plan->organizationUnit),
+            'position' => localized_name($row->plan->position, 'title'), 'service' => localized_name($row->positionService),
             'status' => $row->plan->status->value, 'version' => $row->plan->version_no,
             'targets' => $row->targets->map(fn ($target) => ['kpi' => $target->kpi?->code, 'target' => $target->target_value, 'weight' => $target->weight])->all(),
             'employees' => ($employees->get($row->getKey()) ?? collect())->map(fn ($item) => $item->agreement?->employee?->full_name)->filter()->unique()->values()->all(),

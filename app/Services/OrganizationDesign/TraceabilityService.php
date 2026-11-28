@@ -52,10 +52,10 @@ class TraceabilityService
     public function rows(string $organizationId): array
     {
         $tasks = ProcessTask::query()->where('organization_id', $organizationId)->where('is_active', true)
-            ->with(['activity:id,code,name_en', 'process:id,code,name_en,service_id,status'])->orderBy('code')->get();
-        $services = Service::query()->whereIn('id', $tasks->pluck('process.service_id')->filter()->unique())->with(['functions:id,code,title_en,mandate_id', 'functions.mandate:id,code,title_en'])->get()->keyBy('id');
+            ->with(['activity:id,code,name_en,name_am', 'process:id,code,name_en,name_am,service_id,status'])->orderBy('code')->get();
+        $services = Service::query()->whereIn('id', $tasks->pluck('process.service_id')->filter()->unique())->with(['functions:id,code,title_en,title_am,mandate_id', 'functions.mandate:id,code,title_en,title_am'])->get()->keyBy('id');
         $links = PositionWorkLink::query()->where('organization_id', $organizationId)->whereIn('object_type', ['task', 'activity'])->get()->groupBy(fn ($l) => $l->object_type.':'.$l->object_id);
-        $positions = Position::query()->whereIn('id', $links->flatten()->pluck('position_id')->unique())->where('is_active', true)->get(['id', 'job_position_code', 'title_en'])->keyBy('id');
+        $positions = Position::query()->whereIn('id', $links->flatten()->pluck('position_id')->unique())->where('is_active', true)->get(['id', 'job_position_code', 'title_en', 'title_am'])->keyBy('id');
         $jds = $this->jobDescriptionsInForce($positions->keys()->all());
 
         return $tasks->map(function (ProcessTask $task) use ($services, $links, $positions, $jds): array {

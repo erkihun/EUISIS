@@ -132,7 +132,7 @@ export default function ScheduleForm({ schedule, targets: initialTargets, receiv
     const setRules = (patch: Partial<ReminderRules>) => form.setData('reminder_rules', { ...rules, ...patch });
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={schedule ? rt('schedules.edit') : rt('schedules.add')} description={schedule?.name_en} backHref={route('reporting.schedules.index')} />}>
+        <AuthenticatedLayout header={<PageHeader title={schedule ? rt('schedules.edit') : rt('schedules.add')} description={schedule ? name(schedule) : undefined} backHref={route('reporting.schedules.index')} />}>
             <Head title={schedule ? rt('schedules.edit') : rt('schedules.add')} />
             <ActionErrors except={Object.keys(errors)} />
             <form onSubmit={save} className="space-y-5 pb-4">

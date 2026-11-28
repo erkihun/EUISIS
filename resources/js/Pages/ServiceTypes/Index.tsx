@@ -9,6 +9,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type ServiceTypeRow = {
     id: string;
     code: string;
@@ -30,7 +31,7 @@ export default function ServiceTypesIndex({
     filters: Record<string, string>;
     can: { create: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const form = useForm({
         search: filters.search ?? '',
@@ -113,10 +114,10 @@ export default function ServiceTypesIndex({
                                             <td className={tableCellClassName}>
                                                 {serviceType.can.view ? (
                                                     <Link href={route('service-types.show', serviceType.id)} className="font-medium text-primary hover:text-primary-hover dark:text-primary">
-                                                        {serviceType.name_en}
+                                                        {localizedName(serviceType.name_en, serviceType.name_am, locale)}
                                                     </Link>
                                                 ) : (
-                                                    serviceType.name_en
+                                                    localizedName(serviceType.name_en, serviceType.name_am, locale)
                                                 )}
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{serviceType.name_am ?? '—'}</td>

@@ -29,7 +29,7 @@ class UpdateLocalizationSettingsRequest extends FormRequest
             'datetime_format' => ['required', 'string', 'max:32'],
             'first_day_of_week' => ['nullable', 'integer', 'between:0,6'],
             'number_format' => ['nullable', 'string', 'max:32'],
-            'organization_name_display' => ['nullable', 'string', Rule::in(['english', 'amharic', 'both'])],
+            'organization_name_display' => ['nullable', 'string', Rule::in(['locale_based', 'english', 'amharic', 'both'])],
             'employee_name_display' => ['nullable', 'string', Rule::in(['full_name', 'first_last'])],
             /*
              * Drives which calendar the whole application renders — read by

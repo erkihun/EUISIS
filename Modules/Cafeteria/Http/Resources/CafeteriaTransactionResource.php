@@ -55,9 +55,9 @@ class CafeteriaTransactionResource extends JsonResource
                 'name_am' => $employee->full_name,
                 'display_name' => $employee->full_name,
                 'photo_url' => $employee->photo_url,
-                'organization_name' => $assignment?->organization?->name_en,
+                'organization_name' => localized_name($assignment?->organization),
                 'organization_unit_name' => $assignment?->organizationUnit?->name_en,
-                'position_title' => $assignment?->position?->title_en,
+                'position_title' => localized_name($assignment?->position, 'title'),
             ] : null,
             'provider' => $this->whenLoaded('provider', fn () => [
                 'id' => $this->provider?->id,

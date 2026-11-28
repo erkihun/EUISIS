@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Establishment = {
     id: string;
     establishment_number: string;
@@ -15,8 +16,8 @@ type Establishment = {
     approved_slots: number;
     effective_from: string;
     effective_to: string | null;
-    organization: { name_en: string } | null;
-    position: { title_en: string } | null;
+    organization: { name_en: string ; name_am?: string | null} | null;
+    position: { title_en: string ; title_am?: string | null} | null;
 };
 
 type Filters = { search: string; status: string; organization_id: string };
@@ -28,7 +29,7 @@ type Props = {
 };
 
 export default function PositionEstablishmentsIndex({ establishments, filters, filterOptions }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const [values, setValues] = useState<Filters>(filters);
     const filtersActive = Boolean(filters.search || filters.status);
 
@@ -104,8 +105,8 @@ export default function PositionEstablishmentsIndex({ establishments, filters, f
                                                     {e.establishment_number}
                                                 </Link>
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{e.organization?.name_en ?? '—'}</td>
-                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{e.position?.title_en ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(e.organization?.name_en, e.organization?.name_am, locale) || '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(e.position?.title_en, e.position?.title_am, locale) || '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{e.approved_slots}</td>
                                             <td className={tableCellClassName}><StatusBadge status={e.status} /></td>
                                             <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={e.effective_from} /></td>

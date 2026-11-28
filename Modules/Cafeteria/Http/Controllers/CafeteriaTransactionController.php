@@ -320,8 +320,8 @@ class CafeteriaTransactionController extends Controller
                 'full_name' => $employee->full_name,
                 'employee_number' => $employee->employee_number,
                 'photo_url' => EmployeeScanPhoto::url($employee),
-                'position' => $employee->currentAssignment?->position?->title_en,
-                'organization' => $employee->currentAssignment?->organization?->name_en,
+                'position' => localized_name($employee->currentAssignment?->position, 'title'),
+                'organization' => localized_name($employee->currentAssignment?->organization),
                 'organization_unit' => $employee->currentAssignment?->organizationUnit?->name_en,
             ] : null;
 
@@ -374,8 +374,8 @@ class CafeteriaTransactionController extends Controller
                     'full_name' => $employee->full_name,
                     'employee_number' => $employee->employee_number,
                     'photo_url' => EmployeeScanPhoto::url($employee),
-                    'position' => $employee->currentAssignment?->position?->title_en,
-                    'organization' => $employee->currentAssignment?->organization?->name_en,
+                    'position' => localized_name($employee->currentAssignment?->position, 'title'),
+                    'organization' => localized_name($employee->currentAssignment?->organization),
                     'organization_unit' => $employee->currentAssignment?->organizationUnit?->name_en,
                 ];
             }

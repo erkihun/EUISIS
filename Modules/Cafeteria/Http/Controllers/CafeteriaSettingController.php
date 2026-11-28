@@ -275,7 +275,7 @@ class CafeteriaSettingController extends Controller
         return CafeteriaProviderBranch::query()
             ->where('is_active', true)
             ->whereNull('deleted_at')
-            ->with('provider:id,name_en,code')
+            ->with('provider:id,name_en,name_am,code')
             ->orderBy('name_en')
             ->get()
             ->map(fn (CafeteriaProviderBranch $branch): array => [

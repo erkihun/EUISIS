@@ -9,6 +9,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type Holiday = {
     id: string; name_en: string; name_am: string | null;
     holiday_date: string; is_recurring: boolean; is_active: boolean;
@@ -18,7 +19,7 @@ type Holiday = {
 type Meta = { current_page: number; last_page: number; total: number; per_page: number };
 
 export default function HolidaysIndex({ holidays, meta, year, can }: { holidays: Holiday[]; meta: Meta; filters: Record<string, string>; year: number; can: { create: boolean } }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const hasActiveFilters = hasFilterQuery();
 
@@ -70,7 +71,7 @@ export default function HolidaysIndex({ holidays, meta, year, can }: { holidays:
                                     {holidays.map((h) => (
                                         <tr key={h.id} className={tableRowClassName}>
                                             <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}><LocalizedDateDisplay value={h.holiday_date} /></td>
-                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{h.name_en}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(h.name_en, h.name_am, locale)}</td>
                                             <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{h.name_am ?? '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-right')}>

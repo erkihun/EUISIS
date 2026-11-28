@@ -35,7 +35,7 @@ class EntitlementController extends Controller
             // Only the fields the list shows; never the full employee record.
             ->with([
                 'employee:id,employee_number,full_name,name_en',
-                'serviceType:id,name_en',
+                'serviceType:id,name_en,name_am',
                 'serviceProvider:id,name',
             ])
             ->when(! $this->scope->isUnrestricted($user), fn ($query) => $query->whereIn(
@@ -54,7 +54,7 @@ class EntitlementController extends Controller
 
         return Inertia::render('Entitlements/Index', [
             'entitlements' => $entitlements,
-            'serviceTypes' => ServiceTypeRecord::query()->orderBy('name_en')->get(['id', 'name_en']),
+            'serviceTypes' => ServiceTypeRecord::query()->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
             'providers' => ServicePointRecord::query()->orderBy('name')->get(['id', 'name', 'service_type_id']),
             'cafeteriaProviders' => app(CafeteriaDirectory::class)->locations(),
         ]);

@@ -144,7 +144,7 @@ class IsicActivityController extends Controller
             ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
             ->where('is_active', true)
             ->orderBy('isic_code')
-            ->get(['id', 'isic_code', 'name_en', 'level'])
+            ->get(['id', 'isic_code', 'name_en', 'name_am', 'level'])
             ->map(fn (IsicActivity $a) => [
                 'id' => $a->id,
                 'isic_code' => $a->isic_code,

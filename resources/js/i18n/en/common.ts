@@ -41,6 +41,7 @@ const common = {
     tableSortBy: 'Sort by :column',
     tableTools: 'Table tools',
     loading: 'Loading...',
+    breadcrumb: 'Breadcrumb',
     loading_page: 'Loading page',
     please_wait: 'Please wait while the page is prepared.',
     page_failed_to_load: 'The page could not be loaded. Refresh the page and try again.',

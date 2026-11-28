@@ -12,7 +12,7 @@ final class CafeteriaDirectoryQuery implements CafeteriaDirectory
     public function locations(): array
     {
         return CafeteriaProvider::query()
-            ->with('organization:id,name_en')
+            ->with('organization:id,name_en,name_am')
             ->orderBy('name_en')
             ->get(['id', 'code', 'name_en', 'name_am', 'organization_id', 'is_active', 'location'])
             ->map(fn (CafeteriaProvider $c): array => [

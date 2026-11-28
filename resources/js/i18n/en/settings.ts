@@ -424,7 +424,7 @@ const settings = {
         default_dashboard_route: { dashboard: 'Dashboard', employees_index: 'Employees', organizations_index: 'Organizations' },
         system_environment_label: { production: 'Production', staging: 'Staging', testing: 'Testing', local: 'Local', development: 'Development', demo: 'Demo', training: 'Training' },
         calendar_system_mode: { locale_based: 'Follow the language (Ethiopian for Amharic)', gregorian_only: 'Gregorian only', ethiopian_only: 'Ethiopian only' },
-        organization_name_display: { english: 'English name', amharic: 'Amharic name', both: 'Both names' },
+        organization_name_display: { locale_based: 'Follow the interface language', english: 'English name', amharic: 'Amharic name', both: 'Both names' },
         employee_name_display: { full_name: 'Full name', first_last: 'First and last name' },
         mail_mailer: { smtp: 'SMTP server', log: 'Log only (no delivery)', sendmail: 'Sendmail', ses: 'Amazon SES' },
         mail_encryption: { tls: 'TLS', ssl: 'SSL', none: 'None' },

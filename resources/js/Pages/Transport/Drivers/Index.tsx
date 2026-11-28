@@ -6,6 +6,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 
 type Driver = {
     id: string;
@@ -14,7 +15,7 @@ type Driver = {
     license_expiry_date: string | null;
     status: string;
     vehicle: { vehicle_code: string; plate_number: string } | null;
-    provider: { name_en: string; provider_code: string } | null;
+    provider: { name_en: string; name_am?: string | null; provider_code: string } | null;
 };
 
 type Meta = { current_page: number; last_page: number; total: number; per_page: number };
@@ -33,7 +34,7 @@ export default function Index({
     filters?: Record<string, string>;
     can?: { create: boolean; update: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const rows = drivers?.data ?? [];
     const meta = drivers?.meta;
 
@@ -123,7 +124,7 @@ export default function Index({
                                                 {item.full_name}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
-                                                {item.provider ? item.provider.name_en : '—'}
+                                                {item.provider ? localizedName(item.provider.name_en, item.provider.name_am, locale) : '—'}
                                             </td>
                                             <td className="px-4 py-3 font-mono text-xs text-gray-700 dark:text-slate-300">
                                                 {item.license_number ?? '—'}

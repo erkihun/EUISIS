@@ -8,17 +8,18 @@ import EmptyState from '@/Components/EmptyState';
 import { useLocale } from '@/hooks/useLocale';
 
 import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Application = {
     id: string;
     application_number: string;
     status: string;
     applied_at: string;
-    employee: { name_en: string } | null;
-    announcement: { title_en: string } | null;
+    employee: { name_en: string ; full_name?: string | null; name_am?: string | null} | null;
+    announcement: { title_en: string ; title_am?: string | null} | null;
     // Eloquent serializes the positionEntry relation in snake_case.
     position_entry: {
-        organization: { name_en: string } | null;
-        position: { title_en: string } | null;
+        organization: { name_en: string ; name_am?: string | null} | null;
+        position: { title_en: string ; title_am?: string | null} | null;
     } | null;
 };
 
@@ -40,7 +41,7 @@ type Props = {
 const STATUSES = ['submitted', 'screened', 'shortlisted', 'selected', 'rejected', 'withdrawn', 'transferred'] as const;
 
 export default function VacancyApplicationsIndex({ applications, filters }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const [status, setStatus] = useState(filters.status ?? '');
 
@@ -94,10 +95,10 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                                             {a.application_number}
                                         </Link>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{a.employee?.name_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{a.announcement?.title_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{a.position_entry?.position?.title_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{a.position_entry?.organization?.name_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{(locale === 'am' ? a.employee?.full_name || a.employee?.name_en : a.employee?.name_en || a.employee?.full_name) || '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{localizedName(a.announcement?.title_en, a.announcement?.title_am, locale) || '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(a.position_entry?.position?.title_en, a.position_entry?.position?.title_am, locale) || '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{localizedName(a.position_entry?.organization?.name_en, a.position_entry?.organization?.name_am, locale) || '—'}</td>
                                     <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}><LocalizedDateDisplay value={a.applied_at} /></td>
                                     <td className={tableCellClassName}><StatusBadge status={a.status} /></td>
                                 </tr>

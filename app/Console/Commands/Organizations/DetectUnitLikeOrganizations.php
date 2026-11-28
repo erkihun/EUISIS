@@ -53,7 +53,7 @@ class DetectUnitLikeOrganizations extends Command
 
         $this->info('Scanning organizations for unit-like patterns...');
 
-        $query = Organization::query()->with('type:id,code,name_en');
+        $query = Organization::query()->with('type:id,code,name_en,name_am');
 
         // Match by name patterns
         $query->where(function ($q): void {
@@ -67,7 +67,7 @@ class DetectUnitLikeOrganizations extends Command
 
         // Also find organizations with unit-like types
         $typeQuery = Organization::query()
-            ->with('type:id,code,name_en')
+            ->with('type:id,code,name_en,name_am')
             ->whereHas('type', function ($q): void {
                 foreach (self::TYPE_CODE_PATTERNS as $pattern) {
                     $q->orWhere('code', ci_like_operator(), "%{$pattern}%");

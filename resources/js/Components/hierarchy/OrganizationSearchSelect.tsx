@@ -4,12 +4,13 @@ import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationOption } from '@/Components/hierarchy/types';
 
 import { cx, inputClassName, selectClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 function optionLabel(option: OrganizationOption, locale: 'en' | 'am'): string {
     const name = locale === 'am' && option.name_am ? option.name_am : option.name_en;
     const typeName = option.type
         ? locale === 'am' && option.type.name_am
             ? option.type.name_am
-            : option.type.name_en
+            : localizedName(option.type.name_en, option.type.name_am, locale)
         : null;
 
     return `${option.code} - ${name}${typeName ? ` (${typeName})` : ''}`;

@@ -6,11 +6,12 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 
 type Route = {
     id: string;
     route_code: string;
-    name_en: string;
+    name_en: string; name_am?: string | null;
     origin_en: string | null;
     destination_en: string | null;
     distance_km: number | null;
@@ -26,7 +27,7 @@ export default function Index({
     routes: { data: Route[]; meta: Meta };
     filters?: Record<string, string>;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const rows = routes?.data ?? [];
     const meta = routes?.meta;
 
@@ -115,7 +116,7 @@ export default function Index({
                                                 {item.route_code}
                                             </td>
                                             <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
-                                                {item.name_en}
+                                                {localizedName(item.name_en, item.name_am, locale)}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
                                                 {item.origin_en && item.destination_en

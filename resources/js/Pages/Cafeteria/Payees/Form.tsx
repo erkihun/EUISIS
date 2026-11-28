@@ -8,13 +8,14 @@ import { useLocale } from '@/hooks/useLocale';
 import { inputCls } from '@/Components/Cafeteria/PolicyUi';
 
 import { buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Payee = {
     id: string; provider_code: string; name_en: string; name_am: string | null; contact_person: string | null;
     phone_number: string | null; email: string | null; address: string | null; status: string; settlement_details: string | null;
 };
 
 export default function PayeeForm({ provider }: { provider: Payee | null }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const tt = (key: string) => t(`cafeteriaPolicy.${key}`);
     const form = useForm({
         provider_code: provider?.provider_code ?? '',
@@ -38,7 +39,7 @@ export default function PayeeForm({ provider }: { provider: Payee | null }) {
         }
     }
 
-    const title = provider ? `${tt('edit')} · ${provider.name_en}` : `${tt('create')} · ${tt('provider')}`;
+    const title = provider ? `${tt('edit')} · ${localizedName(provider.name_en, provider.name_am, locale)}` : `${tt('create')} · ${tt('provider')}`;
     const field = (key: keyof typeof form.data, text: string, props: Record<string, unknown> = {}) => (
         <FormField label={text} error={form.errors[key]} required={Boolean(props.required)}>
             {({ id }) => <input id={id} className={inputCls} value={String(form.data[key] ?? '')} onChange={(e) => form.setData(key, e.target.value)} {...props} />}

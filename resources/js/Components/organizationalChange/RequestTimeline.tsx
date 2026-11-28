@@ -2,6 +2,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { JSX } from 'react';
 import type { ChangeRequestDetail } from './types';
+import { localizedName } from '@/utils/localizedName';
 
 type Props = { request: ChangeRequestDetail };
 
@@ -22,7 +23,7 @@ type Stage = {
  * nothing about whether any record has changed yet.
  */
 export default function RequestTimeline({ request }: Props): JSX.Element {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const isRejected = request.status === 'rejected';
     const isCancelled = request.status === 'cancelled';
@@ -62,7 +63,7 @@ export default function RequestTimeline({ request }: Props): JSX.Element {
             labelKey: 'stagePendingImplementation',
             actorKey: 'actorImplementer',
             at: request.implementation_assigned_at ?? (request.approved_at ? request.approved_at : null),
-            actor: request.implementation_assignee?.name ?? request.implementing_unit?.name_en ?? null,
+            actor: request.implementation_assignee?.name ?? localizedName(request.implementing_unit?.name_en, request.implementing_unit?.name_am, locale) ?? null,
             state: request.implemented_at
                 ? 'done'
                 : stageState(null, ['pending_implementation', 'implementing', 'implementation_blocked'].includes(request.status)),

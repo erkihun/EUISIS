@@ -10,6 +10,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { usesRandomToken } from '@/Components/code-rules/randomTokens';
 
 import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type CodeRuleView = {
     id: string;
     entity_type: string;
@@ -64,7 +65,7 @@ export default function CodeRulesShow({
     sequences?: SequenceCounter[];
     can: { preview: boolean; viewSequences: boolean; resetSequence: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
 
     const strategyKey = codeRule.sequence_scope_strategy ?? 'auto';
@@ -77,7 +78,7 @@ export default function CodeRulesShow({
             header={(
                 <PageHeader
                     backHref={route('code-rules.index')}
-                    title={codeRule.name_en}
+                    title={localizedName(codeRule.name_en, codeRule.name_am, locale)}
                     description={t(`codeRules.entityTypes.${codeRule.entity_type}` as Parameters<typeof t>[0])}
                     actions={(
                         <div className="flex gap-3">
@@ -101,7 +102,7 @@ export default function CodeRulesShow({
                 />
             )}
         >
-            <Head title={codeRule.name_en} />
+            <Head title={localizedName(codeRule.name_en, codeRule.name_am, locale)} />
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
                 <section className="space-y-6">

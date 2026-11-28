@@ -626,7 +626,7 @@ class EmployeeController extends Controller
             'organizations' => Organization::query()
                 ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
                 ->orderBy('name_en')
-                ->get(['id', 'name_en']),
+                ->get(['id', 'name_en', 'name_am']),
             'qrCodes' => $this->qrCodes($request, $employee, $feedbackQr, $qrRenderer),
             'recentActivity' => $this->recentActivity($request, $employee),
             'reportingLine' => $reportingLine,

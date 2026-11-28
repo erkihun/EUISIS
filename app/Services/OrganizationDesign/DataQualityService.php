@@ -46,7 +46,7 @@ class DataQualityService
         }
 
         // Legacy tasks mapped to a master that is no longer live, or that belongs elsewhere.
-        $mapped = PositionServiceTask::query()->where('organization_id', $organizationId)->whereNotNull('master_task_id')->with('masterTask:id,code,name_en,organization_id,is_active')->orderBy('code')->limit(5000)->get();
+        $mapped = PositionServiceTask::query()->where('organization_id', $organizationId)->whereNotNull('master_task_id')->with('masterTask:id,code,name_en,name_am,organization_id,is_active')->orderBy('code')->limit(5000)->get();
         foreach ($mapped as $task) {
             $subject = ['type' => 'position_task', 'id' => $task->id, 'code' => $task->code, 'name' => $task->name_en];
             if ($task->masterTask === null || $task->masterTask->organization_id !== $organizationId) {
@@ -58,7 +58,7 @@ class DataQualityService
 
         // Position work links whose object is gone or inactive.
         $links = PositionWorkLink::query()->where('organization_id', $organizationId)->orderBy('sequence')->limit(10000)->get();
-        $positions = Position::query()->whereIn('id', $links->pluck('position_id')->unique())->get(['id', 'job_position_code', 'title_en'])->keyBy('id');
+        $positions = Position::query()->whereIn('id', $links->pluck('position_id')->unique())->get(['id', 'job_position_code', 'title_en', 'title_am'])->keyBy('id');
         $objects = [];
         foreach (PositionWorkLink::OBJECT_MODELS as $type => $model) {
             $ids = $links->where('object_type', $type)->pluck('object_id')->unique();

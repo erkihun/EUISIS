@@ -9,11 +9,12 @@ import CodeRuleEntityTypeBadge from '@/Components/code-rules/CodeRuleEntityTypeB
 import CodeRuleStatusBadge from '@/Components/code-rules/CodeRuleStatusBadge';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, tableContainerClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type RuleRow = {
     id: string;
     entity_type: string;
     scope_label: string | null;
-    name_en: string;
+    name_en: string; name_am?: string | null;
     prefix: string | null;
     format: string;
     next_number: number;
@@ -42,7 +43,7 @@ export default function CodeRulesIndex({
     options: Options;
     can: { create: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm({
         search: filters.search ?? '',
         entity_type: filters.entity_type ?? '',
@@ -140,7 +141,7 @@ export default function CodeRulesIndex({
                                             <div className="grid gap-5 lg:grid-cols-3">
                                                 <div className="min-w-0">
                                                     <div className="mb-3 flex flex-wrap gap-2"><CodeRuleEntityTypeBadge entityType={ruleRow.entity_type} /><CodeRuleStatusBadge isActive={ruleRow.is_active} /></div>
-                                                    <h3 className="wrap-break-word font-semibold text-(--app-foreground)">{ruleRow.can.view ? <Link className="hover:underline" href={route('code-rules.show', ruleRow.id)}>{ruleRow.name_en}</Link> : ruleRow.name_en}</h3>
+                                                    <h3 className="wrap-break-word font-semibold text-(--app-foreground)">{ruleRow.can.view ? <Link className="hover:underline" href={route('code-rules.show', ruleRow.id)}>{localizedName(ruleRow.name_en, ruleRow.name_am, locale)}</Link> : localizedName(ruleRow.name_en, ruleRow.name_am, locale)}</h3>
                                                     <p className="mt-1 wrap-break-word text-xs text-(--app-muted-foreground)">{t('codeRules.scope')}: {ruleRow.scope_label ?? t('codeRules.globalRule')}</p>
                                                 </div>
                                                 <div className="min-w-0">

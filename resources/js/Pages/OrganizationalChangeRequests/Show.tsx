@@ -20,6 +20,7 @@ import type {
 } from '@/Components/organizationalChange/types';
 
 import { buttonClassName, cx, textareaClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Props = {
     request: ChangeRequestDetail;
     impact: ImpactPayload | null;
@@ -76,7 +77,7 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
                 ? <LocalizedDateDisplay value={request.requested_effective_date} />
                 : '—',
         },
-        { label: t('organizationalChangeRequests.fields.implementingUnit'), value: request.implementing_unit?.name_en ?? request.implementing_unit_key ?? '—' },
+        { label: t('organizationalChangeRequests.fields.implementingUnit'), value: localizedName(request.implementing_unit?.name_en, request.implementing_unit?.name_am, locale) ?? request.implementing_unit_key ?? '—' },
     ];
 
     return (

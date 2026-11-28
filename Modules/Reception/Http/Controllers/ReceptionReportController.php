@@ -19,7 +19,7 @@ final class ReceptionReportController extends Controller
     {
         $user = $request->user();
         abort_unless($user->can(ReceptionPermissions::EXPORT), 403);
-        $query = $access->scope(ReceptionVisit::query(), $user)->with(['visitor:id,name', 'desk:id,code,name_en', 'service:id,name_en'])->oldest('checked_in_at');
+        $query = $access->scope(ReceptionVisit::query(), $user)->with(['visitor:id,name', 'desk:id,code,name_en,name_am', 'service:id,name_en,name_am'])->oldest('checked_in_at');
         if ($request->date('from')) {
             $query->whereDate('checked_in_at', '>=', $request->date('from'));
         }

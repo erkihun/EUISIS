@@ -9,6 +9,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type Provider = {
     id: string;
     code: string;
@@ -33,7 +34,7 @@ export default function ProvidersIndex({
     filters: Record<string, string>;
     can: { create: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const hasActiveFilters = Object.entries(filters).some(([key, value]) => key !== 'page' && Boolean(value));
 
@@ -97,7 +98,7 @@ export default function ProvidersIndex({
                                             <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{p.code}</td>
                                             <td className={cx(tableCellClassName, 'font-medium')}>
                                                 <Link href={route('cafeteria.providers.show', p.id)} className="text-(--app-foreground) hover:text-primary hover:underline dark:hover:text-blue-400">
-                                                    {p.name_en}
+                                                    {localizedName(p.name_en, p.name_am, locale)}
                                                 </Link>
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{p.phone_number ?? '—'}</td>

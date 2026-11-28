@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { HierarchyEdge } from '@/Components/hierarchy/types';
 
 import { buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 export default function RemoveRelationDialog({
     show,
     hierarchyVersionId,
@@ -16,7 +17,7 @@ export default function RemoveRelationDialog({
     relation: HierarchyEdge | null;
     onClose: () => void;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm({});
 
     function confirmRemove(): void {
@@ -52,8 +53,8 @@ export default function RemoveRelationDialog({
                 </p>
                 {relation && (
                     <div className="rounded-panel border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200">
-                        <div>{relation.parent_organization?.name_en ?? '-'}</div>
-                        <div className="mt-1">{relation.child_organization?.name_en ?? '-'}</div>
+                        <div>{localizedName(relation.parent_organization?.name_en, relation.parent_organization?.name_am, locale) || '-'}</div>
+                        <div className="mt-1">{localizedName(relation.child_organization?.name_en, relation.child_organization?.name_am, locale) || '-'}</div>
                     </div>
                 )}
             </div>

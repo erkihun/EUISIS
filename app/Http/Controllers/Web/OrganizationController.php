@@ -422,7 +422,7 @@ class OrganizationController extends Controller
         $institutionOffices = InstitutionOffice::query()
             ->where('institution_id', $organization->id)
             ->orderBy('name_en')
-            ->get(['id', 'office_code', 'name_en', 'office_level', 'status'])
+            ->get(['id', 'office_code', 'name_en', 'name_am', 'office_level', 'status'])
             ->toArray();
 
         $descendants = $latestVersionId === null

@@ -327,7 +327,7 @@ class OrganizationUnitController extends Controller
 
         $organizationUnit->load([
             'organization:id,name_en,name_am,code',
-            'parent:id,name_en,code',
+            'parent:id,name_en,name_am,code',
             'unitType:id,code,name_en,name_am',
             'children.unitType:id,code,name_en,name_am',
             'relationships',

@@ -12,6 +12,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
 import { actionLinkClassName, buttonClassName, cx, textareaClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type CardRequestData = {
     id: string;
     request_type?: string | null;
@@ -33,8 +34,8 @@ type CardRequestData = {
         photo_url?: string | null;
         photo_path?: string | null;
         current_assignment?: {
-            organization?: { name_en: string } | null;
-            position?: { title_en: string } | null;
+            organization?: { name_en: string ; name_am?: string | null} | null;
+            position?: { title_en: string ; title_am?: string | null} | null;
         } | null;
     } | null;
     requested_by?: { id: string; name: string } | null;
@@ -88,7 +89,7 @@ function ConfirmModal({
     onConfirm: () => void;
     onClose: () => void;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const variantCls: Record<string, string> = {
         primary: 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500',
         danger:  'bg-red-600 hover:bg-red-700 focus:ring-red-500',
@@ -146,7 +147,7 @@ const inputCls = cx(textareaClassName, 'w-full');
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export default function CardRequestShow({ cardRequest, can }: PageProps) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const [modal, setModal] = useState<string | null>(null);
 
     const verifyForm  = useForm({ notes: '' });
@@ -203,10 +204,10 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                 </span>
                             </Field>
                             <Field label={t('organizations.organization')}>
-                                {cardRequest.employee?.current_assignment?.organization?.name_en ?? '—'}
+                                {localizedName(cardRequest.employee?.current_assignment?.organization?.name_en, cardRequest.employee?.current_assignment?.organization?.name_am, locale) || '—'}
                             </Field>
                             <Field label={t('employees.columnPosition')}>
-                                {cardRequest.employee?.current_assignment?.position?.title_en ?? '—'}
+                                {localizedName(cardRequest.employee?.current_assignment?.position?.title_en, cardRequest.employee?.current_assignment?.position?.title_am, locale) || '—'}
                             </Field>
                             {cardRequest.requested_by && (
                                 <Field label={t('idCards.requestedBy')}>
@@ -293,13 +294,13 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     </p>
                                     <p className="text-sm text-(--app-muted-foreground)">
                                         {cardRequest.employee.employee_number}
-                                        {cardRequest.employee.current_assignment?.position?.title_en && (
+                                        {localizedName(cardRequest.employee.current_assignment?.position?.title_en, cardRequest.employee.current_assignment?.position?.title_am, locale) && (
                                             <span className="mx-1.5 text-(--app-muted-foreground)">·</span>
                                         )}
-                                        {cardRequest.employee.current_assignment?.position?.title_en}
+                                        {localizedName(cardRequest.employee.current_assignment?.position?.title_en, cardRequest.employee.current_assignment?.position?.title_am, locale)}
                                     </p>
                                     <p className="text-xs text-(--app-muted-foreground) truncate">
-                                        {cardRequest.employee.current_assignment?.organization?.name_en}
+                                        {localizedName(cardRequest.employee.current_assignment?.organization?.name_en, cardRequest.employee.current_assignment?.organization?.name_am, locale)}
                                     </p>
                                 </div>
                                 <Link

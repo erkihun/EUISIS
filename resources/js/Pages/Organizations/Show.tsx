@@ -65,7 +65,7 @@ type CanProps = {
 type InstitutionOfficePreview = {
     id: string;
     office_code: string;
-    name_en: string | null;
+    name_en: string | null; name_am?: string | null;
     office_level: string;
     status: string;
 };
@@ -202,7 +202,7 @@ export default function OrganizationShow({
             header={
                 <PageHeader
                     backHref={parentOrganizationId ? route('organizations.show', parentOrganizationId) : route('organizations.index')}
-                    title={organization.name_en}
+                    title={localizedName(organization.name_en, organization.name_am, locale)}
                     description={organization.code}
                     actions={
                         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -279,7 +279,7 @@ export default function OrganizationShow({
                 />
             }
         >
-            <Head title={organization.name_en} />
+            <Head title={localizedName(organization.name_en, organization.name_am, locale)} />
 
             {isArchived && (
                 <p role="status" className="mb-4 rounded-card border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
@@ -660,7 +660,7 @@ export default function OrganizationShow({
                                             {office.office_code}
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
-                                            {office.name_en ?? '—'}
+                                            {localizedName(office.name_en, office.name_am, locale) || '—'}
                                         </td>
                                         <td className={tableCellClassName}>
                                             <span className={badgeClassName('info')}>

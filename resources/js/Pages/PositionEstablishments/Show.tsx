@@ -7,6 +7,7 @@ import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Establishment = {
     id: string;
     establishment_number: string;
@@ -17,18 +18,18 @@ type Establishment = {
     approval_reference: string | null;
     notes: string | null;
     approved_at: string | null;
-    organization: { id: string; name_en: string } | null;
-    organization_unit: { name_en: string } | null;
-    position: { id: string; title_en: string } | null;
-    occupation: { title_en: string } | null;
+    organization: { id: string; name_en: string ; name_am?: string | null} | null;
+    organization_unit: { name_en: string ; name_am?: string | null} | null;
+    position: { id: string; title_en: string ; title_am?: string | null} | null;
+    occupation: { title_en: string ; title_am?: string | null} | null;
     approved_by: { name: string } | null;
-    occupancies: Array<{ id: string; status: string; employee: { name_en: string } | null; occupied_from: string }>;
-    vacancy_announcements: Array<{ id: string; announcement_number: string; status: string; title_en: string }>;
+    occupancies: Array<{ id: string; status: string; employee: { name_en: string ; full_name?: string | null; name_am?: string | null} | null; occupied_from: string }>;
+    vacancy_announcements: Array<{ id: string; announcement_number: string; status: string; title_en: string ; title_am?: string | null}>;
     can: { update: boolean; approve: boolean; archive: boolean };
 };
 
 export default function PositionEstablishmentsShow({ establishment }: { establishment: Establishment }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
 
     return (
@@ -37,7 +38,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                 <PageHeader
                     backHref={route('position-establishments.index')}
                     title={establishment.establishment_number}
-                    description={establishment.position?.title_en}
+                    description={localizedName(establishment.position?.title_en, establishment.position?.title_am, locale)}
                     actions={
                         <div className="flex gap-2">
                             {establishment.can.update && (
@@ -75,10 +76,10 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                     <StatusBadge status={establishment.status} />
                     <dl className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
                         {[
-                            { label: t('positionEstablishments.organization'), value: establishment.organization?.name_en ?? '—' },
-                            { label: t('positionEstablishments.organizationUnit'), value: establishment.organization_unit?.name_en ?? '—' },
-                            { label: t('positionEstablishments.position'), value: establishment.position?.title_en ?? '—' },
-                            { label: t('positionEstablishments.occupation'), value: establishment.occupation?.title_en ?? '—' },
+                            { label: t('positionEstablishments.organization'), value: localizedName(establishment.organization?.name_en, establishment.organization?.name_am, locale) || '—' },
+                            { label: t('positionEstablishments.organizationUnit'), value: localizedName(establishment.organization_unit?.name_en, establishment.organization_unit?.name_am, locale) || '—' },
+                            { label: t('positionEstablishments.position'), value: localizedName(establishment.position?.title_en, establishment.position?.title_am, locale) || '—' },
+                            { label: t('positionEstablishments.occupation'), value: localizedName(establishment.occupation?.title_en, establishment.occupation?.title_am, locale) || '—' },
                             { label: t('positionEstablishments.approvedSlots'), value: establishment.approved_slots },
                             { label: t('positionEstablishments.approvalReference'), value: establishment.approval_reference ?? '—' },
                             { label: t('positionEstablishments.approvedBy'), value: establishment.approved_by?.name ?? '—' },
@@ -120,7 +121,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             <ul className="mt-3 space-y-1 text-sm">
                                 {establishment.occupancies.filter(o => o.status === 'active').map(o => (
                                     <li key={o.id} className="flex justify-between">
-                                        <span>{o.employee?.name_en ?? '—'}</span>
+                                        <span>{(locale === 'am' ? o.employee?.full_name || o.employee?.name_en : o.employee?.name_en || o.employee?.full_name) || '—'}</span>
                                         <span className="text-(--app-muted-foreground)">{o.occupied_from}</span>
                                     </li>
                                 ))}
@@ -147,7 +148,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                                 {establishment.vacancy_announcements.map(a => (
                                     <li key={a.id} className="flex items-center justify-between">
                                         <Link href={route('vacancy-announcements.show', a.id)} className="text-primary hover:underline dark:text-primary">
-                                            {a.title_en}
+                                            {localizedName(a.title_en, a.title_am, locale)}
                                         </Link>
                                         <StatusBadge status={a.status} />
                                     </li>

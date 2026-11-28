@@ -108,7 +108,7 @@ class ManpowerPlanController extends Controller
             'proposals' => $plan->study_id ? UnitDesignProposal::query()->where('study_id', $plan->study_id)->where('proposal_type', 'create')->orderBy('sequence')->get(['id', 'name_en', 'name_am', 'status'])->map->only(['id', 'name_en', 'name_am', 'status']) : [],
             // Tasks and occupations are searched on the server (organization-design.lookups), never shipped whole.
             'methodologies' => $this->methodologyOptions(),
-            'studies' => OrganizationDesignStudy::query()->where('organization_id', $plan->organization_id)->whereIn('status', [OrganizationDesignStatus::Approved->value, OrganizationDesignStatus::UnderReview->value, OrganizationDesignStatus::Draft->value])->orderByDesc('created_at')->limit(50)->get(['id', 'reference_number', 'title_en', 'status'])->map(fn ($s) => ['id' => $s->id, 'reference_number' => $s->reference_number, 'title_en' => $s->title_en, 'status' => $s->status->value]),
+            'studies' => OrganizationDesignStudy::query()->where('organization_id', $plan->organization_id)->whereIn('status', [OrganizationDesignStatus::Approved->value, OrganizationDesignStatus::UnderReview->value, OrganizationDesignStatus::Draft->value])->orderByDesc('created_at')->limit(50)->get(['id', 'reference_number', 'title_en', 'title_am', 'status'])->map(fn ($s) => ['id' => $s->id, 'reference_number' => $s->reference_number, 'title_en' => $s->title_en, 'status' => $s->status->value]),
             'can' => [
                 'update' => $editable && $user->can('update', $plan),
                 'submit' => $editable && $user->can('update', $plan),

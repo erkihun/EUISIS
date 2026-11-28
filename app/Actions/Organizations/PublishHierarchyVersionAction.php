@@ -282,7 +282,7 @@ readonly class PublishHierarchyVersionAction
             ->whereKey($inPublished->all())
             ->where('status', OrganizationStatus::Active->value)
             ->orderBy('name_en')
-            ->get(['code', 'name_en']);
+            ->get(['code', 'name_en', 'name_am']);
 
         if ($dropped->isNotEmpty()) {
             throw ValidationException::withMessages([

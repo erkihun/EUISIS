@@ -151,7 +151,7 @@ class ProviderScanController extends Controller
             'employee' => $employee ? [
                 'full_name' => $employee->full_name,
                 'employee_number' => $employee->employee_number,
-                'position' => $employee->currentAssignment?->position?->title_en,
+                'position' => localized_name($employee->currentAssignment?->position, 'title'),
                 'photo_url' => EmployeeScanPhoto::url($employee),
             ] : null,
             'card_number' => $transaction?->idCard?->card_number ?? ($result['id_card'] ?? null)?->card_number,

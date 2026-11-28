@@ -83,7 +83,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                         <span className={valC}>{exclusion.exclusion_type_label}</span>
                     </div>
                     <div className={rowCls}>
-                        <span className={keyC}>Status</span>
+                        <span className={keyC}>{t('common.status')}</span>
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[exclusion.status] ?? ''}`}>
                             {exclusion.status_label}
                         </span>
@@ -94,7 +94,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                     </div>
                     <div className={rowCls}>
                         <span className={keyC}>{t('cafeteria.endsOn')}</span>
-                        <span className={valC}>{exclusion.is_open_ended ? <em className="text-(--app-muted-foreground)">Open-ended</em> : <LocalizedDateDisplay value={exclusion.ends_on} />}</span>
+                        <span className={valC}>{exclusion.is_open_ended ? <em className="text-(--app-muted-foreground)">{t('cafeteriaPolicy.openEnded')}</em> : <LocalizedDateDisplay value={exclusion.ends_on} />}</span>
                     </div>
                     {exclusion.return_to_work_on && (
                         <div className={rowCls}>

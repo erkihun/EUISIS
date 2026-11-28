@@ -7,6 +7,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type Provider = {
     id: string; code: string; name_en: string; name_am: string | null;
     contact_person: string | null; phone_number: string | null; email: string | null;
@@ -23,7 +24,7 @@ type Branch = {
     contact_person: string | null;
     phone_number: string | null;
     is_active: boolean;
-    organization: { name_en: string; code: string } | null;
+    organization: { name_en: string; name_am?: string | null; code: string } | null;
 };
 
 type AdminUser = {
@@ -33,8 +34,8 @@ type AdminUser = {
     effective_from: string | null;
     effective_to: string | null;
     user: { name: string | null; email: string | null; status: string | null };
-    branch: { code: string; name_en: string } | null;
-    organization: { name_en: string; code: string } | null;
+    branch: { code: string; name_en: string ; name_am?: string | null} | null;
+    organization: { name_en: string; name_am?: string | null; code: string } | null;
 };
 
 export default function ProviderShow({
@@ -48,7 +49,7 @@ export default function ProviderShow({
     adminUsers?: AdminUser[];
     can: { update: boolean; manageUsers: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const rowCls = 'flex justify-between border-b border-(--app-border) py-3 text-sm last:border-0';
     const thCls = 'px-4 py-3 text-left text-xs font-medium text-(--app-muted-foreground)';
@@ -76,7 +77,7 @@ export default function ProviderShow({
             header={
                 <PageHeader
                     backHref={route('cafeteria.providers.index')}
-                    title={provider.name_en}
+                    title={localizedName(provider.name_en, provider.name_am, locale)}
                     actions={
                         can.update ? (
                             <Link
@@ -146,12 +147,12 @@ export default function ProviderShow({
                                         <tr key={b.id} className={tableRowClassName}>
                                             <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{b.code}</td>
                                             <td className={tableCellClassName}>
-                                                <div className="font-medium text-(--app-foreground)">{b.name_en}</div>
+                                                <div className="font-medium text-(--app-foreground)">{localizedName(b.name_en, b.name_am, locale)}</div>
                                                 {b.name_am && <div className="text-xs text-(--app-muted-foreground)">{b.name_am}</div>}
                                             </td>
                                             <td className={tdCls}>
                                                 {b.organization ? (
-                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-(--app-muted-foreground)">({b.organization.code})</span></span>
+                                                    <span>{localizedName(b.organization.name_en, b.organization.name_am, locale)} <span className="font-mono text-xs text-(--app-muted-foreground)">({b.organization.code})</span></span>
                                                 ) : '—'}
                                             </td>
                                             <td className={tdCls}>{b.location ?? '—'}</td>
@@ -219,12 +220,12 @@ export default function ProviderShow({
                                             </td>
                                             <td className={tdCls}>
                                                 {a.branch ? (
-                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-(--app-muted-foreground)">({a.branch.code})</span></span>
+                                                    <span className="font-medium">{localizedName(a.branch.name_en, a.branch.name_am, locale)} <span className="font-mono text-xs text-(--app-muted-foreground)">({a.branch.code})</span></span>
                                                 ) : <span className="text-(--app-muted-foreground)">—</span>}
                                             </td>
                                             <td className={tdCls}>
                                                 {a.organization ? (
-                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-(--app-muted-foreground)">({a.organization.code})</span></span>
+                                                    <span>{localizedName(a.organization.name_en, a.organization.name_am, locale)} <span className="font-mono text-xs text-(--app-muted-foreground)">({a.organization.code})</span></span>
                                                 ) : <span className="text-(--app-muted-foreground)">—</span>}
                                             </td>
                                             <td className={tdCls}>{a.provider_role ?? 'operator'}</td>

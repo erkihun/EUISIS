@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 const inputCls = cx(inputClassName, 'w-full');
 const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
@@ -38,7 +39,7 @@ function Field({
 }
 
 export default function OrganizationUnitTypesEdit({ type }: { type: OrgUnitType }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const form = useForm({
         code: type.code,
@@ -60,7 +61,7 @@ export default function OrganizationUnitTypesEdit({ type }: { type: OrgUnitType 
         <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
-                    title={`${t('organizationUnitTypes.editOrganizationUnitType')}: ${type.name_en}`}
+                    title={`${t('organizationUnitTypes.editOrganizationUnitType')}: ${localizedName(type.name_en, type.name_am, locale)}`}
                     description={t('organizationUnitTypes.editDescription')}
                 />
             }

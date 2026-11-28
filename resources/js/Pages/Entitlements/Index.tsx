@@ -9,17 +9,18 @@ import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { ListPagination, actionLinkClassName, buttonClassName, cx, inputClassName, type LaravelPageMeta } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type EntitlementRow = {
     id: string;
     status: string;
     quota_limit?: number | null;
     quota_used?: number | null;
     employee?: { employee_number: string; full_name: string } | null;
-    service_type?: { name_en: string } | null;
+    service_type?: { name_en: string ; name_am?: string | null} | null;
     service_provider?: { name: string } | null;
 };
 type EmployeeOption = { id: string; employee_number: string; full_name: string };
-type ServiceTypeOption = { id: string; name_en: string };
+type ServiceTypeOption = { id: string; name_en: string ; name_am?: string | null};
 type ProviderOption = { id: string; name: string; service_type_id: string };
 type CafeteriaProviderRow = {
     id: string;
@@ -28,7 +29,7 @@ type CafeteriaProviderRow = {
     name_am?: string | null;
     is_active: boolean;
     location?: string | null;
-    organization?: { name_en: string } | null;
+    organization?: { name_en: string ; name_am?: string | null} | null;
 };
 
 const WARN_STATUSES = new Set(['paused', 'revoked', 'expired', 'exhausted']);
@@ -62,7 +63,7 @@ export default function EntitlementsIndex({
     providers: ProviderOption[];
     cafeteriaProviders: CafeteriaProviderRow[];
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | null>(null);
 
     const form = useForm({
@@ -99,14 +100,14 @@ export default function EntitlementsIndex({
                                 >
                                     <div className="min-w-0">
                                         <p className="truncate font-medium text-(--app-foreground)">
-                                            {cp.name_en}
+                                            {localizedName(cp.name_en, cp.name_am, locale)}
                                         </p>
                                         <p className="mt-0.5 font-mono text-xs text-(--app-muted-foreground)">
                                             {t('entitlements.code')}: {cp.code}
                                         </p>
                                         {cp.organization && (
                                             <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
-                                                {cp.organization.name_en}
+                                                {localizedName(cp.organization.name_en, cp.organization.name_am, locale)}
                                             </p>
                                         )}
                                         {cp.location && (
@@ -160,7 +161,7 @@ export default function EntitlementsIndex({
                                                     {ent.employee?.employee_number} · {ent.employee?.full_name}
                                                 </p>
                                                 <p className="mt-0.5 text-sm text-(--app-muted-foreground)">
-                                                    {ent.service_type?.name_en ?? t('entitlements.unknownService')}{' '}
+                                                    {localizedName(ent.service_type?.name_en, ent.service_type?.name_am, locale) || t('entitlements.unknownService')}{' '}
                                                     · {ent.service_provider?.name ?? t('entitlements.globalScope')}
                                                 </p>
                                             </div>

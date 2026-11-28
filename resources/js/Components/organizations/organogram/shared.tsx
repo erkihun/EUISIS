@@ -139,7 +139,7 @@ export function UnitBox({
             <p className={`truncate font-semibold text-(--app-foreground) ${compact ? 'text-[11px]' : 'text-sm'}`}>
                 {localizedName(unit.name_en, unit.name_am, locale)}
             </p>
-            {unit.unit_type?.name_en && !compact && (
+            {localizedName(unit.unit_type?.name_en, unit.unit_type?.name_am, locale) && !compact && (
                 <p className="truncate text-[10px] text-(--app-muted-foreground)">
                     {localizedName(unit.unit_type.name_en, unit.unit_type.name_am, locale)}
                 </p>
@@ -173,7 +173,7 @@ function initialsOf(fullName: string): string {
  * shallower depths `applyDepth` nulls the assignment and this never mounts.
  */
 export function EmployeePhoto({ employee, size }: { employee: { full_name: string; photo_url: string | null }; size: number }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const [failed, setFailed] = useState(false);
     const dimension = { width: `${size}px`, height: `${size}px` };
 
@@ -204,7 +204,7 @@ export function EmployeePhoto({ employee, size }: { employee: { full_name: strin
 }
 
 export function EmployeeBox({ position, compact = false }: { position: OrganogramPosition; compact?: boolean }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const employee = position.assignment?.employee;
 
     if (!employee) {
@@ -236,7 +236,7 @@ export function EmployeeBox({ position, compact = false }: { position: Organogra
 }
 
 export function OccupancyBadge({ occupancy }: { occupancy: 'occupied' | 'vacant' }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     return (
         <span

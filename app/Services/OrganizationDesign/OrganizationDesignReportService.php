@@ -120,7 +120,7 @@ class OrganizationDesignReportService
 
         return LegalSource::query()
             ->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizations->pluck('id')))
-            ->with('sourceType:id,code,name_en')->withCount(['attachments', 'citations'])
+            ->with('sourceType:id,code,name_en,name_am')->withCount(['attachments', 'citations'])
             ->orderBy('organization_id')->orderBy('code')->limit(5000)->get()
             ->map(fn (LegalSource $s) => [
                 'organization_code' => $s->organization_id === null ? 'CITY' : ($codes[$s->organization_id] ?? ''),
@@ -186,7 +186,7 @@ class OrganizationDesignReportService
         $today = now()->toDateString();
         $codes = $organizations->pluck('code', 'id');
         $positions = Position::query()->whereIn('organization_id', $ids)->where('is_active', true)
-            ->with(['organizationUnit:id,code', 'occupation:id,code,isco_code,name_en'])
+            ->with(['organizationUnit:id,code', 'occupation:id,code,isco_code,name_en,name_am'])
             ->withCount(['profiles as profiles_count'])
             ->orderBy('organization_id')->orderBy('job_position_code')->limit(5000)->get();
         $positionIds = $positions->pluck('id');
@@ -247,11 +247,11 @@ class OrganizationDesignReportService
                         'owner_unit_code' => $s->ownerUnit?->code, 'functions' => $s->functions->pluck('code')->sort()->implode(', '), 'processes' => (int) ($processCounts[$s->id] ?? 0), 'status' => $s->status->value, 'effective_from' => $s->effective_from?->toDateString(),
                     ])->all();
             })(),
-            'function_service_matrix' => OrganizationFunction::query()->where('organization_id', $id)->with(['mandate:id,code', 'services:id,code,name_en,status'])->orderBy('path')->limit(5000)->get()
+            'function_service_matrix' => OrganizationFunction::query()->where('organization_id', $id)->with(['mandate:id,code', 'services:id,code,name_en,name_am,status'])->orderBy('path')->limit(5000)->get()
                 ->flatMap(fn (OrganizationFunction $f) => $f->services->isEmpty()
                     ? [['mandate_code' => $f->mandate?->code, 'function_code' => $f->code, 'function_name' => $f->title_en, 'service_code' => null, 'service_name' => null, 'service_status' => null]]
                     : $f->services->map(fn ($s) => ['mandate_code' => $f->mandate?->code, 'function_code' => $f->code, 'function_name' => $f->title_en, 'service_code' => $s->code, 'service_name' => $s->name_en, 'service_status' => $s->status->value]))->all(),
-            'service_process_matrix' => Process::query()->where('organization_id', $id)->whereIn('status', $published)->with('service:id,code,name_en')->withCount(['activities', 'tasks'])->orderBy('code')->limit(5000)->get()
+            'service_process_matrix' => Process::query()->where('organization_id', $id)->whereIn('status', $published)->with('service:id,code,name_en,name_am')->withCount(['activities', 'tasks'])->orderBy('code')->limit(5000)->get()
                 ->map(fn (Process $p) => ['service_code' => $p->service?->code, 'service_name' => $p->service?->name_en, 'process_code' => $p->code, 'process_name' => $p->name_en, 'process_type' => $p->process_type instanceof \BackedEnum ? $p->process_type->value : $p->process_type, 'activities' => (int) $p->activities_count, 'tasks' => (int) $p->tasks_count, 'status' => $p->status->value])->all(),
             'process_activity_matrix' => (function () use ($id, $today): array {
                 $activities = ProcessActivity::query()->where('organization_id', $id)->where('is_active', true)->with('process:id,code')->withCount('tasks')->orderBy('path')->limit(5000)->get();
@@ -292,7 +292,7 @@ class OrganizationDesignReportService
                 $approved = PositionRequirement::query()->where('organization_id', $id)->whereIn('status', ['approved', 'implemented'])->selectRaw('occupation_id, sum(approved_headcount) as n')->groupBy('occupation_id')->pluck('n', 'occupation_id');
                 $ids = $positions->pluck('occupation_id')->merge($tasks->keys())->merge($approved->keys())->unique();
 
-                return Occupation::query()->whereIn('id', $ids)->orderBy('isco_code')->get(['id', 'code', 'isco_code', 'name_en'])->map(function (Occupation $o) use ($positions, $current, $tasks, $approved): array {
+                return Occupation::query()->whereIn('id', $ids)->orderBy('isco_code')->get(['id', 'code', 'isco_code', 'name_en', 'name_am'])->map(function (Occupation $o) use ($positions, $current, $tasks, $approved): array {
                     $own = $positions->where('occupation_id', $o->id)->pluck('id');
 
                     return ['occupation_code' => $o->isco_code ?? $o->code, 'occupation_name' => $o->name_en, 'tasks_requiring' => (int) ($tasks[$o->id] ?? 0), 'positions' => $own->count(), 'approved_headcount' => (int) ($approved[$o->id] ?? 0), 'current_employees' => (int) $own->sum(fn ($p) => $current[$p] ?? 0)];
@@ -303,13 +303,13 @@ class OrganizationDesignReportService
                 $positions = PositionCompetencyRequirement::query()->where('organization_id', $id)->get(['competency_id', 'is_mandatory'])->groupBy('competency_id');
                 $ids = $tasks->keys()->merge($positions->keys())->unique();
 
-                return Competency::query()->whereIn('id', $ids)->orderBy('code')->get(['id', 'code', 'name_en'])->map(fn (Competency $c) => [
+                return Competency::query()->whereIn('id', $ids)->orderBy('code')->get(['id', 'code', 'name_en', 'name_am'])->map(fn (Competency $c) => [
                     'competency_code' => $c->code, 'competency_name' => $c->name_en, 'tasks_requiring' => (int) ($tasks[$c->id] ?? 0),
                     'positions_requiring' => ($positions->get($c->id) ?? collect())->count(), 'mandatory_positions' => ($positions->get($c->id) ?? collect())->where('is_mandatory', true)->count(),
                 ])->all();
             })(),
             'responsibility_matrix' => (function () use ($id): array {
-                $rows = UnitResponsibility::query()->where('organization_id', $id)->whereNotNull('organization_unit_id')->with(['unit:id,code,name_en', 'type:id,code'])->limit(10000)->get();
+                $rows = UnitResponsibility::query()->where('organization_id', $id)->whereNotNull('organization_unit_id')->with(['unit:id,code,name_en,name_am', 'type:id,code'])->limit(10000)->get();
                 $objects = [];
                 foreach (UnitResponsibility::OBJECT_MODELS as $type => $model) {
                     $ids = $rows->where('object_type', $type)->pluck('object_id')->unique();
@@ -327,7 +327,7 @@ class OrganizationDesignReportService
                 $requirements = PositionRequirement::query()->whereIn('plan_id', $plans->keys())->get(['plan_id', 'organization_unit_id', 'occupation_id', 'position_id', 'status']);
                 $current = EmployeeAssignment::query()->whereIn('position_id', $requirements->pluck('position_id')->filter())->where('is_current', true)->selectRaw('position_id, count(*) as n')->groupBy('position_id')->pluck('n', 'position_id');
 
-                return ManpowerPlanLine::query()->whereIn('plan_id', $plans->keys())->with(['unit:id,code', 'occupation:id,code,isco_code,name_en'])->orderBy('sequence')->limit(10000)->get()->map(function (ManpowerPlanLine $l) use ($plans, $requirements, $current): array {
+                return ManpowerPlanLine::query()->whereIn('plan_id', $plans->keys())->with(['unit:id,code', 'occupation:id,code,isco_code,name_en,name_am'])->orderBy('sequence')->limit(10000)->get()->map(function (ManpowerPlanLine $l) use ($plans, $requirements, $current): array {
                     $implemented = $requirements->filter(fn ($r) => $r->plan_id === $l->plan_id && $r->organization_unit_id === $l->organization_unit_id && $r->occupation_id === $l->occupation_id && $r->position_id !== null);
 
                     return [
@@ -337,20 +337,20 @@ class OrganizationDesignReportService
                     ];
                 })->all();
             })(),
-            'position_requirements' => PositionRequirement::query()->where('organization_id', $id)->with(['plan:id,reference_number', 'unit:id,code', 'occupation:id,code,isco_code,name_en', 'profession:id,code,name_en', 'position:id,job_position_code', 'establishment:id,establishment_number'])->orderBy('sequence')->limit(10000)->get()
+            'position_requirements' => PositionRequirement::query()->where('organization_id', $id)->with(['plan:id,reference_number', 'unit:id,code', 'occupation:id,code,isco_code,name_en,name_am', 'profession:id,code,name_en,name_am', 'position:id,job_position_code', 'establishment:id,establishment_number'])->orderBy('sequence')->limit(10000)->get()
                 ->map(fn (PositionRequirement $r) => [
                     'reference_number' => $r->plan?->reference_number, 'unit_code' => $r->unit?->code, 'occupation' => $r->occupation ? trim(($r->occupation->isco_code ?? $r->occupation->code).' '.$r->occupation->name_en) : null, 'profession' => $r->profession?->name_en,
                     'position_title' => $r->position_title_en, 'required_fte' => $r->required_fte === null ? null : (string) $r->required_fte, 'approved_headcount' => $r->approved_headcount, 'status' => $r->status instanceof \BackedEnum ? $r->status->value : $r->status,
                     'position_code' => $r->position?->job_position_code, 'establishment_number' => $r->establishment?->establishment_number,
                 ])->all(),
             'vacancy' => (function () use ($id): array {
-                $positions = Position::query()->where('organization_id', $id)->where('is_active', true)->with('organizationUnit:id,code')->orderBy('job_position_code')->limit(20000)->get(['id', 'job_position_code', 'title_en', 'organization_unit_id']);
+                $positions = Position::query()->where('organization_id', $id)->where('is_active', true)->with('organizationUnit:id,code')->orderBy('job_position_code')->limit(20000)->get(['id', 'job_position_code', 'title_en', 'title_am', 'organization_unit_id']);
                 $slots = PositionEstablishment::query()->whereIn('position_id', $positions->pluck('id'))->where('status', 'approved')->selectRaw('position_id, sum(approved_slots) as n')->groupBy('position_id')->pluck('n', 'position_id');
                 $current = EmployeeAssignment::query()->whereIn('position_id', $positions->pluck('id'))->where('is_current', true)->selectRaw('position_id, count(*) as n')->groupBy('position_id')->pluck('n', 'position_id');
 
                 return $positions->map(fn (Position $p) => ['position_code' => $p->job_position_code, 'position_title' => $p->title_en, 'unit_code' => $p->organizationUnit?->code, 'approved_slots' => (int) ($slots[$p->id] ?? 0), 'current_employees' => (int) ($current[$p->id] ?? 0), 'vacancies' => (int) ($slots[$p->id] ?? 0) - (int) ($current[$p->id] ?? 0)])->all();
             })(),
-            'jd_register' => JobDescription::query()->where('organization_id', $id)->with(['position:id,job_position_code,title_en', 'preparer:id,name', 'approver:id,name', 'publisher:id,name'])->orderBy('reference_number')->orderBy('version_no')->limit(10000)->get()
+            'jd_register' => JobDescription::query()->where('organization_id', $id)->with(['position:id,job_position_code,title_en,title_am', 'preparer:id,name', 'approver:id,name', 'publisher:id,name'])->orderBy('reference_number')->orderBy('version_no')->limit(10000)->get()
                 ->map(fn (JobDescription $jd) => [
                     'reference_number' => $jd->reference_number, 'position_code' => $jd->position?->job_position_code, 'position_title' => $jd->position?->title_en, 'version_no' => $jd->version_no, 'status' => $jd->status->value,
                     'effective_from' => $jd->effective_from?->toDateString(), 'effective_to' => $jd->effective_to?->toDateString(), 'prepared_by' => $jd->preparer?->name, 'approved_by' => $jd->approver?->name, 'published_by' => $jd->publisher?->name,

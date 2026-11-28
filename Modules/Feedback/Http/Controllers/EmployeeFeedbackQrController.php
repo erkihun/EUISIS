@@ -146,9 +146,9 @@ class EmployeeFeedbackQrController extends Controller
         $pdf = Pdf::loadView('pdf.feedback-qr', [
             'qr' => $this->qrRenderer->asSvgDataUri($token->publicUrl(), 260),
             'url' => $token->publicUrl(),
-            'organization' => $assignment?->organization?->name_en,
-            'unit' => $assignment?->organizationUnit?->name_en,
-            'position' => $assignment?->position?->title_en,
+            'organization' => localized_name($assignment?->organization),
+            'unit' => localized_name($assignment?->organizationUnit),
+            'position' => localized_name($assignment?->position, 'title'),
         ])->setPaper('a4');
 
         $this->auditExport($employee, $request, 'PDF');
