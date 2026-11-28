@@ -14,6 +14,7 @@ use Modules\Entitlements\Providers\EntitlementsServiceProvider;
 use Modules\Feedback\Providers\FeedbackServiceProvider;
 use Modules\FieldWork\Providers\FieldWorkServiceProvider;
 use Modules\Grievance\Providers\GrievanceServiceProvider;
+use Modules\Leave\Providers\LeaveServiceProvider;
 use Modules\Letters\Providers\LettersServiceProvider;
 use Modules\Performance\Providers\PerformanceServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
@@ -27,6 +28,7 @@ use Modules\ServiceMonitoring\Providers\ServiceMonitoringServiceProvider;
 use Modules\TipOffs\Providers\TipOffsServiceProvider;
 use Modules\Transfer\Providers\TransferServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
+use Modules\WorkExperience\Providers\WorkExperienceServiceProvider;
 
 return [
     AppServiceProvider::class,
@@ -56,6 +58,9 @@ return [
     LettersServiceProvider::class,
     // Institutional Reporting & Compliance (Modules/Reporting/README.md): the module's single entry point.
     ReportingServiceProvider::class,
+    // Employee leave (ADR 0039). After DailyWork: it asks DailyWork's contract who an employee's manager is.
+    LeaveServiceProvider::class,
+    WorkExperienceServiceProvider::class,
     PublicSiteServiceProvider::class,
     RecruitmentServiceProvider::class,
     TransferServiceProvider::class,

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Reporting\Http\Controllers\ConsolidationController;
 use Modules\Reporting\Http\Controllers\FileController;
 use Modules\Reporting\Http\Controllers\FollowUpController;
+use Modules\Reporting\Http\Controllers\MonitoringUnitController;
 use Modules\Reporting\Http\Controllers\ObligationController;
 use Modules\Reporting\Http\Controllers\OverviewController;
 use Modules\Reporting\Http\Controllers\PrepareController;
@@ -104,6 +105,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         // Settings and operational health.
         Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
-        Route::post('/settings/monitoring-units', [SettingsController::class, 'designateUnit'])->name('monitoring-units.store');
-        Route::delete('/settings/monitoring-units/{organization}', [SettingsController::class, 'removeUnit'])->whereUuid('organization')->name('monitoring-units.destroy');
+
+        // The work unit that follows up reports in each institution.
+        Route::get('/follow-up-units', [MonitoringUnitController::class, 'index'])->name('monitoring-units.index');
+        Route::post('/follow-up-units', [MonitoringUnitController::class, 'store'])->name('monitoring-units.store');
+        Route::delete('/follow-up-units/{organization}', [MonitoringUnitController::class, 'destroy'])->whereUuid('organization')->name('monitoring-units.destroy');
     });

@@ -10,6 +10,8 @@ import amDailyActivities from '@/i18n/am/dailyActivities';
 import amFieldWork from '@/i18n/am/fieldWork';
 import amServiceMonitoring from '@/i18n/am/serviceMonitoring';
 import amLetters from '@/i18n/am/letters';
+import amLeave from '@/modules/leave/i18n/am';
+import amWorkExperience from '@/modules/work-experience/i18n/am';
 import amReporting from '@/modules/reporting/i18n/am';
 import amPerformance from '@/i18n/am/performance';
 import amCommunication from '@/i18n/am/communication';
@@ -97,6 +99,8 @@ const tree: TranslationTree = {
     serviceMonitoring: amServiceMonitoring,
     letters: amLetters,
     reporting: amReporting,
+    leave: amLeave,
+    workExperience: amWorkExperience,
     dailyActivities: amDailyActivities,
     performance: amPerformance,
     communication: amCommunication,

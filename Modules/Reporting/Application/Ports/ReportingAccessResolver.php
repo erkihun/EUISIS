@@ -34,6 +34,14 @@ interface ReportingAccessResolver
      */
     public function receiversFor(string $permission, string $organizationId, int $limit = 20): array;
 
+    /**
+     * The people who staff a work unit (placed in it or in a unit beneath
+     * it), by name, each with the Reporting permissions they hold.
+     *
+     * @return list<array{user: UserSummary, permissions: list<string>}>
+     */
+    public function staffOf(string $unitId, int $limit = 50): array;
+
     public function holdersFor(string $permission, string $organizationId, int $limit = 20): array;
 
     /**

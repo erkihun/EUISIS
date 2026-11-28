@@ -35,6 +35,14 @@ final class CoreAccessResolver implements ReportingAccessResolver
         return array_map(self::summary(...), $this->reader->holdersFor($permission, $organizationId, $limit));
     }
 
+    public function staffOf(string $unitId, int $limit = 50): array
+    {
+        return array_map(fn (UserSummaryData $user): array => [
+            'user' => self::summary($user),
+            'permissions' => $this->reader->grantedAmong($user->userId, ReportingRoles::ALL),
+        ], $this->reader->usersPlacedIn($unitId, $limit));
+    }
+
     public function receiversFor(string $permission, string $organizationId, int $limit = 20): array
     {
         $unitId = MonitoringUnit::query()->where('organization_id', $organizationId)->value('organization_unit_id');

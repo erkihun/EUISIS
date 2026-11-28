@@ -119,14 +119,31 @@ it('lets only an administrator who reaches the institution name its unit, and on
 
     expect(MonitoringUnit::query()->count())->toBe(2)
         ->and(MonitoringUnit::query()->where('organization_id', $this->s->org['HQ']->id)->value('unit_code'))->toBe('HQ-MON2')
-        ->and(array_column(array_column($units->list($this->s->actor($localAdmin)), 'unit'), 'code'))->toBe(['A-MON']);
+        ->and(collect($units->page($this->s->actor($localAdmin))->items())->pluck('unit.code')->all())->toBe(['A-MON']);
 });
 
-it('names and removes the unit from the report settings page', function (): void {
-    $this->actingAs($this->s->admin)->post(route('reporting.monitoring-units.store'), ['organization_id' => $this->s->org['HQ']->id, 'organization_unit_id' => $this->monitoring->id])->assertRedirect();
-    $this->actingAs($this->s->admin)->get(route('reporting.settings.edit'))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->has('monitoring_units', 1)->where('monitoring_units.0.unit.code', 'HQ-MON')->where('monitoring_units.0.organization.code', 'RPT-HQ'));
+it('names, lists and removes the unit on its own page, with the people placed in it', function (): void {
+    $reviewer = ($this->placed)($this->monitoring, ReportingRoles::REVIEWER);
+    $plain = ($this->placed)($this->monitoring, []);
 
+    $this->actingAs($this->s->admin)->post(route('reporting.monitoring-units.store'), ['organization_id' => $this->s->org['HQ']->id, 'organization_unit_id' => $this->monitoring->id])->assertRedirect();
+    $this->actingAs($this->s->admin)->get(route('reporting.monitoring-units.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('modules/reporting/MonitoringUnits', false)
+            ->where('summary.designated', 1)->has('units.data', 1)
+            ->where('units.data.0.unit.code', 'HQ-MON')->where('units.data.0.organization.code', 'RPT-HQ')->where('units.data.0.unit_active', true)
+            ->has('units.data.0.staff', 2)
+            ->where('units.data.0.staff', fn ($staff) => collect($staff)->pluck('role', 'id')->all() === [$reviewer->id => 'review', $plain->id => 'none'])
+            ->where('can.manage', true));
+    $this->actingAs($this->s->admin)->get(route('reporting.monitoring-units.index', ['search' => 'nothing-like-this']))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('units.data', 0));
+    // The settings page no longer carries the list.
+    $this->actingAs($this->s->admin)->get(route('reporting.settings.edit'))->assertOk()->assertInertia(fn (Assert $page) => $page->missing('monitoring_units'));
+
+    // A closed unit is flagged for a change, not silently kept.
+    $this->monitoring->update(['status' => 'inactive']);
+    $this->actingAs($this->s->admin)->get(route('reporting.monitoring-units.index'))->assertInertia(fn (Assert $page) => $page->where('units.data.0.unit_active', false));
+
+    $this->actingAs($this->s->reviewer())->get(route('reporting.monitoring-units.index'))->assertForbidden();
     $this->actingAs($this->s->reviewer())->post(route('reporting.monitoring-units.store'), ['organization_id' => $this->s->org['HQ']->id, 'organization_unit_id' => $this->monitoring->id])->assertForbidden();
     $this->actingAs($this->s->admin)->delete(route('reporting.monitoring-units.destroy', $this->s->org['HQ']->id))->assertRedirect();
     expect(MonitoringUnit::query()->count())->toBe(0);

@@ -318,13 +318,13 @@ export function ActionMenu({ items, label, renderLink }: { items: ActionItem[]; 
         <MenuButton onClick={(event: MouseEvent) => event.stopPropagation()} className="inline-flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary data-open:bg-(--app-surface-muted) data-open:text-(--app-foreground)" aria-label={name} title={name}>
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
         </MenuButton>
-        <MenuItems transition anchor="bottom end" onClick={(event: MouseEvent) => event.stopPropagation()} className="z-50 w-48 origin-top-right rounded-card border border-(--app-border) bg-(--app-surface) p-1 shadow-lg transition duration-100 ease-out focus:outline-hidden data-closed:scale-95 data-closed:opacity-0 [--anchor-gap:4px]">
+        <MenuItems transition anchor="bottom end" onClick={(event: MouseEvent) => event.stopPropagation()} className="z-50 w-max min-w-48 max-w-[min(22rem,calc(100vw-2rem))] origin-top-right rounded-card border border-(--app-border) bg-(--app-surface) p-1 shadow-lg transition duration-100 ease-out focus:outline-hidden data-closed:scale-95 data-closed:opacity-0 [--anchor-gap:4px]">
                 {visible.map((item, index) => {
                     const tone = actionItemTones[item.tone ?? (item.danger ? 'danger' : 'default')];
                     return <Fragment key={index}>
                         {item.separatorBefore && <div className="my-1 border-t border-(--app-border)" />}
                         <MenuItem disabled={item.disabled}>{({ focus }) => {
-                            const itemClass = cx('flex w-full items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-left text-sm [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0', tone.text, focus && tone.focus, item.disabled && 'cursor-not-allowed opacity-50');
+                            const itemClass = cx('flex w-full items-start gap-2 rounded-control px-3 py-2 text-left text-sm [&>svg]:mt-0.5 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0', tone.text, focus && tone.focus, item.disabled && 'cursor-not-allowed opacity-50');
                             // An item without its own icon borrows the app's rule for its label (View, Edit, Delete, …).
                             const glyph = <ActionItemGlyph item={item} />;
                             if (item.href && renderLink) return renderLink({ ...item, icon: glyph }, itemClass);
