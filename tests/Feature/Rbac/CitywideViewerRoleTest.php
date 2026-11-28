@@ -74,6 +74,8 @@ it('is a global role with an Amharic name, and sees every institution without a 
 
     expect($scope->isUnrestricted($viewer))->toBeTrue()
         ->and($scope->canAccessOrganization($viewer, $organization->id))->toBeTrue()
+        // The lists and the dashboard count through this; it was empty while the role was only "global".
+        ->and($scope->accessibleOrganizationIds($viewer)->map(fn ($id): string => (string) $id)->all())->toContain((string) $organization->id)
         ->and($viewer->can('employees.viewAny'))->toBeTrue()
         ->and($viewer->can('employees.manage'))->toBeFalse()
         ->and($viewer->can('organizations.create'))->toBeFalse()

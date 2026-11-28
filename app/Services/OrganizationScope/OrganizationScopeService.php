@@ -32,6 +32,8 @@ class OrganizationScopeService
         'System Admin',
         'City Admin',
         'Public Service Bureau Admin',
+        // Look-only: it holds view permissions alone, so reaching every organization lets it read, never change.
+        'City-wide Viewer',
     ];
 
     /** @var array<string, Collection> */
