@@ -54,6 +54,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Liveness/readiness probes, outside the web group (no session per probe).
         then: function (): void {
             Route::group([], __DIR__.'/../routes/health.php');
+            // The temporary pilot week dashboard: unlisted, reached by its own link.
+            Route::group([], __DIR__.'/../routes/pilot-dashboard.php');
         },
     )
     // Channel authorization runs behind the same gates as the pages that use it,
