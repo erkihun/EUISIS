@@ -41,6 +41,7 @@ const common = {
     tableSortBy: 'በ :column ደርድር',
     tableTools: 'የሰንጠረዥ መሣሪያዎች',
     loading: 'በመጫን ላይ…',
+    breadcrumb: 'የገጹ መገኛ መንገድ',
     loading_page: 'ገጹ እየተጫነ ነው',
     please_wait: 'ገጹ እስኪዘጋጅ ድረስ እባክዎ ይጠብቁ።',
     page_failed_to_load: 'ገጹን መጫን አልተቻለም። ገጹን እንደገና ያድሱና ይሞክሩ።',

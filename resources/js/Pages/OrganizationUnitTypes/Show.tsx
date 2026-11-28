@@ -5,6 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type OrgUnitType = {
     id: string;
     code: string;
@@ -20,14 +21,14 @@ type OrgUnitType = {
 };
 
 export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     return (
         <AuthenticatedLayout
             header={
                 <PageHeader
                     backHref={route('organization-unit-types.index')}
-                    title={type.name_en}
+                    title={localizedName(type.name_en, type.name_am, locale)}
                     description={type.code}
                     actions={
                         type.can.update ? (
@@ -42,7 +43,7 @@ export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType 
                 />
             }
         >
-            <Head title={type.name_en} />
+            <Head title={localizedName(type.name_en, type.name_am, locale)} />
 
             <div className="space-y-6">
                 <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">

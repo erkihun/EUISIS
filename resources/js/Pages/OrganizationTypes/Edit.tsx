@@ -6,6 +6,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import ParentAllowedTypesInput from '@/Components/organizationTypes/ParentAllowedTypesInput';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type OrgType = {
     id: string;
     code: string;
@@ -61,7 +62,7 @@ export default function EditOrganizationType({
     type: OrgType;
     allTypes: { code: string; name_en: string }[];
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const form = useForm<{
         code: string;
@@ -99,7 +100,7 @@ export default function EditOrganizationType({
             header={
                 <PageHeader
                     title={t('organizationTypes.editTitle')}
-                    description={`${t('organizationTypes.editPrefix')} ${type.name_en}`}
+                    description={`${t('organizationTypes.editPrefix')} ${localizedName(type.name_en, type.name_am, locale)}`}
                 />
             }
         >

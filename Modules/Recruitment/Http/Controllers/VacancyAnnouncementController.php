@@ -223,14 +223,14 @@ class VacancyAnnouncementController extends Controller
             'organizations' => Organization::query()
                 ->where('status', 'active')
                 ->orderBy('name_en')
-                ->get(['id', 'name_en']),
+                ->get(['id', 'name_en', 'name_am']),
             'units' => OrganizationUnit::query()
                 ->where('status', 'active')
                 ->orderBy('name_en')
-                ->get(['id', 'name_en', 'organization_id']),
+                ->get(['id', 'name_en', 'name_am', 'organization_id']),
             'establishments' => PositionEstablishment::query()
                 ->where('status', EstablishmentStatus::Approved->value)
-                ->with(['position:id,title_en', 'organization:id,name_en', 'organizationUnit:id,name_en'])
+                ->with(['position:id,title_en,title_am', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am'])
                 ->get(['id', 'organization_id', 'organization_unit_id', 'position_id', 'approved_slots']),
         ];
     }

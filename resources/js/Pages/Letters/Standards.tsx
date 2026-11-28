@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { FileClassOption, FileClassRow, OrganizationOption, ReplyStandard } from '@/types/letters';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
+import { localizedName } from '@/utils/localizedName';
 
 interface Props {
     organizations: OrganizationOption[];
@@ -139,7 +140,7 @@ export default function Standards({ organizations, platform, selected_organizati
                                         <Tr key={c.id}>
                                             <Td className="font-mono">{c.code}</Td>
                                             <Td>{c.title_am ?? '—'}</Td>
-                                            <Td>{c.title_en ?? '—'}</Td>
+                                            <Td>{localizedName(c.title_en, c.title_am, locale) || '—'}</Td>
                                             <Td>{file_classes.find((p) => p.id === c.parent_id)?.code ?? '—'}</Td>
                                             <Td>{c.active ? lt('standards.classActive') : lt('standards.classInactive')}</Td>
                                             <Td><button type="button" className={secondaryBtn} onClick={() => startEdit(c)}>{lt('common.edit')}</button></Td>

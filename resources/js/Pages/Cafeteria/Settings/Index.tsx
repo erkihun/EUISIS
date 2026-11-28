@@ -11,6 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 // ─── shared types ────────────────────────────────────────────────────────────
 type Settings = Record<string, unknown>;
 type InPageTab = 'general' | 'subsidy' | 'days' | 'scan' | 'day-rules' | 'holidays' | 'subsidy-rules' | 'reports' | 'provider-users';
@@ -28,7 +29,7 @@ type Holiday = {
     can: { update: boolean; archive: boolean };
 };
 type SubsidyRule = {
-    id: string; code: string; name_en: string; subsidy_amount: number;
+    id: string; code: string; name_en: string; name_am?: string | null; subsidy_amount: number;
     currency: string; effective_from: string; effective_to: string | null;
     applies_to: string; is_active: boolean; deleted_at: string | null;
     can: { update: boolean; archive: boolean };
@@ -50,7 +51,7 @@ type ProviderUser = {
     user: { name: string | null; email: string | null; username: string | null; status: string | null; provider_portal_enabled: boolean };
     provider: { code: string | null; name_en: string | null; name_am: string | null };
     organization: { name_en: string; name_am: string | null; code: string } | null;
-    branch: { id: string; code: string; name_en: string } | null;
+    branch: { id: string; code: string; name_en: string ; name_am?: string | null} | null;
 };
 type CanProps = {
     update: boolean;
@@ -174,7 +175,7 @@ export default function CafeteriaSettingsIndex({
     const dayRules: DayRule[]     = Array.isArray(rawDayRules)     ? rawDayRules     : (rawDayRules     as { data: DayRule[] })?.data     ?? [];
     const holidays: Holiday[]     = Array.isArray(rawHolidays)     ? rawHolidays     : (rawHolidays     as { data: Holiday[] })?.data     ?? [];
     const subsidyRules: SubsidyRule[] = Array.isArray(rawSubsidyRules) ? rawSubsidyRules : (rawSubsidyRules as { data: SubsidyRule[] })?.data ?? [];
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const { errors: providerErrors } = usePage().props;
     const [tab, setTab] = useState<InPageTab>(
@@ -332,7 +333,7 @@ export default function CafeteriaSettingsIndex({
     async function deleteProviderUser(assignment: ProviderUser) {
         const { confirmed } = await confirm({
             title: t('confirmations.confirmDeleteTitle'),
-            description: `${assignment.user.name} — ${assignment.provider.name_en}`,
+            description: `${assignment.user.name} — ${localizedName(assignment.provider.name_en, assignment.provider.name_am, locale)}`,
             confirmLabel: t('confirmations.delete'),
             cancelLabel: t('confirmations.cancel'),
             variant: 'danger',
@@ -723,7 +724,7 @@ export default function CafeteriaSettingsIndex({
                                             {holidays.map(h => (
                                                 <tr key={h.id} className={tableRowClassName}>
                                                     <td className={`${tdCls} font-medium text-(--app-foreground)`}><LocalizedDateDisplay value={h.holiday_date} /></td>
-                                                    <td className={tdCls}>{h.name_en}</td>
+                                                    <td className={tdCls}>{localizedName(h.name_en, h.name_am, locale)}</td>
                                                     <td className={tdCls}>{h.name_am ?? '—'}</td>
                                                     <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
                                                     <td className={cx(tableCellClassName, 'text-right')}>
@@ -774,7 +775,7 @@ export default function CafeteriaSettingsIndex({
                                             {subsidyRules.map(rule => (
                                                 <tr key={rule.id} className={tableRowClassName}>
                                                     <td className={tableCellClassName}>
-                                                        <div className="font-medium text-(--app-foreground)">{rule.name_en}</div>
+                                                        <div className="font-medium text-(--app-foreground)">{localizedName(rule.name_en, rule.name_am, locale)}</div>
                                                         <div className="font-mono text-xs text-(--app-muted-foreground)">{rule.code}</div>
                                                     </td>
                                                     <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
@@ -891,9 +892,9 @@ export default function CafeteriaSettingsIndex({
                                             { label: t('cafeteria.providerUser'), value: viewingAssignment.user.name },
                                             { label: t('common.email'), value: viewingAssignment.user.email ?? viewingAssignment.user.username ?? '—' },
                                             { label: t('common.status'), value: viewingAssignment.user.status ?? '—' },
-                                            { label: t('cafeteria.provider'), value: `${viewingAssignment.provider.name_en} · ${viewingAssignment.provider.code}` },
-                                            { label: t('cafeteria.branches'), value: viewingAssignment.branch ? `${viewingAssignment.branch.name_en} · ${viewingAssignment.branch.code}` : '—' },
-                                            { label: t('common.organization'), value: viewingAssignment.organization ? `${viewingAssignment.organization.name_en} · ${viewingAssignment.organization.code}` : t('common.allOrganizations') },
+                                            { label: t('cafeteria.provider'), value: `${localizedName(viewingAssignment.provider.name_en, viewingAssignment.provider.name_am, locale)} · ${viewingAssignment.provider.code}` },
+                                            { label: t('cafeteria.branches'), value: viewingAssignment.branch ? `${localizedName(viewingAssignment.branch.name_en, viewingAssignment.branch.name_am, locale)} · ${viewingAssignment.branch.code}` : '—' },
+                                            { label: t('common.organization'), value: viewingAssignment.organization ? `${localizedName(viewingAssignment.organization.name_en, viewingAssignment.organization.name_am, locale)} · ${viewingAssignment.organization.code}` : t('common.allOrganizations') },
                                             { label: t('cafeteria.providerRole'), value: viewingAssignment.provider_role ?? 'operator' },
                                             { label: t('common.active'), value: viewingAssignment.is_active ? t('common.yes') : t('common.no') },
                                         ].map(({ label, value }) => (
@@ -1071,13 +1072,13 @@ export default function CafeteriaSettingsIndex({
                                                         <div className="text-xs text-(--app-muted-foreground)">{assignment.user.email}</div>
                                                     </td>
                                                     <td className={tableCellClassName}>
-                                                        <div className="font-medium text-(--app-foreground)">{assignment.provider.name_en}</div>
+                                                        <div className="font-medium text-(--app-foreground)">{localizedName(assignment.provider.name_en, assignment.provider.name_am, locale)}</div>
                                                         <div className="font-mono text-xs text-(--app-muted-foreground)">{assignment.provider.code}</div>
                                                     </td>
                                                     <td className={tableCellClassName}>
                                                         {assignment.branch ? (
                                                             <>
-                                                                <div className="font-medium text-(--app-foreground)">{assignment.branch.name_en}</div>
+                                                                <div className="font-medium text-(--app-foreground)">{localizedName(assignment.branch.name_en, assignment.branch.name_am, locale)}</div>
                                                                 <div className="font-mono text-xs text-(--app-muted-foreground)">{assignment.branch.code}</div>
                                                             </>
                                                         ) : (
@@ -1087,7 +1088,7 @@ export default function CafeteriaSettingsIndex({
                                                     <td className={tableCellClassName}>
                                                         {assignment.organization ? (
                                                             <>
-                                                                <div className="font-medium text-(--app-foreground)">{assignment.organization.name_en}</div>
+                                                                <div className="font-medium text-(--app-foreground)">{localizedName(assignment.organization.name_en, assignment.organization.name_am, locale)}</div>
                                                                 <div className="font-mono text-xs text-(--app-muted-foreground)">{assignment.organization.code}</div>
                                                             </>
                                                         ) : (

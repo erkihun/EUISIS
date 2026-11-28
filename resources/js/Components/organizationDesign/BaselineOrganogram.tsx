@@ -1,6 +1,7 @@
 import { Button, Card, CardHeader, CardTitle, Select, badgeClassName } from '@/Components/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { useDesignText } from './ui';
+import { localizedName } from '@/utils/localizedName';
 
 type SnapshotUnit = { id: string; code: string; name_en: string; name_am: string | null; unit_type: string | null; parent_unit_id: string | null; status: string };
 type SnapshotPosition = { id: string; code: string; title_en: string; title_am: string | null; unit_id: string | null };
@@ -78,7 +79,7 @@ export default function BaselineOrganogram({ snapshotUrl, compareUrl, comparable
                 <div className="flex items-center gap-2">
                     {node.children.length > 0 ? (
                         <button type="button" onClick={() => toggle(node.id)} aria-expanded={open} className="grid h-6 w-6 place-items-center rounded text-xs text-(--app-muted-foreground) hover:bg-(--app-surface-muted) print:hidden">
-                            {open ? '−' : '+'}<span className="sr-only">{node.name_en}</span>
+                            {open ? '−' : '+'}<span className="sr-only">{localizedName(node.name_en, node.name_am, locale)}</span>
                         </button>
                     ) : <span className="inline-block w-6" aria-hidden="true" />}
                     <span className="rounded-md border border-(--app-border) bg-(--app-surface) px-2 py-1 text-sm">

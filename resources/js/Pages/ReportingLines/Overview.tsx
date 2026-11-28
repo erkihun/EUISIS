@@ -12,7 +12,7 @@ type Holder = { employee_id: string; employee_number: string | null; name: strin
 type Holders = { state: string; holders: Holder[] };
 type HeadInfo = {
     position_id: string; title_en: string; title_am: string | null; code: string | null; active: boolean;
-    reports_to: { position_id: string | null; title_en: string | null; basis: string | null; basis_label: string | null } | null;
+    reports_to: { position_id: string | null; title_en: string | null; title_am?: string | null; basis: string | null; basis_label: string | null } | null;
     link_outcome: string | null; link_outcome_label: string | null; link_explanation: string | null;
 };
 type UnitRow = {
@@ -174,7 +174,7 @@ export default function ReportingLinesIndex({ organizations, selected_organizati
                                                     <td className={tableCellClassName}>
                                                         {u.head?.reports_to ? (
                                                             <>
-                                                                {u.head.reports_to.title_en}
+                                                                {localizedName(u.head.reports_to.title_en, u.head.reports_to.title_am, locale)}
                                                                 {u.head.reports_to.basis_label && <div className="text-xs text-(--app-muted-foreground)">{u.head.reports_to.basis_label}</div>}
                                                             </>
                                                         ) : (

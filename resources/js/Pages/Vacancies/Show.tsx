@@ -6,20 +6,21 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Application = {
     id: string;
     application_number: string;
     status: string;
     applied_at: string;
-    employee: { name_en: string } | null;
+    employee: { name_en: string ; full_name?: string | null; name_am?: string | null} | null;
 };
 
 type AnnouncementPosition = {
     id: string;
     vacancy_slots: number;
-    organization: { name_en: string } | null;
-    organization_unit: { name_en: string } | null;
-    position: { title_en: string } | null;
+    organization: { name_en: string ; name_am?: string | null} | null;
+    organization_unit: { name_en: string ; name_am?: string | null} | null;
+    position: { title_en: string ; title_am?: string | null} | null;
     applications: Application[];
 };
 
@@ -48,7 +49,7 @@ type Props = {
 };
 
 export default function VacanciesShow({ announcement, can, currentEmployeeId, appliedPositionEntryIds }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const totalSlots = announcement.positions.reduce((sum, p) => sum + Number(p.vacancy_slots || 0), 0);
     const totalSelected = announcement.applications.filter(a => ['selected', 'transferred'].includes(a.status)).length;
@@ -67,7 +68,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
             header={
                 <PageHeader
                     backHref={route('vacancy-announcements.index')}
-                    title={announcement.title_en}
+                    title={localizedName(announcement.title_en, announcement.title_am, locale)}
                     description={announcement.announcement_number}
                     actions={
                         <div className="flex gap-2">
@@ -91,7 +92,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                 />
             }
         >
-            <Head title={announcement.title_en} />
+            <Head title={localizedName(announcement.title_en, announcement.title_am, locale)} />
 
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                 {/* Left: announcement details + positions */}
@@ -99,7 +100,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                     <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <h3 className="text-lg font-semibold text-(--app-foreground)">{announcement.title_en}</h3>
+                                <h3 className="text-lg font-semibold text-(--app-foreground)">{localizedName(announcement.title_en, announcement.title_am, locale)}</h3>
                                 {announcement.title_am && <p className="text-sm text-(--app-muted-foreground)">{announcement.title_am}</p>}
                             </div>
                             <StatusBadge status={announcement.status} />
@@ -177,9 +178,9 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
 
                                         return (
                                             <tr key={position.id}>
-                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{position.organization?.name_en ?? '-'}</td>
-                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{position.organization_unit?.name_en ?? '-'}</td>
-                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{position.position?.title_en ?? '-'}</td>
+                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(position.organization?.name_en, position.organization?.name_am, locale) || '-'}</td>
+                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{localizedName(position.organization_unit?.name_en, position.organization_unit?.name_am, locale) || '-'}</td>
+                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localizedName(position.position?.title_en, position.position?.title_am, locale) || '-'}</td>
                                                 <td className={tableCellClassName}>
                                                     <span className={`text-sm font-semibold ${availableSlots > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-(--app-muted-foreground)'}`}>
                                                         {availableSlots}
@@ -248,7 +249,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                             {announcement.applications.map(application => (
                                 <li key={application.id} className="flex items-center justify-between gap-3">
                                     <Link href={route('vacancy-applications.show', application.id)} className="truncate text-primary hover:underline dark:text-primary">
-                                        {application.employee?.name_en ?? application.application_number}
+                                        {(locale === 'am' ? application.employee?.full_name || application.employee?.name_en : application.employee?.name_en || application.employee?.full_name) || application.application_number}
                                     </Link>
                                     <StatusBadge status={application.status} />
                                 </li>

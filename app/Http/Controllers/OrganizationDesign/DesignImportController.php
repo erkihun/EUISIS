@@ -49,7 +49,7 @@ class DesignImportController extends Controller
             'organizations' => $this->organizationOptions($user),
             'entityTypes' => DesignImportDefinitions::TYPES,
             'statuses' => DesignImportBatch::STATUSES,
-            'baselines' => $baselines->limit(100)->get(['id', 'organization_id', 'reference_number', 'title_en'])->map->only(['id', 'organization_id', 'reference_number', 'title_en']),
+            'baselines' => $baselines->limit(100)->get(['id', 'organization_id', 'reference_number', 'title_en', 'title_am'])->map->only(['id', 'organization_id', 'reference_number', 'title_en']),
             'allowedExtensions' => DesignImportService::ALLOWED_EXTENSIONS,
             'maxFileKb' => DesignImportService::MAX_FILE_KB,
             'can' => ['create' => $user->can('create', DesignImportBatch::class)],

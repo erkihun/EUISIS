@@ -49,7 +49,7 @@ function slug(text: string, taken: string[]): string {
  * published keep the version they were pinned to.
  */
 export default function TypeForm({ type, receiving, template, published, defaults }: Props): JSX.Element {
-    const { rt, moment } = useReporting();
+    const { rt, moment, name } = useReporting();
     const [organization, setOrganization] = useState<OrganizationRef | null>(receiving);
     const [publishing, setPublishing] = useState(false);
     const form = useForm({
@@ -96,7 +96,7 @@ export default function TypeForm({ type, receiving, template, published, default
     );
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={type ? rt('types.edit') : rt('types.add')} description={type ? type.name_en : rt('types.addDescription')} backHref={route('reporting.types.index')} />}>
+        <AuthenticatedLayout header={<PageHeader title={type ? rt('types.edit') : rt('types.add')} description={type ? name(type) : rt('types.addDescription')} backHref={route('reporting.types.index')} />}>
             <Head title={type ? rt('types.edit') : rt('types.add')} />
             <ActionErrors except={Object.keys(form.errors)} />
             <div className="space-y-5 pb-4">

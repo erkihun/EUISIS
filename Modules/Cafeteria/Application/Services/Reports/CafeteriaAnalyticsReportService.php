@@ -142,14 +142,14 @@ class CafeteriaAnalyticsReportService
     private function policyHistory(array $filters, ?array $organizationIds): array
     {
         $rows = CafeteriaServicePolicy::query()
-            ->with(['organization:id,code,name_en', 'provider:id,provider_code,name_en', 'network:id,code,name_en', 'cafeteria:id,code,name_en'])
+            ->with(['organization:id,code,name_en,name_am', 'provider:id,provider_code,name_en,name_am', 'network:id,code,name_en,name_am', 'cafeteria:id,code,name_en,name_am'])
             ->when($organizationIds !== null, fn (Builder $q) => $q->whereIn('organization_id', $organizationIds))
             ->when(filled($filters['organization_id'] ?? null), fn (Builder $q) => $q->where('organization_id', $filters['organization_id']))
             ->when(filled($filters['provider_id'] ?? null), fn (Builder $q) => $q->where('provider_id', $filters['provider_id']))
             ->orderBy('organization_id')->orderBy('policy_group_id')->orderBy('version_no')
             ->get()
             ->map(fn (CafeteriaServicePolicy $p): array => [
-                'organization' => $p->organization?->name_en,
+                'organization' => localized_name($p->organization),
                 'provider' => $p->provider?->name_en,
                 'scope' => $p->cafeteria?->name_en ?? $p->network?->name_en ?? $p->provider?->name_en,
                 'version' => $p->version_no,
@@ -183,7 +183,7 @@ class CafeteriaAnalyticsReportService
     private function accessMatrix(array $filters, ?array $organizationIds): array
     {
         $rows = OrganizationCafeteriaAccess::query()
-            ->with(['organization:id,name_en', 'network:id,name_en,provider_id', 'network.provider:id,name_en', 'primaryCafeteria:id,name_en'])
+            ->with(['organization:id,name_en,name_am', 'network:id,name_en,name_am,provider_id', 'network.provider:id,name_en,name_am', 'primaryCafeteria:id,name_en,name_am'])
             ->withCount('locationExceptions')
             ->when($organizationIds !== null, fn (Builder $q) => $q->whereIn('organization_id', $organizationIds))
             ->when(filled($filters['organization_id'] ?? null), fn (Builder $q) => $q->where('organization_id', $filters['organization_id']))
@@ -191,7 +191,7 @@ class CafeteriaAnalyticsReportService
             ->orderBy('organization_id')
             ->get()
             ->map(fn (OrganizationCafeteriaAccess $a): array => [
-                'organization' => $a->organization?->name_en,
+                'organization' => localized_name($a->organization),
                 'provider' => $a->network?->provider?->name_en,
                 'network' => $a->network?->name_en,
                 'primary_cafeteria' => $a->primaryCafeteria?->name_en,
@@ -209,7 +209,7 @@ class CafeteriaAnalyticsReportService
     private function settlementReport(array $filters): array
     {
         $rows = CafeteriaSettlement::query()
-            ->with('provider:id,name_en')
+            ->with('provider:id,name_en,name_am')
             ->when(filled($filters['provider_id'] ?? null), fn (Builder $q) => $q->where('provider_id', $filters['provider_id']))
             ->whereDate('period_end', '>=', $filters['date_from'])
             ->whereDate('period_start', '<=', $filters['date_to'])

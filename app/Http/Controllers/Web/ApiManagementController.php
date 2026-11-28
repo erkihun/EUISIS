@@ -741,7 +741,7 @@ class ApiManagementController extends Controller
     /** @return list<array{value: string, label: string}> */
     private function organizationOptions(): array
     {
-        return Organization::query()->orderBy('name_en')->get(['id', 'code', 'name_en'])
+        return Organization::query()->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am'])
             ->map(fn (Organization $organization): array => ['value' => (string) $organization->id, 'label' => $organization->name_en.' ('.$organization->code.')'])
             ->all();
     }

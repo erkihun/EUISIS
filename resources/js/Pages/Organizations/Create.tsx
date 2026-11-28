@@ -12,6 +12,7 @@ import { ContactSection, LocationSection, SectionNav, ShortNameFields, organizat
 import type { MapConfig } from '@/Components/fieldWork/LocationMap';
 
 import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
 type HierarchyVersion = { id: string; version_name: string; status: string };
 const inputCls = cx(inputClassName, 'w-full');
@@ -267,7 +268,7 @@ export default function CreateOrganization({
                                             <div className="mt-1 text-sm font-medium text-(--app-foreground)">
                                                 {selectedParent.code} - {locale === 'am'
                                                     ? (selectedParent.name_am || selectedParent.name_en)
-                                                    : selectedParent.name_en}
+                                                    : localizedName(selectedParent.name_en, selectedParent.name_am, locale)}
                                             </div>
                                             {selectedParent.parent_path && (
                                                 <div className="mt-1 text-xs text-(--app-muted-foreground)">

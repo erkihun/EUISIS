@@ -6,13 +6,15 @@
  * so a screen honours them by using the hook, not by remembering to.
  */
 
-export type OrganizationNameDisplay = 'english' | 'amharic' | 'both';
+export type OrganizationNameDisplay = 'locale_based' | 'english' | 'amharic' | 'both';
 export type EmployeeNameDisplay = 'full_name' | 'first_last';
 export type NumberFormat = '1,234.56' | '1 234.56';
 
 /**
  * Organization (and other bilingual entity) name.
  *
+ * `locale_based` (the default) follows the interface language: an Amharic
+ * reader sees the Amharic name, an English reader the English one.
  * `english` / `amharic` pin the language regardless of the interface locale —
  * a bureau's registered English name may be the legally correct one to show
  * even to an Amharic-speaking clerk. `both` shows the active locale's name
@@ -25,11 +27,12 @@ export function organizationDisplayName(
     nameEn: string | null | undefined,
     nameAm: string | null | undefined,
     locale: string,
-    mode: OrganizationNameDisplay = 'english',
+    mode: OrganizationNameDisplay = 'locale_based',
 ): string {
     const en = nameEn?.trim() ?? '';
     const am = nameAm?.trim() ?? '';
 
+    if (mode === 'locale_based') return locale === 'am' ? am || en : en || am;
     if (mode === 'amharic') return am || en;
     if (mode === 'english') return en || am;
 

@@ -5,7 +5,8 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
-type ParentOption = { id: string; isic_code: string; name_en: string | null; level: string };
+import { localizedName } from '@/utils/localizedName';
+type ParentOption = { id: string; isic_code: string; name_en: string | null; name_am?: string | null; level: string };
 
 export default function IsicActivitiesCreate({
     levels,
@@ -14,7 +15,7 @@ export default function IsicActivitiesCreate({
     levels: string[];
     parents: ParentOption[];
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm({
         isic_code: '',
         level: 'section',
@@ -123,7 +124,7 @@ export default function IsicActivitiesCreate({
                             <option value="">{t('isicActivities.noParent')}</option>
                             {parents.map((p) => (
                                 <option key={p.id} value={p.id}>
-                                    {p.isic_code} · {p.name_en ?? ''}
+                                    {p.isic_code} · {localizedName(p.name_en, p.name_am, locale) || ''}
                                 </option>
                             ))}
                         </select>

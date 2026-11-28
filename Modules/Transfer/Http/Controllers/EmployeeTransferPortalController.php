@@ -235,9 +235,9 @@ class EmployeeTransferPortalController extends Controller
         return [
             'employee_number' => $employee->employee_number,
             'employee_name' => $employee->full_name,
-            'organization' => $assignment?->organization?->name_en,
+            'organization' => localized_name($assignment?->organization),
             'organization_unit' => $assignment?->organizationUnit?->name_en,
-            'position' => $assignment?->position?->title_en,
+            'position' => localized_name($assignment?->position, 'title'),
             'grade_level' => $assignment?->position?->grade_level,
         ];
     }

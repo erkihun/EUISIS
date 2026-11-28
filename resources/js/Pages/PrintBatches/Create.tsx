@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState, FormEvent } from 'react';
 
 import { buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type CardRow = {
     id: string;
     card_number: string;
@@ -14,7 +15,7 @@ type CardRow = {
     employee?: {
         employee_number: string;
         full_name: string;
-        current_assignment?: { organization?: { name_en: string } | null } | null;
+        current_assignment?: { organization?: { name_en: string ; name_am?: string | null} | null } | null;
     } | null;
 };
 
@@ -23,7 +24,7 @@ type PageProps = {
 };
 
 export default function PrintBatchCreate({ pendingCards }: PageProps) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const idCards = new Proxy({} as Record<string, string>, { get: (_, k) => t(`idCards.${String(k)}`) });
     const [selected, setSelected] = useState<string[]>([]);
 
@@ -77,8 +78,8 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                                             <p className="font-mono text-sm font-medium text-(--app-foreground)">{card.card_number}</p>
                                             <p className="text-xs text-(--app-muted-foreground)">
                                                 {card.employee?.employee_number} · {card.employee?.full_name}
-                                                {card.employee?.current_assignment?.organization?.name_en
-                                                    ? ` · ${card.employee.current_assignment.organization.name_en}`
+                                                {localizedName(card.employee?.current_assignment?.organization?.name_en, card.employee?.current_assignment?.organization?.name_am, locale)
+                                                    ? ` · ${localizedName(card.employee?.current_assignment?.organization?.name_en, card.employee?.current_assignment?.organization?.name_am, locale)}`
                                                     : ''}
                                             </p>
                                         </div>

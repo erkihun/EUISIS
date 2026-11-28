@@ -7,6 +7,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 /**
  * Feedback services per position.
  *
@@ -138,14 +139,14 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                         {row.position
                                             ? am
                                                 ? (row.position.title_am ?? row.position.title_en)
-                                                : row.position.title_en
+                                                : localizedName(row.position.title_en, row.position.title_am, locale)
                                             : '—'}
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                         {row.organization
                                             ? am
                                                 ? (row.organization.name_am ?? row.organization.name_en)
-                                                : row.organization.name_en
+                                                : localizedName(row.organization.name_en, row.organization.name_am, locale)
                                             : '—'}
                                     </td>
                                     <td className={cx(tableCellClassName, 'whitespace-nowrap')}>

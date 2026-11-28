@@ -58,7 +58,7 @@ beforeEach(function (): void {
     $this->users = [];
     foreach (['first_instance' => 'Complaint Committee', 'appeal' => 'Appeal Committee', 'head_office' => 'Office of the Head'] as $stage => $name) {
         $orgUnit = OrganizationUnit::query()->create(['organization_id' => $org, 'code' => 'APL-'.strtoupper(substr($stage, 0, 3)), 'name_en' => $name, 'unit_type' => 'department', 'status' => 'active']);
-        $employee = appealStaff($this->s, $orgUnit, 'APL-'.$stage, 'Member '.ucfirst(str_replace('_', '', $stage)));
+        $employee = complaintAppealStaff($this->s, $orgUnit, 'APL-'.$stage, 'Member '.ucfirst(str_replace('_', '', $stage)));
         $user = User::factory()->create(['employee_id' => $employee->id]);
         $user->assignRole($handler);
         UserOrganizationScope::query()->create(['user_id' => $user->id, 'organization_id' => $org, 'scope_type' => 'self', 'is_active' => true]);
@@ -67,7 +67,7 @@ beforeEach(function (): void {
     }
 });
 
-function appealStaff(object $s, OrganizationUnit $unit, string $number, string $name): Employee
+function complaintAppealStaff(object $s, OrganizationUnit $unit, string $number, string $name): Employee
 {
     $employee = Employee::query()->create(['employee_number' => $number, 'first_name' => explode(' ', $name)[0], 'last_name' => explode(' ', $name)[1], 'full_name' => $name, 'status' => EmployeeStatus::Active->value]);
     $assignment = EmployeeAssignment::query()->create(['employee_id' => $employee->id, 'organization_id' => $s->organization->id, 'organization_unit_id' => $unit->id, 'position_id' => $s->position->id, 'is_current' => true, 'assignment_status' => AssignmentStatus::Active->value, 'effective_from' => now()->toDateString()]);

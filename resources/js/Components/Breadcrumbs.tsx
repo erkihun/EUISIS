@@ -115,7 +115,7 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     const parentClass = 'inline-flex max-w-full items-center gap-1 rounded-sm font-medium text-(--app-foreground) sm:hidden';
 
     return (
-        <nav aria-label="Breadcrumb" className={'min-w-0 overflow-x-auto text-xs text-(--app-muted-foreground) ' + className}>
+        <nav aria-label={t('common.breadcrumb')} className={'min-w-0 overflow-x-auto text-xs text-(--app-muted-foreground) ' + className}>
             {parent.href ? (
                 <Link href={parent.href} className={parentClass + ' transition-colors hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary'} aria-hidden="true" tabIndex={-1}>
                     <ChevronRight className="h-3 w-3 shrink-0 rotate-180 opacity-60 rtl:rotate-0" aria-hidden="true" />

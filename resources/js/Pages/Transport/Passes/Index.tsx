@@ -6,6 +6,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 
 type Pass = {
     id: string;
@@ -13,7 +14,7 @@ type Pass = {
     valid_from: string | null;
     valid_until: string | null;
     employee: { full_name: string; employee_number: string } | null;
-    route: { name_en: string; route_code: string } | null;
+    route: { name_en: string; name_am?: string | null; route_code: string } | null;
 };
 
 type Meta = { current_page: number; last_page: number; total: number; per_page: number };
@@ -32,7 +33,7 @@ export default function Index({
     passes: { data: Pass[]; meta: Meta };
     filters?: Record<string, string>;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const rows = passes?.data ?? [];
     const meta = passes?.meta;
 
@@ -125,7 +126,7 @@ export default function Index({
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
                                                 {item.route
-                                                    ? `${item.route.route_code} · ${item.route.name_en}`
+                                                    ? `${item.route.route_code} · ${localizedName(item.route.name_en, item.route.name_am, locale)}`
                                                     : '—'}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">

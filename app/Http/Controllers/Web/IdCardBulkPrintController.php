@@ -70,8 +70,8 @@ class IdCardBulkPrintController extends Controller
                     // Display fields only (SEC-9).
                     'employee_number' => $card->employee?->employee_number,
                     'employee_name' => $card->employee?->full_name,
-                    'organization' => $card->employee?->currentAssignment?->organization?->name_en,
-                    'unit' => $card->employee?->currentAssignment?->organizationUnit?->name_en,
+                    'organization' => localized_name($card->employee?->currentAssignment?->organization),
+                    'unit' => localized_name($card->employee?->currentAssignment?->organizationUnit),
                 ]),
             'maxCards' => CreatePrintBatchAction::MAX_CARDS,
         ]);

@@ -124,7 +124,7 @@ class CafeteriaLegacyPolicyReport extends Command
 
         $this->newLine();
         $this->info('Cafeteria locations');
-        $unplaced = CafeteriaProvider::query()->where(fn ($q) => $q->whereNull('provider_id')->orWhereNull('cafeteria_service_network_id'))->get(['code', 'name_en', 'provider_id', 'cafeteria_service_network_id']);
+        $unplaced = CafeteriaProvider::query()->where(fn ($q) => $q->whereNull('provider_id')->orWhereNull('cafeteria_service_network_id'))->get(['code', 'name_en', 'name_am', 'provider_id', 'cafeteria_service_network_id']);
         $this->line($unplaced->isEmpty() ? 'Every cafeteria belongs to a provider and a network.' : 'NEEDS_DECISION: these cafeterias need a provider and a network before they can serve:');
         foreach ($unplaced as $cafeteria) {
             $this->line("  - {$cafeteria->code} {$cafeteria->name_en}".($cafeteria->provider_id ? '' : ' (no provider)').($cafeteria->cafeteria_service_network_id ? '' : ' (no network)'));

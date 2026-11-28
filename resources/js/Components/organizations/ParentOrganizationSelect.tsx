@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, SearchIcon, X } from '@/Components/Icons';
+import { localizedName } from '@/utils/localizedName';
 
 export type ParentOrganizationOption = {
     id: string;
@@ -225,7 +226,7 @@ export default function ParentOrganizationSelect({
                                                 {option.organization_type
                                                     ? (locale === 'am'
                                                         ? (option.organization_type.name_am || option.organization_type.name_en)
-                                                        : option.organization_type.name_en)
+                                                        : localizedName(option.organization_type.name_en, option.organization_type.name_am, locale))
                                                     : option.status}
                                             </div>
                                             {option.parent_path && (

@@ -105,8 +105,8 @@ class CafeteriaProviderController extends Controller
             ->where('cafeteria_provider_id', $cafeteriaProvider->id)
             ->with([
                 'user:id,name,email,status',
-                'branch:id,code,name_en',
-                'organization:id,name_en,code',
+                'branch:id,code,name_en,name_am',
+                'organization:id,name_en,name_am,code',
             ])
             ->latest()
             ->get()

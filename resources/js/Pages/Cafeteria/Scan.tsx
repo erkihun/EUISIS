@@ -14,6 +14,7 @@ import { Button, Card, EmptyState, FormField, Input, Select, StatusBadge, cx } f
 import { useLocale } from '@/hooks/useLocale';
 import { gregorianToEthiopian, ethiopianToGregorianIso, ethiopianToJdn, ethiopianMonthLength } from '@/lib/calendar/ethiopianCalendar';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
+import { localizedName } from '@/utils/localizedName';
 
 type Provider = {
     id: string;
@@ -274,7 +275,7 @@ export default function CafeteriaScan({
     const selectedOrganizationName = selectedProvider?.organization
         ? (locale === 'am' && selectedProvider.organization.name_am
             ? selectedProvider.organization.name_am
-            : selectedProvider.organization.name_en)
+            : localizedName(selectedProvider.organization.name_en, selectedProvider.organization.name_am, locale))
         : null;
     const selectedProviderDetails = selectedProvider
         ? [
@@ -555,7 +556,7 @@ export default function CafeteriaScan({
 // ─── Latest result ───────────────────────────────────────────────────────────
 
 function LatestResult({ result }: { result: ScanResult }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const tone = outcomeTone(result);
     const Icon = tone === 'denied' ? XCircle : tone === 'extra' ? AlertTriangle : CheckCircle;
     const employee = result.employee;

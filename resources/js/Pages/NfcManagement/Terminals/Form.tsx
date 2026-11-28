@@ -57,7 +57,7 @@ export default function NfcTerminalForm({
     serviceTypes,
     can,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const terminalTypeLabel = useTerminalTypeLabel();
     const localizedName = useLocalizedName();
     const isEdit = terminal !== null;
@@ -223,7 +223,7 @@ export default function NfcTerminalForm({
                                 <option value="">—</option>
                                 {cafeteriaProviders.map((provider) => (
                                     <option key={provider.id} value={provider.id}>
-                                        {provider.name_en}
+                                        {localizedName(provider)}
                                     </option>
                                 ))}
                             </select>

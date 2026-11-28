@@ -79,7 +79,7 @@ class OrganizationDesignGapService
         }
 
         // Tasks → standards and requirements.
-        $tasks = ProcessTask::query()->where('organization_id', $organizationId)->where('is_active', true)->orderBy('code')->get(['id', 'code', 'name_en', 'activity_id']);
+        $tasks = ProcessTask::query()->where('organization_id', $organizationId)->where('is_active', true)->orderBy('code')->get(['id', 'code', 'name_en', 'name_am', 'activity_id']);
         $withStandard = PositionServiceTaskStandard::query()->inForceOn($today)->where('organization_id', $organizationId)->whereNotNull('master_task_id')->pluck('master_task_id')->flip();
         $withRequirement = collect()
             ->merge(WorkCompetencyRequirement::query()->where('organization_id', $organizationId)->whereNotNull('task_id')->pluck('task_id'))
@@ -105,7 +105,7 @@ class OrganizationDesignGapService
         }
 
         // Positions → links, profile, job description.
-        $positions = Position::query()->where('organization_id', $organizationId)->where('is_active', true)->orderBy('job_position_code')->get(['id', 'job_position_code', 'title_en', 'organization_unit_id', 'occupation_id']);
+        $positions = Position::query()->where('organization_id', $organizationId)->where('is_active', true)->orderBy('job_position_code')->get(['id', 'job_position_code', 'title_en', 'title_am', 'organization_unit_id', 'occupation_id']);
         $linked = PositionWorkLink::query()->where('organization_id', $organizationId)->distinct()->pluck('position_id')->flip();
         $profiled = PositionProfile::query()->where('organization_id', $organizationId)->where('status', OrganizationDesignStatus::Published)->pluck('position_id')->flip();
         $described = JobDescription::query()->where('organization_id', $organizationId)
@@ -130,7 +130,7 @@ class OrganizationDesignGapService
 
         // Units → positions.
         $unitsWithPositions = $positions->pluck('organization_unit_id')->filter()->flip();
-        $units = OrganizationUnit::query()->where('organization_id', $organizationId)->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_en']);
+        $units = OrganizationUnit::query()->where('organization_id', $organizationId)->where('status', 'active')->orderBy('code')->get(['id', 'code', 'name_en', 'name_am']);
         foreach ($units->reject(fn ($u) => $unitsWithPositions->has($u->id)) as $unit) {
             $findings[] = $this->finding('info', 'unit_without_positions', ['type' => 'unit', 'id' => $unit->id, 'code' => $unit->code, 'name' => $unit->name_en]);
         }

@@ -424,7 +424,7 @@ const settings = {
         default_dashboard_route: { dashboard: 'ዳሽቦርድ', employees_index: 'ሠራተኞች', organizations_index: 'ተቋማት' },
         system_environment_label: { production: 'ምርት', staging: 'ቅድመ-ምርት', testing: 'ሙከራ', local: 'አካባቢያዊ', development: 'ልማት', demo: 'ማሳያ', training: 'ሥልጠና' },
         calendar_system_mode: { locale_based: 'ቋንቋውን ተከተል (ለአማርኛ የኢትዮጵያ)', gregorian_only: 'ጎርጎርዮሳዊ ብቻ', ethiopian_only: 'የኢትዮጵያ ብቻ' },
-        organization_name_display: { english: 'የእንግሊዝኛ ስም', amharic: 'የአማርኛ ስም', both: 'ሁለቱም ስሞች' },
+        organization_name_display: { locale_based: 'የተመረጠውን ቋንቋ ተከተል', english: 'የእንግሊዝኛ ስም', amharic: 'የአማርኛ ስም', both: 'ሁለቱም ስሞች' },
         employee_name_display: { full_name: 'ሙሉ ስም', first_last: 'የመጀመሪያ እና የአያት ስም' },
         mail_mailer: { smtp: 'የSMTP ሰርቨር', log: 'መዝገብ ብቻ (አይላክም)', sendmail: 'Sendmail', ses: 'Amazon SES' },
         mail_encryption: { tls: 'TLS', ssl: 'SSL', none: 'የለም' },

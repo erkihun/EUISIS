@@ -37,6 +37,11 @@ abstract class TestCase extends BaseTestCase
     {
         parent::tearDown();
 
+        // The import controllers call set_time_limit(120) for their request.
+        // A test worker is one long-lived process, so that timer kept running
+        // and killed the worker two minutes later inside an unrelated test.
+        @set_time_limit(0);
+
         // Carbon keeps one translator per PHP process. Every application boot
         // runs Carbon\Laravel\ServiceProvider::boot(), whose setFallbackLocale()
         // calls append a merged copy of the locale messages to that shared

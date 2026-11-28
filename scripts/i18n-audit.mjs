@@ -164,7 +164,7 @@ const IGNORED_KEYS = [/^validation\.custom\.attribute-name\./];
 // Amharic values that are deliberately Latin script.
 const ALLOWED_LATIN_VALUE_KEYS = [
     /^users\.phonePlaceholder$/, /^calendar\.dateFormat$/, // input and date format masks
-    /^settings\.emailInEffect\.connections\.starttls$/, /^settings\.options\.mail_mailer\.(sendmail|ses)$/, // protocol and product names
+    /^settings\.emailInEffect\.connections\.starttls$/, /^settings\.options\.mail_mailer\.(sendmail|ses)$/, /^settings\.options\.sms_provider\.afromessage$/, // protocol and product names
     /^backup\.archiveMode$/, // the PostgreSQL setting name an operator looks up
     /^employee-portal\.languages\.en$/, // a language switcher names each language in itself
     /\.(url|icon)$/, // the court's public footer links: anchors and icon class names, not text

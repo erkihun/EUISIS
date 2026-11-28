@@ -93,7 +93,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.exclusionType')}</th>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.startsOn')}</th>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.endsOn')}</th>
-                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>Status</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.status')}</th>
                                         <th className={cx(tableHeaderCellClassName, 'text-left')}></th>
                                     </tr>
                                 </thead>
@@ -107,7 +107,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                                             <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{ex.exclusion_type_label}</td>
                                             <td className={cx(tableCellClassName, 'text-(--app-foreground)')}><LocalizedDateDisplay value={ex.starts_on} /></td>
                                             <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
-                                                {ex.is_open_ended ? <span className="italic">Open-ended</span> : <LocalizedDateDisplay value={ex.ends_on} />}
+                                                {ex.is_open_ended ? <span className="italic">{t('cafeteriaPolicy.openEnded')}</span> : <LocalizedDateDisplay value={ex.ends_on} />}
                                             </td>
                                             <td className={tableCellClassName}>
                                                 <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[ex.status] ?? ''}`}>

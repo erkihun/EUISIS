@@ -8,6 +8,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { FormEventHandler, useState } from 'react';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type Application = {
     id: string;
     application_number: string;
@@ -18,13 +19,13 @@ type Application = {
     screened_at: string | null;
     selected_at: string | null;
     rejection_reason: string | null;
-    employee: { name_en: string; code?: string } | null;
-    announcement: { id: string; title_en: string } | null;
+    employee: { name_en: string; full_name?: string | null; name_am?: string | null; code?: string } | null;
+    announcement: { id: string; title_en: string ; title_am?: string | null} | null;
     position_entry: {
         vacancy_slots: number;
-        organization: { name_en: string } | null;
-        organizationUnit: { name_en: string } | null;
-        position: { title_en: string } | null;
+        organization: { name_en: string ; name_am?: string | null} | null;
+        organizationUnit: { name_en: string ; name_am?: string | null} | null;
+        position: { title_en: string ; title_am?: string | null} | null;
     } | null;
 };
 
@@ -46,7 +47,7 @@ const PIPELINE = ['submitted', 'screened', 'shortlisted', 'selected', 'transferr
 type PipelineStep = typeof PIPELINE[number];
 
 export default function VacancyApplicationsShow({ application, can }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const [showTransferForm, setShowTransferForm] = useState(false);
     const [showScreenForm, setShowScreenForm] = useState(false);
@@ -92,7 +93,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 <PageHeader
                     backHref={route('vacancy-applications.index')}
                     title={application.application_number}
-                    description={application.employee?.name_en}
+                    description={(locale === 'am' ? application.employee?.full_name || application.employee?.name_en : application.employee?.name_en || application.employee?.full_name) ?? undefined}
                     actions={
                         <div className="flex flex-wrap gap-2">
                             {can.withdraw && (
@@ -166,10 +167,10 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     <dl className="grid grid-cols-2 gap-4 text-sm">
                         {[
-                            { label: t('employees.employee'), value: application.employee?.name_en ?? '—' },
-                            { label: t('vacancies.announcement'), value: application.announcement?.title_en ?? '—' },
-                            { label: t('positionEstablishments.organization'), value: application.position_entry?.organization?.name_en ?? '—' },
-                            { label: t('positionEstablishments.position'), value: application.position_entry?.position?.title_en ?? '—' },
+                            { label: t('employees.employee'), value: (locale === 'am' ? application.employee?.full_name || application.employee?.name_en : application.employee?.name_en || application.employee?.full_name) || '—' },
+                            { label: t('vacancies.announcement'), value: localizedName(application.announcement?.title_en, application.announcement?.title_am, locale) || '—' },
+                            { label: t('positionEstablishments.organization'), value: localizedName(application.position_entry?.organization?.name_en, application.position_entry?.organization?.name_am, locale) || '—' },
+                            { label: t('positionEstablishments.position'), value: localizedName(application.position_entry?.position?.title_en, application.position_entry?.position?.title_am, locale) || '—' },
                             { label: t('vacancies.screeningScore'), value: application.screening_score ?? '—' },
                             ...(application.rejection_reason ? [{ label: t('vacancies.rejectionReason'), value: application.rejection_reason }] : []),
                         ].map(({ label, value }) => (

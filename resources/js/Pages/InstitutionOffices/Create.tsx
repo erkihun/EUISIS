@@ -6,6 +6,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, cx, selectClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 interface OrganizationOption {
     id: string;
     name_en: string;
@@ -50,7 +51,7 @@ export default function InstitutionOfficeCreate({
     relationshipTypeOptions,
     statusOptions,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const defaultUnitTypeId = unitTypes.find((type) => type.code === 'office')?.id ?? unitTypes[0]?.id ?? '';
 
@@ -125,7 +126,7 @@ export default function InstitutionOfficeCreate({
                                     <option value="">{t('institutionOffices.selectStructuralOrganization')}</option>
                                     {institutions.map((organization) => (
                                         <option key={organization.id} value={organization.id}>
-                                            {organization.name_en} ({organization.code})
+                                            {localizedName(organization.name_en, organization.name_am, locale)} ({organization.code})
                                         </option>
                                     ))}
                                 </select>
@@ -146,7 +147,7 @@ export default function InstitutionOfficeCreate({
                                     <option value="">{t('institutionOffices.selectOrganizationUnitType')}</option>
                                     {unitTypes.map((type) => (
                                         <option key={type.id} value={type.id}>
-                                            {type.name_en} ({type.code})
+                                            {localizedName(type.name_en, type.name_am, locale)} ({type.code})
                                         </option>
                                     ))}
                                 </select>
@@ -164,7 +165,7 @@ export default function InstitutionOfficeCreate({
                                     <option value="">{t('institutionOffices.selectParentOrganizationUnit')}</option>
                                     {parentOfficeOptions.map((unit) => (
                                         <option key={unit.id} value={unit.id}>
-                                            {'-'.repeat(unit.depth)} {unit.name_en} ({unit.code})
+                                            {'-'.repeat(unit.depth)} {localizedName(unit.name_en, unit.name_am, locale)} ({unit.code})
                                         </option>
                                     ))}
                                 </select>
@@ -250,7 +251,7 @@ export default function InstitutionOfficeCreate({
                                     <option value="">{t('institutionOffices.selectFunctionalReportingOrganization')}</option>
                                     {institutions.map((organization) => (
                                         <option key={organization.id} value={organization.id}>
-                                            {organization.name_en} ({organization.code})
+                                            {localizedName(organization.name_en, organization.name_am, locale)} ({organization.code})
                                         </option>
                                     ))}
                                 </select>
@@ -283,9 +284,9 @@ export default function InstitutionOfficeCreate({
                             {t('institutionOffices.relationshipPreview')}
                         </h2>
                         <div className="grid gap-3 md:grid-cols-3">
-                            <PreviewRow label={t('institutionOffices.structuralOrganization')} value={formatOrganization(selectedOrganization, t('institutionOffices.notSelected'))} />
+                            <PreviewRow label={t('institutionOffices.structuralOrganization')} value={formatOrganization(selectedOrganization, t('institutionOffices.notSelected'), locale)} />
                             <PreviewRow label={t('institutionOffices.organizationUnit')} value={selectedUnitName} />
-                            <PreviewRow label={t('institutionOffices.functionalReportingOrganization')} value={formatOrganization(selectedFunctionalOrganization, t('institutionOffices.notSelected'))} />
+                            <PreviewRow label={t('institutionOffices.functionalReportingOrganization')} value={formatOrganization(selectedFunctionalOrganization, t('institutionOffices.notSelected'), locale)} />
                             <PreviewRow label={t('institutionOffices.parentOrganizationUnit')} value={selectedParentUnit ? `${selectedParentUnit.name_en} (${selectedParentUnit.code})` : t('institutionOffices.notSelected')} />
                         </div>
                     </section>
@@ -313,6 +314,6 @@ function PreviewRow({ label, value }: { label: string; value: string }) {
     );
 }
 
-function formatOrganization(organization: OrganizationOption | null, fallback: string): string {
-    return organization ? `${organization.name_en} (${organization.code})` : fallback;
+function formatOrganization(organization: OrganizationOption | null, fallback: string, locale: string): string {
+    return organization ? `${localizedName(organization.name_en, organization.name_am, locale)} (${organization.code})` : fallback;
 }

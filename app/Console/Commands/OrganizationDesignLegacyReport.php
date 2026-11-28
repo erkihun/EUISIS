@@ -22,7 +22,7 @@ class OrganizationDesignLegacyReport extends Command
     {
         $organizations = Organization::query()->orderBy('code')
             ->when($this->option('organization'), fn ($q, $id) => $q->whereKey($id), fn ($q) => $q->where('status', 'active'))
-            ->get(['id', 'code', 'name_en']);
+            ->get(['id', 'code', 'name_en', 'name_am']);
         if ($organizations->isEmpty()) {
             $this->error('No organization matched.');
 

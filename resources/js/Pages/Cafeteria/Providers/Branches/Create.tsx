@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type OrgOption = { id: string; name_en: string; name_am: string | null; code: string };
 
 const inputCls = cx(inputClassName, 'w-full');
@@ -13,10 +14,10 @@ export default function CreateBranch({
     provider,
     organizations,
 }: {
-    provider: { id: string; code: string; name_en: string };
+    provider: { id: string; code: string; name_en: string ; name_am?: string | null};
     organizations: OrgOption[];
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const form = useForm({
         code: '',
@@ -40,7 +41,7 @@ export default function CreateBranch({
                 <PageHeader
                     title={t('cafeteria.addBranch')}
                     backHref={route('cafeteria.providers.show', provider.id)}
-                    description={provider.name_en}
+                    description={localizedName(provider.name_en, provider.name_am, locale)}
                 />
             }
         >

@@ -10,6 +10,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type OrgType = {
     id: string;
     code: string;
@@ -39,7 +40,7 @@ export default function OrganizationTypesIndex({
     filterOptions: { categories: string[] };
     can: { create: boolean };
 }) {
-    const { t: tr } = useLocale();
+    const { t: tr, locale } = useLocale();
     const { confirm } = useConfirm();
     const [values, setValues] = useState<Filters>(filters);
     const filtersActive = Object.values(filters).some(Boolean);
@@ -184,7 +185,7 @@ export default function OrganizationTypesIndex({
                                                 )}
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <p className="font-medium">{type.name_en}</p>
+                                                <p className="font-medium">{localizedName(type.name_en, type.name_am, locale)}</p>
                                                 {type.name_am && (
                                                     <p className="text-xs text-(--app-muted-foreground)">
                                                         {type.name_am}

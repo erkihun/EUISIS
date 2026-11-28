@@ -374,31 +374,31 @@ class CodeRuleController extends Controller
             'scope_options' => [
                 CodeRuleScopeType::Organization->value => Organization::query()
                     ->orderBy('name_en')
-                    ->get(['id', 'name_en', 'code'])
+                    ->get(['id', 'name_en', 'name_am', 'code'])
                     ->map(fn (Organization $organization): array => [
                         'id' => $organization->id,
-                        'label' => "{$organization->code} - {$organization->name_en}",
+                        'label' => "{$organization->code} - ".localized_name($organization),
                     ]),
                 CodeRuleScopeType::OrganizationType->value => OrganizationType::query()
                     ->orderBy('name_en')
-                    ->get(['id', 'name_en', 'code'])
+                    ->get(['id', 'name_en', 'name_am', 'code'])
                     ->map(fn (OrganizationType $organizationType): array => [
                         'id' => $organizationType->id,
-                        'label' => "{$organizationType->code} - {$organizationType->name_en}",
+                        'label' => "{$organizationType->code} - ".localized_name($organizationType),
                     ]),
                 CodeRuleScopeType::OrganizationUnitType->value => OrganizationUnitType::query()
                     ->orderBy('name_en')
-                    ->get(['id', 'name_en', 'code', 'prefix'])
+                    ->get(['id', 'name_en', 'name_am', 'code', 'prefix'])
                     ->map(fn (OrganizationUnitType $organizationUnitType): array => [
                         'id' => $organizationUnitType->id,
-                        'label' => trim(($organizationUnitType->prefix ?? $organizationUnitType->code ?? '').' - '.$organizationUnitType->name_en, ' -'),
+                        'label' => trim(($organizationUnitType->prefix ?? $organizationUnitType->code ?? '').' - '.localized_name($organizationUnitType), ' -'),
                     ]),
                 CodeRuleScopeType::ServiceType->value => ServiceTypeRecord::query()
                     ->orderBy('name_en')
-                    ->get(['id', 'name_en', 'code'])
+                    ->get(['id', 'name_en', 'name_am', 'code'])
                     ->map(fn (ServiceTypeRecord $serviceType): array => [
                         'id' => $serviceType->id,
-                        'label' => "{$serviceType->code} - {$serviceType->name_en}",
+                        'label' => "{$serviceType->code} - ".localized_name($serviceType),
                     ]),
             ],
             'year_formats' => [

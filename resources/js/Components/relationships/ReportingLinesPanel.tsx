@@ -1,5 +1,6 @@
 import { useLocale } from '@/hooks/useLocale';
 import type { RelationshipRow } from './RelationshipPanel';
+import { localizedName } from '@/utils/localizedName';
 
 type Props = {
     rows: RelationshipRow[];
@@ -22,7 +23,7 @@ export default function ReportingLinesPanel({ rows }: Props) {
                         <span className="text-(--app-muted-foreground)">
                             {locale === 'am'
                                 ? (row.target?.name_am ?? row.target_id)
-                                : (row.target?.name_en ?? row.target_id)}
+                                : (localizedName(row.target?.name_en, row.target?.name_am, locale) ?? row.target_id)}
                         </span>
                     </div>
                 ))}

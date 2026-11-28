@@ -6,6 +6,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 
 import { buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 type OrgType = {
     id: string;
     code: string;
@@ -32,14 +33,14 @@ function Detail({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function ShowOrganizationType({ type }: { type: OrgType }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     return (
         <AuthenticatedLayout
             header={
                 <PageHeader
                     backHref={route('organization-types.index')}
-                    title={type.name_en}
+                    title={localizedName(type.name_en, type.name_am, locale)}
                     description={t('organizationTypes.organizationType')}
                     actions={
                         <div className="flex items-center gap-2">
@@ -62,7 +63,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                 />
             }
         >
-            <Head title={type.name_en} />
+            <Head title={localizedName(type.name_en, type.name_am, locale)} />
 
             <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                 <dl className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

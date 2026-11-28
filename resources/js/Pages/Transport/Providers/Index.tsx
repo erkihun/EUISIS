@@ -7,16 +7,17 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { TableTools } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 
 type Provider = {
     id: string;
     provider_code: string;
-    name_en: string;
+    name_en: string; name_am?: string | null;
     status: string;
     contact_person: string | null;
     email: string | null;
     assigned_scope_type: string;
-    assigned_organization?: { name_en?: string | null } | null;
+    assigned_organization?: { name_en?: string | null ; name_am?: string | null} | null;
 };
 
 type Meta = { current_page: number; last_page: number; total: number; per_page: number };
@@ -30,7 +31,7 @@ export default function Index({
     filters?: Record<string, string>;
     can?: { create: boolean; update: boolean };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const rows = providers?.data ?? [];
     const meta = providers?.meta;
 
@@ -122,13 +123,13 @@ export default function Index({
                                                 {item.provider_code}
                                             </td>
                                             <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
-                                                {item.name_en}
+                                                {localizedName(item.name_en, item.name_am, locale)}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
                                                 {item.contact_person ?? '—'}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">
-                                                {item.assigned_scope_type === 'citywide' ? t('transport.allOrganizations') : item.assigned_organization?.name_en ?? '—'}
+                                                {item.assigned_scope_type === 'citywide' ? t('transport.allOrganizations') : localizedName(item.assigned_organization?.name_en, item.assigned_organization?.name_am, locale) || '—'}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <TransportProviderStatusBadge status={item.status} />

@@ -159,7 +159,7 @@ class ProviderPortalContext implements ProviderPortalSession
                 ->filter(fn ($service): bool => $service->status === 'active' && (bool) $service->serviceType?->is_active)
                 ->map(fn ($service): array => [
                     'code' => $service->serviceType->code,
-                    'name' => $service->serviceType->name_en,
+                    'name' => localized_name($service->serviceType),
                     'route' => $service->serviceType->route_prefix,
                     'icon' => $service->serviceType->icon,
                 ])

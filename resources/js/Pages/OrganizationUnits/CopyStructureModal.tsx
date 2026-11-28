@@ -4,6 +4,7 @@ import Modal from '@/Components/Modal';
 import { useLocale } from '@/hooks/useLocale';
 
 import { cx, selectClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 interface OrgOption {
     id: string;
     code: string;
@@ -52,7 +53,7 @@ function flattenUnits(units: UnitOption[], depth = 0): Array<UnitOption & { dept
 }
 
 export default function CopyStructureModal({ show, onClose, organizations }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const { data, setData, post, processing, errors, reset } = useForm<FormData>({
         source_organization_id: '',
@@ -146,7 +147,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="">{t('organizationUnits.selectOrganization')}</option>
                             {organizations.map((org) => (
                                 <option key={org.id} value={org.id}>
-                                    {org.name_en} ({org.code})
+                                    {localizedName(org.name_en, org.name_am, locale)} ({org.code})
                                 </option>
                             ))}
                         </select>
@@ -166,7 +167,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="">{t('organizationUnits.allUnits')}</option>
                             {sourceUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
-                                    {' '.repeat(unit.depth)}{unit.name_en} ({unit.code})
+                                    {' '.repeat(unit.depth)}{localizedName(unit.name_en, unit.name_am, locale)} ({unit.code})
                                 </option>
                             ))}
                         </select>
@@ -188,7 +189,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="">{t('organizationUnits.selectOrganization')}</option>
                             {organizations.map((org) => (
                                 <option key={org.id} value={org.id}>
-                                    {org.name_en} ({org.code})
+                                    {localizedName(org.name_en, org.name_am, locale)} ({org.code})
                                 </option>
                             ))}
                         </select>
@@ -208,7 +209,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="">{t('organizationUnits.noParentUnit')}</option>
                             {targetUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
-                                    {' '.repeat(unit.depth)}{unit.name_en} ({unit.code})
+                                    {' '.repeat(unit.depth)}{localizedName(unit.name_en, unit.name_am, locale)} ({unit.code})
                                 </option>
                             ))}
                         </select>
@@ -250,8 +251,8 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             value={data.status}
                             onChange={(e) => setData('status', e.target.value)}
                         >
-                            <option value="draft">Draft</option>
-                            <option value="active">Active</option>
+                            <option value="draft">{t('common.draft')}</option>
+                            <option value="active">{t('common.active')}</option>
                         </select>
                         <FieldError className="mt-1">{errors.status}</FieldError>
                     </div>

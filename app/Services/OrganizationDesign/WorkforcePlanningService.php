@@ -331,7 +331,7 @@ class WorkforcePlanningService
     public function validatePlan(ManpowerPlan $plan): array
     {
         $findings = [];
-        $lines = $plan->lines()->with(['unit:id,code', 'occupation:id,code,name_en'])->get();
+        $lines = $plan->lines()->with(['unit:id,code', 'occupation:id,code,name_en,name_am'])->get();
         foreach ($lines as $line) {
             $subject = ['type' => 'line', 'id' => $line->id, 'code' => $line->unit?->code, 'name' => $line->occupation?->name_en];
             if ($line->calculated_at === null) {

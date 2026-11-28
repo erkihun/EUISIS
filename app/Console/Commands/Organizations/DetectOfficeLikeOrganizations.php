@@ -55,7 +55,7 @@ class DetectOfficeLikeOrganizations extends Command
 
         $this->info('Scanning organizations for office/branch patterns...');
 
-        $query = Organization::query()->with('type:id,code,name_en');
+        $query = Organization::query()->with('type:id,code,name_en,name_am');
 
         $query->where(function ($q): void {
             foreach (self::NAME_PATTERNS as $pattern) {
@@ -68,7 +68,7 @@ class DetectOfficeLikeOrganizations extends Command
 
         // Also find organizations with office-like types
         $byType = Organization::query()
-            ->with('type:id,code,name_en')
+            ->with('type:id,code,name_en,name_am')
             ->whereHas('type', function ($q): void {
                 foreach (self::TYPE_CODE_PATTERNS as $pattern) {
                     $q->orWhere('code', ci_like_operator(), "%{$pattern}%");

@@ -5,6 +5,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleForm, { type CodeRuleFormData } from '@/Components/code-rules/CodeRuleForm';
 import type { TokenDefinition } from '@/Components/code-rules/FormatTokenGroup';
+import { localizedName } from '@/utils/localizedName';
 
 type CodeRuleView = Omit<CodeRuleFormData, 'scope_type' | 'name_am' | 'prefix' | 'suffix' | 'year_format' | 'description_en' | 'description_am' | 'sequence_scope_strategy' | 'sequence_scope_tokens'> & {
     id: string;
@@ -40,7 +41,7 @@ export default function CodeRulesEdit({
     can: { preview: boolean };
     available_tokens?: TokenDefinition[];
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm<CodeRuleFormData>({
         entity_type: codeRule.entity_type,
         scope_type: codeRule.scope_type ?? '',
@@ -70,7 +71,7 @@ export default function CodeRulesEdit({
     }
 
     return (
-        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('codeRules.editTitle')} description={codeRule.name_en} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('codeRules.editTitle')} description={localizedName(codeRule.name_en, codeRule.name_am, locale)} />}>
             <Head title={t('codeRules.editTitle')} />
             <CodeRuleForm
                 form={form}

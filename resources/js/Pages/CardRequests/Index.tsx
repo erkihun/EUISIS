@@ -10,6 +10,7 @@ import { useState } from 'react';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta, TableTools } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { localizedName } from '@/utils/localizedName';
 type CardRequestRow = {
     id: string;
     request_type?: string | null;
@@ -20,7 +21,7 @@ type CardRequestRow = {
         id: string;
         employee_number: string;
         full_name: string;
-        current_assignment?: { organization?: { name_en: string } | null } | null;
+        current_assignment?: { organization?: { name_en: string ; name_am?: string | null} | null } | null;
     } | null;
     can?: {
         view?: boolean;
@@ -45,7 +46,7 @@ const REQUEST_STATUSES = ['draft', 'submitted', 'verified', 'approved', 'rejecte
 const REQUEST_TYPES    = ['new', 'renewal', 'replacement', 'lost', 'damaged', 'correction'];
 
 export default function CardRequestsIndex({ cardRequests, can, filters = {} }: PageProps) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const [search, setSearch]   = useState(filters.search ?? '');
     const [status, setStatus]   = useState(filters.status ?? '');
@@ -168,7 +169,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                             </p>
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-(--app-muted-foreground) max-w-[200px] truncate')}>
-                                            {req.employee?.current_assignment?.organization?.name_en ?? '—'}
+                                            {localizedName(req.employee?.current_assignment?.organization?.name_en, req.employee?.current_assignment?.organization?.name_am, locale) || '—'}
                                         </td>
                                         <td className={tableCellClassName}>
                                             {req.request_type ? (

@@ -8,8 +8,9 @@ import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 import { actionLinkClassName, buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
 
     async function handleArchive() {
@@ -73,7 +74,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                 />
             }
         >
-            <Head title={isicActivity.name_en ?? isicActivity.isic_code} />
+            <Head title={localizedName(isicActivity.name_en, isicActivity.name_am, locale) ?? isicActivity.isic_code} />
             <div className="grid gap-6 lg:grid-cols-3">
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">

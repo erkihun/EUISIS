@@ -51,7 +51,7 @@ readonly class DeleteOrganizationTypeAction
 
         $referencedBy = OrganizationType::query()
             ->whereKeyNot($type->id)
-            ->get(['id', 'code', 'name_en', 'parent_allowed_types'])
+            ->get(['id', 'code', 'name_en', 'name_am', 'parent_allowed_types'])
             ->filter(fn (OrganizationType $other): bool => in_array($type->code, $other->parent_allowed_types ?? [], true))
             ->pluck('name_en');
 

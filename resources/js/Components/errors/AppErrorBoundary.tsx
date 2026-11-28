@@ -10,7 +10,19 @@ type AppErrorBoundaryState = {
     error: Error | null;
 };
 
+/*
+ * The boundary sits above the page tree, so the dictionary hook is not
+ * available when it renders. The wording is carried here in both languages and
+ * picked from the document language the server set.
+ */
+const FALLBACK_TEXT = {
+    en: { title: 'Something went wrong', body: 'The page failed to load. Please try refreshing.', reload: 'Reload page' },
+    am: { title: 'ችግር አጋጥሟል', body: 'ገጹ ሊከፈት አልቻለም። እባክዎ ገጹን እንደገና ይጫኑ።', reload: 'ገጹን እንደገና ጫን' },
+};
+
 function AppErrorFallback({ error }: { error: Error }) {
+    const text = typeof document !== 'undefined' && document.documentElement.lang.startsWith('en') ? FALLBACK_TEXT.en : FALLBACK_TEXT.am;
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-(--app-surface-muted) px-4 py-12 text-(--app-foreground)">
             <div className="w-full max-w-md rounded-panel border border-(--app-border) bg-(--app-surface) p-8">
@@ -19,9 +31,9 @@ function AppErrorFallback({ error }: { error: Error }) {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
                 </div>
-                <h1 className="mt-5 text-lg font-semibold">Something went wrong</h1>
+                <h1 className="mt-5 text-lg font-semibold">{text.title}</h1>
                 <p className="mt-2 text-sm text-(--app-muted-foreground)">
-                    The page failed to load. Please try refreshing.
+                    {text.body}
                 </p>
                 {import.meta.env.DEV && (
                     <pre className="mt-4 max-h-40 overflow-auto rounded-lg bg-(--app-surface-muted) p-3 text-left text-xs text-(--app-foreground)">
@@ -33,7 +45,7 @@ function AppErrorFallback({ error }: { error: Error }) {
                     onClick={() => window.location.reload()}
                     className={buttonClassName({ variant: 'primary', className: 'mt-6' })}
                 >
-                    Reload page
+                    {text.reload}
                 </button>
             </div>
         </div>

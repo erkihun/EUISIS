@@ -40,7 +40,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function NfcTerminalShow({ terminal, can }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const terminalTypeLabel = useTerminalTypeLabel();
     const localizedName = useLocalizedName();
@@ -106,7 +106,7 @@ export default function NfcTerminalShow({ terminal, can }: Props) {
                     <Field label={t('nfc.serviceType')}>{terminal.service_type ?? '—'}</Field>
                     <Field label={t('nfc.organization')}>{localizedName(terminal.organization) || '—'}</Field>
                     <Field label={t('nfc.provider')}>{terminal.provider?.name ?? '—'}</Field>
-                    <Field label={t('nfc.cafeteriaProvider')}>{terminal.cafeteria_provider?.name_en ?? '—'}</Field>
+                    <Field label={t('nfc.cafeteriaProvider')}>{localizedName(terminal.cafeteria_provider) || '—'}</Field>
                     <Field label={t('nfc.externalApplication')}>{terminal.external_application?.name ?? '—'}</Field>
                     <Field label={t('nfc.lastSeen')}>
                         <LocalizedDateDisplay value={terminal.last_seen_at} withTime fallback={t('nfc.neverSeen')} />

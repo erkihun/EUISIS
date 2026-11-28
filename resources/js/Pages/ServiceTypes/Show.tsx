@@ -6,6 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
 import { buttonClassName } from '@/Components/ui';
+import { localizedName } from '@/utils/localizedName';
 export default function ServiceTypesShow({
     serviceType,
 }: {
@@ -22,7 +23,7 @@ export default function ServiceTypesShow({
         can: { update: boolean; archive: boolean; restore: boolean };
     };
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
 
     // The same dialog the list page shows: a delete is never one accidental click.
@@ -42,7 +43,7 @@ export default function ServiceTypesShow({
             header={(
                 <PageHeader
                     backHref={route('service-types.index')}
-                    title={serviceType.name_en}
+                    title={localizedName(serviceType.name_en, serviceType.name_am, locale)}
                     actions={(
                         <div className="flex gap-3">
                             {serviceType.can.update && (
@@ -65,7 +66,7 @@ export default function ServiceTypesShow({
                 />
             )}
         >
-            <Head title={serviceType.name_en} />
+            <Head title={localizedName(serviceType.name_en, serviceType.name_am, locale)} />
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6 lg:col-span-2">

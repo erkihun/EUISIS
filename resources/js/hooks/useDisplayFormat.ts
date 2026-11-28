@@ -22,7 +22,7 @@ export function useDisplayFormat() {
     const { locale } = useLocale();
     const { getString } = useSystemSettings();
 
-    const orgMode = getString('localization.organization_name_display', 'english') as OrganizationNameDisplay;
+    const orgMode = getString('localization.organization_name_display', 'locale_based') as OrganizationNameDisplay;
     const employeeMode = getString('localization.employee_name_display', 'full_name') as EmployeeNameDisplay;
     const numberMode = getString('localization.number_format', '1,234.56') as NumberFormat;
 

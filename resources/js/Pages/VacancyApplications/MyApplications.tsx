@@ -5,6 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 
 type Application = {
     id: string;
@@ -13,12 +14,12 @@ type Application = {
     applied_at: string;
     announcement: {
         id: string;
-        title_en: string;
+        title_en: string; title_am?: string | null;
         application_closes_at: string | null;
     } | null;
     position_entry: {
-        organization: { name_en: string } | null;
-        position: { title_en: string } | null;
+        organization: { name_en: string ; name_am?: string | null} | null;
+        position: { title_en: string ; title_am?: string | null} | null;
     } | null;
 };
 
@@ -27,7 +28,7 @@ type Props = {
 };
 
 export default function VacancyApplicationsMyApplications({ applications }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     return (
         <AuthenticatedLayout
@@ -49,12 +50,12 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
                             <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <Link href={route('vacancy-applications.show', app.id)} className="font-semibold text-primary hover:underline dark:text-primary">
-                                        {app.announcement?.title_en ?? app.application_number}
+                                        {localizedName(app.announcement?.title_en, app.announcement?.title_am, locale) ?? app.application_number}
                                     </Link>
                                     <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
-                                        {app.position_entry?.organization?.name_en}
+                                        {localizedName(app.position_entry?.organization?.name_en, app.position_entry?.organization?.name_am, locale)}
                                         {app.position_entry?.position?.title_en && (
-                                            <> · {app.position_entry.position.title_en}</>
+                                            <> · {localizedName(app.position_entry.position.title_en, app.position_entry.position.title_am, locale)}</>
                                         )}
                                     </p>
                                 </div>

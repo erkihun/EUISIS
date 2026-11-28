@@ -8,6 +8,7 @@ import { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
 import { buttonClassName, filterInputCls, FieldError } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
+import { localizedName } from '@/utils/localizedName';
 
 type Props = {
     card: { id: string; card_number: string; status: string | null; expires_at: string | null };
@@ -47,7 +48,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
     const organizationName = employee.organization
         ? ((locale === 'am'
               ? (employee.organization.name_am ?? employee.organization.name_en)
-              : employee.organization.name_en) ?? '—')
+              : localizedName(employee.organization.name_en, employee.organization.name_am, locale)) ?? '—')
         : '—';
 
     const needsKeyMaterial = form.data.credential_type !== 'ndef_reference';
