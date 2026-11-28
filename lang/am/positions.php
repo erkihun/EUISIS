@@ -29,7 +29,7 @@ return [
     'target_organization_unit' => 'የመድረሻ የሥራ ክፍል',
     'current_organization_unit' => 'የአሁኑ የሥራ ክፍል',
     'moved_successfully' => 'የሥራ መደቡ በተሳካ ሁኔታ ተንቀሳቅሷል',
-    'occupied_cannot_move' => 'ይህ የሥራ መደብ ሠራተኛ ስላለበት ሊንቀሳቀስ አይችልም።',
+    'occupied_cannot_move' => 'ይህ የሥራ መደብ ሠራተኛ አለበት። የሥራ ክፍሉን ለመቀየር «የሥራ መደብ ያንቀሳቅሱ» የሚለውን ይጠቀሙ፤ ሠራተኛውም ከመደቡ ጋር አብሮ ይንቀሳቀሳል።',
     'code_remains_unchanged' => 'የሥራ መደቡ ኮድ በእጅ እስካልተፈጠረ ድረስ ሳይቀየር ይቆያል።',
     'movement_history' => 'የእንቅስቃሴ ታሪክ',
     'move_reason' => 'የማንቀሳቀስ ምክንያት',

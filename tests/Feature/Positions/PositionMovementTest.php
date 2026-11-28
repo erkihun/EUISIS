@@ -242,7 +242,7 @@ it('writes a position moved audit log', function (): void {
         ->and($audit->reason)->toBe('Audit this move.');
 });
 
-it('blocks moving an occupied position with a clear message', function (): void {
+it('moves an occupied position and takes its holder along', function (): void {
     $user = movementUser(['positions.viewAny', 'positions.view', 'positions.move']);
     $employee = Employee::query()->create([
         'employee_number' => 'MOVE-EMP-001',
@@ -252,7 +252,7 @@ it('blocks moving an occupied position with a clear message', function (): void 
         'status' => 'active',
     ]);
 
-    EmployeeAssignment::query()->create([
+    $assignment = EmployeeAssignment::query()->create([
         'employee_id' => $employee->id,
         'organization_id' => $this->organization->id,
         'organization_unit_id' => $this->currentUnit->id,
@@ -265,12 +265,13 @@ it('blocks moving an occupied position with a clear message', function (): void 
     $this->actingAs($user)
         ->post(route('positions.move.store', $this->position), [
             'target_organization_unit_id' => $this->targetUnit->id,
-            'reason' => 'Attempt to move an occupied position.',
+            'reason' => 'Move an occupied position.',
         ])
-        ->assertSessionHasErrors([
-            'target_organization_unit_id' => 'This position is occupied and cannot be moved.',
-        ]);
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('positions.show', $this->position));
 
-    expect($this->position->fresh()->organization_unit_id)->toBe($this->currentUnit->id)
-        ->and(PositionMovement::query()->count())->toBe(0);
+    expect($this->position->fresh()->organization_unit_id)->toBe($this->targetUnit->id)
+        ->and($assignment->fresh()->organization_unit_id)->toBe($this->targetUnit->id)
+        ->and($assignment->fresh()->position_id)->toBe($this->position->id)
+        ->and(PositionMovement::query()->count())->toBe(1);
 });

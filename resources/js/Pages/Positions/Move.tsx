@@ -52,8 +52,8 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
 
             <form onSubmit={submit} className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                 {isOccupied && (
-                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
-                        {t('positions.occupiedCannotMove')}
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
+                        {t('positions.occupiedMovesWithHolder')}
                     </div>
                 )}
 
@@ -80,7 +80,6 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
                         className={inputClass}
                         value={form.data.target_organization_unit_id}
                         onChange={(event) => form.setData('target_organization_unit_id', event.target.value)}
-                        disabled={isOccupied}
                     >
                         <option value="">{t('positions.selectTargetOrganizationUnit')}</option>
                         {targetOrganizationUnits.map((unit) => (
@@ -101,7 +100,6 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
                         required
                         value={form.data.reason}
                         onChange={(event) => form.setData('reason', event.target.value)}
-                        disabled={isOccupied}
                     />
                     {form.errors.reason && <span className="mt-1 block text-sm text-red-600">{form.errors.reason}</span>}
                 </label>
@@ -116,7 +114,7 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
                     </Link>
                     <button
                         type="submit"
-                        disabled={isOccupied || form.processing || form.data.target_organization_unit_id === ''}
+                        disabled={form.processing || form.data.target_organization_unit_id === ''}
                         className={buttonClassName({ variant: 'primary' })}
                     >
                         {t('positions.confirmMove')}
