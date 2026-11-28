@@ -18,6 +18,8 @@ class EmployeeDetailResource extends EmployeeResource
         // national_id is encrypted PII — only exposed to users with the
         // employees.viewPii permission (or Super Admin via Gate::before).
         $data['national_id'] = $request->user()?->can('employees.viewPii') ? $this->national_id : null;
+        // Lets the edit form tell an editor who cannot see the number that one is on record.
+        $data['has_national_id'] = filled($this->national_id);
         $data['photo_path'] = $this->photo_path;
         $data['photo_url'] = $this->photo_url;
         $data['date_of_birth'] = $this->date_of_birth?->toDateString();

@@ -80,6 +80,18 @@ it('keeps the national id when an editor who cannot see it saves the form', func
         ->and($employee->national_id_hash)->toBe(NationalIdHash::of('1111222233334444'));
 });
 
+it('saves a national id typed by an editor who cannot see the stored one', function (): void {
+    // Dropping the typed number answered "updated successfully" while nothing was stored.
+    $this->actingAs(stageOneEditor(false))
+        ->patch(route('employees.update', $this->employee), [
+            'first_name' => 'Abeba', 'last_name' => 'Kebede', 'status' => 'active', 'national_id' => '9999000011112222',
+        ])->assertSessionHasNoErrors();
+
+    $employee = $this->employee->fresh();
+    expect($employee->national_id)->toBe('9999000011112222')
+        ->and($employee->national_id_hash)->toBe(NationalIdHash::of('9999000011112222'));
+});
+
 it('still lets an editor who sees the national id change it', function (): void {
     $this->actingAs(stageOneEditor(true))
         ->patch(route('employees.update', $this->employee), [
